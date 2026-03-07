@@ -47,8 +47,8 @@ const {
   <!-- NAV -->
   <nav class="nav" id="mainNav">
     <a href="/" class="nav-logo" aria-label="Scenkonsult – Startsida">
-      <img class="logo-w" src="/logo-white.png" alt="Scenkonsult" width="200" height="68" />
-      <img class="logo-c" src="/logo-color.png" alt="Scenkonsult" width="200" height="68" />
+      <img class="logo-w" src="/logo-white.png" alt="Scenkonsult" />
+      <img class="logo-c" src="/logo-color.png" alt="Scenkonsult" />
     </a>
     <button class="nav-hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -84,7 +84,7 @@ const {
   <footer>
     <div class="footer-top">
       <div class="footer-brand">
-        <img src="/logo-white.png" alt="Scenkonsult" width="180" height="60" />
+        <img src="/logo-white.png" alt="Scenkonsult" />
         <p class="footer-desc">
           Uthyrning av scen, ljud, ljus, bild och DJ-utrustning för fest,
           bröllop, event och konserter i Stockholm och hela Storstockholm.
@@ -134,9 +134,11 @@ const {
   <script>
     // Nav scroll behavior
     const nav = document.getElementById('mainNav');
-    window.addEventListener('scroll', () => {
+    function updateNav() {
       nav?.classList.toggle('scrolled', window.scrollY > 40);
-    }, { passive: true });
+    }
+    updateNav(); // Set correct state on page load
+    window.addEventListener('scroll', updateNav, { passive: true });
 
     // Hamburger menu
     const hamburger = document.getElementById('hamburger');
