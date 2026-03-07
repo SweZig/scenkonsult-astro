@@ -1,418 +1,436 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Price from '../components/Price.astro';
-import site from '../data/site.json';
-
-const homepageSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "url": "https://scenkonsult.se",
-  "name": site.company.name,
-  "description": site.seo.defaultDescription,
-};
-
-// Hero carousel – 6 bilder med bildtext
-const heroSlides = [
-  { src: "/images/hero/karusell_01.png", alt: "Scenkonsult – professionell scenproduktion i Stockholm" },
-  { src: "/images/hero/karusell_02.png", alt: "Ljud och ljus för konserter och event i Stockholm" },
-  { src: "/images/hero/karusell_03.png", alt: "Komplett PA-system och scensystem för festival" },
-  { src: "/images/hero/karusell_04.png", alt: "DJ-utrustning och scenbelysning för fest i Stockholm" },
-  { src: "/images/hero/karusell_05.png", alt: "Bröllopsscen med ljus och ljud – uthyrning Stockholm" },
-  { src: "/images/hero/karusell_06.png", alt: "Företagsevent med professionell scen och PA-system" },
-];
-
-// Servicekort – tjanster/-bilderna är äldre versioner (2025/08),
-// ljud/-bilderna är nyare (2026/01) → ger visuell variation
-const services = [
-  {
-    title: "Hyra scen",
-    desc: "12 scenpaket från 4 m² (1 person) till 48 m² (14 pers). Med eller utan tak.",
-    href: "/vara-tjanster/hyra-scen/",
-    image: "/images/tjanster/plugg_scener.png",
-    alt: "Hyra scen Stockholm – scenpaket för fest och event",
-    fromExcl: 599,
-  },
-  {
-    title: "Hyra ljud – Event & konferens",
-    desc: "PA-system med trådlösa mikrofoner för seminarier, galor och bolagsstämmor.",
-    href: "/vara-tjanster/hyra-ljud/event/",
-    image: "/images/tjanster/plugg_event_ljud.png",
-    alt: "Hyra PA-system för event och konferens Stockholm",
-    fromExcl: 599,
-  },
-  {
-    title: "Hyra ljud – Musik & dans",
-    desc: "Subbasar med fysiskt tryck och diskanter som bär. Dansgolvet vaknar till liv.",
-    href: "/vara-tjanster/hyra-ljud/music/",
-    image: "/images/tjanster/plugg_dance_ljud.png",
-    alt: "Hyra dansljud och PA för fest i Stockholm",
-    fromExcl: 799,
-  },
-  {
-    title: "Hyra ljud – Live & konsert",
-    desc: "Line array, monitorhögtalare och stagebox. Vad proffsen förväntar sig på scen.",
-    href: "/vara-tjanster/hyra-ljud/live/",
-    image: "/images/tjanster/plugg_live_ljud.png",
-    alt: "Hyra liveljud och PA för konsert i Stockholm",
-    fromExcl: 1299,
-  },
-  {
-    title: "Hyra ljus",
-    desc: "Från enkel festbelysning till professionell scenlighting med moving heads och DMX.",
-    href: "/vara-tjanster/hyra-ljus/",
-    image: "/images/tjanster/plugg_ljus.png",
-    alt: "Hyra ljusutrustning och festbelysning Stockholm",
-    fromExcl: 499,
-  },
-  {
-    title: "Hyra projektor & skärm",
-    desc: "3 500–12 000 ANSI + LED-väggar. Full HD och 4K. Dukar i alla storlekar.",
-    href: "/vara-tjanster/hyra-bild-projektorer-skarmar/",
-    image: "/images/tjanster/plugg_bild.png",
-    alt: "Hyra projektor och LED-skärm Stockholm",
-    fromExcl: 699,
-  },
-  {
-    title: "Hyra portabelt ljud",
-    desc: "Batteridriven, IP-klassad och fri från kablar. Proffsjud utomhus utan eluttag.",
-    href: "/vara-tjanster/hyra-ljud/portable/",
-    image: "/images/tjanster/plugg_portabelt.png",
-    alt: "Portabelt PA-system och utomhusljud Stockholm",
-    fromExcl: 399,
-  },
-  {
-    title: "Hyra DJ-utrustning",
-    desc: "Pioneer CDJ-2000NXS2 + DJM-900NXS2. Samma setup som världens bästa klubbar.",
-    href: "/vara-tjanster/hyra-dj/",
-    image: "/images/tjanster/plugg_dj.png",
-    alt: "Hyra DJ-utrustning Pioneer CDJ Stockholm",
-    fromExcl: 499,
-  },
-];
-
-const avgRating = site.reviews.reduce((s, r) => s + r.rating, 0) / site.reviews.length;
 ---
-
 <Layout
   title="Hyra Scen, Ljud & Ljus Stockholm | Scenkonsult – Sedan 1986"
-  description="Hyr scen, ljud, ljus, projektorer och DJ i Stockholm från 399 kr/dygn. Komplett utrustning för fest, bröllop, event och konserter. Leverans i hela Storstockholm. Ring 072-448 10 00!"
-  schemaExtra={homepageSchema}
+  description="Uthyrning av scen, ljud, ljus, bild och DJ-utrustning för fest, bröllop, event och konsert. Komplett scenproduktion i Stockholm. Leverans och montering. Sedan 1986."
 >
 
-  <!-- ===== HERO KARUSELL ===== -->
-  <!-- ===== HERO – STATISK FULLBREDSDBILD (som på WordPress) ===== -->
-  <section class="relative overflow-hidden bg-brand-dark" aria-label="Välkommen till Scenkonsult">
-    <!-- Bakgrundsbild – karusell_01 är primärhero (samma som WP), 1920×1080 native -->
-    <div class="relative w-full" style="min-height: clamp(420px, 60vh, 720px);">
-      <picture>
-        <source type="image/webp" srcset="/images/hero/scen3_hero.webp" />
-        <img
-          src="/images/hero/scen3_hero.jpg"
-          alt="Scenkonsult – professionell scen med ljus och ljud i Stockholm"
-          width="1024"
-          height="1024"
-          class="absolute inset-0 w-full h-full object-cover object-center"
-          loading="eager"
-          decoding="sync"
-          fetchpriority="high"
-          style="background-color:#1a2744;object-position:center 30%"
-        />
-      </picture>
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-l">
+      <div class="logo-ring"></div>
+      <div class="ghost-year">1986</div>
+      <p class="hero-eyebrow">
+        <span class="hero-eyebrow-line"></span>
+        Stockholms mest erfarna eventpartner sedan 1986
+      </p>
+      <h1 class="hero-h1">
+        Hyra scen,<br>
+        ljud &amp; ljus<br>
+        <em>i Stockholm</em>
+      </h1>
+      <p class="hero-body">
+        Komplett scenproduktion för fest, bröllop, företagsevent och konsert.
+        Leverans och montering i hela Storstockholm. Vi svarar inom ett par timmar.
+      </p>
+      <div class="hero-checks">
+        <span class="hero-check">Sedan 1986</span>
+        <span class="hero-check">Hela Storstockholm</span>
+        <span class="hero-check">Jourtjänst kvällstid</span>
+        <span class="hero-check">Generösa avbokningsregler</span>
+      </div>
+      <div class="hero-btns">
+        <a href="/boka" class="btn-solid">Boka eller fråga om pris</a>
+        <a href="/vara-tjanster" class="btn-ghost-link">Se alla tjänster</a>
+      </div>
+    </div>
+    <div class="hero-r">
+      <video autoplay muted loop playsinline>
+        <source src="https://scenkonsult.se/wp-content/uploads/2025/09/Promotion_480_4.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-r-tint"></div>
+      <div class="hero-scroll-hint">
+        <div class="scroll-bar"></div>
+        <span>Scroll</span>
+      </div>
+    </div>
+  </section>
 
-      <!-- Gradientöverlapp – mörkare vänster för text -->
-      <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20"></div>
-      <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+  <!-- ── MANIFESTO BAR ── -->
+  <div class="manifesto">
+    <div class="m-stat">
+      <div class="m-stat-n">1986</div>
+      <div class="m-stat-l">Grundat</div>
+    </div>
+    <div class="m-div"></div>
+    <div class="m-stat">
+      <div class="m-stat-n">500+</div>
+      <div class="m-stat-l">Event per år</div>
+    </div>
+    <div class="m-div"></div>
+    <div class="m-stat">
+      <div class="m-stat-n">20</div>
+      <div class="m-stat-l">Till 2&thinsp;000 gäster</div>
+    </div>
+    <div class="m-div"></div>
+    <div class="m-stat">
+      <div class="m-stat-n">100%</div>
+      <div class="m-stat-l">Testad utrustning</div>
+    </div>
+    <div class="m-heritage">
+      <strong>Del av Sveriges scener sedan 1986</strong> — erfarenhet som syns i varje detalj
+    </div>
+  </div>
 
-      <!-- Innehåll -->
-      <div class="relative h-full flex items-center" style="min-height: clamp(420px, 60vh, 720px);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16">
-          <div class="max-w-2xl">
-            <div class="inline-flex items-center gap-2 bg-brand-orange/20 border border-brand-orange/30 text-brand-orange px-3 py-1.5 rounded-full text-sm font-medium mb-5">
-              ⭐ Stockholms mest erfarna eventpartner sedan 1986
-            </div>
-            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5">
-              Hyra scen, ljud & ljus i <span class="text-brand-orange">Stockholm</span>
-            </h1>
-            <p class="text-base sm:text-xl text-gray-200 leading-relaxed mb-7 max-w-xl">
-              Komplett scenproduktion för fest, bröllop, företagsevent och konsert. Leverans och montering i hela Storstockholm.
-            </p>
-            <div class="flex flex-col sm:flex-row flex-wrap gap-3">
-              <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3.5 rounded-xl font-bold text-base sm:text-lg transition-colors shadow-lg shadow-brand-orange/30 text-center">
-                Boka eller fråga om pris
-              </a>
-              <a href="/vara-tjanster/" class="bg-white/10 backdrop-blur border border-white/30 text-white hover:bg-white/20 px-6 py-3.5 rounded-xl font-semibold text-base sm:text-lg transition-colors text-center">
-                Se alla tjänster
-              </a>
-            </div>
-            <!-- Trust-signaler -->
-            <div class="flex flex-wrap gap-5 mt-8 text-sm text-gray-300">
-              <span class="flex items-center gap-1.5"><span class="text-green-400">✓</span> Sedan 1986</span>
-              <span class="flex items-center gap-1.5"><span class="text-green-400">✓</span> Hela Storstockholm</span>
-              <span class="flex items-center gap-1.5"><span class="text-green-400">✓</span> Jourtjänst kvällstid</span>
-              <span class="flex items-center gap-1.5"><span class="text-green-400">✓</span> Generösa avbokningsregler</span>
-            </div>
+  <!-- ── TJÄNSTER ── -->
+  <section class="section services" style="background:var(--cream);">
+    <div class="svc-head">
+      <div>
+        <span class="overline">Vad vill du hyra?</span>
+        <h2 class="display" style="margin-top:0.5rem;">
+          Allt du behöver<br><em>för ett lyckat event</em>
+        </h2>
+      </div>
+      <p class="lead">
+        All utrustning testas och kalibreras inför varje uthyrning.
+        Vi hjälper dig välja rätt — kostnadsfri rådgivning ingår alltid.
+      </p>
+    </div>
+    <div class="svc-grid">
+
+      <div class="svc-card">
+        <div class="svc-n">01</div>
+        <div class="svc-title">Hyra scen</div>
+        <div class="svc-price">från 749 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">12 scenpaket från 4 m² (1 person) till 48 m² (14 pers). Med eller utan tak. Leverans och montering ingår.</p>
+        <a href="/hyra-scen" class="svc-link">Se scenpaket</a>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-n">02</div>
+        <div class="svc-title">Hyra ljud – Event &amp; konferens</div>
+        <div class="svc-price">från 749 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">PA-system med trådlösa mikrofoner för seminarier, galor och bolagsstämmor. Enkelt att använda.</p>
+        <a href="/hyra-ljud-event" class="svc-link">Se paketen</a>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-n">03</div>
+        <div class="svc-title">Hyra ljud – Musik &amp; dans</div>
+        <div class="svc-price">från 999 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">Subbasar med fysiskt tryck och diskanter som bär. Dansgolvet vaknar till liv. Perfekt för fest och bröllop.</p>
+        <a href="/hyra-ljud-dans" class="svc-link">Se paketen</a>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-n">04</div>
+        <div class="svc-title">Hyra ljud – Live &amp; konsert</div>
+        <div class="svc-price">från 1 624 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">Line array, monitorhögtalare och stagebox. Vad proffsen förväntar sig på scen. Samma system som turnébolag.</p>
+        <a href="/hyra-ljud-live" class="svc-link">Se paketen</a>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-n">05</div>
+        <div class="svc-title">Hyra ljus</div>
+        <div class="svc-price">från 624 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">Från enkel festbelysning till professionell scenlighting med moving heads och DMX-styrning.</p>
+        <a href="/hyra-ljus" class="svc-link">Se ljuspaket</a>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-n">06</div>
+        <div class="svc-title">Hyra projektor &amp; skärm</div>
+        <div class="svc-price">från 874 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">3 500–12 000 ANSI + LED-väggar. Full HD och 4K. Dukar och skärmar i alla storlekar.</p>
+        <a href="/hyra-projektor" class="svc-link">Se bildpaket</a>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-n">07</div>
+        <div class="svc-title">Hyra portabelt ljud</div>
+        <div class="svc-price">från 499 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">Batteridriven, IP-klassad och fri från kablar. Proffsjud utomhus utan eluttag. Perfekt för torg och trädgård.</p>
+        <a href="/hyra-portabelt-ljud" class="svc-link">Se portabelt ljud</a>
+      </div>
+
+      <div class="svc-card">
+        <div class="svc-n">08</div>
+        <div class="svc-title">Hyra DJ-utrustning</div>
+        <div class="svc-price">från 624 kr<span>/ dygn · B2C</span></div>
+        <p class="svc-desc">Pioneer CDJ-2000NXS2 + DJM-900NXS2. Samma setup som världens bästa klubbar. Vi förmedlar även erfarna DJs.</p>
+        <a href="/hyra-dj" class="svc-link">Se DJ-utrustning</a>
+      </div>
+
+      <div class="svc-card" style="background:var(--ink);border-color:var(--ink);">
+        <div class="svc-n" style="color:rgba(255,255,255,0.15);">🎪</div>
+        <div class="svc-title" style="color:white;">Komplett event</div>
+        <div class="svc-price" style="color:rgba(255,255,255,0.8);">Scen + ljud + ljus + teknik<span style="color:rgba(255,255,255,0.4);">på en offert</span></div>
+        <p class="svc-desc" style="color:rgba(255,255,255,0.6);">Vi projekterar hela lösningen. Beskriv ditt behov — vi presenterar pris och upplägg. Ingen scen är för liten eller för stor.</p>
+        <a href="/boka" class="svc-link" style="color:white;">Begär offert</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── VIDEOR ── -->
+  <section class="section video-section">
+    <div class="video-head">
+      <div>
+        <span class="overline">Se utrustningen i action</span>
+        <h2 class="display" style="margin-top:0.5rem;">
+          Utrustning som<br><em>levererar</em>
+        </h2>
+      </div>
+      <p class="lead">
+        Från det senaste inom Alto TS-serien till professionell Denon DJ-utrustning
+        — se vår utrustning i rörelse.
+      </p>
+    </div>
+    <div class="video-layout">
+      <div class="video-main">
+        <div class="video-wrap">
+          <video autoplay muted loop playsinline>
+            <source src="https://scenkonsult.se/wp-content/uploads/2025/09/Promotion_480_4.mp4" type="video/mp4" />
+          </video>
+          <div class="video-overlay"></div>
+          <div class="video-label">
+            <span class="video-tag">Sortiment</span>
+            <span class="video-name">Hela vårt breda sortiment</span>
+          </div>
+        </div>
+      </div>
+      <div class="video-side-top">
+        <div class="video-wrap">
+          <video autoplay muted loop playsinline>
+            <source src="https://scenkonsult.se/wp-content/uploads/2025/12/Alto_new_720p.mp4" type="video/mp4" />
+          </video>
+          <div class="video-overlay"></div>
+          <div class="video-label">
+            <span class="video-tag">Nyhet</span>
+            <span class="video-name">Alto TS-serien — hyr nu</span>
+          </div>
+        </div>
+      </div>
+      <div class="video-side-bot">
+        <div class="video-wrap">
+          <video autoplay muted loop playsinline>
+            <source src="https://scenkonsult.se/wp-content/uploads/2025/12/Denon_commercial.mp4" type="video/mp4" />
+          </video>
+          <div class="video-overlay"></div>
+          <div class="video-label">
+            <span class="video-tag">DJ-utrustning</span>
+            <span class="video-name">Denon DJ — pro-utrustning</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== SERVICEKORT MED PLUGG-BILDER ===== -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" aria-label="Våra tjänster">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-3">Vad vill du hyra?</h2>
-      <p class="text-gray-400 max-w-2xl mx-auto">Allt du behöver för ett lyckat event – levererat och uppriggat i hela Storstockholm.</p>
+  <!-- ── IDENTITY / VARFÖR OSS ── -->
+  <section class="identity">
+    <div class="id-l">
+      <div class="id-dots"></div>
+      <div class="id-logo">
+        <img src="/logo-white.png" alt="Scenkonsult" width="180" height="80" />
+      </div>
+      <div class="id-quote">
+        <span class="id-qmark">"</span>
+        <p class="id-qtext">
+          Riktigt professionella — gjorde min fest till en riktig succé!
+        </p>
+        <p class="id-qsource">— Roger L · Täby</p>
+      </div>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {services.map(s => (
-        <a
-          href={s.href}
-          class="group bg-brand-navy border border-white/10 hover:border-brand-orange/60 rounded-2xl overflow-hidden transition-all duration-200 flex flex-col"
-        >
-          <div class="aspect-video overflow-hidden bg-brand-dark">
-            <img
-              src={s.image}
-              alt={s.alt}
-              width="300"
-              height="169"
-              loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <div class="p-4 flex flex-col flex-1">
-            <h3 class="text-white font-bold text-sm sm:text-base mb-1 group-hover:text-brand-orange transition-colors leading-snug">{s.title}</h3>
-            <p class="text-gray-500 text-xs leading-relaxed mb-3 flex-1">{s.desc}</p>
-            <div class="flex items-center justify-between mt-auto">
-              <span class="text-brand-orange font-bold text-sm">från <Price amount={s.fromExcl} size="sm" /></span>
-              <span class="text-gray-500 group-hover:text-brand-orange transition-colors text-xs">→</span>
-            </div>
-          </div>
-        </a>
-      ))}
-
-      <!-- Komplett event-card -->
-      <a
-        href="/kontakt/"
-        class="group bg-gradient-to-br from-brand-orange/20 to-brand-orange/5 border border-brand-orange/30 hover:border-brand-orange/70 rounded-2xl overflow-hidden transition-all duration-200 flex flex-col"
-      >
-        <div class="aspect-video bg-brand-dark/60 flex items-center justify-center text-6xl">
-          🎪
-        </div>
-        <div class="p-4 flex flex-col flex-1">
-          <h3 class="text-white font-bold text-sm sm:text-base mb-1 group-hover:text-brand-orange transition-colors">Komplett event</h3>
-          <p class="text-gray-400 text-xs leading-relaxed mb-3 flex-1">Scen + ljud + ljus + teknik på en offert. Vi projekterar hela lösningen.</p>
-          <span class="text-brand-orange font-bold text-sm">Begär offert →</span>
-        </div>
-      </a>
-    </div>
-  </section>
-
-  <!-- ===== VARFÖR OSS ===== -->
-  <section class="bg-brand-navy border-y border-white/10 py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div>
-          <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Ingen scen är för liten – eller för stor</h2>
-          <p class="text-gray-400 text-lg leading-relaxed mb-8">
-            Oavsett om du arrangerar en privat fest för 20 eller ett företagsevent för 2 000 gäster – vi har rätt utrustning, rätt kunskap och rätt service. Sedan 1986.
-          </p>
-          <div class="space-y-3">
-            {[
-              "All utrustning testas och kalibreras inför varje uthyrning",
-              "Vi hjälper dig välja rätt – kostnadsfritt rådgivning",
-              "Jourtjänst kvällstid om något krånglar",
-              "Generösa avbokningsregler – inga dolda avgifter",
-              "Leverans och montering i hela Storstockholm",
-            ].map(p => (
-              <div class="flex items-start gap-3">
-                <span class="text-brand-orange mt-0.5 shrink-0">✓</span>
-                <span class="text-gray-300 text-sm">{p}</span>
-              </div>
-            ))}
-          </div>
-          <div class="mt-8 flex flex-wrap gap-4">
-            <a href="/om-oss/" class="border border-white/30 text-white hover:bg-white/10 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors">Läs vår historia →</a>
-            <a href="tel:0724481000" class="text-brand-orange hover:text-white text-sm font-semibold py-2.5 transition-colors">📞 072-448 10 00</a>
+    <div class="id-r">
+      <span class="overline">Varför Scenkonsult</span>
+      <h2 class="display">
+        Ingen scen är<br>
+        <em>för liten — eller för stor</em>
+      </h2>
+      <p class="lead">
+        Sedan 1986 har vi hjälpt privatpersoner, kommuner, ambassader och
+        storbolag med allt från hemma-fester för 20 till företagsevent för 2 000 gäster.
+      </p>
+      <div class="id-points">
+        <div class="id-pt">
+          <div class="id-pt-check"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div>
+          <div>
+            <div class="id-pt-title">All utrustning testas inför varje uthyrning</div>
+            <p class="id-pt-desc">Ingenting lämnar oss utan att ha kontrollerats och kalibrerats.</p>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          {[
-            { num: "1986", label: "Grundat" },
-            { num: "500+", label: "Event per år" },
-            { num: "33+", label: "Nöjda kunder" },
-            { num: "100%", label: "Testad utrustning" },
-          ].map(s => (
-            <div class="bg-brand-dark border border-white/10 rounded-2xl p-6 text-center">
-              <div class="text-4xl font-extrabold text-brand-orange mb-1">{s.num}</div>
-              <div class="text-gray-400 text-sm">{s.label}</div>
-            </div>
-          ))}
+        <div class="id-pt">
+          <div class="id-pt-check"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div>
+          <div>
+            <div class="id-pt-title">Kostnadsfri rådgivning — alltid</div>
+            <p class="id-pt-desc">Vi hjälper dig välja rätt storlek och setup för ditt specifika event.</p>
+          </div>
+        </div>
+        <div class="id-pt">
+          <div class="id-pt-check"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div>
+          <div>
+            <div class="id-pt-title">Jourtjänst kvällstid om något krånglar</div>
+            <p class="id-pt-desc">Vi finns tillgängliga under ditt event ifall något oväntat inträffar.</p>
+          </div>
+        </div>
+        <div class="id-pt">
+          <div class="id-pt-check"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div>
+          <div>
+            <div class="id-pt-title">Generösa avbokningsregler — inga dolda avgifter</div>
+            <p class="id-pt-desc">Livet är oförutsägbart. Vi behandlar dig som vi vill bli behandlade.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== RECENSIONER ===== -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" aria-label="Kundrecensioner">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-2">Vad säger våra kunder?</h2>
-      <div class="flex items-center justify-center gap-1 text-yellow-400 text-xl mb-2">
-        {"⭐".repeat(5)}
+  <!-- ── KUNDER ── -->
+  <section class="section customers">
+    <div class="customers-head">
+      <div>
+        <span class="overline">Kunder vi anlitats av</span>
+        <h2 class="display" style="margin-top:0.5rem;">
+          Ett axplock av<br><em>nöjda kunder</em>
+        </h2>
+        <p class="lead" style="margin-top:0.75rem;">
+          Från privata fester till myndigheter, ambassader och börsbolag —
+          vi har erfarenhet av alla typer av uppdrag.
+        </p>
       </div>
-      <p class="text-gray-400">{avgRating.toFixed(1)} av 5 – {site.reviews.length} recensioner</p>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {site.reviews.map(r => (
-        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6" itemscope itemtype="https://schema.org/Review">
-          <div class="text-yellow-400 mb-3 text-lg">{"⭐".repeat(r.rating)}</div>
-          <p class="text-gray-300 text-sm leading-relaxed mb-4 italic" itemprop="reviewBody">"{r.text}"</p>
-          <div class="text-sm text-gray-500" itemprop="author" itemscope itemtype="https://schema.org/Person">
-            <span class="font-medium text-gray-400" itemprop="name">{r.author}</span>
-            {r.location && <span>, {r.location}</span>}
-          </div>
+      <div class="cust-size">
+        <div class="cust-size-item">
+          <div class="cust-size-num">20</div>
+          <div class="cust-size-label">Privat mottagning</div>
         </div>
-      ))}
+        <div class="cust-size-item">
+          <div class="cust-size-num">250</div>
+          <div class="cust-size-label">Festlokal</div>
+        </div>
+        <div class="cust-size-item">
+          <div class="cust-size-num">600</div>
+          <div class="cust-size-label">Konsertlokal</div>
+        </div>
+        <div class="cust-size-item">
+          <div class="cust-size-num">2&thinsp;000</div>
+          <div class="cust-size-label">Företagsevent</div>
+        </div>
+      </div>
     </div>
-  </section>
 
-  <!-- ===== KUNDER ===== -->
-  <section class="bg-brand-navy border-y border-white/10 py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-center text-white font-semibold mb-8 text-lg">Några av de organisationer som anlitat oss</h2>
-      <div class="flex flex-wrap justify-center gap-2">
-        {site.clients.map(c => (
-          <span class="bg-brand-dark border border-white/10 text-gray-400 text-xs sm:text-sm px-3 py-1.5 rounded-full hover:border-white/30 hover:text-gray-300 transition-colors">
-            {c}
-          </span>
+    <!-- Scrolling customer marquee -->
+    <div class="cust-scroll">
+      <div class="cust-track">
+        {[
+          'Stockholm Stad','Solna Stad','ICA Sverige','Akademiska Hus','Mälardalens Universitet',
+          'Brasiliens Ambassad','Indiens Ambassad','Kommunalarbetareförbundet','Tyresö Kommun',
+          'Haninge Kommun','Ung Företagsamhet','Miljöpartiet','ABG Sundal Collier',
+          'Houdini Sportswear','Solna Tingsrätt','Hornbach','Odd Fellow','Vision',
+          'Vänsterpartiet','Korpen','A Beautiful Soap','Aiva Productions','Backingminds',
+          'Cash In Drop Out','Ekologigruppen','Hacksaw Studios','iOffice','Kameo',
+          // duplicate for seamless loop
+          'Stockholm Stad','Solna Stad','ICA Sverige','Akademiska Hus','Mälardalens Universitet',
+          'Brasiliens Ambassad','Indiens Ambassad','Kommunalarbetareförbundet','Tyresö Kommun',
+          'Haninge Kommun','Ung Företagsamhet','Miljöpartiet','ABG Sundal Collier',
+          'Houdini Sportswear','Solna Tingsrätt','Hornbach','Odd Fellow','Vision',
+        ].map(name => (
+          <span class="cust-name">{name}</span>
         ))}
       </div>
     </div>
+
+    <div class="cust-tagline">
+      <strong>Ingen scen är för liten — eller för stor</strong> för oss
+    </div>
   </section>
 
-  <!-- ===== BILDGALLERI (karusell) ===== -->
-  <section class="bg-brand-navy border-y border-white/10 py-12" aria-label="Bildgalleri">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl font-bold text-white mb-6 text-center">Se våra event i bilder</h2>
-      <div class="relative overflow-hidden rounded-2xl" style="aspect-ratio: 16/7;">
-        <div class="gallery-track flex transition-transform duration-700 ease-in-out h-full" id="gallery-track">
-          {heroSlides.map((slide, i) => (
-            <div class="gallery-slide flex-shrink-0 w-full h-full relative">
-              <picture>
-                <source type="image/webp" srcset={slide.src.replace('.png', '.webp')} />
-                <img
-                  src={slide.src}
-                  alt={slide.alt}
-                  width="1920"
-                  height="840"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                  style="background-color:#1a2744"
-                />
-              </picture>
-            </div>
-          ))}
+  <!-- ── RECENSIONER ── -->
+  <section class="section reviews">
+    <span class="overline">Vad kunderna säger</span>
+    <h2 class="display" style="margin-top:0.5rem;">
+      Omdömen som<br><em>värmer</em>
+    </h2>
+    <div class="review-grid">
+      <div class="review-card">
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
         </div>
-        <!-- Pilar -->
-        <button id="gallery-prev" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors backdrop-blur-sm z-10" aria-label="Föregående bild">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <button id="gallery-next" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors backdrop-blur-sm z-10" aria-label="Nästa bild">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        </button>
-        <!-- Dots -->
-        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {heroSlides.map((_, i) => (
-            <button
-              class={`gallery-dot rounded-full transition-all duration-300 ${i === 0 ? 'bg-brand-orange w-5 h-2' : 'bg-white/50 w-2 h-2'}`}
-              data-index={i}
-              aria-label={`Bild ${i + 1}`}
-            />
-          ))}
+        <p class="review-text">"Riktigt professionella — gjorde min fest till en riktig succé!"</p>
+        <p class="review-who">Roger L · Täby</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
         </div>
+        <p class="review-text">"Tack för superbra service, rekommenderas varmt!"</p>
+        <p class="review-who">Ann P · Huddinge</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="review-text">"Hyrde ljud för en helg — var toppen. Mycket hjälpsamma och enkla att ha att göra med."</p>
+        <p class="review-who">Charlotta F · Stockholm</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="review-text">"Tack för i lördags — allt var toppen! Så bra drag på dansgolvet."</p>
+        <p class="review-who">Jenny L · Stockholm</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="review-text">"Så värt att hyra in en DJ till festen — precis som krogen på 90-talet! 😉"</p>
+        <p class="review-who">Jonas A · Stockholm</p>
+      </div>
+      <div class="review-score">
+        <div class="review-score-num">5.0</div>
+        <div class="review-score-stars">★★★★★</div>
+        <div class="review-score-label">Genomsnittligt betyg</div>
       </div>
     </div>
   </section>
 
-  <!-- ===== GUIDER ===== -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h2 class="text-2xl font-bold text-white mb-6">Guider och tips</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-      <a href="/guide-till-eventlokaler-i-stockholm/" class="group bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-6 transition-all">
-        <div class="text-3xl mb-3">🏛</div>
-        <h3 class="font-bold text-white mb-2 group-hover:text-brand-orange transition-colors">Guide till eventlokaler i Stockholm</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">10 toppval för konferens, bröllop och konsert – med checklista.</p>
-        <span class="text-brand-orange text-sm font-semibold mt-3 block">Läs guiden →</span>
-      </a>
-      <a href="/den-ultimata-guiden-till-minnesvarda-fester/" class="group bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-6 transition-all">
-        <div class="text-3xl mb-3">🎉</div>
-        <h3 class="font-bold text-white mb-2 group-hover:text-brand-orange transition-colors">Den ultimata guiden till minnesvärda fester</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">6 hemligheter från 38 år i branschen – om ljud, ljus, scen och timing.</p>
-        <span class="text-brand-orange text-sm font-semibold mt-3 block">Läs guiden →</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- ===== FINAL CTA ===== -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 text-center">
-    <div class="bg-gradient-to-br from-brand-navy to-brand-dark border border-brand-orange/20 rounded-3xl p-10">
-      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-3">Redo att boka?</h2>
-      <p class="text-gray-400 text-lg mb-8 max-w-xl mx-auto">Vi svarar inom ett par timmar. Beskriv ditt behov och vi hittar rätt lösning.</p>
-      <div class="flex flex-wrap justify-center gap-4">
-        <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors shadow-lg shadow-brand-orange/30">
-          Boka online
-        </a>
-        <a href="tel:0724481000" class="border border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-xl font-semibold text-lg transition-colors">
-          📞 072-448 10 00
-        </a>
-        <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-xl font-semibold text-lg transition-colors">
-          Skicka meddelande
-        </a>
+  <!-- ── PROCESS ── -->
+  <section class="section process">
+    <span class="overline">Hur det fungerar</span>
+    <h2 class="display" style="margin-top:0.5rem;">
+      Enkelt att boka,<br><em>inga överraskningar</em>
+    </h2>
+    <div class="proc-grid">
+      <div class="proc-step" data-n="1">
+        <div class="proc-bar"></div>
+        <h4>Beskriv ditt event</h4>
+        <p>Kontakta oss via formulär eller telefon. Berätta om datum, plats, antal gäster och vad du behöver.</p>
+      </div>
+      <div class="proc-step" data-n="2">
+        <div class="proc-bar"></div>
+        <h4>Vi rådger och offererar</h4>
+        <p>Inom ett par timmar får du ett förslag med rätt utrustning för ditt event — och ett tydligt pris utan dolda avgifter.</p>
+      </div>
+      <div class="proc-step" data-n="3">
+        <div class="proc-bar"></div>
+        <h4>Leverans och montering</h4>
+        <p>Vi levererar, riggar och kalibrerar all utrustning på plats. Du behöver inte lyfta ett finger.</p>
+      </div>
+      <div class="proc-step" data-n="4">
+        <div class="proc-bar"></div>
+        <h4>Jourtjänst under eventet</h4>
+        <p>Vi finns tillgängliga kvällstid om något krånglar. Efter eventet hämtar vi allt — du fokuserar på att ha kul.</p>
       </div>
     </div>
   </section>
+
+  <!-- ── CTA ── -->
+  <div class="cta">
+    <div class="cta-deco"></div>
+    <div class="cta-inner">
+      <div>
+        <span class="cta-overline">Kom igång idag</span>
+        <h2 class="cta-title">
+          Beskriv ditt behov —<br>vi presenterar lösningen
+        </h2>
+        <p class="cta-sub">
+          Vi svarar i regel inom ett par timmar. Välkommen att ta kontakt oavsett
+          om det gäller en privat fest för 20 eller ett företagsevent för 2 000 gäster.
+        </p>
+      </div>
+      <a href="/boka" class="cta-btn">Boka eller fråga om pris</a>
+    </div>
+  </div>
 
 </Layout>
-
-<!-- ===== GALLERI-JAVASCRIPT ===== -->
-<script>
-  const track   = document.getElementById('gallery-track') as HTMLElement | null;
-  const gdots   = document.querySelectorAll<HTMLButtonElement>('.gallery-dot');
-  const gprev   = document.getElementById('gallery-prev');
-  const gnext   = document.getElementById('gallery-next');
-  const total   = gdots.length;
-  let gcurrent  = 0;
-  let gtimer: ReturnType<typeof setInterval>;
-
-  function galleryGoTo(n: number) {
-    gdots[gcurrent].classList.remove('bg-brand-orange', 'w-5');
-    gdots[gcurrent].classList.add('bg-white/50', 'w-2');
-    gcurrent = (n + total) % total;
-    if (track) track.style.transform = `translateX(-${gcurrent * 100}%)`;
-    gdots[gcurrent].classList.add('bg-brand-orange', 'w-5');
-    gdots[gcurrent].classList.remove('bg-white/50', 'w-2');
-  }
-
-  function startGallery() {
-    clearInterval(gtimer);
-    gtimer = setInterval(() => galleryGoTo(gcurrent + 1), 5000);
-  }
-
-  gprev?.addEventListener('click', () => { galleryGoTo(gcurrent - 1); startGallery(); });
-  gnext?.addEventListener('click', () => { galleryGoTo(gcurrent + 1); startGallery(); });
-  gdots.forEach((dot, i) => dot.addEventListener('click', () => { galleryGoTo(i); startGallery(); }));
-
-  const galleryEl = track?.parentElement;
-  galleryEl?.addEventListener('mouseenter', () => clearInterval(gtimer));
-  galleryEl?.addEventListener('mouseleave', startGallery);
-
-  // Touch-svep
-  let gTouchX = 0;
-  galleryEl?.addEventListener('touchstart', (e) => { gTouchX = (e as TouchEvent).touches[0].clientX; }, { passive: true });
-  galleryEl?.addEventListener('touchend', (e) => {
-    const diff = gTouchX - (e as TouchEvent).changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) { galleryGoTo(gcurrent + (diff > 0 ? 1 : -1)); startGallery(); }
-  }, { passive: true });
-
-  startGallery();
-</script>
