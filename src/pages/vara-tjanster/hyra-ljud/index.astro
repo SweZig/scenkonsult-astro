@@ -1,0 +1,155 @@
+---
+import Price from '../../../components/Price.astro';
+import Layout from '../../../layouts/Layout.astro';
+import ljudData from '../../../data/ljud.json';
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": ljudData.faq.map(f => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+  }))
+};
+---
+
+<Layout title={ljudData.metaTitle} description={ljudData.metaDescription} schemaExtra={faqSchema}>
+
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+    <ol class="flex items-center gap-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+        <meta itemprop="position" content="1" />
+      </li>
+      <span>/</span>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="/vara-tjanster/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Våra tjänster</span></a>
+        <meta itemprop="position" content="2" />
+      </li>
+      <span>/</span>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <span class="text-white" itemprop="name">Hyra ljud</span>
+        <meta itemprop="position" content="3" />
+      </li>
+    </ol>
+  </nav>
+
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">
+      Hyra ljud i <span class="text-brand-orange">Stockholm</span>
+    </h1>
+    <p class="text-gray-300 text-lg max-w-3xl leading-relaxed">{ljudData.intro}</p>
+    <div class="flex flex-wrap gap-3 mt-6">
+      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> PA för 1–2 000 personer</div>
+      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> Testkört och kalibrerat</div>
+      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> Tekniker tillgänglig</div>
+      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> Leverans i hela Storstockholm</div>
+    </div>
+  </header>
+
+  <!-- Kategori-grid med bilder -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {ljudData.categories.map(cat => (
+        <a href={cat.href} class="bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group block">
+          <div class="aspect-video bg-brand-dark overflow-hidden">
+            <img src={cat.image} alt={cat.name} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="p-5">
+            <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors mb-2">{cat.name}</h2>
+            <p class="text-gray-400 text-sm leading-relaxed mb-3">{cat.desc}</p>
+            <span class="text-brand-orange text-sm font-semibold">Se priser & sortiment →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Hur väljer du rätt? -->
+  <section class="bg-brand-navy border-y border-white/10 py-14">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold text-white mb-8">Hur väljer du rätt PA-system?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { steg: "1", rubrik: "Räkna gästerna", text: "Tumregel: 1 watt per person inomhus, 2–3 watt per person utomhus. Men det handlar mer om lokal och akustik – ring oss så hjälper vi dig räkna ut det exakt." },
+          { steg: "2", rubrik: "Vad ska ljuda?", text: "Tal och konferens → Event-system. Dansmusik → Music-system med sub. Live band → Live-system med monitor. Utomhus utan el → Portabelt system." },
+          { steg: "3", rubrik: "Vill du ha hjälp?", text: "Vi erbjuder tekniker för installation, soundcheck och körning under eventet. Priserna är lägre än du tror – och resultatet är bättre än du tror." },
+        ].map(s => (
+          <div class="bg-brand-dark border border-white/10 rounded-2xl p-6">
+            <div class="w-8 h-8 bg-brand-orange rounded-full flex items-center justify-center text-white font-bold text-sm mb-4">{s.steg}</div>
+            <h3 class="font-bold text-white mb-2">{s.rubrik}</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">{s.text}</p>
+          </div>
+        ))}
+      </div>
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a href="tel:0724481000" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">📞 Ring oss – kostnadsfri rådgivning</a>
+        <a href="/bokningssida/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Boka online</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Populäraste paketen -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <h2 class="text-2xl font-bold text-white mb-2">Populäraste paketen</h2>
+    <p class="text-gray-400 mb-8">Välkalibrerade system för fest, konferens och live – de tre vanligaste valen.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {[...ljudData.event.products.slice(0,1), ...ljudData.music.products.slice(0,1), ...ljudData.live.products.slice(0,1)].map(p => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group" itemscope itemtype="https://schema.org/Product">
+          <div class="aspect-video bg-brand-dark overflow-hidden">
+            <img src={p.image} alt={p.alt} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="p-5">
+            <h3 class="font-bold text-white text-lg mb-1 group-hover:text-brand-orange transition-colors" itemprop="name">{p.name}</h3>
+            <p class="text-gray-500 text-xs mb-2">{p.tagline}</p>
+            <p class="text-gray-400 text-sm mb-4">{p.persons}</p>
+            <ul class="space-y-1 mb-4">
+              {p.includes.slice(0,4).map(item => (
+                <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{item}</li>
+              ))}
+            </ul>
+            <div class="flex items-center justify-between border-t border-white/10 pt-4" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+              <meta itemprop="priceCurrency" content="SEK" />
+              <meta itemprop="price" content={String(p.price)} />
+              <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div>
+                <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" suffix={p.priceNote} /></span>
+                
+              </div>
+              <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Boka</a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-8">Vanliga frågor om ljud</h2>
+    <div class="space-y-4">
+      {ljudData.faq.map(f => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
+          <summary class="flex items-center justify-between p-5 cursor-pointer font-semibold text-white hover:text-brand-orange transition-colors list-none">
+            {f.question}
+            <span class="text-brand-orange ml-4 shrink-0 group-open:rotate-45 transition-transform">+</span>
+          </summary>
+          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4">{f.answer}</div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <section class="bg-brand-navy border-t border-white/10 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-xl font-bold text-white mb-6">Komplettera med</h2>
+      <div class="flex flex-wrap gap-4">
+        <a href="/vara-tjanster/hyra-scen/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🎭 Hyra scen</a>
+        <a href="/vara-tjanster/hyra-ljus/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">💡 Hyra ljus</a>
+        <a href="/vara-tjanster/hyra-dj/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🎛 Hyra DJ-utrustning</a>
+      </div>
+    </div>
+  </section>
+
+</Layout>

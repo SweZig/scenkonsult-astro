@@ -1,0 +1,51 @@
+---
+/**
+ * Price.astro – visar pris med inkl/exkl moms-toggle.
+ * Alla sidor som visar priser ska använda denna komponent.
+ * 
+ * Props:
+ *   amount    – priset EXKLUSIVE moms (grundvärde i JSON)
+ *   suffix    – t.ex. "/dygn" (default "/dygn")
+ *   size      – "sm" | "base" | "lg" | "xl" (default "base")
+ *   bold      – true/false (default true)
+ *   class     – extra CSS-klasser
+ */
+interface Props {
+  amount: number;
+  suffix?: string;
+  size?: 'sm' | 'base' | 'lg' | 'xl';
+  bold?: boolean;
+  class?: string;
+}
+
+const {
+  amount,
+  suffix = '/dygn',
+  size = 'base',
+  bold = true,
+  class: extraClass = '',
+} = Astro.props;
+
+// Alla priser i JSON är EXKL moms. Inkl moms = × 1.25
+const exclMoms = Math.round(amount);
+const inclMoms = Math.round(amount * 1.25);
+
+const sizeClass: Record<string, string> = {
+  sm:   'text-sm',
+  base: 'text-base',
+  lg:   'text-lg',
+  xl:   'text-xl',
+};
+const fontClass = bold ? 'font-bold' : 'font-normal';
+---
+
+<span
+  class={`sk-price ${sizeClass[size]} ${fontClass} ${extraClass}`}
+  data-excl={exclMoms}
+  data-incl={inclMoms}
+  aria-label={`${inclMoms} kronor inklusive moms per dygn`}
+>
+  {/* Standard: visas inkl moms (B2C default) */}
+  <span class="sk-price-incl">{inclMoms.toLocaleString('sv')} kr<span class="sk-price-suffix text-[0.75em] font-normal opacity-70">{suffix}</span></span>
+  <span class="sk-price-excl hidden">{exclMoms.toLocaleString('sv')} kr<span class="sk-price-suffix text-[0.75em] font-normal opacity-70">{suffix}</span></span>
+</span>

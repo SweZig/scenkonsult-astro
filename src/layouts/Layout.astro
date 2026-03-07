@@ -1,0 +1,401 @@
+---
+import site from '../data/site.json';
+import InlineEditor from '../components/InlineEditor.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  ogImage?: string;
+  schemaExtra?: object;
+  noindex?: boolean;
+}
+
+const {
+  title = site.seo.defaultTitle,
+  description = site.seo.defaultDescription,
+  canonical = Astro.url.href,
+  ogImage = site.seo.ogImage,
+  schemaExtra,
+  noindex = false,
+} = Astro.props;
+
+// LocalBusiness schema – alltid med på alla sidor
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://scenkonsult.se/#business",
+  "name": site.company.name,
+  "legalName": site.company.legalName,
+  "url": "https://scenkonsult.se",
+  "logo": `https://scenkonsult.se${site.company.logo}`,
+  "image": `https://scenkonsult.se${site.seo.ogImage}`,
+  "telephone": site.company.phone,
+  "email": site.company.email,
+  "foundingDate": site.company.founded,
+  "priceRange": site.company.priceRange,
+  "openingHours": site.company.openingHours,
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": site.company.address.street,
+    "addressLocality": site.company.address.city,
+    "postalCode": site.company.address.postalCode,
+    "addressRegion": site.company.address.region,
+    "addressCountry": site.company.address.country,
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": site.company.geo.lat,
+    "longitude": site.company.geo.lng,
+  },
+  "areaServed": site.company.serviceArea.map(area => ({
+    "@type": "City",
+    "name": area,
+    "addressCountry": "SE"
+  })),
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5",
+    "reviewCount": String(site.reviews.length),
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "review": site.reviews.map(r => ({
+    "@type": "Review",
+    "author": { "@type": "Person", "name": r.author },
+    "reviewRating": { "@type": "Rating", "ratingValue": String(r.rating), "bestRating": "5" },
+    "reviewBody": r.text
+  }))
+};
+
+const schemas = [localBusinessSchema, ...(schemaExtra ? [schemaExtra] : [])];
+
+const navLinks = [
+  { label: 'Hem', href: '/' },
+  {
+    label: 'Våra tjänster', href: '/vara-tjanster/',
+    children: [
+      { label: 'Uthyrning av Scener', href: '/vara-tjanster/hyra-scen/' },
+      {
+        label: 'Uthyrning av Ljud', href: '/vara-tjanster/hyra-ljud/',
+        children: [
+          { label: 'Ljud för Event', href: '/vara-tjanster/hyra-ljud/event/' },
+          { label: 'Ljud för Live', href: '/vara-tjanster/hyra-ljud/live/' },
+          { label: 'Ljud för Musik', href: '/vara-tjanster/hyra-ljud/music/' },
+          { label: 'Portabelt ljud', href: '/vara-tjanster/hyra-ljud/portable/' },
+        ]
+      },
+      {
+        label: 'Uthyrning av Ljus', href: '/vara-tjanster/hyra-ljus/',
+        children: [
+          { label: 'Färdiga ljuspaket', href: '/vara-tjanster/hyra-ljus/fardiga-paket/' },
+          { label: 'Lösa effekter', href: '/vara-tjanster/hyra-ljus/ljuseffekter/' },
+          { label: 'Rök & Pyroteknik', href: '/vara-tjanster/hyra-ljus/rok-pyro/' },
+          { label: 'Stativ & Tross', href: '/vara-tjanster/hyra-ljus/stativ-tross/' },
+        ]
+      },
+      { label: 'Uthyrning av Bild & Projektorer', href: '/vara-tjanster/hyra-bild-projektorer-skarmar/' },
+      { label: 'Uthyrning av professionella DJs', href: '/vara-tjanster/hyra-dj/' },
+    ]
+  },
+  { label: 'FAQ', href: '/vara-vanligaste-fragor-faq/' },
+  { label: 'Om oss', href: '/om-oss/' },
+  { label: 'Kontakt', href: '/kontakt/' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
+  <link rel="canonical" href={canonical} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={`https://scenkonsult.se${ogImage}`} />
+  <meta property="og:locale" content="sv_SE" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/images/logo.png" />
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Schema markup -->
+  {schemas.map(s => (
+    <script type="application/ld+json" set:html={JSON.stringify(s)} />
+  ))}
+</head>
+
+<body class="bg-brand-dark text-white font-sans overflow-x-hidden">
+
+  <!-- Skip link for accessibility -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-brand-orange text-white px-4 py-2 rounded z-50">
+    Hoppa till innehåll
+  </a>
+
+  <!-- ===== HEADER ===== -->
+  <header class="bg-brand-navy sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-3 flex-shrink-0">
+          <img src="/images/logo.png" alt="Scenkonsult logotyp" width="48" height="48" class="rounded" />
+          <div class="hidden sm:block">
+            <div class="text-white font-bold text-lg leading-tight">Scenkonsult</div>
+            <div class="text-brand-gray text-xs leading-tight">Sedan 1986</div>
+          </div>
+        </a>
+
+        <!-- Desktop nav -->
+        <nav class="hidden lg:flex items-center gap-1" aria-label="Huvudnavigation">
+          {navLinks.map(link => (
+            <div class="relative group">
+              <a
+                href={link.href}
+                class={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                  currentPath === link.href || currentPath.startsWith(link.href) && link.href !== '/'
+                    ? 'text-brand-orange'
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {link.label}
+                {link.children && <span class="ml-1 text-xs">▾</span>}
+              </a>
+              {link.children && (
+                <div class="absolute left-0 top-full mt-1 w-64 bg-brand-navy border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  {link.children.map(child => (
+                    <a href={child.href} class="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 first:rounded-t-lg last:rounded-b-lg transition-colors">
+                      {child.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
+
+        <!-- CTA + Moms-toggle + Mobile menu button -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <a href="tel:0724481000" class="hidden sm:flex items-center gap-2 text-sm text-gray-300 hover:text-white">
+            <svg class="w-4 h-4 text-brand-orange" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
+            072-448 10 00
+          </a>
+
+          <!-- Moms-toggle B2C / B2B -->
+          <button
+            id="moms-toggle"
+            aria-pressed="false"
+            title="Växla mellan priser inkl. och exkl. moms"
+            class="flex items-center gap-1.5 border border-white/20 hover:border-white/40 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all select-none"
+          >
+            <span id="moms-label-b2c" class="text-white">B2C</span>
+            <span class="text-gray-500 font-normal">·</span>
+            <span id="moms-label-b2b" class="text-gray-400">B2B</span>
+            <span id="moms-badge" class="ml-1 bg-white/10 text-gray-300 rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight">inkl. moms</span>
+          </button>
+
+          <a href="/bokningssida/" class="hidden sm:block bg-brand-orange hover:bg-brand-orange-light text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+            Boka nu
+          </a>
+          <!-- Mobile menu toggle -->
+          <button id="mobile-menu-btn" class="lg:hidden text-gray-300 hover:text-white p-2" aria-label="Öppna meny" aria-expanded="false">
+            <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="lg:hidden hidden border-t border-white/10 bg-brand-navy">
+      <div class="px-4 py-3 space-y-1">
+        {navLinks.map(link => (
+          <div>
+            <a href={link.href} class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded text-sm font-medium">
+              {link.label}
+            </a>
+            {link.children && (
+              <div class="ml-4 space-y-1">
+                {link.children.map(child => (
+                  <a href={child.href} class="block px-3 py-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded text-sm">
+                    {child.label}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+        <div class="pt-2 border-t border-white/10 space-y-2">
+          <!-- Moms-toggle i mobil-meny -->
+          <div class="flex items-center justify-between px-3 py-2">
+            <span class="text-gray-300 text-sm">Visa priser</span>
+            <button id="moms-toggle-mobile" class="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5 text-sm font-semibold">
+              <span id="moms-mobile-label">inkl. moms (B2C)</span>
+            </button>
+          </div>
+          <a href="tel:0724481000" class="block px-3 py-2 text-brand-orange font-medium text-sm">📞 072-448 10 00</a>
+          <a href="/bokningssida/" class="block mt-2 bg-brand-orange text-white text-center py-2 rounded-lg text-sm font-semibold">Boka nu</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main id="main-content">
+    <slot />
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="bg-brand-navy border-t border-white/10 mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        <!-- Company info -->
+        <div class="lg:col-span-1">
+          <img src="/images/logo.png" alt="Scenkonsult" width="64" height="64" class="mb-4" />
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Scenkonsult Norden – del av Sigvardsson Consulting Group.<br/>
+            Uthyrning av scen, ljud, ljus och DJ sedan 1986.
+          </p>
+          <div class="space-y-1 text-sm text-gray-400">
+            <div>📞 <a href="tel:0724481000" class="hover:text-white transition-colors">{site.company.phone}</a></div>
+            <div>📍 {site.company.address.city}</div>
+            <div class="text-xs text-gray-500 mt-2">Levererar i hela Storstockholm</div>
+          </div>
+        </div>
+
+        <!-- Tjänster -->
+        <div>
+          <h3 class="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Tjänster</h3>
+          <ul class="space-y-2">
+            {[
+              { label: 'Hyra scen', href: '/vara-tjanster/hyra-scen/' },
+              { label: 'Hyra ljud', href: '/vara-tjanster/hyra-ljud/' },
+              { label: 'Hyra ljus', href: '/vara-tjanster/hyra-ljus/' },
+              { label: 'Hyra bild & projektorer', href: '/vara-tjanster/hyra-bild-projektorer-skarmar/' },
+              { label: 'Hyra DJ', href: '/vara-tjanster/hyra-dj/' },
+            ].map(l => (
+              <li><a href={l.href} class="text-gray-400 hover:text-white text-sm transition-colors">{l.label}</a></li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Info -->
+        <div>
+          <h3 class="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Information</h3>
+          <ul class="space-y-2">
+            {[
+              { label: 'Vanliga frågor (FAQ)', href: '/vara-vanligaste-fragor-faq/' },
+              { label: 'Om oss', href: '/om-oss/' },
+              { label: 'Kontakt', href: '/kontakt/' },
+              { label: 'Hyresvillkor', href: '/hyresvillkor/' },
+              { label: 'Guide – Eventlokaler', href: '/guide-till-eventlokaler-i-stockholm/' },
+              { label: 'Guide – Minnesvärda fester', href: '/den-ultimata-guiden-till-minnesvarda-fester/' },
+            ].map(l => (
+              <li><a href={l.href} class="text-gray-400 hover:text-white text-sm transition-colors">{l.label}</a></li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Serviceområde -->
+        <div>
+          <h3 class="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Vi levererar till</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            {site.company.serviceArea.join(' · ')}
+          </p>
+          <div class="mt-6">
+            <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors">
+              Boka eller fråga om pris →
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
+        <span>©2019–{new Date().getFullYear()} Scenkonsult Norden</span>
+        <div class="flex gap-4">
+          <a href="/personuppgiftpolicy/" class="hover:text-gray-300 transition-colors">Personuppgiftspolicy & Cookies</a>
+          <a href="/feedback/" class="hover:text-gray-300 transition-colors">Feedback</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile menu JS -->
+  <script>
+    const btn = document.getElementById('mobile-menu-btn');
+    const menu = document.getElementById('mobile-menu');
+    const iconOpen = document.getElementById('menu-icon-open');
+    const iconClose = document.getElementById('menu-icon-close');
+    btn?.addEventListener('click', () => {
+      const isOpen = !menu?.classList.contains('hidden');
+      menu?.classList.toggle('hidden');
+      iconOpen?.classList.toggle('hidden', !isOpen);
+      iconClose?.classList.toggle('hidden', isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    });
+  </script>
+
+  <!-- Moms-toggle JS – växlar alla .sk-price-incl / .sk-price-excl på sidan -->
+  <script>
+    (function() {
+      // Läs sparad preferens (default = inkl moms, B2C)
+      let showExcl = localStorage.getItem('sk_moms') === 'excl';
+
+      function applyMoms(excl: boolean) {
+        document.querySelectorAll('.sk-price-incl').forEach(el => {
+          (el as HTMLElement).classList.toggle('hidden', excl);
+        });
+        document.querySelectorAll('.sk-price-excl').forEach(el => {
+          (el as HTMLElement).classList.toggle('hidden', !excl);
+        });
+        // Uppdatera desktop-knapp
+        const badge   = document.getElementById('moms-badge');
+        const b2c     = document.getElementById('moms-label-b2c');
+        const b2b     = document.getElementById('moms-label-b2b');
+        const toggle  = document.getElementById('moms-toggle');
+        if (badge)  badge.textContent  = excl ? 'exkl. moms' : 'inkl. moms';
+        if (b2c)    b2c.className      = excl ? 'text-gray-400' : 'text-white';
+        if (b2b)    b2b.className      = excl ? 'text-white'    : 'text-gray-400';
+        if (toggle) toggle.setAttribute('aria-pressed', String(excl));
+        // Uppdatera mobil-knapp
+        const mobileLabel = document.getElementById('moms-mobile-label');
+        if (mobileLabel) mobileLabel.textContent = excl ? 'exkl. moms (B2B)' : 'inkl. moms (B2C)';
+        // Spara
+        localStorage.setItem('sk_moms', excl ? 'excl' : 'incl');
+      }
+
+      // Kör direkt vid sidladdning
+      applyMoms(showExcl);
+
+      // Desktop-knapp
+      document.getElementById('moms-toggle')?.addEventListener('click', () => {
+        showExcl = !showExcl;
+        applyMoms(showExcl);
+      });
+      // Mobil-knapp
+      document.getElementById('moms-toggle-mobile')?.addEventListener('click', () => {
+        showExcl = !showExcl;
+        applyMoms(showExcl);
+      });
+    })();
+  </script>
+
+  <!-- Inline-editor: aktivera med Alt+E eller ?edit=1 i URL -->
+  <InlineEditor />
+
+</body>
+</html>

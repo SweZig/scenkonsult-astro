@@ -1,0 +1,118 @@
+---
+// Ljusstyrning + DMX-tillbehör + El-tillbehör – visas på både fardiga-paket och ljuseffekter
+---
+
+<!-- LJUSSTYRNING -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <h2 class="text-2xl font-bold text-white mb-2">Ljusstyrning</h2>
+  <p class="text-gray-400 text-sm mb-6">DMX-512 styrenheter för professionell kontroll. Kompletteras med DMX-kablar eller trådlös styrning (se tillbehör nedan).</p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    {[
+      { title:'Styrenhet 192 kanaler', img:'/images/ljus/pp_ljus_styrning02.png', excl:99,
+        bullets:['192 DMX-kanaler','12 scannrar × 16 kan.','240 sekvenser i 30 banker','Musikstyrning via mikrofon'] },
+      { title:'Botex SDC-16 (16 faders)', img:'/images/ljus/pp_ljus_botex_sdc16.png', excl:199,
+        bullets:['192 DMX-kanaler','16 individuella faders + master','Parallellstyrning av 16 kanaler','Startkanal via display'] },
+      { title:'Styrenhet 512 kanaler', img:'/images/ljus/pp_ljus_styrning03.png', excl:299,
+        bullets:['48-kanals DMX styrenhet','4 600 scener i 96 banker','Mjukpatch alla 512 kanaler','Musikstyrning via mikrofon'] },
+      { title:'PC-mjukvara + gränssnitt', img:'/images/ljus/pp_ljus_styrning04.png', excl:799,
+        bullets:['512 DMX-kanaler','Dra-och-släpp programmering','Ljud-till-ljus BPM-analys','Live scen-dimning'] },
+    ].map(c => (
+      <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+          <img src={c.img} alt={c.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        </div>
+        <div class="p-4">
+          <div class="flex justify-between items-start mb-2 gap-2">
+            <h3 class="font-bold text-white text-xs leading-snug">{c.title}</h3>
+            <div class="text-right shrink-0">
+              <span class="sk-price-incl text-brand-orange font-extrabold text-sm">{Math.round(c.excl*1.25)} kr</span>
+              <span class="sk-price-excl hidden text-brand-orange font-extrabold text-sm">{c.excl} kr</span>
+              <div class="text-gray-500 text-[10px]">/dygn</div>
+            </div>
+          </div>
+          <ul class="space-y-0.5 mb-3">
+            {c.bullets.map(b => <li class="text-gray-400 text-[10px] flex gap-1"><span class="text-green-400">▸</span>{b}</li>)}
+          </ul>
+          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-colors">Boka</a>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<!-- DMX + EL TILLBEHÖR -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <h2 class="text-2xl font-bold text-white mb-6">Tillbehör</h2>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- DMX-tillbehör -->
+    <div>
+      <h3 class="text-base font-semibold text-white mb-3 border-b border-white/10 pb-2">DMX-tillbehör</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {[
+          { img:'/images/ljus/pp_ljus_half_coupler.png', name:'Half Coupler 35/50mm', excl:20, note:'per coupler' },
+          { img:'/images/ljus/pp_ljus_super_clamp.png', name:'Super Clamp 50mm', excl:32, note:'per clamp' },
+          { img:'/images/ljus/pp_ljus_kablar.png', name:'DMX Kabel 1–5m', excl:20, note:'per kabel' },
+          { img:'/images/ljus/pp_ljus_kablar.png', name:'DMX Kabel 10/15m', excl:40, note:'per kabel' },
+          { img:'/images/ljus/pp_ljus_tradlos01.png', name:'DMX Trådlös startkit', excl:159, note:'1 sänd + 2 mot.' },
+          { img:'/images/ljus/pp_ljus_tradlos02.png', name:'DMX Trådlös extra sändare', excl:80, note:'per enhet' },
+          { img:'/images/ljus/pp_ljus_tradlos03.png', name:'DMX Trådlös extra mottagare', excl:80, note:'per enhet' },
+        ].map(t => (
+          <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
+            <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
+              <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
+            </div>
+            <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
+            <p class="text-gray-400 text-[9px] mb-0.5">{t.note}</p>
+            <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
+            <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
+            <span class="text-gray-500 text-[9px]">/dygn</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- El-tillbehör -->
+    <div>
+      <h3 class="text-base font-semibold text-white mb-3 border-b border-white/10 pb-2">El-tillbehör</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {[
+          { img:'/images/ljus/pp_ljus_powercon.png',        name:'PowerCon 0,5–1,5m', excl:20 },
+          { img:'/images/ljus/pp_ljus_powercon2.png',       name:'PowerCon 5–10m', excl:80 },
+          { img:'/images/ljus/pp_ljus_iec_kabel.png',       name:'IEC C13/C14 0,5–1,5m', excl:20 },
+          { img:'/images/ljus/pp_el_grenuttag_sm.png',      name:'Grenuttag 1,5m', excl:20 },
+          { img:'/images/ljus/pp_el_forlangning.png',       name:'Förlängning 10m 1-fas', excl:48 },
+          { img:'/images/ljus/pp_el_grenuttag_lg.png',      name:'Grenuttag 10m IP44', excl:100 },
+          { img:'/images/ljus/pp_el_grenuttag_25m.png',     name:'Grenuttag 25m IP44', excl:159 },
+          { img:'/images/ljus/pp_el_forlangning_20m.png',   name:'Förlängning 20m 3-fas 16A', excl:236 },
+          { img:'/images/ljus/pp_el_forlangning_20m.png',   name:'Förlängning 20m 3-fas 32A', excl:396 },
+          { img:'/images/ljus/pp_el_omvandlare.png',        name:'3-fas → 1-fas omvandlare', excl:320 },
+          { img:'/images/ljus/pp_el_overloppsskydd.png',    name:'Överkörningsskydd 1m', excl:80 },
+        ].map(t => (
+          <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
+            <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
+              <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
+            </div>
+            <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
+            <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
+            <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
+            <span class="text-gray-500 text-[9px]">/dygn</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Större event -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden">
+    <img src="/images/ljus/pp_ljus_storre_event.png" alt="Scenljus för konserter och större event" width="1024" height="400" loading="lazy" class="w-full max-h-48 object-cover" />
+    <div class="p-6 text-center">
+      <h2 class="text-xl font-bold text-white mb-2">Scenljus för konserter & större event</h2>
+      <p class="text-gray-400 text-sm mb-4">Vi har scenljus för alla ändamål – vitt och färgat ljus på travers eller tross. Beskriv ditt behov så tar vi fram lösningen. Större ljusriggar hyrs endast ut inkl. transport och montering.</p>
+      <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors">Fråga om offert</a>
+    </div>
+  </div>
+</section>

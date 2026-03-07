@@ -1,0 +1,93 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import site from '../../data/site.json';
+---
+
+<Layout
+  title="Kontakt | Scenkonsult – Hyra Scen, Ljud & Ljus Stockholm"
+  description="Kontakta Scenkonsult för offert eller bokning av scen, ljud, ljus och DJ i Stockholm. Vi svarar inom ett par timmar. Tel: 072-448 10 00."
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <h1 class="text-4xl font-extrabold text-white mb-4">Kontakta oss</h1>
+    <p class="text-gray-400 text-lg mb-10">Vi svarar i regel inom ett par timmar. Beskriv ditt behov och vi presenterar rätt lösning!</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <!-- Contact info -->
+      <div class="space-y-6">
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+          <h2 class="text-white font-bold text-lg mb-4">Kontaktuppgifter</h2>
+          <div class="space-y-3 text-gray-400">
+            <div class="flex items-center gap-3">
+              <span class="text-brand-orange text-xl">📞</span>
+              <div>
+                <div class="text-xs text-gray-500 uppercase tracking-wide">Telefon</div>
+                <a href="tel:0724481000" class="text-white hover:text-brand-orange transition-colors font-medium">{site.company.phone}</a>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-brand-orange text-xl">✉️</span>
+              <div>
+                <div class="text-xs text-gray-500 uppercase tracking-wide">E-post</div>
+                <a href={`mailto:${site.company.email}`} class="text-white hover:text-brand-orange transition-colors font-medium">{site.company.email}</a>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-brand-orange text-xl">🕐</span>
+              <div>
+                <div class="text-xs text-gray-500 uppercase tracking-wide">Öppettider</div>
+                <span class="text-white font-medium">Mån–Sön 08:00–20:00</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-brand-orange text-xl">📍</span>
+              <div>
+                <div class="text-xs text-gray-500 uppercase tracking-wide">Adress</div>
+                <span class="text-white font-medium">{site.company.address.street}, {site.company.address.city}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+          <h2 class="text-white font-bold text-lg mb-3">Serviceområde</h2>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Vi levererar till hela Storstockholm: {site.company.serviceArea.join(', ')} och omkringliggande kommuner.
+          </p>
+        </div>
+
+        <a href="/bokningssida/" class="block bg-brand-orange hover:bg-brand-orange-light text-white text-center py-4 rounded-xl font-bold text-lg transition-colors">
+          Gå till bokningssidan →
+        </a>
+      </div>
+
+      <!-- Contact form placeholder (replace with your actual form embed) -->
+      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+        <h2 class="text-white font-bold text-lg mb-4">Skicka meddelande</h2>
+        <p class="text-gray-400 text-sm mb-6">Fyll i formuläret nedan så hör vi av oss snabbt.</p>
+        <!-- Byt ut mot din WPForms-embed eller annan form-lösning -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1" for="name">Namn *</label>
+            <input id="name" type="text" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange" placeholder="Ditt namn" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1" for="email">E-post *</label>
+            <input id="email" type="email" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange" placeholder="din@epost.se" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1" for="phone">Telefon</label>
+            <input id="phone" type="tel" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange" placeholder="07X-XXX XX XX" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1" for="message">Beskriv ditt behov *</label>
+            <textarea id="message" rows="5" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange resize-none" placeholder="Beskriv ditt event – datum, plats, antal gäster, vilken utrustning du behöver..."></textarea>
+          </div>
+          <button type="submit" class="w-full bg-brand-orange hover:bg-brand-orange-light text-white py-3.5 rounded-xl font-bold transition-colors">
+            Skicka meddelande
+          </button>
+          <p class="text-xs text-gray-600 text-center">Vi svarar inom ett par timmar. Jourtjänst kvällstid.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

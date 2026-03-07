@@ -1,0 +1,198 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Price from '../../../components/Price.astro';
+import scenData from '../../../data/scenes.json';
+
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Scenpaket för uthyrning i Stockholm",
+  "description": scenData.intro,
+  "numberOfItems": scenData.products.length,
+  "itemListElement": scenData.products.map((p, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "item": {
+      "@type": "Product",
+      "name": `${p.name} – ${p.size}`,
+      "description": p.description,
+      "image": `https://scenkonsult.se${p.image}`,
+      "brand": { "@type": "Brand", "name": "Scenkonsult" },
+      "offers": {
+        "@type": "Offer",
+        "price": String(p.price),
+        "priceCurrency": "SEK",
+        "priceValidUntil": "2026-12-31",
+        "availability": "https://schema.org/InStock",
+        "seller": { "@type": "Organization", "name": "Scenkonsult Norden" },
+        "url": `https://scenkonsult.se/vara-tjanster/hyra-scen/#${p.id}`
+      }
+    }
+  }))
+};
+---
+
+<Layout
+  title={scenData.metaTitle}
+  description={scenData.metaDescription}
+  schemaExtra={pageSchema}
+>
+
+  <!-- Breadcrumb -->
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+    <ol class="flex items-center gap-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+        <meta itemprop="position" content="1" />
+      </li>
+      <span>/</span>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="/vara-tjanster/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Våra tjänster</span></a>
+        <meta itemprop="position" content="2" />
+      </li>
+      <span>/</span>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <span class="text-white" itemprop="name">Hyra scen</span>
+        <meta itemprop="position" content="3" />
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Page header -->
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">
+      Hyra scen i <span class="text-brand-orange">Stockholm</span>
+    </h1>
+    <p class="text-gray-300 text-lg max-w-3xl leading-relaxed">{scenData.intro}</p>
+    <div class="flex flex-wrap gap-4 mt-6">
+      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2">
+        <span class="text-green-400">✓</span> Halkfria ytor – inomhus & utomhus
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2">
+        <span class="text-green-400">✓</span> Leverans & montering tillgängligt
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2">
+        <span class="text-green-400">✓</span> Scentak till alla storlekar
+      </div>
+    </div>
+  </header>
+
+  <!-- Products grid -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {scenData.products.map(p => (
+        <article
+          id={p.id}
+          class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group"
+          itemscope
+          itemtype="https://schema.org/Product"
+        >
+          <div class="aspect-video bg-brand-dark flex items-center justify-center overflow-hidden">
+            <img
+              src={p.image}
+              alt={p.alt}
+              width="400"
+              height="225"
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              itemprop="image"
+            />
+          </div>
+          <div class="p-5">
+            <div class="flex items-start justify-between mb-2">
+              <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors" itemprop="name">
+                {p.name}
+              </h2>
+              <span class="bg-brand-orange/20 text-brand-orange text-xs font-bold px-2 py-1 rounded-lg ml-2 shrink-0">
+                {p.size}
+              </span>
+            </div>
+            <p class="text-gray-400 text-sm leading-relaxed mb-4" itemprop="description">{p.description}</p>
+
+            <div class="space-y-1.5 text-xs text-gray-500 mb-4">
+              <div class="flex gap-2">
+                <span class="text-gray-600">Mått:</span>
+                <span class="text-gray-400">{p.dimensions}</span>
+              </div>
+              <div class="flex gap-2">
+                <span class="text-gray-600">Höjd:</span>
+                <span class="text-gray-400">{p.heights.join(' / ')}</span>
+              </div>
+              <div class="flex gap-2">
+                <span class="text-gray-600">Kapacitet:</span>
+                <span class="text-gray-400">{p.capacity}</span>
+              </div>
+              <div class="flex gap-2">
+                <span class="text-gray-600">Transport:</span>
+                <span class={p.transport === 'ingår' ? 'text-green-400' : 'text-gray-400'}>
+                  {p.transport === 'ingår' ? '✓ Ingår alltid' : 'Tilläggstjänst'}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between border-t border-white/10 pt-4">
+              <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                <meta itemprop="priceCurrency" content="SEK" />
+                <meta itemprop="price" content={String(p.price)} />
+                <meta itemprop="availability" content="https://schema.org/InStock" />
+                <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" /></span>
+                <span class="text-gray-500 text-xs ml-1">{p.priceNote}</span>
+              </div>
+              <a
+                href="/bokningssida/"
+                class="bg-brand-orange hover:bg-brand-orange-light text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              >
+                Boka
+              </a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Accessories -->
+  <section class="bg-brand-navy border-y border-white/10 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold text-white mb-6">Tillbehör</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {scenData.accessories.map(a => (
+          <div class="bg-brand-dark border border-white/10 rounded-xl p-4">
+            <div class="aspect-[6/5] bg-brand-navy rounded-lg overflow-hidden mb-3 flex items-center justify-center">
+              <img src={a.image} alt={a.alt} width="300" height="250" loading="lazy" class="w-full h-full object-contain" style="background-color:#1a2744" />
+            </div>
+            <h3 class="text-white font-semibold text-sm mb-1">{a.name}</h3>
+            <p class="text-gray-500 text-xs mb-2">{a.description}</p>
+            <span class="text-brand-orange font-bold"><Price amount={a.price} size="base" /></span>
+            <a href="/bokningssida/" class="ml-3 text-xs text-gray-400 hover:text-white transition-colors">Boka →</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- General info + CTA -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-4">Generell information om våra scener</h2>
+      <div class="text-gray-400 text-sm leading-relaxed space-y-3">
+        <p>Kontakta oss för hjälp med att planera eventet så det blir optimalt. Alla scener har halkfria ytor och passar för inomhus- och utomhusbruk.</p>
+        <p>Scener upp till 12m² (Medium+) finns i 40 eller 60 cm höjd. Större scener finns i 60 eller 80 cm. Observera att scenräcken krävs för scener över 80 cm enligt Boverket.</p>
+        <p>För scener från 20m² (Large) tillkommer alltid transport, montering och demontering av vår personal. Vi har scentak för alla storlekar – upp till 100m² på förfrågan.</p>
+        <p class="font-medium text-gray-300">Alla priser gäller hyra per dygn (22 timmar). Hämtning från kl 13:00, återlämning innan kl 11:00 nästkommande dag. Längre perioder offerteras separat.</p>
+      </div>
+      <div class="flex flex-wrap gap-4 mt-6">
+        <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">
+          Boka scen
+        </a>
+        <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">
+          Fråga om offert
+        </a>
+        <a href="/hyresvillkor/" class="text-brand-gray hover:text-white px-2 py-3 text-sm transition-colors">
+          Läs hyresvillkoren →
+        </a>
+      </div>
+    </div>
+  </section>
+
+</Layout>

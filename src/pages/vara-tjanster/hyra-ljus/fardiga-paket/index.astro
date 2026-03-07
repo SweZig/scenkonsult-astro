@@ -1,0 +1,157 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import VideoCard from '../../../../components/VideoCard.astro';
+import LjusTillbehor from '../../../../components/LjusTillbehor.astro';
+
+const WP = 'https://scenkonsult.se/wp-content/uploads';
+const paket = [
+  {
+    title: 'Ljuspaket, Small',
+    img: '/images/ljus/pp_ljus_small.png',
+    excl: 399,
+    videos: [`${WP}/2024/06/stairville_led_boss_fx-2_pro_01.mp4`],
+    persons: '10–30 pers',
+    bullets: ['LED T-bar med 4 PAR-armaturer på stativ','12×9W RGB LED','Synkroniseras med musik automatiskt','Montering: 8–12 min, vikt: 16 kg'],
+  },
+  {
+    title: 'Ljuspaket, Small+',
+    img: '/images/ljus/pp_ljus_small_plus.png',
+    excl: 599,
+    videos: [`${WP}/2026/01/LB100A.mp4`],
+    persons: '20–40 pers',
+    bullets: ['Trosstorn med Moving Head 100W COB på toppen','540°/180° rotation','DMX eller automatik till musik','Montering: 10–15 min, vikt: 28 kg'],
+  },
+  {
+    title: 'Ljuspaket, Small++',
+    img: '/images/ljus/pp_ljus_small_plusplus.png',
+    excl: 799,
+    videos: [`${WP}/2024/06/stairville_led_boss_fx-2_pro_01.mp4`, `${WP}/2023/06/stairville_matrixx-sc-100_dmx_led_03.mp4`],
+    persons: '20–60 pers',
+    bullets: ['2 stativ med T-bars, 4 olika effekttyper','24×9W PAR + roterande + stroboskop + UV + laser + scanners','Montering: 10–15 min, vikt: 30 kg'],
+  },
+  {
+    title: 'Ljuspaket, Medium',
+    img: '/images/ljus/pp_ljus_medium.png',
+    excl: 1199,
+    videos: [`${WP}/2026/01/Big-Dipper-LM120-introduction-720p.mp4`],
+    persons: '40–80 pers',
+    bullets: ['2 trosstorn med Moving Head (120W COB + 26×2W RGBW)','540°/270° rotation, motoriserad zoom','DMX eller automatik till musik','Montering: 15–20 min, vikt: 52 kg'],
+  },
+  {
+    title: 'Ljuspaket, Medium+',
+    img: '/images/ljus/pp_ljus_medium_plus.png',
+    excl: 1299,
+    videos: [`${WP}/2024/06/stairville_led_boss_fx-2_pro_01.mp4`, `${WP}/2023/06/stairville_matrixx-sc-100_dmx_led_03.mp4`],
+    persons: '40–100 pers',
+    bullets: ['3 stativ, 5 effekttyper förmonterade','24×9W PAR + roterande + stroboskop + UV + laser + 2 scanners','Montering: 20–25 min, vikt: 30 kg'],
+  },
+  {
+    title: 'Ljuspaket, Medium++',
+    img: '/images/ljus/pp_ljus_medium_plusplus.png',
+    excl: 1499,
+    videos: [`${WP}/2026/01/Big-Dipper-LM120-introduction-720p.mp4`, `${WP}/2026/01/LB100A.mp4`],
+    persons: '50–120 pers',
+    bullets: ['2 stativ med 8 effekter','4×PAR + 2×Moving Head Wash + 2×Moving Head Beam','Musikstyrning automatik eller DMX','Montering: 30–40 min, vikt: 30 kg'],
+  },
+  {
+    title: 'Ljuspaket, Large',
+    img: '/images/ljus/pp_ljus_large.png',
+    excl: 1999,
+    videos: [`${WP}/2023/06/stairville_matrixx-sc-100_dmx_led_03.mp4`, `${WP}/2026/01/Big-Dipper-LM120-introduction-720p.mp4`, `${WP}/2026/01/LB100A.mp4`],
+    persons: '60–140 pers',
+    bullets: ['2 stativ med 2m tross, 5 effekttyper','1×Scanner + 2×Moving Head Wash + 2×Moving Head Beam','Musikstyrning automatik eller DMX','Montering: 40–45 min, vikt: 30 kg'],
+  },
+  {
+    title: 'Ljuspaket, Large+',
+    img: '/images/ljus/pp_ljus_large_plus.png',
+    excl: 2299,
+    videos: [`${WP}/2026/01/Big-Dipper-LM120-introduction-720p.mp4`, `${WP}/2026/01/LB100A.mp4`],
+    persons: '60–160 pers',
+    bullets: ['4 trosstorn med Moving Heads','2×Wash 120W COB + 2×Beam 100W COB','DMX eller automatik till musik','Montering: 25–30 min, vikt: 30 kg'],
+  },
+  {
+    title: 'Ljuspaket, Large++',
+    img: '/images/ljus/pp_ljus_large_plusplus.png',
+    excl: 2999,
+    videos: [`${WP}/2023/06/adj_fog_fury_jett-04.mp4`, `${WP}/2026/01/LM1915Z.mp4`, `${WP}/2026/01/LB100A.mp4`, `${WP}/2024/06/stairville_led_boss_fx-2_pro_01.mp4`],
+    persons: '80–160 pers',
+    bullets: ['5 stativ, 6 effekttyper + 2 rökmaskiner med ljus','24×9W PAR + stroboskop + UV + scanner + laser + rökmaskiner','CO₂ rökvätska ingår (2L)','Montering: 35–50 min, vikt: 66 kg'],
+  },
+  {
+    title: 'Ljuspaket, XL',
+    img: '/images/ljus/pp_ljus_xl.png',
+    excl: 4999,
+    videos: [`${WP}/2026/01/LM1915Z.mp4`, `${WP}/2026/01/LB100A.mp4`, `${WP}/2023/06/adj_fog_fury_jett-04.mp4`],
+    persons: '100–180 pers',
+    bullets: ['Trossvägg 2,5×2,0m med 8 Moving Heads','4×Wash 19×15W RGBW + 4×Beam 100W COB + 2 rökmaskiner','CO₂ rökvätska ingår (2L)','Montering: 45–60 min, vikt: 50 kg'],
+  },
+  {
+    title: 'Ljuspaket, XL+',
+    img: '/images/ljus/pp_ljus_xl_plus.png',
+    excl: 5999,
+    videos: [`${WP}/2025/04/Betopper_L1015_short_720p.mp4`, `${WP}/2025/04/Stairville_CLB5_RGB_WW_Compact_LED_Bar.mp4`],
+    persons: '100–250 pers',
+    bullets: ['Trossbåge 2,5×4,0m med 8+4 armaturer','2×Wash + 4×Beam + 2×Scanner + 2×LED Bar + 4 rökmaskiner','CO₂ rökvätska ingår (4L)','Montering: 60–90 min, vikt: 60 kg'],
+  },
+  {
+    title: 'Scenpaket',
+    img: '/images/ljus/pp_ljus_scen_bundle.png',
+    excl: 1499,
+    videos: [],
+    persons: 'Konserter',
+    bullets: ['8 armaturer – varmvitt eller färgat ljus på stativ','56×4W LED WW/RGB per armatur','DMX-styrenhet inkluderad','Montering: 20–30 min, vikt: 40 kg'],
+  },
+];
+---
+<Layout
+  title="Hyra Färdiga Ljuspaket Stockholm – Small till XL+ | Scenkonsult"
+  description="Hyr färdiga ljuspaket i Stockholm från 399 kr/dygn. Small till XL+ – 12 paket för 10–250 personer. LED PAR, Moving Heads, Strobe, Laser. Leverans Storstockholm."
+>
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-500">
+    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
+    <a href="/vara-tjanster/" class="hover:text-gray-300">Våra tjänster</a> <span class="mx-1">/</span>
+    <a href="/vara-tjanster/hyra-ljus/" class="hover:text-gray-300">Hyr ljus</a> <span class="mx-1">/</span>
+    <span class="text-white">Färdiga paket</span>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+    <img src="/images/tjanster/plugg_ljus.png" alt="Färdiga ljuspaket" width="1024" height="400" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
+  </div>
+
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Färdiga <span class="text-brand-orange">Ljuspaket</span></h1>
+    <p class="text-gray-300 text-lg max-w-3xl">Allt-i-ett-paket för fest, bröllop och event – från 10 till 250 personer. Komplett med stativ/tross, armaturer och kablar. Montering 8–90 minuter.</p>
+  </header>
+
+  <!-- Topplista-banner -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    <img src="/images/ljus/pp_ljus_topplista.png" alt="Topplista ljuspaket" width="1024" height="200" loading="lazy" class="w-full rounded-xl object-cover max-h-32" />
+  </div>
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {paket.map(p => (
+        <div>
+          <div class="mb-2 flex items-center gap-2">
+            <span class="bg-brand-orange/20 text-brand-orange text-xs font-bold px-2 py-0.5 rounded-full">{p.persons}</span>
+          </div>
+          <VideoCard
+            title={p.title}
+            img={p.img}
+            priceExcl={p.excl}
+            videos={p.videos}
+            bullets={p.bullets}
+          />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <LjusTillbehor />
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex flex-wrap gap-4">
+    <a href="/vara-tjanster/hyra-ljus/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">← Tillbaka till ljus</a>
+    <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" class="border border-white/30 text-white hover:bg-white/10 px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Lösa effekter →</a>
+    <a href="/bokningssida/" class="bg-brand-orange hover:bg-orange-500 text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Boka nu</a>
+  </div>
+</Layout>

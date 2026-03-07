@@ -1,0 +1,103 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const tips = [
+  { icon: "🔊", rubrik: "Ljud – grunden för allt", text: "Dåligt ljud förstör varje fest. Investera i ett PA-system som är rätt dimensionerat för lokalen och antal gäster. Tumregel: utomhus behöver du dubbelt så mycket effekt som inomhus. Glöm inte subbasar om det ska danssas." },
+  { icon: "💡", rubrik: "Ljus sätter stämningen", text: "Rätt ljussättning är det billigaste sättet att höja festens känsla dramatiskt. En discokula, några färgade LED-par och dimmade vägglampor förvandlar ett vanligt rum till en festlokal. Undvik kallvitt lysrörsljus på dansgolvet." },
+  { icon: "🎭", rubrik: "Scen och podium", text: "En scen – även en liten 2×2m – ger artister, talare och DJ synlighet och professionell känsla. Det signalerar till gästerna: det händer saker här. Scenkanten skapar också ett naturligt utrymme för dansgolvet." },
+  { icon: "🎛", rubrik: "DJ eller spellistor?", text: "En DJ läser av publiken och anpassar musiken i realtid – det går inte att ersätta. Om budget är ett problem, hyr professionell DJ-utrustning och be en musikkunnig vän köra. Det är bättre än Spotify på Bluetooth-högtalare." },
+  { icon: "📅", rubrik: "Timing är allt", text: "Planera en dramaturgi för kvällen: mingel → middag → tal → dessert → dansgolvet öppnar. Håll tal tidiga (gästerna är fokuserade), öppna dansgolvet lagom (inte för tidigt, inte för sent). Avsluta med ett planerat höjdpunktsmoment." },
+  { icon: "🌡", rubrik: "Komfort avgör om folk stannar", text: "Kall mat, varma sittplatser, dålig akustik och köer till baren är fest-döden. Se till att lokalen har rätt temperatur, att det finns sittplatser för alla om de behövs, och att baren är bemannad." },
+];
+---
+
+<Layout
+  title="Den Ultimata Guiden till Minnesvärda Fester 2025 | Scenkonsult Stockholm"
+  description="6 hemligheter bakom riktigt minnesvärda fester – om ljud, ljus, scen, DJ och timing. Skriven av Stockholms mest erfarna eventproffs sedan 1986."
+>
+
+  <nav class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+    <ol class="flex items-center gap-2 text-sm text-gray-500 flex-wrap" itemscope itemtype="https://schema.org/BreadcrumbList">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+        <meta itemprop="position" content="1" />
+      </li>
+      <span>/</span>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <span class="text-white" itemprop="name">Guide: Minnesvärda fester</span>
+        <meta itemprop="position" content="2" />
+      </li>
+    </ol>
+  </nav>
+
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <header class="mb-12">
+      <p class="text-brand-orange text-sm font-semibold uppercase tracking-wide mb-2">Guide · Av Scenkonsult Norden</p>
+      <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">
+        Den ultimata guiden till minnesvärda fester
+      </h1>
+      <p class="text-gray-300 text-xl leading-relaxed">
+        Vad är det egentligen som skiljer en fest alla pratar om i månader från en fest folk knappt minns? Vi har levererat utrustning till hundratals event sedan 1986 – här är vad vi har lärt oss.
+      </p>
+    </header>
+
+    <!-- Intro -->
+    <section class="text-gray-400 leading-relaxed space-y-4 mb-12">
+      <p>En minnesvärd fest är sällan resultatet av ett enda beslut – det är summan av många rätt gjorda detaljer. Men om vi ska peka ut de viktigaste faktorerna, handlar det om <strong class="text-white">ljud, ljus, scen, timing och komfort</strong>. Maten och drycken är viktigt – men de glöms snabbare bort än hur festen kändes.</p>
+      <p>Här är våra sex bästa tips efter 38 år i branschen.</p>
+    </section>
+
+    <!-- Tips-grid -->
+    <section class="mb-12">
+      <div class="space-y-6">
+        {tips.map((t, i) => (
+          <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 flex gap-5">
+            <div class="text-4xl shrink-0">{t.icon}</div>
+            <div>
+              <h2 class="font-bold text-white text-lg mb-2">{i + 1}. {t.rubrik}</h2>
+              <p class="text-gray-400 leading-relaxed">{t.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Checklista -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-white mb-6">Checklista: 4 veckor innan festen</h2>
+      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+          {[
+            "Lokal bokad och besiktad",
+            "PA-system hyrt och dimensionerat",
+            "Ljusutrustning bokad",
+            "Scen bokad (om det behövs)",
+            "DJ eller musikspellistor klara",
+            "Dramaturgi för kvällen planerad",
+            "Tidplan för tal och höjdpunkter",
+            "Bar och mat klara",
+            "Gästerna informerade om tidplan",
+            "Backup-plan för tekniska problem",
+          ].map(item => (
+            <div class="flex items-center gap-3 py-1.5 border-b border-white/5 last:border-0">
+              <span class="text-gray-600 shrink-0">□</span>
+              <span class="text-gray-400 text-sm">{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="bg-brand-navy border border-brand-orange/20 rounded-2xl p-8 text-center">
+      <h2 class="text-xl font-bold text-white mb-2">Vi fixar tekniken – du fixar festen</h2>
+      <p class="text-gray-400 mb-6">Scen, ljud, ljus och DJ-utrustning levererat och uppriggat i Storstockholm. Sedan 1986.</p>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">Boka utrustning</a>
+        <a href="/vara-tjanster/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Se alla tjänster</a>
+      </div>
+    </div>
+
+  </article>
+
+</Layout>

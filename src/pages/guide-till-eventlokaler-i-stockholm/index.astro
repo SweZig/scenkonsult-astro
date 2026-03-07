@@ -1,0 +1,159 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const lokaler = [
+  { namn: "Berns Salonger", område: "City", gäster: "50–800", typ: "Gala, konferens, konsert", url: "https://www.berns.se" },
+  { namn: "Fotografiska", område: "Södermalm", gäster: "50–500", typ: "Fest, vernissage, konferens", url: "https://www.fotografiska.com" },
+  { namn: "Spegelsalen, Grand Hôtel", område: "City", gäster: "20–600", typ: "Gala, bröllop, middag", url: "https://www.grandhotel.se" },
+  { namn: "Münchenbryggeriet", område: "Södermalm", gäster: "50–1500", typ: "Konsert, företagsevent, gala", url: "https://www.munchenbryggeriet.se" },
+  { namn: "Cirkus", område: "Djurgården", gäster: "100–1400", typ: "Konsert, show, gala", url: "https://www.cirkus.se" },
+  { namn: "Moderna Museet", område: "Skeppsholmen", gäster: "50–800", typ: "Vernissage, konferens, middag", url: "https://www.modernamuseet.se" },
+  { namn: "Annexet, Stockholm Live", område: "Johanneshov", gäster: "500–5000", typ: "Konsert, mässa, festival", url: "https://www.stockholmlive.com" },
+  { namn: "Tele2 Arena", område: "Johanneshov", gäster: "5000–30 000", typ: "Konsert, festival, sport", url: "https://www.tele2arena.se" },
+  { namn: "At Six Hotel", område: "City", gäster: "20–400", typ: "Konferens, gala, produktlansering", url: "https://ataixstockholm.com" },
+  { namn: "Södra Teatern", område: "Södermalm", gäster: "50–700", typ: "Konsert, teater, företagsevent", url: "https://www.sodrateatern.com" },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Vad kostar det att hyra en eventlokal i Stockholm?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Priset varierar kraftigt – från ca 5 000 kr för en mindre lokal på en vardagskväll till 200 000 kr+ för en större lokal under helg. De flesta medelstor-lokaler ligger i spannet 20 000–80 000 kr per kväll." }
+    },
+    {
+      "@type": "Question",
+      "name": "Vilken lokal passar bäst för bröllop i Stockholm?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Populära bröllopslokaler i Stockholm inkluderar Spegelsalen på Grand Hôtel, Berns Salonger, Fotografiska och Moderna Museet. Storleken beror på gästantalet – räkna med minst 4–6 m² per gäst för en middag med dansyta." }
+    },
+    {
+      "@type": "Question",
+      "name": "Vad ska jag tänka på när jag väljer eventlokal?",
+      "acceptedAnswer": { "@type": "Answer", "text": "De viktigaste faktorerna är: kapacitet, om lokalen har inbyggt ljud och ljus (eller om du behöver hyra in det), tillgänglighet med kollektivtrafik, parkeringsmöjligheter, möjlighet till leveranser och uppackning, samt regler för musik och sluttider." }
+    }
+  ]
+};
+---
+
+<Layout
+  title="Guide till Eventlokaler i Stockholm 2025 – 10 toppval | Scenkonsult"
+  description="Komplett guide till de bästa eventlokalerna i Stockholm. Jämför kapacitet, läge och typ – oavsett om du planerar ett bröllop, konsert eller företagsevent."
+  schemaExtra={faqSchema}
+>
+
+  <nav class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+    <ol class="flex items-center gap-2 text-sm text-gray-500 flex-wrap" itemscope itemtype="https://schema.org/BreadcrumbList">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+        <meta itemprop="position" content="1" />
+      </li>
+      <span>/</span>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <span class="text-white" itemprop="name">Guide till eventlokaler</span>
+        <meta itemprop="position" content="2" />
+      </li>
+    </ol>
+  </nav>
+
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <header class="mb-12">
+      <p class="text-brand-orange text-sm font-semibold uppercase tracking-wide mb-2">Guide · Uppdaterad 2025</p>
+      <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">
+        Guide till eventlokaler i Stockholm
+      </h1>
+      <p class="text-gray-300 text-xl leading-relaxed">
+        Stockholm har ett enormt utbud av eventlokaler – från intima gallerier och hotellsalonger till arenaer för tiotusentals besökare. Den här guiden hjälper dig välja rätt lokal för din typ av event och ditt antal gäster.
+      </p>
+    </header>
+
+    <!-- Intro-text -->
+    <section class="prose-custom mb-12 text-gray-400 leading-relaxed space-y-4">
+      <h2 class="text-2xl font-bold text-white">Hur väljer du rätt eventlokal?</h2>
+      <p>Det första du behöver bestämma är <strong class="text-white">gästantalet</strong>. En vanlig tumregel är 4–6 m² per person vid sittande middag, 1–2 m² vid stående mingel. Räkna alltid med lite extra utrymme för scen, DJ-booth, bar och buffé.</p>
+      <p>Nästa fråga är <strong class="text-white">vad lokalen inkluderar</strong>. Har den inbyggt ljud och ljus? Eget kök? Möbler? Många Stockholmslokaler är råa skalor som kräver att du hyr in allt – och det är precis där vi på Scenkonsult Norden kan hjälpa dig. Vi levererar scen, ljud, ljus och DJ-utrustning direkt till lokalen och sätter upp allting.</p>
+      <p>Tänk också på <strong class="text-white">logistik</strong>: Hur tar sig gästerna dit? Finns parkering? Kan ni ta in utrustning via godsingång? Och vad är senaste sluttid för musik?</p>
+    </section>
+
+    <!-- Lokalerna -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-white mb-6">10 populära eventlokaler i Stockholm</h2>
+      <div class="space-y-4">
+        {lokaler.map((l, i) => (
+          <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/30 rounded-xl p-5 transition-all">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-brand-orange font-bold text-sm">{i + 1}.</span>
+                  <h3 class="font-bold text-white text-lg">{l.namn}</h3>
+                </div>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                  <span>📍 {l.område}</span>
+                  <span>👥 {l.gäster} gäster</span>
+                  <span>🎭 {l.typ}</span>
+                </div>
+              </div>
+              <a href={l.url} target="_blank" rel="noopener noreferrer" class="shrink-0 text-brand-orange hover:text-white text-xs transition-colors">Webbplats →</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Checklistor -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-white mb-6">Checklista: Frågor att ställa till lokalen</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+          <h3 class="font-bold text-white mb-4">📋 Teknik & utrustning</h3>
+          <ul class="space-y-2">
+            {["Ingår PA-system och mikrofoner?", "Finns inbyggt ljussystem?", "Finns scen eller podium?", "Vilka el-uttag och effekt finns?", "Finns AV-teknik / projektor?"].map(q => (
+              <li class="text-gray-400 text-sm flex gap-2"><span class="text-gray-600 shrink-0">□</span>{q}</li>
+            ))}
+          </ul>
+        </div>
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+          <h3 class="font-bold text-white mb-4">📋 Praktik & regler</h3>
+          <ul class="space-y-2">
+            {["Senaste sluttid för musik?", "Kan externa leverantörer komma in?", "Finns godsingång för utrustning?", "Tillåts levande ljus?", "Är catering fri eller bundet?"].map(q => (
+              <li class="text-gray-400 text-sm flex gap-2"><span class="text-gray-600 shrink-0">□</span>{q}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-bold text-white mb-6">Vanliga frågor</h2>
+      <div class="space-y-4">
+        {[
+          { q: "Vad kostar det att hyra en eventlokal i Stockholm?", a: "Priset varierar kraftigt – från ca 5 000 kr för en mindre lokal på en vardagskväll till 200 000 kr+ för en prestige-lokal under helg. De flesta medelstorleks-lokaler (200–500 gäster) ligger i spannet 20 000–80 000 kr per kväll." },
+          { q: "Vilken lokal passar bäst för bröllop i Stockholm?", a: "Populära val inkluderar Spegelsalen på Grand Hôtel, Berns Salonger, Fotografiska och Moderna Museet. Välj lokal efter gästantal – räkna med minst 4–6 m² per gäst för en middag med dansyta." },
+          { q: "Vad ska jag tänka på när jag väljer eventlokal?", a: "De viktigaste faktorerna: kapacitet, inbyggt ljud och ljus (eller om du behöver hyra in), tillgänglighet med kollektivtrafik, parkeringsmöjligheter, tillgång för leveranser och regler för musik och sluttider." },
+        ].map(f => (
+          <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
+            <summary class="flex items-center justify-between p-5 cursor-pointer font-semibold text-white hover:text-brand-orange transition-colors list-none">
+              {f.q}
+              <span class="text-brand-orange ml-4 shrink-0 group-open:rotate-45 transition-transform">+</span>
+            </summary>
+            <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4">{f.a}</div>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="bg-brand-navy border border-brand-orange/20 rounded-2xl p-8 text-center">
+      <h2 class="text-xl font-bold text-white mb-2">Har du hittat din lokal?</h2>
+      <p class="text-gray-400 mb-6">Vi hjälper dig fylla den med scen, ljud, ljus och DJ-utrustning. Leverans och montering i hela Storstockholm.</p>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">Boka utrustning</a>
+        <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Fråga om offert</a>
+      </div>
+    </div>
+
+  </article>
+
+</Layout>

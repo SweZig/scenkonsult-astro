@@ -1,0 +1,462 @@
+---
+/**
+ * InlineEditor.astro
+ * 
+ * Lägger till en "Redigera sidan"-knapp i nedre hörnet.
+ * I redigeringsläge kan man klicka på:
+ *   - Texter / rubriker  → textruta
+ *   - Priser             → sifferfält
+ *   - Bilder             → URL-fält + bildval från kända bilder
+ * 
+ * Ändringar sparas i localStorage under nyckeln "sk_edits".
+ * Knappen "Exportera ändringar" visar JSON som kan klistras in i JSON-filerna.
+ * 
+ * AKTIVERING: Lägg till <?/> på en sida via ?edit=1 i URL:en
+ * eller tryck Alt+E på sidan.
+ */
+---
+
+<!-- Editor-knapp -->
+<div id="sk-editor-toggle" class="fixed bottom-6 right-6 z-50">
+  <button
+    id="sk-edit-btn"
+    class="bg-brand-orange hover:bg-brand-orange-light text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-brand-orange/40 flex items-center gap-2 transition-all"
+    title="Alt+E för att aktivera/avaktivera redigeringsläge"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+    </svg>
+    <span id="sk-edit-label">Redigera sidan</span>
+  </button>
+</div>
+
+<!-- Popup-overlay -->
+<div id="sk-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-[#0d1117] border border-white/20 rounded-2xl shadow-2xl w-full max-w-lg">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+      <h3 id="sk-popup-title" class="text-white font-bold text-base">Redigera</h3>
+      <button id="sk-close" class="text-gray-500 hover:text-white transition-colors text-xl leading-none">×</button>
+    </div>
+    <!-- Body -->
+    <div class="p-5 space-y-4">
+      <!-- Text editor -->
+      <div id="sk-text-section" class="hidden">
+        <label class="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Text / Rubrik</label>
+        <textarea
+          id="sk-text-input"
+          rows="4"
+          class="w-full bg-white/5 border border-white/15 text-white rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-brand-orange/60 placeholder-gray-600"
+          placeholder="Ange ny text..."
+        ></textarea>
+      </div>
+      <!-- Pris editor -->
+      <div id="sk-price-section" class="hidden">
+        <label class="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Pris (kr)</label>
+        <input
+          id="sk-price-input"
+          type="number"
+          min="0"
+          step="1"
+          class="w-full bg-white/5 border border-white/15 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-orange/60"
+          placeholder="T.ex. 599"
+        />
+        <p class="text-gray-500 text-xs mt-1.5">Ange priset utan decimaler. Suffix (kr/dygn) behålls automatiskt.</p>
+      </div>
+      <!-- Bild editor -->
+      <div id="sk-image-section" class="hidden">
+        <label class="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Bildsökväg</label>
+        <input
+          id="sk-image-input"
+          type="text"
+          class="w-full bg-white/5 border border-white/15 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-orange/60 font-mono"
+          placeholder="/images/..."
+        />
+        <div id="sk-image-preview" class="mt-3 hidden">
+          <img id="sk-preview-img" src="" alt="" class="h-32 object-contain rounded-lg border border-white/10 bg-white/5 w-full" />
+        </div>
+        <!-- Bildbibliotek -->
+        <div class="mt-3">
+          <label class="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Eller välj från biblioteket</label>
+          <div id="sk-image-library" class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+      <!-- Alt text (visas vid bildredigering) -->
+      <div id="sk-alt-section" class="hidden">
+        <label class="text-gray-400 text-xs uppercase tracking-wider mb-2 block">Alt-text (SEO)</label>
+        <input
+          id="sk-alt-input"
+          type="text"
+          class="w-full bg-white/5 border border-white/15 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-orange/60"
+          placeholder="Beskriv bilden för sökmotorer..."
+        />
+      </div>
+    </div>
+    <!-- Footer -->
+    <div class="flex items-center justify-between px-5 py-4 border-t border-white/10">
+      <button id="sk-reset-field" class="text-gray-500 hover:text-red-400 text-sm transition-colors">Återställ ursprungsvärde</button>
+      <div class="flex gap-3">
+        <button id="sk-cancel" class="border border-white/20 text-white hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-semibold transition-colors">Avbryt</button>
+        <button id="sk-save" class="bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-2 rounded-xl text-sm font-bold transition-colors">Spara</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export panel -->
+<div id="sk-export-panel" class="hidden fixed bottom-20 right-6 z-50 bg-[#0d1117] border border-white/20 rounded-2xl shadow-2xl w-96 max-h-96 flex flex-col">
+  <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
+    <span class="text-white font-semibold text-sm">Exportera ändringar</span>
+    <button id="sk-export-close" class="text-gray-500 hover:text-white text-lg leading-none">×</button>
+  </div>
+  <pre id="sk-export-json" class="flex-1 overflow-auto p-4 text-xs text-green-400 font-mono leading-relaxed"></pre>
+  <div class="px-4 py-3 border-t border-white/10 flex gap-2">
+    <button id="sk-copy-json" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-semibold flex-1 transition-colors">Kopiera JSON</button>
+    <button id="sk-clear-edits" class="bg-red-900/30 hover:bg-red-900/50 text-red-400 px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Rensa allt</button>
+  </div>
+</div>
+
+<script>
+// ─── KONFIGURATION ─────────────────────────────────────────────────────────
+const STORAGE_KEY = 'sk_edits';
+const EDIT_ATTR   = 'data-sk-edit';
+const ORG_ATTR    = 'data-sk-original';
+
+// Alla kända bilder från download-scriptet
+const IMAGE_LIBRARY: string[] = [
+  '/images/hero/karusell_01.png', '/images/hero/karusell_02.png',
+  '/images/hero/karusell_03.png', '/images/hero/karusell_04.png',
+  '/images/hero/karusell_05.png', '/images/hero/karusell_06.png',
+  '/images/tjanster/plugg_scener.png', '/images/tjanster/plugg_ljus.png',
+  '/images/tjanster/plugg_event_ljud.png', '/images/tjanster/plugg_live_ljud.png',
+  '/images/tjanster/plugg_dance_ljud.png', '/images/tjanster/plugg_portabelt.png',
+  '/images/tjanster/plugg_bild.png', '/images/tjanster/plugg_dj.png',
+  '/images/scen/pp_small.png', '/images/scen/pp_small_plus.png',
+  '/images/scen/pp_small_pp.png', '/images/scen/pp_medium.png',
+  '/images/scen/pp_medium_plus.png', '/images/scen/pp_medium_plus_tak.png',
+  '/images/scen/pp_medium_pp.png', '/images/scen/pp_large.png',
+  '/images/scen/pp_large_plus.png', '/images/scen/pp_large_plus_tak.png',
+  '/images/scen/pp_xl.png', '/images/scen/pp_xl_plus.png',
+  '/images/scen/pp_scentrapp.png', '/images/scen/pp_scenkjol.png',
+  '/images/scen/pp_backdrop.png', '/images/scen/pp_scentak.png',
+  '/images/ljud/pp_event_small.png', '/images/ljud/pp_event_small_p.png',
+  '/images/ljud/pp_event_medium.png', '/images/ljud/pp_event_medium_p.png',
+  '/images/ljud/pp_event_large.png',
+  '/images/ljud/pp_live_small.png', '/images/ljud/pp_live_medium.png',
+  '/images/ljud/pp_live_large.png',
+  '/images/ljud/pp_music_small.png', '/images/ljud/pp_music_small_p.png',
+  '/images/ljud/pp_music_medium.png', '/images/ljud/pp_music_large.png',
+  '/images/ljud/pp_music_xl.png', '/images/ljud/pp_music_xl_p.png',
+  '/images/ljud/pp_music_xxl.png', '/images/ljud/pp_music_concert.png',
+  '/images/ljud/pp_portable_small.png', '/images/ljud/pp_portable_small_p.png',
+  '/images/ljud/pp_portable_medium.png', '/images/ljud/pp_portable_medium_p.png',
+  '/images/ljud/pp_portable_large.png', '/images/ljud/pp_portable_large_p.png',
+  '/images/ljud/plugg_event.png', '/images/ljud/plugg_live.png',
+  '/images/ljud/plugg_music.png', '/images/ljud/plugg_portabelt.png',
+  '/images/ljud/line_array.png',
+  '/images/ljus/pp_small.png', '/images/ljus/pp_small_p.png',
+  '/images/ljus/pp_small_pp.png', '/images/ljus/pp_medium.png',
+  '/images/ljus/pp_medium_p.png', '/images/ljus/pp_medium_pp.png',
+  '/images/ljus/plugg_paket.png', '/images/ljus/plugg_effekter.png',
+  '/images/ljus/plugg_rok.png', '/images/ljus/plugg_t-stativ-tross.png',
+  '/images/ljus/ljus_storre.png', '/images/ljus/plugg_topplista.png',
+];
+
+// ─── TILLSTÅND ──────────────────────────────────────────────────────────────
+let editMode = false;
+let edits: Record<string, any> = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let currentEl: HTMLElement | null = null;
+let currentType: 'text' | 'price' | 'image' = 'text';
+
+// ─── HJÄLPFUNKTIONER ────────────────────────────────────────────────────────
+function getEdits() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+function saveEdits(e: Record<string, any>) { localStorage.setItem(STORAGE_KEY, JSON.stringify(e)); }
+function genId(el: HTMLElement): string {
+  const path = window.location.pathname.replace(/\//g, '_');
+  const tag  = el.tagName.toLowerCase();
+  const idx  = Array.from(document.querySelectorAll(`[${EDIT_ATTR}]`)).indexOf(el);
+  return `${path}__${tag}__${idx}`;
+}
+
+// ─── TILLÄMPA SPARADE ÄNDRINGAR ─────────────────────────────────────────────
+function applyEdits() {
+  const saved = getEdits();
+  document.querySelectorAll<HTMLElement>(`[${EDIT_ATTR}]`).forEach(el => {
+    const id = genId(el);
+    if (!saved[id]) return;
+    const v = saved[id];
+    if (el.tagName === 'IMG') {
+      (el as HTMLImageElement).src = v.src || (el as HTMLImageElement).src;
+      if (v.alt) (el as HTMLImageElement).alt = v.alt;
+    } else {
+      el.textContent = v.text;
+    }
+  });
+}
+
+// ─── EDIT-ATTRIBUT SÄTT PÅ ALLA KLICKBARA ELEMENT ──────────────────────────
+function markEditable() {
+  // Texter: h1-h4, p, span med text, li
+  document.querySelectorAll<HTMLElement>('h1,h2,h3,h4,p,li,span,td,th').forEach(el => {
+    if (el.children.length === 0 && el.textContent?.trim()) {
+      el.setAttribute(EDIT_ATTR, 'text');
+    }
+  });
+  // Priser: element med kr i text
+  document.querySelectorAll<HTMLElement>('*').forEach(el => {
+    if (el.children.length === 0 && /\d+\s*(kr|:-)/i.test(el.textContent || '')) {
+      el.setAttribute(EDIT_ATTR, 'price');
+    }
+  });
+  // Bilder
+  document.querySelectorAll<HTMLImageElement>('img').forEach(img => {
+    if (!img.closest('header') && !img.src.includes('logo')) {
+      img.setAttribute(EDIT_ATTR, 'image');
+    }
+  });
+}
+
+// ─── EDIT-MODE PÅ/AV ────────────────────────────────────────────────────────
+function setEditMode(on: boolean) {
+  editMode = on;
+  const btn   = document.getElementById('sk-edit-btn')!;
+  const label = document.getElementById('sk-edit-label')!;
+  label.textContent = on ? 'Avsluta redigering' : 'Redigera sidan';
+  btn.classList.toggle('ring-2', on);
+  btn.classList.toggle('ring-yellow-400', on);
+  document.body.style.cursor = on ? 'crosshair' : '';
+  if (on) {
+    markEditable();
+    showEditorHints(true);
+    addExportBtn();
+  } else {
+    showEditorHints(false);
+    removeExportBtn();
+  }
+}
+
+function showEditorHints(on: boolean) {
+  document.querySelectorAll<HTMLElement>(`[${EDIT_ATTR}]`).forEach(el => {
+    if (on) {
+      el.style.outline         = '2px dashed rgba(217,107,42,0.5)';
+      el.style.outlineOffset   = '2px';
+      el.style.cursor          = 'pointer';
+      el.style.borderRadius    = '4px';
+      // Sparad-indikator
+      const id = genId(el);
+      const saved = getEdits();
+      if (saved[id]) {
+        el.style.outline = '2px solid rgba(74,222,128,0.7)';
+      }
+    } else {
+      el.style.outline = '';
+      el.style.outlineOffset = '';
+      el.style.cursor = '';
+      el.style.borderRadius = '';
+    }
+  });
+}
+
+// ─── EXPORT-KNAPP ───────────────────────────────────────────────────────────
+function addExportBtn() {
+  if (document.getElementById('sk-export-btn')) return;
+  const b = document.createElement('button');
+  b.id = 'sk-export-btn';
+  b.className = 'bg-white/10 border border-white/20 text-white text-sm px-3 py-2 rounded-xl hover:bg-white/20 transition-colors ml-2';
+  b.textContent = 'Exportera';
+  b.onclick = () => {
+    const panel = document.getElementById('sk-export-panel')!;
+    const json  = getEdits();
+    document.getElementById('sk-export-json')!.textContent = JSON.stringify(json, null, 2);
+    panel.classList.toggle('hidden');
+  };
+  document.getElementById('sk-editor-toggle')?.append(b);
+}
+function removeExportBtn() {
+  document.getElementById('sk-export-btn')?.remove();
+  document.getElementById('sk-export-panel')?.classList.add('hidden');
+}
+
+// ─── POPUP: ÖPPNA ───────────────────────────────────────────────────────────
+function openPopup(el: HTMLElement) {
+  if (!editMode) return;
+  currentEl   = el;
+  currentType = (el.getAttribute(EDIT_ATTR) as any) || 'text';
+
+  const overlay = document.getElementById('sk-overlay')!;
+  const title   = document.getElementById('sk-popup-title')!;
+  const textSec = document.getElementById('sk-text-section')!;
+  const priceSec= document.getElementById('sk-price-section')!;
+  const imgSec  = document.getElementById('sk-image-section')!;
+  const altSec  = document.getElementById('sk-alt-section')!;
+
+  // Göm allt
+  [textSec, priceSec, imgSec, altSec].forEach(s => s.classList.add('hidden'));
+
+  const saved = getEdits()[genId(el)];
+
+  if (currentType === 'image') {
+    const img = el as HTMLImageElement;
+    title.textContent = 'Redigera bild';
+    imgSec.classList.remove('hidden');
+    altSec.classList.remove('hidden');
+    const inp = document.getElementById('sk-image-input') as HTMLInputElement;
+    inp.value = saved?.src || img.src.replace(window.location.origin, '');
+    const altInp = document.getElementById('sk-alt-input') as HTMLInputElement;
+    altInp.value = saved?.alt || img.alt || '';
+    updateImagePreview(inp.value);
+    buildImageLibrary(inp);
+    inp.addEventListener('input', () => updateImagePreview(inp.value), { once: false });
+  } else if (currentType === 'price') {
+    title.textContent = 'Redigera pris';
+    priceSec.classList.remove('hidden');
+    const inp = document.getElementById('sk-price-input') as HTMLInputElement;
+    inp.value = String(saved?.price || (el.textContent?.match(/\d+/)?.[0] || ''));
+  } else {
+    title.textContent = 'Redigera text';
+    textSec.classList.remove('hidden');
+    const inp = document.getElementById('sk-text-input') as HTMLTextAreaElement;
+    inp.value = saved?.text || el.textContent || '';
+  }
+
+  overlay.classList.remove('hidden');
+  // Stäng vid klick utanför
+  overlay.onclick = (e) => { if (e.target === overlay) closePopup(); };
+}
+
+function updateImagePreview(src: string) {
+  const div = document.getElementById('sk-image-preview')!;
+  const img = document.getElementById('sk-preview-img') as HTMLImageElement;
+  if (src) {
+    img.src = src;
+    div.classList.remove('hidden');
+  } else {
+    div.classList.add('hidden');
+  }
+}
+
+function buildImageLibrary(inp: HTMLInputElement) {
+  const lib = document.getElementById('sk-image-library')!;
+  lib.innerHTML = '';
+  IMAGE_LIBRARY.forEach(path => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'aspect-video bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-brand-orange/60 transition-all focus:outline-none';
+    tile.title = path.split('/').pop() || path;
+    tile.innerHTML = `<img src="${path}" alt="" class="w-full h-full object-cover" loading="lazy" />`;
+    tile.onclick = () => {
+      inp.value = path;
+      updateImagePreview(path);
+      // Markera valt
+      lib.querySelectorAll('button').forEach(b => b.classList.remove('ring-2','ring-brand-orange'));
+      tile.classList.add('ring-2','ring-brand-orange');
+    };
+    lib.appendChild(tile);
+  });
+}
+
+function closePopup() {
+  document.getElementById('sk-overlay')!.classList.add('hidden');
+  currentEl = null;
+}
+
+// ─── SPARA ──────────────────────────────────────────────────────────────────
+function saveCurrentEdit() {
+  if (!currentEl) return;
+  const id    = genId(currentEl);
+  const saved = getEdits();
+
+  if (currentType === 'image') {
+    const src = (document.getElementById('sk-image-input') as HTMLInputElement).value;
+    const alt = (document.getElementById('sk-alt-input') as HTMLInputElement).value;
+    (currentEl as HTMLImageElement).src = src;
+    if (alt) (currentEl as HTMLImageElement).alt = alt;
+    saved[id] = { type: 'image', src, alt };
+  } else if (currentType === 'price') {
+    const val = (document.getElementById('sk-price-input') as HTMLInputElement).value;
+    const orig = currentEl.textContent || '';
+    // Ersätt siffror men behåll suffix
+    const newText = orig.replace(/[\d\s]+/, val + ' ');
+    currentEl.textContent = newText.trim();
+    saved[id] = { type: 'price', price: val, text: currentEl.textContent };
+  } else {
+    const val = (document.getElementById('sk-text-input') as HTMLTextAreaElement).value;
+    currentEl.textContent = val;
+    saved[id] = { type: 'text', text: val };
+  }
+
+  saveEdits(saved);
+  closePopup();
+  showEditorHints(true); // Uppdatera gröna indikatorer
+}
+
+function resetCurrentField() {
+  if (!currentEl) return;
+  const id    = genId(currentEl);
+  const orig  = currentEl.getAttribute(ORG_ATTR);
+  const saved = getEdits();
+  delete saved[id];
+  saveEdits(saved);
+  if (orig) {
+    if (currentType === 'image') (currentEl as HTMLImageElement).src = orig;
+    else currentEl.textContent = orig;
+  }
+  closePopup();
+  showEditorHints(true);
+}
+
+// ─── EVENT LISTENERS ────────────────────────────────────────────────────────
+document.getElementById('sk-edit-btn')!.addEventListener('click', () => setEditMode(!editMode));
+document.getElementById('sk-close')!.addEventListener('click', closePopup);
+document.getElementById('sk-cancel')!.addEventListener('click', closePopup);
+document.getElementById('sk-save')!.addEventListener('click', saveCurrentEdit);
+document.getElementById('sk-reset-field')!.addEventListener('click', resetCurrentField);
+document.getElementById('sk-export-close')!.addEventListener('click', () =>
+  document.getElementById('sk-export-panel')!.classList.add('hidden'));
+document.getElementById('sk-copy-json')!.addEventListener('click', () => {
+  navigator.clipboard.writeText(JSON.stringify(getEdits(), null, 2));
+  const btn = document.getElementById('sk-copy-json')!;
+  btn.textContent = '✓ Kopierat!';
+  setTimeout(() => btn.textContent = 'Kopiera JSON', 2000);
+});
+document.getElementById('sk-clear-edits')!.addEventListener('click', () => {
+  if (confirm('Rensa ALLA sparade ändringar?')) {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+});
+
+// Delegera klick till editerbara element
+document.addEventListener('click', (e) => {
+  if (!editMode) return;
+  const el = (e.target as HTMLElement).closest(`[${EDIT_ATTR}]`) as HTMLElement | null;
+  if (el) { e.preventDefault(); e.stopPropagation(); openPopup(el); }
+}, true);
+
+// Spara originalvärden (körs en gång)
+function storeOriginals() {
+  document.querySelectorAll<HTMLElement>(`[${EDIT_ATTR}]`).forEach(el => {
+    if (!el.hasAttribute(ORG_ATTR)) {
+      el.setAttribute(ORG_ATTR, el.tagName === 'IMG'
+        ? (el as HTMLImageElement).src
+        : (el.textContent || ''));
+    }
+  });
+}
+
+// Alt+E snabbtangent
+document.addEventListener('keydown', (e) => {
+  if (e.altKey && e.key === 'e') { e.preventDefault(); setEditMode(!editMode); }
+});
+
+// URL-param ?edit=1
+if (new URLSearchParams(window.location.search).get('edit') === '1') {
+  setEditMode(true);
+}
+
+// Tillämpa sparade ändringar direkt
+markEditable();
+storeOriginals();
+applyEdits();
+</script>

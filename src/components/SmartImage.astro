@@ -1,0 +1,52 @@
+---
+/**
+ * SmartImage.astro – <picture> med WebP + PNG-fallback.
+ * width/height auto-detekteras från bildnamn → förhindrar CLS.
+ */
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  sizes?: string;
+}
+
+const {
+  src, alt,
+  width: wProp, height: hProp,
+  class: extraClass = '',
+  loading = 'lazy',
+  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+} = Astro.props;
+
+function getDimensions(s: string): [number, number] {
+  if (s.includes('/hero/') || s.includes('karusell'))  return [1440, 810];
+  if (s.includes('tillbehor') && s.includes('300'))    return [300, 250];
+  if (s.includes('plugg_') && !s.includes('pp_'))      return [800, 600];
+  if (s.includes('pp_') || /\/(scen|ljud|ljus)\//.test(s)) return [1024, 853];
+  if (s.includes('/tjanster/'))                         return [800, 533];
+  return [800, 600];
+}
+
+const [autoW, autoH]  = getDimensions(src);
+const imgWidth        = wProp  ?? autoW;
+const imgHeight       = hProp  ?? autoH;
+const pngSrc          = src.endsWith('.png') ? src : `${src}.png`;
+const webpSrc         = pngSrc.replace(/\.png$/i, '.webp');
+const ph = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${imgWidth}' height='${imgHeight}'%3E%3Crect width='100%25' height='100%25' fill='%231a2744'/%3E%3C/svg%3E`;
+---
+<picture>
+  <source type="image/webp" srcset={webpSrc} sizes={sizes} />
+  <img
+    src={pngSrc}
+    alt={alt}
+    width={imgWidth}
+    height={imgHeight}
+    loading={loading}
+    decoding="async"
+    class={extraClass}
+    style={`background-image:url("${ph}");background-size:cover;background-position:center`}
+  />
+</picture>

@@ -1,0 +1,197 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+---
+<Layout
+  title="Hyr Ljusstativ & Trosstorn Stockholm – T-bar, Tross & Traverser | Scenkonsult"
+  description="Hyr ljusstativ med T-bar, vevstativ, trosstorn och trossryggar i Stockholm. Stativ fr 40 kr/dygn, trossbåge fr 1500 kr/dygn. Leverans i hela Storstockholm."
+>
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-500">
+    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
+    <a href="/vara-tjanster/hyra-ljus/" class="hover:text-gray-300">Hyra ljus</a> <span class="mx-1">/</span>
+    <span class="text-white">Stativ &amp; Tross</span>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+    <img src="/images/ljus/plugg_t-stativ-tross.png" alt="Ljusstativ och trosstorn" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
+  </div>
+
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Stativ &amp; Tross i <span class="text-brand-orange">Stockholm</span></h1>
+    <p class="text-gray-300 text-lg max-w-3xl">Hyr ljusstativ med T-bar, vevstativ, trosstorn och kompletta trossrigglar. Passar alla effekter med 35 mm O-ringsklämma.</p>
+  </header>
+
+  <!-- STATIV -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstativ med T-bar</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      {[
+        { img:"/images/ljus/pp_ljus_stativ06.png", title:"Stativ T-bar 400 mm",      excl:40,  desc:"Standardstativ med 400 mm T-bar. Plats för upp till 2 effekter.", specs:["T-bar: 400 mm","Höjd: 1,25–2,40 m","Max last: 20 kg, Vikt: 3,7 kg"] },
+        { img:"/images/ljus/pp_ljus_tradlos01.png",title:"Stativ T-bar 1200 mm",     excl:40,  desc:"Standardstativ med 1200 mm T-bar. Plats för upp till 4 effekter.", specs:["T-bar: 1 200 mm","Höjd: 1,25–2,40 m","Max last: 20 kg, Vikt: 3,7 kg"] },
+        { img:"/images/ljus/pp_ljus_stativ01.png", title:"Stativ T-bar 900 mm ★ Premium",excl:60,desc:"Premiumstativ med 900 mm T-bar. Upp till 2,5 m höjd.", specs:["T-bar: 900 mm","Höjd: 1,10–2,50 m","Max last: 30 kg, Vikt: 5,8 kg"] },
+        { img:"/images/ljus/pp_ljus_stativ02.png", title:"Vevstativ T-bar 1200 mm",  excl:120, desc:"Vevstativ för hög monteringshöjd upp till 3,7 m.", specs:["T-bar: 1 200 mm","Höjd: 1,70–3,70 m","Max last: 35 kg, Vikt: 20 kg"] },
+      ].map(p => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
+          </div>
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <h2 class="font-bold text-white text-base">{p.title}</h2>
+              <span class="sk-price-incl text-brand-orange font-extrabold text-lg shrink-0">{Math.round(p.excl*1.25)} kr</span>
+              <span class="sk-price-excl hidden text-brand-orange font-extrabold text-lg shrink-0">{p.excl} kr</span>
+            </div>
+            <p class="text-gray-400 text-xs mb-3">{p.desc}</p>
+            <ul class="space-y-1 mb-4 text-xs text-gray-400">
+              {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
+            </ul>
+            <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- TROSSTORN -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstorn</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {[
+        { img:"/images/ljus/pp_ljus_tross01.png", title:"Trosstorn 1,0 m",excl:300,specs:["4-punkts tross, 50 mm tub","Höjd: 1,0 m","Max last: 50 kg, Vikt: 16 kg"] },
+        { img:"/images/ljus/pp_ljus_tross03.png", title:"Trosstorn 1,5 m",excl:360,specs:["4-punkts tross, 50 mm tub","Höjd: 1,5 m","Max last: 50 kg, Vikt: 18 kg"] },
+        { img:"/images/ljus/pp_ljus_tross04.png", title:"Trosstorn 2,0 m",excl:400,specs:["4-punkts tross, 50 mm tub","Höjd: 2,0 m","Max last: 50 kg, Vikt: 20 kg"] },
+      ].map(p => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
+          </div>
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <h2 class="font-bold text-white text-base">{p.title}</h2>
+              <span class="sk-price-incl text-brand-orange font-extrabold text-lg shrink-0">{Math.round(p.excl*1.25)} kr</span>
+              <span class="sk-price-excl hidden text-brand-orange font-extrabold text-lg shrink-0">{p.excl} kr</span>
+            </div>
+            <ul class="space-y-1 mb-4 text-xs text-gray-400">
+              {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
+            </ul>
+            <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- TROSSTRAVERSER & TROSSBÅGAR -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstraverser &amp; Trossbågar</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[
+        { img:"/images/ljus/pp_ljus_stativ03.png", title:"Trosstravers 3,0 m",  excl:460,  desc:"Kan hissas upp till 3,7 m. 3,0 m bred. Upp till 5 effekter.", specs:["4-punkts tross, 50 mm tub","3,0 m bred","Max last: 50 kg, Vikt: 30 kg"] },
+        { img:"/images/ljus/pp_ljus_stativ04.png", title:"Trosstravers 4,0 m",  excl:500,  desc:"Kan hissas upp till 3,7 m. 4,0 m bred. Upp till 8 effekter.", specs:["4-punkts tross, 50 mm tub","4,0 m bred","Max last: 50 kg, Vikt: 35 kg"] },
+        { img:"/images/ljus/pp_ljus_tross06.png",  title:"Trossbåge 2,5×4,0 m",excl:1500, desc:"Byggs 2,5 m hög och 4,0 m bred. Upp till 18 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 2,5 m, Bredd: 4,0 m","Max last: 75 kg, Vikt: 40 kg"] },
+        { img:"/images/ljus/pp_ljus_tross08.png",  title:"Trossbåge 3,0×6,0 m",excl:2100, desc:"Byggs 3,0 m hög och 6,0 m bred. Upp till 24 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 3,0 m, Bredd: 6,0 m","Max last: 75 kg, Vikt: 60 kg"] },
+        { img:"/images/ljus/pp_ljus_tross09.png",  title:"Trossvägg 2,5×2,0 m",excl:2100, desc:"Byggs 2,5 m hög och 2,0 m bred. Passar 8–16 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 2,5 m, Bredd: 2,0 m","Max last: 75 kg, Vikt: 60 kg"] },
+      ].map(p => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
+          </div>
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <h2 class="font-bold text-white text-base">{p.title}</h2>
+              <span class="sk-price-incl text-brand-orange font-extrabold text-lg shrink-0">{Math.round(p.excl*1.25)} kr</span>
+              <span class="sk-price-excl hidden text-brand-orange font-extrabold text-lg shrink-0">{p.excl} kr</span>
+            </div>
+            <p class="text-gray-400 text-xs mb-3">{p.desc}</p>
+            <ul class="space-y-1 mb-4 text-xs text-gray-400">
+              {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
+            </ul>
+            <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- TILLBEHÖR FÄSTEN & DMX -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">Tillbehör – Fästen, Trossöverdrag &amp; DMX</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {[
+        { img:"/images/ljus/pp_ljus_half_coupler.png",  name:"Half Coupler 35/50 mm",       excl:20  },
+        { img:"/images/ljus/pp_ljus_super_clamp.png",   name:"Super Clamp 50 mm",           excl:32  },
+        { img:"/images/ljus/pp_ljus_tross05.png",       name:"Trossöverdrag 1,0 m",         excl:60  },
+        { img:"/images/ljus/pp_ljus_tross05.png",       name:"Trossöverdrag 1,5 m",         excl:80  },
+        { img:"/images/ljus/pp_ljus_tross05.png",       name:"Trossöverdrag 2,0 m",         excl:100 },
+        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 1–5 m",             excl:40  },
+        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 10–15 m",           excl:60  },
+        { img:"/images/ljus/pp_ljus_tradlos01.png",     name:"DMX Trådlös startkit (1+2)",  excl:239 },
+        { img:"/images/ljus/pp_ljus_tradlos02.png",     name:"DMX Trådlös extra sändare",   excl:80  },
+        { img:"/images/ljus/pp_ljus_tradlos03.png",     name:"DMX Trådlös extra mottagare", excl:80  },
+      ].map(t => (
+        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
+          <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
+            <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
+          </div>
+          <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
+          <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
+          <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="text-gray-500 text-[9px]"> /dygn</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- EL-TILLBEHÖR -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {[
+        { img:"/images/ljus/pp_ljus_powercon.png",      name:"PowerCon 0,5–1,5 m",         excl:20  },
+        { img:"/images/ljus/pp_ljus_powercon2.png",     name:"PowerCon 5–10 m",            excl:80  },
+        { img:"/images/ljus/pp_ljus_iec_kabel.png",     name:"IEC C13/C14 0,5–1,5 m",     excl:20  },
+        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",            excl:20  },
+        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m 1-fas",     excl:48  },
+        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag 10 m IP44",        excl:100 },
+        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag 25 m IP44",        excl:159 },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",      excl:236 },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",      excl:396 },
+        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",excl:320 },
+        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",      excl:80  },
+      ].map(t => (
+        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
+          <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
+            <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
+          </div>
+          <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
+          <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
+          <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="text-gray-500 text-[9px]"> /dygn</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- STÖRRE EVENT CTA -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2">
+        <div class="p-8">
+          <h2 class="text-2xl font-bold text-white mb-3">Scenljus för konserter eller större event</h2>
+          <p class="text-gray-300 mb-2">Vi har scenljus för alla ändamål – vitt och färgat ljus på travers eller tross.</p>
+          <p class="text-gray-400 text-sm mb-6">Kontakta oss och beskriv ditt behov så tar vi fram en lösning. Större ljusriggar hyrs ut inkl. transport och montering.</p>
+          <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-5 py-3 rounded-xl font-semibold text-sm transition-colors">Begär offert</a>
+        </div>
+        <div class="hidden md:block">
+          <img src="/images/ljus/pp_ljus_storre_event.png" alt="Scenljus för konserter" width="600" height="400" loading="lazy" class="w-full h-full object-cover" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex flex-wrap gap-4">
+    <a href="/vara-tjanster/hyra-ljus/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">← Tillbaka till hyra ljus</a>
+    <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">Lösa effekter</a>
+    <a href="/bokningssida/" class="bg-brand-orange hover:bg-orange-500 text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Boka nu</a>
+  </div>
+</Layout>

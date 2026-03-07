@@ -1,0 +1,72 @@
+---
+// ProductCard.astro
+interface Props {
+  name: string;
+  price: number | string;
+  priceNote?: string;
+  image?: string;
+  alt?: string;
+  description: string;
+  persons?: string;
+  specs?: string[];
+  videoSrc?: string;
+  quantityPrices?: { qty: string; price: number }[];
+  wide?: boolean;
+}
+const { name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false } = Astro.props;
+const inclPrice = typeof price === 'number' ? Math.round(price * 1.25) : null;
+---
+<article class={`bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group ${wide ? 'lg:col-span-2' : ''}`} itemscope itemtype="https://schema.org/Product">
+  {image && (
+    <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+      <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" itemprop="image" />
+    </div>
+  )}
+  {videoSrc && (
+    <div class="bg-black" style="aspect-ratio:16/9">
+      <video src={videoSrc} controls preload="none" class="w-full h-full" poster={image ?? undefined} />
+    </div>
+  )}
+  <div class="p-5">
+    <!-- Price badge -->
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors leading-tight" itemprop="name">{name}</h2>
+      <div class="shrink-0 text-right" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+        <meta itemprop="priceCurrency" content="SEK" />
+        <meta itemprop="price" content={String(price)} />
+        <meta itemprop="availability" content="https://schema.org/InStock" />
+        <span class="text-brand-orange font-extrabold text-xl" data-excl={typeof price === 'number' ? price : undefined} data-incl={inclPrice ?? undefined}>
+          {typeof price === 'number' ? `${price} kr` : price}
+        </span>
+        <div class="text-gray-500 text-xs">{priceNote}</div>
+      </div>
+    </div>
+
+    {persons && <p class="text-brand-orange text-xs font-semibold mb-2">{persons}</p>}
+    <p class="text-gray-400 text-sm leading-relaxed mb-4" itemprop="description">{description}</p>
+
+    {quantityPrices && quantityPrices.length > 0 && (
+      <div class="bg-brand-dark/60 rounded-xl p-3 mb-4 text-xs space-y-1">
+        {quantityPrices.map(qp => (
+          <div class="flex justify-between">
+            <span class="text-gray-400">{qp.qty}</span>
+            <span class="text-white font-semibold" data-excl={qp.price} data-incl={Math.round(qp.price * 1.25)}>
+              {qp.price} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}
+            </span>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {specs && specs.length > 0 && (
+      <ul class="space-y-1 mb-4 border-t border-white/10 pt-3">
+        {specs.map(s => (
+          <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0 mt-0.5">▸</span><span>{s}</span></li>
+        ))}
+      </ul>
+    )}
+
+    <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors mt-1">Boka</a>
+  </div>
+</article>
