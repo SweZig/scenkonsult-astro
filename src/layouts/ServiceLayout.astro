@@ -1,0 +1,119 @@
+---
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  hero_title: string;
+  hero_subtitle?: string;
+  category: string;
+  from_price: string;
+  price_unit?: string;
+  intro: string;
+  packages: { name: string; desc: string; price?: string }[];
+  includes: string[];
+}
+
+const { title, description, hero_title, hero_subtitle, category, from_price, price_unit = '/ dygn · inkl. moms', intro, packages, includes } = Astro.props;
+---
+<Layout title={title} description={description}>
+<style>
+.svc-hero {
+  background: var(--ink-deep);
+  padding: 7rem 5vw 4rem;
+  padding-top: calc(36px + 74px + 4rem);
+}
+.svc-hero .overline { color: rgba(255,255,255,0.4); }
+.svc-hero .overline::after { background: rgba(255,255,255,0.3); }
+.svc-hero h1 { color: white; margin-top: 0.5rem; margin-bottom: 1rem; }
+.svc-hero-sub { color: rgba(255,255,255,0.5); font-size: 0.95rem; line-height: 1.8; max-width: 520px; margin-bottom: 1.75rem; }
+.price-pill {
+  display: inline-flex; align-items: baseline; gap: 0.5rem;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  padding: 0.6rem 1.25rem; border-radius: 3px;
+}
+.price-from { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: white; }
+.price-unit { font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; }
+.svc-hero-btns { display: flex; gap: 1.5rem; align-items: center; margin-top: 2rem; }
+
+.pkg-section { padding: 5rem 5vw; background: var(--cream); }
+.pkg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 2.5rem; }
+.pkg-card { background: var(--white); padding: 2rem 1.75rem; }
+.pkg-card:hover { background: var(--ink-tint); }
+.pkg-name { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text); margin-bottom: 0.5rem; }
+.pkg-price { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 0.75rem; }
+.pkg-desc { font-size: 0.85rem; color: var(--mid); line-height: 1.75; }
+
+.includes-section { padding: 4rem 5vw; background: var(--white); border-top: 1px solid var(--rule); }
+.includes-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem 2rem; margin-top: 2rem; }
+.inc-item { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.9rem; color: var(--mid); line-height: 1.65; }
+.inc-check { width: 18px; height: 18px; background: var(--ink); border-radius: 2px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.inc-check svg { width: 9px; height: 9px; stroke: white; fill: none; stroke-width: 2.5; }
+
+.svc-cta { background: var(--ink-deep); padding: 4rem 5vw; text-align: center; }
+.svc-cta h2 { color: white; margin-bottom: 0.75rem; }
+.svc-cta p { color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
+
+@media (max-width: 768px) {
+  .svc-hero { padding-top: calc(32px + 64px + 2.5rem); }
+  .pkg-grid { grid-template-columns: 1fr; }
+  .includes-grid { grid-template-columns: 1fr; }
+  .svc-hero-btns { flex-direction: column; align-items: flex-start; }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .pkg-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<div class="svc-hero">
+  <span class="overline">{category}</span>
+  <h1 class="display">{hero_title}{hero_subtitle && <><br/><em>{hero_subtitle}</em></>}</h1>
+  <p class="svc-hero-sub">{intro}</p>
+  <div class="price-pill">
+    <span class="price-from">från {from_price} kr</span>
+    <span class="price-unit">{price_unit}</span>
+  </div>
+  <div class="svc-hero-btns">
+    <a href="/kontakt" class="btn-solid" style="background:white;color:var(--ink);font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.9rem 2rem;border-radius:2px;">Begär offert / Boka</a>
+    <a href="tel:0724481000" style="font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:rgba(255,255,255,0.5);text-decoration:none;">📞 072-448 10 00</a>
+  </div>
+</div>
+
+<section class="pkg-section">
+  <span class="overline">Paket & priser</span>
+  <h2 class="display" style="margin-top:0.5rem;">Välj rätt paket<br><em>för ditt event</em></h2>
+  <div class="pkg-grid">
+    {packages.map(p => (
+      <div class="pkg-card">
+        <div class="pkg-name">{p.name}</div>
+        {p.price && <div class="pkg-price">{p.price}</div>}
+        <p class="pkg-desc">{p.desc}</p>
+      </div>
+    ))}
+    <div class="pkg-card" style="background:var(--ink);cursor:default;">
+      <div class="pkg-name" style="color:rgba(255,255,255,0.5);">Anpassat paket</div>
+      <p class="pkg-desc" style="color:rgba(255,255,255,0.6);">Behöver du ett skräddarsytt upplägg? Vi sätter ihop en lösning utifrån dina exakta behov.</p>
+      <a href="/kontakt" style="display:inline-flex;align-items:center;gap:0.3rem;font-family:'Space Grotesk',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:white;text-decoration:none;margin-top:1rem;">Kontakta oss →</a>
+    </div>
+  </div>
+</section>
+
+<section class="includes-section">
+  <span class="overline">Ingår alltid</span>
+  <h2 class="display" style="margin-top:0.5rem;font-size:clamp(1.8rem,2.5vw,2.5rem);">Inga dolda avgifter</h2>
+  <div class="includes-grid">
+    {includes.map(inc => (
+      <div class="inc-item">
+        <div class="inc-check"><svg viewBox="0 0 9 9"><polyline points="1,4.5 3.5,7 8,2"/></svg></div>
+        <span>{inc}</span>
+      </div>
+    ))}
+  </div>
+</section>
+
+<div class="svc-cta">
+  <h2 class="display" style="color:white;font-size:clamp(1.8rem,2.8vw,2.5rem);">Redo att boka?</h2>
+  <p>Vi svarar inom ett par timmar med pris och tillgänglighet.</p>
+  <a href="/kontakt" style="display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;padding:1rem 2.5rem;border-radius:2px;background:white;color:var(--ink);">Skicka förfrågan</a>
+</div>
+</Layout>
