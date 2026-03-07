@@ -1,13 +1,188 @@
 ---
 import ServiceLayout from '../layouts/ServiceLayout.astro';
+import Price from '../components/Price.astro';
+import ljus from '../data/ljus.json';
 
-const products = [{"title": "Ljuspaket, Small", "priceImg": "https://scenkonsult.se/wp-content/uploads/2025/09/Pris_624.png", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_ljus_small_20250824PNG.png", "desc": "Enkelt festljuspaket. LED par-spottar och färgat scenljus. Passar för hemma-fester och mindre lokaler."}, {"title": "Ljuspaket, Small+", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2026/01/pp_ljus_small-_20260117-1024x853.png", "desc": "Utökat festljus med wash-lampor och effektljus. Bra för bröllop och födelsedagar."}, {"title": "Ljuspaket, Small++", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_ljus_small-_20250824PNG-1.png", "desc": "Komplett festljus med hazer och fler effekter. Fyller en mellanstor lokal med stämning."}, {"title": "Ljuspaket, Medium", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2026/01/pp_ljus_medium_20260117-1024x853.png", "desc": "Scenljuspaket för band och talare. Front-light, backlight och effektljus. DMX-styrbart."}, {"title": "Ljuspaket, Medium+", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_ljus_medium-_20250824PNG.png", "desc": "Utökat scenljus med moving heads och beam-effekter. Proffsigt scenlook."}, {"title": "Ljuspaket, Large", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_ljus_large_20250824PNG.png", "desc": "Professionell ljusrigg med moving heads, beam och wash. DMX-programmering. Stora event."}, {"title": "Ljuspaket, Large+", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2026/01/pp_ljus_large-_20260117-1024x853.png", "desc": "Avancerat scenlightingpaket med lasrar och strobos. Konsert- och festivalnivå."}, {"title": "Ljuspaket, XL", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2026/01/pp_ljus_xl_20260122-1-1024x853.png", "desc": "XL-ljusrigg för stora scener och utomhus-event. Komplett DMX-setup."}, {"title": "Scenpaket (ljus-bundle)", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2026/01/pp_ljus_scen_bundle-1024x853.png", "desc": "Komplett scenljusbundle ihoppaketerat med scen. Smidigast när du hyr scen + ljus på en offert."}, {"title": "Scenljus för konserter", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_ljus_storre_event.png", "desc": "Professionell konsertljusrigg för stora event och festivaler. Pris på förfrågan."}];
+const paket = ljus.paket;
 ---
+
 <ServiceLayout
-  title="Hyra Ljus Scen & Event Stockholm | Scenkonsult"
-  description="Hyra scenlighting i Stockholm. Från festbelysning till professionell DMX med moving heads. Färdiga paket. Sedan 1986."
-  pageHeading="Uthyrning av Ljus"
-  intro="Vi har noggrant valt ut professionella varumärken och produkter för att förse kunder med snabba leveranser och fantastiska upplevelser. Allt från enkel festbelysning till professionella scenlightingpaket."
-  note="Alla priser är hyra per dygn (22 timmar). Utrustning hämtas enl överenskommelse från kl 13:00 och återlämnas innan kl 11:00 nästkommande dag. Vi erbjuder även leverans- och monteringstjänster."
-  products={products}
-/>
+  title={ljus.metaTitle}
+  description={ljus.metaDescription}
+  heroTitle="Hyra Ljusutrustning"
+  heroSubtitle="i Stockholm"
+  heroIntro="Vi hyr ut kompletta ljuspaket och lösa effekter för alla typer av event – från intima fester till stora konserter. Plug and play, ingen tekniker behövs. Leverans i hela Storstockholm."
+  heroBullets={[
+    "Färdiga ljuspaket plug and play",
+    "Lösa effekter: LED PAR, moving heads",
+    "Rök, kallgnist & konfetti",
+    "Stativ, tross & tillbehör"
+  ]}
+  breadcrumb={[
+    { label: "Hem", href: "/" },
+    { label: "Tjänster", href: "/#tjanster" },
+    { label: "Hyra ljus" }
+  ]}
+>
+
+  <!-- CATEGORY OVERVIEW -->
+  <section class="svc-cat-overview">
+    <div class="svc-cat-inner">
+      <span class="overline">Kategorier</span>
+      <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.4rem); margin-bottom:2rem;">Vad letar du efter?</h2>
+      <div class="cat-grid">
+        {ljus.categories.map(cat => (
+          <a href={cat.href} class="cat-card">
+            <div class="cat-img-wrap">
+              <img src={cat.image} alt={cat.name} width="300" height="200" loading="lazy" />
+            </div>
+            <div class="cat-body">
+              <h3 class="cat-name">{cat.name}</h3>
+              <p class="cat-desc">{cat.desc}</p>
+              <span class="cat-link">Visa sortiment →</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- LJUSPAKET PRODUCTS -->
+  <section class="svc-products">
+    <div class="svc-products-head">
+      <span class="overline">Färdiga ljuspaket</span>
+      <h2 class="display">Välj rätt paket<br/><em>för ditt event</em></h2>
+    </div>
+    <div class="prod-grid">
+      {paket.products.map(p => (
+        <article id={p.slug} class="prod-card" itemscope itemtype="https://schema.org/Product">
+          <div class="prod-img-wrap">
+            <img src={p.image} alt={p.alt} width="400" height="300" loading="lazy" itemprop="image" />
+            <span class="prod-persons-badge">{p.persons}</span>
+          </div>
+          <div class="prod-body">
+            <h3 class="prod-name" itemprop="name">{p.name}</h3>
+            <p class="prod-desc" itemprop="description">{p.description}</p>
+            <ul class="prod-includes">
+              {p.includes.map(item => <li>{item}</li>)}
+            </ul>
+            <div class="prod-footer">
+              <span class="prod-price"><Price amount={p.price} size="lg" /></span>
+              <a href="/kontakt" class="prod-book-btn">Boka →</a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- EFFEKTER HIGHLIGHTS -->
+  <section class="svc-accessories">
+    <div class="svc-accessories-inner">
+      <span class="overline">Populärt tillbehör</span>
+      <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.4rem); margin-bottom:2rem;">Lösa effekter &amp; rök</h2>
+      <div class="acc-grid-4">
+        {[...ljus.effekter.products.slice(0,2), ...ljus.rok.products.slice(0,2)].map(p => (
+          <div class="acc-card">
+            <div class="acc-img-wrap">
+              <img src={p.image} alt={p.alt} width="300" height="200" loading="lazy" />
+            </div>
+            <div class="acc-body">
+              <h3 class="acc-name">{p.name}</h3>
+              <p class="acc-desc">{p.description}</p>
+              <div class="acc-price-row">
+                <span class="acc-price"><Price amount={p.price} size="base" /></span>
+                <a href="/kontakt" class="acc-book">Boka →</a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="svc-faq">
+    <div class="svc-faq-inner">
+      <span class="overline">Vanliga frågor</span>
+      <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.4rem); margin-bottom:2rem;">Frågor &amp; svar</h2>
+      <div class="faq-list">
+        {ljus.faq.map(item => (
+          <details class="faq-item">
+            <summary class="faq-q">{item.q}</summary>
+            <p class="faq-a">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</ServiceLayout>
+
+<style>
+/* CATEGORY OVERVIEW */
+.svc-cat-overview{background:var(--white);border-bottom:1px solid var(--rule);padding:3.5rem 5vw}
+.svc-cat-inner{max-width:1200px;margin:0 auto}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.cat-card{background:var(--cream);display:flex;flex-direction:column;text-decoration:none;transition:background .2s}
+.cat-card:hover{background:var(--ink-tint)}
+.cat-img-wrap{background:#0a0a0f;aspect-ratio:4/3;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.cat-img-wrap img{width:100%;height:100%;object-fit:contain;padding:1rem;transition:transform .3s}
+.cat-card:hover .cat-img-wrap img{transform:scale(1.05)}
+.cat-body{padding:1.25rem;flex:1;display:flex;flex-direction:column}
+.cat-name{font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:.04em;color:var(--text);margin-bottom:.3rem;transition:color .2s}
+.cat-card:hover .cat-name{color:var(--ink)}
+.cat-desc{font-size:.78rem;color:var(--mid);line-height:1.6;flex:1;margin-bottom:.75rem}
+.cat-link{font-family:'Space Grotesk',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.1em;color:var(--ink)}
+
+/* PRODUCTS */
+.svc-products{background:var(--cream);padding:4rem 5vw 3rem}
+.svc-products-head{max-width:1200px;margin:0 auto 3rem;border-bottom:1px solid var(--rule);padding-bottom:2rem}
+.prod-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.prod-card{background:var(--white);display:flex;flex-direction:column;transition:background .2s}
+.prod-card:hover{background:var(--cream)}
+.prod-img-wrap{position:relative;background:#0a0a0f;aspect-ratio:4/3;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.prod-img-wrap img{width:100%;height:100%;object-fit:contain;padding:1rem;transition:transform .3s}
+.prod-card:hover .prod-img-wrap img{transform:scale(1.04)}
+.prod-persons-badge{position:absolute;top:.75rem;right:.75rem;background:var(--ink);color:white;font-family:'Space Grotesk',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.08em;padding:.25rem .6rem;border-radius:2px}
+.prod-body{padding:1.5rem;display:flex;flex-direction:column;flex:1}
+.prod-name{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text);margin-bottom:.5rem;transition:color .2s}
+.prod-card:hover .prod-name{color:var(--ink)}
+.prod-desc{font-size:.84rem;color:var(--mid);line-height:1.7;margin-bottom:1rem;flex:1}
+.prod-includes{list-style:none;display:flex;flex-direction:column;gap:.2rem;background:var(--cream);padding:.75rem;border-radius:2px;margin-bottom:1.25rem}
+.prod-includes li{font-size:.75rem;color:var(--mid);padding-left:1rem;position:relative}
+.prod-includes li::before{content:'—';position:absolute;left:0;color:var(--rule)}
+.prod-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--rule);padding-top:1rem}
+.prod-price{font-family:'DM Serif Display',serif;color:var(--ink)}
+.prod-book-btn{font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:.55rem 1.25rem;border-radius:2px;background:var(--ink);color:white;white-space:nowrap;transition:background .2s}
+.prod-book-btn:hover{background:var(--ink-deep)}
+
+/* ACCESSORIES */
+.svc-accessories{background:var(--white);border-top:1px solid var(--rule);padding:3.5rem 5vw}
+.svc-accessories-inner{max-width:1200px;margin:0 auto}
+.acc-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.acc-card{background:var(--cream);display:flex;flex-direction:column}
+.acc-img-wrap{background:#0a0a0f;aspect-ratio:6/5;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.acc-img-wrap img{width:100%;height:100%;object-fit:contain;padding:1rem}
+.acc-body{padding:1.25rem;flex:1;display:flex;flex-direction:column}
+.acc-name{font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:.35rem}
+.acc-desc{font-size:.78rem;color:var(--mid);line-height:1.6;flex:1;margin-bottom:.75rem}
+.acc-price-row{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--rule);padding-top:.75rem}
+.acc-price{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--ink)}
+.acc-book{font-family:'Space Grotesk',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-decoration:none;color:var(--ink);transition:opacity .2s}
+.acc-book:hover{opacity:.65}
+
+/* FAQ */
+.svc-faq{background:var(--cream);border-top:1px solid var(--rule);padding:3.5rem 5vw}
+.svc-faq-inner{max-width:760px;margin:0 auto}
+.faq-list{display:flex;flex-direction:column;border:1px solid var(--rule)}
+.faq-item{border-bottom:1px solid var(--rule);background:var(--white)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{padding:1.25rem 1.5rem;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:700;color:var(--text);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq-q::after{content:'+';font-size:1.2rem;color:var(--ink)}
+details[open] .faq-q::after{content:'−'}
+.faq-a{padding:0 1.5rem 1.25rem;font-size:.85rem;color:var(--mid);line-height:1.75}
+
+@media(max-width:1024px){.cat-grid{grid-template-columns:1fr 1fr}.prod-grid{grid-template-columns:1fr 1fr}.acc-grid-4{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.prod-grid{grid-template-columns:1fr}.cat-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.cat-grid{grid-template-columns:1fr}.acc-grid-4{grid-template-columns:1fr}}
+</style>

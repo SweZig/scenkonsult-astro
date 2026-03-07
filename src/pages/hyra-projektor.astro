@@ -1,13 +1,130 @@
 ---
 import ServiceLayout from '../layouts/ServiceLayout.astro';
-
-const products = [{"title": "Projektor (XGA)", "priceImg": "https://scenkonsult.se/wp-content/uploads/2025/09/Pris_874.png", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_bild_projektor_20250824-1024x853.png", "desc": "XGA-projektor för presentationer och konferenser. Enkel att ansluta. Duk ingår vid behov."}, {"title": "Projektor (FHD)", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_bild_projektor1_20250824.png", "desc": "Full HD-projektor med hög ljusstyrka. Passar för stora lokaler och dagsljus-miljöer."}, {"title": "65″ Skärm (UHD)", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_bild_65-skarm-1024x853.png", "desc": "65-tums 4K LED-skärm. Perfekt för presentationer, showreel och reception."}, {"title": "75″ Skärm (UHD)", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_bild_75-skarm_20250824.png", "desc": "75-tums 4K LED-skärm. Kraftfull bild för event och konferenser med hög publik."}, {"title": "Moduluppbyggd Skärm (FHD)", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_bild_modulskarm_20250824-1024x853.png", "desc": "Modulär LED-vägg — bygg ihop valfri storlek. Extremt ljusstark, fungerar även i dagsljus."}, {"title": "Skärm på Trailer (FHD)", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/pp_bild_trailer_skarm_20250824.png", "desc": "Stor bildskärm monterad på trailer. Komplett lösning för utomhus-event och festivaler."}, {"title": "Industriella Storskärmar", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/08/Big_screen.png", "desc": "Industriella storbildsskärmar för krävande miljöer och permanenta installationer. Pris på förfrågan."}];
+import Price from '../components/Price.astro';
+import bild from '../data/bild.json';
 ---
+
 <ServiceLayout
-  title="Hyra Projektor & Skärm Stockholm | Scenkonsult"
-  description="Hyra projektor och LED-skärm för event och konferens i Stockholm. FHD och UHD. Från 874 kr/dygn. Sedan 1986."
-  pageHeading="Uthyrning av Bild — Projektorer & Skärmar"
-  intro="Projektorer, LED-väggar och bildskärmar för alla typer av event. Full HD och 4K. Vi hjälper dig välja rätt storlek och teknik för din lokal."
-  note="Alla priser är hyra per dygn (22 timmar). Utrustning hämtas enl överenskommelse från kl 13:00 och återlämnas innan kl 11:00 nästkommande dag. Vi erbjuder även leverans- och monteringstjänster."
-  products={products}
-/>
+  title={bild.metaTitle}
+  description={bild.metaDescription}
+  heroTitle="Hyra Projektor"
+  heroSubtitle="& Skärm"
+  heroIntro="Vi hyr ut projektorer och professionella skärmar för alla typer av event i Stockholm. Från kompakta presentationsprojektorer till 75\" 4K-skärmar och moduluppbyggda LED-väggar."
+  heroBullets={[
+    "Projektor XGA och Full HD",
+    "65\" och 75\" 4K Samsung-skärmar",
+    "Moduluppbyggd LED-skärm per kvm",
+    "LED-skärm på trailer (7 m²)"
+  ]}
+  breadcrumb={[
+    { label: "Hem", href: "/" },
+    { label: "Tjänster", href: "/#tjanster" },
+    { label: "Hyra projektor & skärm" }
+  ]}
+>
+  <section class="svc-products">
+    <div class="svc-products-head">
+      <span class="overline">Sortiment &amp; priser</span>
+      <h2 class="display">Välj rätt lösning<br/><em>för ditt event</em></h2>
+    </div>
+    <div class="prod-grid">
+      {bild.products.map(p => (
+        <article id={p.slug} class="prod-card" itemscope itemtype="https://schema.org/Product">
+          <div class="prod-img-wrap">
+            <img src={p.image} alt={p.alt} width="400" height="300" loading="lazy" itemprop="image" />
+          </div>
+          <div class="prod-body">
+            <h3 class="prod-name" itemprop="name">{p.name}</h3>
+            <p class="prod-desc" itemprop="description">{p.description}</p>
+            <ul class="prod-includes">
+              {p.includes.map(item => <li>{item}</li>)}
+            </ul>
+            <div class="prod-footer">
+              <span class="prod-price"><Price amount={p.price} suffix={p.priceNote} size="lg" /></span>
+              <a href="/kontakt" class="prod-book-btn">Boka →</a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- ACCESSORIES -->
+  <section class="svc-accessories">
+    <div class="svc-accessories-inner">
+      <span class="overline">Tillbehör</span>
+      <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.4rem); margin-bottom:2rem;">Kablar &amp; tillbehör</h2>
+      <div class="acc-list">
+        {bild.tillbehor.slice(0,8).map(a => (
+          <div class="acc-row">
+            <span class="acc-row-name">{a.name}</span>
+            <span class="acc-row-desc">{a.desc}</span>
+            <span class="acc-row-price"><Price amount={a.price} suffix={a.priceNote} size="sm" /></span>
+            <a href="/kontakt" class="acc-row-book">Boka →</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="svc-faq">
+    <div class="svc-faq-inner">
+      <span class="overline">Vanliga frågor</span>
+      <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.4rem); margin-bottom:2rem;">Frågor &amp; svar</h2>
+      <div class="faq-list">
+        {bild.faq.map(item => (
+          <details class="faq-item">
+            <summary class="faq-q">{item.q}</summary>
+            <p class="faq-a">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</ServiceLayout>
+
+<style>
+.svc-products{background:var(--cream);padding:4rem 5vw 3rem}
+.svc-products-head{max-width:1200px;margin:0 auto 3rem;border-bottom:1px solid var(--rule);padding-bottom:2rem}
+.prod-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.prod-card{background:var(--white);display:flex;flex-direction:column;transition:background .2s}
+.prod-card:hover{background:var(--cream)}
+.prod-img-wrap{background:#0a0a0f;aspect-ratio:4/3;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.prod-img-wrap img{width:100%;height:100%;object-fit:contain;padding:1rem;transition:transform .3s}
+.prod-card:hover .prod-img-wrap img{transform:scale(1.04)}
+.prod-body{padding:1.5rem;display:flex;flex-direction:column;flex:1}
+.prod-name{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text);margin-bottom:.5rem;transition:color .2s}
+.prod-card:hover .prod-name{color:var(--ink)}
+.prod-desc{font-size:.84rem;color:var(--mid);line-height:1.7;margin-bottom:1rem;flex:1}
+.prod-includes{list-style:none;display:flex;flex-direction:column;gap:.2rem;background:var(--cream);padding:.75rem;border-radius:2px;margin-bottom:1.25rem}
+.prod-includes li{font-size:.75rem;color:var(--mid);padding-left:1rem;position:relative}
+.prod-includes li::before{content:'—';position:absolute;left:0;color:var(--rule)}
+.prod-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--rule);padding-top:1rem}
+.prod-price{font-family:'DM Serif Display',serif;color:var(--ink)}
+.prod-book-btn{font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;padding:.55rem 1.25rem;border-radius:2px;background:var(--ink);color:white;white-space:nowrap;transition:background .2s}
+.prod-book-btn:hover{background:var(--ink-deep)}
+/* ACCESSORIES LIST */
+.svc-accessories{background:var(--white);border-top:1px solid var(--rule);padding:3.5rem 5vw}
+.svc-accessories-inner{max-width:1200px;margin:0 auto}
+.acc-list{border:1px solid var(--rule);display:flex;flex-direction:column}
+.acc-row{display:grid;grid-template-columns:200px 1fr auto auto;gap:1rem;align-items:center;padding:0.9rem 1.25rem;border-bottom:1px solid var(--rule);background:var(--cream)}
+.acc-row:last-child{border-bottom:none}
+.acc-row:hover{background:var(--ink-tint)}
+.acc-row-name{font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:700;color:var(--text)}
+.acc-row-desc{font-size:.78rem;color:var(--mid)}
+.acc-row-price{font-family:'DM Serif Display',serif;font-size:.9rem;color:var(--ink);white-space:nowrap}
+.acc-row-book{font-family:'Space Grotesk',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-decoration:none;color:var(--ink);white-space:nowrap}
+/* FAQ */
+.svc-faq{background:var(--cream);border-top:1px solid var(--rule);padding:3.5rem 5vw}
+.svc-faq-inner{max-width:760px;margin:0 auto}
+.faq-list{display:flex;flex-direction:column;border:1px solid var(--rule)}
+.faq-item{border-bottom:1px solid var(--rule);background:var(--white)}
+.faq-item:last-child{border-bottom:none}
+.faq-q{padding:1.25rem 1.5rem;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:700;color:var(--text);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq-q::after{content:'+';font-size:1.2rem;color:var(--ink)}
+details[open] .faq-q::after{content:'−'}
+.faq-a{padding:0 1.5rem 1.25rem;font-size:.85rem;color:var(--mid);line-height:1.75}
+@media(max-width:1024px){.prod-grid{grid-template-columns:1fr 1fr}.acc-row{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.prod-grid{grid-template-columns:1fr}.acc-row{grid-template-columns:1fr auto}}
+</style>

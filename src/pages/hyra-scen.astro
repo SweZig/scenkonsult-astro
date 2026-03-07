@@ -1,13 +1,458 @@
 ---
 import ServiceLayout from '../layouts/ServiceLayout.astro';
+import Price from '../components/Price.astro';
+import scenData from '../data/scenes.json';
 
-const products = [{"title": "Scenpaket, Small", "priceImg": "https://scenkonsult.se/wp-content/uploads/2025/09/Pris_599.png", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_small-1024x853.png", "desc": "4m² Scenpodie. Passar för 1 person inkl instrument. Bygger horisontellt [H] 2×2 meter. Höjd 40 eller 60 cm. Scentrapp och eventuell scenkjol hyrs separat. Transport och montering finns som tilläggstjänst."}, {"title": "Scenpaket, Small+", "priceImg": "https://scenkonsult.se/wp-content/uploads/2025/11/Pris_899.png", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_small_plus-1024x853.png", "desc": "6m² Scenpodie. Passar för 1-2 personer inkl instrument. Bygger vertikalt [V] 2×3 m eller horisontellt [H] 3×2 m. Höjd 40 eller 60 cm. Transport och montering finns som tilläggstjänst."}, {"title": "Scenpaket, Small++", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_small_plus_plus-1024x853.png", "desc": "8m² Scenpodie. Passar för 2-3 personer inkl instrument. Bygger [V] 2×4 m eller [H] 3×2 m. Höjd 40 eller 60 cm. Transport och montering finns som tilläggstjänst."}, {"title": "Scenpaket, Medium", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_medium-1024x853.png", "desc": "10m² Scenpodie. Passar för 3-4 personer inkl instrument. Bygger [V] 2×5 m eller [H] 5×2 m. Höjd 40 eller 60 cm. Scentrapp och scenkjol hyrs separat."}, {"title": "Scenpaket, Medium+", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_medium-1024x853.png", "desc": "12m² Scenpodie. Passar för 4-5 personer inkl instrument. Bygger [V] 2×6 m eller [H] 6×2 m. Höjd 40 eller 60 cm."}, {"title": "Scenpaket, Large", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_medium-1024x853.png", "desc": "20m² Scenpodie. Passar för 5-8 personer inkl instrument. Bygger horisontellt [H] 5×4 m. Höjd 60 eller 80 cm. Hyrs enbart ut inkl transport och montering av vår personal."}, {"title": "Scenpaket, Large+", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_medium-1024x853.png", "desc": "24m² Scenpodie. Passar för 6-9 personer. Bygger [H] 5×4 m med tak. Höjd 60 eller 80 cm. Hyrs enbart ut inkl transport, montering och demontering av vår personal."}, {"title": "Scenpaket, XL", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_medium-1024x853.png", "desc": "36m² Scenpodie. Passar för 8-12 personer. Bygger horisontellt [H] 9×4 m. Höjd 60 eller 80 cm. Hyrs enbart ut inkl transport och montering av vår personal."}, {"title": "Scenpaket, XL+", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scen_medium-1024x853.png", "desc": "48m² Scenpodie. Passar för 10-14 personer. Bygger [H] 8×6 m. Höjd 60 eller 80 cm. Hyrs enbart ut inkl transport och montering av vår personal."}, {"title": "Scentak", "priceImg": "", "prodImg": "https://scenkonsult.se/wp-content/uploads/2025/12/Scentak-1024x853.png", "desc": "Scentak finns i olika storlekar och utföranden — för alla våra scener och även större scenlösningar upp till 100 m². Pris på förfrågan. Kontakta oss och beskriv ditt behov."}];
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Scenpaket för uthyrning i Stockholm",
+  "description": scenData.intro,
+  "numberOfItems": scenData.products.length,
+  "itemListElement": scenData.products.map((p, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "item": {
+      "@type": "Product",
+      "name": `${p.name} – ${p.size}`,
+      "description": p.description,
+      "image": `https://scenkonsult.se${p.image}`,
+      "brand": { "@type": "Brand", "name": "Scenkonsult" },
+      "offers": {
+        "@type": "Offer",
+        "price": String(Math.round(p.price * 1.25)),
+        "priceCurrency": "SEK",
+        "priceValidUntil": "2026-12-31",
+        "availability": "https://schema.org/InStock",
+        "seller": { "@type": "Organization", "name": "Scenkonsult Norden" }
+      }
+    }
+  }))
+};
 ---
+
 <ServiceLayout
-  title="Uthyrning av Scener Stockholm | Scenkonsult"
-  description="Hyra scen i Stockholm. Scenpaket från 4 m² till 48 m². Med eller utan tak. Leverans och montering. Sedan 1986."
-  pageHeading="Uthyrning av Scener"
-  intro="Vårt ursprung är scener som gör skillnad på event och dess upplevelse. Vi har scener allt ifrån mindre podier till scener för stora publiker. Inomhus, utomhus med eller utan tak. Beskriv ditt behov så presenterar vi en lösning."
-  note="Alla priser är hyra per dygn (22 timmar). Utrustning hämtas enl överenskommelse från kl 13:00 och återlämnas innan kl 11:00 nästkommande dag. Vi erbjuder även leverans- och monteringstjänster."
-  products={products}
-/>
+  title={scenData.metaTitle}
+  description={scenData.metaDescription}
+  heroTitle="Uthyrning av Scener"
+  heroSubtitle="i Stockholm"
+  heroIntro={scenData.intro}
+  heroBullets={[
+    "Halkfria ytor – inomhus & utomhus",
+    "Leverans & montering tillgängligt",
+    "Scentak till alla storlekar",
+    "Sedan 1986"
+  ]}
+  breadcrumb={[
+    { label: "Hem", href: "/" },
+    { label: "Tjänster", href: "/#tjanster" },
+    { label: "Hyra scen" }
+  ]}
+  schemaExtra={pageSchema}
+>
+  <!-- PRODUCTS SECTION -->
+  <section class="svc-products">
+    <div class="svc-products-head">
+      <span class="overline">Sortiment &amp; priser</span>
+      <h2 class="display">Välj rätt paket<br/><em>för ditt event</em></h2>
+    </div>
+
+    <div class="prod-grid">
+      {scenData.products.map(p => (
+        <article id={p.id} class="prod-card" itemscope itemtype="https://schema.org/Product">
+          <div class="prod-img-wrap">
+            <img
+              src={p.image}
+              alt={p.alt}
+              width="400" height="300"
+              loading="lazy"
+              itemprop="image"
+            />
+            <span class="prod-size-badge">{p.size}</span>
+            {p.transport === 'ingår' && (
+              <span class="prod-transport-badge">Transport ingår</span>
+            )}
+          </div>
+
+          <div class="prod-body">
+            <h3 class="prod-name" itemprop="name">{p.name}</h3>
+            <p class="prod-desc" itemprop="description">{p.description}</p>
+
+            <dl class="prod-specs">
+              <dt>Mått</dt><dd>{p.dimensions}</dd>
+              <dt>Höjd</dt><dd>{p.heights.join(' / ')}</dd>
+              <dt>Kapacitet</dt><dd>{p.capacity}</dd>
+              <dt>Transport</dt>
+              <dd class={p.transport === 'ingår' ? 'spec-green' : ''}>
+                {p.transport === 'ingår' ? '✓ Ingår alltid' : 'Tilläggstjänst'}
+              </dd>
+            </dl>
+
+            <div class="prod-footer" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+              <meta itemprop="priceCurrency" content="SEK" />
+              <meta itemprop="price" content={String(Math.round(p.price * 1.25))} />
+              <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div class="prod-price-block">
+                <span class="prod-price"><Price amount={p.price} size="lg" /></span>
+              </div>
+              <a href="/kontakt" class="prod-book-btn">Boka →</a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- ACCESSORIES -->
+  <section class="svc-accessories">
+    <div class="svc-accessories-inner">
+      <span class="overline">Tillbehör</span>
+      <h2 class="display" style="font-size:clamp(1.6rem,3vw,2.4rem); margin-bottom:2rem;">Komplettera din scen</h2>
+      <div class="acc-grid">
+        {scenData.accessories.map(a => (
+          <div class="acc-card">
+            <div class="acc-img-wrap">
+              <img src={a.image} alt={a.alt} width="300" height="200" loading="lazy" />
+            </div>
+            <div class="acc-body">
+              <h3 class="acc-name">{a.name}</h3>
+              <p class="acc-desc">{a.description}</p>
+              <div class="acc-price-row">
+                <span class="acc-price"><Price amount={a.price} size="base" /></span>
+                <a href="/kontakt" class="acc-book">Boka →</a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- GENERAL INFO -->
+  <section class="svc-info-box">
+    <div class="svc-info-inner">
+      <h2>Generell information om våra scener</h2>
+      <div class="svc-info-text">
+        <p>Kontakta oss för hjälp med att planera eventet så det blir optimalt. Alla scener har halkfria ytor och passar för inomhus- och utomhusbruk.</p>
+        <p>Scener upp till 12m² (Medium+) finns i 40 eller 60 cm höjd. Större scener finns i 60 eller 80 cm. Observera att scenräcken krävs för scener över 80 cm enligt Boverket.</p>
+        <p>För scener från 20m² (Large) tillkommer alltid transport, montering och demontering av vår personal. Vi har scentak för alla storlekar – upp till 100m² på förfrågan.</p>
+      </div>
+      <div class="svc-info-actions">
+        <a href="/kontakt" class="svc-btn-solid">Boka scen</a>
+        <a href="/kontakt" class="svc-btn-outline">Fråga om offert</a>
+      </div>
+    </div>
+  </section>
+</ServiceLayout>
+
+<style>
+/* ── PRODUCTS SECTION ── */
+.svc-products {
+  background: var(--cream);
+  padding: 4rem 5vw 3rem;
+}
+.svc-products-head {
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2rem;
+}
+.svc-products-head .display {
+  margin-top: 0.5rem;
+}
+
+/* ── PRODUCT GRID ── */
+.prod-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+
+.prod-card {
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  transition: background .2s;
+}
+.prod-card:hover { background: var(--cream); }
+
+.prod-img-wrap {
+  position: relative;
+  background: #0a0a0f;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prod-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1rem;
+  transition: transform .3s;
+}
+.prod-card:hover .prod-img-wrap img { transform: scale(1.04); }
+
+.prod-size-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: var(--ink);
+  color: white;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 2px;
+}
+
+.prod-transport-badge {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  background: rgba(51,40,133,0.85);
+  color: white;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+}
+
+.prod-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.prod-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  transition: color .2s;
+}
+.prod-card:hover .prod-name { color: var(--ink); }
+.prod-desc {
+  font-size: 0.84rem;
+  color: var(--mid);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.prod-specs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.8rem;
+  font-size: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background: var(--cream);
+  border-radius: 2px;
+}
+.prod-specs dt {
+  color: var(--mid);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.prod-specs dd {
+  color: var(--text);
+}
+.spec-green { color: #2d6a4f; font-weight: 600; }
+
+.prod-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
+  gap: 0.5rem;
+}
+.prod-price {
+  font-family: 'DM Serif Display', serif;
+  color: var(--ink);
+}
+.prod-book-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.55rem 1.25rem;
+  border-radius: 2px;
+  background: var(--ink);
+  color: white;
+  white-space: nowrap;
+  transition: background .2s;
+}
+.prod-book-btn:hover { background: var(--ink-deep); }
+
+/* ── ACCESSORIES ── */
+.svc-accessories {
+  background: var(--white);
+  border-top: 1px solid var(--rule);
+  padding: 3.5rem 5vw;
+}
+.svc-accessories-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.acc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.acc-card {
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+}
+.acc-img-wrap {
+  background: #0a0a0f;
+  aspect-ratio: 6/5;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.acc-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1rem;
+}
+.acc-body {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.acc-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.acc-desc {
+  font-size: 0.78rem;
+  color: var(--mid);
+  line-height: 1.6;
+  flex: 1;
+  margin-bottom: 0.75rem;
+}
+.acc-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.75rem;
+}
+.acc-price {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.acc-book {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  color: var(--ink);
+  transition: opacity .2s;
+}
+.acc-book:hover { opacity: 0.65; }
+
+/* ── INFO BOX ── */
+.svc-info-box {
+  background: var(--ink-tint);
+  border-top: 1px solid var(--rule);
+  padding: 3.5rem 5vw;
+}
+.svc-info-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.svc-info-inner h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  color: var(--ink-deep);
+  margin-bottom: 1.5rem;
+}
+.svc-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 2rem;
+}
+.svc-info-text p {
+  font-size: 0.9rem;
+  color: var(--mid);
+  line-height: 1.75;
+}
+.svc-info-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.svc-btn-solid {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.9rem 2rem;
+  border-radius: 2px;
+  background: var(--ink);
+  color: white;
+  transition: background .2s;
+}
+.svc-btn-solid:hover { background: var(--ink-deep); }
+.svc-btn-outline {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.9rem 2rem;
+  border-radius: 2px;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  transition: all .2s;
+}
+.svc-btn-outline:hover { background: var(--ink); color: white; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .prod-grid { grid-template-columns: 1fr 1fr; }
+  .acc-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .prod-grid { grid-template-columns: 1fr; }
+  .acc-grid { grid-template-columns: 1fr 1fr; }
+  .svc-products { padding: 3rem 5vw 2rem; }
+  .prod-specs { font-size: 0.72rem; }
+}
+@media (max-width: 480px) {
+  .acc-grid { grid-template-columns: 1fr; }
+}
+</style>
