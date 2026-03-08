@@ -1,0 +1,21 @@
+---
+// Tel.astro — renderar ett telefonlänk skyddat mot scrapers
+// Klartext (href och visningstext) sätts av JS, inte i HTML-källan
+interface Props {
+  class?: string;
+  label?: string;        // visningstext, default "072-448 10 00"
+  prefix?: string;       // t.ex. "📞 " eller "☎ "
+}
+const { class: cls = '', label = '072-448 10 00', prefix = '' } = Astro.props;
+// base64 av "0724481000"
+const encoded = 'MDcyNDQ4MTAwMA==';
+---
+<a
+  class={cls}
+  data-tel={encoded}
+  data-label={label}
+  data-prefix={prefix}
+  href="#tel"
+  aria-label="Ring oss"
+  style="cursor:pointer"
+><noscript>{prefix}{label}</noscript></a>

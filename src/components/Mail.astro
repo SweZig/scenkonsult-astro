@@ -1,0 +1,19 @@
+---
+// Mail.astro — renderar en mailto-länk skyddad mot scrapers
+interface Props {
+  class?: string;
+  label?: string;       // visningstext, default mailadressen
+}
+const { class: cls = '', label = '' } = Astro.props;
+// base64 av "info@scenkonsult.se"
+const encoded = 'aW5mb0BzY2Vua29uc3VsdC5zZQ==';
+const displayLabel = label || 'info@scenkonsult.se';
+---
+<a
+  class={cls}
+  data-mail={encoded}
+  data-label={displayLabel}
+  href="#mail"
+  aria-label="Skicka e-post"
+  style="cursor:pointer"
+><noscript>{displayLabel}</noscript></a>

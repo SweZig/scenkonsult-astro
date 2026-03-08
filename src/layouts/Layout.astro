@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import InlineEditor from '../components/InlineEditor.astro';
+import Tel from '../components/Tel.astro';
+import Mail from '../components/Mail.astro';
 
 interface Props {
   title?: string;
@@ -58,7 +60,7 @@ const {
       <li><a href="/#tjanster">Tjänster</a></li>
       <li><a href="/kontakt/">Kontakta oss</a></li>
     </ul>
-    <a href="tel:0724481000" class="nav-phone">📞 072-448 10 00</a>
+    <Tel class="nav-phone" prefix="📞 " />
     <a href="/varukorg/" class="nav-cart" id="navCartBtn" aria-label="Varukorg" style="margin-left:auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="nav-cart-badge hidden" id="navCartBadge">0</span></a>
   </nav>
 
@@ -68,7 +70,7 @@ const {
       <li><a href="/#tjanster">Tjänster</a></li>
       <li><a href="/kontakt/">Kontakta oss</a></li>
     </ul>
-    <a href="tel:0724481000" class="nav-mobile-phone">📞 072-448 10 00</a>
+    <Tel class="nav-mobile-phone" prefix="📞 " />
     <a href="/varukorg/" class="nav-mobile-cart">🛒 Varukorg <span class="nav-cart-badge hidden" id="mobileCartBadge" style="position:static;display:inline-flex;margin-left:0.4rem">0</span></a>
   </div>
 
@@ -119,7 +121,7 @@ const {
       </div>
       <div class="footer-col">
         <h5>Kontakt</h5>
-        <a href="tel:0724481000" class="footer-phone">072-448 10 00</a>
+        <Tel class="footer-phone" />
         <ul>
           <li><a href="/bokningssida/">Boka / Begär offert</a></li>
           <li><a href="/kontakt/">Skicka meddelande</a></li>
@@ -289,7 +291,30 @@ const {
       });
     });
 
-  </script>  <InlineEditor />
+  </script>
+
+  <!-- KONTAKTSKYDD: dekoda tel/mail ur base64 vid runtime — ej synligt i HTML-källan -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Tel-länkar
+      document.querySelectorAll('a[data-tel]').forEach(el => {
+        const num = atob(el.getAttribute('data-tel'));
+        const prefix = el.getAttribute('data-prefix') || '';
+        const lbl = el.getAttribute('data-label') || num.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1-$2 $3 $4');
+        el.href = 'tel:' + num;
+        el.textContent = prefix + lbl;
+      });
+      // Mail-länkar
+      document.querySelectorAll('a[data-mail]').forEach(el => {
+        const addr = atob(el.getAttribute('data-mail'));
+        const lbl = el.getAttribute('data-label') || addr;
+        el.href = 'mailto:' + addr;
+        el.textContent = lbl;
+      });
+    });
+  </script>
+
+  <InlineEditor />
 
 </body>
 </html>

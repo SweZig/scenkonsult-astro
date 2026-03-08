@@ -820,7 +820,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       + `\n\n── Kontaktuppgifter ──\n${custInfo}`
       + `\n\nMed vänliga hälsningar,\n${customer.name}`
     );
-    window.location.href = `mailto:info@scenkonsult.se?subject=Offertf%C3%B6rfr%C3%A5gan%20fr%C3%A5n%20scenkonsult.se&body=${body}`;
+    window.location.href = `mailto:${atob('aW5mb0BzY2Vua29uc3VsdC5zZQ==')}?subject=Offertf%C3%B6rfr%C3%A5gan%20fr%C3%A5n%20scenkonsult.se&body=${body}`;
   });
 
   // ── PDF / PRINT ───────────────────────────────────────────
@@ -850,7 +850,7 @@ td{padding:.5rem .8rem;border-bottom:1px solid #eee;font-size:.88rem}
 .footer{font-size:.75rem;color:#999;border-top:1px solid #eee;padding-top:.8rem;margin-top:1.5rem}</style></head>
 <body>
 <h1>Scenkonsult – Offertunderlag</h1>
-<p class="sub">Genererat ${new Date().toLocaleDateString('sv')} | info@scenkonsult.se | 072-448 10 00</p>
+<p class="sub">Genererat ${new Date().toLocaleDateString('sv')} | ${atob('aW5mb0BzY2Vua29uc3VsdC5zZQ==')} | ${atob('MDcyNDQ4MTAwMA==').replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1-$2 $3 $4')}</p>
 <h2>Produkter</h2>
 <table><thead><tr><th>Produkt</th><th>Kategori</th><th>Antal</th><th>Styckpris</th><th>Totalt</th></tr></thead>
 <tbody>${rows}${extRows}</tbody></table>
