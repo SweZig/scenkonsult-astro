@@ -1,157 +1,89 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Article",
-      "headline": "Hur stor scen behöver jag? Komplett guide med tabell",
-      "description": "Räkna ut rätt scenstorlek för ditt event. Tabeller för antal artister, eventtyp och publkistorlek.",
-      "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
-      "publisher": { "@type": "Organization", "name": "Scenkonsult Norden", "url": "https://scenkonsult.se" },
-      "datePublished": "2025-01-01",
-      "dateModified": "2025-03-01",
-      "url": "https://scenkonsult.se/for/guider/hur-stor-scen/"
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        { "@type": "Question", "name": "Hur stor scen behöver jag till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "Till ett bröllop med trubadur eller DJ räcker en scen på 4–6 m² (t.ex. 2×2 m eller 2×3 m). Vill ni ha ett band med 3–4 musiker behöver ni 12–16 m². En scen signalerar till gästerna var det händer saker och skapar dansyta framför." } },
-        { "@type": "Question", "name": "Hur många kvadratmeter per person på scenen?", "acceptedAnswer": { "@type": "Answer", "text": "Räkna ca 2–4 m² per person på scenen. En ensam DJ klarar 4 m², ett band med 4 musiker behöver 12–16 m², en fullständig band med backline och trummor vill ha 20–30 m²." } },
-        { "@type": "Question", "name": "Behöver jag scentak till utomhus-event?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, alltid vid utomhus-event om det finns risk för regn. Scentak skyddar utrustning värd tiotals- eller hundratusentals kronor. Det ger också artister trygghet och ett professionellt intryck. Vi hyr ut scentak till alla scenstorlekar." } },
-        { "@type": "Question", "name": "Vilken scenhöjd passar mitt event?", "acceptedAnswer": { "@type": "Answer", "text": "Standard scenhöjder är 40 cm (liten fest/DJ), 60 cm (normalt event, synligt för 50–200 gäster) och 80–100 cm (stor publik, konsert). Vid 60 cm ser en publik på 150–300 gäster scenen utan problem. Höjd över 100 cm kräver räcken." } }
-      ]
-    }
-  ]
-};
-
-const scenStorlekar = [
-  { storlek: "2×2 m (4 m²)", for: "DJ solo, trubadur", gaster: "20–100", hojd: "40–60 cm", notat: "Minsta praktiska scen" },
-  { storlek: "2×3 m (6 m²)", for: "DJ + utrustning, tal", gaster: "50–200", hojd: "40–60 cm", notat: "Populärast för bröllop" },
-  { storlek: "4×3 m (12 m²)", for: "Trio, kvartett, DJ-setup", gaster: "100–300", hojd: "60 cm", notat: "Minsta för band" },
-  { storlek: "4×4 m (16 m²)", for: "Fullband 4–5 pers", gaster: "200–500", hojd: "60–80 cm", notat: "Standard festival-small" },
-  { storlek: "6×4 m (24 m²)", for: "Stor band med backline", gaster: "500–1000", hojd: "80–100 cm", notat: "Festival medium" },
-  { storlek: "8×6 m (48 m²)", for: "Proffsband, artister", gaster: "1000+", hojd: "100–120 cm", notat: "Festival large" },
+import MomsToggle from '../../../components/MomsToggle.astro';
+const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Hur stor scen behöver jag? Guide med tabell 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/hur-stor-scen/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Hur stor scen till bröllop?","acceptedAnswer":{"@type":"Answer","text":"Till bröllop med trubadur eller DJ: Scenpaket Small (4 m², 599 kr/dygn). Med band 3–4 musiker: Scenpaket Medium+ (12 m², 1 799 kr/dygn)."}},{"@type":"Question","name":"Hur många kvadratmeter per person på scenen?","acceptedAnswer":{"@type":"Answer","text":"Räkna 2–4 m² per person. DJ solo: 4 m² (Scenpaket Small). Band 4 musiker: 12 m² (Scenpaket Medium+). Fullband med backline: 16–20 m²."}},{"@type":"Question","name":"Behövs scentak utomhus?","acceptedAnswer":{"@type":"Answer","text":"Ja, alltid. Vi erbjuder Scenpaket Medium+ inkl. scentak (3 799 kr/dygn) och Scenpaket Large+ inkl. scentak (11 999 kr/dygn)."}},{"@type":"Question","name":"Vilken scenhöjd passar?","acceptedAnswer":{"@type":"Answer","text":"40 cm: liten fest under 80 gäster. 60 cm: standard för de flesta event 50–300 gäster. 80–100 cm: stora publiker och festivaler."}}]}]};
+const scenprodukter = [
+  {storlek:"4 m²",paket:"Scenpaket Small",pris:599,for:"DJ solo, trubadur",gaster:"20–100",notat:"Minsta praktiska scen"},
+  {storlek:"6 m²",paket:"Scenpaket Small+",pris:899,for:"DJ + utrustning, tal",gaster:"50–200",notat:"Populärast bröllop"},
+  {storlek:"8 m²",paket:"Scenpaket Small++",pris:1199,for:"Duo, liten trio",gaster:"50–250",notat:"Bra för 2-mannasband"},
+  {storlek:"10 m²",paket:"Scenpaket Medium",pris:1499,for:"Trio, DJ-setup",gaster:"100–300",notat:"Minsta för band"},
+  {storlek:"12 m²",paket:"Scenpaket Medium+",pris:1799,for:"Kvartett, 4-mannasband",gaster:"200–500",notat:"Standard liten festival"},
+  {storlek:"12 m² + tak",paket:"Scenpaket Medium+ inkl. scentak",pris:3799,for:"Utomhusevent band",gaster:"200–500",notat:"Väderskyddat utomhus"},
+  {storlek:"16 m²",paket:"Scenpaket Medium++",pris:2399,for:"Fullband 5 pers",gaster:"300–600",notat:"Inkl. plats för backline"},
+  {storlek:"20 m²",paket:"Scenpaket Large",pris:2999,for:"Stort band, show",gaster:"500–1000",notat:"Festival medium"},
+  {storlek:"24 m²",paket:"Scenpaket Large+",pris:3599,for:"Proffsband",gaster:"500–1000",notat:""},
+  {storlek:"24 m² + tak",paket:"Scenpaket Large+ inkl. scentak",pris:11999,for:"Stor utomhusfestival",gaster:"1000+",notat:"Professionell utomhusrig"},
+  {storlek:"36 m²",paket:"Scenpaket XL",pris:5399,for:"Stor show, artist",gaster:"1000+",notat:""},
+  {storlek:"48 m²",paket:"Scenpaket XL+",pris:7199,for:"Konsert, stor festival",gaster:"2000+",notat:"Maxstorlek"},
+];
+const tillbehor = [
+  {n:"Scentrapp (40 cm)",p:279},{n:"Scentrapp (60 cm)",p:349},{n:"Scenkjol (per 4 m)",p:79},{n:"Backdrop 3,5×2,5 m",p:799}
 ];
 ---
-
-<Layout
-  title="Hur Stor Scen Behöver Jag? Guide & Tabell | Scenkonsult"
-  description="Räkna ut rätt scenstorlek för ditt event. Tabell med scenstorlekar, antal artister och gäster. Hyra scen i Stockholm från 599 kr — Scenkonsult sedan 1986."
-  schemaExtra={schema}
->
-
+<Layout title="Hur Stor Scen Behöver Jag? Guide & Tabell 2025 | Scenkonsult" description="Räkna ut rätt scenstorlek. Tabell med alla scenpaket — pris, m², antal artister och gäster. Fr 599 kr/dygn — Scenkonsult sedan 1986." schemaExtra={schema}>
   <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
     <div style="max-width:820px;margin:0 auto;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
-        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.4);">
-          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
-          <li><a href="/for/" style="color:rgba(255,255,255,0.5);text-decoration:none;">För ditt event</a> <span style="opacity:0.3;">/</span></li>
-          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
-          <li><span style="color:white;">Hur stor scen behöver jag?</span></li>
-        </ol>
-      </nav>
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;"><ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.4);"><li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li><li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li><li style="color:white;">Hur stor scen?</li></ol></nav>
       <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
       <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">Hur stor scen behöver jag?</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Vi har hyrt ut scener sedan 1986. Den vanligaste frågan vi får: "Hur stor scen behöver vi?" Svaret beror på vem som ska stå på den, hur många gäster som ska se och om det är inne eller ute.</p>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Komplett tabell med alla våra scenpaket — priser, storlekar och för vem de passar.</p>
     </div>
   </div>
-
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-
-      <!-- Snabbsvar -->
+      <MomsToggle />
       <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:1.75rem;margin-bottom:3rem;">
         <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.75rem;">Snabbsvar</p>
         <ul style="margin:0;padding:0 0 0 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
-          <li><strong style="color:white;">DJ eller trubadur:</strong> 4–6 m² räcker (2×2 eller 2×3 m)</li>
-          <li><strong style="color:white;">Band med 3–4 musiker:</strong> 12–16 m² (4×3 eller 4×4 m)</li>
-          <li><strong style="color:white;">Fullband med backline:</strong> 20–30 m² minimum</li>
-          <li><strong style="color:white;">Utomhus:</strong> Lägg alltid till scentak</li>
+          <li><strong style="color:white;">DJ eller trubadur:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Small</a> (4 m²) — <span data-exkl="599">599</span> kr/dygn</li>
+          <li><strong style="color:white;">Band 3–4 musiker:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Medium+</a> (12 m²) — <span data-exkl="1799">1799</span> kr/dygn</li>
+          <li><strong style="color:white;">Utomhus med tak:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Medium+ inkl. scentak</a> — <span data-exkl="3799">3799</span> kr/dygn</li>
           <li><strong style="color:white;">Tumregel:</strong> 2–4 m² per person på scenen</li>
         </ul>
       </div>
-
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Varför spelar scenstorleken roll?</h2>
-      <p>En för liten scen tvingar artister att stå trångt — det påverkar prestandan och ser oprofessionellt ut. En för stor scen kan kännas tom och lyfter inte stämningen. Rätt storlek signalerar till gästerna att det händer saker, och skapar ett naturligt dansyta framför.</p>
-      <p>En scen — även en liten 2×2 m — är alltid värd det. Den höjer upplevelsen dramatiskt jämfört med att DJ:n eller artisten står på golv bland gästerna.</p>
-
-      <!-- Tabell -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Scenstorlekar — referenstabell</h2>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1.25rem;">Kompletta scenpaket — alla storlekar</h2>
       <div style="overflow-x:auto;margin-bottom:2.5rem;">
-        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
-          <thead>
-            <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
-              {["Storlek","För","Gäster","Höjd","Notat"].map(h => (
-                <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
-              ))}
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Storlek","Paket","Pris/dygn","För","Gäster","Notat"].map(h=><th style="text-align:left;padding:0.65rem 0.4rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}</tr></thead>
+          <tbody>{scenprodukter.map((r,i)=>(
+            <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+              <td style="padding:0.65rem 0.4rem;color:white;font-weight:600;white-space:nowrap;">{r.storlek}</td>
+              <td style="padding:0.65rem 0.4rem;"><a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;text-decoration:none;font-size:0.82rem;">{r.paket}</a></td>
+              <td style="padding:0.65rem 0.4rem;color:white;font-weight:600;white-space:nowrap;"><span data-exkl={r.pris}>{r.pris}</span> kr</td>
+              <td style="padding:0.65rem 0.4rem;color:rgba(255,255,255,0.55);font-size:0.83rem;">{r.for}</td>
+              <td style="padding:0.65rem 0.4rem;color:rgba(255,255,255,0.4);white-space:nowrap;font-size:0.82rem;">{r.gaster}</td>
+              <td style="padding:0.65rem 0.4rem;color:rgba(255,255,255,0.35);font-size:0.78rem;">{r.notat}</td>
             </tr>
-          </thead>
-          <tbody>
-            {scenStorlekar.map((r, i) => (
-              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
-                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{r.storlek}</td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.65);">{r.for}</td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.55);white-space:nowrap;">{r.gaster}</td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.55);white-space:nowrap;">{r.hojd}</td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.4);font-size:0.82rem;">{r.notat}</td>
-              </tr>
-            ))}
-          </tbody>
+          ))}</tbody>
         </table>
       </div>
-
-      <!-- Scenhöjd -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Vilken höjd ska scenen ha?</h2>
-      <p>Scenhöjden avgörs av hur stor publik som ska se. Grundregeln: ju fler gäster och ju djupare lokalen är, desto högre scen behövs.</p>
-      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem;">
-        {[
-          { hojd: "40 cm", for: "Intim fest, 20–80 gäster. Enkel trappa, låg säkerhetsrisk." },
-          { hojd: "60 cm", for: "Standard för de flesta event, 50–300 gäster. Bra sikt, stabil plattform." },
-          { hojd: "80–100 cm", for: "Stora publiker, festival. Räcken krävs enligt säkerhetsregler." },
-          { hojd: "100+ cm", for: "Professionell konsert. Räcken, backstage-tillgång och scenkjol." },
-        ].map(r => (
-          <div style="display:flex;gap:1rem;padding:0.75rem;background:#1e1850;border-radius:8px;align-items:flex-start;">
-            <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:#c4b5f4;min-width:70px;flex-shrink:0;">{r.hojd}</span>
-            <span style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.6;">{r.for}</span>
-          </div>
-        ))}
-      </div>
-
-      <!-- Tillbehör -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Glöm inte tillbehören</h2>
-      <p>En scen utan rätt tillbehör ser halvfärdig ut. De viktigaste tillbehören:</p>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Scenens tillbehör</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:2rem;">
-        {[
-          { name: "Scentrapp", desc: "Obligatorisk för säker på/avstigning" },
-          { name: "Scenkjol", desc: "Döljer benen och ger professionellt utseende" },
-          { name: "Backdrop", desc: "Bakgrundstyg — lyfter hela scenbilden" },
-          { name: "Scentak", desc: "Obligatoriskt utomhus vid regn-risk" },
-        ].map(t => (
-          <div style="background:#1e1850;border-radius:8px;padding:1rem;">
-            <div style="color:white;font-weight:600;font-size:0.9rem;margin-bottom:0.25rem;">{t.name}</div>
-            <div style="color:rgba(255,255,255,0.45);font-size:0.82rem;">{t.desc}</div>
+        {tillbehor.map(t=>(
+          <div style="background:#1e1850;border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:rgba(255,255,255,0.7);font-size:0.88rem;">{t.n}</span>
+            <span style="color:#c4b5f4;font-weight:700;white-space:nowrap;margin-left:0.5rem;"><span data-exkl={t.p}>{t.p}</span> kr</span>
           </div>
         ))}
       </div>
-
-      <!-- CTA -->
-      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Se våra scenpaket</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Modulscener från 4 m² till 48 m². Leverans och montering i hela Storstockholm.</p>
-        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-          <a href="/vara-tjanster/hyra-scen/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se alla scenpaket</a>
-          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
-        </div>
+      <p style="color:rgba(255,255,255,0.35);font-size:0.82rem;margin-bottom:2.5rem;">Scentrapp och scenkjol debiteras per styck/enhet. Alla priser exkl moms (toggle ovan).</p>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Utomhus: scentak ingår i två paket</h2>
+      <p>För utomhus-event erbjuder vi två paket med scentak inkluderat — detta skyddar artister och utrustning och ger ett professionellt utseende. Scentak som fristående tillägg bokas separat via offertförfrågan.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2.5rem;">
+        {[{p:"Scenpaket Medium+ inkl. scentak",s:"12 m²",pris:3799},{p:"Scenpaket Large+ inkl. scentak",s:"24 m²",pris:11999}].map(r=>(
+          <div style="background:#1e1850;border-radius:12px;padding:1.25rem;">
+            <div style="color:rgba(255,255,255,0.4);font-size:0.75rem;margin-bottom:0.3rem;">{r.s}</div>
+            <div style="color:white;font-weight:600;font-size:0.9rem;margin-bottom:0.5rem;">{r.p}</div>
+            <div style="color:#c4b5f4;font-family:'DM Serif Display',serif;font-size:1.5rem;"><span data-exkl={r.pris}>{r.pris}</span> kr/dygn</div>
+          </div>
+        ))}
       </div>
-
-      <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
-        <p style="color:rgba(255,255,255,0.3);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
-        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
-          <a href="/for/guider/hur-stor-pa/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor PA behöver jag? →</a>
-          <a href="/for/guider/dj-eller-liveband/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">DJ eller liveband? →</a>
-          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
+      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Se alla scenpaket</h2>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Modulscener fr 4 m² till 48 m². Leverans och montering i hela Storstockholm.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="/vara-tjanster/hyra-scen/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se scenpaket</a>
+          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
         </div>
       </div>
     </div>

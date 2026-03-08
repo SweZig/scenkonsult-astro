@@ -1,191 +1,110 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Article",
-      "headline": "Hur stor PA-anläggning behöver jag? Komplett guide 2025",
-      "description": "Lär dig räkna ut rätt PA-storlek för ditt event. Tabeller för inomhus och utomhus, gästantal och eventtyp.",
-      "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
-      "publisher": { "@type": "Organization", "name": "Scenkonsult Norden", "url": "https://scenkonsult.se" },
-      "datePublished": "2025-01-01",
-      "dateModified": "2025-03-01",
-      "url": "https://scenkonsult.se/for/guider/hur-stor-pa/"
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        { "@type": "Question", "name": "Hur stor PA-anläggning behöver jag för 100 gäster?", "acceptedAnswer": { "@type": "Answer", "text": "För 100 gäster inomhus räcker ett Event Small-paket (ca 2 000–4 000W RMS). Utomhus behöver du dubbelt upp. Ska det vara dans och DJ krävs mer effekt än enbart tal och bakgrundsmusik." } },
-        { "@type": "Question", "name": "Vad är skillnaden på watt och decibel?", "acceptedAnswer": { "@type": "Answer", "text": "Watt mäter elektrisk effekt, decibel (dB) mäter det faktiska ljudtrycket. Dubblering av watt ger bara +3 dB (knappt märkbart) — för +10 dB (dubbelt så högt) krävs 10× mer watt. Välj efter dB-specifikation, inte bara watt." } },
-        { "@type": "Question", "name": "Behöver jag subbasen till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "Till dans och DJ: ja. Till tal och bakgrundsmusik: nej. En subbasen tillför frekvenserna under 80 Hz — det är det du känner i kroppen på dansgolvet. Utan sub låter bassen tunn och tröttsam." } },
-        { "@type": "Question", "name": "Hur mycket effekt behövs utomhus?", "acceptedAnswer": { "@type": "Answer", "text": "Utomhus behöver du ungefär dubbelt så mycket effekt som inomhus för samma upplevda volym. Ljud sprids åt alla håll utan väggar att reflektera mot. Räkna med 2–3× mer effekt vid öppet utomhus." } }
-      ]
-    }
-  ]
-};
-
-const tabellInomhus = [
-  { gaster: "20–50", eventtyp: "Tal, mingel, bakgrundsmusik", paket: "Portable Small", watt: "600–1 200W", sub: "Nej" },
-  { gaster: "50–100", eventtyp: "Fest, dans, DJ", paket: "Event Small", watt: "2 000–4 000W", sub: "Rekommenderas" },
-  { gaster: "100–200", eventtyp: "Fest, dans, liveband", paket: "Event Medium", watt: "4 000–8 000W", sub: "Ja" },
-  { gaster: "200–500", eventtyp: "Konsert, stor fest", paket: "Live Medium", watt: "8 000–15 000W", sub: "Ja" },
-  { gaster: "500–2000", eventtyp: "Festival, stor konsert", paket: "Live Large", watt: "15 000W+", sub: "Ja, flera" },
+import MomsToggle from '../../../components/MomsToggle.astro';
+const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Hur stor PA-anläggning behöver jag? Guide 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/hur-stor-pa/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Hur stor PA behöver jag för 100 gäster?","acceptedAnswer":{"@type":"Answer","text":"For 100 gäster inomhus med dans: Music Small (999 kr/dygn exkl moms). Enbart tal: Event Small (799 kr). Utomhus: Music Medium (1 499 kr)."}},{"@type":"Question","name":"Vad är skillnaden på Portable, Event, Music och Live?","acceptedAnswer":{"@type":"Answer","text":"Portable = kompakt plug-and-play under 50 gäster. Event = konferens/tal. Music = dans/DJ med sub. Live = liveband med monitor-utgångar."}},{"@type":"Question","name":"Behöver jag subbasen?","acceptedAnswer":{"@type":"Answer","text":"Till dans och DJ: ja. Music-paketen inkluderar subwoofer. Till tal räcker Event-serien."}},{"@type":"Question","name":"Hur mycket effekt behövs utomhus?","acceptedAnswer":{"@type":"Answer","text":"Välj alltid ett steg upp jämfört med inomhus-rekommendationen. Utomhus saknas reflektioner från väggar och tak."}}]}]};
+const inomhus = [
+  {g:"10–50", typ:"Tal, mingel", paket:"Portable Small", pris:599, sub:"Nej", link:"/vara-tjanster/hyra-ljud/portable/"},
+  {g:"20–80", typ:"Fest, ej dans", paket:"Portable Medium", pris:799, sub:"Nej", link:"/vara-tjanster/hyra-ljud/portable/"},
+  {g:"50–100", typ:"Konferens, föreläsning", paket:"Event Small", pris:799, sub:"Nej", link:"/vara-tjanster/hyra-ljud/event/"},
+  {g:"50–100", typ:"Fest, dans, DJ", paket:"Music Small", pris:999, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
+  {g:"100–200", typ:"Event/konferens", paket:"Event Medium", pris:1599, sub:"Nej", link:"/vara-tjanster/hyra-ljud/event/"},
+  {g:"100–200", typ:"Dansfest, liveband", paket:"Music Medium", pris:1499, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
+  {g:"200–500", typ:"Stor fest, konsert", paket:"Music Large", pris:1899, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
+  {g:"500+", typ:"Festival, stor konsert", paket:"Live/Music XL", pris:2299, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
 ];
-
-const tabellUtomhus = [
-  { gaster: "20–50", paket: "Event Small", kommentar: "Räcker för trädgårdsfest och tal" },
-  { gaster: "50–150", paket: "Event Medium", kommentar: "Minsta rekommenderade för dans utomhus" },
-  { gaster: "150–400", paket: "Live Small/Medium", kommentar: "Kräver sub för bra basåtergivning" },
-  { gaster: "400+", paket: "Live Large", kommentar: "Kontakta oss för anpassat förslag" },
+const utomhus = [
+  {g:"10–50", paket:"Portable Large", pris:1199, k:"Minsta alternativ utomhus"},
+  {g:"50–100", paket:"Event Medium", pris:1599, k:"Tal och mingel utomhus"},
+  {g:"50–150", paket:"Music Small+", pris:1299, k:"Dans utomhus – rekommenderat minimum"},
+  {g:"150–300", paket:"Music Large", pris:1899, k:"Bra täckning utomhus"},
+  {g:"300+", paket:"Live/Music XL+", pris:2999, k:"Kontakta oss för anpassning"},
 ];
 ---
-
-<Layout
-  title="Hur Stor PA-anläggning Behöver Jag? Guide 2025 | Scenkonsult"
-  description="Lär dig välja rätt PA-system för ditt event. Tabeller för inomhus och utomhus, gästantal och eventtyp. Från Scenkonsult — uthyrare sedan 1986."
-  schemaExtra={schema}
->
-
-  <!-- Header -->
-  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%); padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem)); padding-bottom:clamp(2.5rem,5vw,4rem); padding-inline:clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px; margin:0 auto;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
-        <ol style="display:flex; flex-wrap:wrap; gap:0.35rem; list-style:none; margin:0; padding:0; font-size:0.78rem; color:rgba(255,255,255,0.4);">
-          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
-          <li><a href="/for/" style="color:rgba(255,255,255,0.5);text-decoration:none;">För ditt event</a> <span style="opacity:0.3;">/</span></li>
-          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
-          <li><span style="color:white;">Hur stor PA behöver jag?</span></li>
-        </ol>
-      </nav>
+<Layout title="Hur Stor PA-anläggning Behöver Jag? Guide 2025 | Scenkonsult" description="Rätt PA-system för ditt event. Tabeller inomhus/utomhus, gästantal, eventtyp. Priser fr 599 kr/dygn — Scenkonsult sedan 1986." schemaExtra={schema}>
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px;margin:0 auto;">
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;"><ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.4);"><li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li><li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li><li style="color:white;">Hur stor PA?</li></ol></nav>
       <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
       <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">Hur stor PA-anläggning behöver jag?</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">En av de vanligaste frågorna vi får. Svaret beror på tre saker: antal gäster, inomhus eller utomhus, och vad som ska spelas. Den här guiden ger dig konkreta svar.</p>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Alla priser matchar direkt mot produkterna i vårt sortiment — inga generiska siffror.</p>
     </div>
   </div>
-
-  <article style="background:#0c0a24; padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
+  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-
-      <!-- Snabbsvar -->
+      <MomsToggle />
       <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:1.75rem;margin-bottom:3rem;">
         <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.75rem;">Snabbsvar</p>
         <ul style="margin:0;padding:0 0 0 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
-          <li><strong style="color:white;">Under 50 gäster inomhus:</strong> Portable Small räcker (600–1 200W)</li>
-          <li><strong style="color:white;">50–100 gäster med dans:</strong> Event Small med subbasen</li>
-          <li><strong style="color:white;">100–200 gäster:</strong> Event Medium — minimum för liveband</li>
-          <li><strong style="color:white;">Utomhus:</strong> Dubbla alltid effekten jämfört med inomhus</li>
-          <li><strong style="color:white;">Osäker?</strong> Ring oss — vi hjälper dig dimensionera gratis</li>
+          <li><strong style="color:white;">Under 50 gäster, tal:</strong> <a href="/vara-tjanster/hyra-ljud/portable/" style="color:#c4b5f4;">Portable Small</a> — <span data-exkl="599">599</span> kr/dygn</li>
+          <li><strong style="color:white;">50–100 gäster med dans:</strong> <a href="/vara-tjanster/hyra-ljud/music/" style="color:#c4b5f4;">Music Small</a> — <span data-exkl="999">999</span> kr/dygn</li>
+          <li><strong style="color:white;">100–200 gäster, dans:</strong> <a href="/vara-tjanster/hyra-ljud/music/" style="color:#c4b5f4;">Music Medium</a> — <span data-exkl="1499">1499</span> kr/dygn</li>
+          <li><strong style="color:white;">Utomhus:</strong> Välj alltid ett steg upp i paketserie</li>
         </ul>
       </div>
-
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">De tre faktorerna som avgör</h2>
-      <p>Ingen PA-kalkyl är komplett utan alla tre: <strong style="color:white;">antal gäster</strong>, <strong style="color:white;">inomhus eller utomhus</strong>, och <strong style="color:white;">typ av ljud</strong>. En föreläsning för 200 personer kräver en bråkdel av effekten som en dansfest för 80 gäster.</p>
-
-      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:#c4b5f4;text-transform:uppercase;letter-spacing:0.08em;margin:2rem 0 0.75rem;">1. Typ av ljud</h3>
-      <p>Det är den faktor de flesta underskattar. Talljud kräver ca <strong style="color:white;">50–200W RMS</strong> för en vanlig sal. Dans och DJ kräver <strong style="color:white;">1 000–10 000W</strong> för samma publik — skillnaden är enorm. Liveband med trummor och bas kräver ytterligare mer.</p>
-
-      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:#c4b5f4;text-transform:uppercase;letter-spacing:0.08em;margin:2rem 0 0.75rem;">2. Inomhus vs utomhus</h3>
-      <p>Inomhus hjälper väggarna dig — de reflekterar ljud tillbaka mot lyssnarna och förstärker effekten. Utomhus försvinner ljudet åt alla håll. Grundregel: <strong style="color:white;">dubbla effekten vid utomhusbruk</strong>. Öppen plats utan hinder? Räkna med tre gånger mer.</p>
-
-      <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:#c4b5f4;text-transform:uppercase;letter-spacing:0.08em;margin:2rem 0 0.75rem;">3. Lokalens akustik</h3>
-      <p>En stenhård, tom lokal (kyrka, lagerlokal) studsar ljudet och kräver lägre effekt men bättre placering. En fullsatt restaurang med textilier och folk absorberar ljud och kräver mer effekt. En tom lokal och en fullsatt lokal kan skilja 3–6 dB i praktiken.</p>
-
-      <!-- Tabell inomhus -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Tabell: Inomhus</h2>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Våra fyra paketserier</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:0.75rem;margin-bottom:2.5rem;">
+        {[{n:"Portable",d:"Kompakt, plug-and-play. Perfekt under 50 gäster.",l:"/vara-tjanster/hyra-ljud/portable/"},{n:"Event",d:"Konferens och tal. Tydlig talåtergivning utan sub.",l:"/vara-tjanster/hyra-ljud/event/"},{n:"Music",d:"Dans och DJ. Sub ingår. Bred frekvensåtergivning.",l:"/vara-tjanster/hyra-ljud/music/"},{n:"Live",d:"Liveband. Monitor-ingångar, återkopplingsskydd.",l:"/vara-tjanster/hyra-ljud/live/"}].map(p=>(
+          <a href={p.l} style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;text-decoration:none;display:block;">
+            <div style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;margin-bottom:0.4rem;">{p.n}</div>
+            <div style="color:rgba(255,255,255,0.45);font-size:0.82rem;line-height:1.5;">{p.d}</div>
+          </a>
+        ))}
+      </div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Inomhus — rekommenderade paket</h2>
       <div style="overflow-x:auto;margin-bottom:2.5rem;">
-        <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
-          <thead>
-            <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Gäster</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Eventtyp</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Paket</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Effekt</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Sub</th>
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Gäster","Eventtyp","Paket","Pris/dygn","Sub"].map(h=><th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}</tr></thead>
+          <tbody>{inomhus.map((r,i)=>(
+            <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+              <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{r.g}</td>
+              <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{r.typ}</td>
+              <td style="padding:0.75rem 0.5rem;"><a href={r.link} style="color:#c4b5f4;text-decoration:none;">{r.paket}</a></td>
+              <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;"><span data-exkl={r.pris}>{r.pris}</span> kr</td>
+              <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);">{r.sub}</td>
             </tr>
-          </thead>
-          <tbody>
-            {tabellInomhus.map((r, i) => (
-              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
-                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{r.gaster}</td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{r.eventtyp}</td>
-                <td style="padding:0.75rem 0.5rem;"><a href="/vara-tjanster/hyra-ljud/" style="color:#c4b5f4;text-decoration:none;">{r.paket}</a></td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{r.watt}</td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{r.sub}</td>
-              </tr>
-            ))}
-          </tbody>
+          ))}</tbody>
         </table>
       </div>
-
-      <!-- Tabell utomhus -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Tabell: Utomhus</h2>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Utomhus — rekommenderade paket</h2>
+      <p style="margin-bottom:1.25rem;">Utomhus saknas reflektioner från väggar och tak — välj alltid ett steg upp jämfört med inomhusrekommendationen.</p>
       <div style="overflow-x:auto;margin-bottom:2.5rem;">
-        <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
-          <thead>
-            <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Gäster</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Paket</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;">Kommentar</th>
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Gäster","Paket","Pris/dygn","Kommentar"].map(h=><th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}</tr></thead>
+          <tbody>{utomhus.map((r,i)=>(
+            <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+              <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{r.g}</td>
+              <td style="padding:0.75rem 0.5rem;"><a href="/vara-tjanster/hyra-ljud/" style="color:#c4b5f4;text-decoration:none;">{r.paket}</a></td>
+              <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;"><span data-exkl={r.pris}>{r.pris}</span> kr</td>
+              <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);font-size:0.85rem;">{r.k}</td>
             </tr>
-          </thead>
-          <tbody>
-            {tabellUtomhus.map((r, i) => (
-              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
-                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{r.gaster}</td>
-                <td style="padding:0.75rem 0.5rem;"><a href="/vara-tjanster/hyra-ljud/" style="color:#c4b5f4;text-decoration:none;">{r.paket}</a></td>
-                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{r.kommentar}</td>
-              </tr>
-            ))}
-          </tbody>
+          ))}</tbody>
         </table>
       </div>
-
-      <!-- Subbasen -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Behöver jag subbasen?</h2>
-      <p>En subbasen återger frekvenserna under 80 Hz — det är det du <em>känner</em> i kroppen på dansgolvet, inte bara hör. Utan sub låter bassen tunn och tröttsam, oavsett hur stark topparna är.</p>
-      <p><strong style="color:white;">Ta med sub om:</strong> det ska danssas, DJ spelar, livebandet har basgitarr/trummor, evenemanget är utomhus.</p>
-      <p><strong style="color:white;">Du klarar dig utan om:</strong> det är enbart tal, bakgrundsmusik i låg volym, eller en liten konferens.</p>
-
-      <!-- Vanliga misstag -->
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">3 vanliga misstag</h2>
       <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:2.5rem;">
-        {[
-          { nr:"01", title:"Köpa på watt, inte dB", text:"Peak-watt är ett marknadsföringstal. Jämför alltid RMS-watt (kontinuerlig effekt) och SPL (dB). 1 000W peak kan i verkligheten prestera sämre än 400W RMS från ett bra märke." },
-          { nr:"02", title:"Glömma subbasen", text:"Det vanligaste felet. Toppar utan sub låter bra i butiken men tappar all energi på ett dansgolv. En aktiv subbasen kostar 500–800 kr extra i hyra — det är alltid värt det till dans." },
-          { nr:"03", title:"Underdimensionera för utomhus", text:"Många hyr ett system som funkar inomhus och tar med det utomhus. Resultatet: halvt volym, bassen försvinner och alla klagar på att det låter dåligt. Dubbla alltid utomhus." }
-        ].map(m => (
+        {[{nr:"01",t:"Event-paketet till dans",d:"Event-serien saknar subwoofer och klippar bassen vid höga volymer. Välj Music-serien när det ska danssas."},{nr:"02",t:"Underdimensionera utomhus",d:"Välj alltid ett paket upp. Utomhus försvinner reflektionerna och ljudet tappar volym och bas."},{nr:"03",t:"Glömma mikrofoner",d:"PA-paketen inkluderar högtalare. Lägg till handmikrofon (80 kr) och mixerbord (fr 159 kr) om du behöver prata."}].map(m=>(
           <div style="background:#1e1850;border-radius:10px;padding:1.25rem 1.5rem;display:flex;gap:1.25rem;">
             <span style="font-family:'DM Serif Display',serif;font-size:1.75rem;color:rgba(196,181,244,0.25);line-height:1;flex-shrink:0;">{m.nr}</span>
-            <div>
-              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;color:white;margin:0 0 0.4rem;">{m.title}</h3>
-              <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;line-height:1.65;margin:0;">{m.text}</p>
-            </div>
+            <div><h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;color:white;margin:0 0 0.4rem;">{m.t}</h3><p style="color:rgba(255,255,255,0.55);font-size:0.88rem;line-height:1.65;margin:0;">{m.d}</p></div>
           </div>
         ))}
       </div>
-
-      <!-- CTA -->
       <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Fortfarande osäker?</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ring oss — vi hjälper dig dimensionera rätt utrustning för ditt event utan kostnad.</p>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ring oss — vi dimensionerar rätt utan kostnad. 072-448 10 00, mån–sön 08–20.</p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
           <a href="/vara-tjanster/hyra-ljud/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se alla ljudpaket</a>
           <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
         </div>
       </div>
-
-      <!-- Relaterat -->
       <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
         <p style="color:rgba(255,255,255,0.3);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
         <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
-          <a href="/for/guider/hur-stor-scen/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor scen behöver jag? →</a>
-          <a href="/for/guider/ljud-utomhus/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Ljud utomhus — guide →</a>
-          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett event-checklista →</a>
+          <a href="/for/guider/hur-stor-scen/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor scen? →</a>
+          <a href="/for/guider/ljud-utomhus/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Ljud utomhus →</a>
+          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
         </div>
       </div>
-
     </div>
   </article>
 </Layout>

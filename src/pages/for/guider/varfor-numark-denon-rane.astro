@@ -1,0 +1,234 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import MomsToggle from '../../../components/MomsToggle.astro';
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Varför vi valt Numark, Denon och Rane — och inte Pioneer/AlphaTheta",
+      "description": "Konkreta argument för standalone DJ-controllers med inbyggd streaming mot det traditionella Pioneer CDJ-systemet.",
+      "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
+      "publisher": { "@type": "Organization", "name": "Scenkonsult Norden", "url": "https://scenkonsult.se" },
+      "datePublished": "2025-01-01", "dateModified": "2025-03-01",
+      "url": "https://scenkonsult.se/for/guider/varfor-numark-denon-rane/"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Varför har ni inte Pioneer CDJ i sortimentet?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Pioneer CDJ-3000 + DJM-900NXS2 kostar 60 000–80 000 kr i inköp. Det kräver laptop och Rekordbox-prenumeration för streaming. Vår Denon Prime 4+ gör exakt samma sak — standalone, 4-deck, stor skärm — för under 5 000 kr i inköp. Det ger ett lägre hyrpris för dig och samma eller bättre resultat." }
+        },
+        {
+          "@type": "Question",
+          "name": "Kan man spela Spotify på Numark Mixstream Pro+?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Ja. Numark Mixstream Pro+ och Denon Prime GO+/4+ har inbyggd WiFi och Android-baserat OS med officiell app-support för Spotify, Tidal, SoundCloud, Amazon Music och Beatport. Ingen laptop behövs." }
+        },
+        {
+          "@type": "Question",
+          "name": "Är Pioneer CDJ bättre ljud än Denon/Numark?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Nej — för praktiska ändamål är ljudkvaliteten likvärdig. Rane System One har ett professionellt internt soundcard som av många teknikrecensenter bedöms överlägset CDJ-3000. Skillnaden i ljud märks inte ens i professionella livesammanhang." }
+        },
+        {
+          "@type": "Question",
+          "name": "Vad används på professionella nattklubb-installationer?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Nattklubb-installationer har historiskt sett Pioneer CDJ som standard — det är av vanekraft, inte teknisk överlägsenhet. För uthyrning och event är standalone all-in-one-lösningar överlägset smidigare, billigare och mer tillförlitliga." }
+        }
+      ]
+    }
+  ]
+};
+
+const jamforelse = [
+  { faktor: "Inbyggd streaming",        standalone: "✓ Ja — Spotify, Tidal, SoundCloud, Amazon Music via WiFi", pioneer: "✗ Kräver laptop + Rekordbox+ prenumeration" },
+  { faktor: "Behöver laptop",           standalone: "✗ Nej — helt standalone",                                   pioneer: "✓ Ja — för streaming och avancerade features" },
+  { faktor: "Antal enheter",            standalone: "1 enhet (allt-i-ett)",                                      pioneer: "2× CDJ + mixer = 3 enheter minimum" },
+  { faktor: "USB-förberedelse",         standalone: "Ej nödvändig — streama direkt",                             pioneer: "Krävs — Rekordbox-analys av varje låt" },
+  { faktor: "Inköpspris (full setup)",  standalone: "5 000–8 000 kr",                                            pioneer: "60 000–80 000 kr" },
+  { faktor: "Hyrpris per dygn",         standalone: "799–1 999 kr",                                              pioneer: "Ej i vårt sortiment" },
+  { faktor: "Rigg-tid",                 standalone: "10–15 min",                                                  pioneer: "30–60 min" },
+  { faktor: "Felkällepunkter",          standalone: "1 (enheten)",                                               pioneer: "3+ (CDJ×2, mixer, laptop, USB)" },
+  { faktor: "Skärmstorlek",            standalone: "7–10\" pekskärm (Denon/Rane)",                               pioneer: "9\" CDJ-3000 (ingen touch)" },
+  { faktor: "Batteridrift",             standalone: "✓ Ja (Denon Prime GO+)",                                    pioneer: "✗ Nej" },
+];
+
+const varaModeller = [
+  {
+    namn: "Numark Mixstream Pro+",
+    pris: 799,
+    beskrivning: "WiFi-streaming, Spotify/Tidal inbyggt. Stor 7\" pekskärm. Professionellt mixerbord integrerat. Perfekt för events där DJ:n vill kunna spela precis det publiken vill ha — utan att ha förberett USBs.",
+    bra_for: ["Bröllop och familjeevent", "Fester med bred låtbredd", "DJ som vill köra utan laptop"],
+    spec: ["7\" kapacitiv pekskärm", "2-deck standalone", "WiFi + BT-mottagare", "Inbyggd mixersektion"]
+  },
+  {
+    namn: "Denon Prime GO+",
+    pris: 999,
+    beskrivning: "Batteridrivet, kompakt 2-deck system med WiFi-streaming. Idealiskt för utomhus-event, pop-up-parties och lägen där det inte finns elkontakter nära DJ-bordet.",
+    bra_for: ["Utomhus-event", "Pop-up och rooftop", "Mobilitet prioriterad"],
+    spec: ["Inbyggt batteri", "WiFi-streaming", "Kompakt format", "2-deck standalone"]
+  },
+  {
+    namn: "Denon Prime 4+",
+    pris: 1499,
+    beskrivning: "4-deck professionellt standalone-system. Stor 10\" pekskärm. Inbyggt soundcard. Serato- och VirtualDJ-kompatibel. Det närmaste du kommer ett fullständigt proffsystem i en enda enhet.",
+    bra_for: ["Företagsfest 100+ gäster", "Profesionell DJ-setup", "Lång kväll med varierad musik"],
+    spec: ["10\" pekskärm", "4-deck standalone", "WiFi + 4× USB", "Inbyggt 24-bit soundcard"]
+  },
+  {
+    namn: "Rane System One",
+    pris: 1999,
+    beskrivning: "Professionellt Serato-DJ-system. Magistralt internt ljudkort — av många reviewers rankat över CDJ-3000. Används av club-residenta DJs och turnerande artister som kräver maximal prestanda. Rane är Serato-världens referenssystem.",
+    bra_for: ["Professionell DJ", "Hög ljudkvalitetsprioritering", "Club/festival-klass"],
+    spec: ["Professionellt Serato-system", "Överlägset internt soundcard", "Premium byggkvalitet", "Används av världsnamn"]
+  }
+];
+---
+
+<Layout
+  title="Varför Numark, Denon och Rane — inte Pioneer? DJ-guide | Scenkonsult"
+  description="Konkreta argument för standalone DJ-controllers med inbyggd Spotify/Tidal-streaming mot Pioneer CDJ. Smartare, billigare, färre felkällepunkter."
+  schemaExtra={schema}
+>
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px;margin:0 auto;">
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
+        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.4);">
+          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
+          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
+          <li style="color:white;">Varför Numark, Denon & Rane?</li>
+        </ol>
+      </nav>
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,5vw,3.1rem);line-height:1.1;color:white;margin:0 0 1rem;">Varför vi valt Numark, Denon och Rane — och inte Pioneer</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Vi har ett medvetet val bakom vår DJ-utrustning. Det handlar om streaming, enkelhet och vad som faktiskt levererar bäst för ditt event — inte vad som finns på de flesta nattklubbarna.</p>
+    </div>
+  </div>
+
+  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
+      <MomsToggle />
+
+      <!-- Poängen i ett nötskal -->
+      <div style="background:linear-gradient(135deg,rgba(196,181,244,0.12),rgba(196,181,244,0.04));border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:2rem;margin-bottom:3rem;">
+        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 1rem;">Kärnargumentet</p>
+        <p style="color:white;font-size:1.05rem;line-height:1.7;margin:0 0 1rem;">Pioneer CDJ-3000 + DJM-900NXS2 kostar <strong>60 000–80 000 kr</strong> att köpa in. För streaming krävs dessutom laptop + Rekordbox+-prenumeration. Systemet är tre separata enheter som alla kan haverera.</p>
+        <p style="color:white;font-size:1.05rem;line-height:1.7;margin:0;">Denon Prime 4+ är <strong>ett enda paket</strong> — 4-deck, stor skärm, inbyggt soundcard, inbyggd WiFi-streaming (Spotify, Tidal, SoundCloud, Amazon Music). Ingen laptop. Inga USB-förberedelser. Köppriser på en bråkdel. Och du betalar <span data-exkl="1499">1499</span> kr/dygn istället för vad ett CDJ-system hade kostat.</p>
+      </div>
+
+      <!-- Varför Pioneer dominerar nattklubbarna (och varför det inte är relevant för event) -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Varför Pioneer är standard på klubbar — men inte optimalt för event</h2>
+      <p>Pioneer DJ (numera <strong style="color:white;">AlphaTheta</strong>) dominerar nattklubbsinstallationer av ett enkelt skäl: de var tidigt ute och skapade en branschstandard på 90- och 00-talet. Residenta DJs lärde sig på CDJ:s, och klubbarna installerade CDJ:s för att matcha det DJarna kunde. Det är ett cirkulärt argument — inte ett tekniskt.</p>
+      <p>För <strong style="color:white;">event och uthyrning</strong> är förutsättningarna helt annorlunda. Ingen gäst på ett bröllop eller en företagsfest bryr sig om att DJ:n kör på Denon istället för Pioneer. Det de bryr sig om är att musiken är rätt, att volymen är lagom och att systemet inte kraschar. Där vinner all-in-one-lösningarna.</p>
+
+      <!-- Jämförelsetabell -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.25rem;">Jämförelse: Standalone all-in-one vs Pioneer CDJ-setup</h2>
+      <div style="overflow-x:auto;margin-bottom:3rem;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.86rem;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Faktor</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#86efac;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Standalone (Denon/Numark/Rane)</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:rgba(255,200,100,0.7);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Pioneer CDJ-system</th>
+            </tr>
+          </thead>
+          <tbody>
+            {jamforelse.map((r, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;min-width:140px;">{r.faktor}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(200,255,200,0.75);font-size:0.85rem;">{r.standalone}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,220,100,0.65);font-size:0.85rem;">{r.pioneer}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Streaming-djupet -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Inbyggd streaming — vad det faktiskt innebär</h2>
+      <p>Att Pioneer CDJ:s "stödjer streaming" är tekniskt sant men kräver:</p>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem;">
+        {[
+          "En bärbar dator kopplad via USB",
+          "Rekordbox+-prenumeration (ca 120 kr/mån eller 1 200 kr/år)",
+          "Aktivt WiFi-nätverk och stabil internetuppkoppling via laptopen",
+          "Att laptopen inte kraschar, hänger sig eller tappar anslutning",
+          "Att USB-kablar sitter i ordentligt under kvällen",
+        ].map(i => (
+          <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+            <span style="color:#ff9999;font-size:0.8rem;flex-shrink:0;margin-top:0.2rem;">✗</span>
+            <span style="color:rgba(255,255,255,0.6);font-size:0.9rem;">{i}</span>
+          </div>
+        ))}
+      </div>
+      <p>Med Denon Prime 4+ eller Numark Mixstream Pro+:</p>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:2.5rem;">
+        {[
+          "Koppla upp till WiFi → logga in på Spotify/Tidal → kör",
+          "Ingen laptop, inga extra kablar, inga prenumerationer utöver streaming-tjänsten du redan har",
+          "Systemet startar på 30 sekunder och är redo att spela",
+          "Spelaren kraschar inte — Android-OS med dedikerat musikhårdvara",
+        ].map(i => (
+          <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+            <span style="color:#86efac;font-size:0.8rem;flex-shrink:0;margin-top:0.2rem;">✓</span>
+            <span style="color:rgba(255,255,255,0.7);font-size:0.9rem;">{i}</span>
+          </div>
+        ))}
+      </div>
+
+      <!-- Våra modeller -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.5rem;">Våra modeller — välj efter event</h2>
+      <div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem;">
+        {varaModeller.map(m => (
+          <div style="background:#1e1850;border-radius:14px;overflow:hidden;">
+            <div style="padding:1.4rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
+              <div>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:white;margin:0 0 0.4rem;">{m.namn}</h3>
+                <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.6;margin:0;max-width:480px;">{m.beskrivning}</p>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="color:#c4b5f4;font-family:'DM Serif Display',serif;font-size:1.65rem;white-space:nowrap;"><span data-exkl={m.pris}>{m.pris}</span> kr</div>
+                <div style="color:rgba(255,255,255,0.25);font-size:0.7rem;">per dygn</div>
+              </div>
+            </div>
+            <div style="padding:1.1rem 1.5rem;display:flex;gap:2rem;flex-wrap:wrap;">
+              <div>
+                <div style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Bra för</div>
+                {m.bra_for.map(b => <div style="display:flex;gap:0.5rem;padding:0.2rem 0;"><span style="color:#86efac;font-size:0.7rem;flex-shrink:0;">✓</span><span style="color:rgba(255,255,255,0.55);font-size:0.82rem;">{b}</span></div>)}
+              </div>
+              <div>
+                <div style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Specifikationer</div>
+                {m.spec.map(s => <div style="display:flex;gap:0.5rem;padding:0.2rem 0;"><span style="color:rgba(255,255,255,0.2);font-size:0.7rem;flex-shrink:0;">—</span><span style="color:rgba(255,255,255,0.45);font-size:0.82rem;">{s}</span></div>)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Rane-djupet -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Rane System One — när ljudkvalitet är absolut prioritet</h2>
+      <p>Rane är sedan länge Serato DJs referensplattform. System One har ett internt soundcard som i blindtester och teknikrecensioner konsekvent placeras <strong style="color:white;">över Pioneer CDJ-3000</strong> i mätbara ljudparametrar (SNR, frekvensrespons, distortion). Det är det system professionella turnerande artister väljer när de tar med sig sitt eget gear.</p>
+      <p>För uthyrningsändamål är Rane System One valet för den kund som vill ha en professionell DJ-upplevelse och är beredd att betala lite mer för det — <span data-exkl="1999">1999</span> kr/dygn mot Denon Prime 4+ på <span data-exkl="1499">1499</span> kr/dygn.</p>
+
+      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Hyr DJ-utrustning</h2>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Standalone streaming — Spotify, Tidal, SoundCloud, Amazon Music. Ingen laptop krävs.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="/vara-tjanster/hyra-dj/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se DJ-utrustning</a>
+          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
+        </div>
+      </div>
+
+      <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
+        <p style="color:rgba(255,255,255,0.3);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+          <a href="/for/guider/dj-eller-liveband/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">DJ eller liveband? →</a>
+          <a href="/for/guider/vad-kostar-det/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Vad kostar det? →</a>
+          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Layout>

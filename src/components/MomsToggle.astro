@@ -1,0 +1,86 @@
+---
+// MomsToggle.astro
+// Lägg till på sidor med priser. Alla priser märks med:
+// <span class="pris" data-exkl="599">599</span> kr
+// Komponenten räknar ut inkl-pris (+25%) och växlar med JS.
+---
+<div class="moms-toggle-wrap" id="momsToggleWrap">
+  <span class="moms-label" id="momsLabel" data-mode="exkl">Priser visas</span>
+  <button class="moms-btn" id="momsBtn" aria-pressed="false">
+    <span class="moms-opt active" id="optExkl">exkl. moms</span>
+    <span class="moms-divider">|</span>
+    <span class="moms-opt" id="optInkl">inkl. moms</span>
+  </button>
+</div>
+
+<style>
+  .moms-toggle-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(196,181,244,0.08);
+    border: 1px solid rgba(196,181,244,0.2);
+    border-radius: 9999px;
+    padding: 0.35rem 0.85rem 0.35rem 0.7rem;
+    margin-bottom: 1.75rem;
+  }
+  .moms-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .moms-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .moms-opt {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.3);
+    transition: color 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .moms-opt.active {
+    color: #c4b5f4;
+  }
+  .moms-divider {
+    color: rgba(255,255,255,0.15);
+    font-size: 0.7rem;
+  }
+</style>
+
+<script>
+  (function() {
+    const btn    = document.getElementById('momsBtn');
+    const exklEl = document.getElementById('optExkl');
+    const inklEl = document.getElementById('optInkl');
+    if (!btn) return;
+
+    let inkl = false;
+
+    function update() {
+      exklEl.classList.toggle('active', !inkl);
+      inklEl.classList.toggle('active', inkl);
+      btn.setAttribute('aria-pressed', String(inkl));
+
+      document.querySelectorAll('[data-exkl]').forEach(el => {
+        const base = parseInt(el.dataset.exkl, 10);
+        const val  = inkl ? Math.round(base * 1.25) : base;
+        el.textContent = val.toLocaleString('sv-SE');
+      });
+    }
+
+    btn.addEventListener('click', () => {
+      inkl = !inkl;
+      update();
+    });
+  })();
+</script>
