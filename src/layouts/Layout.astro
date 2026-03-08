@@ -207,6 +207,22 @@ const {
       const arrow = btn?.querySelector('.nav-arrow') as HTMLElement;
       if (arrow) arrow.style.transform = sub?.classList.contains('open') ? 'rotate(180deg)' : '';
     });
+
+    // Desktop dropdown med stängningsfördröjning
+    const ddParent = document.querySelector('.nav-dropdown') as HTMLElement;
+    const ddMenu = document.querySelector('.nav-dropdown-menu') as HTMLElement;
+    let closeTimer: ReturnType<typeof setTimeout> | null = null;
+    const openDD = () => {
+      if (closeTimer) clearTimeout(closeTimer);
+      ddMenu?.classList.add('dd-open');
+    };
+    const closeDD = () => {
+      closeTimer = setTimeout(() => ddMenu?.classList.remove('dd-open'), 2500);
+    };
+    ddParent?.addEventListener('mouseenter', openDD);
+    ddParent?.addEventListener('mouseleave', closeDD);
+    ddMenu?.addEventListener('mouseenter', openDD);
+    ddMenu?.addEventListener('mouseleave', closeDD);
     // Close on outside click
     document.addEventListener('click', (e) => {
       if (!hamburger?.contains(e.target as Node) && !mobileMenu?.contains(e.target as Node)) {

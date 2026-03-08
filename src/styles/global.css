@@ -129,7 +129,7 @@ a { color: inherit; }
 .nav-dropdown:hover .nav-arrow { transform: rotate(180deg); }
 
 .nav-dropdown-menu {
-  position: absolute; top: calc(100% + 1.2rem); left: -1.5rem;
+  position: absolute; top: calc(100% + 0.5rem); left: -1.5rem;
   background: rgba(15, 12, 40, 0.98);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(196,181,244,0.15);
@@ -142,14 +142,19 @@ a { color: inherit; }
   z-index: 500;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, pointer-events 0s 2.5s;
-  transition-delay: 2.5s, 0s;
+  transition: opacity 0.15s ease;
 }
-.nav-dropdown:hover .nav-dropdown-menu {
+.nav-dropdown-menu.dd-open {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.15s ease;
-  transition-delay: 0s;
+}
+/* Osynlig brygga som täpper gapet mellan trigger och meny */
+.nav-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -1rem;
+  left: 0; right: 0;
+  height: 1rem;
 }
 .nav-dd-col { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; }
 .nav-dd-heading {
