@@ -1,12 +1,111 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 ---
-<Layout title="Scenkonsult Stockholm" description="Scenkonsult – uthyrning av scen, ljud, ljus och DJ i Stockholm sedan 1986.">
-  <div class="max-w-4xl mx-auto px-4 py-16 text-center">
-    <p class="text-gray-400 mb-8">Sidan är under uppbyggnad. Kontakta oss gärna direkt!</p>
-    <div class="flex flex-wrap justify-center gap-4">
-      <a href="/kontakt/" class="bg-brand-orange text-white px-6 py-3 rounded-xl font-bold">Kontakta oss</a>
-      <a href="/vara-tjanster/" class="border border-white/30 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/10">Alla tjänster</a>
+<Layout
+  title="Personuppgiftspolicy & Cookies | Scenkonsult Norden"
+  description="Hur Scenkonsult Norden hanterar dina personuppgifter och cookies i enlighet med GDPR."
+>
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <nav class="text-sm text-gray-500 mb-8">
+      <a href="/" class="hover:text-gray-300">Hem</a>
+      <span class="mx-2">/</span>
+      <span class="text-white">Personuppgiftspolicy</span>
+    </nav>
+
+    <h1 class="text-4xl font-extrabold text-white mb-2" style="font-family:'DM Serif Display',serif">Personuppgiftspolicy & Cookies</h1>
+    <p class="text-gray-500 text-sm mb-10">Scenkonsult Norden / Sigvardsson Consulting Group AB · Gäller från 2025-01-01 · GDPR-anpassad</p>
+
+    <div class="space-y-10 text-gray-400 leading-relaxed">
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">1. Vem ansvarar för dina uppgifter?</h2>
+        <p>Personuppgiftsansvarig är <strong class="text-gray-200">Sigvardsson Consulting Group AB</strong>, som driver Scenkonsult Norden. Kontakta oss på <a href="mailto:info@scenkonsult.se" class="hover:underline" style="color:#c4b5f4">info@scenkonsult.se</a> eller 072-448 10 00 med frågor om din data.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">2. Vilken information samlar vi in?</h2>
+        <p class="mb-3">Vi samlar in uppgifter när du:</p>
+        <ul class="list-disc ml-5 space-y-1.5">
+          <li>Skickar en boknings- eller offertförfrågan (namn, e-post, telefon, evenemangsinformation)</li>
+          <li>Genomför ett köp (betalningsinformation hanteras av betaltjänst, ej av oss)</li>
+          <li>Kontaktar oss via e-post, telefon eller formulär</li>
+          <li>Besöker vår webbplats (via cookies — se avsnitt 6)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">3. Varför behandlar vi dina uppgifter?</h2>
+        <div class="space-y-3">
+          {[
+            { syfte: 'Fullgöra avtal', grund: 'Avtalsnödvändighet', tid: 'Under avtalstiden + 3 år', ex: 'Leverans, bokning, fakturering' },
+            { syfte: 'Bokföring & lagkrav', grund: 'Rättslig förpliktelse', tid: '7 år (bokföringslagen)', ex: 'Fakturor, kvitton' },
+            { syfte: 'Kundservice', grund: 'Berättigat intresse', tid: '2 år', ex: 'Frågor, reklamationer' },
+            { syfte: 'Marknadsföring', grund: 'Samtycke (du kan avregistrera dig)', tid: 'Tills avregistrering', ex: 'Nyhetsbrev, erbjudanden' },
+          ].map(r => (
+            <div class="rounded-xl p-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.07)">
+              <div class="font-semibold text-white mb-1">{r.syfte}</div>
+              <div class="text-sm text-gray-500">Rättslig grund: {r.grund} · Sparas: {r.tid}</div>
+              <div class="text-sm text-gray-400 mt-0.5">Exempel: {r.ex}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">4. Delar vi dina uppgifter?</h2>
+        <p>Vi delar aldrig dina uppgifter med tredje part för marknadsföringsändamål utan ditt samtycke. Vi kan dela uppgifter med:</p>
+        <ul class="list-disc ml-5 mt-3 space-y-1.5">
+          <li>Betaltjänstleverantörer (ex. Swish, kortterminal) — för att genomföra betalning</li>
+          <li>Redovisningsbyrå — för bokföringskrav</li>
+          <li>IT-leverantörer — som behandlar data på uppdrag av oss (databehandlingsavtal finns)</li>
+        </ul>
+        <p class="mt-3">Vi överför inte personuppgifter till länder utanför EU/EES utan lämpliga skyddsåtgärder.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">5. Dina rättigheter</h2>
+        <p class="mb-3">Enligt GDPR har du rätt att:</p>
+        <ul class="list-disc ml-5 space-y-1.5">
+          <li><strong class="text-gray-200">Få tillgång</strong> till dina uppgifter (registerutdrag)</li>
+          <li><strong class="text-gray-200">Rätta</strong> felaktiga uppgifter</li>
+          <li><strong class="text-gray-200">Radera</strong> uppgifter ("rätten att bli glömd") — om de inte måste sparas av lag</li>
+          <li><strong class="text-gray-200">Begränsa</strong> behandlingen under pågående granskning</li>
+          <li><strong class="text-gray-200">Invända</strong> mot behandling baserad på berättigat intresse</li>
+          <li><strong class="text-gray-200">Dataportabilitet</strong> — få ut dina uppgifter i maskinläsbart format</li>
+        </ul>
+        <p class="mt-3">Skicka din begäran till <a href="mailto:info@scenkonsult.se" class="hover:underline" style="color:#c4b5f4">info@scenkonsult.se</a>. Vi svarar inom 30 dagar. Du har också rätt att klaga till <strong class="text-gray-200">Integritetsskyddsmyndigheten (IMY)</strong> på <a href="https://www.imy.se" target="_blank" class="hover:underline" style="color:#c4b5f4">imy.se</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">6. Cookies</h2>
+        <p class="mb-4">Vi använder cookies för att webbplatsen ska fungera, förstå besökarstatistik och förbättra upplevelsen.</p>
+        <div class="space-y-3">
+          {[
+            { typ: 'Nödvändiga cookies', tid: 'Session', ex: 'Cookie-samtycke, varukorgsdata (localStorage)', desc: 'Krävs för att sidan ska fungera. Kan inte avaktiveras.' },
+            { typ: 'Analyticscookies', tid: 'Upp till 13 mån', ex: 'Google Analytics (anonymiserad IP)', desc: 'Hjälper oss förstå hur besökare använder sidan. Kan avaktiveras.' },
+            { typ: 'Funktionella cookies', tid: 'Upp till 12 mån', ex: 'Språkval, inställningar', desc: 'Kommer ihåg dina val för bättre upplevelse.' },
+          ].map(c => (
+            <div class="rounded-xl p-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.07)">
+              <div class="font-semibold text-white mb-1">{c.typ}</div>
+              <div class="text-sm text-gray-400">{c.desc}</div>
+              <div class="text-xs text-gray-500 mt-1">Lagringstid: {c.tid} · Exempel: {c.ex}</div>
+            </div>
+          ))}
+        </div>
+        <p class="mt-4 text-sm">Du kan hantera cookies i dina webbläsarinställningar. Observera att blockering av nödvändiga cookies kan påverka funktionaliteten.</p>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-bold text-white mb-3">7. Ändringar i policyn</h2>
+        <p>Vi kan uppdatera denna policy vid behov. Väsentliga ändringar kommuniceras via e-post till berörda eller via webbplatsen. Datum för senaste uppdatering syns alltid överst på sidan.</p>
+      </section>
+
     </div>
-  </div>
+
+    <div class="mt-12 p-6 rounded-2xl" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+      <p class="text-gray-400 text-sm">Frågor om hur vi hanterar dina personuppgifter? Kontakta oss på <a href="mailto:info@scenkonsult.se" class="hover:underline" style="color:#c4b5f4">info@scenkonsult.se</a>.</p>
+    </div>
+
+  </article>
 </Layout>

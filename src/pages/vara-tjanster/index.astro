@@ -1,18 +1,55 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 
-const services = [
-  { title: "Scener", desc: "Från 4m² podie till 48m² XL-scen med tak. Halkfria ytor för inomhus och utomhus.", href: "/vara-tjanster/hyra-scen/", from: "599 kr/dygn", icon: "🎭" },
-  { title: "Ljud – Event", desc: "För tal, presentationer och bakgrundsmusik. 20–1000+ åhörare.", href: "/vara-tjanster/hyra-ljud/event/", from: "Offert", icon: "🎤" },
-  { title: "Ljud – Live", desc: "PA-system för liveband och konserter. Inomhus och utomhus.", href: "/vara-tjanster/hyra-ljud/live/", from: "Offert", icon: "🎸" },
-  { title: "Ljud – Musik/Dans", desc: "Kraftfulla system för disco, DJ och dansgolv. 20–1500 personer.", href: "/vara-tjanster/hyra-ljud/music/", from: "Offert", icon: "🔊" },
-  { title: "Portabelt ljud", desc: "Kompakta, smidiga anläggningar för tal, trubadur och mingel.", href: "/vara-tjanster/hyra-ljud/portable/", from: "Offert", icon: "📻" },
-  { title: "Färdiga ljuspaket", desc: "Komplett belysning för fest och event – enkelt att installera.", href: "/vara-tjanster/hyra-ljus/fardiga-paket/", from: "Offert", icon: "✨" },
-  { title: "Lösa ljuseffekter", desc: "Moving heads, PAR-lampor, laser, stroboskop – bygg din rig.", href: "/vara-tjanster/hyra-ljus/ljuseffekter/", from: "Offert", icon: "💡" },
-  { title: "Rök & Pyroteknik", desc: "Rökmaskiner, kolsyraelement och pyroteknik för scen.", href: "/vara-tjanster/hyra-ljus/rok-pyro/", from: "Offert", icon: "💨" },
-  { title: "Stativ & Tross", desc: "Traverser, tross och stativ för att rigga din ljus- och ljudrigg.", href: "/vara-tjanster/hyra-ljus/stativ-tross/", from: "Offert", icon: "🏗️" },
-  { title: "Projektorer & Skärmar", desc: "HD/4K projektorer, Samsung professionella skärmar och LED-vägg.", href: "/vara-tjanster/hyra-bild-projektorer-skarmar/", from: "Offert", icon: "📽️" },
-  { title: "Professionella DJs", desc: "Erfarna DJs till bröllop, fest och företagsevent. 80-tal–idag.", href: "/vara-tjanster/hyra-dj/", from: "2 995 kr", icon: "🎧" },
+const kategorier = [
+  {
+    rubrik: "Scener",
+    beskrivning: "Vårt ursprung. Från 4m² podie till 48m² XL-scen med tak. Vi har scener för inomhus och utomhus, med eller utan scentak, halkfria ytor och professionell finish. Beskriv ditt behov så presenterar vi en lösning.",
+    href: "/vara-tjanster/hyra-scen/",
+    fran: "599 kr/dygn",
+    icon: "🎭",
+    tjanster: ["Scenpaket Small → XL+", "Scen med tak", "Inomhus & utomhus", "Leverans & montering"],
+  },
+  {
+    rubrik: "Ljud",
+    beskrivning: "Noggrant utvalda professionella varumärken. Från kompakta anläggningar för tal och mingel till kraftfulla PA-system för konserter och festival. Vi täcker event, live, DJ/musik och portabelt ljud.",
+    href: "/vara-tjanster/hyra-ljud/",
+    fran: "Offert",
+    icon: "🔊",
+    tjanster: ["Event / tal & konferens", "Live / band & konsert", "Musik / DJ & dans", "Portabelt ljud"],
+  },
+  {
+    rubrik: "Ljus",
+    beskrivning: "Rätt ljussättning förvandlar vilken lokal som helst. Moving heads, PAR-lampor, laser, stroboskop, rök, pyroteknik – vi har färdiga paket och lösa effekter för alla typer av event.",
+    href: "/vara-tjanster/hyra-ljus/",
+    fran: "Offert",
+    icon: "💡",
+    tjanster: ["Färdiga ljuspaket", "Lösa ljuseffekter", "Rök & pyroteknik", "Stativ & tross"],
+  },
+  {
+    rubrik: "Bild – Projektorer & Skärmar",
+    beskrivning: "HD/4K-projektorer, Samsung professionella displayskärmar och moduluppbyggd LED-vägg. Perfekt för presentationer, konferenser, produktlanseringar och storbildsvisning på event.",
+    href: "/vara-tjanster/hyra-bild-projektorer-skarmar/",
+    fran: "Offert",
+    icon: "📽️",
+    tjanster: ["HD/4K projektorer", "Professionella skärmar", "LED-vägg", "Duk & stativ"],
+  },
+  {
+    rubrik: "Professionella DJs",
+    beskrivning: "Erfarna DJs till bröllop, privata fester och företagsevent. Vi har DJs som täcker allt från 80-tal till idag. Välj junior, senior eller PRO-DJ beroende på behov och budget.",
+    href: "/vara-tjanster/hyra-dj/",
+    fran: "2 995 kr",
+    icon: "🎧",
+    tjanster: ["Junior DJ", "Senior DJ", "PRO DJ med tekniker", "Boka DJ-utrustning själv"],
+  },
+  {
+    rubrik: "Komplett event",
+    beskrivning: "Vill du slippa hantera flera leverantörer? Vi tar ett helhetsansvar för scen, ljud, ljus, bild och DJ. En kontaktperson, ett avtal, ett prisförslag – allt på plats när du behöver det.",
+    href: "/kontakt/",
+    fran: "Offert",
+    icon: "🎪",
+    tjanster: ["Scen + ljud + ljus", "DJ ingår vid önskan", "Leverans & montering", "Tekniker på plats"],
+  },
 ];
 ---
 
@@ -21,29 +58,76 @@ const services = [
   description="Komplett scenproduktion i Stockholm. Hyr scen, ljud, ljus, projektorer och DJ för fest, bröllop, event och konsert. Leverans i hela Storstockholm. Sedan 1986."
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
     <nav class="text-sm text-gray-500 mb-8" aria-label="Brödsmulor">
       <a href="/" class="hover:text-gray-300">Hem</a>
       <span class="mx-2">/</span>
       <span class="text-white">Våra tjänster</span>
     </nav>
 
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Våra tjänster i Stockholm</h1>
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4" style="font-family:'DM Serif Display',serif">Våra tjänster</h1>
     <p class="text-gray-400 text-lg max-w-3xl mb-12">
-      Vi är er kompletta partner för scenproduktion – oavsett om det gäller en privat fest för 20 eller ett stort utomhusvent för 2 000 gäster. Välj bland våra tjänster nedan eller <a href="/kontakt/" class="text-brand-orange hover:underline">kontakta oss</a> för ett komplett paket.
+      Vi är er kompletta partner för scenproduktion – oavsett om det gäller en privat fest för 20 eller ett stort utomhurevent för 2 000 gäster. Välj bland kategorierna nedan eller <a href="/kontakt/" class="hover:underline" style="color:#c4b5f4">kontakta oss</a> för ett komplett paket.
     </p>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {services.map(s => (
-        <a href={s.href} class="group bg-brand-navy hover:bg-white/5 border border-white/10 hover:border-brand-orange/40 rounded-2xl p-6 transition-all">
-          <div class="text-3xl mb-3">{s.icon}</div>
-          <h2 class="text-white font-bold text-lg mb-2 group-hover:text-brand-orange transition-colors">{s.title}</h2>
-          <p class="text-gray-400 text-sm leading-relaxed mb-4">{s.desc}</p>
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-brand-orange font-semibold">Från {s.from}</span>
-            <span class="text-gray-500 group-hover:text-brand-orange transition-colors">Läs mer →</span>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
+      {kategorier.map(k => (
+        <a href={k.href} class="group flex flex-col rounded-2xl p-6 transition-all border hover:border-opacity-40"
+           style="background:#1e1850;border-color:rgba(255,255,255,0.08)" 
+           onmouseover="this.style.borderColor='rgba(196,181,244,0.35)'"
+           onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">{k.icon}</span>
+              <div>
+                <h2 class="text-white font-bold text-lg group-hover:text-brand-orange transition-colors">{k.rubrik}</h2>
+                <span class="text-xs font-semibold" style="color:#c4b5f4">Från {k.fran}</span>
+              </div>
+            </div>
+            <span class="text-gray-500 group-hover:text-brand-orange transition-colors text-sm mt-1">Läs mer →</span>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-1">{k.beskrivning}</p>
+          <div class="flex flex-wrap gap-2 pt-4 border-t border-white/5">
+            {k.tjanster.map(t => (
+              <span class="text-xs px-2.5 py-1 rounded-full" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
+                {t}
+              </span>
+            ))}
           </div>
         </a>
       ))}
     </div>
+
+    <!-- USP-rad -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+      {[
+        { icon: "🚚", rubrik: "Leverans i hela Storstockholm", text: "Vi kör ut, riggar och hämtar tillbaka. Leverans från 1 118 kr." },
+        { icon: "🔧", rubrik: "Montering ingår vid behov", text: "Välj självinstallation eller låt oss sköta det – 600 kr/tim." },
+        { icon: "📞", rubrik: "Jour kvällstid", text: "Vi finns tillgängliga under hela din hyresperiod om något krånglar." },
+      ].map(u => (
+        <div class="flex gap-4 rounded-2xl p-5" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+          <span class="text-2xl shrink-0">{u.icon}</span>
+          <div>
+            <div class="font-bold text-white text-sm mb-1">{u.rubrik}</div>
+            <div class="text-gray-400 text-sm">{u.text}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- CTA -->
+    <div class="rounded-2xl p-8 text-center" style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2)">
+      <h2 class="text-2xl font-bold text-white mb-3">Osäker på vad du behöver?</h2>
+      <p class="text-gray-400 mb-6">Beskriv ditt event – datum, plats, antal gäster och typ av event – så tar vi fram ett komplett förslag inom ett par timmar.</p>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <a href="/kontakt/" class="px-6 py-3 rounded-xl font-semibold transition-colors" style="background:#c4b5f4;color:#0c0a24">
+          Boka eller fråga om pris
+        </a>
+        <a href="tel:0724481000" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">
+          📞 072-448 10 00
+        </a>
+      </div>
+    </div>
+
   </div>
 </Layout>

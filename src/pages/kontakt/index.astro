@@ -1,93 +1,203 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import site from '../../data/site.json';
+
+const orter = [
+  "Vällingby","Bromma","Spånga","Järfälla","Kista","Solna","Sundbyberg","Sollentuna",
+  "Upplands Väsby","Märsta","Sigtuna","Vallentuna","Täby","Danderyd","Lidingö",
+  "Östermalm","Vasastan","Kungsholmen","Södermalm","Hägersten","Skärholmen",
+  "Nacka","Värmdö","Österåker","Vaxholm","Ekerö","Huddinge","Botkyrka",
+  "Salem","Nykvarn","Södertälje","Haninge","Tyresö","Nynäshamn"
+];
 ---
 
 <Layout
-  title="Kontakt | Scenkonsult – Hyra Scen, Ljud & Ljus Stockholm"
-  description="Kontakta Scenkonsult för offert eller bokning av scen, ljud, ljus och DJ i Stockholm. Vi svarar inom ett par timmar. Tel: 072-448 10 00."
+  title="Kontakt & Hitta till oss | Scenkonsult – Hyra Scen, Ljud & Ljus Stockholm"
+  description="Kontakta Scenkonsult för offert eller bokning. Vi håller till på Grimstagatan 164, Vällingby. Leverans i hela Storstockholm. Tel: 072-448 10 00."
 >
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-    <h1 class="text-4xl font-extrabold text-white mb-4">Kontakta oss</h1>
-    <p class="text-gray-400 text-lg mb-10">Vi svarar i regel inom ett par timmar. Beskriv ditt behov och vi presenterar rätt lösning!</p>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-      <!-- Contact info -->
-      <div class="space-y-6">
-        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
-          <h2 class="text-white font-bold text-lg mb-4">Kontaktuppgifter</h2>
-          <div class="space-y-3 text-gray-400">
-            <div class="flex items-center gap-3">
-              <span class="text-brand-orange text-xl">📞</span>
-              <div>
-                <div class="text-xs text-gray-500 uppercase tracking-wide">Telefon</div>
-                <a href="tel:0724481000" class="text-white hover:text-brand-orange transition-colors font-medium">{site.company.phone}</a>
-              </div>
+    <nav class="text-sm text-gray-500 mb-8">
+      <a href="/" class="hover:text-gray-300">Hem</a>
+      <span class="mx-2">/</span>
+      <span class="text-white">Kontakt</span>
+    </nav>
+
+    <h1 class="text-4xl font-extrabold text-white mb-3" style="font-family:'DM Serif Display',serif">Kontakta oss</h1>
+    <p class="text-gray-400 text-lg mb-10">Vi svarar i regel inom ett par timmar — jourtjänst kvällstid och helger.</p>
+
+    <!-- Kontaktinfo + Formulär -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-14">
+
+      <!-- Vänster: info -->
+      <div class="space-y-5">
+        <div class="rounded-2xl p-6 space-y-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+          <h2 class="text-white font-bold text-lg mb-2">Kontaktuppgifter</h2>
+          <div class="flex items-start gap-3">
+            <span class="text-xl mt-0.5" style="color:#c4b5f4">📞</span>
+            <div>
+              <div class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Telefon & Jour</div>
+              <a href="tel:0724481000" class="text-white font-semibold hover:underline" style="color:#c4b5f4">072-448 10 00</a>
+              <div class="text-gray-500 text-xs mt-0.5">Mån–Sön 08:00–20:00 · Jour kvällstid</div>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-brand-orange text-xl">✉️</span>
-              <div>
-                <div class="text-xs text-gray-500 uppercase tracking-wide">E-post</div>
-                <a href={`mailto:${site.company.email}`} class="text-white hover:text-brand-orange transition-colors font-medium">{site.company.email}</a>
-              </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-xl mt-0.5" style="color:#c4b5f4">✉️</span>
+            <div>
+              <div class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">E-post</div>
+              <a href="mailto:info@scenkonsult.se" class="font-semibold hover:underline" style="color:#c4b5f4">info@scenkonsult.se</a>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-brand-orange text-xl">🕐</span>
-              <div>
-                <div class="text-xs text-gray-500 uppercase tracking-wide">Öppettider</div>
-                <span class="text-white font-medium">Mån–Sön 08:00–20:00</span>
-              </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-xl mt-0.5" style="color:#c4b5f4">📍</span>
+            <div>
+              <div class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Depå / Hämtningsadress</div>
+              <div class="text-white font-semibold">Green Storage</div>
+              <div class="text-gray-400 text-sm">Grimstagatan 164, 162 58 Vällingby</div>
+              <a href="https://maps.google.com/?q=Grimstagatan+164+Vällingby" target="_blank" rel="noopener" class="text-xs mt-1 inline-block hover:underline" style="color:#c4b5f4">Öppna i Google Maps ↗</a>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-brand-orange text-xl">📍</span>
-              <div>
-                <div class="text-xs text-gray-500 uppercase tracking-wide">Adress</div>
-                <span class="text-white font-medium">{site.company.address.street}, {site.company.address.city}</span>
-              </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-xl mt-0.5" style="color:#c4b5f4">🏢</span>
+            <div>
+              <div class="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Bolag</div>
+              <div class="text-gray-400 text-sm">Scenkonsult Norden / Sigvardsson Consulting Group AB</div>
             </div>
           </div>
         </div>
 
-        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
-          <h2 class="text-white font-bold text-lg mb-3">Serviceområde</h2>
-          <p class="text-gray-400 text-sm leading-relaxed">
-            Vi levererar till hela Storstockholm: {site.company.serviceArea.join(', ')} och omkringliggande kommuner.
-          </p>
+        <!-- Sociala medier -->
+        <div class="rounded-2xl p-5" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+          <h2 class="text-white font-bold mb-3">Följ oss</h2>
+          <div class="flex gap-3">
+            {[
+              { label:'Facebook', href:'https://www.facebook.com/scenkonsult', icon:'f' },
+              { label:'Instagram', href:'https://www.instagram.com/scenkonsult', icon:'ig' },
+              { label:'LinkedIn', href:'https://www.linkedin.com/company/scenkonsult', icon:'in' },
+            ].map(s => (
+              <a href={s.href} target="_blank" rel="noopener"
+                class="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1)">
+                {s.label}
+              </a>
+            ))}
+          </div>
         </div>
 
-        <a href="/bokningssida/" class="block bg-brand-orange hover:bg-brand-orange-light text-white text-center py-4 rounded-xl font-bold text-lg transition-colors">
-          Gå till bokningssidan →
+        <a href="/varukorg/" class="block text-center py-4 rounded-xl font-bold text-lg transition-colors" style="background:#c4b5f4;color:#0c0a24">
+          Lägg till i varukorg & begär offert →
         </a>
       </div>
 
-      <!-- Contact form placeholder (replace with your actual form embed) -->
-      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+      <!-- Höger: formulär -->
+      <div class="rounded-2xl p-6" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
         <h2 class="text-white font-bold text-lg mb-4">Skicka meddelande</h2>
-        <p class="text-gray-400 text-sm mb-6">Fyll i formuläret nedan så hör vi av oss snabbt.</p>
-        <!-- Byt ut mot din WPForms-embed eller annan form-lösning -->
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm text-gray-400 mb-1" for="name">Namn *</label>
-            <input id="name" type="text" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange" placeholder="Ditt namn" />
+        <p class="text-gray-400 text-sm mb-5">Beskriv ditt behov — vi svarar med ett konkret prisförslag.</p>
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Typ</label>
+              <select class="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white">
+                <option>Privat</option>
+                <option>Företag</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Antal gäster</label>
+              <input type="number" placeholder="ex. 150" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+            </div>
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-1" for="email">E-post *</label>
-            <input id="email" type="email" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange" placeholder="din@epost.se" />
+            <label class="block text-xs text-gray-400 mb-1">Namn *</label>
+            <input type="text" placeholder="Förnamn Efternamn" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Telefon *</label>
+              <input type="tel" placeholder="07X-XXX XX XX" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">E-post *</label>
+              <input type="email" placeholder="din@epost.se" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+            </div>
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-1" for="phone">Telefon</label>
-            <input id="phone" type="tel" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange" placeholder="07X-XXX XX XX" />
+            <label class="block text-xs text-gray-400 mb-1">Datum för eventet</label>
+            <input type="date" class="w-full rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white;color-scheme:dark" />
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-1" for="message">Beskriv ditt behov *</label>
-            <textarea id="message" rows="5" class="w-full bg-brand-dark border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-orange resize-none" placeholder="Beskriv ditt event – datum, plats, antal gäster, vilken utrustning du behöver..."></textarea>
+            <label class="block text-xs text-gray-400 mb-1">Beskriv ditt behov *</label>
+            <textarea rows="4" placeholder="Typ av event, lokal, vad du behöver hyra..." class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none resize-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white"></textarea>
           </div>
-          <button type="submit" class="w-full bg-brand-orange hover:bg-brand-orange-light text-white py-3.5 rounded-xl font-bold transition-colors">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Var hittade du oss? (valfri)</label>
+            <select class="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white">
+              <option value="">Välj...</option>
+              <option>Google</option>
+              <option>Sociala medier</option>
+              <option>Rekommendation</option>
+              <option>Blocket</option>
+              <option>Annat</option>
+            </select>
+          </div>
+          <button
+            onclick={`window.location.href='mailto:info@scenkonsult.se?subject=Offertf%C3%B6rfr%C3%A5gan&body=Hej%20Scenkonsult!'`}
+            class="w-full py-3.5 rounded-xl font-bold text-lg transition-colors cursor-pointer" style="background:#c4b5f4;color:#0c0a24;border:none">
             Skicka meddelande
           </button>
-          <p class="text-xs text-gray-600 text-center">Vi svarar inom ett par timmar. Jourtjänst kvällstid.</p>
+          <p class="text-xs text-gray-600 text-center">Vi svarar inom ett par timmar · Jourtjänst kvällstid</p>
         </div>
       </div>
     </div>
+
+    <!-- Hitta till oss -->
+    <section class="mb-14">
+      <h2 class="text-2xl font-bold text-white mb-2" style="font-family:'DM Serif Display',serif">Hitta till oss</h2>
+      <p class="text-gray-400 mb-6">Vi håller till hos <strong class="text-white">Green Storage</strong> på Grimstagatan 164, 162 58 Vällingby — nära E4/E18 och Vällingby tunnelbana (blå linjen).</p>
+
+      <!-- Google Maps embed -->
+      <div class="rounded-2xl overflow-hidden mb-6" style="height:360px;border:1px solid rgba(255,255,255,0.08)">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2033.8!2d17.8371!3d59.3627!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x465f77d7e4c4e1d5%3A0x0!2sGrimstagatan+164%2C+162+58+V%C3%A4llingby!5e0!3m2!1ssv!2sse!4v1700000000000"
+          width="100%"
+          height="360"
+          style="border:0;filter:invert(90%) hue-rotate(180deg)"
+          allowfullscreen=""
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Scenkonsult Norden – Grimstagatan 164, Vällingby"
+        ></iframe>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="rounded-xl p-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+          <div class="font-bold text-white mb-1">🚇 Tunnelbana</div>
+          <div class="text-gray-400 text-sm">Vällingby (blå linjen) · 5 min promenad</div>
+        </div>
+        <div class="rounded-xl p-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+          <div class="font-bold text-white mb-1">🚗 Bil</div>
+          <div class="text-gray-400 text-sm">Grimstagatan 164 · Parkering på plats · Nära E4/E18</div>
+        </div>
+        <div class="rounded-xl p-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+          <div class="font-bold text-white mb-1">⏰ Hämtning</div>
+          <div class="text-gray-400 text-sm">Tid bestäms vid bokning · Ring i förväg</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leveransområde -->
+    <section>
+      <h2 class="text-2xl font-bold text-white mb-2" style="font-family:'DM Serif Display',serif">Leveransområde</h2>
+      <p class="text-gray-400 mb-6">Vi levererar och hämtar upp utrustning inom ca <strong class="text-white">4 mils radie</strong> från Vällingby — det täcker hela Storstockholm och angränsande kommuner. Längre transporter: kontakta oss för offert.</p>
+      <div class="flex flex-wrap gap-2 mb-6">
+        {orter.map(o => (
+          <span class="text-sm px-3 py-1.5 rounded-full" style="background:#1e1850;border:1px solid rgba(196,181,244,0.2);color:rgba(196,181,244,0.8)">
+            {o}
+          </span>
+        ))}
+      </div>
+      <p class="text-gray-500 text-sm">Leverans debiteras per tur-och-retur (559 kr med vanlig bil / 799 kr med släpvagn för skrymmande gods). Priser exkl. moms.</p>
+    </section>
+
   </div>
 </Layout>

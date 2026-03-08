@@ -1,12 +1,75 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 ---
-<Layout title="Scenkonsult Stockholm" description="Scenkonsult – uthyrning av scen, ljud, ljus och DJ i Stockholm sedan 1986.">
-  <div class="max-w-4xl mx-auto px-4 py-16 text-center">
-    <p class="text-gray-400 mb-8">Sidan är under uppbyggnad. Kontakta oss gärna direkt!</p>
-    <div class="flex flex-wrap justify-center gap-4">
-      <a href="/kontakt/" class="bg-brand-orange text-white px-6 py-3 rounded-xl font-bold">Kontakta oss</a>
-      <a href="/vara-tjanster/" class="border border-white/30 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/10">Alla tjänster</a>
+<Layout
+  title="Feedback | Scenkonsult Norden"
+  description="Lämna feedback till Scenkonsult Norden — om sortiment, priser, hemsidan eller beröm. Vi tar all feedback på allvar."
+>
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+
+    <nav class="text-sm text-gray-500 mb-8">
+      <a href="/" class="hover:text-gray-300">Hem</a>
+      <span class="mx-2">/</span>
+      <span class="text-white">Feedback</span>
+    </nav>
+
+    <h1 class="text-4xl font-extrabold text-white mb-3" style="font-family:'DM Serif Display',serif">Vi älskar feedback!</h1>
+    <p class="text-gray-400 text-lg mb-10">Din åsikt hjälper oss bli bättre. Lämna beröm, förbättringsförslag eller berätta vad vi kan göra annorlunda — vi läser allt.</p>
+
+    <div class="rounded-2xl p-8" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-300 mb-3">Vad handlar din feedback om? *</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="feedbackTypes">
+          {['Sortiment (jag saknar något)', 'Priser (något skiljer mot andra)', 'Hemsidan (något är fel/otydligt)', 'Beröm – detta vill jag hylla!', 'Leverans & service', 'Annat'].map(t => (
+            <label class="flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-colors" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+              <input type="radio" name="feedbackType" value={t} class="accent-[#c4b5f4]" />
+              <span class="text-gray-300 text-sm">{t}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-gray-300 mb-2" for="fb-text">Beskriv din feedback *</label>
+        <textarea id="fb-text" rows="5" placeholder="Skriv gärna så detaljerat du kan — det hjälper oss förstå och agera..." class="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none resize-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1" for="fb-name">Namn (valfri)</label>
+          <input id="fb-name" type="text" placeholder="Förnamn Efternamn" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1" for="fb-email">E-post (om du vill ha svar)</label>
+          <input id="fb-email" type="email" placeholder="din@epost.se" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+        </div>
+      </div>
+
+      <button
+        id="fbSend"
+        class="w-full py-3.5 rounded-xl font-bold text-lg transition-colors cursor-pointer"
+        style="background:#c4b5f4;color:#0c0a24;border:none">
+        Skicka feedback
+      </button>
+      <p class="text-xs text-gray-600 text-center mt-3">Vi läser och agerar på all feedback vi får in.</p>
     </div>
+
   </div>
+
+  <script>
+    document.getElementById('fbSend')?.addEventListener('click', () => {
+      const type = (document.querySelector('input[name="feedbackType"]:checked') as HTMLInputElement)?.value || 'Ej angiven';
+      const text = (document.getElementById('fb-text') as HTMLTextAreaElement)?.value.trim();
+      const name = (document.getElementById('fb-name') as HTMLInputElement)?.value.trim();
+      const email = (document.getElementById('fb-email') as HTMLInputElement)?.value.trim();
+      if (!text) { alert('Beskriv din feedback innan du skickar.'); return; }
+      const body = encodeURIComponent(
+        `Feedback-typ: ${type}\n\n${text}` +
+        (name ? `\n\nFrån: ${name}` : '') +
+        (email ? `\nE-post: ${email}` : '')
+      );
+      window.location.href = `mailto:info@scenkonsult.se?subject=Feedback%20fr%C3%A5n%20scenkonsult.se&body=${body}`;
+    });
+  </script>
 </Layout>
