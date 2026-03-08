@@ -1,6 +1,5 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import MomsToggle from '../../../components/MomsToggle.astro';
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"DJ eller liveband? Ärlig jämförelse 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/dj-eller-liveband/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar en DJ till bröllop?","acceptedAnswer":{"@type":"Answer","text":"Via Scenkonsult kostar en junior DJ 1 999 kr (2 tim) upp till 3 199 kr (4 tim) exkl moms. Senior DJ 2 399–3 999 kr exkl moms. DJ-hårdvara ingår."}},{"@type":"Question","name":"Vad kostar det att hyra DJ-utrustning?","acceptedAnswer":{"@type":"Answer","text":"Numark Mixstream Pro+ kostar 799 kr/dygn. Denon Prime GO+ 999 kr/dygn. Denon Prime 4+ 1 499 kr/dygn. Rane System One 1 999 kr/dygn. Alla priser exkl moms."}},{"@type":"Question","name":"Kan man kombinera DJ och liveband?","acceptedAnswer":{"@type":"Answer","text":"Ja — liveband under cocktail/middag, DJ på dansgolvet. Det kräver scen (fr Scenpaket Medium+ 1 799 kr/dygn) och PA som funkar för båda (Music-serien fr 999 kr/dygn)."}}]}]};
 const djUtrustning = [
   {n:"Numark Mixstream Pro+",p:799,d:"Standalone, WiFi-streaming inbyggt. Spotify, Tidal, SoundCloud. Inga kablar till laptop.",link:"/vara-tjanster/hyra-dj/"},
@@ -25,7 +24,6 @@ const djService = [
   </div>
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-      <MomsToggle />
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:3rem;">
         {[{t:"Välj DJ om…",items:["Budget under 10 000 kr",  "Dansgolvet är prioritet","Stor musikbredd önskas","Lång kväll (4+ tim)","Litet utrymme"],c:"#c4b5f4"},{t:"Välj liveband om…",items:["WOW-effekten är viktig","Budget tillåter 20 000+","Gästerna är 40+ år","Cocktail/middag-format","Unikt minnesmärke"],c:"#86efac"}].map(k=>(
           <div style={`background:#1e1850;border:1px solid ${k.c}22;border-radius:14px;padding:1.5rem;`}>

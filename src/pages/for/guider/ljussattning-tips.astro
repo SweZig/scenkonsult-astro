@@ -1,6 +1,5 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import MomsToggle from '../../../components/MomsToggle.astro';
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Ljussättning för event — guide till bättre stämning 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/ljussattning-tips/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar det att hyra ljus till ett event?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Small (10–30 pers) kostar 399 kr/dygn exkl moms. Medium (40–80 pers) 1 199 kr/dygn. Enstaka LED PAR-armaturer kostar fr 79 kr/dygn. Rökmaskin 349–449 kr/dygn."}},{"@type":"Question","name":"Behöver jag rökmaskin till lasern?","acceptedAnswer":{"@type":"Answer","text":"Ja. En laser utan rök eller haze är knappt synlig. Rökmaskin 1500W kostar 349 kr/dygn."}},{"@type":"Question","name":"Vilket ljuspaket passar 100 gäster?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Medium (40–80 pers, 1 199 kr/dygn) eller Medium+ (40–100 pers, 1 299 kr/dygn). Komplettera med enstaka LED PAR-armaturer (fr 79 kr/st) för väggfärg."}}]}]};
 const paket = [
   {n:"Ljuspaket, Small",p:399,pers:"10–30 pers.",d:"T-bar med 4× PAR RGBW på stativ. Synkar till musik. Plug and play."},
@@ -32,7 +31,6 @@ const rok = [
   </div>
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-      <MomsToggle />
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1.25rem;">Ljuspaket — välj efter gästantal</h2>
       <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:3rem;">
         {paket.map(p=>(

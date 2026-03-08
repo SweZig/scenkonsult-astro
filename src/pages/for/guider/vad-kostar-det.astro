@@ -1,6 +1,5 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import MomsToggle from '../../../components/MomsToggle.astro';
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Vad kostar det att hyra scen, ljud och ljus? Prisguide 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/vad-kostar-det/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar det att hyra ett PA-system?","acceptedAnswer":{"@type":"Answer","text":"Portable Small (10–50 pers) kostar 599 kr/dygn exkl moms. Music Small (50–100 pers, dans) 999 kr. Music Large (200–500 pers) 1 899 kr. Priser exkl moms."}},{"@type":"Question","name":"Vad kostar hyra av scen?","acceptedAnswer":{"@type":"Answer","text":"Scenpaket Small (4 m²) kostar 599 kr/dygn exkl moms. Medium+ (12 m²) 1 799 kr. Large+ med scentak (24 m²) 11 999 kr. Alla priser exkl moms."}},{"@type":"Question","name":"Är det billigare att hämta själv?","acceptedAnswer":{"@type":"Answer","text":"Ja, avhämtning är alltid gratis. Leverans tillkommer och kostar beroende på mängd och adress."}}]}]};
 const paket = [
   {title:"Liten fest, ~50 gäster",rows:[
@@ -45,7 +44,6 @@ const sparTips = [
   </div>
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-      <MomsToggle />
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1.5rem;">Exempelpaket — verkliga produkter och priser</h2>
       <div style="display:flex;flex-direction:column;gap:2rem;margin-bottom:3rem;">
         {paket.map(pak=>(

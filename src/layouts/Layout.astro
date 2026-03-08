@@ -259,19 +259,37 @@ const {
     // VAT TOGGLE
     function applyVat(mode: 'excl' | 'incl') {
       const showExcl = mode === 'excl';
+
+      // Legacy: show/hide paired elements (.sk-price-excl / .sk-price-incl)
       document.querySelectorAll('.sk-price-excl').forEach(el => {
-        el.classList.toggle('hidden', !showExcl);
+        (el as HTMLElement).classList.toggle('hidden', !showExcl);
       });
       document.querySelectorAll('.sk-price-incl').forEach(el => {
-        el.classList.toggle('hidden', showExcl);
+        (el as HTMLElement).classList.toggle('hidden', showExcl);
       });
-      // Update toggle button states
+
+      // Guide pages: compute +25% from data-exkl attribute
+      document.querySelectorAll('[data-exkl]').forEach(el => {
+        const base = parseInt((el as HTMLElement).dataset.exkl || '0', 10);
+        const val  = showExcl ? base : Math.round(base * 1.25);
+        el.textContent = val.toLocaleString('sv-SE');
+      });
+
+      // Toggle button states
       const btnExcl = document.getElementById('sk-vat-excl');
       const btnIncl = document.getElementById('sk-vat-incl');
       if (btnExcl && btnIncl) {
         btnExcl.classList.toggle('sk-vat-active', showExcl);
         btnIncl.classList.toggle('sk-vat-active', !showExcl);
+        btnExcl.setAttribute('aria-pressed', String(showExcl));
+        btnIncl.setAttribute('aria-pressed', String(!showExcl));
       }
+
+      // Show toggle only on pages that have prices
+      const hasPrices = document.querySelector('[data-exkl], .sk-price-excl, .sk-price-incl');
+      const vatWidget = document.getElementById('sk-vat-toggle');
+      if (vatWidget) vatWidget.style.display = hasPrices ? '' : 'none';
+
       try { localStorage.setItem('sk-vat', mode); } catch {}
     }
 
