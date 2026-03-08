@@ -3,6 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import Price from '../../../components/Price.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
 import scenData from '../../../data/scenes.json';
+import CartButton from '../../../components/CartButton.astro';
 
 const pageSchema = {
   "@context": "https://schema.org",
@@ -116,12 +117,7 @@ const pageSchema = {
                 <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" /></span>
                 <span class="text-gray-500 text-xs ml-1">{p.priceNote}</span>
               </div>
-              <a
-                href="/bokningssida/"
-                class="bg-brand-orange hover:bg-brand-orange-light text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-              >
-                Boka
-              </a>
+              <CartButton id={`scen-${p.id}`} name={p.name} price={p.price} priceNote={`/${p.priceNote ?? 'dygn'}`} category="Scen" image={p.image} size="md" />
             </div>
           </div>
         </article>
@@ -142,7 +138,7 @@ const pageSchema = {
             <h3 class="text-white font-semibold text-sm mb-1">{a.name}</h3>
             <p class="text-gray-500 text-xs mb-2">{a.description}</p>
             <span class="text-brand-orange font-bold"><Price amount={a.price} size="base" /></span>
-            <a href="/bokningssida/" class="ml-3 text-xs text-gray-400 hover:text-white transition-colors">Boka →</a>
+            <CartButton id={`scen-acc-${a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={a.name} price={a.price} priceNote="/dygn" category="Scen tillbehör" image={a.image} size="sm" label="Lägg till" />
           </div>
         ))}
       </div>

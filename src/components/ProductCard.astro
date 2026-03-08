@@ -1,6 +1,8 @@
 ---
 // ProductCard.astro
+import CartButton from './CartButton.astro';
 interface Props {
+  id?: string;
   name: string;
   price: number | string;
   priceNote?: string;
@@ -13,7 +15,9 @@ interface Props {
   quantityPrices?: { qty: string; price: number }[];
   wide?: boolean;
 }
-const { name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false } = Astro.props;
+const { id, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false } = Astro.props;
+const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+const cartCategory = 'Produkt';
 const inclPrice = typeof price === 'number' ? Math.round(price * 1.25) : null;
 ---
 <article class={`bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group ${wide ? 'lg:col-span-2' : ''}`} itemscope itemtype="https://schema.org/Product">
@@ -73,6 +77,10 @@ const inclPrice = typeof price === 'number' ? Math.round(price * 1.25) : null;
       </ul>
     )}
 
-    <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors mt-1">Boka</a>
+    {typeof price === 'number' ? (
+      <CartButton id={cartId} name={name} price={price} priceNote={priceNote} category={cartCategory} image={image ?? ''} size="md" />
+    ) : (
+      <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors mt-1">Boka</a>
+    )}
   </div>
 </article>

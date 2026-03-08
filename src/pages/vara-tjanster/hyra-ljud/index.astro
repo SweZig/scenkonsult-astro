@@ -1,5 +1,6 @@
 ---
 import Price from '../../../components/Price.astro';
+import CartButton from '../../../components/CartButton.astro';
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
 import ljudData from '../../../data/ljud.json';
@@ -103,7 +104,7 @@ const faqSchema = {
                 <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" suffix={p.priceNote} /></span>
                 
               </div>
-              <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Boka</a>
+              <CartButton id={`ljud-${p.id ?? p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} size="md" />
             </div>
           </div>
         </article>

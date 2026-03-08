@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
+import CartButton from '../../../../components/CartButton.astro';
 ---
 <Layout
   title="Hyr Ljusstativ & Trosstorn Stockholm – T-bar, Tross & Traverser | Scenkonsult"
@@ -51,7 +52,7 @@ import CategoryHero from '../../../../components/CategoryHero.astro';
             <ul class="space-y-1 mb-4 text-xs text-gray-400">
               {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
             </ul>
-            <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
+            <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
           </div>
         </article>
       ))}
@@ -80,7 +81,7 @@ import CategoryHero from '../../../../components/CategoryHero.astro';
             <ul class="space-y-1 mb-4 text-xs text-gray-400">
               {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
             </ul>
-            <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
+            <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
           </div>
         </article>
       ))}
@@ -112,7 +113,7 @@ import CategoryHero from '../../../../components/CategoryHero.astro';
             <ul class="space-y-1 mb-4 text-xs text-gray-400">
               {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
             </ul>
-            <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
+            <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
           </div>
         </article>
       ))}

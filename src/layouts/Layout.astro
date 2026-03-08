@@ -59,6 +59,7 @@ const {
       <li><a href="/kontakt">Boka / Kontakt</a></li>
     </ul>
     <a href="tel:0724481000" class="nav-phone">📞 072-448 10 00</a>
+    <a href="/varukorg/" class="nav-cart" id="navCartBtn" aria-label="Varukorg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="nav-cart-badge hidden" id="navCartBadge">0</span></a>
     <a href="/boka" class="nav-cta">Boka nu</a>
   </nav>
 
@@ -69,6 +70,7 @@ const {
       <li><a href="/kontakt">Boka / Kontakt</a></li>
     </ul>
     <a href="tel:0724481000" class="nav-mobile-phone">📞 072-448 10 00</a>
+    <a href="/varukorg/" class="nav-mobile-cart">🛒 Varukorg <span class="nav-cart-badge hidden" id="mobileCartBadge" style="position:static;display:inline-flex;margin-left:0.4rem">0</span></a>
     <a href="/boka" class="nav-mobile-cta">Boka nu / Begär offert</a>
   </div>
 
@@ -195,6 +197,87 @@ const {
 
     document.getElementById('sk-vat-excl')?.addEventListener('click', () => applyVat('excl'));
     document.getElementById('sk-vat-incl')?.addEventListener('click', () => applyVat('incl'));
+
+    // ─── CART SYSTEM ─────────────────────────────────────────────
+    const SK_CART_KEY = 'sk-cart';
+
+    function skGetCart() {
+      try { return JSON.parse(localStorage.getItem(SK_CART_KEY) || '[]'); } catch { return []; }
+    }
+    function skSaveCart(cart) {
+      try { localStorage.setItem(SK_CART_KEY, JSON.stringify(cart)); } catch {}
+    }
+    function skCartTotal() {
+      return skGetCart().reduce((sum, item) => sum + item.qty, 0);
+    }
+    function skUpdateBadge() {
+      const total = skCartTotal();
+      const badge = document.getElementById('navCartBadge');
+      const mobileBadge = document.getElementById('mobileCartBadge');
+      [badge, mobileBadge].forEach(el => {
+        if (!el) return;
+        el.textContent = String(total);
+        el.classList.toggle('hidden', total === 0);
+      });
+    }
+    function skAddToCart(item) {
+      const cart = skGetCart();
+      const existing = cart.find(i => i.id === item.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+      skSaveCart(cart);
+      skUpdateBadge();
+    }
+    function skRemoveFromCart(id) {
+      const cart = skGetCart().filter(i => i.id !== id);
+      skSaveCart(cart);
+      skUpdateBadge();
+    }
+    function skUpdateQty(id, qty) {
+      const cart = skGetCart();
+      const item = cart.find(i => i.id === id);
+      if (item) { item.qty = qty; if (item.qty <= 0) return skRemoveFromCart(id); }
+      skSaveCart(cart);
+      skUpdateBadge();
+    }
+    // Expose globally for checkout page
+    window.skCart = { get: skGetCart, save: skSaveCart, add: skAddToCart, remove: skRemoveFromCart, updateQty: skUpdateQty, badge: skUpdateBadge };
+
+    // Init badge on load
+    skUpdateBadge();
+
+    // Wire up all cart buttons on this page
+    document.querySelectorAll('.sk-cart-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const item = {
+          id: this.dataset.id,
+          name: this.dataset.name,
+          price: Number(this.dataset.price),
+          priceNote: this.dataset.priceNote || '/dygn',
+          category: this.dataset.category || '',
+          image: this.dataset.image || '',
+        };
+        skAddToCart(item);
+        // Visual feedback
+        const iconAdd = this.querySelector('.sk-cart-icon-add');
+        const iconCheck = this.querySelector('.sk-cart-icon-check');
+        const lbl = this.querySelector('.sk-cart-btn-label');
+        iconAdd?.classList.add('hidden');
+        iconCheck?.classList.remove('hidden');
+        if (lbl) lbl.textContent = 'Tillagd!';
+        this.style.background = '#7c3aed';
+        setTimeout(() => {
+          iconAdd?.classList.remove('hidden');
+          iconCheck?.classList.add('hidden');
+          if (lbl) lbl.textContent = 'Lägg i varukorg';
+          this.style.background = '';
+        }, 1400);
+      });
+    });
+
   </script>  <InlineEditor />
 
 </body>
