@@ -104,7 +104,7 @@ const faqSchema = {
                 <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" suffix={p.priceNote} /></span>
                 
               </div>
-              <CartButton id={`ljud-${p.id ?? p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} size="md" />
+              <CartButton id={`ljud-${p.id ?? p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" />
             </div>
           </div>
         </article>

@@ -1,63 +1,43 @@
 {
-  "_comment": "Alla priser exkl. moms. Leveranszon = Storstockholm (inom M25). Uppdatera priser här.",
+  "_comment": "Alla priser exkl. moms. Uppdatera priser här — inga kodfiler behöver ändras.",
   "leverans": {
     "label": "Leverans & upphämtning",
-    "description": "Vi kör ut och hämtar upp utrustningen. Priset gäller inom M25 (Storstockholm).",
-    "zon": "Storstockholm (M25)",
-    "note": "Utanför M25 — kontakta oss för offert.",
-    "tiers": [
-      {
-        "id": "lev-s",
-        "label": "Liten order (< 5 000 kr)",
-        "maxOrderValue": 4999,
-        "price": 650
-      },
-      {
-        "id": "lev-m",
-        "label": "Medelstor order (5 000–14 999 kr)",
-        "maxOrderValue": 14999,
-        "price": 950
-      },
-      {
-        "id": "lev-l",
-        "label": "Stor order (≥ 15 000 kr)",
-        "maxOrderValue": 999999,
-        "price": 1350
-      }
-    ]
+    "description": "Vi kör ut och hämtar upp utrustningen. Priset avser tur-och-retur.",
+    "zon": "Priser gäller inom Storstockholm. Längre transporter — kontakta oss.",
+    "standard": {
+      "id": "lev-standard",
+      "label": "Vanlig bil (tur & retur)",
+      "enkelresa": 559,
+      "pris": 1118,
+      "note": "559 kr × 2 resor"
+    },
+    "skrymmande": {
+      "id": "lev-skrymmande",
+      "label": "Bil med släpvagn — skrymmande gods (tur & retur)",
+      "enkelresa": 799,
+      "pris": 1598,
+      "note": "799 kr × 2 resor — tillämpas automatiskt om varukorgen innehåller skrymmande produkt"
+    },
+    "lastbil": {
+      "id": "lev-lastbil",
+      "label": "Lätt/tung lastbil",
+      "pris": null,
+      "note": "Pris enl. offert — kontakta oss för större transporter"
+    }
   },
   "montering": {
     "label": "Montering & demontering",
     "description": "Vår personal monterar och demonterar utrustningen på plats.",
-    "note": "Obligatorisk för scener ≥ Large (20 m²). Valfritt för övrig utrustning.",
-    "kategorier": {
-      "scen": {
-        "obligatoriskFrom": "large",
-        "pris": 1200,
-        "label": "Scen — montering & demontering"
-      },
-      "ljud": {
-        "obligatoriskFrom": null,
-        "pris": 800,
-        "label": "Ljud — inkoppling & rigg"
-      },
-      "ljus": {
-        "obligatoriskFrom": null,
-        "pris": 700,
-        "label": "Ljus — riggning & fokus"
-      },
-      "default": {
-        "obligatoriskFrom": null,
-        "pris": 600,
-        "label": "Montering & demontering"
-      }
-    }
+    "prisPerTimme": 600,
+    "minDebiteringMin": 15,
+    "note": "Monteringstid per produkt finns angiven i produktinfo. Demonteringstid = monteringstid × 2.",
+    "note2": "Obligatorisk för scener ≥ Large (20 m²) vid leverans."
   },
   "tillagg": [
     {
       "id": "rigg-teknik",
       "label": "Teknikertjänst på plats",
-      "description": "Tekniker på plats under hela eventet (per timme)",
+      "description": "Tekniker på plats under hela eventet (per timme, min 2 timmar)",
       "pris": 650,
       "enhet": "/tim",
       "qty": true

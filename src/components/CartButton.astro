@@ -1,19 +1,21 @@
 ---
 // CartButton.astro — Lägg i varukorg-knapp
 interface Props {
-  id: string;          // unikt produkt-ID
+  id: string;
   name: string;
   price: number;
   priceNote?: string;
   category: string;
   image?: string;
+  bulky?: boolean;        // skrymmande = kräver bil med släpvagn
+  monteringMin?: number;  // monteringstid i minuter
   size?: 'sm' | 'md' | 'lg';
-  label?: string;      // override-text, default visas ikon+text
+  label?: string;
   iconOnly?: boolean;
 }
 const {
   id, name, price, priceNote = '/dygn', category,
-  image = '', size = 'md', label, iconOnly = false
+  image = '', bulky = false, monteringMin, size = 'md', label, iconOnly = false
 } = Astro.props;
 
 const sizeClasses = {
@@ -31,14 +33,14 @@ const sizeClasses = {
   data-price-note={priceNote}
   data-category={category}
   data-image={image}
+  data-bulky={bulky ? 'true' : 'false'}
+  data-montering-min={monteringMin ?? ''}
   aria-label={`Lägg ${name} i varukorgen`}
 >
-  <!-- Cart icon -->
   <svg class="sk-cart-icon-add shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
   </svg>
-  <!-- Checkmark icon (visas efter tillägg) -->
   <svg class="sk-cart-icon-check shrink-0 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="20 6 9 17 4 12"/>
   </svg>

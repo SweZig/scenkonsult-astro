@@ -532,16 +532,51 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     });
   }
 
-  function calcLev(subtotal) {
-    const tier = FRAKT.leverans.tiers.find(t => subtotal <= t.maxOrderValue) || FRAKT.leverans.tiers.at(-1);
-    return { price: tier.price, label: tier.label };
+  // Leverans: automatisk bil/släpvagn beroende på om varukorgen har skrymmande produkt
+  function cartHasBulky(cart) {
+    return cart.some(i => i.bulky === true);
   }
+  function calcLev(cart) {
+    const hasBulky = cartHasBulky(cart);
+    if (hasBulky) {
+      return {
+        price: FRAKT.leverans.skrymmande.pris,
+        label: FRAKT.leverans.skrymmande.label,
+        note: FRAKT.leverans.skrymmande.note,
+      };
+    }
+    return {
+      price: FRAKT.leverans.standard.pris,
+      label: FRAKT.leverans.standard.label,
+      note: FRAKT.leverans.standard.note,
+    };
+  }
+
+  // Montering: 600 kr/tim, min 15 min, baserat på monteringMin per produkt × qty
+  // Demontering = monteringMin × 2 (redan inräknat i totalen)
   function calcMon(cart) {
-    const cats = [...new Set(cart.map(i => i.category.toLowerCase().split(' ')[0]))];
-    return cats.reduce((s, cat) => {
-      const rule = FRAKT.montering.kategorier[cat] || FRAKT.montering.kategorier.default;
-      return s + rule.pris;
-    }, 0);
+    const prisPerMin = FRAKT.montering.prisPerTimme / 60;
+    const minMin     = FRAKT.montering.minDebiteringMin;
+    let totalMin = 0;
+    cart.forEach(item => {
+      if (item.monteringMin) {
+        // montering + demontering (× 2), × antal
+        const minPerItem = item.monteringMin * 2;
+        totalMin += Math.max(minMin, minPerItem) * item.qty;
+      }
+    });
+    // Om inget monteringMin finns: schablonbelopp 60 min
+    if (totalMin === 0) totalMin = 60;
+    return Math.ceil(totalMin * prisPerMin);
+  }
+  function calcMonLabel(cart) {
+    const prisPerMin = FRAKT.montering.prisPerTimme / 60;
+    const minMin     = FRAKT.montering.minDebiteringMin;
+    let totalMin = 0;
+    cart.forEach(item => { if (item.monteringMin) totalMin += Math.max(minMin, item.monteringMin * 2) * item.qty; });
+    if (totalMin === 0) totalMin = 60;
+    const h = Math.floor(totalMin/60), m = totalMin%60;
+    return (h ? h+'h ' : '') + (m ? m+'min ' : '') + '× ' + FRAKT.montering.prisPerTimme + ' kr/tim';
   }
 
   // ── VILLKOR + FORM VALIDATION ──────────────────────────────
@@ -639,12 +674,12 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
 
     // Uppdatera tjänstepriser
     const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-    const { price: lp, label: ll } = calcLev(subtotal);
+    const { price: lp, label: ll, note: ln } = calcLev(cart);
     const mp = calcMon(cart);
     const levEl = document.getElementById('leveransPrice');
     if (levEl) levEl.textContent = fmt(lp);
     const levNote = document.getElementById('leveransNote');
-    if (levNote) levNote.textContent = ll;
+    if (levNote) levNote.textContent = ll + (cartHasBulky(cart) ? ' — bil med släp' : '');
     const monEl = document.getElementById('monteringPrice');
     if (monEl) monEl.textContent = fmt(mp);
 
@@ -662,7 +697,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     const chkLev = document.getElementById('chkLeverans');
     const rowLev = document.getElementById('rowLeverans');
     if (chkLev?.checked) {
-      const lp = calcLev(subtotal).price;
+      const lp = calcLev(cart).price;
       document.getElementById('summLeverans').textContent = fmt(lp);
       rowLev.style.display = 'flex'; extras += lp;
     } else { if(rowLev) rowLev.style.display = 'none'; }
@@ -720,7 +755,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     let extras = 0; const extraLines = [];
 
     if (document.getElementById('chkLeverans')?.checked) {
-      const lp = calcLev(subtotal).price; extras += lp;
+      const lp = calcLev(cart).price; extras += lp;
       extraLines.push(`Leverans: ${lp.toLocaleString('sv')} kr`);
     }
     if (document.getElementById('chkMontering')?.checked) {
