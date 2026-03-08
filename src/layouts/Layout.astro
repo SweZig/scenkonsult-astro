@@ -135,7 +135,7 @@ const {
     <button id="sk-vat-incl" class="sk-vat-btn" aria-pressed="false">Inkl. moms</button>
   </div>
 
-  <script> — mörk hela tiden, scrolled ger extra blur
+  <script>
     const nav = document.getElementById('mainNav');
     function updateNav() {
       nav?.classList.toggle('scrolled', window.scrollY > 40);
@@ -169,7 +169,7 @@ const {
       });
     });
 
-    // ── VAT TOGGLE ────────────────────────────────────────────────
+    // VAT TOGGLE
     function applyVat(mode: 'excl' | 'incl') {
       const showExcl = mode === 'excl';
       document.querySelectorAll('.sk-price-excl').forEach(el => {
