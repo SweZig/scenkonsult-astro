@@ -97,7 +97,7 @@ a { color: inherit; }
 /* Frontpage hero: mer transparent, vit nav */
 .hero ~ * .nav,
 .hero + .nav { background: transparent; }
-.nav-logo img { height: clamp(44px, 6vw, 68px); width: auto; }
+.nav-logo img { height: clamp(80px, 10vw, 120px); width: auto; filter: none; }
 .logo-w { display: block; }
 .logo-c { display: none; }
 /* Nav är alltid mörk nu — alltid vit logo */
@@ -232,7 +232,7 @@ a { color: inherit; }
 /* ── HERO ── */
 .hero {
   display: grid; grid-template-columns: 50% 50%;
-  height: clamp(400px, 54vh, 600px);
+  height: clamp(480px, 64vh, 700px);
   overflow: hidden;
 }
 .hero-l {
@@ -322,34 +322,28 @@ a { color: inherit; }
 /* ── MANIFESTO ── */
 .manifesto {
   background: #0c0a24;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  padding: 0.7rem clamp(1rem, 5vw, 5rem);
+  border-top: 2px solid rgba(196,181,244,0.25);
+  border-bottom: 2px solid rgba(196,181,244,0.25);
+  padding: 1.1rem clamp(1rem, 5vw, 5rem);
   display: flex;
   align-items: center;
   gap: clamp(0.75rem, 2vw, 2.5rem);
   flex-wrap: wrap;
 }
-.m-div { width: 1px; height: 28px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
+.m-div { width: 1px; height: 32px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
 .m-stat { display: flex; align-items: baseline; gap: 0.45rem; flex-shrink: 0; }
 .m-stat-n {
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
   color: #c4b5f4; line-height: 1;
 }
 .m-stat-l {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(0.58rem, 0.9vw, 0.63rem); font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.4);
 }
 .m-heritage { display: none; }
-.m-cta {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  flex-shrink: 0;
-}
 .m-cta-btn {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.68rem; font-weight: 700;
@@ -443,6 +437,9 @@ a { color: inherit; }
   color: white; display: inline-block; margin-bottom: 0.45rem;
 }
 .video-name { display: block; font-family: 'DM Serif Display', serif; font-size: 1.05rem; color: white; }
+.video-desc { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; color: rgba(255,255,255,0.55); margin-top: 0.3rem; }
+.video-link-wrap { display: block; text-decoration: none; cursor: pointer; }
+.video-link-wrap:hover .video-name { color: #c4b5f4; }
 
 /* ── IDENTITY / WHY ── */
 .identity { display: grid; grid-template-columns: 1fr 1fr; min-height: 600px; }
@@ -571,7 +568,7 @@ footer { background: #0a0820; padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 5vw,
   .tick-item { font-size: 0.55rem; letter-spacing: 0.18em; padding: 0 1.5rem; }
 
   .nav { top: 32px; padding: 0 5vw; height: 64px; }
-  .nav-logo img { height: 52px; }
+  .nav-logo img { height: 80px; }
   .nav-links { display: none !important; }
   .nav-phone { display: none; }
   .nav-cta { display: none; }
