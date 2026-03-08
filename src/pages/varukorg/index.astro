@@ -118,6 +118,7 @@ const fraktRules = JSON.stringify(frakt);
       <div class="summ-row muted"><span>Moms 25%</span><span id="cartVat">–</span></div>
       <div class="summ-row total"><span>Totalt (inkl. moms)</span><span id="cartTotal">–</span></div>
       <p class="summ-note">* Priser avser hyra per dygn (22 h). Slutlig faktura bekräftas vid bokning.</p>
+      <p class="summ-note summ-note-estimate">⚠ Alla frakt- och tjänstepriser är estimat och bekräftas som en del av orderprocessen.</p>
     </div>
 
     <!-- KUNDUPPGIFTER -->
@@ -402,6 +403,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
   font-weight:700; font-size:1.1rem; color:#c4b5f4;
 }
 .summ-note { color:rgba(255,255,255,0.28); font-size:0.72rem; margin-top:0.75rem; line-height:1.5; }
+.summ-note-estimate { color:rgba(196,181,244,0.55); margin-top:0.4rem; }
 
 /* ─── KUNDUPPGIFTER ───────────────────────────────────────── */
 .customer-wrap {
@@ -812,8 +814,9 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       `Hej Scenkonsult!\n\nJag är intresserad av att hyra:\n\n${prodLines}`
       + (extraLines.length ? `\n\nTilläggstjänster:\n` + extraLines.map(l=>'- '+l).join('\n') : '')
       + `\n\nProdukter: ${subtotal.toLocaleString('sv')} kr exkl. moms`
-      + (extras ? `\nTillägg: ${extras.toLocaleString('sv')} kr` : '')
+      + (extras ? `\nTillägg (estimat): ${extras.toLocaleString('sv')} kr` : '')
       + `\nMoms: ${vat.toLocaleString('sv')} kr\nTotalt: ${total.toLocaleString('sv')} kr inkl. moms`
+      + (extras ? `\n\nObs: Frakt- och tjänstepriser är estimat och bekräftas som en del av orderprocessen.` : '')
       + `\n\n── Kontaktuppgifter ──\n${custInfo}`
       + `\n\nMed vänliga hälsningar,\n${customer.name}`
     );
@@ -856,7 +859,7 @@ ${extras?`<p>Tillägg: ${extras.toLocaleString('sv')} kr</p>`:''}
 <p>Moms 25%: ${vat.toLocaleString('sv')} kr</p>
 <p class="total">Totalt inkl. moms: ${total.toLocaleString('sv')} kr</p>
 ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>` : ''}
-<p class="footer">Alla priser avser hyra per dygn (22 h). Kontakta oss för slutlig bekräftelse och bokning.</p>
+<p class="footer">Alla priser avser hyra per dygn (22 h). Kontakta oss för slutlig bekräftelse och bokning.<br><strong>Obs: Alla frakt- och tjänstepriser är estimat och bekräftas som en del av orderprocessen.</strong></p>
 </body></html>`;
     const w=window.open('','_blank');
     if(w){w.document.write(html);w.document.close();w.focus();w.print();}
