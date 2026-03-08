@@ -8,152 +8,202 @@ const fraktRules = JSON.stringify(frakt);
   title="Varukorg – Scenkonsult"
   description="Granska din varukorg och skicka en förfrågan till Scenkonsult."
 >
-  <section class="cart-page">
-    <div class="cart-wrap">
+<section class="cart-page">
+<div class="cart-wrap">
 
-      <div class="cart-header">
-        <h1>Din varukorg</h1>
-        <p class="cart-subtitle">Lägg till produkter via produktsidorna, sedan skickar du en förfrågan direkt.</p>
-      </div>
+  <div class="cart-header">
+    <h1>Din varukorg</h1>
+    <p class="cart-subtitle">Lägg till produkter via produktsidorna, sedan skickar du en förfrågan direkt.</p>
+  </div>
 
-      <!-- EMPTY STATE (visas som default, JS döljer om det finns varor) -->
-      <div id="cartEmpty" class="cart-empty">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+  <!-- EMPTY STATE -->
+  <div id="cartEmpty" class="cart-empty">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+    <p>Varukorgen är tom.</p>
+    <a href="/#tjanster" class="cart-empty-cta">Se alla tjänster →</a>
+  </div>
+
+  <!-- CART CONTENT -->
+  <div id="cartContent" style="display:none">
+
+    <!-- PRODUKTTABELL -->
+    <div class="cart-table-wrap">
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th class="th-product">Produkt</th>
+            <th class="th-price">Pris</th>
+            <th class="th-qty">Antal</th>
+            <th class="th-total">Totalt</th>
+            <th class="th-remove"></th>
+          </tr>
+        </thead>
+        <tbody id="cartTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- TILLÄGGSTJÄNSTER -->
+    <div class="services-wrap">
+      <div class="services-header">Tilläggstjänster</div>
+
+      <!-- Leverans -->
+      <label class="service-row">
+        <input type="checkbox" id="chkLeverans" class="sr-only" />
+        <div class="service-check" id="checkLeverans"></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+          <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
         </svg>
-        <p>Varukorgen är tom.</p>
-        <a href="/#tjanster" class="cart-empty-cta">Se alla tjänster →</a>
-      </div>
-
-      <!-- CART CONTENT -->
-      <div id="cartContent" style="display:none">
-
-        <!-- PRODUKTTABELL -->
-        <div class="cart-table-wrap">
-          <table class="cart-table">
-            <thead>
-              <tr>
-                <th class="th-product">Produkt</th>
-                <th class="th-price">Pris</th>
-                <th class="th-qty">Antal</th>
-                <th class="th-total">Totalt</th>
-                <th class="th-remove"></th>
-              </tr>
-            </thead>
-            <tbody id="cartTableBody"></tbody>
-          </table>
+        <div class="service-info">
+          <span class="service-label">{frakt.leverans.label}</span>
+          <span class="service-desc">{frakt.leverans.description}</span>
+          <span class="service-note" id="leveransNote">{frakt.leverans.zon}</span>
         </div>
+        <span class="service-price" id="leveransPrice">– kr</span>
+      </label>
 
-        <!-- TILLÄGGSTJÄNSTER -->
-        <div class="services-wrap">
-          <div class="services-header">Tilläggstjänster</div>
+      <!-- Montering -->
+      <label class="service-row">
+        <input type="checkbox" id="chkMontering" class="sr-only" />
+        <div class="service-check"></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        <div class="service-info">
+          <span class="service-label">{frakt.montering.label}</span>
+          <span class="service-desc">{frakt.montering.description}</span>
+          <span class="service-note">{frakt.montering.note}</span>
+        </div>
+        <span class="service-price" id="monteringPrice">– kr</span>
+      </label>
 
-          <!-- Leverans -->
-          <label class="service-row">
-            <input type="checkbox" id="chkLeverans" class="sr-only" />
-            <div class="service-check" id="checkLeverans"></div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
-              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-              <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-            </svg>
-            <div class="service-info">
-              <span class="service-label">{frakt.leverans.label}</span>
-              <span class="service-desc">{frakt.leverans.description}</span>
-              <span class="service-note" id="leveransNote">{frakt.leverans.zon}</span>
-            </div>
-            <span class="service-price" id="leveransPrice">– kr</span>
-          </label>
-
-          <!-- Montering -->
-          <label class="service-row">
-            <input type="checkbox" id="chkMontering" class="sr-only" />
-            <div class="service-check" id="checkMontering"></div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-            </svg>
-            <div class="service-info">
-              <span class="service-label">{frakt.montering.label}</span>
-              <span class="service-desc">{frakt.montering.description}</span>
-              <span class="service-note">{frakt.montering.note}</span>
-            </div>
-            <span class="service-price" id="monteringPrice">– kr</span>
-          </label>
-
-          <!-- Dynamiska tillägg från frakt.json -->
-          {frakt.tillagg.map(t => (
-            <label class="service-row" data-tillagg-id={t.id}>
-              <input type="checkbox" class="sr-only chk-tillagg"
-                data-id={t.id} data-pris={t.pris}
-                data-label={t.label} data-enhet={t.enhet}
-                data-qty={t.qty ? 'true' : 'false'} />
-              <div class="service-check"></div>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-              </svg>
-              <div class="service-info">
-                <span class="service-label">{t.label}</span>
-                <span class="service-desc">{t.description}</span>
+      <!-- Extra tillägg från frakt.json -->
+      {frakt.tillagg.map(t => (
+        <label class="service-row" data-tillagg-id={t.id}>
+          <input type="checkbox" class="sr-only chk-tillagg"
+            data-id={t.id} data-pris={t.pris}
+            data-label={t.label} data-enhet={t.enhet}
+            data-qty={t.qty ? 'true' : 'false'} />
+          <div class="service-check"></div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <div class="service-info">
+            <span class="service-label">{t.label}</span>
+            <span class="service-desc">{t.description}</span>
+          </div>
+          <div class="service-price-right">
+            {t.qty && (
+              <div class="tillagg-qty hidden" id={`qty-wrap-${t.id}`}>
+                <button type="button" class="tqty-btn tillagg-dec" data-id={t.id}>−</button>
+                <span class="tqty-val" id={`qtyval-${t.id}`}>1</span>
+                <button type="button" class="tqty-btn tillagg-inc" data-id={t.id}>+</button>
               </div>
-              <div class="service-price-right">
-                {t.qty && (
-                  <div class="tillagg-qty hidden" id={`qty-wrap-${t.id}`}>
-                    <button type="button" class="tqty-btn tillagg-dec" data-id={t.id}>−</button>
-                    <span class="tqty-val" id={`qtyval-${t.id}`}>1</span>
-                    <button type="button" class="tqty-btn tillagg-inc" data-id={t.id}>+</button>
-                  </div>
-                )}
-                <span class="service-price">{t.pris.toLocaleString('sv')} kr<span class="service-enhet">{t.enhet}</span></span>
-              </div>
-            </label>
-          ))}
-        </div>
+            )}
+            <span class="service-price">{t.pris.toLocaleString('sv')} kr<span class="service-enhet">{t.enhet}</span></span>
+          </div>
+        </label>
+      ))}
+    </div>
 
-        <!-- SUMMERING -->
-        <div class="cart-summary">
-          <div class="summ-row"><span>Produkter (exkl. moms)</span><span id="cartSubtotal">–</span></div>
-          <div class="summ-row" id="rowLeverans" style="display:none"><span>Leverans</span><span id="summLeverans">–</span></div>
-          <div class="summ-row" id="rowMontering" style="display:none"><span>Montering & demontering</span><span id="summMontering">–</span></div>
-          <div id="rowsTillagg"></div>
-          <div class="summ-row muted"><span>Moms 25%</span><span id="cartVat">–</span></div>
-          <div class="summ-row total"><span>Totalt (inkl. moms)</span><span id="cartTotal">–</span></div>
-          <p class="summ-note">* Priser avser hyra per dygn (22 h). Slutlig faktura bekräftas vid bokning.</p>
-        </div>
+    <!-- SUMMERING -->
+    <div class="cart-summary">
+      <div class="summ-row"><span>Produkter (exkl. moms)</span><span id="cartSubtotal">–</span></div>
+      <div class="summ-row" id="rowLeverans" style="display:none"><span>Leverans</span><span id="summLeverans">–</span></div>
+      <div class="summ-row" id="rowMontering" style="display:none"><span>Montering & demontering</span><span id="summMontering">–</span></div>
+      <div id="rowsTillagg"></div>
+      <div class="summ-row muted"><span>Moms 25%</span><span id="cartVat">–</span></div>
+      <div class="summ-row total"><span>Totalt (inkl. moms)</span><span id="cartTotal">–</span></div>
+      <p class="summ-note">* Priser avser hyra per dygn (22 h). Slutlig faktura bekräftas vid bokning.</p>
+    </div>
 
-        <!-- ACTIONS -->
-        <div class="cart-actions">
-          <button id="btnEmail" class="cart-btn primary">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
-            Maila offertförfrågan
-          </button>
-          <button id="btnSave" class="cart-btn secondary">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Spara som PDF
-          </button>
-          <a href="/bokningssida/" class="cart-btn accent">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
-            Boka detta nu
-          </a>
-          <button id="btnClear" class="cart-btn ghost">Töm varukorg</button>
+    <!-- KUNDUPPGIFTER -->
+    <div class="customer-wrap">
+      <div class="customer-header">Dina uppgifter</div>
+      <div class="customer-grid">
+        <div class="field-group">
+          <label class="field-label" for="f-name">Namn *</label>
+          <input type="text" id="f-name" class="field-input" placeholder="För- och efternamn" autocomplete="name" />
         </div>
-
+        <div class="field-group">
+          <label class="field-label" for="f-company">Företag</label>
+          <input type="text" id="f-company" class="field-input" placeholder="Företagsnamn (valfritt)" autocomplete="organization" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-email">E-post *</label>
+          <input type="email" id="f-email" class="field-input" placeholder="din@epost.se" autocomplete="email" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-phone">Telefon *</label>
+          <input type="tel" id="f-phone" class="field-input" placeholder="070 000 00 00" autocomplete="tel" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-date-from">Önskat datum, från *</label>
+          <input type="date" id="f-date-from" class="field-input" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-date-to">Önskat datum, till *</label>
+          <input type="date" id="f-date-to" class="field-input" />
+        </div>
+        <div class="field-group field-full">
+          <label class="field-label" for="f-address">Leveransadress</label>
+          <input type="text" id="f-address" class="field-input" placeholder="Gatuadress, postnummer, stad" autocomplete="street-address" />
+        </div>
+        <div class="field-group field-full">
+          <label class="field-label" for="f-notes">Övrig information</label>
+          <textarea id="f-notes" class="field-input field-textarea" placeholder="Beskriv eventet, önskemål, antal gäster, lokalbeskrivning…" rows="4"></textarea>
+        </div>
       </div>
     </div>
-  </section>
+
+    <!-- HYRESVILLKOR -->
+    <label class="villkor-row" id="villkorRow">
+      <input type="checkbox" id="chkVillkor" class="sr-only" />
+      <div class="service-check villkor-check"></div>
+      <span class="villkor-text">
+        Jag har läst och godkänner
+        <a href="/hyresvillkor/" target="_blank" class="villkor-link">hyresvillkoren ↗</a>
+      </span>
+    </label>
+
+    <!-- ACTIONS -->
+    <div class="cart-actions">
+      <button id="btnEmail" class="cart-btn primary" disabled>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+        Maila offertförfrågan
+      </button>
+      <button id="btnSave" class="cart-btn secondary">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Spara som PDF
+      </button>
+      <a href="/bokningssida/" id="btnBoka" class="cart-btn accent disabled-btn" aria-disabled="true" tabindex="-1">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
+        Boka detta nu
+      </a>
+      <button id="btnClear" class="cart-btn ghost">Töm varukorg</button>
+    </div>
+    <p class="villkor-hint hidden" id="villkorHint">Vänligen godkänn hyresvillkoren och fyll i namn, e-post och telefon för att fortsätta.</p>
+
+  </div><!-- /cartContent -->
+</div>
+</section>
 </Layout>
 
 <style>
-/* ─── GLOBAL ─────────────────────────────────────────────────── */
+/* ─── GLOBAL ─────────────────────────────────────────────── */
 .cart-page {
   padding-top: calc(var(--nav-offset, 110px) + 2.5rem);
   padding-bottom: 6rem;
   min-height: 72vh;
   color: white;
 }
-.cart-wrap { max-width: 960px; margin: 0 auto; padding: 0 1.25rem; }
+.cart-wrap { max-width: 1060px; margin: 0 auto; padding: 0 1.25rem; }
 .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0; }
 
-/* ─── HEADER ────────────────────────────────────────────────── */
+/* ─── HEADER ──────────────────────────────────────────────── */
 .cart-header { margin-bottom: 2.5rem; }
 .cart-header h1 {
   font-family: 'DM Serif Display', serif;
@@ -162,81 +212,93 @@ const fraktRules = JSON.stringify(frakt);
 }
 .cart-subtitle { color: rgba(255,255,255,0.45); font-size: 0.95rem; }
 
-/* ─── EMPTY ──────────────────────────────────────────────────── */
+/* ─── EMPTY ───────────────────────────────────────────────── */
 .cart-empty {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 1.25rem; padding: 5rem 2rem; text-align: center;
-  color: rgba(255,255,255,0.38); font-size: 1.05rem;
-  font-family: 'Space Grotesk', sans-serif;
+  display:flex; flex-direction:column; align-items:center;
+  gap:1.25rem; padding:5rem 2rem; text-align:center;
+  color:rgba(255,255,255,0.38); font-size:1.05rem;
+  font-family:'Space Grotesk',sans-serif;
 }
 .cart-empty-cta {
-  color: #c4b5f4; font-size: 0.88rem; text-decoration: none;
-  border-bottom: 1px solid rgba(196,181,244,0.35); padding-bottom: 2px;
+  color:#c4b5f4; font-size:0.88rem; text-decoration:none;
+  border-bottom:1px solid rgba(196,181,244,0.35); padding-bottom:2px;
 }
-.cart-empty-cta:hover { border-color: #c4b5f4; }
+.cart-empty-cta:hover { border-color:#c4b5f4; }
 
-/* ─── TABLE ──────────────────────────────────────────────────── */
+/* ─── TABLE ───────────────────────────────────────────────── */
 .cart-table-wrap {
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px; overflow: hidden; margin-bottom: 1.5rem;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px; overflow:hidden; margin-bottom:1.5rem;
 }
 .cart-table { width:100%; border-collapse:collapse; font-family:'Space Grotesk',sans-serif; color:white; }
-.cart-table thead { background: rgba(30,24,80,0.95); }
+.cart-table thead { background:rgba(30,24,80,0.95); }
 .cart-table th {
-  padding: 0.85rem 1rem; text-align:left;
-  color: rgba(255,255,255,0.4); font-size:0.71rem;
+  padding:0.85rem 1rem; text-align:left;
+  color:rgba(255,255,255,0.4); font-size:0.71rem;
   font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
 }
 .th-price,.th-qty,.th-total { text-align:right; }
-.cart-table tbody tr { border-top: 1px solid rgba(255,255,255,0.06); transition: background 0.15s; }
-.cart-table tbody tr:hover { background: rgba(196,181,244,0.04); }
-.cart-table td { padding:1rem; vertical-align:middle; color:white; }
+.cart-table tbody tr { border-top:1px solid rgba(255,255,255,0.06); transition:background 0.15s; }
+.cart-table tbody tr:hover { background:rgba(196,181,244,0.04); }
+.cart-table td { padding:0.85rem 1rem; vertical-align:middle; color:white; }
 .td-price { text-align:right; color:rgba(255,255,255,0.6); }
-.td-qty  { text-align:right; }
+.td-qty { text-align:right; }
 .td-total { text-align:right; color:#c4b5f4; font-weight:700; }
 .td-remove { text-align:right; }
 
-/* Product cell */
-.cart-product { display:flex; align-items:center; gap:0.85rem; }
-.cart-thumb { width:52px; height:44px; border-radius:7px; object-fit:cover; flex-shrink:0; }
+/* Product cell — image BESIDE text */
+.cart-product { display:flex; align-items:center; gap:1rem; }
+.cart-thumb {
+  width:72px; height:60px; border-radius:8px;
+  object-fit:cover; flex-shrink:0;
+  background:rgba(30,24,80,0.8);
+}
 .cart-thumb-ph {
-  width:52px; height:44px; border-radius:7px;
+  width:72px; height:60px; border-radius:8px;
   background:rgba(255,255,255,0.04); flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,255,255,0.06);
 }
-.cart-pname { font-weight:600; font-size:0.9rem; color:white; line-height:1.3; }
+.cart-pname { font-weight:600; font-size:0.92rem; color:white; line-height:1.3; margin-bottom:0.15rem; }
 .cart-pcat  { color:rgba(255,255,255,0.35); font-size:0.73rem; }
 .cart-pnote { color:rgba(255,255,255,0.28); font-size:0.7rem; }
 
 /* Qty stepper */
 .qty-stepper { display:flex; align-items:center; justify-content:flex-end; }
 .qty-btn {
-  width:28px; height:28px; border:1px solid rgba(255,255,255,0.14);
-  background:transparent; color:white; cursor:pointer;
+  width:30px; height:30px; border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.04); color:white !important; cursor:pointer;
   font-size:1rem; display:flex; align-items:center; justify-content:center;
-  transition: background 0.15s;
+  transition:background 0.15s;
 }
 .qty-btn:first-child { border-radius:6px 0 0 6px; }
 .qty-btn:last-child  { border-radius:0 6px 6px 0; }
-.qty-btn:hover { background:rgba(196,181,244,0.15); border-color:rgba(196,181,244,0.4); }
+.qty-btn:hover { background:rgba(196,181,244,0.2); border-color:rgba(196,181,244,0.45); }
 .qty-input {
-  width:32px; height:28px;
-  border-top:1px solid rgba(255,255,255,0.14); border-bottom:1px solid rgba(255,255,255,0.14);
+  width:36px; height:30px;
+  border-top:1px solid rgba(255,255,255,0.15);
+  border-bottom:1px solid rgba(255,255,255,0.15);
   border-left:none; border-right:none;
-  background:transparent; color:white; text-align:center;
-  font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:600; padding:0;
+  background:rgba(255,255,255,0.06);
+  color:white !important;
+  text-align:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem; font-weight:700; padding:0;
+  -webkit-text-fill-color: white;
 }
 .qty-input:focus { outline:none; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
 
 /* Remove */
 .remove-btn {
-  background:transparent; border:none; color:rgba(255,255,255,0.2);
+  background:transparent; border:none; color:rgba(255,255,255,0.22);
   cursor:pointer; padding:4px; border-radius:4px;
   display:flex; align-items:center; transition:color 0.15s;
 }
 .remove-btn:hover { color:#f87171; }
 
-/* ─── TILLÄGGSTJÄNSTER ───────────────────────────────────────── */
+/* ─── TILLÄGGSTJÄNSTER ────────────────────────────────────── */
 .services-wrap {
   border:1px solid rgba(255,255,255,0.08);
   border-radius:14px; overflow:hidden; margin-bottom:1.5rem;
@@ -249,13 +311,11 @@ const fraktRules = JSON.stringify(frakt);
   text-transform:uppercase; color:rgba(255,255,255,0.4);
   border-bottom:1px solid rgba(255,255,255,0.06);
 }
-
 .service-row {
   display:flex; align-items:flex-start; gap:0.85rem;
   padding:1rem 1.2rem;
   border-top:1px solid rgba(255,255,255,0.06);
-  cursor:pointer; transition:background 0.15s;
-  color:white;
+  cursor:pointer; transition:background 0.15s; color:white;
 }
 .service-row:first-of-type { border-top:none; }
 .service-row:hover { background:rgba(196,181,244,0.04); }
@@ -266,61 +326,60 @@ const fraktRules = JSON.stringify(frakt);
   border:2px solid rgba(255,255,255,0.2); border-radius:5px;
   background:transparent; transition:all 0.18s;
   background-repeat:no-repeat; background-position:center; background-size:11px;
+  pointer-events:none;
 }
 .sr-only:checked ~ .service-check {
   background-color:#c4b5f4; border-color:#c4b5f4;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230c0a24' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
 }
 .sr-only:checked ~ .service-icon { color:#c4b5f4; }
+.sr-only:checked ~ .service-info .service-label { color:white; }
 
 .service-icon { flex-shrink:0; margin-top:2px; color:rgba(196,181,244,0.5); transition:color 0.18s; }
-
 .service-info { flex:1; display:flex; flex-direction:column; gap:0.15rem; }
-.service-label { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.9rem; color:white; }
-.service-desc  { font-family:'Space Grotesk',sans-serif; font-size:0.77rem; color:rgba(255,255,255,0.4); line-height:1.4; }
-.service-note  { font-family:'Space Grotesk',sans-serif; font-size:0.72rem; color:rgba(255,255,255,0.28); line-height:1.4; }
+.service-label { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.9rem; color:rgba(255,255,255,0.8); transition:color 0.18s; }
+.service-desc  { font-family:'Space Grotesk',sans-serif; font-size:0.77rem; color:rgba(255,255,255,0.38); line-height:1.4; }
+.service-note  { font-family:'Space Grotesk',sans-serif; font-size:0.72rem; color:rgba(255,255,255,0.25); line-height:1.4; }
 
 .service-price {
   font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem;
-  color:rgba(255,255,255,0.45); white-space:nowrap; margin-top:2px;
+  color:rgba(255,255,255,0.4); white-space:nowrap; margin-top:2px;
   transition:color 0.2s; flex-shrink:0;
 }
-.sr-only:checked ~ .service-price,
+.sr-only:checked ~ .service-price { color:#c4b5f4; }
 .sr-only:checked ~ .service-price-right .service-price { color:#c4b5f4; }
 .service-enhet { font-weight:400; font-size:0.7rem; color:rgba(255,255,255,0.3); margin-left:1px; }
-
 .service-price-right { display:flex; flex-direction:column; align-items:flex-end; gap:0.4rem; flex-shrink:0; }
 
-/* Tillägg qty */
+/* Tillägg qty stepper */
 .tillagg-qty {
   display:flex; align-items:center;
   border:1px solid rgba(255,255,255,0.14); border-radius:6px; overflow:hidden;
 }
 .tqty-btn {
   width:26px; height:26px; background:transparent; border:none;
-  color:white; cursor:pointer; font-size:1rem;
+  color:white !important; cursor:pointer; font-size:1rem;
   display:flex; align-items:center; justify-content:center;
   transition:background 0.15s;
 }
-.tqty-btn:hover { background:rgba(196,181,244,0.15); }
+.tqty-btn:hover { background:rgba(196,181,244,0.18); }
 .tqty-val {
-  width:26px; text-align:center; color:white; font-weight:700;
+  width:28px; text-align:center; color:white; font-weight:700;
   font-size:0.85rem; font-family:'Space Grotesk',sans-serif;
   border-left:1px solid rgba(255,255,255,0.1);
   border-right:1px solid rgba(255,255,255,0.1);
-  padding:0 2px;
+  padding:0 2px; background:transparent;
 }
 .hidden { display:none !important; }
 
-/* ─── SUMMARY ───────────────────────────────────────────────── */
+/* ─── SUMMERING ───────────────────────────────────────────── */
 .cart-summary {
   background:rgba(30,24,80,0.55);
   border:1px solid rgba(255,255,255,0.08);
   border-radius:14px;
   padding:1.5rem 1.5rem 1.25rem;
-  max-width:440px; margin-left:auto; margin-bottom:2rem;
-  font-family:'Space Grotesk',sans-serif;
-  color:white;
+  max-width:460px; margin-left:auto; margin-bottom:1.75rem;
+  font-family:'Space Grotesk',sans-serif; color:white;
 }
 .summ-row {
   display:flex; justify-content:space-between; gap:1rem;
@@ -334,29 +393,128 @@ const fraktRules = JSON.stringify(frakt);
 }
 .summ-note { color:rgba(255,255,255,0.28); font-size:0.72rem; margin-top:0.75rem; line-height:1.5; }
 
-/* ─── ACTIONS ───────────────────────────────────────────────── */
-.cart-actions { display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; }
+/* ─── KUNDUPPGIFTER ───────────────────────────────────────── */
+.customer-wrap {
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px; overflow:hidden; margin-bottom:1.5rem;
+}
+.customer-header {
+  padding:0.85rem 1.2rem;
+  background:rgba(30,24,80,0.95);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.71rem; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:rgba(255,255,255,0.4);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.customer-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:1rem;
+  padding:1.25rem 1.2rem;
+}
+.field-group { display:flex; flex-direction:column; gap:0.4rem; }
+.field-full { grid-column: 1 / -1; }
+.field-label {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.75rem; font-weight:600;
+  color:rgba(255,255,255,0.5);
+  letter-spacing:0.04em;
+}
+.field-input {
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  padding:0.65rem 0.9rem;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem;
+  color:white !important;
+  -webkit-text-fill-color:white !important;
+  transition:border-color 0.18s, background 0.18s;
+  width:100%;
+  box-sizing:border-box;
+}
+.field-input::placeholder { color:rgba(255,255,255,0.25); -webkit-text-fill-color:rgba(255,255,255,0.25); }
+.field-input:focus {
+  outline:none;
+  border-color:rgba(196,181,244,0.5);
+  background:rgba(196,181,244,0.06);
+}
+.field-input:focus-visible { outline:2px solid rgba(196,181,244,0.4); outline-offset:2px; }
+.field-textarea { resize:vertical; min-height:100px; }
+
+/* Date input color fix */
+input[type="date"].field-input::-webkit-calendar-picker-indicator {
+  filter:invert(1) opacity(0.4);
+  cursor:pointer;
+}
+
+/* ─── HYRESVILLKOR ────────────────────────────────────────── */
+.villkor-row {
+  display:flex; align-items:center; gap:0.85rem;
+  padding:1rem 1.2rem;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  cursor:pointer; transition:background 0.15s, border-color 0.2s;
+  margin-bottom:1.5rem; color:white;
+}
+.villkor-row:hover { background:rgba(196,181,244,0.05); border-color:rgba(196,181,244,0.2); }
+.sr-only:checked ~ .villkor-check {
+  background-color:#c4b5f4; border-color:#c4b5f4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230c0a24' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+}
+.villkor-check {
+  width:20px; height:20px; flex-shrink:0;
+  border:2px solid rgba(255,255,255,0.25); border-radius:6px;
+  background:transparent; transition:all 0.18s;
+  background-repeat:no-repeat; background-position:center; background-size:12px;
+  pointer-events:none;
+}
+.villkor-text {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem; color:rgba(255,255,255,0.75);
+}
+.villkor-link {
+  color:#c4b5f4; text-decoration:none;
+  border-bottom:1px solid rgba(196,181,244,0.35); padding-bottom:1px;
+}
+.villkor-link:hover { border-color:#c4b5f4; }
+.villkor-hint {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.8rem; color:rgba(248,113,113,0.8);
+  margin-top:-0.75rem; margin-bottom:1rem;
+  padding:0.5rem 0.75rem;
+  background:rgba(248,113,113,0.07);
+  border:1px solid rgba(248,113,113,0.2);
+  border-radius:8px;
+}
+
+/* ─── ACTIONS ─────────────────────────────────────────────── */
+.cart-actions { display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; margin-bottom:1rem; }
 .cart-btn {
   display:inline-flex; align-items:center; gap:0.5rem;
-  padding:0.7rem 1.35rem; border-radius:10px;
+  padding:0.72rem 1.35rem; border-radius:10px;
   font-family:'Space Grotesk',sans-serif; font-size:0.875rem; font-weight:600;
   cursor:pointer; text-decoration:none; border:none; transition:all 0.2s;
 }
 .cart-btn.primary  { background:rgba(196,181,244,0.12); border:1px solid rgba(196,181,244,0.4); color:#c4b5f4; }
-.cart-btn.primary:hover { background:rgba(196,181,244,0.22); border-color:#c4b5f4; }
+.cart-btn.primary:hover:not([disabled]) { background:rgba(196,181,244,0.22); border-color:#c4b5f4; }
+.cart-btn.primary[disabled] { opacity:0.4; cursor:not-allowed; }
 .cart-btn.secondary { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); }
 .cart-btn.secondary:hover { background:rgba(255,255,255,0.1); color:white; }
 .cart-btn.accent   { background:#c4b5f4; color:#0c0a24; }
-.cart-btn.accent:hover { background:#e2dcfb; }
+.cart-btn.accent:hover:not(.disabled-btn) { background:#e2dcfb; }
+.cart-btn.disabled-btn { opacity:0.4; cursor:not-allowed; pointer-events:none; }
 .cart-btn.ghost    { background:transparent; border:1px solid rgba(248,113,113,0.25); color:rgba(248,113,113,0.6); }
 .cart-btn.ghost:hover { background:rgba(248,113,113,0.08); border-color:rgba(248,113,113,0.5); color:#f87171; }
 
-@media (max-width:640px) {
+@media (max-width:700px) {
   .th-price,.td-price { display:none; }
-  .cart-table th,.cart-table td { padding:0.7rem 0.6rem; }
+  .cart-table th,.cart-table td { padding:0.7rem 0.55rem; }
+  .customer-grid { grid-template-columns:1fr; }
   .cart-actions { flex-direction:column; align-items:stretch; }
   .cart-btn { justify-content:center; }
   .service-row { padding:0.85rem; }
+  .cart-thumb, .cart-thumb-ph { width:52px; height:44px; }
 }
 </style>
 
@@ -386,11 +544,37 @@ const fraktRules = JSON.stringify(frakt);
     }, 0);
   }
 
+  // ── VILLKOR + FORM VALIDATION ──────────────────────────────
+  function checkCanProceed() {
+    const villkorOk = document.getElementById('chkVillkor')?.checked;
+    const nameOk    = document.getElementById('f-name')?.value.trim().length > 1;
+    const emailOk   = document.getElementById('f-email')?.value.includes('@');
+    const phoneOk   = document.getElementById('f-phone')?.value.trim().length > 6;
+    const ok = villkorOk && nameOk && emailOk && phoneOk;
+
+    const btnEmail = document.getElementById('btnEmail');
+    const btnBoka  = document.getElementById('btnBoka');
+    const hint     = document.getElementById('villkorHint');
+
+    if (btnEmail) { btnEmail.disabled = !ok; }
+    if (btnBoka)  {
+      btnBoka.classList.toggle('disabled-btn', !ok);
+      btnBoka.setAttribute('aria-disabled', String(!ok));
+      btnBoka.style.pointerEvents = ok ? '' : 'none';
+    }
+    if (hint) hint.classList.toggle('hidden', ok);
+  }
+
+  document.getElementById('chkVillkor')?.addEventListener('change', checkCanProceed);
+  ['f-name','f-email','f-phone'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', checkCanProceed);
+  });
+
+  // ── RENDER ─────────────────────────────────────────────────
   function renderCart() {
     const cart = getCart();
     const emptyEl   = document.getElementById('cartEmpty');
     const contentEl = document.getElementById('cartContent');
-
     if (cart.length === 0) {
       emptyEl.style.display = 'flex';
       contentEl.style.display = 'none';
@@ -405,8 +589,9 @@ const fraktRules = JSON.stringify(frakt);
         <td>
           <div class="cart-product">
             ${item.image
-              ? `<img class="cart-thumb" src="${item.image}" alt="${item.name}" loading="lazy" width="52" height="44">`
-              : `<div class="cart-thumb-ph"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>`}
+              ? `<img class="cart-thumb" src="${item.image}" alt="${item.name}" loading="lazy" width="72" height="60">`
+              : `<div class="cart-thumb-ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>`
+            }
             <div>
               <div class="cart-pname">${item.name}</div>
               <div class="cart-pcat">${item.category}</div>
@@ -452,7 +637,7 @@ const fraktRules = JSON.stringify(frakt);
       });
     });
 
-    // Update service prices
+    // Uppdatera tjänstepriser
     const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
     const { price: lp, label: ll } = calcLev(subtotal);
     const mp = calcMon(cart);
@@ -464,8 +649,10 @@ const fraktRules = JSON.stringify(frakt);
     if (monEl) monEl.textContent = fmt(mp);
 
     updateSummary();
+    checkCanProceed();
   }
 
+  // ── SUMMARY ─────────────────────────────────────────────────
   function updateSummary() {
     const cart = getCart();
     if (!cart.length) return;
@@ -477,8 +664,7 @@ const fraktRules = JSON.stringify(frakt);
     if (chkLev?.checked) {
       const lp = calcLev(subtotal).price;
       document.getElementById('summLeverans').textContent = fmt(lp);
-      rowLev.style.display = 'flex';
-      extras += lp;
+      rowLev.style.display = 'flex'; extras += lp;
     } else { if(rowLev) rowLev.style.display = 'none'; }
 
     const chkMon = document.getElementById('chkMontering');
@@ -486,28 +672,27 @@ const fraktRules = JSON.stringify(frakt);
     if (chkMon?.checked) {
       const mp = calcMon(cart);
       document.getElementById('summMontering').textContent = fmt(mp);
-      rowMon.style.display = 'flex';
-      extras += mp;
+      rowMon.style.display = 'flex'; extras += mp;
     } else { if(rowMon) rowMon.style.display = 'none'; }
 
     const rowsTillagg = document.getElementById('rowsTillagg');
     rowsTillagg.innerHTML = '';
     document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
       const pris = Number(chk.dataset.pris);
-      const qty  = chk.dataset.qty === 'true' ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent||1) : 1;
-      const tot  = pris * qty;
-      extras += tot;
+      const qty  = chk.dataset.qty === 'true'
+        ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent || 1) : 1;
+      const tot = pris * qty; extras += tot;
       rowsTillagg.insertAdjacentHTML('beforeend',
         `<div class="summ-row"><span>${chk.dataset.label}${qty>1?' × '+qty:''}</span><span>${fmt(tot)}</span></div>`);
     });
 
     const vat = Math.round((subtotal + extras) * 0.25);
     document.getElementById('cartSubtotal').textContent = fmt(subtotal);
-    document.getElementById('cartVat').textContent      = fmt(vat);
-    document.getElementById('cartTotal').textContent    = fmt(subtotal + extras + vat);
+    document.getElementById('cartVat').textContent = fmt(vat);
+    document.getElementById('cartTotal').textContent = fmt(subtotal + extras + vat);
   }
 
-  // Service checkbox events
+  // Service events
   document.getElementById('chkLeverans')?.addEventListener('change', updateSummary);
   document.getElementById('chkMontering')?.addEventListener('change', updateSummary);
   document.querySelectorAll('.chk-tillagg').forEach(chk => {
@@ -528,10 +713,12 @@ const fraktRules = JSON.stringify(frakt);
     });
   });
 
+  // ── BYGG ORDER-SAMMANFATTNING ─────────────────────────────
   function buildOrder() {
     const cart = getCart();
     const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
     let extras = 0; const extraLines = [];
+
     if (document.getElementById('chkLeverans')?.checked) {
       const lp = calcLev(subtotal).price; extras += lp;
       extraLines.push(`Leverans: ${lp.toLocaleString('sv')} kr`);
@@ -546,33 +733,91 @@ const fraktRules = JSON.stringify(frakt);
       const tot  = pris * qty; extras += tot;
       extraLines.push(`${chk.dataset.label}${qty>1?' × '+qty:''}: ${tot.toLocaleString('sv')} kr`);
     });
+
     const vat = Math.round((subtotal + extras) * 0.25);
-    return { cart, subtotal, extras, extraLines, vat, total: subtotal + extras + vat };
+    const customer = {
+      name:    document.getElementById('f-name')?.value.trim() || '',
+      company: document.getElementById('f-company')?.value.trim() || '',
+      email:   document.getElementById('f-email')?.value.trim() || '',
+      phone:   document.getElementById('f-phone')?.value.trim() || '',
+      from:    document.getElementById('f-date-from')?.value || '',
+      to:      document.getElementById('f-date-to')?.value || '',
+      address: document.getElementById('f-address')?.value.trim() || '',
+      notes:   document.getElementById('f-notes')?.value.trim() || '',
+    };
+    return { cart, subtotal, extras, extraLines, vat, total: subtotal + extras + vat, customer };
   }
 
+  // ── EMAIL ─────────────────────────────────────────────────
   document.getElementById('btnEmail')?.addEventListener('click', () => {
-    const { cart, subtotal, extras, extraLines, vat, total } = buildOrder();
+    const { cart, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
     const prodLines = cart.map(i => `- ${i.name} × ${i.qty}  →  ${(i.price*i.qty).toLocaleString('sv')} kr`).join('\n');
+    const custInfo = [
+      `Namn: ${customer.name}`,
+      customer.company ? `Företag: ${customer.company}` : '',
+      `E-post: ${customer.email}`,
+      `Telefon: ${customer.phone}`,
+      customer.from ? `Datum från: ${customer.from}` : '',
+      customer.to ? `Datum till: ${customer.to}` : '',
+      customer.address ? `Leveransadress: ${customer.address}` : '',
+      customer.notes ? `Övrig info: ${customer.notes}` : '',
+    ].filter(Boolean).join('\n');
+
     const body = encodeURIComponent(
       `Hej Scenkonsult!\n\nJag är intresserad av att hyra:\n\n${prodLines}`
       + (extraLines.length ? `\n\nTilläggstjänster:\n` + extraLines.map(l=>'- '+l).join('\n') : '')
-      + `\n\nProdukter: ${subtotal.toLocaleString('sv')} kr excl. moms`
+      + `\n\nProdukter: ${subtotal.toLocaleString('sv')} kr exkl. moms`
       + (extras ? `\nTillägg: ${extras.toLocaleString('sv')} kr` : '')
       + `\nMoms: ${vat.toLocaleString('sv')} kr\nTotalt: ${total.toLocaleString('sv')} kr inkl. moms`
-      + `\n\nKontakta mig för att bekräfta bokning!\n\nMed vänliga hälsningar,`
+      + `\n\n── Kontaktuppgifter ──\n${custInfo}`
+      + `\n\nMed vänliga hälsningar,\n${customer.name}`
     );
     window.location.href = `mailto:info@scenkonsult.se?subject=Offertf%C3%B6rfr%C3%A5gan%20fr%C3%A5n%20scenkonsult.se&body=${body}`;
   });
 
+  // ── PDF / PRINT ───────────────────────────────────────────
   document.getElementById('btnSave')?.addEventListener('click', () => {
-    const { cart, subtotal, extras, extraLines, vat, total } = buildOrder();
+    const { cart, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
     const rows = cart.map(i=>`<tr><td>${i.name}</td><td>${i.category}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">${i.price.toLocaleString('sv')} kr</td><td style="text-align:right">${(i.price*i.qty).toLocaleString('sv')} kr</td></tr>`).join('');
-    const extRows = extraLines.map(l=>`<tr><td colspan="4" style="color:#555">${l}</td><td style="text-align:right"></td></tr>`).join('');
-    const html=`<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"><title>Varukorg – Scenkonsult</title><style>body{font-family:Arial,sans-serif;padding:2rem;color:#111;max-width:750px;margin:0 auto}h1{color:#1e1850;margin-bottom:.2rem}p.sub{color:#666;font-size:.83rem;margin-bottom:1.5rem}table{width:100%;border-collapse:collapse;margin-bottom:1.2rem}th{background:#1e1850;color:white;padding:.5rem .8rem;text-align:left;font-size:.78rem}td{padding:.5rem .8rem;border-bottom:1px solid #eee;font-size:.88rem}.right{text-align:right}.total{font-weight:700;font-size:1.05rem;color:#1e1850;text-align:right}.footer{font-size:.75rem;color:#999;border-top:1px solid #eee;padding-top:.8rem;margin-top:1.5rem}</style></head><body><h1>Scenkonsult – Offertunderlag</h1><p class="sub">Genererat ${new Date().toLocaleDateString('sv')} | info@scenkonsult.se | 072-448 10 00</p><table><thead><tr><th>Produkt</th><th>Kategori</th><th>Antal</th><th>Styckpris</th><th>Totalt</th></tr></thead><tbody>${rows}${extRows}</tbody></table><p>Produkter exkl. moms: <strong>${subtotal.toLocaleString('sv')} kr</strong></p>${extras?`<p>Tillägg: ${extras.toLocaleString('sv')} kr</p>`:''}<p>Moms 25%: ${vat.toLocaleString('sv')} kr</p><p class="total">Totalt inkl. moms: ${total.toLocaleString('sv')} kr</p><p class="footer">Alla priser avser hyra per dygn (22 h). Kontakta oss för slutlig bekräftelse och bokning.</p></body></html>`;
+    const extRows = extraLines.map(l=>`<tr><td colspan="4" style="color:#555">${l}</td><td></td></tr>`).join('');
+    const custRows = [
+      ['Namn', customer.name],
+      customer.company ? ['Företag', customer.company] : null,
+      ['E-post', customer.email],
+      ['Telefon', customer.phone],
+      customer.from ? ['Datum från', customer.from] : null,
+      customer.to   ? ['Datum till', customer.to]   : null,
+      customer.address ? ['Leveransadress', customer.address] : null,
+      customer.notes   ? ['Övrig info', customer.notes] : null,
+    ].filter(Boolean).map(([k,v])=>`<tr><td style="color:#666;width:140px">${k}</td><td>${v}</td></tr>`).join('');
+
+    const html=`<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"><title>Varukorg – Scenkonsult</title>
+<style>body{font-family:Arial,sans-serif;padding:2rem;color:#111;max-width:750px;margin:0 auto}
+h1{color:#1e1850;margin-bottom:.2rem}p.sub{color:#666;font-size:.83rem;margin-bottom:1.5rem}
+h2{color:#1e1850;font-size:1rem;margin-top:1.5rem;margin-bottom:.5rem;border-bottom:1px solid #eee;padding-bottom:.3rem}
+table{width:100%;border-collapse:collapse;margin-bottom:1rem}
+th{background:#1e1850;color:white;padding:.5rem .8rem;text-align:left;font-size:.78rem}
+td{padding:.5rem .8rem;border-bottom:1px solid #eee;font-size:.88rem}
+.total{font-weight:700;font-size:1.05rem;color:#1e1850;text-align:right}
+.footer{font-size:.75rem;color:#999;border-top:1px solid #eee;padding-top:.8rem;margin-top:1.5rem}</style></head>
+<body>
+<h1>Scenkonsult – Offertunderlag</h1>
+<p class="sub">Genererat ${new Date().toLocaleDateString('sv')} | info@scenkonsult.se | 072-448 10 00</p>
+<h2>Produkter</h2>
+<table><thead><tr><th>Produkt</th><th>Kategori</th><th>Antal</th><th>Styckpris</th><th>Totalt</th></tr></thead>
+<tbody>${rows}${extRows}</tbody></table>
+<p>Produkter exkl. moms: <strong>${subtotal.toLocaleString('sv')} kr</strong></p>
+${extras?`<p>Tillägg: ${extras.toLocaleString('sv')} kr</p>`:''}
+<p>Moms 25%: ${vat.toLocaleString('sv')} kr</p>
+<p class="total">Totalt inkl. moms: ${total.toLocaleString('sv')} kr</p>
+${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>` : ''}
+<p class="footer">Alla priser avser hyra per dygn (22 h). Kontakta oss för slutlig bekräftelse och bokning.</p>
+</body></html>`;
     const w=window.open('','_blank');
     if(w){w.document.write(html);w.document.close();w.focus();w.print();}
   });
 
+  // ── TÖMT ─────────────────────────────────────────────────
   document.getElementById('btnClear')?.addEventListener('click', () => {
     if (confirm('Töm hela varukorgen?')) {
       localStorage.removeItem('sk-cart');
@@ -580,7 +825,8 @@ const fraktRules = JSON.stringify(frakt);
     }
   });
 
-  // Init
+  // ── INIT ─────────────────────────────────────────────────
   renderCart();
   updateNavBadge();
+  checkCanProceed();
 </script>
