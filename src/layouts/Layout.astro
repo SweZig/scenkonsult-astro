@@ -129,12 +129,12 @@ const {
   </footer>
 
   <script>
-    // Nav scroll behavior
+    // Nav scroll behavior — mörk hela tiden, scrolled ger extra blur
     const nav = document.getElementById('mainNav');
     function updateNav() {
       nav?.classList.toggle('scrolled', window.scrollY > 40);
     }
-    updateNav(); // Set correct state on page load
+    updateNav();
     window.addEventListener('scroll', updateNav, { passive: true });
 
     // Hamburger menu

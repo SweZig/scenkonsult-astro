@@ -1,25 +1,31 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
+import CategoryHero from '../../../../components/CategoryHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 ---
 <Layout
   title="Hyra PA-system för Event & Konferens Stockholm | Scenkonsult"
   description="Hyr PA-system för konferenser, galor och presentationer i Stockholm från 799 kr/dygn. Trådlösa mikrofoner och mixer. Snabb leverans i hela Storstockholm."
 >
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-400">
-    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/hyra-ljud/" class="hover:text-gray-300">Hyra ljud</a> <span class="mx-1">/</span>
-    <span class="text-white">Event & Konferens</span>
-  </nav>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
-    <img src="/images/ljud/plugg_event.png" alt="Ljud för event" width="2560" height="450" loading="eager" class="w-full rounded-2xl object-cover h-48" />
-  </div>
-
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Ljud för Event &amp; Konferens i <span class="text-brand-orange">Stockholm</span></h1>
-    <p class="text-gray-300 text-lg max-w-3xl">Hyr PA-system för konferenser, galor och presentationer. Alla paket inkluderar högtalarenheter på stativ och kopplas in i vanliga eluttag – ingen tekniker behövs. Komplettera med mixerbord och mikrofoner nedan.</p>
-  </header>
+  <CategoryHero
+    h1="Ljud för Event & Konferens"
+    h1Accent="Stockholm"
+    intro="Hyr PA-system för konferenser, galor och presentationer. Alla paket inkluderar högtalarenheter på stativ och kopplas in i vanliga eluttag – ingen tekniker behövs. Komplettera med mixerbord och mikrofoner nedan."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
+      { label: "Event & Konferens" }
+    ]}
+    badges={[
+      "Plug & play",
+      "Trådlösa mikrofoner ingår",
+      "Ingen tekniker krävs",
+      "Leverans i Storstockholm",
+    ]}
+    bannerImage="/images/ljud/plugg_event.png"
+    bannerAlt="Ljud för event"
+  />
 
   <!-- PAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">

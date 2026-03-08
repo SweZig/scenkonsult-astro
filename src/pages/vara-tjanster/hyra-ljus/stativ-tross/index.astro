@@ -1,24 +1,30 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
+import CategoryHero from '../../../../components/CategoryHero.astro';
 ---
 <Layout
   title="Hyr Ljusstativ & Trosstorn Stockholm – T-bar, Tross & Traverser | Scenkonsult"
   description="Hyr ljusstativ med T-bar, vevstativ, trosstorn och trossryggar i Stockholm. Stativ fr 40 kr/dygn, trossbåge fr 1500 kr/dygn. Leverans i hela Storstockholm."
 >
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-500">
-    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/hyra-ljus/" class="hover:text-gray-300">Hyra ljus</a> <span class="mx-1">/</span>
-    <span class="text-white">Stativ &amp; Tross</span>
-  </nav>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
-    <img src="/images/ljus/plugg_t-stativ-tross.png" alt="Ljusstativ och trosstorn" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
-  </div>
-
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Stativ &amp; Tross i <span class="text-brand-orange">Stockholm</span></h1>
-    <p class="text-gray-300 text-lg max-w-3xl">Hyr ljusstativ med T-bar, vevstativ, trosstorn och kompletta trossrigglar. Passar alla effekter med 35 mm O-ringsklämma.</p>
-  </header>
+  <CategoryHero
+    h1="Stativ & Tross"
+    h1Accent="Stockholm"
+    intro="Hyr ljusstativ med T-bar, vevstativ, trosstorn och kompletta trossrigglar. Passar alla effekter med 35 mm O-ringsklämma."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/" },
+      { label: "Stativ & Tross" }
+    ]}
+    badges={[
+      "T-bar & vevstativ",
+      "Trosstorn & traverser",
+      "Passar alla effekter",
+      "Leverans i Storstockholm",
+    ]}
+    bannerImage="/images/ljus/plugg_t-stativ-tross.png"
+    bannerAlt="Ljusstativ och trosstorn"
+  />
 
   <!-- STATIV -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">

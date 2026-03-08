@@ -1,0 +1,271 @@
+---
+/**
+ * CategoryHero — Mörk hero-banner för alla kategorisidor
+ * Löser: nav-synlighet, H1-synlighet, padding-top för fast nav
+ * Fluid responsivt: fungerar från 320px till 4K
+ */
+interface Breadcrumb {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  h1: string;           // "Hyra scen i"
+  h1Accent?: string;    // "Stockholm" — visas i lavendel
+  intro?: string;
+  badges?: string[];    // Trust-badges med ✓
+  breadcrumbs?: Breadcrumb[];
+  bannerImage?: string; // Optional banner image under hero
+  bannerAlt?: string;
+}
+
+const {
+  h1,
+  h1Accent,
+  intro,
+  badges = [],
+  breadcrumbs = [],
+  bannerImage,
+  bannerAlt = '',
+} = Astro.props;
+---
+
+<div class="cat-hero-wrap">
+  <!-- Mörk hero — täcker nav och ticker -->
+  <div class="cat-hero">
+    <div class="cat-hero-dot" aria-hidden="true"></div>
+    <div class="cat-hero-inner">
+
+      <!-- Brödsmulor -->
+      {breadcrumbs.length > 0 && (
+        <nav class="cat-breadcrumb" aria-label="Brödsmulor">
+          <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+            {breadcrumbs.map((crumb, i) => (
+              <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                {crumb.href
+                  ? <a href={crumb.href} itemprop="item"><span itemprop="name">{crumb.label}</span></a>
+                  : <span itemprop="name">{crumb.label}</span>
+                }
+                <meta itemprop="position" content={String(i + 1)} />
+                {i < breadcrumbs.length - 1 && <span class="cat-sep" aria-hidden="true">/</span>}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+
+      <!-- H1 -->
+      <h1 class="cat-h1">
+        {h1}{h1Accent && <> i <span class="cat-accent">{h1Accent}</span></>}
+      </h1>
+
+      <!-- Intro -->
+      {intro && <p class="cat-intro">{intro}</p>}
+
+      <!-- Trust badges -->
+      {badges.length > 0 && (
+        <div class="cat-badges">
+          {badges.map(badge => (
+            <div class="cat-badge">
+              <span class="cat-badge-check" aria-hidden="true">✓</span>
+              {badge}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <!-- CTA knappar -->
+      <div class="cat-ctas">
+        <a href="/bokningssida/" class="cat-btn-primary">Boka nu</a>
+        <a href="tel:0724481000" class="cat-btn-ghost">📞 072-448 10 00</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Optional banner image — visas under hero, inte som bakgrund -->
+  {bannerImage && (
+    <div class="cat-banner-wrap">
+      <img
+        src={bannerImage}
+        alt={bannerAlt}
+        loading="eager"
+        class="cat-banner-img"
+      />
+    </div>
+  )}
+</div>
+
+<style>
+  /* ── Nav-höjder som CSS-variabler ── */
+  :root {
+    --ticker-h: 36px;
+    --nav-h: 74px;
+    --nav-offset: calc(var(--ticker-h) + var(--nav-h));
+  }
+  @media (max-width: 768px) {
+    :root {
+      --ticker-h: 32px;
+      --nav-h: 64px;
+    }
+  }
+
+  /* ── Hero-wrapper ── */
+  .cat-hero-wrap {
+    background: #0c0a24; /* brand-dark */
+  }
+
+  /* ── Mörk hero-sektion ── */
+  .cat-hero {
+    background: linear-gradient(135deg, #1e1850 0%, #0c0a24 60%);
+    padding-top: calc(var(--nav-offset) + clamp(1.5rem, 4vw, 3rem));
+    padding-bottom: clamp(2rem, 5vw, 4rem);
+    padding-left: clamp(1rem, 5vw, 5rem);
+    padding-right: clamp(1rem, 5vw, 5rem);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Dekorativa prickar */
+  .cat-hero-dot {
+    position: absolute;
+    right: -5%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(240px, 40vw, 520px);
+    height: clamp(240px, 40vw, 520px);
+    border-radius: 50%;
+    background-image: radial-gradient(circle, rgba(196,181,244,0.08) 2px, transparent 2px);
+    background-size: 24px 24px;
+    animation: rotateSlow 80s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes rotateSlow { to { transform: translateY(-50%) rotate(360deg); } }
+
+  /* ── Hero inner — max-width fluid ── */
+  .cat-hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: min(1280px, 100%);
+    margin: 0 auto;
+  }
+
+  /* ── Brödsmulor ── */
+  .cat-breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    list-style: none;
+    margin: 0 0 clamp(1rem, 3vw, 2rem);
+    padding: 0;
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+    color: rgba(255,255,255,0.4);
+  }
+  .cat-breadcrumb a {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .cat-breadcrumb a:hover { color: rgba(255,255,255,0.9); }
+  .cat-sep { opacity: 0.3; margin: 0 0.15rem; }
+
+  /* ── H1 ── */
+  .cat-h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1.05;
+    color: white;
+    margin: 0 0 clamp(0.75rem, 2vw, 1.25rem);
+    max-width: 720px;
+  }
+  .cat-accent {
+    color: #c4b5f4; /* brand-orange = lavendel */
+    font-style: italic;
+  }
+
+  /* ── Intro ── */
+  .cat-intro {
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    color: rgba(255,255,255,0.6);
+    line-height: 1.7;
+    max-width: 620px;
+    margin: 0 0 clamp(1rem, 3vw, 1.75rem);
+  }
+
+  /* ── Trust badges ── */
+  .cat-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(0.4rem, 1.5vw, 0.75rem);
+    margin-bottom: clamp(1.25rem, 3vw, 2rem);
+  }
+  .cat-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: clamp(0.72rem, 1.5vw, 0.82rem);
+    color: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 9999px;
+    padding: 0.35rem 0.8rem;
+  }
+  .cat-badge-check { color: #86efac; font-size: 0.75em; }
+
+  /* ── CTA knappar ── */
+  .cat-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+  }
+  .cat-btn-primary {
+    display: inline-block;
+    background: #c4b5f4;
+    color: #0c0a24;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(0.72rem, 1.5vw, 0.82rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: clamp(0.65rem, 2vw, 0.85rem) clamp(1.25rem, 3vw, 2rem);
+    border-radius: 4px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .cat-btn-primary:hover {
+    background: #e2dcfb;
+    transform: translateY(-1px);
+  }
+  .cat-btn-ghost {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .cat-btn-ghost:hover { color: rgba(255,255,255,0.9); }
+
+  /* ── Banner image ── */
+  .cat-banner-wrap {
+    padding: 0 clamp(1rem, 5vw, 5rem);
+    background: #0c0a24;
+  }
+  .cat-banner-img {
+    width: 100%;
+    max-width: min(1280px, 100%);
+    margin: 0 auto;
+    display: block;
+    height: clamp(120px, 18vw, 220px);
+    object-fit: cover;
+    border-radius: 0 0 16px 16px;
+  }
+
+  /* ── Mobil ── */
+  @media (max-width: 480px) {
+    .cat-ctas { flex-direction: column; align-items: flex-start; }
+    .cat-btn-primary { width: 100%; text-align: center; }
+  }
+</style>

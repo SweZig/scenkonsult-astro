@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
+import CategoryHero from '../../../../components/CategoryHero.astro';
 import VideoCard from '../../../../components/VideoCard.astro';
 import LjusTillbehor from '../../../../components/LjusTillbehor.astro';
 
@@ -183,21 +184,23 @@ const movingHeads = [
   title="Hyr Lösa Ljuseffekter Stockholm – LED PAR, Moving Heads & Laser | Scenkonsult"
   description="Hyr lösa ljuseffekter i Stockholm från 79 kr/dygn. LED PAR, Moving Head, Scanner, Strobe, Laser, LED Bar. Volympriser. Leverans i hela Storstockholm."
 >
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-500">
-    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/" class="hover:text-gray-300">Våra tjänster</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/hyra-ljus/" class="hover:text-gray-300">Hyr ljus</a> <span class="mx-1">/</span>
-    <span class="text-white">Lösa effekter</span>
-  </nav>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-    <img src="/images/tjanster/plugg_ljus.png" alt="Lösa ljuseffekter" width="1024" height="400" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
-  </div>
-
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Lösa <span class="text-brand-orange">Ljuseffekter</span></h1>
-    <p class="text-gray-300 text-lg max-w-3xl">LED PAR, Moving Heads, Scanner, Strobe och Laser. Bygg din egen belysningsrigg eller komplettera ett befintligt paket. Volympriser för fler enheter.</p>
-  </header>
+  <CategoryHero
+    h1="Ljuseffekter"
+    h1Accent="Stockholm"
+    intro="Hyr enskilda ljuseffekter – LED PAR, moving heads, stroboskop, UV, laser och scanners. Bygg din egna setup."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/" },
+      { label: "Ljuseffekter" }
+    ]}
+    badges={[
+      "LED PAR & moving heads",
+      "Stroboskop & UV & laser",
+      "DMX-styrda",
+      "Leverans i Storstockholm",
+    ]}
+  />
 
   <!-- LED PAR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">

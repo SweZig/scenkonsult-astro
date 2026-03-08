@@ -1,21 +1,29 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import CategoryHero from '../../../components/CategoryHero.astro';
 // ProductCard import removed - not used directly on this page
 ---
 <Layout
   title="Hyr Projektor & Storbildsskärm Stockholm – LED-vägg & Trailerscen | Scenkonsult"
   description="Hyr projektor, 65-75 tum skärm, LED-vägg och trailerscen i Stockholm. Projektor fr 299 kr/dygn. Transport och montering finns som tilläggstjänst."
 >
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-500">
-    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/" class="hover:text-gray-300">Våra tjänster</a> <span class="mx-1">/</span>
-    <span class="text-white">Hyr bild, projektorer &amp; skärmar</span>
-  </nav>
 
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Hyr Projektor &amp; Skärm i <span class="text-brand-orange">Stockholm</span></h1>
-    <p class="text-gray-300 text-lg max-w-3xl">Hyr projektor, storbildsskärm eller moduluppbyggd LED-vägg för presentationer, event och konferenser. Transport och montering finns som tilläggstjänst.</p>
-  </header>
+  <CategoryHero
+    h1="Hyr Projektor & Skärm"
+    h1Accent="Stockholm"
+    intro="Hyr projektor, storbildsskärm eller moduluppbyggd LED-vägg för presentationer, event och konferenser. Transport och montering finns som tilläggstjänst."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Hyr bild, projektorer & skärmar" }
+    ]}
+    badges={[
+      "3 500–12 000 ANSI lumen",
+      "Full HD och 4K",
+      "LED-vägg & trailerscen",
+      "Leverans i Storstockholm"
+    ]}
+  />
 
   <!-- PRODUKTER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">

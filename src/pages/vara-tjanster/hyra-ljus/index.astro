@@ -1,6 +1,7 @@
 ---
 import Price from '../../../components/Price.astro';
 import Layout from '../../../layouts/Layout.astro';
+import CategoryHero from '../../../components/CategoryHero.astro';
 import ljusData from '../../../data/ljus.json';
 
 const pageSchema = {
@@ -33,37 +34,22 @@ const faqSchema = {
 
 <Layout title={ljusData.metaTitle} description={ljusData.metaDescription} schemaExtra={[pageSchema, faqSchema]}>
 
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
-    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
-        <meta itemprop="position" content="1" />
-      </li>
-      <span>/</span>
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <a href="/vara-tjanster/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Våra tjänster</span></a>
-        <meta itemprop="position" content="2" />
-      </li>
-      <span>/</span>
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <span class="text-white" itemprop="name">Hyra ljus</span>
-        <meta itemprop="position" content="3" />
-      </li>
-    </ol>
-  </nav>
-
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">
-      Hyra ljus i <span class="text-brand-orange">Stockholm</span>
-    </h1>
-    <p class="text-gray-300 text-lg max-w-3xl leading-relaxed">{ljusData.intro}</p>
-    <div class="flex flex-wrap gap-3 mt-6">
-      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> Färdiga paket – plug & play</div>
-      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> DMX & automatiska program</div>
-      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> Tekniker tillgänglig</div>
-      <div class="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2"><span class="text-green-400">✓</span> Leverans i Storstockholm</div>
-    </div>
-  </header>
+  <CategoryHero
+    h1="Hyra ljus"
+    h1Accent="Stockholm"
+    intro={ljusData.intro}
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Hyra ljus" }
+    ]}
+    badges={[
+      "Färdiga paket – plug & play",
+      "DMX & automatiska program",
+      "Tekniker tillgänglig",
+      "Leverans i Storstockholm"
+    ]}
+  />
 
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-8">Välj kategori</h2>

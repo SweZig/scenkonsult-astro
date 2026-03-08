@@ -1,25 +1,31 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
+import CategoryHero from '../../../../components/CategoryHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 ---
 <Layout
   title="Hyra Portabelt Ljud Stockholm – Batteridrivet PA-system | Scenkonsult"
   description="Hyr portabelt ljud med batteridrift i Stockholm från 599 kr/dygn. Perfekt för utomhus, studentflak och event utan strömkälla. Leverans i hela Storstockholm."
 >
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-400">
-    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/hyra-ljud/" class="hover:text-gray-300">Hyra ljud</a> <span class="mx-1">/</span>
-    <span class="text-white">Portabelt ljud</span>
-  </nav>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
-    <img src="/images/ljud/plugg_portabelt.png" alt="Portabelt ljud med batteridrift" width="2560" height="454" loading="eager" class="w-full rounded-2xl object-cover h-48" />
-  </div>
-
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Portabelt Ljud i <span class="text-brand-orange">Stockholm</span></h1>
-    <p class="text-gray-300 text-lg max-w-3xl">Hyr batteridrivet ljud för utomhus, studentflak och event utan strömkälla. Alla enheter har inbyggd mixer och Bluetooth. Komplettera med mikrofoner nedan.</p>
-  </header>
+  <CategoryHero
+    h1="Portabelt Ljud"
+    h1Accent="Stockholm"
+    intro="Hyr batteridrivet ljud för utomhus, studentflak och event utan strömkälla. Alla enheter har inbyggd mixer och Bluetooth. Komplettera med mikrofoner nedan."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
+      { label: "Portabelt ljud" }
+    ]}
+    badges={[
+      "Batteridrivet",
+      "Bluetooth & inbyggd mixer",
+      "Ingen strömkälla krävs",
+      "Leverans i Storstockholm",
+    ]}
+    bannerImage="/images/ljud/plugg_portabelt.png"
+    bannerAlt="Portabelt ljud med batteridrift"
+  />
 
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

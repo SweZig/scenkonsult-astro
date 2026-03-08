@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
+import CategoryHero from '../../../../components/CategoryHero.astro';
 import VideoCard from '../../../../components/VideoCard.astro';
 import LjusTillbehor from '../../../../components/LjusTillbehor.astro';
 
@@ -107,21 +108,23 @@ const paket = [
   title="Hyra Färdiga Ljuspaket Stockholm – Small till XL+ | Scenkonsult"
   description="Hyr färdiga ljuspaket i Stockholm från 399 kr/dygn. Small till XL+ – 12 paket för 10–250 personer. LED PAR, Moving Heads, Strobe, Laser. Leverans Storstockholm."
 >
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-500">
-    <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/" class="hover:text-gray-300">Våra tjänster</a> <span class="mx-1">/</span>
-    <a href="/vara-tjanster/hyra-ljus/" class="hover:text-gray-300">Hyr ljus</a> <span class="mx-1">/</span>
-    <span class="text-white">Färdiga paket</span>
-  </nav>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-    <img src="/images/tjanster/plugg_ljus.png" alt="Färdiga ljuspaket" width="1024" height="400" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
-  </div>
-
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Färdiga <span class="text-brand-orange">Ljuspaket</span></h1>
-    <p class="text-gray-300 text-lg max-w-3xl">Allt-i-ett-paket för fest, bröllop och event – från 10 till 250 personer. Komplett med stativ/tross, armaturer och kablar. Montering 8–90 minuter.</p>
-  </header>
+  <CategoryHero
+    h1="Färdiga Ljuspaket"
+    h1Accent="Stockholm"
+    intro="Hyr kompletta ljuspaket för fest, bröllop och event. Plug & play – ingen DMX-kunskap krävs."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/" },
+      { label: "Färdiga ljuspaket" }
+    ]}
+    badges={[
+      "Plug & play",
+      "Automatisk musiksynk",
+      "DMX eller automatik",
+      "Leverans i Storstockholm",
+    ]}
+  />
 
   <!-- Topplista-banner -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
