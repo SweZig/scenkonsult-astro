@@ -1,0 +1,130 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const occasions = [
+  {
+    slug: "brollop",
+    icon: "💍",
+    title: "Bröllop",
+    desc: "Ljud för tal och trubadur, stämningsljus och scen. Vi har levererat till hundratals bröllop sedan 1986.",
+    badge: "Populärast",
+    guests: "30–250 gäster"
+  },
+  {
+    slug: "foretagsfest",
+    icon: "🎉",
+    title: "Företagsfest & kickoff",
+    desc: "Från julfest till invigning. Faktura 30 dagar för företag. Tekniker på plats om ni vill.",
+    badge: null,
+    guests: "20–2000 gäster"
+  },
+  {
+    slug: "konferens",
+    icon: "🎤",
+    title: "Konferens & föreläsning",
+    desc: "AV-teknik, mikrofoner och projektorer. Professionellt ljud för presentationer och paneldiskussioner.",
+    badge: null,
+    guests: "20–500 deltagare"
+  },
+  {
+    slug: "festival",
+    icon: "🎸",
+    title: "Festival & utomhus",
+    desc: "Modulscener, kraftfulla PA-system och robust ljus för utomhus-event och festivaler.",
+    badge: null,
+    guests: "100–2000 besökare"
+  },
+  {
+    slug: "studentflak",
+    icon: "🎓",
+    title: "Studentflak",
+    desc: "Kompakta och kraftfulla ljudsystem med Bluetooth och trådlös mick. Boka tidigt — maj–juni tar slut snabbt.",
+    badge: "Säsong maj–juni",
+    guests: "15–50 studenter"
+  }
+];
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Eventuthyrning Stockholm – Alla tillfällen",
+  "description": "Hyr scen, ljud och ljus till ditt event i Stockholm. Vi hanterar bröllop, företagsfester, konferenser, festivaler och studentflak.",
+  "itemListElement": occasions.map((o, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "item": {
+      "@type": "Service",
+      "name": o.title,
+      "url": `https://scenkonsult.se/for/${o.slug}/`
+    }
+  }))
+};
+---
+
+<Layout
+  title="Hyr Teknik till Ditt Event i Stockholm | Scenkonsult — Alla Tillfällen"
+  description="Hyr scen, ljud och ljus anpassat för ditt event. Bröllop, företagsfest, konferens, festival och studentflak. Storstockholm. Sedan 1986."
+  schemaExtra={schema}
+>
+
+  <!-- Hero -->
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%); padding-top:calc(36px + 130px + clamp(2rem,5vw,4rem)); padding-bottom:clamp(3rem,6vw,5rem); padding-left:clamp(1rem,5vw,5rem); padding-right:clamp(1rem,5vw,5rem); position:relative; overflow:hidden;">
+    <div style="position:absolute; right:-5%; top:50%; transform:translateY(-50%); width:clamp(200px,35vw,460px); height:clamp(200px,35vw,460px); border-radius:50%; background-image:radial-gradient(circle,rgba(196,181,244,0.07) 2px,transparent 2px); background-size:22px 22px; pointer-events:none;"></div>
+    <div style="max-width:min(1280px,100%); margin:0 auto; position:relative; z-index:2;">
+      <nav aria-label="Brödsmulor" style="margin-bottom:clamp(1rem,3vw,2rem);">
+        <ol style="display:flex; flex-wrap:wrap; gap:0.35rem; list-style:none; margin:0; padding:0; font-size:0.78rem; color:rgba(255,255,255,0.4);">
+          <li><a href="/" style="color:rgba(255,255,255,0.5); text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
+          <li><span style="color:white;">För ditt event</span></li>
+        </ol>
+      </nav>
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Anpassat för ditt tillfälle</p>
+      <h1 style="font-family:'DM Serif Display',serif; font-size:clamp(2rem,5vw,3.75rem); line-height:1.05; color:white; margin:0 0 1.25rem; max-width:700px;">
+        Rätt teknik för <span style="color:#c4b5f4; font-style:italic;">varje event</span>
+      </h1>
+      <p style="color:rgba(255,255,255,0.6); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.75; max-width:580px; margin:0;">
+        Välj ditt event-typ nedan — vi har tagit fram specifika rekommendationer, checklistor och priser för varje tillfälle.
+      </p>
+    </div>
+  </div>
+
+  <!-- Event-kort -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.5rem;">
+      {occasions.map(o => (
+        <a href={`/for/${o.slug}/`} style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:2rem; text-decoration:none; display:flex; flex-direction:column; gap:0.75rem; transition:border-color 0.2s, transform 0.15s; position:relative; overflow:hidden;"
+           onmouseenter="this.style.borderColor='rgba(196,181,244,0.35)';this.style.transform='translateY(-2px)'"
+           onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.transform='translateY(0)'">
+          {o.badge && (
+            <span style="position:absolute; top:1.25rem; right:1.25rem; background:rgba(196,181,244,0.15); color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:0.2rem 0.6rem; border-radius:9999px;">{o.badge}</span>
+          )}
+          <div style="font-size:2rem;">{o.icon}</div>
+          <h2 style="font-family:'DM Serif Display',serif; font-size:1.4rem; color:white; margin:0;">{o.title}</h2>
+          <p style="color:rgba(255,255,255,0.55); font-size:0.9rem; line-height:1.65; margin:0; flex:1;">{o.desc}</p>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
+            <span style="background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); font-size:0.75rem; padding:0.2rem 0.65rem; border-radius:9999px;">{o.guests}</span>
+            <span style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.06em;">Se mer →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Kortfakta om företaget -->
+  <section style="background:#111030; padding: clamp(2rem,4vw,3.5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; align-items:center;">
+      {[
+        ["1986", "Grundat"],
+        ["500+", "Event per år"],
+        ["20–2000", "Gäster vi hanterar"],
+        ["100%", "Nöjda kunder"],
+        ["2 tim", "Svarstid på offert"]
+      ].map(([nr, label]) => (
+        <div style="text-align:center;">
+          <div style="font-family:'DM Serif Display',serif; font-size:clamp(1.5rem,3vw,2.25rem); color:#c4b5f4;">{nr}</div>
+          <div style="color:rgba(255,255,255,0.4); font-family:'Space Grotesk',sans-serif; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-top:0.25rem;">{label}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+</Layout>

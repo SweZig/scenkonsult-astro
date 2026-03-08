@@ -1,0 +1,161 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import CategoryHero from '../../../components/CategoryHero.astro';
+
+const faq = [
+  {
+    q: "Hur stor scen behöver jag till en festival med 500 besökare?",
+    a: "För 500 besökare utomhus rekommenderar vi en scen på minst 6×4 m eller 8×4 m med ett PA på 8 000–15 000 W. Scenstorleken beror på antalet artister och deras backline. Kontakta oss — vi räknar ihop exakt vad ni behöver."
+  },
+  {
+    q: "Kan ni leverera till utomhusfestivaler utan fast ström?",
+    a: "Ja, vi kan kombinera vår utrustning med elverksaggregat och batteridrivna system. Vi råder er om elbehov för hela riggen och kan hjälpa er kontakta rätt elverk-leverantör."
+  },
+  {
+    q: "Levererar ni till festivaler utanför Stockholm?",
+    a: "Vi levererar primärt i Storstockholm men hanterar även större festivaler i Mälardalsregionen. Kontakta oss med plats och datum för en offert inkl. transport."
+  },
+  {
+    q: "Kan utrustningen användas i regn?",
+    a: "All vår utrustning har en IP-klass som tål regn och hög luftfuktighet. Vi rekommenderar alltid vädertält för mixerbord och känsligare elektronik vid längre utomhusarrangemang."
+  },
+  {
+    q: "Ingår tekniker vid festivalhyra?",
+    a: "Tekniker kan bokas som tillägg (600 kr/tim). Vid större festivaler med flera scener rekommenderar vi starkt att boka en ljudtekniker — det är skillnad på ett bra och ett fantastiskt ljud."
+  }
+];
+
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "name": "Uthyrning av scen, ljud och ljus till festival och utomhus-event i Stockholm",
+      "provider": {
+        "@type": "LocalBusiness",
+        "name": "Scenkonsult Norden",
+        "telephone": "+46724481000",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Palmfeltsvägen 5",
+          "addressLocality": "Stockholm",
+          "postalCode": "121 62",
+          "addressCountry": "SE"
+        }
+      },
+      "areaServed": "Stockholm",
+      "url": "https://scenkonsult.se/for/festival/"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": faq.map(f => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      }))
+    }
+  ]
+};
+---
+
+<Layout
+  title="Hyra Scen, Ljud & Ljus till Festival & Utomhus-event Stockholm | Scenkonsult"
+  description="Hyr festival-scen, storskaligt PA och ljus till utomhus-event i Stockholm. Event för 100–2000 besökare. Tekniker på plats. Ring 072-448 10 00."
+  schemaExtra={pageSchema}
+>
+
+  <CategoryHero
+    h1="Scen & ljud till festival i"
+    h1Accent="Stockholm"
+    intro="Modulscener, kraftfulla PA-system och robust ljus för utomhus-event och festivaler. Vi har utrustning för 100 till 2 000 besökare och hanterar hela Storstockholm."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "För ditt event", href: "/for/" },
+      { label: "Festival & utomhus" }
+    ]}
+    badges={[
+      "Scener upp till 8×6 m",
+      "PA-system för 2 000 gäster",
+      "Tål utomhusbruk och väder",
+      "Tekniker på plats tillgängligt"
+    ]}
+  />
+
+  <!-- Vad ni behöver -->
+  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Komplett festival-rigg</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:white; margin:0 0 1.25rem; max-width:680px;">Utrustning som håller utomhus</h2>
+      <p style="color:rgba(255,255,255,0.55); font-size:1rem; line-height:1.75; max-width:640px; margin:0 0 3rem;">Utomhus-event kräver mer effekt, robustare utrustning och en plan för vädret. Vi har erfarenhet av allt från lokala stadsfester till stora festivaler — och vet vad som krävs för att det ska låta bra utomhus.</p>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.5rem;">
+        {[
+          { icon: "🎭", title: "Modulscener", desc: "Hopfällbara scener från 4×3 m upp till 8×6 m. Halkfria ytor, stabil konstruktion och montering ingår vid behov.", link: "/vara-tjanster/hyra-scen/", cta: "Se scener" },
+          { icon: "🔊", title: "Festival-PA", desc: "Line array och kraftfulla sub-systemer för utomhus. Rätt dimensionerat för er publikstorlek och plats.", link: "/vara-tjanster/hyra-ljud/", cta: "Se ljud" },
+          { icon: "💡", title: "Scenljus", desc: "Vädertåliga moving heads, PAR-lampor och beam-effekter. Tänds när mörkret faller och tar over dansgolvet.", link: "/vara-tjanster/hyra-ljus/", cta: "Se ljus" },
+          { icon: "📡", title: "Projektor & LED", desc: "Ljusstarka projektorer och LED-skärmar för artistnamn, bakgrundsbilder och livefeed.", link: "/vara-tjanster/hyra-bild-projektorer-skarmar/", cta: "Se skärmar" }
+        ].map(item => (
+          <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:1.75rem; display:flex; flex-direction:column; gap:0.75rem;">
+            <div style="font-size:1.75rem;">{item.icon}</div>
+            <h3 style="font-family:'DM Serif Display',serif; font-size:1.2rem; color:white; margin:0;">{item.title}</h3>
+            <p style="color:rgba(255,255,255,0.55); font-size:0.88rem; line-height:1.65; margin:0; flex:1;">{item.desc}</p>
+            <a href={item.link} style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none;">{item.cta} →</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Storleksguide -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1000px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem; text-align:center;">Storleksguide</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 2.5rem; text-align:center;">Rätt rigg för ert antal gäster</h2>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem;">
+        {[
+          { label: "Liten festival", guests: "100–300 bes.", scen: "4×3 m", pa: "Live Small (4 000W)", ljus: "8× PAR + 2× moving head" },
+          { label: "Mellanstor", guests: "300–700 bes.", scen: "6×4 m", pa: "Live Medium (8 000W)", ljus: "16× PAR + 4× moving head" },
+          { label: "Stor festival", guests: "700–2000 bes.", scen: "8×6 m", pa: "Live Large (15 000W+)", ljus: "Fullrig — kontakta oss" }
+        ].map(p => (
+          <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.5rem;">
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700; color:white; margin:0 0 0.25rem;">{p.label}</h3>
+            <p style="color:#c4b5f4; font-size:0.8rem; font-weight:600; margin:0 0 1.25rem;">{p.guests}</p>
+            {[["Scen", p.scen], ["PA", p.pa], ["Ljus", p.ljus]].map(([l, v]) => (
+              <div style="display:flex; flex-direction:column; gap:0.15rem; padding:0.4rem 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+                <span style="color:rgba(255,255,255,0.35); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em;">{l}</span>
+                <span style="color:rgba(255,255,255,0.75); font-size:0.85rem;">{v}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div style="text-align:center; margin-top:2.5rem;">
+        <a href="/bokningssida/" style="display:inline-block; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:0.9rem 2.5rem; border-radius:4px;">
+          Begär offert för er festival
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Vanliga frågor</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 2.5rem;">Festival & utomhus — vanliga frågor</h2>
+      <div style="display:flex; flex-direction:column;">
+        {faq.map(item => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex; justify-content:space-between; align-items:center; padding:1.25rem 0; cursor:pointer; list-style:none; color:white; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1rem; gap:1rem;">
+              {item.q}
+              <span style="color:#c4b5f4; font-size:1.25rem; flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.95rem; line-height:1.75; margin:0 0 1.25rem; padding-right:2rem;">{item.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+</Layout>
