@@ -109,6 +109,39 @@ const schema = {
     </div>
   </section>
 
+  <!-- Guider-teaser -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem); border-top:1px solid rgba(255,255,255,0.06);">
+    <div style="max-width:1100px; margin:0 auto;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+        <div>
+          <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.5rem;">Kunskapsbank</p>
+          <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0;">Guider & tips</h2>
+        </div>
+        <a href="/for/guider/" style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.82rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; white-space:nowrap;">Alla guider →</a>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem;">
+        {[
+          { href:"/for/guider/hur-stor-pa/", icon:"🔊", title:"Hur stor PA behöver jag?", tag:"Ljud" },
+          { href:"/for/guider/hur-stor-scen/", icon:"🎭", title:"Hur stor scen behöver jag?", tag:"Scen" },
+          { href:"/for/guider/dj-eller-liveband/", icon:"🎸", title:"DJ eller liveband?", tag:"Musik" },
+          { href:"/for/guider/ljussattning-tips/", icon:"💡", title:"Ljussättning för event", tag:"Ljus" },
+          { href:"/for/guider/checklista-event/", icon:"✅", title:"Komplett checklista", tag:"Planering" },
+          { href:"/for/guider/vad-kostar-det/", icon:"💰", title:"Vad kostar det?", tag:"Pris" },
+        ].map(g => (
+          <a href={g.href} style="background:#1e1850; border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:1.25rem; text-decoration:none; display:flex; gap:0.85rem; align-items:flex-start; transition:border-color 0.2s;"
+             onmouseenter="this.style.borderColor='rgba(196,181,244,0.3)'"
+             onmouseleave="this.style.borderColor='rgba(255,255,255,0.07)'">
+            <span style="font-size:1.35rem; flex-shrink:0;">{g.icon}</span>
+            <div>
+              <div style="color:white; font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:600; line-height:1.3; margin-bottom:0.35rem;">{g.title}</div>
+              <span style="background:rgba(196,181,244,0.1); color:#c4b5f4; font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:9999px;">{g.tag}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
   <!-- Kortfakta om företaget -->
   <section style="background:#111030; padding: clamp(2rem,4vw,3.5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; align-items:center;">

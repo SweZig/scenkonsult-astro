@@ -1,0 +1,149 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "DJ eller liveband till festen? En ärlig jämförelse",
+      "description": "Vi jämför DJ och liveband på pris, stämning, flexibilitet och logistik. Hjälper dig välja rätt för ditt event.",
+      "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
+      "publisher": { "@type": "Organization", "name": "Scenkonsult Norden", "url": "https://scenkonsult.se" },
+      "datePublished": "2025-01-01",
+      "dateModified": "2025-03-01",
+      "url": "https://scenkonsult.se/for/guider/dj-eller-liveband/"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Är DJ eller liveband bäst till bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "Det beror på budget och publik. Liveband skapar en unik känsla och visuellt spektakel, men kostar 15 000–50 000 kr. En bra DJ läser av publiken och kan spela allt från 70-tal till nu för 3 000–12 000 kr. Många väljer DJ för dans och liveband för cocktailtimmen." } },
+        { "@type": "Question", "name": "Vad kostar ett liveband till ett event?", "acceptedAnswer": { "@type": "Answer", "text": "Ett coverband med 3–5 musiker för ett bröllop eller företagsfest kostar vanligtvis 15 000–40 000 kr för en kväll. Priset varierar med bandets rykte, antal musiker och hur långt de reser." } },
+        { "@type": "Question", "name": "Vad kostar en DJ till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "En professionell DJ till ett bröllop kostar 3 000–12 000 kr beroende på erfarenhet och hur lång tid de spelar. Junior DJ (student) kostar 1 500–4 000 kr, senior DJ 5 000–12 000 kr." } },
+        { "@type": "Question", "name": "Kan man kombinera DJ och liveband?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, det är ett populärt upplägg. Livebandet spelar under middagen eller cocktailtimmen (skapar stämning och visuell WOW-effekt), sedan tar DJ:n över dansgolvet och spelar till midnatt. Det ger det bästa av båda världar." } }
+      ]
+    }
+  ]
+};
+---
+
+<Layout
+  title="DJ eller Liveband till Festen? Ärlig Jämförelse | Scenkonsult"
+  description="Jämförelse av DJ vs liveband — pris, stämning, logistik och vad som passar ditt event bäst. Skriven av Scenkonsult, uthyrare sedan 1986."
+  schemaExtra={schema}
+>
+
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px;margin:0 auto;">
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
+        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.4);">
+          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
+          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
+          <li><span style="color:white;">DJ eller liveband?</span></li>
+        </ol>
+      </nav>
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">DJ eller liveband till festen?</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Det är en av de stora frågorna vid planering av bröllop och företagsfester. Vi har sett hundratals events — och vet när varje alternativ fungerar bäst. Här är en ärlig genomgång.</p>
+    </div>
+  </div>
+
+  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
+
+      <!-- Snabbsvar-kort -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:3rem;">
+        {[
+          { title:"Välj DJ om…", items:["Budget är under 10 000 kr", "Dansgolvet är prioritet", "Du vill ha stor musikbredd", "Lokalen är liten (<150 gäster)", "Evenemanget varar länge (4+ tim)"], color:"#c4b5f4" },
+          { title:"Välj liveband om…", items:["Budget tillåter 20 000+ kr", "WOW-effekten är viktig", "Gästerna är 40+ år", "Det är cocktail eller middag", "Du vill ha unikt program"], color:"#86efac" }
+        ].map(k => (
+          <div style={`background:#1e1850;border:1px solid ${k.color}22;border-radius:14px;padding:1.5rem;`}>
+            <h3 style={`font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;color:${k.color};text-transform:uppercase;letter-spacing:0.08em;margin:0 0 1rem;`}>{k.title}</h3>
+            {k.items.map(i => (
+              <div style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.35rem 0;">
+                <span style={`color:${k.color};font-size:0.75rem;margin-top:0.2rem;flex-shrink:0;`}>✓</span>
+                <span style="color:rgba(255,255,255,0.65);font-size:0.88rem;">{i}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <!-- Jämförelsetabell -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1.25rem;">Jämförelse: DJ vs Liveband</h2>
+      <div style="overflow-x:auto;margin-bottom:3rem;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Faktor</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">DJ</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Liveband</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Pris", "1 500–12 000 kr", "15 000–50 000 kr"],
+              ["Musikbredd", "Obegränsat", "Begränsat till repertoar"],
+              ["Dansgolvets energi", "Hög — läser av publiken", "Hög — visually driven"],
+              ["WOW-faktor", "Medium", "Hög"],
+              ["Flexibilitet", "Mycket hög", "Låg — satt setlist"],
+              ["Utrymmesbehov", "2–4 m²", "12–30 m²"],
+              ["Uppsättningstid", "30–60 min", "2–4 timmar"],
+              ["Pauser", "Inga", "2–3 pauser per kväll"],
+              ["Risk vid sjukdom", "Lätt att ersätta", "Svårt att ersätta"],
+              ["Passar bäst till", "Dansfest, lång kväll", "Cocktail, middag, show"],
+            ].map(([f, dj, band], i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{f}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{dj}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{band}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Det bästa alternativet: kombinera</h2>
+      <p>Många av de bästa events vi levererat teknik till har använt <strong style="color:white;">liveband under cocktail/middag + DJ under dansdelen</strong>. Bandet skapar en unik visuell upplevelse och stämning under middagen. Sedan tar DJ:n över och håller dansgolvet igång till midnatt.</p>
+      <p>Det kräver lite mer logistik och budget, men resultatet är ofta det gäster pratar om i månader efteråt. Ur teknikperspektiv kräver det en scen som funkar för båda, plus ett PA-system som täcker hela lokalen.</p>
+
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Teknikkraven är olika</h2>
+      <p>Det här är vad vi kan hjälpa till med — oavsett vad ni väljer:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem;">
+        {[
+          { title:"För DJ", items:["DJ-utrustning (Pioneer XDJ-RX3, CDJ-3000)", "PA med subbasen för dansgolvet", "Scen 4–6 m²", "Discoljus och moving heads", "Rökmaskin för dramatik"] },
+          { title:"För liveband", items:["PA för förstärkning (12–20 kW)", "Scenmonitor för varje musiker", "Scen minst 12 m²", "Scenljus (wash + spot)", "DI-boxar och kabeldragning"] }
+        ].map(k => (
+          <div style="background:#1e1850;border-radius:12px;padding:1.25rem;">
+            <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;color:#c4b5f4;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.75rem;">{k.title}</h3>
+            {k.items.map(i => (
+              <div style="display:flex;gap:0.5rem;padding:0.3rem 0;">
+                <span style="color:#86efac;font-size:0.75rem;flex-shrink:0;">✓</span>
+                <span style="color:rgba(255,255,255,0.6);font-size:0.85rem;">{i}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Vi hyr ut till båda</h2>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Oavsett om ni väljer DJ, liveband eller kombination — vi har utrustningen och erfarenheten.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="/vara-tjanster/hyra-dj/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">DJ-utrustning</a>
+          <a href="/vara-tjanster/hyra-ljud/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Ljud för liveband</a>
+        </div>
+      </div>
+
+      <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
+        <p style="color:rgba(255,255,255,0.3);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+          <a href="/for/guider/hur-stor-pa/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor PA behöver jag? →</a>
+          <a href="/for/guider/hur-stor-scen/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor scen behöver jag? →</a>
+          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Layout>
