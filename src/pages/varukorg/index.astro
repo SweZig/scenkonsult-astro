@@ -192,7 +192,7 @@ const fraktRules = JSON.stringify(frakt);
 </section>
 </Layout>
 
-<style>
+<style is:global>
 /* ─── GLOBAL ─────────────────────────────────────────────── */
 .cart-page {
   padding-top: calc(var(--nav-offset, 110px) + 2.5rem);
@@ -247,18 +247,22 @@ const fraktRules = JSON.stringify(frakt);
 .td-remove { text-align:right; }
 
 /* Product cell — image BESIDE text */
-.cart-product { display:flex; align-items:center; gap:1rem; }
+.cart-product { display:flex; flex-direction:row; align-items:center; gap:1rem; flex-wrap:nowrap; }
 .cart-thumb {
   width:72px; height:60px; border-radius:8px;
   object-fit:cover; flex-shrink:0;
   background:rgba(30,24,80,0.8);
+  display:block; min-width:72px;
 }
+/* Broken image fallback — hide alt text overflow */
+.cart-thumb[src=""], .cart-thumb:not([src]) { display:none; }
 .cart-thumb-ph {
   width:72px; height:60px; border-radius:8px;
-  background:rgba(255,255,255,0.04); flex-shrink:0;
+  background:rgba(255,255,255,0.04); flex-shrink:0; min-width:72px;
   display:flex; align-items:center; justify-content:center;
   border:1px solid rgba(255,255,255,0.06);
 }
+.cart-product-text { display:flex; flex-direction:column; min-width:0; }
 .cart-pname { font-weight:600; font-size:0.92rem; color:white; line-height:1.3; margin-bottom:0.15rem; }
 .cart-pcat  { color:rgba(255,255,255,0.35); font-size:0.73rem; }
 .cart-pnote { color:rgba(255,255,255,0.28); font-size:0.7rem; }
@@ -274,19 +278,25 @@ const fraktRules = JSON.stringify(frakt);
 .qty-btn:first-child { border-radius:6px 0 0 6px; }
 .qty-btn:last-child  { border-radius:0 6px 6px 0; }
 .qty-btn:hover { background:rgba(196,181,244,0.2); border-color:rgba(196,181,244,0.45); }
-.qty-input {
+.qty-input,
+input[type=number].qty-input {
   width:36px; height:30px;
   border-top:1px solid rgba(255,255,255,0.15);
   border-bottom:1px solid rgba(255,255,255,0.15);
   border-left:none; border-right:none;
-  background:rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.07) !important;
   color:white !important;
+  -webkit-text-fill-color: white !important;
   text-align:center;
   font-family:'Space Grotesk',sans-serif;
   font-size:0.9rem; font-weight:700; padding:0;
-  -webkit-text-fill-color: white;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius:0;
 }
-.qty-input:focus { outline:none; }
+.qty-input:focus, input[type=number].qty-input:focus { outline:none; }
+.qty-input::-webkit-inner-spin-button,
+.qty-input::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
 
@@ -624,10 +634,10 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
         <td>
           <div class="cart-product">
             ${item.image
-              ? `<img class="cart-thumb" src="${item.image}" alt="${item.name}" loading="lazy" width="72" height="60">`
+              ? `<img class="cart-thumb" src="${item.image}" alt="${item.name}" loading="lazy" width="72" height="60" onerror="this.style.display='none'">`
               : `<div class="cart-thumb-ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>`
             }
-            <div>
+            <div class="cart-product-text">
               <div class="cart-pname">${item.name}</div>
               <div class="cart-pcat">${item.category}</div>
               <div class="cart-pnote">${item.priceNote}</div>
