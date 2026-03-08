@@ -13,7 +13,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
   </nav>
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
-    <img src="/images/tjanster/plugg_event_ljud.png" alt="Ljud för event" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
+    <img src="/images/tjanster/plugg_event_ljud.png" alt="Ljud för event" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
   </div>
 
   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -76,10 +76,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
         image="/images/ljud/pp_ljud_mixer06.png"
         description="Allen & Heath ZED22FX – 16 mic, 3 stereo, USB och high-pass filter. Toppmixer för live."
         specs={["16 mic/line (XLR)","3 stereo","USB-anslutning","High-pass filter per kanal","Vikt: 9 kg"]} />
-      <ProductCard name="Trådlöst mikrofonset, 8 kanaler" price={2999}
-        image="/images/ljud/pp_ljud_mixer06.png"
-        description="4 handmikrofoner + 4 headset med antennsplitter. 823–832 MHz, upp till 50 m räckvidd."
-        specs={["4 handmikrofoner + 4 headset","Antennsplitter ingår","823–832 MHz","Räckvidd upp till 50 m","LCD-display"]} />
+
     </div>
   </section>
 
@@ -92,6 +89,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
         { name:"Instrumentmikrofon", desc:"För trumma, blås, gitarr", price:120, img:"/images/ljud/pp_ljud_mik02.png" },
         { name:"Trådlös handmikrofon", desc:"Ca 30 m räckvidd", price:400, img:"/images/ljud/pp_ljud_mik05.png" },
         { name:"Trådlöst headset", desc:"Ca 30 m räckvidd", price:480, img:"/images/ljud/pp_ljud_mik06.png" },
+        { name:"Trådlöst mikrofonset, 8 kan.", desc:"4 hand + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik03.png" },
         { name:"Mikrofonstativ", desc:"Justerbar höjd", price:60, img:"/images/ljud/pp_ljud_tillbehor06.png" },
         { name:"XLR-kablar", desc:"1–15 m, fr 40 kr", price:40, img:"/images/ljud/pp_ljud_tillbehor07.png" },
         { name:"Bluetooth-mottagare", desc:"Koppla in telefon/dator trådlöst", price:80, img:"/images/ljud/pp_ljud_tillbehor04.png" },
@@ -102,7 +100,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-500 font-normal">/dygn</span></p>
+          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-400 font-normal">/dygn</span></p>
         </div>
       ))}
     </div>

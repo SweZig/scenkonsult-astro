@@ -1,0 +1,445 @@
+From 9b15f783e0ef974e3df2b2979d8cff3cce0417f6 Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.com>
+Date: Sun, 8 Mar 2026 08:53:33 +0000
+Subject: [PATCH] =?UTF-8?q?Fix:=20bildtillbeh=C3=B6r-bilder,=20T-bar-bild,?=
+ =?UTF-8?q?=20mikrofonset-sektion,=20DJ=20media-editor=20bild,=20InlineEdi?=
+ =?UTF-8?q?tor=20=C3=A5terinf=C3=B6rd,=20banners-besk=C3=A4rning=20fixad,?=
+ =?UTF-8?q?=20l=C3=A4sbarhet=20f=C3=B6rb=C3=A4ttrad?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/data/bild.json                             | 18 +++++++++---------
+ src/data/ljus.json                             |  2 +-
+ src/layouts/Layout.astro                       |  4 +++-
+ src/pages/hyresvillkor/index.astro             |  2 +-
+ src/pages/om-oss/index.astro                   |  2 +-
+ src/pages/vara-tjanster/hyra-dj/index.astro    |  4 ++--
+ .../vara-tjanster/hyra-ljud/event/index.astro  | 10 ++++------
+ src/pages/vara-tjanster/hyra-ljud/index.astro  |  2 +-
+ .../vara-tjanster/hyra-ljud/live/index.astro   |  9 +++------
+ .../vara-tjanster/hyra-ljud/music/index.astro  |  7 ++++---
+ .../hyra-ljud/portable/index.astro             |  6 +++---
+ .../hyra-ljus/fardiga-paket/index.astro        |  4 ++--
+ src/pages/vara-tjanster/hyra-ljus/index.astro  |  2 +-
+ .../hyra-ljus/ljuseffekter/index.astro         |  2 +-
+ .../hyra-ljus/rok-pyro/index.astro             |  2 +-
+ .../hyra-ljus/stativ-tross/index.astro         |  2 +-
+ src/pages/vara-tjanster/hyra-scen/index.astro  |  2 +-
+ 17 files changed, 39 insertions(+), 41 deletions(-)
+
+diff --git a/src/data/bild.json b/src/data/bild.json
+index f8f8da8..70bde6b 100644
+--- a/src/data/bild.json
++++ b/src/data/bild.json
+@@ -104,63 +104,63 @@
+       "price": 160,
+       "priceNote": "/dygn",
+       "desc": "Projektorbord",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_projektorstativ.png"
+     },
+     {
+       "name": "Projektorduk 100\"",
+       "price": 400,
+       "priceNote": "/dygn",
+       "desc": "Projektorduk 100\"",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_100-duk.png"
+     },
+     {
+       "name": "Golvstativ 65\"/75\"",
+       "price": 240,
+       "priceNote": "/dygn",
+       "desc": "Golvstativ för 65\" och 75\" skärmar",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_skarmststiv.png"
+     },
+     {
+       "name": "HDMI-kabel, 5 m",
+       "price": 48,
+       "priceNote": "/dygn",
+       "desc": "HDMI 2.0, upp till 4K UHD",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_HDMI.png"
+     },
+     {
+       "name": "HDMI-kabel, 10 m",
+       "price": 60,
+       "priceNote": "/dygn",
+       "desc": "HDMI 2.0, upp till 4K UHD",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_HDMI.png"
+     },
+     {
+       "name": "HDMI-splitter (4-port)",
+       "price": 400,
+       "priceNote": "/dygn",
+       "desc": "4-portars HDMI-splitter, upp till 4K UHD 60Hz",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_HDMI-splitter.png"
+     },
+     {
+       "name": "Mediaspelare 4K",
+       "price": 400,
+       "priceNote": "/dygn",
+       "desc": "Mediaspelare 4K för rörligt innehåll på skärm",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_mediaspelare.png"
+     },
+     {
+       "name": "Scenmonitor 23\"",
+       "price": 480,
+       "priceNote": "/dygn",
+       "desc": "Extra 23\" monitor till scenen",
+-      "image": "/images/bild/pp_bild_modulskarm.png"
++      "image": "/images/bild/pp_bild_23-skarm.png"
+     },
+     {
+       "name": "USB \"Clicker\"",
+       "price": 60,
+       "priceNote": "/dygn",
+       "desc": "USB-clicker för talaren, räckvidd ca 30 m",
+-      "image": "/images/bild/pp_bild_projektor.png"
++      "image": "/images/bild/pp_bild_USB-clicker.png"
+     },
+     {
+       "name": "Grenuttag, 1,5 m",
+diff --git a/src/data/ljus.json b/src/data/ljus.json
+index ae1909e..632f8f7 100644
+--- a/src/data/ljus.json
++++ b/src/data/ljus.json
+@@ -306,7 +306,7 @@
+         "slug": "stativ-1200",
+         "price": 40,
+         "priceNote": "/dygn",
+-        "image": "/images/ljus/pp_ljus_tradlos01.png",
++        "image": "/images/ljus/pp_ljus_stativ04.png",
+         "description": "Ljusstativ standard med 1200 mm T-bar. Plats för upp till 4 effekter.",
+         "includes": [
+           "T-bar: 1200 mm",
+diff --git a/src/layouts/Layout.astro b/src/layouts/Layout.astro
+index 5c77fd0..095f4e9 100644
+--- a/src/layouts/Layout.astro
++++ b/src/layouts/Layout.astro
+@@ -1,5 +1,6 @@
+ ---
+ import '../styles/global.css';
++import InlineEditor from '../components/InlineEditor.astro';
+ 
+ interface Props {
+   title?: string;
+@@ -161,6 +162,7 @@ const {
+         mobileMenu?.classList.remove('open');
+       });
+     });
+-  </script>
++  </script>  <InlineEditor />
++
+ </body>
+ </html>
+diff --git a/src/pages/hyresvillkor/index.astro b/src/pages/hyresvillkor/index.astro
+index c9cbaf2..7c9b1a6 100644
+--- a/src/pages/hyresvillkor/index.astro
++++ b/src/pages/hyresvillkor/index.astro
+@@ -8,7 +8,7 @@ import Layout from '../../layouts/Layout.astro';
+ >
+ 
+   <nav class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+-    <ol class="flex items-center gap-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
++    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
+       <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+         <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+         <meta itemprop="position" content="1" />
+diff --git a/src/pages/om-oss/index.astro b/src/pages/om-oss/index.astro
+index b8586a2..862b73c 100644
+--- a/src/pages/om-oss/index.astro
++++ b/src/pages/om-oss/index.astro
+@@ -11,7 +11,7 @@ const { company, clients } = siteData;
+ >
+ 
+   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+-    <ol class="flex items-center gap-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
++    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
+       <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+         <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+         <meta itemprop="position" content="1" />
+diff --git a/src/pages/vara-tjanster/hyra-dj/index.astro b/src/pages/vara-tjanster/hyra-dj/index.astro
+index 96a361a..13d1bee 100644
+--- a/src/pages/vara-tjanster/hyra-dj/index.astro
++++ b/src/pages/vara-tjanster/hyra-dj/index.astro
+@@ -13,7 +13,7 @@ import VideoCard from '../../../components/VideoCard.astro';
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+-    <img src="/images/dj/DJ_bild.png" alt="DJ Stockholm" width="1024" height="450" loading="eager" class="w-full rounded-2xl object-cover max-h-56 object-center" />
++    <img src="/images/dj/DJ_bild.png" alt="DJ Stockholm" width="1024" height="450" loading="eager" class="w-full rounded-2xl object-contain max-h-72 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+@@ -236,7 +236,7 @@ import VideoCard from '../../../components/VideoCard.astro';
+ 
+       <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+         <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+-          <img src="/images/bild/pp_bild_mediaspelare.png" alt="Media Editor – rörlig bild" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
++          <img src="/images/dj/pp_DJ_large2.png" alt="Media Editor – rörlig bild" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+         </div>
+         <div class="p-5">
+           <div class="flex justify-between items-start mb-2">
+diff --git a/src/pages/vara-tjanster/hyra-ljud/event/index.astro b/src/pages/vara-tjanster/hyra-ljud/event/index.astro
+index fbf854e..c138adc 100644
+--- a/src/pages/vara-tjanster/hyra-ljud/event/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljud/event/index.astro
+@@ -13,7 +13,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+-    <img src="/images/tjanster/plugg_event_ljud.png" alt="Ljud för event" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/tjanster/plugg_event_ljud.png" alt="Ljud för event" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+@@ -76,10 +76,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+         image="/images/ljud/pp_ljud_mixer06.png"
+         description="Allen & Heath ZED22FX – 16 mic, 3 stereo, USB och high-pass filter. Toppmixer för live."
+         specs={["16 mic/line (XLR)","3 stereo","USB-anslutning","High-pass filter per kanal","Vikt: 9 kg"]} />
+-      <ProductCard name="Trådlöst mikrofonset, 8 kanaler" price={2999}
+-        image="/images/ljud/pp_ljud_mixer06.png"
+-        description="4 handmikrofoner + 4 headset med antennsplitter. 823–832 MHz, upp till 50 m räckvidd."
+-        specs={["4 handmikrofoner + 4 headset","Antennsplitter ingår","823–832 MHz","Räckvidd upp till 50 m","LCD-display"]} />
++
+     </div>
+   </section>
+ 
+@@ -92,6 +89,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+         { name:"Instrumentmikrofon", desc:"För trumma, blås, gitarr", price:120, img:"/images/ljud/pp_ljud_mik02.png" },
+         { name:"Trådlös handmikrofon", desc:"Ca 30 m räckvidd", price:400, img:"/images/ljud/pp_ljud_mik05.png" },
+         { name:"Trådlöst headset", desc:"Ca 30 m räckvidd", price:480, img:"/images/ljud/pp_ljud_mik06.png" },
++        { name:"Trådlöst mikrofonset, 8 kan.", desc:"4 hand + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik03.png" },
+         { name:"Mikrofonstativ", desc:"Justerbar höjd", price:60, img:"/images/ljud/pp_ljud_tillbehor06.png" },
+         { name:"XLR-kablar", desc:"1–15 m, fr 40 kr", price:40, img:"/images/ljud/pp_ljud_tillbehor07.png" },
+         { name:"Bluetooth-mottagare", desc:"Koppla in telefon/dator trådlöst", price:80, img:"/images/ljud/pp_ljud_tillbehor04.png" },
+@@ -102,7 +100,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+           </div>
+           <p class="text-white font-semibold text-sm">{item.name}</p>
+           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
+-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-500 font-normal">/dygn</span></p>
++          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-400 font-normal">/dygn</span></p>
+         </div>
+       ))}
+     </div>
+diff --git a/src/pages/vara-tjanster/hyra-ljud/index.astro b/src/pages/vara-tjanster/hyra-ljud/index.astro
+index 151e0f8..bbda705 100644
+--- a/src/pages/vara-tjanster/hyra-ljud/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljud/index.astro
+@@ -17,7 +17,7 @@ const faqSchema = {
+ <Layout title={ljudData.metaTitle} description={ljudData.metaDescription} schemaExtra={faqSchema}>
+ 
+   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+-    <ol class="flex items-center gap-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
++    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
+       <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+         <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+         <meta itemprop="position" content="1" />
+diff --git a/src/pages/vara-tjanster/hyra-ljud/live/index.astro b/src/pages/vara-tjanster/hyra-ljud/live/index.astro
+index fb170fe..30a34e9 100644
+--- a/src/pages/vara-tjanster/hyra-ljud/live/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljud/live/index.astro
+@@ -13,7 +13,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+-    <img src="/images/tjanster/plugg_live_ljud.png" alt="Liveljud för konsert och trubadur" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/tjanster/plugg_live_ljud.png" alt="Liveljud för konsert och trubadur" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+@@ -84,10 +84,6 @@ import ProductCard from '../../../../components/ProductCard.astro';
+         image="/images/ljud/pp_ljud_mixer06.png"
+         description="Allen & Heath ZED22FX – 16 mic + 3 stereo, USB."
+         specs={["16 mic/line","3 stereo","USB","High-pass filter per kanal"]} />
+-      <ProductCard name="Trådlöst mikrofonset, 8 kanaler" price={2999}
+-        image="/images/ljud/pp_ljud_mixer06.png"
+-        description="4 handmikrofoner + 4 headset med antennsplitter. 823–832 MHz, upp till 50 m."
+-        specs={["4 hand + 4 headset","Antennsplitter","823–832 MHz","Upp till 50 m räckvidd"]} />
+     </div>
+   </section>
+ 
+@@ -101,6 +97,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+         { name:"Instrumentmikrofon",    desc:"För trumma, blås, gitarr",        price:120, img:"/images/ljud/pp_ljud_mik02.png" },
+         { name:"Trådlös handmikrofon",  desc:"Ca 30 m räckvidd",               price:400, img:"/images/ljud/pp_ljud_mik05.png" },
+         { name:"Trådlöst headset",      desc:"Ca 30 m räckvidd",               price:480, img:"/images/ljud/pp_ljud_mik06.png" },
++        { name:"Trådlöst mikrofonset, 8 kan.", desc:"4 hand + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik03.png" },
+         { name:"Mikrofonstativ",        desc:"Justerbar höjd",                  price:60,  img:"/images/ljud/pp_ljud_tillbehor06.png" },
+         { name:"XLR-kablar",           desc:"1–15 m, fr 40 kr",               price:40,  img:"/images/ljud/pp_ljud_tillbehor07.png" },
+         { name:"Bluetooth-mottagare",  desc:"Koppla in telefon/dator trådlöst", price:80,  img:"/images/ljud/pp_ljud_tillbehor04.png" },
+@@ -114,7 +111,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+           </div>
+           <p class="text-white font-semibold text-sm">{item.name}</p>
+           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
+-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-500 font-normal">/dygn</span></p>
++          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-400 font-normal">/dygn</span></p>
+         </div>
+       ))}
+     </div>
+diff --git a/src/pages/vara-tjanster/hyra-ljud/music/index.astro b/src/pages/vara-tjanster/hyra-ljud/music/index.astro
+index 1592a6a..0296629 100644
+--- a/src/pages/vara-tjanster/hyra-ljud/music/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljud/music/index.astro
+@@ -13,7 +13,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+-    <img src="/images/tjanster/plugg_dance_ljud.png" alt="Musikljud för dansgolv och DJ" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/tjanster/plugg_dance_ljud.png" alt="Musikljud för dansgolv och DJ" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+@@ -68,7 +68,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+       <ProductCard name="Analogt mixerbord, 6+4 kanaler" price={349} image="/images/ljud/pp_ljud_mixer04.png" description="Allen & Heath ZED14, 6 mic + 4 stereo." specs={["6 mic/line","4 stereo","69 dB preamp"]} />
+       <ProductCard name="Analogt mixerbord, 12+4 kanaler" price={399} image="/images/ljud/pp_ljud_mixer05.png" description="Alto Live L16, 12 mic + 4 stereo, 256 effekter." specs={["12 mic/line","256 effekter"]} />
+       <ProductCard name="Analogt mixerbord, 16+3 kanaler" price={599} image="/images/ljud/pp_ljud_mixer06.png" description="Allen & Heath ZED22FX, 16 mic + 3 stereo, USB." specs={["16 mic/line","USB","High-pass filter"]} />
+-      <ProductCard name="Trådlöst mikrofonset, 8 kanaler" price={2999} image="/images/ljud/pp_ljud_mixer06.png" description="4 hand + 4 headset, antennsplitter. 823–832 MHz." specs={["4 hand + 4 headset","Upp till 50 m räckvidd"]} />
++
+     </div>
+   </section>
+ 
+@@ -81,6 +81,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+         { name:"Instrumentmikrofon", desc:"För trumma, blås, gitarr", price:120, img:"/images/ljud/pp_ljud_mik02.png" },
+         { name:"Trådlös handmikrofon", desc:"Ca 30 m räckvidd", price:400, img:"/images/ljud/pp_ljud_mik05.png" },
+         { name:"Trådlöst headset", desc:"Ca 30 m räckvidd", price:480, img:"/images/ljud/pp_ljud_mik06.png" },
++        { name:"Trådlöst mikrofonset, 8 kan.", desc:"4 hand + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik03.png" },
+         { name:"Mikrofonstativ", desc:"Justerbar höjd", price:60, img:"/images/ljud/pp_ljud_tillbehor06.png" },
+         { name:"XLR-kablar", desc:"1–15 m, fr 40 kr", price:40, img:"/images/ljud/pp_ljud_tillbehor07.png" },
+         { name:"Bluetooth-mottagare", desc:"Koppla in telefon/dator", price:80, img:"/images/ljud/pp_ljud_tillbehor04.png" },
+@@ -94,7 +95,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+           </div>
+           <p class="text-white font-semibold text-sm">{item.name}</p>
+           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
+-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-500 font-normal">/dygn</span></p>
++          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-400 font-normal">/dygn</span></p>
+         </div>
+       ))}
+     </div>
+diff --git a/src/pages/vara-tjanster/hyra-ljud/portable/index.astro b/src/pages/vara-tjanster/hyra-ljud/portable/index.astro
+index 9cf3023..cc76104 100644
+--- a/src/pages/vara-tjanster/hyra-ljud/portable/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljud/portable/index.astro
+@@ -13,7 +13,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+-    <img src="/images/tjanster/plugg_portabelt.png" alt="Portabelt ljud med batteridrift" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/tjanster/plugg_portabelt.png" alt="Portabelt ljud med batteridrift" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+@@ -69,7 +69,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+           </div>
+           <p class="text-white font-semibold text-sm">{item.name}</p>
+           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
+-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-500 font-normal">/dygn</span></p>
++          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-400 font-normal">/dygn</span></p>
+         </div>
+       ))}
+     </div>
+@@ -95,7 +95,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
+           <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">
+             <span class="sk-price-incl">{Math.round(item.price*1.25)} kr</span>
+             <span class="sk-price-excl hidden">{item.price} kr</span>
+-            <span class="text-gray-500 font-normal"> /dygn</span>
++            <span class="text-gray-400 font-normal"> /dygn</span>
+           </p>
+         </div>
+       ))}
+diff --git a/src/pages/vara-tjanster/hyra-ljus/fardiga-paket/index.astro b/src/pages/vara-tjanster/hyra-ljus/fardiga-paket/index.astro
+index 7fea38b..e6d14ad 100644
+--- a/src/pages/vara-tjanster/hyra-ljus/fardiga-paket/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljus/fardiga-paket/index.astro
+@@ -115,7 +115,7 @@ const paket = [
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+-    <img src="/images/tjanster/plugg_ljus.png" alt="Färdiga ljuspaket" width="1024" height="400" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/tjanster/plugg_ljus.png" alt="Färdiga ljuspaket" width="1024" height="400" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+@@ -125,7 +125,7 @@ const paket = [
+ 
+   <!-- Topplista-banner -->
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+-    <img src="/images/ljus/pp_ljus_topplista.png" alt="Topplista ljuspaket" width="1024" height="200" loading="lazy" class="w-full rounded-xl object-cover max-h-32" />
++    <img src="/images/ljus/pp_ljus_topplista.png" alt="Topplista ljuspaket" width="1024" height="200" loading="lazy" class="w-full rounded-xl object-contain max-h-40" />
+   </div>
+ 
+   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+diff --git a/src/pages/vara-tjanster/hyra-ljus/index.astro b/src/pages/vara-tjanster/hyra-ljus/index.astro
+index deb3730..99c833c 100644
+--- a/src/pages/vara-tjanster/hyra-ljus/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljus/index.astro
+@@ -34,7 +34,7 @@ const faqSchema = {
+ <Layout title={ljusData.metaTitle} description={ljusData.metaDescription} schemaExtra={[pageSchema, faqSchema]}>
+ 
+   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+-    <ol class="flex items-center gap-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
++    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
+       <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+         <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+         <meta itemprop="position" content="1" />
+diff --git a/src/pages/vara-tjanster/hyra-ljus/ljuseffekter/index.astro b/src/pages/vara-tjanster/hyra-ljus/ljuseffekter/index.astro
+index 60698c3..af9220c 100644
+--- a/src/pages/vara-tjanster/hyra-ljus/ljuseffekter/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljus/ljuseffekter/index.astro
+@@ -191,7 +191,7 @@ const movingHeads = [
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+-    <img src="/images/tjanster/plugg_ljus.png" alt="Lösa ljuseffekter" width="1024" height="400" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/tjanster/plugg_ljus.png" alt="Lösa ljuseffekter" width="1024" height="400" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+diff --git a/src/pages/vara-tjanster/hyra-ljus/rok-pyro/index.astro b/src/pages/vara-tjanster/hyra-ljus/rok-pyro/index.astro
+index 320b9ef..0b28863 100644
+--- a/src/pages/vara-tjanster/hyra-ljus/rok-pyro/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljus/rok-pyro/index.astro
+@@ -13,7 +13,7 @@ import VideoCard from '../../../../components/VideoCard.astro';
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+-    <img src="/images/ljus/plugg_rok.png" alt="Rök och pyroteknik" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/ljus/plugg_rok.png" alt="Rök och pyroteknik" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+diff --git a/src/pages/vara-tjanster/hyra-ljus/stativ-tross/index.astro b/src/pages/vara-tjanster/hyra-ljus/stativ-tross/index.astro
+index f2f3476..533fc35 100644
+--- a/src/pages/vara-tjanster/hyra-ljus/stativ-tross/index.astro
++++ b/src/pages/vara-tjanster/hyra-ljus/stativ-tross/index.astro
+@@ -12,7 +12,7 @@ import Layout from '../../../../layouts/Layout.astro';
+   </nav>
+ 
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+-    <img src="/images/ljus/plugg_t-stativ-tross.png" alt="Ljusstativ och trosstorn" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-cover max-h-48 object-center" />
++    <img src="/images/ljus/plugg_t-stativ-tross.png" alt="Ljusstativ och trosstorn" width="1200" height="300" loading="eager" class="w-full rounded-2xl object-contain max-h-64 object-center" />
+   </div>
+ 
+   <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+diff --git a/src/pages/vara-tjanster/hyra-scen/index.astro b/src/pages/vara-tjanster/hyra-scen/index.astro
+index d647b37..672959b 100644
+--- a/src/pages/vara-tjanster/hyra-scen/index.astro
++++ b/src/pages/vara-tjanster/hyra-scen/index.astro
+@@ -40,7 +40,7 @@ const pageSchema = {
+ 
+   <!-- Breadcrumb -->
+   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2" aria-label="Brödsmulor">
+-    <ol class="flex items-center gap-2 text-sm text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
++    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
+       <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+         <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
+         <meta itemprop="position" content="1" />
+-- 
+2.43.0
+
