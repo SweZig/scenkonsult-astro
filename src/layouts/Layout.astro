@@ -57,7 +57,28 @@ const {
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links">
-      <li><a href="/#tjanster">Tjänster</a></li>
+      <li class="nav-dropdown">
+        <a href="/vara-tjanster/" class="nav-dropdown-trigger">Tjänster <span class="nav-arrow">▾</span></a>
+        <div class="nav-dropdown-menu">
+          <div class="nav-dd-col">
+            <span class="nav-dd-heading">Hårdvara</span>
+            <a href="/vara-tjanster/hyra-scen/">🎪 Hyra scen</a>
+            <a href="/vara-tjanster/hyra-ljud/portable/">🔊 Portabelt ljud</a>
+            <a href="/vara-tjanster/hyra-ljud/event/">🎙 Ljud – Event & konferens</a>
+            <a href="/vara-tjanster/hyra-ljud/music/">🎵 Ljud – Musik & dans</a>
+            <a href="/vara-tjanster/hyra-ljud/live/">🎸 Ljud – Live & konsert</a>
+            <a href="/vara-tjanster/hyra-ljus/">💡 Hyra ljus</a>
+            <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/">📽 Projektor & skärm</a>
+            <a href="/vara-tjanster/hyra-dj/">🎧 DJ & DJ-utrustning</a>
+          </div>
+          <div class="nav-dd-col">
+            <span class="nav-dd-heading">Tjänster</span>
+            <a href="/vara-tjanster/">✨ Komplett event</a>
+            <a href="/bokningssida/">📋 Begär offert</a>
+            <a href="/kontakt/">📞 Kontakta oss</a>
+          </div>
+        </div>
+      </li>
       <li><a href="/kontakt/">Kontakta oss</a></li>
     </ul>
     <Tel class="nav-phone" prefix="📞 " />
@@ -67,7 +88,20 @@ const {
   <!-- MOBILE MENU -->
   <div class="nav-mobile-menu" id="mobileMenu" aria-hidden="true">
     <ul>
-      <li><a href="/#tjanster">Tjänster</a></li>
+      <li class="nav-mob-parent">
+        <button class="nav-mob-trigger" id="mobTjänsterBtn">Tjänster <span class="nav-arrow">▾</span></button>
+        <ul class="nav-mob-sub" id="mobTjänsterSub">
+          <li><a href="/vara-tjanster/hyra-scen/">Hyra scen</a></li>
+          <li><a href="/vara-tjanster/hyra-ljud/portable/">Portabelt ljud</a></li>
+          <li><a href="/vara-tjanster/hyra-ljud/event/">Ljud – Event</a></li>
+          <li><a href="/vara-tjanster/hyra-ljud/music/">Ljud – Musik & dans</a></li>
+          <li><a href="/vara-tjanster/hyra-ljud/live/">Ljud – Live</a></li>
+          <li><a href="/vara-tjanster/hyra-ljus/">Hyra ljus</a></li>
+          <li><a href="/vara-tjanster/hyra-bild-projektorer-skarmar/">Projektor & skärm</a></li>
+          <li><a href="/vara-tjanster/hyra-dj/">DJ & DJ-utrustning</a></li>
+          <li><a href="/vara-tjanster/">Komplett event</a></li>
+        </ul>
+      </li>
       <li><a href="/kontakt/">Kontakta oss</a></li>
     </ul>
     <Tel class="nav-mobile-phone" prefix="📞 " />
@@ -164,6 +198,14 @@ const {
       mobileMenu?.classList.toggle('open', isOpen);
       hamburger.setAttribute('aria-expanded', String(isOpen));
       mobileMenu?.setAttribute('aria-hidden', String(!isOpen));
+    });
+    // Mobile accordion: Tjänster
+    document.getElementById('mobTjänsterBtn')?.addEventListener('click', () => {
+      const sub = document.getElementById('mobTjänsterSub');
+      const btn = document.getElementById('mobTjänsterBtn');
+      sub?.classList.toggle('open');
+      const arrow = btn?.querySelector('.nav-arrow') as HTMLElement;
+      if (arrow) arrow.style.transform = sub?.classList.contains('open') ? 'rotate(180deg)' : '';
     });
     // Close on outside click
     document.addEventListener('click', (e) => {

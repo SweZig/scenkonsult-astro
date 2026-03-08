@@ -103,6 +103,7 @@ a { color: inherit; }
 /* Nav är alltid mörk nu — alltid vit logo */
 .nav-links {
   display: flex; align-items: center; gap: clamp(1.2rem, 2.5vw, 2.2rem); list-style: none;
+  margin-left: clamp(2rem, 5vw, 5rem);
 }
 .nav-links a {
   text-decoration: none;
@@ -112,6 +113,54 @@ a { color: inherit; }
   color: rgba(255,255,255,0.75); transition: color 0.2s;
 }
 .nav-links a:hover { color: white; }
+
+/* ── DROPDOWN ── */
+.nav-dropdown { position: relative; }
+.nav-dropdown-trigger {
+  display: flex; align-items: center; gap: 0.3rem; cursor: pointer;
+  text-decoration: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(0.68rem, 1.2vw, 0.74rem); font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.75); transition: color 0.2s;
+}
+.nav-dropdown-trigger:hover,
+.nav-dropdown:hover .nav-dropdown-trigger { color: white; }
+.nav-arrow { font-size: 0.65em; transition: transform 0.2s; display: inline-block; }
+.nav-dropdown:hover .nav-arrow { transform: rotate(180deg); }
+
+.nav-dropdown-menu {
+  position: absolute; top: calc(100% + 1.2rem); left: -1.5rem;
+  background: rgba(15, 12, 40, 0.98);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(196,181,244,0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: none;
+  gap: 2rem;
+  min-width: 520px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  z-index: 500;
+}
+.nav-dropdown:hover .nav-dropdown-menu { display: flex; }
+.nav-dd-col { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; }
+.nav-dd-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: #c4b5f4; margin-bottom: 0.6rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(196,181,244,0.15);
+}
+.nav-dd-col a {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem; font-weight: 500;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none; text-transform: none; letter-spacing: 0.02em;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-dd-col a:hover { background: rgba(196,181,244,0.1); color: white; }
 .nav-phone {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(0.66rem, 1.1vw, 0.72rem); font-weight: 700;
@@ -209,6 +258,23 @@ a { color: inherit; }
   color: rgba(255,255,255,0.75); transition: color 0.2s;
 }
 .nav-mobile-menu ul li a:hover { color: #c4b5f4; }
+/* Mobile accordion */
+.nav-mob-trigger {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; background: none; border: none; cursor: pointer;
+  padding: 1rem 0; text-align: left;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(0.85rem, 4vw, 1rem); font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+}
+.nav-mob-sub { display: none; padding-left: 1rem; margin-bottom: 0.5rem; }
+.nav-mob-sub.open { display: block; }
+.nav-mob-sub li { border-bottom: 1px solid rgba(255,255,255,0.04); }
+.nav-mob-sub li a {
+  font-size: 0.82rem; font-weight: 500; letter-spacing: 0.04em;
+  text-transform: none; color: rgba(255,255,255,0.55); padding: 0.6rem 0;
+}
 .nav-mobile-phone {
   display: block; text-align: center; margin-bottom: 1rem;
   font-family: 'Space Grotesk', sans-serif;
