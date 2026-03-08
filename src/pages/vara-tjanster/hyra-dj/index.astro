@@ -1,262 +1,214 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import VideoCard from '../../../components/VideoCard.astro';
+import dj from '../../../data/dj.json';
 ---
 <Layout
-  title="Hyra Professionell DJ Stockholm – Fest, Bröllop & Event | Scenkonsult"
-  description="Hyr professionell DJ i Stockholm från 1 999 kr. 6 DJs med erfarenhet från 70-tal till idag. Eller hyr DJ-utrustning från 799 kr/dygn. Leverans i hela Storstockholm."
+  title={dj.metaTitle}
+  description={dj.metaDescription}
 >
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-500">
+  <!-- BREADCRUMB -->
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-sm text-gray-400">
     <a href="/" class="hover:text-gray-300">Hem</a> <span class="mx-1">/</span>
     <a href="/vara-tjanster/" class="hover:text-gray-300">Våra tjänster</a> <span class="mx-1">/</span>
     <span class="text-white">Hyr DJ</span>
   </nav>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4">
-    <img src="/images/dj/DJ_bild.png" alt="DJ Stockholm" width="1024" height="450" loading="eager" class="w-full rounded-2xl object-contain max-h-72 object-center" />
+  <!-- BANNER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6">
+    <img src={dj.bannerImage} alt="DJ Stockholm" width="1200" height="450" loading="eager"
+      class="w-full rounded-2xl object-cover h-48" />
   </div>
 
-  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">Hyr Professionell DJ i <span class="text-brand-orange">Stockholm</span></h1>
-    <p class="text-gray-300 text-lg max-w-3xl">Vi har 6 professionella DJs med mångårig erfarenhet från nattklubbar, bröllop, studentfester och företagsevent. Vi utformar kvällen efter önskemål i samråd med kunden.</p>
+  <!-- RUBRIK -->
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2">
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-3">
+      Hyr Professionell DJ i <span class="text-brand-orange">Stockholm</span>
+    </h1>
+    <p class="text-gray-300 text-lg max-w-3xl">{dj.intro}</p>
   </header>
 
-  <!-- DJ SERVICE -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+  <!-- HYR PROFESSIONELL DJ: bild + prisbord -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-      <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_DJ-service.png" alt="Hyr professionell DJ" width="512" height="427" loading="eager" class="w-full h-full object-cover" />
+
+      <!-- VÄNSTER: DJ-bild + info -->
+      <div>
+        <div class="rounded-2xl overflow-hidden bg-brand-dark border border-white/10" style="aspect-ratio:4/3">
+          <img src={dj.djService.image} alt={dj.djService.alt}
+            width="800" height="600" loading="eager" class="w-full h-full object-cover" />
         </div>
-        <div class="p-6">
-          <div class="flex items-start justify-between gap-3 mb-4">
-            <h2 class="text-2xl font-bold text-white">Hyr Professionell DJ</h2>
-            <div class="text-right shrink-0">
-              <span class="text-brand-orange font-extrabold text-2xl">1 999 kr</span>
-              <div class="text-gray-500 text-xs">/kväll exkl moms</div>
-            </div>
-          </div>
-          <p class="text-gray-400 text-sm mb-4">DJ med mångårig erfarenhet från nattklubbar, bröllop, studentfester och företagsevent. DJ-hårdvara ingår. Resa, scen, ljud och ljus tillkommer.</p>
-          <ul class="space-y-1 mb-6 text-xs text-gray-400 border-t border-white/10 pt-3">
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>6 professionella DJs att välja bland</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>70-tal till idag – alla genre</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Kvällen utformas efter dina önskemål</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Digital utrustning kräver internetanslutning</li>
+        <div class="mt-4">
+          <p class="text-gray-400 text-sm leading-relaxed">{dj.djService.description}</p>
+          <ul class="mt-3 space-y-1 text-xs text-gray-400">
+            {dj.djService.includes.map(item => (
+              <li class="flex gap-1.5"><span class="text-green-400">▸</span>{item}</li>
+            ))}
           </ul>
-          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors">Boka DJ</a>
+          <p class="mt-3 text-xs text-gray-500 italic">{dj.djService.note}</p>
         </div>
       </div>
 
+      <!-- HÖGER: Info-text + prisbord -->
       <div>
-        <h2 class="text-xl font-bold text-white mb-4">Ett urval av våra DJs</h2>
-        <div class="grid grid-cols-2 gap-3 mb-6">
-          {[
-            { name: "DJ Måns",   img: "/images/dj/DJ_Mans.png" },
-            { name: "DJ Fuse",   img: "/images/dj/DJ_Fuse.png" },
-            { name: "DJ SweZig", img: "/images/dj/DJ_SweZig.png" },
-            { name: "DJ Aasma",  img: "/images/dj/DJ_Aasma.png" },
-          ].map(dj => (
-            <div class="bg-brand-navy rounded-xl overflow-hidden border border-white/10">
-              <div style="aspect-ratio:1/1" class="bg-brand-dark overflow-hidden">
-                <img src={dj.img} alt={dj.name} width="200" height="200" loading="lazy" class="w-full h-full object-cover" />
-              </div>
-              <p class="text-white text-sm font-semibold text-center py-2">{dj.name}</p>
-            </div>
-          ))}
+        <h2 class="text-2xl font-bold text-white mb-2">HYR PROFESSIONELL DJ</h2>
+        <p class="text-gray-300 text-sm mb-5">
+          Vi har 6 professionella DJs med mångårig erfarenhet från nattklubbar, bröllop, studentfester
+          och företagsevent. Vi spelar 70/80/90/00/10/20-tals musik i alla genre – Disco, R&B, Dance,
+          House, Rock, Schlager, Hip-Hop, Soul, Italo Disco, Euro, EDM m.m.
+          Vi utformar kvällen efter önskemål i samråd med kunden.
+        </p>
+        <p class="text-xs text-gray-500 mb-4">
+          Alla tider är effektiva speltimmar. DJ-hårdvara ingår. Resa, scen, ljud och ljus tillkommer.
+          <br />¹Digital utrustning kräver fungerande internetanslutning.
+        </p>
+
+        <!-- PRISBORD -->
+        <div class="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-white/10">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/10">
+                <th class="text-left px-4 py-3 text-gray-400 font-semibold">Speltid</th>
+                <th class="text-center px-4 py-3 text-gray-300 font-semibold">Junior DJ</th>
+                <th class="text-center px-4 py-3 text-gray-300 font-semibold">Senior DJ</th>
+                <th class="text-center px-4 py-3 text-gray-300 font-semibold">PRO DJ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dj.djService.priceTable.map((row, i) => (
+                <tr class={`border-b border-white/5 ${i % 2 === 0 ? '' : 'bg-white/5'}`}>
+                  <td class="px-4 py-4 text-gray-300">{row.hours}</td>
+                  <td class="px-4 py-4 text-center">
+                    <div class="text-white font-bold text-lg">{row.junior.toLocaleString('sv')} kr</div>
+                    <div class="text-gray-500 text-xs">{row.juniorInkl.toLocaleString('sv')} kr inkl moms</div>
+                  </td>
+                  <td class="px-4 py-4 text-center">
+                    <div class="text-white font-bold text-lg">{row.senior.toLocaleString('sv')} kr</div>
+                    <div class="text-gray-500 text-xs">{row.seniorInkl.toLocaleString('sv')} kr inkl moms</div>
+                  </td>
+                  <td class="px-4 py-4 text-center">
+                    <div class="text-white font-bold text-lg italic">Offert</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div class="space-y-3">
-          {[
-            { text: "Hej Scenkonsult och tack, blev ju en riktigt lyckad kväll!", name: "Åsa P, Stockholm" },
-            { text: "DJ Måns gjorde kvällen till en succé och ingen ville lämna dansgolvet!", name: "Charlotte A, Linköping" },
-            { text: "Tack för i Lördags, Allt var toppen! Så bra drag på dansgolvet.", name: "Jenny L, Stockholm" },
-            { text: "Riktigt professionella, gjorde min fest till succé!", name: "Roger L, Täby" },
-            { text: "Så värt att hyra in en DJ till festen, precis som krogen på 90-talet 😉", name: "Jonas A, Stockholm" },
-          ].map(r => (
-            <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-3">
-              <div class="flex gap-1 mb-1"><span class="text-brand-orange text-xs">★★★★★</span></div>
-              <p class="text-gray-300 text-xs italic mb-1">"{r.text}"</p>
-              <p class="text-gray-500 text-xs font-semibold">{r.name}</p>
-            </div>
-          ))}
-        </div>
+
+        <a href="/kontakt/" class="mt-5 inline-block bg-brand-orange hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+          Boka DJ
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- DECENNIER -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6">Musik per decennium</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-      {[
-        { decade: "70-tal", artists: "ABBA, Earth Wind & Fire, Bee Gees, Donna Summer", age: "45–75+ år" },
-        { decade: "80-tal", artists: "Madonna, Michael Jackson, Prince, Pet Shop Boys", age: "35–75+ år" },
-        { decade: "90-tal", artists: "Ace of Base, E-Type, Backstreet Boys, Celine Dion", age: "30–70 år" },
-        { decade: "00-tal", artists: "Britney Spears, Eminem, Christina Aguilera, Darin", age: "25–60 år" },
-        { decade: "10-tal", artists: "Avicii, Beyoncé, Lady Gaga, Robyn, Ed Sheeran", age: "20–50 år" },
-        { decade: "20-tal", artists: "The Weeknd, Dua Lipa, Zara Larsson, Victor Leksell", age: "18–35 år" },
-      ].map(d => (
-        <div class="bg-brand-navy border border-white/10 rounded-xl p-4 text-center hover:border-brand-orange/40 transition-colors">
-          <div class="text-brand-orange font-extrabold text-2xl mb-1">{d.decade}</div>
-          <p class="text-gray-400 text-xs leading-relaxed mb-2">{d.artists}</p>
-          <div class="text-gray-500 text-xs border-t border-white/10 pt-2">{d.age}</div>
+  <!-- KARUSELL: VÅRA DJs -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <h2 class="text-xl font-bold text-white mb-4">BOKA ETT URVAL AV VÅRA DJs</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {dj.djPhotos.map(d => (
+        <div class="rounded-2xl overflow-hidden border border-white/10 bg-brand-navy group hover:border-brand-orange/50 transition-all">
+          <div class="overflow-hidden" style="aspect-ratio:3/2">
+            <img src={d.img} alt={d.name} width="300" height="200" loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <p class="text-white text-sm font-semibold text-center py-2.5 px-2">{d.name}</p>
         </div>
       ))}
     </div>
   </section>
 
-  <!-- DJ UTRUSTNING -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-2">Hyr DJ-utrustning</h2>
-    <p class="text-gray-400 text-sm mb-6">Standalone DJ-controllers – spela direkt från streamingplattformar utan dator.</p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <VideoCard
-        title="Numark Mixstream Pro+"
-        img="/images/dj/pp_DJ_small.png"
-        priceExcl={799}
-        priceSuffix="/dygn"
-        videos={["https://scenkonsult.se/wp-content/uploads/2026/01/Numark_Mixstream_Pro_Plus_202601.mp4"]}
-        bullets={["Standalone – ingen dator behövs","Amazon Music, Tidal, Beatport, SoundCloud, Serato","7\" touchskärm, DMX-utgång"]}
-      />
-
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_small.png" alt="Denon Prime GO+" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+  <!-- RECENSIONER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <h2 class="text-xl font-bold text-white mb-4">Så här säger kunder som bokat DJ</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {[
+        { text: "Hej Scenkonsult och tack, blev ju en riktigt lyckad kväll!", name: "Åsa P, Stockholm" },
+        { text: "DJ Måns gjorde kvällen till en succé och ingen ville lämna dansgolvet! Grymt smidigt och bra kommunikation hela vägen. Kan varmt rekommenderas!", name: "Charlotte A, Linköping" },
+        { text: "Tack för i Lördags, Allt var toppen! Så bra drag på dansgolvet.", name: "Jenny L, Stockholm" },
+        { text: "Riktigt professionella, gjorde min fest till succé!", name: "Roger L, Täby" },
+        { text: "Så värt att hyra in en DJ till festen, precis som krogen på 90-talet", name: "Jonas A, Stockholm" },
+      ].map(r => (
+        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-4">
+          <div class="flex gap-0.5 mb-2"><span class="text-brand-orange text-sm">★★★★★</span></div>
+          <p class="text-gray-300 text-sm italic mb-2">"{r.text}"</p>
+          <p class="text-gray-400 text-xs font-semibold">{r.name}</p>
         </div>
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-white text-sm">Denon Prime GO+</h3>
-            <div class="text-right shrink-0">
-              <span class="sk-price-incl text-brand-orange font-extrabold">{Math.round(999*1.25)} kr</span>
-              <span class="sk-price-excl hidden text-brand-orange font-extrabold">999 kr</span>
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
-          <p class="text-gray-400 text-xs mb-3">Bärbar, 4 tim batteridrift, Bluetooth. Amazon Music, Tidal, Beatport, SoundCloud Go+.</p>
-          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
-        </div>
-      </article>
-
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_large1.png" alt="Denon Prime 4+" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-white text-sm">Denon Prime 4+</h3>
-            <div class="text-right shrink-0">
-              <span class="sk-price-incl text-brand-orange font-extrabold">{Math.round(1899*1.25)} kr</span>
-              <span class="sk-price-excl hidden text-brand-orange font-extrabold">1 899 kr</span>
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
-          <p class="text-gray-400 text-xs mb-3">4 fristående deck, Stem-separation. Amazon Music, TIDAL, Beatport, Serato DJ.</p>
-          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
-        </div>
-      </article>
-
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_large2.png" alt="Rane System One" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-white text-sm">Rane System One</h3>
-            <div class="text-right shrink-0">
-              <span class="sk-price-incl text-brand-orange font-extrabold">{Math.round(2499*1.25)} kr</span>
-              <span class="sk-price-excl hidden text-brand-orange font-extrabold">2 499 kr</span>
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
-          <p class="text-gray-400 text-xs mb-3">Motoriserade tallrikar, vinylfeel + modern standalone. Serato DJ / Engine DJ.</p>
-          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
-        </div>
-      </article>
+      ))}
     </div>
   </section>
 
-  <!-- DJ-BORD -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6">Hyr DJ-bord</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_bord.png" alt="DJ-bord portabelt" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-white">DJ-bord, portabelt</h3>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold">80 kr</span><div class="text-gray-500 text-xs">/dygn exkl moms</div></div>
+  <!-- DECENNIER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <h2 class="text-2xl font-bold text-white mb-6">Musik per decennium</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {dj.decades.map((d, i) => {
+        const colors = ['#ff6b35','#e040fb','#00bcd4','#f06292','#7c4dff','#00e676'];
+        const color = colors[i % colors.length];
+        return (
+          <div class="bg-brand-navy border border-white/10 rounded-2xl p-5 hover:border-brand-orange/40 transition-colors">
+            <div class="text-4xl font-extrabold mb-3" style={`color: ${color}`}>{d.decade}</div>
+            <p class="text-gray-300 text-sm leading-relaxed mb-3">{d.history}</p>
+            <p class="text-gray-400 text-xs leading-relaxed mb-3 border-t border-white/10 pt-3">
+              <span class="text-gray-300 font-semibold">Artister: </span>{d.artists}
+            </p>
+            <p class="text-gray-500 text-xs italic">{d.ageGroup}</p>
           </div>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Material: Metall, hopfällbart</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 1000×480×(700–900) mm</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Vikt: 11 kg</li>
-          </ul>
-          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
-        </div>
-      </article>
-
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_bord2.png" alt="DJ-bord premium" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-white">DJ-bord, premium</h3>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold">200 kr</span><div class="text-gray-500 text-xs">/dygn exkl moms</div></div>
-          </div>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Aluminium/tyg med front- och sidopaneler</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 1203×605×1125 mm</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Vikt: 14 kg</li>
-          </ul>
-          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Boka</a>
-        </div>
-      </article>
+        );
+      })}
     </div>
   </section>
 
-  <!-- TEKNIKER -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6">Tekniker & Media</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_engineer.png" alt="Scenengineer" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-white">Scenengineer</h3>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold">952 kr</span><div class="text-gray-500 text-xs">/timme exkl moms</div></div>
+  <!-- HYR DJ-UTRUSTNING -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <h2 class="text-2xl font-bold text-white mb-6">HYR DJ-UTRUSTNING</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {dj.equipment.map(p => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden hover:border-brand-orange/40 transition-all flex flex-col">
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:4/3">
+            <img src={p.image} alt={p.alt} width="400" height="300" loading="lazy"
+              class="w-full h-full object-contain p-4" />
           </div>
-          <p class="text-gray-400 text-xs mb-3">Tekniker som styr ljud, ljus och bild under din spelning eller fest.</p>
-          <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Fråga om offert</a>
-        </div>
-      </article>
-
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-          <img src="/images/dj/pp_DJ_large2.png" alt="Media Editor – rörlig bild" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-bold text-white">Rörlig media-editor</h3>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold">952 kr</span><div class="text-gray-500 text-xs">/timme exkl moms</div></div>
+          <div class="p-5 flex flex-col flex-1">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <h3 class="text-white font-bold text-sm leading-snug">{p.name}</h3>
+              <div class="text-right shrink-0">
+                <span class="text-brand-orange font-extrabold text-lg">{p.price} kr</span>
+                <div class="text-gray-500 text-xs">{p.priceNote}</div>
+              </div>
+            </div>
+            <p class="text-gray-400 text-xs leading-relaxed mb-3 flex-1">{p.description}</p>
+            {p.includes && p.includes.length > 0 && (
+              <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 mb-4">
+                {p.includes.map(item => (
+                  <li class="flex gap-1.5"><span class="text-green-400">▸</span>{item}</li>
+                ))}
+              </ul>
+            )}
+            <a href="/kontakt/" class="mt-auto inline-block bg-brand-orange hover:bg-orange-500 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+              Boka
+            </a>
           </div>
-          <ul class="space-y-1 mb-3 text-xs text-gray-400 border-t border-white/10 pt-3">
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Fotograf (fast media) – 600 kr/tim</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Fotograf (rörligt media) – 792 kr/tim</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>AI-specialist – 1 592 kr/tim</li>
-          </ul>
-          <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">Fråga om offert</a>
         </div>
-      </article>
+      ))}
     </div>
   </section>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex flex-wrap gap-4">
-    <a href="/vara-tjanster/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">← Tillbaka till tjänster</a>
-    <a href="/bokningssida/" class="bg-brand-orange hover:bg-orange-500 text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Boka nu</a>
-    <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Fråga om offert</a>
-  </div>
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6">Vanliga frågor om DJ-uthyrning</h2>
+    <div class="space-y-3">
+      {dj.faq.map(f => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
+          <summary class="px-5 py-4 text-white font-semibold cursor-pointer text-sm hover:text-brand-orange transition-colors list-none flex justify-between items-center">
+            {f.q}
+            <span class="text-brand-orange text-lg">+</span>
+          </summary>
+          <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-3">
+            {f.a}
+          </div>
+        </details>
+      ))}
+    </div>
+  </section>
+
 </Layout>
