@@ -136,13 +136,22 @@ a { color: inherit; }
   border: 1px solid rgba(196,181,244,0.15);
   border-radius: 16px;
   padding: 1.5rem;
-  display: none;
+  display: flex;
   gap: 2rem;
   min-width: 520px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.5);
   z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, pointer-events 0s 2.5s;
+  transition-delay: 2.5s, 0s;
 }
-.nav-dropdown:hover .nav-dropdown-menu { display: flex; }
+.nav-dropdown:hover .nav-dropdown-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.15s ease;
+  transition-delay: 0s;
+}
 .nav-dd-col { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; }
 .nav-dd-heading {
   font-family: 'Space Grotesk', sans-serif;
