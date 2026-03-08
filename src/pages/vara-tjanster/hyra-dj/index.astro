@@ -78,12 +78,20 @@ import dj from '../../../data/dj.json';
                 <tr class={`border-b border-white/5 ${i % 2 === 0 ? '' : 'bg-white/5'}`}>
                   <td class="px-4 py-4 text-gray-300">{row.hours}</td>
                   <td class="px-4 py-4 text-center">
-                    <div class="text-white font-bold text-lg">{row.junior.toLocaleString('sv')} kr</div>
-                    <div class="text-gray-500 text-xs">{row.juniorInkl.toLocaleString('sv')} kr inkl moms</div>
+                    <div class="text-white font-bold text-lg">
+                      <span class="sk-price-excl">{row.junior.toLocaleString('sv')} kr</span>
+                      <span class="sk-price-incl hidden">{row.juniorInkl.toLocaleString('sv')} kr</span>
+                    </div>
+                    <div class="text-gray-500 text-xs sk-price-excl">exkl moms</div>
+                    <div class="text-gray-500 text-xs sk-price-incl hidden">inkl moms</div>
                   </td>
                   <td class="px-4 py-4 text-center">
-                    <div class="text-white font-bold text-lg">{row.senior.toLocaleString('sv')} kr</div>
-                    <div class="text-gray-500 text-xs">{row.seniorInkl.toLocaleString('sv')} kr inkl moms</div>
+                    <div class="text-white font-bold text-lg">
+                      <span class="sk-price-excl">{row.senior.toLocaleString('sv')} kr</span>
+                      <span class="sk-price-incl hidden">{row.seniorInkl.toLocaleString('sv')} kr</span>
+                    </div>
+                    <div class="text-gray-500 text-xs sk-price-excl">exkl moms</div>
+                    <div class="text-gray-500 text-xs sk-price-incl hidden">inkl moms</div>
                   </td>
                   <td class="px-4 py-4 text-center">
                     <div class="text-white font-bold text-lg italic">Offert</div>

@@ -36,9 +36,14 @@ const inclPrice = typeof price === 'number' ? Math.round(price * 1.25) : null;
         <meta itemprop="priceCurrency" content="SEK" />
         <meta itemprop="price" content={String(price)} />
         <meta itemprop="availability" content="https://schema.org/InStock" />
-        <span class="text-brand-orange font-extrabold text-xl" data-excl={typeof price === 'number' ? price : undefined} data-incl={inclPrice ?? undefined}>
-          {typeof price === 'number' ? `${price} kr` : price}
-        </span>
+        {typeof price === 'number' ? (
+          <>
+            <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{price.toLocaleString('sv')} kr</span>
+            <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{inclPrice!.toLocaleString('sv')} kr</span>
+          </>
+        ) : (
+          <span class="text-brand-orange font-extrabold text-xl">{price}</span>
+        )}
         <div class="text-gray-500 text-xs">{priceNote}</div>
       </div>
     </div>
@@ -51,9 +56,10 @@ const inclPrice = typeof price === 'number' ? Math.round(price * 1.25) : null;
         {quantityPrices.map(qp => (
           <div class="flex justify-between">
             <span class="text-gray-400">{qp.qty}</span>
-            <span class="text-white font-semibold" data-excl={qp.price} data-incl={Math.round(qp.price * 1.25)}>
-              {qp.price} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}
-            </span>
+            <span class="text-white font-semibold">
+                <span class="sk-price-excl">{qp.price.toLocaleString('sv')} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}</span>
+                <span class="sk-price-incl hidden">{Math.round(qp.price * 1.25).toLocaleString('sv')} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}</span>
+              </span>
           </div>
         ))}
       </div>

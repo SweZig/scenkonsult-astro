@@ -128,8 +128,14 @@ const {
     </div>
   </footer>
 
-  <script>
-    // Nav scroll behavior — mörk hela tiden, scrolled ger extra blur
+  <!-- VAT TOGGLE -->
+  <div id="sk-vat-toggle" aria-label="Momsvisning">
+    <span class="sk-vat-label">Visa priser</span>
+    <button id="sk-vat-excl" class="sk-vat-btn sk-vat-active" aria-pressed="true">Exkl. moms</button>
+    <button id="sk-vat-incl" class="sk-vat-btn" aria-pressed="false">Inkl. moms</button>
+  </div>
+
+  <script> — mörk hela tiden, scrolled ger extra blur
     const nav = document.getElementById('mainNav');
     function updateNav() {
       nav?.classList.toggle('scrolled', window.scrollY > 40);
@@ -162,6 +168,33 @@ const {
         mobileMenu?.classList.remove('open');
       });
     });
+
+    // ── VAT TOGGLE ────────────────────────────────────────────────
+    function applyVat(mode: 'excl' | 'incl') {
+      const showExcl = mode === 'excl';
+      document.querySelectorAll('.sk-price-excl').forEach(el => {
+        el.classList.toggle('hidden', !showExcl);
+      });
+      document.querySelectorAll('.sk-price-incl').forEach(el => {
+        el.classList.toggle('hidden', showExcl);
+      });
+      // Update toggle button states
+      const btnExcl = document.getElementById('sk-vat-excl');
+      const btnIncl = document.getElementById('sk-vat-incl');
+      if (btnExcl && btnIncl) {
+        btnExcl.classList.toggle('sk-vat-active', showExcl);
+        btnIncl.classList.toggle('sk-vat-active', !showExcl);
+      }
+      try { localStorage.setItem('sk-vat', mode); } catch {}
+    }
+
+    // Apply saved or default preference on load
+    let savedVat: 'excl' | 'incl' = 'excl';
+    try { savedVat = (localStorage.getItem('sk-vat') as 'excl' | 'incl') || 'excl'; } catch {}
+    applyVat(savedVat);
+
+    document.getElementById('sk-vat-excl')?.addEventListener('click', () => applyVat('excl'));
+    document.getElementById('sk-vat-incl')?.addEventListener('click', () => applyVat('incl'));
   </script>  <InlineEditor />
 
 </body>

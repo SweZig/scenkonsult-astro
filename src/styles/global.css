@@ -611,3 +611,56 @@ footer { background: #0a0820; padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 5vw,
 .footer-brand img { width: auto; height: auto; max-height: 68px; display: block; }
 .id-logo img { max-height: 80px; }
 .footer-brand img { max-height: 52px; }
+
+/* ── VAT TOGGLE ─────────────────────────────────────────────────── */
+#sk-vat-toggle {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(30, 24, 80, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 9999px;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.sk-vat-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+  padding-right: 0.25rem;
+}
+.sk-vat-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  white-space: nowrap;
+}
+.sk-vat-btn:hover {
+  color: rgba(255,255,255,0.8);
+}
+.sk-vat-btn.sk-vat-active {
+  background: #c4b5f4;
+  color: #0c0a24;
+  font-weight: 700;
+}
+@media (max-width: 480px) {
+  #sk-vat-toggle {
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
