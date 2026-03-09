@@ -84,17 +84,24 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner &amp; tillbehör</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {[
-        { name:"Handmikrofon",                desc:"Inkl 6 m XLR-kabel",               price:80,   img:"/images/ljud/pp_ljud_mik01.png" },
-        { name:"Instrumentmikrofon",          desc:"För trumma, blås, gitarr",          price:64,   img:"/images/ljud/pp_ljud_mik02.png" },
-        { name:"Trådlös handmikrofon",        desc:"Ca 30 m räckvidd",                 price:400,  img:"/images/ljud/pp_ljud_mik05.png" },
-        { name:"Trådlöst headset",            desc:"Ca 30 m räckvidd",                 price:480,  img:"/images/ljud/pp_ljud_mik06.png" },
-        { name:"Trådlöst mikrofonset 8 kan.", desc:"4 hand + 4 headset, antennsplitter",price:2999, img:"/images/ljud/pp_ljud_mik04.png" },
-        { name:"Mikrofonstativ",              desc:"Justerbar höjd",                   price:60,   img:"/images/ljud/pp_ljud_tillbehor06.png" },
-        { name:"XLR-kablar",                  desc:"1–15 m, fr 40 kr",                 price:40,   img:"/images/ljud/pp_ljud_tillbehor07.png" },
-        { name:"Bluetooth-mottagare",         desc:"Koppla in telefon/dator trådlöst", price:80,   img:"/images/ljud/pp_ljud_tillbehor04.png" },
-        { name:"Stagebox 12-kanal 15m",       desc:"XLR multicore",                    price:249,  img:"/images/ljud/pp_ljud_tillbehor08.png" },
-        { name:"DI-box, mono",                desc:"Instrument till XLR",              price:49,   img:"/images/ljud/pp_ljud_tillbehor09.png" },
-        { name:"Monitorhögtalare 12″",        desc:"Scen-monitor",                     price:199,  img:"/images/ljud/pp_ljud_tillbehor10.png" },
+        { name:"Handmikrofon",                    desc:"Inkl 6 m XLR-kabel",                 price:80,   img:"/images/ljud/pp_ljud_mik01.png" },
+        { name:"Instrumentmikrofon",              desc:"Gitarr, blås m.m., inkl XLR",        price:64,   img:"/images/ljud/pp_ljud_mik02.png" },
+        { name:"Instrumentmikrofon, blås",        desc:"Blåsinstrument, inkl XLR",           price:80,   img:"/images/ljud/pp_ljud_mik02.png" },
+        { name:"Instrumentmikrofoner, slagverk",  desc:"Trumset, inkl XLR-kablar",           price:480,  img:"/images/ljud/pp_ljud_mik02.png" },
+        { name:"Trådlös handmikrofon",            desc:"Ca 30 m räckvidd",                   price:400,  img:"/images/ljud/pp_ljud_mik05.png" },
+        { name:"Trådlöst headset",                desc:"Ca 30 m räckvidd",                   price:480,  img:"/images/ljud/pp_ljud_mik06.png" },
+        { name:"Trådlöst IEM",                    desc:"In-ear monitor, ca 30 m",            price:480,  img:"/images/ljud/pp_ljud_mik06.png" },
+        { name:"Trådlöst mikrofonset 8 kan.",     desc:"4 hand + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik04.png" },
+        { name:"DI-box (passiv)",                 desc:"2-kan, XLR ut / 6,35 mm in",         price:160,  img:"/images/ljud/pp_ljud_tillbehor09.png" },
+        { name:"DI-box (aktiv)",                  desc:"1-kan, XLR ut / 6,35 mm in, 9V",    price:240,  img:"/images/ljud/pp_ljud_tillbehor09.png" },
+        { name:"Mikrofonstativ",                  desc:"Justerbar höjd",                     price:60,   img:"/images/ljud/pp_ljud_tillbehor06.png" },
+        { name:"XLR-kablar",                      desc:"1–15 m, fr 40 kr",                  price:40,   img:"/images/ljud/pp_ljud_tillbehor07.png" },
+        { name:"XLR Multikabel 15 m, 6 kan.",    desc:"Stagebox, 6 kanaler",                price:276,  img:"/images/ljud/pp_ljud_tillbehor08.png" },
+        { name:"XLR Multikabel 25 m, 8 kan.",    desc:"Stagebox, 8 kanaler",                price:384,  img:"/images/ljud/pp_ljud_tillbehor08.png" },
+        { name:"XLR Multikabel 15 m, 24+8 kan.", desc:"Stagebox stor, 24+8 kanaler",        price:632,  img:"/images/ljud/pp_ljud_tillbehor08.png" },
+        { name:"Bluetooth-mottagare",             desc:"Trådlös anslutning till PA",         price:100,  img:"/images/ljud/pp_ljud_tillbehor04.png" },
+        { name:"Bluetooth-mottagare pro",         desc:"Längre räckvidd",                    price:140,  img:"/images/ljud/pp_ljud_tillbehor04.png" },
+        { name:"Monitorhögtalare 12″",           desc:"Scen-monitor för artister",           price:199,  img:"/images/ljud/pp_ljud_tillbehor10.png" },
       ].map(item => (
         <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 flex flex-col gap-2 transition-colors">
           <div class="aspect-square bg-brand-dark rounded-lg overflow-hidden">
@@ -114,7 +121,7 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
   <!-- EL-TILLBEHÖR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
       {[
         { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",             excl:20,  desc:"Jordat, 3–5 uttag, 16A" },
         { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m",            excl:48,  desc:"1-fas, 16A, IP44" },
