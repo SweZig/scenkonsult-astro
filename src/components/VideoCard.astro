@@ -85,16 +85,7 @@ const vcId = `vc-${Math.random().toString(36).slice(2,7)}`;
   <!-- Info -->
   <div class="p-5 flex flex-col flex-1">
     {tag && <div class="text-brand-orange text-[10px] font-semibold uppercase tracking-wider mb-1">{tag}</div>}
-    <div class="flex justify-between items-start mb-3 gap-2">
-      <h3 class="font-bold text-white text-sm leading-snug">{title}</h3>
-      <div class="text-right shrink-0">
-        <div>
-          <span class="sk-price-excl text-brand-orange font-extrabold">{priceExcl.toLocaleString('sv')} kr</span>
-          <span class="sk-price-incl hidden text-brand-orange font-extrabold">{Math.round(priceExcl*1.25).toLocaleString('sv')} kr</span>
-        </div>
-        <div class="text-gray-500 text-[10px]">{priceSuffix}</div>
-      </div>
-    </div>
+    <h3 class="font-bold text-white text-sm leading-snug mb-3">{title}</h3>
 
     {rows.length > 0 && (
       <div class="border-t border-white/10 pt-3 mb-3 space-y-2">
@@ -112,14 +103,20 @@ const vcId = `vc-${Math.random().toString(36).slice(2,7)}`;
     )}
 
     {bullets.length > 0 && (
-      <ul class="space-y-1 border-t border-white/10 pt-3 mb-4 flex-1">
+      <ul class="space-y-1 border-t border-white/10 pt-3 flex-1">
         {bullets.map(b => (
           <li class="flex gap-1.5 text-gray-400 text-xs"><span class="text-green-400 shrink-0">▸</span>{b}</li>
         ))}
       </ul>
     )}
 
-    <div class="mt-auto flex items-center gap-2 pt-2">
+    <!-- Bottom bar: pris vänster, knapp höger -->
+    <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-3 gap-3">
+      <div class="shrink-0">
+        <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{priceExcl.toLocaleString('sv')} kr</span>
+        <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(priceExcl*1.25).toLocaleString('sv')} kr</span>
+        <div class="text-gray-500 text-[10px]">{priceSuffix}</div>
+      </div>
       <CartButton id={cartId} name={title} price={priceExcl} priceNote={`/${priceSuffix.replace(/^\//, '')}`} category={category} image={img} size="sm" label="Lägg i varukorg" />
     </div>
   </div>

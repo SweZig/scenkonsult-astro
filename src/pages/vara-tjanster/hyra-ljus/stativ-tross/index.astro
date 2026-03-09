@@ -12,7 +12,7 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
   <CategoryHero
     h1="Stativ & Tross"
     h1Accent="Stockholm"
-    intro="Hyr ljusstativ med T-bar, vevstativ, trosstorn och kompletta trossbågar i Stockholm. Allt som behövs för att rigga upp ljuseffekter – från enkla stativ till 6 m breda trossbågar. Leverans i hela Storstockholm."
+    intro="Stativ och tross är grunden för alla häftiga ljusupplevelser. Hyr ljusstativ med T-bar, vevstativ, trosstorn och kompletta trossbågar i Stockholm – från 40 kr/dygn. Välj stativ och tross först för att se hur många effekter du får plats med, välj sedan vilka armaturer du vill ha. Allt från enkla stativ till 6 m breda trossbågar för konserter. Leverans i hela Storstockholm."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/" },
@@ -24,8 +24,6 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
       "Passar alla effekter",
       "Leverans i Storstockholm",
     ]}
-    bannerImage="/images/ljus/plugg_t-stativ-tross.png"
-    bannerAlt="Ljusstativ och trosstorn"
     priceFrom={40}
   />
 
@@ -40,21 +38,24 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
         { img:"/images/ljus/pp_ljus_stativ01.png", title:"Stativ T-bar 900 mm ★ Premium",excl:60,desc:"Premiumstativ med 900 mm T-bar. Upp till 2,5 m höjd.", specs:["T-bar: 900 mm","Höjd: 1,10–2,50 m","Max last: 30 kg, Vikt: 5,8 kg"] },
         { img:"/images/ljus/pp_ljus_stativ02.png", title:"Vevstativ T-bar 1200 mm",  excl:120, desc:"Vevstativ för hög monteringshöjd upp till 3,7 m.", specs:["T-bar: 1 200 mm","Höjd: 1,70–3,70 m","Max last: 35 kg, Vikt: 20 kg"] },
       ].map(p => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full">
           <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
             <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
           </div>
-          <div class="p-4">
-            <div class="flex justify-between items-start mb-2">
-              <h2 class="font-bold text-white text-base">{p.title}</h2>
-              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg shrink-0">{Math.round(p.excl*1.25)} kr</span>
-              <span class="sk-price-excl text-brand-orange font-extrabold text-lg shrink-0">{p.excl} kr</span>
-            </div>
+          <div class="p-4 flex flex-col flex-1">
+            <h2 class="font-bold text-white text-base mb-2">{p.title}</h2>
             <p class="text-gray-400 text-xs mb-3">{p.desc}</p>
             <ul class="space-y-1 mb-4 text-xs text-gray-400">
               {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
             </ul>
-            <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
+            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2 mt-auto">
+              <div class="shrink-0">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.excl} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.excl*1.25)} kr</span>
+                <div class="text-gray-500 text-[10px]">/dygn</div>
+              </div>
+              <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
+            </div>
           </div>
         </article>
       ))}
@@ -70,20 +71,23 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
         { img:"/images/ljus/pp_ljus_tross03.png", title:"Trosstorn 1,5 m",excl:360,specs:["4-punkts tross, 50 mm tub","Höjd: 1,5 m","Max last: 50 kg, Vikt: 18 kg"] },
         { img:"/images/ljus/pp_ljus_tross04.png", title:"Trosstorn 2,0 m",excl:400,specs:["4-punkts tross, 50 mm tub","Höjd: 2,0 m","Max last: 50 kg, Vikt: 20 kg"] },
       ].map(p => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full">
           <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
             <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
           </div>
-          <div class="p-4">
-            <div class="flex justify-between items-start mb-2">
-              <h2 class="font-bold text-white text-base">{p.title}</h2>
-              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg shrink-0">{Math.round(p.excl*1.25)} kr</span>
-              <span class="sk-price-excl text-brand-orange font-extrabold text-lg shrink-0">{p.excl} kr</span>
-            </div>
+          <div class="p-4 flex flex-col flex-1">
+            <h2 class="font-bold text-white text-base mb-2">{p.title}</h2>
             <ul class="space-y-1 mb-4 text-xs text-gray-400">
               {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
             </ul>
-            <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
+            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2 mt-auto">
+              <div class="shrink-0">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.excl} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.excl*1.25)} kr</span>
+                <div class="text-gray-500 text-[10px]">/dygn</div>
+              </div>
+              <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
+            </div>
           </div>
         </article>
       ))}
@@ -101,21 +105,24 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
         { img:"/images/ljus/pp_ljus_tross08.png",  title:"Trossbåge 3,0×6,0 m",excl:2100, desc:"Byggs 3,0 m hög och 6,0 m bred. Upp till 24 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 3,0 m, Bredd: 6,0 m","Max last: 75 kg, Vikt: 60 kg"] },
         { img:"/images/ljus/pp_ljus_tross09.png",  title:"Trossvägg 2,5×2,0 m",excl:2100, desc:"Byggs 2,5 m hög och 2,0 m bred. Passar 8–16 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 2,5 m, Bredd: 2,0 m","Max last: 75 kg, Vikt: 60 kg"] },
       ].map(p => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full">
           <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
             <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
           </div>
-          <div class="p-4">
-            <div class="flex justify-between items-start mb-2">
-              <h2 class="font-bold text-white text-base">{p.title}</h2>
-              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg shrink-0">{Math.round(p.excl*1.25)} kr</span>
-              <span class="sk-price-excl text-brand-orange font-extrabold text-lg shrink-0">{p.excl} kr</span>
-            </div>
+          <div class="p-4 flex flex-col flex-1">
+            <h2 class="font-bold text-white text-base mb-2">{p.title}</h2>
             <p class="text-gray-400 text-xs mb-3">{p.desc}</p>
             <ul class="space-y-1 mb-4 text-xs text-gray-400">
               {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
             </ul>
-            <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
+            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2 mt-auto">
+              <div class="shrink-0">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.excl} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.excl*1.25)} kr</span>
+                <div class="text-gray-500 text-[10px]">/dygn</div>
+              </div>
+              <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
+            </div>
           </div>
         </article>
       ))}
