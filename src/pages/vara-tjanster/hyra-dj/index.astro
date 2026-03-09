@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
+import CartButton from '../../../components/CartButton.astro';
 import dj from '../../../data/dj.json';
 ---
 <Layout
@@ -19,16 +20,33 @@ import dj from '../../../data/dj.json';
     ]}
     badges={[
       "6 professionella DJs",
-      "DJ-controller från 799 kr/dygn",
-      "DJ-tjänst från 1 999 kr/2 tim",
-      "Alla genrer"
+      "Alla genrer",
+      "70-tal till idag"
     ]}
     priceFrom={799}
     priceSuffix="/dygn"
   />
 
+  <!-- USP-rad med moms-toggle — under hero, ovanför innehåll -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-6">
+    <div class="flex flex-wrap gap-3 text-xs text-gray-300">
+      <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
+        🎛️ DJ-controller från
+        <span class="sk-price-excl font-semibold text-brand-orange">799 kr</span>
+        <span class="sk-price-incl hidden font-semibold text-brand-orange">999 kr</span>
+        /dygn
+      </span>
+      <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
+        🎤 DJ-tjänst från
+        <span class="sk-price-excl font-semibold text-brand-orange">1 999 kr</span>
+        <span class="sk-price-incl hidden font-semibold text-brand-orange">2 499 kr</span>
+        /2 tim
+      </span>
+    </div>
+  </div>
+
   <!-- HYR PROFESSIONELL DJ: bild + prisbord -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
       <!-- VÄNSTER: DJ-bild + info -->
@@ -53,7 +71,7 @@ import dj from '../../../data/dj.json';
         <h2 class="text-2xl font-bold text-white mb-2">HYR PROFESSIONELL DJ</h2>
         <p class="text-gray-300 text-sm mb-5">
           Vi har 6 professionella DJs med mångårig erfarenhet från nattklubbar, bröllop, studentfester
-          och företagsevent. Vi spelar 70/80/90/00/10/20-tals musik i alla genre – Disco, R&B, Dance,
+          och företagsevent. Vi spelar 70/80/90/00/10/20-tals musik i alla genre – Disco, R&amp;B, Dance,
           House, Rock, Schlager, Hip-Hop, Soul, Italo Disco, Euro, EDM m.m.
           Vi utformar kvällen efter önskemål i samråd med kunden.
         </p>
@@ -62,39 +80,53 @@ import dj from '../../../data/dj.json';
           <br />¹Digital utrustning kräver fungerande internetanslutning.
         </p>
 
-        <!-- PRISBORD -->
+        <!-- PRISBORD med CartButton per rad -->
         <div class="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-white/10">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-white/10">
-                <th class="text-left px-4 py-3 text-gray-400 font-semibold">Speltid</th>
-                <th class="text-center px-4 py-3 text-gray-300 font-semibold">Junior DJ</th>
-                <th class="text-center px-4 py-3 text-gray-300 font-semibold">Senior DJ</th>
-                <th class="text-center px-4 py-3 text-gray-300 font-semibold">PRO DJ</th>
+                <th class="text-left px-3 py-3 text-gray-400 font-semibold text-xs">Speltid</th>
+                <th class="text-center px-2 py-3 text-gray-300 font-semibold text-xs">Junior DJ</th>
+                <th class="text-center px-2 py-3 text-gray-300 font-semibold text-xs">Senior DJ</th>
+                <th class="text-center px-2 py-3 text-gray-300 font-semibold text-xs">PRO DJ</th>
               </tr>
             </thead>
             <tbody>
               {dj.djService.priceTable.map((row, i) => (
                 <tr class={`border-b border-white/5 ${i % 2 === 0 ? '' : 'bg-white/5'}`}>
-                  <td class="px-4 py-4 text-gray-300">{row.hours}</td>
-                  <td class="px-4 py-4 text-center">
-                    <div class="text-white font-bold text-lg">
-                      <span class="sk-price-excl">{row.junior.toLocaleString('sv')} kr</span>
-                      <span class="sk-price-incl hidden">{row.juniorInkl.toLocaleString('sv')} kr</span>
+                  <td class="px-3 py-3 text-gray-300 text-xs font-medium whitespace-nowrap">{row.hours}</td>
+                  <!-- Junior -->
+                  <td class="px-2 py-3">
+                    <div class="flex flex-col items-center gap-1.5">
+                      <div class="leading-none text-center">
+                        <div class="text-white font-bold text-sm">
+                          <span class="sk-price-excl">{row.junior.toLocaleString('sv')} kr</span>
+                          <span class="sk-price-incl hidden">{row.juniorInkl.toLocaleString('sv')} kr</span>
+                        </div>
+                        <div class="text-gray-500 text-[10px] sk-price-excl">exkl moms</div>
+                        <div class="text-gray-500 text-[10px] sk-price-incl hidden">inkl moms</div>
+                      </div>
+                      <CartButton id={`dj-junior-${row.hours.replace(' ','')}`} name={`DJ Junior – ${row.hours}`} price={row.junior} category="DJ-tjänst" size="sm" iconOnly={true} />
                     </div>
-                    <div class="text-gray-500 text-xs sk-price-excl">exkl moms</div>
-                    <div class="text-gray-500 text-xs sk-price-incl hidden">inkl moms</div>
                   </td>
-                  <td class="px-4 py-4 text-center">
-                    <div class="text-white font-bold text-lg">
-                      <span class="sk-price-excl">{row.senior.toLocaleString('sv')} kr</span>
-                      <span class="sk-price-incl hidden">{row.seniorInkl.toLocaleString('sv')} kr</span>
+                  <!-- Senior -->
+                  <td class="px-2 py-3">
+                    <div class="flex flex-col items-center gap-1.5">
+                      <div class="leading-none text-center">
+                        <div class="text-white font-bold text-sm">
+                          <span class="sk-price-excl">{row.senior.toLocaleString('sv')} kr</span>
+                          <span class="sk-price-incl hidden">{row.seniorInkl.toLocaleString('sv')} kr</span>
+                        </div>
+                        <div class="text-gray-500 text-[10px] sk-price-excl">exkl moms</div>
+                        <div class="text-gray-500 text-[10px] sk-price-incl hidden">inkl moms</div>
+                      </div>
+                      <CartButton id={`dj-senior-${row.hours.replace(' ','')}`} name={`DJ Senior – ${row.hours}`} price={row.senior} category="DJ-tjänst" size="sm" iconOnly={true} />
                     </div>
-                    <div class="text-gray-500 text-xs sk-price-excl">exkl moms</div>
-                    <div class="text-gray-500 text-xs sk-price-incl hidden">inkl moms</div>
                   </td>
-                  <td class="px-4 py-4 text-center">
-                    <div class="text-white font-bold text-lg italic">Offert</div>
+                  <!-- PRO -->
+                  <td class="px-2 py-3 text-center">
+                    <div class="text-white font-bold text-sm italic mb-1">Offert</div>
+                    <a href="/kontakt/" class="text-brand-orange text-[10px] hover:underline">Kontakta oss</a>
                   </td>
                 </tr>
               ))}
@@ -102,7 +134,7 @@ import dj from '../../../data/dj.json';
           </table>
         </div>
 
-        <a href="/kontakt/" class="mt-5 inline-block bg-brand-orange hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+        <a href="/kontakt/" class="mt-5 inline-block bg-brand-orange hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm">
           Boka DJ
         </a>
       </div>
@@ -122,13 +154,11 @@ import dj from '../../../data/dj.json';
           </div>
         ))}
       </div>
-      <!-- Nav-pilar -->
       <button onclick="document.getElementById('dj-carousel').scrollBy({left:-document.getElementById('dj-carousel').offsetWidth, behavior:'smooth'})"
         class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 bg-brand-dark/80 hover:bg-brand-navy border border-white/20 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition-colors hidden sm:flex">‹</button>
       <button onclick="document.getElementById('dj-carousel').scrollBy({left:document.getElementById('dj-carousel').offsetWidth, behavior:'smooth'})"
         class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 bg-brand-dark/80 hover:bg-brand-navy border border-white/20 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition-colors hidden sm:flex">›</button>
     </div>
-    <!-- Dots -->
     <div class="flex justify-center gap-2 mt-3">
       {dj.djPhotos.map((_, i) => (
         <button onclick={`const c=document.getElementById('dj-carousel');c.scrollTo({left:c.offsetWidth*${i},behavior:'smooth'})`}
@@ -174,7 +204,7 @@ import dj from '../../../data/dj.json';
     </div>
   </section>
 
-  <!-- HYR DJ-UTRUSTNING -->
+  <!-- HYR DJ-UTRUSTNING — ny bottom-bar layout med CartButton -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <h2 class="text-2xl font-bold text-white mb-6">HYR DJ-UTRUSTNING</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -185,24 +215,24 @@ import dj from '../../../data/dj.json';
               class="w-full h-full object-contain p-4" />
           </div>
           <div class="p-5 flex flex-col flex-1">
-            <div class="flex items-start justify-between gap-2 mb-3">
-              <h3 class="text-white font-bold text-sm leading-snug">{p.name}</h3>
-              <div class="text-right shrink-0">
-                <span class="text-brand-orange font-extrabold text-lg">{p.price} kr</span>
-                <div class="text-gray-500 text-xs">{p.priceNote}</div>
-              </div>
-            </div>
+            <h3 class="text-white font-bold text-sm leading-snug mb-2">{p.name}</h3>
             <p class="text-gray-400 text-xs leading-relaxed mb-3 flex-1">{p.description}</p>
             {p.includes && p.includes.length > 0 && (
-              <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 mb-4">
+              <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 mb-3">
                 {p.includes.map(item => (
                   <li class="flex gap-1.5"><span class="text-green-400">▸</span>{item}</li>
                 ))}
               </ul>
             )}
-            <a href="/kontakt/" class="mt-auto inline-block bg-brand-orange hover:bg-orange-500 text-white text-center px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
-              Boka
-            </a>
+            <!-- Bottom-bar: pris vänster, CartButton höger — samma som ljud/ljus -->
+            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-3 mt-auto">
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price * 1.25)} kr</span>
+                <div class="text-gray-500 text-xs">{p.priceNote}</div>
+              </div>
+              <CartButton id={`dj-utr-${p.slug}`} name={p.name} price={p.price} category="DJ-utrustning" image={p.image} size="sm" label="Lägg i varukorg" />
+            </div>
           </div>
         </div>
       ))}
