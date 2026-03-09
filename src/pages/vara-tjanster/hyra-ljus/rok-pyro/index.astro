@@ -2,6 +2,7 @@
 import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
 import CartButton from '../../../../components/CartButton.astro';
+import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import VideoCard from '../../../../components/VideoCard.astro';
 ---
 <Layout
@@ -141,15 +142,7 @@ import VideoCard from '../../../../components/VideoCard.astro';
         { img:"/images/ljus/pp_ljus_tradlos02.png",     name:"DMX Trådlös extra sändare",      excl:80  },
         { img:"/images/ljus/pp_ljus_tradlos03.png",     name:"DMX Trådlös extra mottagare",    excl:80  },
       ].map(t => (
-        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
-          <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
-            <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
-          <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
-          <span class="text-gray-500 text-[9px]"> /dygn</span>
-        </div>
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="DMX-tillbehör" />
       ))}
     </div>
   </section>
@@ -171,15 +164,7 @@ import VideoCard from '../../../../components/VideoCard.astro';
         { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",excl:320 },
         { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",      excl:80  },
       ].map(t => (
-        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
-          <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
-            <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
-          <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
-          <span class="text-gray-500 text-[9px]"> /dygn</span>
-        </div>
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="El-tillbehör" />
       ))}
     </div>
   </section>

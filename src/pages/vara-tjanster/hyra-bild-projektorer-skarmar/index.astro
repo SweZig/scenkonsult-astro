@@ -3,6 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
 import Price from '../../../components/Price.astro';
 import CartButton from '../../../components/CartButton.astro';
+import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 ---
 <Layout
   title="Hyr Projektor & Storbildsskärm Stockholm – LED-vägg & Trailerscen | Scenkonsult"
@@ -201,21 +202,7 @@ import CartButton from '../../../components/CartButton.astro';
         { img:"/images/bild/pp_bild_23-skarm.png",        name:"Scenmonitor 23″",    excl:480, desc:"Full HD IPS, VESA-fäste" },
         { img:"/images/bild/pp_bild_USB-clicker.png",     name:"USB-clicker",         excl:60,  desc:"PowerPoint-fjärr, laser pointer" },
       ].map(t => (
-        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center flex flex-col">
-          <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
-            <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
-          <p class="text-gray-500 text-[9px] leading-tight mb-0.5 flex-1">{t.desc}</p>
-          <div class="mt-1">
-            <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
-            <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-            <span class="text-gray-500 text-[9px]">/dygn</span>
-          </div>
-          <div class="mt-1 flex justify-center">
-            <CartButton id={`bild-acc-${t.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={t.name} price={t.excl} category="Projektor tillbehör" image={t.img} size="sm" iconOnly={true} />
-          </div>
-        </div>
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="Projektor tillbehör" />
       ))}
     </div>
   </section>
@@ -234,15 +221,7 @@ import CartButton from '../../../components/CartButton.astro';
         { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas", excl:320 },
         { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",       excl:80  },
       ].map(t => (
-        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
-          <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
-            <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
-          <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
-          <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="text-gray-500 text-[9px]">/dygn</span>
-        </div>
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="El-tillbehör" />
       ))}
     </div>
   </section>

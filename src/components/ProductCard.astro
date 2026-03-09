@@ -1,6 +1,7 @@
 ---
 // ProductCard.astro
 import CartButton from './CartButton.astro';
+import Price from './Price.astro';
 interface Props {
   id?: string;
   name: string;
@@ -14,13 +15,15 @@ interface Props {
   videoSrc?: string;
   quantityPrices?: { qty: string; price: number }[];
   wide?: boolean;
+  category?: string;
 }
-const { id, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false } = Astro.props;
+const { id, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false, category = 'Produkt' } = Astro.props;
 const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-const cartCategory = 'Produkt';
-const inclPrice = typeof price === 'number' ? Math.round(price * 1.25) : null;
 ---
-<article class={`bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group ${wide ? 'lg:col-span-2' : ''}`} itemscope itemtype="https://schema.org/Product">
+<article
+  class={`bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col ${wide ? 'lg:col-span-2' : ''}`}
+  itemscope itemtype="https://schema.org/Product"
+>
   {image && (
     <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
       <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy"
@@ -33,56 +36,53 @@ const inclPrice = typeof price === 'number' ? Math.round(price * 1.25) : null;
     </div>
   )}
   <div class="p-5 flex flex-col flex-1">
-    <!-- Price badge -->
-    <div class="flex items-start justify-between gap-3 mb-3">
-      <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors leading-tight" itemprop="name">{name}</h2>
-      <div class="shrink-0 text-right" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-        <meta itemprop="priceCurrency" content="SEK" />
-        <meta itemprop="price" content={String(price)} />
-        <meta itemprop="availability" content="https://schema.org/InStock" />
-        {typeof price === 'number' ? (
-          <>
-            <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{price.toLocaleString('sv')} kr</span>
-            <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{inclPrice!.toLocaleString('sv')} kr</span>
-          </>
-        ) : (
-          <span class="text-brand-orange font-extrabold text-xl">{price}</span>
-        )}
-        <div class="text-gray-500 text-xs">{priceNote}</div>
-      </div>
-    </div>
+
+    <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors leading-tight mb-1" itemprop="name">{name}</h2>
 
     {persons && <p class="text-brand-orange text-xs font-semibold mb-2">{persons}</p>}
-    <p class="text-gray-400 text-sm leading-relaxed mb-4" itemprop="description">{description}</p>
+    <p class="text-gray-400 text-sm leading-relaxed mb-3" itemprop="description">{description}</p>
 
     {quantityPrices && quantityPrices.length > 0 && (
-      <div class="bg-brand-dark/60 rounded-xl p-3 mb-4 text-xs space-y-1">
+      <div class="bg-brand-dark/60 rounded-xl p-3 mb-3 text-xs space-y-1">
         {quantityPrices.map(qp => (
           <div class="flex justify-between">
             <span class="text-gray-400">{qp.qty}</span>
             <span class="text-white font-semibold">
-                <span class="sk-price-excl">{qp.price.toLocaleString('sv')} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}</span>
-                <span class="sk-price-incl hidden">{Math.round(qp.price * 1.25).toLocaleString('sv')} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}</span>
-              </span>
+              <span class="sk-price-excl">{qp.price.toLocaleString('sv')} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}</span>
+              <span class="sk-price-incl hidden">{Math.round(qp.price * 1.25).toLocaleString('sv')} kr{priceNote !== "/dygn" ? priceNote : " / dygn"}</span>
+            </span>
           </div>
         ))}
       </div>
     )}
 
     {specs && specs.length > 0 && (
-      <ul class="space-y-1 mb-4 border-t border-white/10 pt-3 flex-1">
+      <ul class="space-y-1 border-t border-white/10 pt-3 flex-1">
         {specs.map(s => (
           <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0 mt-0.5">▸</span><span>{s}</span></li>
         ))}
       </ul>
     )}
 
-    <div class="mt-auto pt-2">
+    <!-- Scen-style bottom bar: pris vänster, knapp höger -->
+    <div class="flex items-center justify-between border-t border-white/10 pt-4 mt-auto gap-3" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+      <meta itemprop="priceCurrency" content="SEK" />
+      <meta itemprop="price" content={String(price)} />
+      <meta itemprop="availability" content="https://schema.org/InStock" />
       {typeof price === 'number' ? (
-        <CartButton id={cartId} name={name} price={price} priceNote={priceNote} category={cartCategory} image={image ?? ''} size="md" />
+        <>
+          <span class="text-brand-orange font-extrabold text-xl shrink-0">
+            <Price amount={price} suffix={priceNote} size="xl" />
+          </span>
+          <CartButton id={cartId} name={name} price={price} priceNote={priceNote} category={category} image={image ?? ''} size="md" />
+        </>
       ) : (
-        <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Boka</a>
+        <>
+          <span class="text-brand-orange font-extrabold text-xl">{price}</span>
+          <a href="/bokningssida/" class="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold px-4 py-2 text-sm rounded-lg whitespace-nowrap transition-colors">Boka</a>
+        </>
       )}
     </div>
+
   </div>
 </article>

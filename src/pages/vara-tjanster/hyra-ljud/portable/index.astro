@@ -4,6 +4,7 @@ import CategoryHero from '../../../../components/CategoryHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import Price from '../../../../components/Price.astro';
 import CartButton from '../../../../components/CartButton.astro';
+import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 ---
 <Layout
   title="Hyra Portabelt Ljud Stockholm – Batteridrivet PA-system | Scenkonsult"
@@ -131,16 +132,7 @@ import CartButton from '../../../../components/CartButton.astro';
         { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas", excl:320, desc:"32A 3-fas till 1-fas" },
         { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",       excl:80,  desc:"Kabelramp, 2 kanaler" },
       ].map(t => (
-        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
-          <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
-            <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
-          <p class="text-gray-400 text-[9px] leading-tight mb-0.5">{t.desc}</p>
-          <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
-          <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="text-gray-400 text-[9px]">/dygn</span>
-        </div>
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" />
       ))}
     </div>
   </section>
