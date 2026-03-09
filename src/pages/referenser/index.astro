@@ -143,6 +143,36 @@ const pageSchema = {
     </div>
   </header>
 
+  <!-- Logobanner -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white mb-2">De litar på oss</h2>
+      <p class="text-gray-400">Ett urval av de organisationer vi levererat till.</p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      {[
+        { file: "logo_ica.svg", name: "ICA Sverige" },
+        { file: "logo_hornbach.svg", name: "Hornbach" },
+        { file: "logo_abg.svg", name: "ABG Sundal Collier" },
+        { file: "logo_houdini.svg", name: "Houdini Sportswear" },
+        { file: "logo_mdu.svg", name: "Mälardalens Universitet" },
+        { file: "logo_hacksaw.svg", name: "Hacksaw Studios" },
+        { file: "logo_oddfellow.svg", name: "Odd Fellow" },
+        { file: "logo_uf.svg", name: "Ung Företagsamhet" },
+      ].map((logo) => (
+        <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/30 rounded-xl overflow-hidden transition-all group flex items-center justify-center p-1" style="aspect-ratio:13/5">
+          <img
+            src={`/images/kunder/${logo.file}`}
+            alt={logo.name}
+            title={logo.name}
+            class="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+            loading="lazy"
+          />
+        </div>
+      ))}
+    </div>
+  </section>
+
   <!-- Event-galleri -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="mb-8">
