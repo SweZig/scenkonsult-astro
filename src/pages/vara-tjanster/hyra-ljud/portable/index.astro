@@ -11,7 +11,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
   <CategoryHero
     h1="Portabelt Ljud"
     h1Accent="Stockholm"
-    intro="Hyr batteridrivet ljud för utomhus, studentflak och event utan strömkälla. Alla enheter har inbyggd mixer och Bluetooth. Komplettera med mikrofoner nedan."
+    intro="Portable-serien är alternativet för dig som vill ha ett kompakt system som enkelt kan flyttas. Flera av systemen är batteridrivna, vilket gör dem perfekta för gallerior, torg och platser utan strömkälla. Ju större paket, desto fler åhörare når du — och basen ökar markant med storleken."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
@@ -25,11 +25,8 @@ import ProductCard from '../../../../components/ProductCard.astro';
     ]}
   />
 
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-    <p class="text-gray-300 text-base leading-relaxed max-w-3xl">
-      Portable-serien är alternativet för dig som vill ha ett kompakt system som enkelt kan flyttas. Flera av systemen är batteridrivna, vilket gör dem perfekta för gallerior, torg och platser utan strömkälla. Ju större paket, desto fler åhörare når du — och basen ökar markant med storleken.
-    </p>
-    <div class="mt-4 inline-flex items-center gap-2 bg-brand-navy border border-brand-orange/30 rounded-xl px-4 py-2.5">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+    <div class="inline-flex items-center gap-2 bg-brand-navy border border-brand-orange/30 rounded-xl px-4 py-2.5">
       <span class="text-brand-orange text-base">🎤</span>
       <span class="text-white text-sm font-medium">Handmikrofon ingår i alla paket</span>
     </div>
@@ -73,7 +70,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
         { name:"Instrumentmikrofon", desc:"För trumma, blås, gitarr", price:64, img:"/images/ljud/pp_ljud_mik02.png" },
         { name:"Trådlös handmikrofon", desc:"Ca 30 m räckvidd", price:400, img:"/images/ljud/pp_ljud_mik05.png" },
         { name:"Trådlöst headset", desc:"Ca 30 m räckvidd", price:480, img:"/images/ljud/pp_ljud_mik06.png" },
-        { name:"Trådlöst mikrofonset 8 kan.", desc:"4 handmikrofoner + 4 headset, antennsplitter", price:1200, img:"/images/ljud/pp_ljud_mik04.png" },
+        { name:"Trådlöst mikrofonset 8 kan.", desc:"4 handmikrofoner + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik04.png" },
         { name:"Mikrofonstativ", desc:"Justerbar höjd", price:60, img:"/images/ljud/pp_ljud_tillbehor06.png" },
         { name:"XLR-kablar", desc:"1–15 m, fr 40 kr", price:40, img:"/images/ljud/pp_ljud_tillbehor07.png" },
         { name:"Bluetooth-mottagare", desc:"Koppla in extra enhet trådlöst", price:80, img:"/images/ljud/pp_ljud_tillbehor04.png" },
@@ -84,7 +81,11 @@ import ProductCard from '../../../../components/ProductCard.astro';
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-400 font-normal">/dygn</span></p>
+          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">
+            <span class="sk-price-incl">{Math.round(item.price*1.25)} kr</span>
+            <span class="sk-price-excl hidden">{item.price} kr</span>
+            <span class="text-gray-400 font-normal"> /dygn</span>
+          </p>
         </div>
       ))}
     </div>
