@@ -1,7 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
-import Price from '../../../components/Price.astro';
 import CartButton from '../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 ---
@@ -38,22 +37,21 @@ import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
           <img src="/images/bild/pp_bild_projektor.png" alt="Projektor XGA" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div class="p-5 flex flex-col flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <h2 class="font-bold text-white text-lg">Projektor XGA</h2>
-            <div class="text-right shrink-0">
-              <Price amount={299} size="xl" />
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
+          <h2 class="font-bold text-white text-lg mb-2">Projektor XGA</h2>
           <p class="text-gray-400 text-sm mb-4">Miniprojektor från Toshiba (XGA 1024×768). Kompakt format med medföljande väska. Passar dukstorlekar 60–100″.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
+          <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>XGA (1024×768), SXGA-kompatibel</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>1 100 ANSI lumen</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Bildförhållande 16:9</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 247,7×93,7×52,1 mm, Vikt: 0,9 kg</li>
           </ul>
-          <div class="mt-auto">
-            <CartButton id="bild-projektor-xga" name="Projektor XGA" price={299} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor.png" size="md" />
+          <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-4 gap-3">
+            <div class="leading-none">
+              <span class="sk-price-excl text-brand-orange font-extrabold text-xl">299 kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">374 kr</span>
+              <span class="text-gray-400 text-xs">/dygn</span>
+            </div>
+            <CartButton id="bild-projektor-xga" name="Projektor XGA" price={299} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor.png" size="sm" iconOnly={true} />
           </div>
         </div>
       </article>
@@ -64,22 +62,21 @@ import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
           <img src="/images/bild/pp_bild_projektor1.png" alt="Projektor Full HD" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div class="p-5 flex flex-col flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <h2 class="font-bold text-white text-lg">Projektor Full HD</h2>
-            <div class="text-right shrink-0">
-              <Price amount={399} size="xl" />
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
+          <h2 class="font-bold text-white text-lg mb-2">Projektor Full HD</h2>
           <p class="text-gray-400 text-sm mb-4">BenQ Full HD (1920×1080). Fungerar även i dagsljus. Passar dukstorlekar 60–300″.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
+          <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Full HD (max 1920×1080)</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>4 000 ANSI lumen</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Bildförhållande 16:9</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 332,4×241,3×99 mm, Vikt: 2,6 kg</li>
           </ul>
-          <div class="mt-auto">
-            <CartButton id="bild-projektor-fhd" name="Projektor Full HD" price={399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor1.png" size="md" />
+          <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-4 gap-3">
+            <div class="leading-none">
+              <span class="sk-price-excl text-brand-orange font-extrabold text-xl">399 kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">499 kr</span>
+              <span class="text-gray-400 text-xs">/dygn</span>
+            </div>
+            <CartButton id="bild-projektor-fhd" name="Projektor Full HD" price={399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor1.png" size="sm" iconOnly={true} />
           </div>
         </div>
       </article>
@@ -90,22 +87,21 @@ import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
           <img src="/images/bild/pp_bild_65-skarm.png" alt="65 tum Samsung 4K skärm" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div class="p-5 flex flex-col flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <h2 class="font-bold text-white text-lg">65″ Skärm, Ultra HD</h2>
-            <div class="text-right shrink-0">
-              <Price amount={2399} size="xl" />
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
+          <h2 class="font-bold text-white text-lg mb-2">65″ Skärm, Ultra HD</h2>
           <p class="text-gray-400 text-sm mb-4">Professionell Samsung 65″ (Ultra HD 3840×2160). Perfekt som komplement till scen eller projektor. Skrymmande.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
+          <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Ultra HD (3840×2160) 2160p</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>VESA 400×300 fäste</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 1673×958×59,9 mm</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Vikt: 30,9 kg</li>
           </ul>
-          <div class="mt-auto">
-            <CartButton id="bild-skarm-65" name="65″ Skärm, Ultra HD" price={2399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_65-skarm.png" size="md" bulky={true} />
+          <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-4 gap-3">
+            <div class="leading-none">
+              <span class="sk-price-excl text-brand-orange font-extrabold text-xl">2 399 kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">2 999 kr</span>
+              <span class="text-gray-400 text-xs">/dygn</span>
+            </div>
+            <CartButton id="bild-skarm-65" name="65″ Skärm, Ultra HD" price={2399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_65-skarm.png" size="sm" iconOnly={true} bulky={true} />
           </div>
         </div>
       </article>
@@ -116,21 +112,20 @@ import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
           <img src="/images/bild/pp_bild_75-skarm.png" alt="75 tum Samsung 4K skärm" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div class="p-5 flex flex-col flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <h2 class="font-bold text-white text-lg">75″ Skärm, Ultra HD</h2>
-            <div class="text-right shrink-0">
-              <Price amount={2799} size="xl" />
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
+          <h2 class="font-bold text-white text-lg mb-2">75″ Skärm, Ultra HD</h2>
           <p class="text-gray-400 text-sm mb-4">Professionell Samsung 75″ (Ultra HD 3840×2160). Skrymmande produkt.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
+          <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Ultra HD (3840×2160) 2160p</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>VESA 400×300 fäste</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Vikt: 30,9 kg</li>
           </ul>
-          <div class="mt-auto">
-            <CartButton id="bild-skarm-75" name="75″ Skärm, Ultra HD" price={2799} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_75-skarm.png" size="md" bulky={true} />
+          <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-4 gap-3">
+            <div class="leading-none">
+              <span class="sk-price-excl text-brand-orange font-extrabold text-xl">2 799 kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">3 499 kr</span>
+              <span class="text-gray-400 text-xs">/dygn</span>
+            </div>
+            <CartButton id="bild-skarm-75" name="75″ Skärm, Ultra HD" price={2799} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_75-skarm.png" size="sm" iconOnly={true} bulky={true} />
           </div>
         </div>
       </article>
@@ -141,21 +136,19 @@ import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
           <img src="/images/bild/pp_bild_modulskarm.png" alt="Moduluppbyggd LED-vägg" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div class="p-5 flex flex-col flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <h2 class="font-bold text-white text-lg">Moduluppbyggd LED-vägg</h2>
-            <div class="text-right shrink-0">
-              <span class="text-brand-orange font-extrabold text-xl">fr 1 199 kr</span>
-              <div class="text-gray-500 text-xs">/kvm/dygn</div>
-            </div>
-          </div>
+          <h2 class="font-bold text-white text-lg mb-2">Moduluppbyggd LED-vägg</h2>
           <p class="text-gray-400 text-sm mb-4">Full HD LED-vägg (1920×1080). Byggbar i valfri storlek. Minsta konfiguration 2×2 m (ca 7 m²). Standard är 3×1 m (3 m²).</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
+          <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Full HD (1920×1080)</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Byggbar storlek fr 1 kvm</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>1 199 kr/kvm/dygn</li>
           </ul>
-          <div class="mt-auto">
-            <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Begär offert</a>
+          <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-4 gap-3">
+            <div class="leading-none">
+              <span class="text-brand-orange font-extrabold text-xl">fr 1 199 kr</span>
+              <span class="text-gray-400 text-xs">/kvm/dygn</span>
+            </div>
+            <a href="/kontakt/" class="inline-flex items-center gap-1.5 bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap">Begär offert</a>
           </div>
         </div>
       </article>
@@ -166,21 +159,20 @@ import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
           <img src="/images/bild/pp_bild_trailerscen.png" alt="Skärm på trailer – mobil LED-storbildsskärm" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div class="p-5 flex flex-col flex-1">
-          <div class="flex justify-between items-start mb-2">
-            <h2 class="font-bold text-white text-lg">Trailerscen 7 m²</h2>
-            <div class="text-right shrink-0">
-              <Price amount={15499} size="xl" />
-              <div class="text-gray-500 text-xs">/dygn</div>
-            </div>
-          </div>
+          <h2 class="font-bold text-white text-lg mb-2">Trailerscen 7 m²</h2>
           <p class="text-gray-400 text-sm mb-4">Utomhus LED-trailerscen med 7 m² skärm (3,5×2 m). Mobilscen med eget ljusrigg. Inklusive leverans och montering.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
+          <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>7 m² LED-skärm (3,5×2 m)</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Utomhusklassad, eget ljusrigg</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Inklusive leverans och montering</li>
           </ul>
-          <div class="mt-auto">
-            <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Begär offert</a>
+          <div class="flex items-center justify-between border-t border-white/10 pt-3 mt-4 gap-3">
+            <div class="leading-none">
+              <span class="sk-price-excl text-brand-orange font-extrabold text-xl">15 499 kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">19 374 kr</span>
+              <span class="text-gray-400 text-xs">/dygn</span>
+            </div>
+            <a href="/kontakt/" class="inline-flex items-center gap-1.5 bg-brand-orange hover:bg-orange-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap">Begär offert</a>
           </div>
         </div>
       </article>
