@@ -10,16 +10,31 @@ const faqSchema = {
   "@type": "FAQPage",
   "mainEntity": ljudData.faq.map(f => ({
     "@type": "Question",
-    "name": f.question,
-    "acceptedAnswer": { "@type": "Answer", "text": f.answer }
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
   }))
 };
+
+const categoryIcons = ["◎", "◈", "♫", "⬡"];
+const categoryGradients = [
+  "from-brand-orange/20 to-transparent",
+  "from-violet-500/15 to-transparent",
+  "from-blue-500/15 to-transparent",
+  "from-emerald-500/15 to-transparent",
+];
+
+const extraFaq = [
+  { q: "Vad är skillnaden mellan Event-, Live- och Music-system?", a: "Event-system är optimerat för tal och konferens – tydlig mellanregisterstyrka och jämn täckning. Live-system har monitorhögtalare för musiker och klarar höga volymkrav från instrument. Music-system (DJ/dans) har kraftiga subwoofers för djup bas och fullrange för att fylla ett dansgolv." },
+  { q: "Hur tidigt behöver jag boka?", a: "Populära helger (midsommar, jul, nyår, studentflak) bokas ofta 2–4 månader i förväg. Vardagar och off-peak kan vi ofta ordna med 1–2 veckors varsel. Ring oss för att kolla tillgänglighet." },
+  { q: "Kan jag boka tekniker separat?", a: "Ja – vi erbjuder tekniker för installation, soundcheck och körning under eventet som tillägg. Tekniker finns att boka till alla systemstorlekar, oavsett om du hyr Event, Live eller Music-system." },
+  { q: "Vad händer om något går sönder under eventet?", a: "Vi har jourtjänst kvällstid. Ring 072-448 10 00 och vi hjälper dig – antingen via telefon eller med utryckning om det behövs. Ansvar för skador regleras i hyresvillkoren." },
+];
 ---
 
 <Layout title={ljudData.metaTitle} description={ljudData.metaDescription} schemaExtra={faqSchema}>
 
   <CategoryHero
-    h1="Hyra ljud"
+    h1="Hyra Ljud"
     h1Accent="Stockholm"
     intro={ljudData.intro}
     breadcrumbs={[
@@ -33,19 +48,22 @@ const faqSchema = {
       "Tekniker tillgänglig",
       "Leverans i hela Storstockholm"
     ]}
+    priceFrom={599}
   />
 
-  <!-- Kategori-grid med bilder -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+  <!-- KATEGORI-GRID -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-8">Välj kategori</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {ljudData.categories.map(cat => (
+      {ljudData.categories.map((cat, i) => (
         <a href={cat.href} class="bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group block">
-          <div class="aspect-video bg-brand-dark overflow-hidden">
-            <img src={cat.image} alt={cat.name} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <div class={`h-28 bg-gradient-to-br ${categoryGradients[i]} bg-brand-dark flex items-center justify-center relative overflow-hidden`}>
+            <span class="text-5xl text-brand-orange/30 group-hover:text-brand-orange/50 transition-colors select-none font-bold tracking-tighter">{categoryIcons[i]}</span>
+            <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle at 30% 50%, rgba(196,181,244,0.4) 0%, transparent 70%)"></div>
           </div>
           <div class="p-5">
-            <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors mb-2">{cat.name}</h2>
-            <p class="text-gray-400 text-sm leading-relaxed mb-3">{cat.desc}</p>
+            <h3 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors mb-2">{cat.name}</h3>
+            <p class="text-gray-400 text-sm leading-relaxed mb-4">{cat.desc}</p>
             <span class="text-brand-orange text-sm font-semibold">Se priser & sortiment →</span>
           </div>
         </a>
@@ -53,18 +71,19 @@ const faqSchema = {
     </div>
   </section>
 
-  <!-- Hur väljer du rätt? -->
+  <!-- HUR VÄLJER DU RÄTT? -->
   <section class="bg-brand-navy border-y border-white/10 py-14">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl font-bold text-white mb-8">Hur väljer du rätt PA-system?</h2>
+      <h2 class="text-2xl font-bold text-white mb-2">Hur väljer du rätt PA-system?</h2>
+      <p class="text-gray-400 mb-8">Tre frågor som avgör vilket system du behöver.</p>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { steg: "1", rubrik: "Räkna gästerna", text: "Tumregel: 1 watt per person inomhus, 2–3 watt per person utomhus. Men det handlar mer om lokal och akustik – ring oss så hjälper vi dig räkna ut det exakt." },
-          { steg: "2", rubrik: "Vad ska ljuda?", text: "Tal och konferens → Event-system. Dansmusik → Music-system med sub. Live band → Live-system med monitor. Utomhus utan el → Portabelt system." },
-          { steg: "3", rubrik: "Vill du ha hjälp?", text: "Vi erbjuder tekniker för installation, soundcheck och körning under eventet. Priserna är lägre än du tror – och resultatet är bättre än du tror." },
+          { n: "1", rubrik: "Räkna gästerna", text: "Tumregel: 1 watt per person inomhus, 2–3 watt utomhus. Men akustiken i lokalen spelar lika stor roll – ring oss så hjälper vi dig räkna ut det exakt." },
+          { n: "2", rubrik: "Vad ska ljuda?", text: "Tal och konferens → Event-system. Dansmusik → Music-system med sub. Live band → Live-system med monitor. Utomhus utan el → Portabelt system." },
+          { n: "3", rubrik: "Vill du ha hjälp?", text: "Vi erbjuder tekniker för installation, soundcheck och körning under eventet. Priserna är lägre än du tror – och resultatet är bättre än du tror." },
         ].map(s => (
           <div class="bg-brand-dark border border-white/10 rounded-2xl p-6">
-            <div class="w-8 h-8 bg-brand-orange rounded-full flex items-center justify-center text-white font-bold text-sm mb-4">{s.steg}</div>
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mb-4" style="background:#c4b5f4">{s.n}</div>
             <h3 class="font-bold text-white mb-2">{s.rubrik}</h3>
             <p class="text-gray-400 text-sm leading-relaxed">{s.text}</p>
           </div>
@@ -77,7 +96,7 @@ const faqSchema = {
     </div>
   </section>
 
-  <!-- Populäraste paketen -->
+  <!-- POPULÄRASTE PAKETEN -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
     <h2 class="text-2xl font-bold text-white mb-2">Populäraste paketen</h2>
     <p class="text-gray-400 mb-8">Välkalibrerade system för fest, konferens och live – de tre vanligaste valen.</p>
@@ -96,38 +115,59 @@ const faqSchema = {
                 <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{item}</li>
               ))}
             </ul>
-            <div class="flex items-center justify-between border-t border-white/10 pt-4" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+            <div class="flex items-center justify-between border-t border-white/10 pt-3" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
               <meta itemprop="priceCurrency" content="SEK" />
               <meta itemprop="price" content={String(p.price)} />
               <meta itemprop="availability" content="https://schema.org/InStock" />
-              <div>
-                <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" suffix={p.priceNote} /></span>
-                
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{p.price.toLocaleString('sv-SE')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
+                <span class="text-gray-400 text-xs">{p.priceNote ?? '/dygn'}</span>
               </div>
-              <CartButton id={`ljud-${p.id ?? p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" />
+              <CartButton id={`ljud-${p.id ?? p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" iconOnly={true} />
             </div>
           </div>
         </article>
       ))}
     </div>
+    <div class="mt-6 text-center">
+      <a href="/vara-tjanster/hyra-ljud/event/" class="text-brand-orange hover:text-white transition-colors text-sm font-semibold">Se alla ljudpaket →</a>
+    </div>
+  </section>
+
+  <!-- VAD INGÅR ALLTID -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-4">Vad ingår alltid?</h2>
+      <div class="text-gray-400 text-sm leading-relaxed space-y-3">
+        <p>Alla ljudsystem levereras kompletta med stativ, kablar och adaptrar – testade och kalibrerade. Du behöver inte ta med någonting extra.</p>
+        <p>Soundcheck och grundinställning ingår i alla hyror. Vill du ha tekniker som stannar under hela eventet bokas det som tillägg.</p>
+        <p class="font-medium text-gray-300">Alla priser gäller per dygn (22 timmar). Hämtning från kl 13:00, återlämning senast kl 11:00 nästa dag.</p>
+      </div>
+      <div class="flex flex-wrap gap-4 mt-6">
+        <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">Boka ljudutrustning</a>
+        <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Fråga om offert</a>
+      </div>
+    </div>
   </section>
 
   <!-- FAQ -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-8">Vanliga frågor om ljud</h2>
+    <h2 class="text-2xl font-bold text-white mb-8">Vanliga frågor om ljudhyrning</h2>
     <div class="space-y-4">
-      {ljudData.faq.map(f => (
+      {[...ljudData.faq, ...extraFaq].map(f => (
         <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
           <summary class="flex items-center justify-between p-5 cursor-pointer font-semibold text-white hover:text-brand-orange transition-colors list-none">
-            {f.question}
-            <span class="text-brand-orange ml-4 shrink-0 group-open:rotate-45 transition-transform">+</span>
+            {f.q}
+            <span class="text-brand-orange ml-4 shrink-0 group-open:rotate-45 transition-transform duration-200">+</span>
           </summary>
-          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4">{f.answer}</div>
+          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4">{f.a}</div>
         </details>
       ))}
     </div>
   </section>
 
+  <!-- KOMPLETTERA MED -->
   <section class="bg-brand-navy border-t border-white/10 py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-xl font-bold text-white mb-6">Komplettera med</h2>
@@ -135,6 +175,7 @@ const faqSchema = {
         <a href="/vara-tjanster/hyra-scen/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🎭 Hyra scen</a>
         <a href="/vara-tjanster/hyra-ljus/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">💡 Hyra ljus</a>
         <a href="/vara-tjanster/hyra-dj/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🎛 Hyra DJ-utrustning</a>
+        <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">📽 Hyra projektor</a>
       </div>
     </div>
   </section>
