@@ -4,56 +4,64 @@ import siteData from '../../data/site.json';
 
 const { clients, reviews } = siteData;
 
-// Event portfolio-bilder med metadata
+// Riktiga eventfoton
 const eventGallery = [
   {
-    src: "/images/tjanster/plugg_scener.png",
-    alt: "Scenuppbyggnad för stort utomhus-event",
-    label: "Scen & Scenproduktion",
-    desc: "Utomhusscen, 8×6 m, Festival"
+    src: "/images/event/festival_vinterviken.webp",
+    alt: "Scenuppbyggnad vid Vintervikens trädgård",
+    label: "Festival – Vinterviken",
+    desc: "Scen & ljud, Vasas Flora & Fauna m.fl.",
+    tag: "Festival"
   },
   {
-    src: "/images/tjanster/plugg_event_ljud.png",
-    alt: "PA-system för event",
-    label: "Ljud – Event",
-    desc: "Fullständig PA-setup, 300 pers"
+    src: "/images/event/skridskodisco_ostermalm_1.webp",
+    alt: "Skridskodisco på Östermalms IP",
+    label: "Skridskodisco – Östermalms IP",
+    desc: "Stockholms Stad, återkommande event",
+    tag: "Företagsevent"
   },
   {
-    src: "/images/tjanster/plugg_ljus.png",
-    alt: "Ljussättning för fest och event",
-    label: "Ljus & Effekter",
-    desc: "Scenljus, moving heads & laser"
+    src: "/images/event/kundevent_abg.webp",
+    alt: "Kundevent med ABG Sundal Collier",
+    label: "Kundevent – ABG Sundal Collier",
+    desc: "Ljud & ljus, exklusivt inomhusevent",
+    tag: "Företagsevent"
   },
   {
-    src: "/images/tjanster/plugg_dj.png",
-    alt: "DJ-setup och underhållning",
-    label: "DJ & Underhållning",
-    desc: "DJ-service, komplett setup"
+    src: "/images/event/kundevent_djursholms_slott.webp",
+    alt: "Event på Djursholms Slott",
+    label: "Djursholms Slott",
+    desc: "Galakväll, scenljus & PA-system",
+    tag: "Företagsevent"
   },
   {
-    src: "/images/tjanster/plugg_live_ljud.png",
-    alt: "Live-ljud för konserter",
-    label: "Ljud – Live",
-    desc: "Livemusik, monitor & FOH"
+    src: "/images/event/kundevent_lakarforbundet.webp",
+    alt: "Kundevent på Läkarförbundets festvåning Östermalm",
+    label: "Läkarförbundet – Östermalm",
+    desc: "Festvåning, komplett ljud & ljus",
+    tag: "Företagsevent"
   },
   {
-    src: "/images/tjanster/plugg_bild.png",
-    alt: "Projektor och LED-skärm",
-    label: "Projektor & Skärm",
-    desc: "LED-vägg, projektor, bildvisning"
+    src: "/images/event/uf_strawberry_arena_1.webp",
+    alt: "Ung Företagsamhet på Strawberry Arena",
+    label: "Strawberry Arena – UF",
+    desc: "Ung Företagsamhet, stor scen & PA",
+    tag: "Konferens"
   },
   {
-    src: "/images/tjanster/plugg_dance_ljud.png",
-    alt: "Dansljud och DJ-musik",
-    label: "Fest & Dans",
-    desc: "Danslokaler, nattklubbsljud"
+    src: "/images/event/uf_strawberry_arena_2.webp",
+    alt: "Ung Företagsamhet scensetup Strawberry Arena",
+    label: "Strawberry Arena – UF setup",
+    desc: "Ung Företagsamhet, scen & ljusrigg",
+    tag: "Konferens"
   },
   {
-    src: "/images/tjanster/plugg_portabelt.png",
-    alt: "Portabelt ljud för utomhus",
-    label: "Portabelt Ljud",
-    desc: "Batteridrift, utomhus, trädgård"
-  }
+    src: "/images/event/skridskodisco_ostermalm_2.webp",
+    alt: "Skridskodisco setup Östermalms IP",
+    label: "Skridskodisco – setup",
+    desc: "Stockholms Stad, DJ & ljud utomhus",
+    tag: "Festival"
+  },
 ];
 
 // Kategorier för kundfiltrering – vilka typer av kunder
@@ -122,6 +130,11 @@ const pageSchema = {
     <!-- Trust stats-rad -->
     <div class="flex flex-wrap gap-6">
       <div class="flex items-center gap-2">
+        <span class="text-2xl font-extrabold" style="color:#c4b5f4">100+</span>
+        <span class="text-gray-400 text-sm">privatpersoner</span>
+      </div>
+      <div class="w-px bg-white/10 hidden sm:block"></div>
+      <div class="flex items-center gap-2">
         <span class="text-2xl font-extrabold" style="color:#c4b5f4">500+</span>
         <span class="text-gray-400 text-sm">uppdrag/år</span>
       </div>
@@ -141,6 +154,7 @@ const pageSchema = {
         <span class="text-gray-400 text-sm">nöjd-garanti</span>
       </div>
     </div>
+    <p class="text-gray-400 text-sm mt-4">Utöver organisationer har vi hjälpt hundratals privatpersoner med bröllop, fester och studentfiranden i Storstockholm.</p>
   </header>
 
   <!-- Logobanner -->
@@ -176,14 +190,14 @@ const pageSchema = {
   <!-- Event-galleri -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="mb-8">
-      <h2 class="text-2xl font-bold text-white mb-2">Eventproduktioner</h2>
-      <p class="text-gray-400">Ett urval av vad vi levererar – varje event är unikt och anpassat till er lokal, era gäster och er budget.</p>
+      <h2 class="text-2xl font-bold text-white mb-2">Eventfoton</h2>
+      <p class="text-gray-400">Verkliga uppdrag — från Strawberry Arena till Djursholms Slott.</p>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {eventGallery.map((item) => (
         <div class="group relative bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all cursor-default">
-          <div class="overflow-hidden" style="aspect-ratio:4/3">
+          <div class="overflow-hidden bg-brand-dark" style="aspect-ratio:3/4">
             <img
               src={item.src}
               alt={item.alt}
@@ -192,7 +206,10 @@ const pageSchema = {
             />
           </div>
           <div class="p-4">
-            <p class="font-semibold text-white text-sm mb-1">{item.label}</p>
+            <div class="flex items-start justify-between gap-2 mb-1">
+              <p class="font-semibold text-white text-sm leading-snug">{item.label}</p>
+              <span class="shrink-0 text-xs px-2 py-0.5 rounded-full border" style="color:#c4b5f4;border-color:rgba(196,181,244,0.3);background:rgba(196,181,244,0.08);font-family:'Space Grotesk',sans-serif">{item.tag}</span>
+            </div>
             <p class="text-gray-400 text-xs">{item.desc}</p>
           </div>
         </div>
