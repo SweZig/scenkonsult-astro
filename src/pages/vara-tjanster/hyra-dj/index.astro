@@ -9,7 +9,7 @@ import dj from '../../../data/dj.json';
 >
 
   <CategoryHero
-    h1="Hyr Professionell DJ"
+    h1="Hyr DJ eller DJ-utrustning"
     h1Accent="Stockholm"
     intro={dj.intro}
     breadcrumbs={[
@@ -19,14 +19,12 @@ import dj from '../../../data/dj.json';
     ]}
     badges={[
       "6 professionella DJs",
-      "70-tal till 2020-tal",
-      "Alla genrer",
-      "Utrustning ingår"
+      "DJ-controller från 799 kr/dygn",
+      "DJ-tjänst från 1 999 kr/2 tim",
+      "Alla genrer"
     ]}
-    bannerImage={dj.bannerImage}
-    bannerAlt="DJ Stockholm"
     priceFrom={799}
-    priceSuffix="/2 tim"
+    priceSuffix="/dygn"
   />
 
   <!-- HYR PROFESSIONELL DJ: bild + prisbord -->
@@ -111,18 +109,30 @@ import dj from '../../../data/dj.json';
     </div>
   </section>
 
-  <!-- KARUSELL: VÅRA DJs -->
+  <!-- KARUSELL: VÅRA DJs — panorama-bilder 2560×654 -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <h2 class="text-xl font-bold text-white mb-4">BOKA ETT URVAL AV VÅRA DJs</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      {dj.djPhotos.map(d => (
-        <div class="rounded-2xl overflow-hidden border border-white/10 bg-brand-navy group hover:border-brand-orange/50 transition-all">
-          <div class="overflow-hidden" style="aspect-ratio:3/2">
-            <img src={d.img} alt={d.name} width="300" height="200" loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+    <div class="relative">
+      <div id="dj-carousel" class="flex overflow-x-auto gap-4 snap-x snap-mandatory scroll-smooth pb-3"
+        style="scrollbar-width:thin; scrollbar-color: rgba(196,181,244,0.3) transparent;">
+        {dj.djPhotos.map(d => (
+          <div class="snap-center shrink-0 w-full rounded-2xl overflow-hidden border border-white/10 bg-brand-navy hover:border-brand-orange/50 transition-all">
+            <img src={d.img} alt={d.name} width="2560" height="654" loading="lazy"
+              class="w-full h-auto block" style="aspect-ratio:2560/654; object-fit:cover" />
           </div>
-          <p class="text-white text-sm font-semibold text-center py-2.5 px-2">{d.name}</p>
-        </div>
+        ))}
+      </div>
+      <!-- Nav-pilar -->
+      <button onclick="document.getElementById('dj-carousel').scrollBy({left:-document.getElementById('dj-carousel').offsetWidth, behavior:'smooth'})"
+        class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 bg-brand-dark/80 hover:bg-brand-navy border border-white/20 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition-colors hidden sm:flex">‹</button>
+      <button onclick="document.getElementById('dj-carousel').scrollBy({left:document.getElementById('dj-carousel').offsetWidth, behavior:'smooth'})"
+        class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 bg-brand-dark/80 hover:bg-brand-navy border border-white/20 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition-colors hidden sm:flex">›</button>
+    </div>
+    <!-- Dots -->
+    <div class="flex justify-center gap-2 mt-3">
+      {dj.djPhotos.map((_, i) => (
+        <button onclick={`const c=document.getElementById('dj-carousel');c.scrollTo({left:c.offsetWidth*${i},behavior:'smooth'})`}
+          class="w-2 h-2 rounded-full bg-white/20 hover:bg-brand-orange transition-colors" aria-label={`Bild ${i+1}`}></button>
       ))}
     </div>
   </section>
@@ -151,20 +161,16 @@ import dj from '../../../data/dj.json';
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <h2 class="text-2xl font-bold text-white mb-6">Musik per decennium</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {dj.decades.map((d, i) => {
-        const colors = ['#ff6b35','#e040fb','#00bcd4','#f06292','#7c4dff','#00e676'];
-        const color = colors[i % colors.length];
-        return (
-          <div class="bg-brand-navy border border-white/10 rounded-2xl p-5 hover:border-brand-orange/40 transition-colors">
-            <div class="text-4xl font-extrabold mb-3" style={`color: ${color}`}>{d.decade}</div>
-            <p class="text-gray-300 text-sm leading-relaxed mb-3">{d.history}</p>
-            <p class="text-gray-400 text-xs leading-relaxed mb-3 border-t border-white/10 pt-3">
-              <span class="text-gray-300 font-semibold">Artister: </span>{d.artists}
-            </p>
-            <p class="text-gray-500 text-xs italic">{d.ageGroup}</p>
-          </div>
-        );
-      })}
+      {dj.decades.map((d) => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-5 hover:border-brand-orange/40 transition-colors border-l-2 border-l-brand-orange/60">
+          <div class="text-3xl font-extrabold mb-3 text-brand-orange/90 tracking-tight">{d.decade}</div>
+          <p class="text-gray-300 text-sm leading-relaxed mb-3">{d.history}</p>
+          <p class="text-gray-400 text-xs leading-relaxed mb-3 border-t border-white/10 pt-3">
+            <span class="text-gray-300 font-semibold">Artister: </span>{d.artists}
+          </p>
+          <p class="text-gray-500 text-xs italic">{d.ageGroup}</p>
+        </div>
+      ))}
     </div>
   </section>
 
