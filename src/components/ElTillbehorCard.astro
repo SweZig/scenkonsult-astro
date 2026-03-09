@@ -11,17 +11,17 @@ interface Props {
 const { img, name, excl, desc, category = 'Tillbehör' } = Astro.props;
 const cartId = `acc-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 ---
-<div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 flex flex-col">
-  <div class="aspect-square bg-brand-dark rounded overflow-hidden mb-1.5">
-    <img src={img} alt={name} width="150" height="150" loading="lazy" class="w-full h-full object-cover" />
+<div class="bg-brand-navy/60 border border-white/10 rounded-xl p-4 flex flex-col h-full">
+  <div class="aspect-square bg-brand-dark rounded-lg overflow-hidden mb-2">
+    <img src={img} alt={name} width="150" height="150" loading="lazy" class="w-full h-full object-contain p-1" />
   </div>
-  <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{name}</p>
-  {desc && <p class="text-gray-400 text-[9px] leading-tight mb-0.5 flex-1">{desc}</p>}
-  <div class="flex items-center justify-between mt-auto pt-1 gap-1">
+  <p class="text-white text-xs font-semibold leading-tight mb-0.5">{name}</p>
+  {desc && <p class="text-gray-400 text-[10px] leading-tight mb-0.5 flex-1">{desc}</p>}
+  <div class="flex items-center justify-between mt-auto pt-2 gap-1 border-t border-white/10">
     <div class="leading-none">
-      <span class="sk-price-excl text-brand-orange text-xs font-bold">{excl} kr</span>
-      <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(excl*1.25)} kr</span>
-      <span class="text-gray-400 text-[9px]">/dygn</span>
+      <span class="sk-price-excl text-brand-orange text-sm font-bold">{excl} kr</span>
+      <span class="sk-price-incl hidden text-brand-orange text-sm font-bold">{Math.round(excl*1.25)} kr</span>
+      <span class="text-gray-400 text-[10px]">/dygn</span>
     </div>
     <CartButton id={cartId} name={name} price={excl} category={category} image={img} size="sm" iconOnly={true} />
   </div>
