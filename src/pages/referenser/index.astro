@@ -165,24 +165,26 @@ const pageSchema = {
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
       {[
-        { file: "logo_ica.svg", name: "ICA Sverige" },
-        { file: "logo_hornbach.svg", name: "Hornbach" },
-        { file: "logo_abg.svg", name: "ABG Sundal Collier" },
-        { file: "logo_houdini.svg", name: "Houdini Sportswear" },
-        { file: "logo_mdu.svg", name: "Mälardalens Universitet" },
-        { file: "logo_hacksaw.svg", name: "Hacksaw Studios" },
-        { file: "logo_oddfellow.svg", name: "Odd Fellow" },
-        { file: "logo_uf.svg", name: "Ung Företagsamhet" },
+        { file: "logo_ica.png",        name: "ICA Sverige",           filter: "" },
+        { file: "logo_hornbach.svg",   name: "Hornbach",              filter: "brightness(0) invert(1)" },
+        { file: "logo_abg.png",        name: "ABG Sundal Collier",    filter: "" },
+        { file: "logo_houdini.png",    name: "Houdini Sportswear",    filter: "" },
+        { file: "logo_mdu.png",        name: "Mälardalens Universitet", filter: "" },
+        { file: "logo_hacksaw.png",    name: "Hacksaw Studios",       filter: "" },
+        { file: "logo_oddfellow.png",  name: "Odd Fellow",            filter: "" },
+        { file: "logo_uf.png",         name: "Ung Företagsamhet",     filter: "" },
       ].map((logo) => (
-        <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/30 rounded-xl overflow-hidden transition-all group flex items-center justify-center p-1" style="aspect-ratio:13/5">
+        <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/30 rounded-xl overflow-hidden transition-all group flex items-center justify-center p-4" style="aspect-ratio:13/5">
           <img
             src={`/images/kunder/${logo.file}`}
             alt={logo.name}
             title={logo.name}
-            class="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity"
+            class="w-full h-full object-contain opacity-75 group-hover:opacity-100 transition-opacity"
+            style={logo.filter ? `filter:${logo.filter}` : ""}
             loading="lazy"
           />
         </div>
+      ))}
       ))}
     </div>
   </section>
