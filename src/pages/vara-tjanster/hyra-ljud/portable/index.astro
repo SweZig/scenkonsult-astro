@@ -2,16 +2,18 @@
 import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
+import Price from '../../../../components/Price.astro';
+import CartButton from '../../../../components/CartButton.astro';
 ---
 <Layout
   title="Hyra Portabelt Ljud Stockholm – Batteridrivet PA-system | Scenkonsult"
-  description="Hyr portabelt ljud med batteridrift i Stockholm från 599 kr/dygn. Perfekt för utomhus, studentflak och event utan strömkälla. Leverans i hela Storstockholm."
+  description="Hyr portabelt batteridrivet ljud i Stockholm från 599 kr/dygn. Kompakta kolumnsystem perfekta för utomhus, studentflak och event utan strömkälla. Leverans i hela Storstockholm."
 >
 
   <CategoryHero
     h1="Portabelt Ljud"
     h1Accent="Stockholm"
-    intro="Portable-serien är alternativet för dig som vill ha ett kompakt system som enkelt kan flyttas. Flera av systemen är batteridrivna, vilket gör dem perfekta för gallerior, torg och platser utan strömkälla. Ju större paket, desto fler åhörare når du — och basen ökar markant med storleken."
+    intro="Hyr batteridrivet portabelt ljud i Stockholm från 599 kr/dygn. Kompakta kolumnsystem som enkelt kan flyttas – flera modeller kräver ingen strömkälla alls. Perfekt för studentflak, gallerior, torg och utomhusbruk. Ju större paket, desto fler åhörare når du och basen ökar markant."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
@@ -66,14 +68,14 @@ import ProductCard from '../../../../components/ProductCard.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner &amp; tillbehör</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {[
-        { name:"Handmikrofon", desc:"Inkl 6 m XLR-kabel", price:80, img:"/images/ljud/pp_ljud_mik01.png" },
-        { name:"Instrumentmikrofon", desc:"För trumma, blås, gitarr", price:64, img:"/images/ljud/pp_ljud_mik02.png" },
-        { name:"Trådlös handmikrofon", desc:"Ca 30 m räckvidd", price:400, img:"/images/ljud/pp_ljud_mik05.png" },
-        { name:"Trådlöst headset", desc:"Ca 30 m räckvidd", price:480, img:"/images/ljud/pp_ljud_mik06.png" },
-        { name:"Trådlöst mikrofonset 8 kan.", desc:"4 handmikrofoner + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik04.png" },
-        { name:"Mikrofonstativ", desc:"Justerbar höjd", price:60, img:"/images/ljud/pp_ljud_tillbehor06.png" },
-        { name:"XLR-kablar", desc:"1–15 m, fr 40 kr", price:40, img:"/images/ljud/pp_ljud_tillbehor07.png" },
-        { name:"Bluetooth-mottagare", desc:"Koppla in extra enhet trådlöst", price:80, img:"/images/ljud/pp_ljud_tillbehor04.png" },
+        { name:"Handmikrofon",                desc:"Inkl 6 m XLR-kabel",               price:80,   img:"/images/ljud/pp_ljud_mik01.png" },
+        { name:"Instrumentmikrofon",          desc:"För trumma, blås, gitarr",          price:64,   img:"/images/ljud/pp_ljud_mik02.png" },
+        { name:"Trådlös handmikrofon",        desc:"Ca 30 m räckvidd",                 price:400,  img:"/images/ljud/pp_ljud_mik05.png" },
+        { name:"Trådlöst headset",            desc:"Ca 30 m räckvidd",                 price:480,  img:"/images/ljud/pp_ljud_mik06.png" },
+        { name:"Trådlöst mikrofonset 8 kan.", desc:"4 hand + 4 headset, antennsplitter",price:2999, img:"/images/ljud/pp_ljud_mik04.png" },
+        { name:"Mikrofonstativ",              desc:"Justerbar höjd",                   price:60,   img:"/images/ljud/pp_ljud_tillbehor06.png" },
+        { name:"XLR-kablar",                  desc:"1–15 m, fr 40 kr",                 price:40,   img:"/images/ljud/pp_ljud_tillbehor07.png" },
+        { name:"Bluetooth-mottagare",         desc:"Koppla in extra enhet trådlöst",   price:80,   img:"/images/ljud/pp_ljud_tillbehor04.png" },
       ].map(item => (
         <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 flex flex-col gap-2 transition-colors">
           <div class="aspect-square bg-brand-dark rounded-lg overflow-hidden">
@@ -81,11 +83,10 @@ import ProductCard from '../../../../components/ProductCard.astro';
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">
-            <span class="sk-price-incl">{Math.round(item.price*1.25)} kr</span>
-            <span class="sk-price-excl hidden">{item.price} kr</span>
-            <span class="text-gray-400 font-normal"> /dygn</span>
-          </p>
+          <div class="border-t border-white/10 pt-2 flex items-center justify-between gap-1 mt-auto">
+            <span class="text-brand-orange font-bold text-sm"><Price amount={item.price} size="sm" /></span>
+            <CartButton id={`portable-mik-${item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={item.name} price={item.price} category="Ljud tillbehör" image={item.img} size="sm" iconOnly={true} />
+          </div>
         </div>
       ))}
     </div>
@@ -96,10 +97,10 @@ import ProductCard from '../../../../components/ProductCard.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mixerbord</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {[
-        { name:"Analogt mixerbord 2+2 kan.", desc:"Alto – inbyggd Bluetooth, 2 mic + 2 stereo",    price:159,  img:"/images/ljud/pp_ljud_mixer01.png" },
-        { name:"Analogt mixerbord 4+2 kan.", desc:"Alto – inbyggda effekter, Bluetooth",            price:199,  img:"/images/ljud/pp_ljud_mixer02.png" },
-        { name:"Analogt mixerbord 4+4 kan.", desc:"Mackie – 60 dB gain range, transportväska",      price:299,  img:"/images/ljud/pp_ljud_mixer03.png" },
-        { name:"Analogt mixerbord 6+4 kan.", desc:"Allen & Heath – 69 dB gain range, transportväska", price:349, img:"/images/ljud/pp_ljud_mixer04.png" },
+        { name:"Analogt mixerbord 2+2 kan.", desc:"Alto – inbyggd Bluetooth, 2 mic + 2 stereo",       price:159, img:"/images/ljud/pp_ljud_mixer01.png" },
+        { name:"Analogt mixerbord 4+2 kan.", desc:"Alto – inbyggda effekter, Bluetooth",               price:199, img:"/images/ljud/pp_ljud_mixer02.png" },
+        { name:"Analogt mixerbord 4+4 kan.", desc:"Mackie – 60 dB gain range, transportväska",         price:299, img:"/images/ljud/pp_ljud_mixer03.png" },
+        { name:"Analogt mixerbord 6+4 kan.", desc:"Allen & Heath – 69 dB gain range, transportväska",  price:349, img:"/images/ljud/pp_ljud_mixer04.png" },
       ].map(item => (
         <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 flex flex-col gap-2 transition-colors">
           <div class="aspect-square bg-brand-dark rounded-lg overflow-hidden">
@@ -107,11 +108,10 @@ import ProductCard from '../../../../components/ProductCard.astro';
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">
-            <span class="sk-price-incl">{Math.round(item.price*1.25)} kr</span>
-            <span class="sk-price-excl hidden">{item.price} kr</span>
-            <span class="text-gray-400 font-normal"> /dygn</span>
-          </p>
+          <div class="border-t border-white/10 pt-2 flex items-center justify-between gap-1 mt-auto">
+            <span class="text-brand-orange font-bold text-sm"><Price amount={item.price} size="sm" /></span>
+            <CartButton id={`portable-mix-${item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={item.name} price={item.price} category="Ljud tillbehör" image={item.img} size="sm" iconOnly={true} />
+          </div>
         </div>
       ))}
     </div>
@@ -122,14 +122,14 @@ import ProductCard from '../../../../components/ProductCard.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {[
-        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",            excl:20,  desc:"Jordat, 3–5 uttag, 16A" },
-        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m",           excl:48,  desc:"1-fas, 16A, IP44" },
-        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag på rulle 10 m",    excl:100, desc:"4 uttag, 16A, IP44" },
-        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag på rulle 25 m",    excl:159, desc:"4 uttag, 16A, IP44" },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",      excl:236, desc:"3-fas, 16A, IP44" },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",      excl:396, desc:"3-fas, 32A, IP44" },
-        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",excl:320, desc:"32A 3-fas till 1-fas" },
-        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",      excl:80,  desc:"Kabelramp, 2 kanaler" },
+        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",             excl:20,  desc:"Jordat, 3–5 uttag, 16A" },
+        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m",            excl:48,  desc:"1-fas, 16A, IP44" },
+        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag på rulle 10 m",     excl:100, desc:"4 uttag, 16A, IP44" },
+        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag på rulle 25 m",     excl:159, desc:"4 uttag, 16A, IP44" },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",       excl:236, desc:"3-fas, 16A, IP44" },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",       excl:396, desc:"3-fas, 32A, IP44" },
+        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas", excl:320, desc:"32A 3-fas till 1-fas" },
+        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",       excl:80,  desc:"Kabelramp, 2 kanaler" },
       ].map(t => (
         <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
           <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
@@ -137,8 +137,8 @@ import ProductCard from '../../../../components/ProductCard.astro';
           </div>
           <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
           <p class="text-gray-400 text-[9px] leading-tight mb-0.5">{t.desc}</p>
-          <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
           <span class="text-gray-400 text-[9px]">/dygn</span>
         </div>
       ))}

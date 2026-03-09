@@ -1,18 +1,18 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
+import Price from '../../../components/Price.astro';
 import CartButton from '../../../components/CartButton.astro';
-// ProductCard import removed - not used directly on this page
 ---
 <Layout
   title="Hyr Projektor & Storbildsskärm Stockholm – LED-vägg & Trailerscen | Scenkonsult"
-  description="Hyr projektor, 65-75 tum skärm, LED-vägg och trailerscen i Stockholm. Projektor fr 299 kr/dygn. Transport och montering finns som tilläggstjänst."
+  description="Hyr projektor, storbildsskärm, LED-vägg och trailerscen för event och konferenser i Stockholm. Projektor fr 299 kr/dygn. Leverans i hela Storstockholm."
 >
 
   <CategoryHero
     h1="Hyr Projektor & Skärm"
     h1Accent="Stockholm"
-    intro="Hyr projektor, storbildsskärm eller moduluppbyggd LED-vägg för presentationer, event och konferenser. Transport och montering finns som tilläggstjänst."
+    intro="Hyr projektor, storbildsskärm eller moduluppbyggd LED-vägg för konferens, presentation och event i Stockholm från 299 kr/dygn. Vi levererar hela lösningen med stativ, duk och kablar. Transport och montering finns som tilläggstjänst."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Våra tjänster", href: "/vara-tjanster/" },
@@ -31,125 +31,155 @@ import CartButton from '../../../components/CartButton.astro';
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       <!-- PROJEKTOR XGA -->
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
         <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
           <img src="/images/bild/pp_bild_projektor.png" alt="Projektor XGA" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
-        <div class="p-5">
+        <div class="p-5 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2">
             <h2 class="font-bold text-white text-lg">Projektor XGA</h2>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold text-xl">299 kr</span><div class="text-gray-500 text-xs">/dygn</div></div>
+            <div class="text-right shrink-0">
+              <Price amount={299} size="xl" />
+              <div class="text-gray-500 text-xs">/dygn</div>
+            </div>
           </div>
           <p class="text-gray-400 text-sm mb-4">Miniprojektor från Toshiba (XGA 1024×768). Kompakt format med medföljande väska. Passar dukstorlekar 60–100″.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>XGA (1024×768), SXGA-kompatibel</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>1 100 ANSI lumen</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Bildförhållande 16:9</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 247,7×93,7×52,1 mm, Vikt: 0,9 kg</li>
           </ul>
-          <CartButton id="bild-projektor-xga" name="Projektor XGA" price={299} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor.png" size="md" />
+          <div class="mt-auto">
+            <CartButton id="bild-projektor-xga" name="Projektor XGA" price={299} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor.png" size="md" />
+          </div>
         </div>
       </article>
 
       <!-- PROJEKTOR FHD -->
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
         <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
           <img src="/images/bild/pp_bild_projektor1.png" alt="Projektor Full HD" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
-        <div class="p-5">
+        <div class="p-5 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2">
             <h2 class="font-bold text-white text-lg">Projektor Full HD</h2>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold text-xl">399 kr</span><div class="text-gray-500 text-xs">/dygn</div></div>
+            <div class="text-right shrink-0">
+              <Price amount={399} size="xl" />
+              <div class="text-gray-500 text-xs">/dygn</div>
+            </div>
           </div>
           <p class="text-gray-400 text-sm mb-4">BenQ Full HD (1920×1080). Fungerar även i dagsljus. Passar dukstorlekar 60–300″.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Full HD (max 1920×1080)</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>4 000 ANSI lumen</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Bildförhållande 16:9</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 332,4×241,3×99 mm, Vikt: 2,6 kg</li>
           </ul>
-          <CartButton id="bild-projektor-fhd" name="Projektor Full HD" price={399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor1.png" size="md" />
+          <div class="mt-auto">
+            <CartButton id="bild-projektor-fhd" name="Projektor Full HD" price={399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_projektor1.png" size="md" />
+          </div>
         </div>
       </article>
 
       <!-- 65" SKÄRM -->
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
         <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
           <img src="/images/bild/pp_bild_65-skarm.png" alt="65 tum Samsung 4K skärm" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
-        <div class="p-5">
+        <div class="p-5 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2">
             <h2 class="font-bold text-white text-lg">65″ Skärm, Ultra HD</h2>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold text-xl">2 399 kr</span><div class="text-gray-500 text-xs">/dygn</div></div>
+            <div class="text-right shrink-0">
+              <Price amount={2399} size="xl" />
+              <div class="text-gray-500 text-xs">/dygn</div>
+            </div>
           </div>
           <p class="text-gray-400 text-sm mb-4">Professionell Samsung 65″ (Ultra HD 3840×2160). Perfekt som komplement till scen eller projektor. Skrymmande.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Ultra HD (3840×2160) 2160p</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>VESA 400×300 fäste</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Mått: 1673×958×59,9 mm</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Vikt: 30,9 kg</li>
           </ul>
-          <CartButton id="bild-skarm-65" name="65″ Skärm, Ultra HD" price={2399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_65-skarm.png" size="md" />
+          <div class="mt-auto">
+            <CartButton id="bild-skarm-65" name="65″ Skärm, Ultra HD" price={2399} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_65-skarm.png" size="md" bulky={true} />
+          </div>
         </div>
       </article>
 
       <!-- 75" SKÄRM -->
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
         <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
           <img src="/images/bild/pp_bild_75-skarm.png" alt="75 tum Samsung 4K skärm" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
-        <div class="p-5">
+        <div class="p-5 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2">
             <h2 class="font-bold text-white text-lg">75″ Skärm, Ultra HD</h2>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold text-xl">2 799 kr</span><div class="text-gray-500 text-xs">/dygn</div></div>
+            <div class="text-right shrink-0">
+              <Price amount={2799} size="xl" />
+              <div class="text-gray-500 text-xs">/dygn</div>
+            </div>
           </div>
           <p class="text-gray-400 text-sm mb-4">Professionell Samsung 75″ (Ultra HD 3840×2160). Skrymmande produkt.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Ultra HD (3840×2160) 2160p</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>VESA 400×300 fäste</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Vikt: 30,9 kg</li>
           </ul>
-          <CartButton id="bild-skarm-75" name="75″ Skärm, Ultra HD" price={2799} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_75-skarm.png" size="md" />
+          <div class="mt-auto">
+            <CartButton id="bild-skarm-75" name="75″ Skärm, Ultra HD" price={2799} priceNote="/dygn" category="Projektor & skärm" image="/images/bild/pp_bild_75-skarm.png" size="md" bulky={true} />
+          </div>
         </div>
       </article>
 
       <!-- MODULUPPBYGGD LED -->
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
         <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
           <img src="/images/bild/pp_bild_modulskarm.png" alt="Moduluppbyggd LED-vägg" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
-        <div class="p-5">
+        <div class="p-5 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2">
             <h2 class="font-bold text-white text-lg">Moduluppbyggd LED-vägg</h2>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold text-xl">fr 1 199 kr</span><div class="text-gray-500 text-xs">/kvm/dygn</div></div>
+            <div class="text-right shrink-0">
+              <span class="text-brand-orange font-extrabold text-xl">fr 1 199 kr</span>
+              <div class="text-gray-500 text-xs">/kvm/dygn</div>
+            </div>
           </div>
           <p class="text-gray-400 text-sm mb-4">Full HD LED-vägg (1920×1080). Byggbar i valfri storlek. Minsta konfiguration 2×2 m (ca 7 m²). Standard är 3×1 m (3 m²).</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Full HD (1920×1080)</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Byggbar storlek fr 1 kvm</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>1 199 kr/kvm/dygn</li>
           </ul>
-          <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Begär offert</a>
+          <div class="mt-auto">
+            <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Begär offert</a>
+          </div>
         </div>
       </article>
 
       <!-- TRAILERSCEN -->
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group">
+      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
         <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
           <img src="/images/bild/pp_bild_trailerscen.png" alt="Skärm på trailer – mobil LED-storbildsskärm" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         </div>
-        <div class="p-5">
+        <div class="p-5 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2">
             <h2 class="font-bold text-white text-lg">Trailerscen 7 m²</h2>
-            <div class="text-right shrink-0"><span class="text-brand-orange font-extrabold text-xl">15 499 kr</span><div class="text-gray-500 text-xs">/dygn</div></div>
+            <div class="text-right shrink-0">
+              <Price amount={15499} size="xl" />
+              <div class="text-gray-500 text-xs">/dygn</div>
+            </div>
           </div>
           <p class="text-gray-400 text-sm mb-4">Utomhus LED-trailerscen med 7 m² skärm (3,5×2 m). Mobilscen med eget ljusrigg. Inklusive leverans och montering.</p>
-          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+          <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>7 m² LED-skärm (3,5×2 m)</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Utomhusklassad, eget ljusrigg</li>
             <li class="flex gap-1.5"><span class="text-green-400">▸</span>Inklusive leverans och montering</li>
           </ul>
-          <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Begär offert</a>
+          <div class="mt-auto">
+            <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Begär offert</a>
+          </div>
         </div>
       </article>
 
@@ -161,25 +191,30 @@ import CartButton from '../../../components/CartButton.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {[
-        { img:"/images/bild/pp_bild_projektorstativ.png", name:"Projektorvagn",       excl:160, desc:"Justerbar höjd, för alla projektorer" },
-        { img:"/images/bild/pp_bild_100-duk.png",         name:"Duk 100″",           excl:400, desc:"Fast duk, 2,03×1,52 m, 4:3" },
-        { img:"/images/bild/pp_bild_skarmststiv.png",     name:"Golvstativ för skärm",excl:240, desc:"Passar 37–85 tum, VESA-kompatibel" },
-        { img:"/images/bild/pp_bild_HDMI.png",            name:"HDMI-kabel 5 m",     excl:48,  desc:"Full HD/4K" },
-        { img:"/images/bild/pp_bild_HDMI.png",            name:"HDMI-kabel 10 m",    excl:60,  desc:"Full HD/4K" },
-        { img:"/images/bild/pp_bild_HDMI-splitter.png",   name:"HDMI-splitter",      excl:400, desc:"1 ingång, 4 utgångar, 4K" },
-        { img:"/images/bild/pp_bild_mediaspelare.png",    name:"Mediaspelare",       excl:400, desc:"HDMI, USB, WiFi, stöder 4K-video" },
-        { img:"/images/bild/pp_bild_23-skarm.png",        name:"Scenmonitor 23″",   excl:480, desc:"Full HD IPS, VESA-fäste" },
-        { img:"/images/bild/pp_bild_USB-clicker.png",     name:"USB-clicker",        excl:60,  desc:"PowerPoint-fjärr, laser pointer" },
+        { img:"/images/bild/pp_bild_projektorstativ.png", name:"Projektorvagn",        excl:160, desc:"Justerbar höjd, för alla projektorer" },
+        { img:"/images/bild/pp_bild_100-duk.png",         name:"Duk 100″",            excl:400, desc:"Fast duk, 2,03×1,52 m, 4:3" },
+        { img:"/images/bild/pp_bild_skarmststiv.png",     name:"Golvstativ för skärm", excl:240, desc:"Passar 37–85 tum, VESA-kompatibel" },
+        { img:"/images/bild/pp_bild_HDMI.png",            name:"HDMI-kabel 5 m",      excl:48,  desc:"Full HD/4K" },
+        { img:"/images/bild/pp_bild_HDMI.png",            name:"HDMI-kabel 10 m",     excl:60,  desc:"Full HD/4K" },
+        { img:"/images/bild/pp_bild_HDMI-splitter.png",   name:"HDMI-splitter",       excl:400, desc:"1 ingång, 4 utgångar, 4K" },
+        { img:"/images/bild/pp_bild_mediaspelare.png",    name:"Mediaspelare",        excl:400, desc:"HDMI, USB, WiFi, stöder 4K-video" },
+        { img:"/images/bild/pp_bild_23-skarm.png",        name:"Scenmonitor 23″",    excl:480, desc:"Full HD IPS, VESA-fäste" },
+        { img:"/images/bild/pp_bild_USB-clicker.png",     name:"USB-clicker",         excl:60,  desc:"PowerPoint-fjärr, laser pointer" },
       ].map(t => (
-        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
+        <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center flex flex-col">
           <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
             <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
           </div>
           <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
-          <p class="text-gray-500 text-[9px] leading-tight mb-0.5">{t.desc}</p>
-          <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
-          <span class="text-gray-500 text-[9px]">/dygn</span>
+          <p class="text-gray-500 text-[9px] leading-tight mb-0.5 flex-1">{t.desc}</p>
+          <div class="mt-1">
+            <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
+            <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
+            <span class="text-gray-500 text-[9px]">/dygn</span>
+          </div>
+          <div class="mt-1 flex justify-center">
+            <CartButton id={`bild-acc-${t.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={t.name} price={t.excl} category="Projektor tillbehör" image={t.img} size="sm" iconOnly={true} />
+          </div>
         </div>
       ))}
     </div>
@@ -190,22 +225,22 @@ import CartButton from '../../../components/CartButton.astro';
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {[
-        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",            excl:20  },
-        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m 1-fas",     excl:48  },
-        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag 10 m IP44",        excl:100 },
-        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag 25 m IP44",        excl:159 },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",      excl:236 },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",      excl:396 },
-        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",excl:320 },
-        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",      excl:80  },
+        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",             excl:20  },
+        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m 1-fas",      excl:48  },
+        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag 10 m IP44",         excl:100 },
+        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag 25 m IP44",         excl:159 },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",       excl:236 },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",       excl:396 },
+        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas", excl:320 },
+        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",       excl:80  },
       ].map(t => (
         <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-2 text-center">
           <div style="aspect-ratio:300/250" class="bg-brand-dark rounded overflow-hidden mb-1">
             <img src={t.img} alt={t.name} width="150" height="125" loading="lazy" class="w-full h-full object-cover" />
           </div>
           <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
-          <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
           <span class="text-gray-500 text-[9px]">/dygn</span>
         </div>
       ))}

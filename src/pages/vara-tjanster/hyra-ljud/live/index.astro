@@ -2,16 +2,18 @@
 import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
+import Price from '../../../../components/Price.astro';
+import CartButton from '../../../../components/CartButton.astro';
 ---
 <Layout
   title="Hyra Liveljud Stockholm – PA-system för Konsert & Trubadur | Scenkonsult"
-  description="Hyr liveljud för konserter, trubadurer och liveband i Stockholm från 599 kr/dygn. Sub-basar och fullrange paket för 20–1500 personer. Leverans i hela Storstockholm."
+  description="Hyr liveljud för konserter, trubadurer och liveband i Stockholm från 599 kr/dygn. Sub-basar och fullrange paket för 20–1 500 personer. Leverans i hela Storstockholm."
 >
 
   <CategoryHero
     h1="Liveljud & Konsert"
     h1Accent="Stockholm"
-    intro="Hyr liveljud för trubadurer, liveband och konserter. Kraftfulla sub-basar och fullrange högtalarpaket för 20–1 500 personer. Komplettera med mixerbord och mikrofoner nedan."
+    intro="Hyr liveljud för konsert, trubadur och liveband i Stockholm från 599 kr/dygn. Kraftfulla sub-basar och fullrange högtalarpaket för 20–1 500 personer. Komplettera med mixerbord, mikrofoner och monitorhögtalare nedan."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
@@ -23,8 +25,6 @@ import ProductCard from '../../../../components/ProductCard.astro';
       "Monitorhögtalare",
       "Leverans i Storstockholm",
     ]}
-    bannerImage="/images/ljud/plugg_live.png"
-    bannerAlt="Liveljud för konsert och trubadur"
   />
 
   <!-- PAKET -->
@@ -66,30 +66,12 @@ import ProductCard from '../../../../components/ProductCard.astro';
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
     <p class="text-gray-400 mb-8 text-sm">Alla mixers på event-sidan finns att hyra. Live-sidan erbjuder dessutom dessa större modeller:</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ProductCard name="Analogt mixerbord, 2+2 kanaler" price={159}
-        image="/images/ljud/pp_ljud_mixer01.png"
-        description="Kompakt Alto-mixer, 2 mic + 2 stereo, Bluetooth."
-        specs={["2 mic/line (XLR + 6,3 mm)","2 stereo","Bluetooth","Fantommatning 48V","Vikt: 1,4 kg"]} />
-      <ProductCard name="Analogt mixerbord, 4+2 kanaler" price={199}
-        image="/images/ljud/pp_ljud_mixer02.png"
-        description="Alto-mixer 4 mic + 2 stereo, effekter och Bluetooth."
-        specs={["4 mic/line","2 stereo","Inbyggda effekter + Bluetooth","Fantommatning 48V"]} />
-      <ProductCard name="Analogt mixerbord, 4+4 kanaler" price={299}
-        image="/images/ljud/pp_ljud_mixer03.png"
-        description="Mackie-mixer 4 mic + 4 stereo. 60 dB gain."
-        specs={["4 mic/line","4 stereo","60 dB preamp","Fantommatning 48V"]} />
-      <ProductCard name="Analogt mixerbord, 6+4 kanaler" price={349}
-        image="/images/ljud/pp_ljud_mixer04.png"
-        description="Allen & Heath ZED14 – 6 mic + 4 stereo, 69 dB."
-        specs={["6 mic/line","4 stereo","69 dB preamp","Fantommatning 48V"]} />
-      <ProductCard name="Analogt mixerbord, 12+4 kanaler" price={399}
-        image="/images/ljud/pp_ljud_mixer05.png"
-        description="Alto Live L16 – 12 mic + 4 stereo, 256 effekter."
-        specs={["12 mic/line","4 stereo","256 inbyggda effekter"]} />
-      <ProductCard name="Analogt mixerbord, 16+3 kanaler" price={599}
-        image="/images/ljud/pp_ljud_mixer06.png"
-        description="Allen & Heath ZED22FX – 16 mic + 3 stereo, USB."
-        specs={["16 mic/line","3 stereo","USB","High-pass filter per kanal"]} />
+      <ProductCard name="Analogt mixerbord, 2+2 kanaler" price={159} image="/images/ljud/pp_ljud_mixer01.png" description="Kompakt Alto-mixer, 2 mic + 2 stereo, Bluetooth." specs={["2 mic/line (XLR + 6,3 mm)","2 stereo","Bluetooth","Fantommatning 48V","Vikt: 1,4 kg"]} />
+      <ProductCard name="Analogt mixerbord, 4+2 kanaler" price={199} image="/images/ljud/pp_ljud_mixer02.png" description="Alto-mixer 4 mic + 2 stereo, effekter och Bluetooth." specs={["4 mic/line","2 stereo","Inbyggda effekter + Bluetooth","Fantommatning 48V"]} />
+      <ProductCard name="Analogt mixerbord, 4+4 kanaler" price={299} image="/images/ljud/pp_ljud_mixer03.png" description="Mackie-mixer 4 mic + 4 stereo. 60 dB gain." specs={["4 mic/line","4 stereo","60 dB preamp","Fantommatning 48V"]} />
+      <ProductCard name="Analogt mixerbord, 6+4 kanaler" price={349} image="/images/ljud/pp_ljud_mixer04.png" description="Allen & Heath ZED14 – 6 mic + 4 stereo, 69 dB." specs={["6 mic/line","4 stereo","69 dB preamp","Fantommatning 48V"]} />
+      <ProductCard name="Analogt mixerbord, 12+4 kanaler" price={399} image="/images/ljud/pp_ljud_mixer05.png" description="Alto Live L16 – 12 mic + 4 stereo, 256 effekter." specs={["12 mic/line","4 stereo","256 inbyggda effekter"]} />
+      <ProductCard name="Analogt mixerbord, 16+3 kanaler" price={599} image="/images/ljud/pp_ljud_mixer06.png" description="Allen & Heath ZED22FX – 16 mic + 3 stereo, USB." specs={["16 mic/line","3 stereo","USB","High-pass filter per kanal"]} />
     </div>
   </section>
 
@@ -98,18 +80,18 @@ import ProductCard from '../../../../components/ProductCard.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner &amp; tillbehör</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {[
-        { name:"Handmikrofon",           desc:"Inkl 6 m XLR-kabel",             price:80,  img:"/images/ljud/pp_ljud_mik01.png" },
-        { name:"Kondensatormikrofon",    desc:"För sång och instrument",         price:80,  img:"/images/ljud/pp_ljud_mik03.png" },
-        { name:"Instrumentmikrofon",    desc:"För trumma, blås, gitarr",        price:120, img:"/images/ljud/pp_ljud_mik02.png" },
-        { name:"Trådlös handmikrofon",  desc:"Ca 30 m räckvidd",               price:400, img:"/images/ljud/pp_ljud_mik05.png" },
-        { name:"Trådlöst headset",      desc:"Ca 30 m räckvidd",               price:480, img:"/images/ljud/pp_ljud_mik06.png" },
-        { name:"Trådlöst mikrofonset, 8 kan.", desc:"4 hand + 4 headset, antennsplitter", price:2999, img:"/images/ljud/pp_ljud_mik04.png" },
-        { name:"Mikrofonstativ",        desc:"Justerbar höjd",                  price:60,  img:"/images/ljud/pp_ljud_tillbehor06.png" },
-        { name:"XLR-kablar",           desc:"1–15 m, fr 40 kr",               price:40,  img:"/images/ljud/pp_ljud_tillbehor07.png" },
-        { name:"Bluetooth-mottagare",  desc:"Koppla in telefon/dator trådlöst", price:80,  img:"/images/ljud/pp_ljud_tillbehor04.png" },
-        { name:"Stagebox 12-kanal 15m", desc:"XLR in/out multicore",          price:249, img:"/images/ljud/pp_ljud_tillbehor08.png" },
-        { name:"DI-box, mono",         desc:"Instrument till XLR",             price:49,  img:"/images/ljud/pp_ljud_tillbehor09.png" },
-        { name:"Monitorhögtalare 12″", desc:"Scen-monitor för artister",      price:199, img:"/images/ljud/pp_ljud_tillbehor10.png" },
+        { name:"Handmikrofon",                desc:"Inkl 6 m XLR-kabel",               price:80,   img:"/images/ljud/pp_ljud_mik01.png" },
+        { name:"Kondensatormikrofon",         desc:"För sång och instrument",           price:80,   img:"/images/ljud/pp_ljud_mik03.png" },
+        { name:"Instrumentmikrofon",          desc:"För trumma, blås, gitarr",          price:64,   img:"/images/ljud/pp_ljud_mik02.png" },
+        { name:"Trådlös handmikrofon",        desc:"Ca 30 m räckvidd",                 price:400,  img:"/images/ljud/pp_ljud_mik05.png" },
+        { name:"Trådlöst headset",            desc:"Ca 30 m räckvidd",                 price:480,  img:"/images/ljud/pp_ljud_mik06.png" },
+        { name:"Trådlöst mikrofonset 8 kan.", desc:"4 hand + 4 headset, antennsplitter",price:2999, img:"/images/ljud/pp_ljud_mik04.png" },
+        { name:"Mikrofonstativ",              desc:"Justerbar höjd",                   price:60,   img:"/images/ljud/pp_ljud_tillbehor06.png" },
+        { name:"XLR-kablar",                  desc:"1–15 m, fr 40 kr",                 price:40,   img:"/images/ljud/pp_ljud_tillbehor07.png" },
+        { name:"Bluetooth-mottagare",         desc:"Koppla in telefon/dator trådlöst", price:80,   img:"/images/ljud/pp_ljud_tillbehor04.png" },
+        { name:"Stagebox 12-kanal 15m",       desc:"XLR in/out multicore",             price:249,  img:"/images/ljud/pp_ljud_tillbehor08.png" },
+        { name:"DI-box, mono",                desc:"Instrument till XLR",              price:49,   img:"/images/ljud/pp_ljud_tillbehor09.png" },
+        { name:"Monitorhögtalare 12″",        desc:"Scen-monitor för artister",        price:199,  img:"/images/ljud/pp_ljud_tillbehor10.png" },
       ].map(item => (
         <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 flex flex-col gap-2 transition-colors">
           <div class="aspect-square bg-brand-dark rounded-lg overflow-hidden">
@@ -117,12 +99,14 @@ import ProductCard from '../../../../components/ProductCard.astro';
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
-          <p class="text-brand-orange font-bold text-sm border-t border-white/10 pt-2">{item.price} kr <span class="text-gray-400 font-normal">/dygn</span></p>
+          <div class="border-t border-white/10 pt-2 flex items-center justify-between gap-1 mt-auto">
+            <span class="text-brand-orange font-bold text-sm"><Price amount={item.price} size="sm" /></span>
+            <CartButton id={`live-mik-${item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={item.name} price={item.price} category="Ljud tillbehör" image={item.img} size="sm" iconOnly={true} />
+          </div>
         </div>
       ))}
     </div>
   </section>
-
 
   <!-- EL-TILLBEHÖR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
@@ -144,8 +128,8 @@ import ProductCard from '../../../../components/ProductCard.astro';
           </div>
           <p class="text-white text-[10px] font-semibold leading-tight mb-0.5">{t.name}</p>
           <p class="text-gray-400 text-[9px] leading-tight mb-0.5">{t.desc}</p>
-          <span class="sk-price-incl text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
-          <span class="sk-price-excl hidden text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="sk-price-excl text-brand-orange text-xs font-bold">{t.excl} kr</span>
+          <span class="sk-price-incl hidden text-brand-orange text-xs font-bold">{Math.round(t.excl*1.25)} kr</span>
           <span class="text-gray-400 text-[9px]">/dygn</span>
         </div>
       ))}

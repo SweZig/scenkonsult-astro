@@ -1,4 +1,5 @@
 ---
+import CartButton from './CartButton.astro';
 // Ljusstyrning + DMX-tillbehör + El-tillbehör – visas på både fardiga-paket och ljuseffekter
 ---
 
@@ -30,10 +31,10 @@
               <div class="text-gray-500 text-[10px]">/dygn</div>
             </div>
           </div>
-          <ul class="space-y-0.5 mb-3">
+          <ul class="space-y-0.5 mb-3 flex-1">
             {c.bullets.map(b => <li class="text-gray-400 text-[10px] flex gap-1"><span class="text-green-400">▸</span>{b}</li>)}
           </ul>
-          <a href="/bokningssida/" class="inline-block bg-brand-orange hover:bg-orange-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-colors">Boka</a>
+          <CartButton id={`ljus-styrning-${c.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={c.title} price={c.excl} category="Ljusstyrning" image={c.img} size="sm" label="Lägg i varukorg" />
         </div>
       </div>
     ))}
