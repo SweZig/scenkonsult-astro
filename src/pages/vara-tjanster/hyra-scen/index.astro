@@ -44,6 +44,7 @@ const pageSchema = {
     h1="Hyra scen"
     h1Accent="Stockholm"
     intro={scenData.intro}
+    priceFrom={599}
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Våra tjänster", href: "/vara-tjanster/" },
@@ -136,9 +137,11 @@ const pageSchema = {
               <img src={a.image} alt={a.alt} width="300" height="250" loading="lazy" class="w-full h-full object-contain" style="background-color:#1a2744" />
             </div>
             <h3 class="text-white font-semibold text-sm mb-1">{a.name}</h3>
-            <p class="text-gray-500 text-xs mb-2">{a.description}</p>
-            <span class="text-brand-orange font-bold"><Price amount={a.price} size="base" /></span>
-            <CartButton id={`scen-acc-${a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={a.name} price={a.price} priceNote="/dygn" category="Scen tillbehör" image={a.image} size="sm" label="Lägg till" />
+            <p class="text-gray-500 text-xs mb-3">{a.description}</p>
+            <div class="flex items-center justify-between gap-2 border-t border-white/10 pt-3">
+              <span class="text-brand-orange font-bold shrink-0"><Price amount={a.price} size="base" /></span>
+              <CartButton id={`scen-acc-${a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={a.name} price={a.price} priceNote="/dygn" category="Scen tillbehör" image={a.image} size="sm" label="Lägg till" />
+            </div>
           </div>
         ))}
       </div>

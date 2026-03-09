@@ -1,4 +1,5 @@
 ---
+import Price from './Price.astro';
 /**
  * CategoryHero — Mörk hero-banner för alla kategorisidor
  * Löser: nav-synlighet, H1-synlighet, padding-top för fast nav
@@ -17,6 +18,8 @@ interface Props {
   breadcrumbs?: Breadcrumb[];
   bannerImage?: string; // Optional banner image under hero
   bannerAlt?: string;
+  priceFrom?: number;   // Startar från X kr — visas med moms-toggle
+  priceSuffix?: string; // Default "/dygn"
 }
 
 const {
@@ -27,6 +30,8 @@ const {
   breadcrumbs = [],
   bannerImage,
   bannerAlt = '',
+  priceFrom,
+  priceSuffix = '/dygn',
 } = Astro.props;
 ---
 
@@ -61,6 +66,13 @@ const {
 
       <!-- Intro -->
       {intro && <p class="cat-intro">{intro}</p>}
+
+      <!-- Pris från (toggle-kopplat) -->
+      {priceFrom && (
+        <p class="cat-price-from">
+          från <Price amount={priceFrom} suffix={priceSuffix} size="lg" bold={true} />
+        </p>
+      )}
 
       <!-- Trust badges -->
       {badges.length > 0 && (
@@ -190,7 +202,16 @@ const {
     color: rgba(255,255,255,0.6);
     line-height: 1.7;
     max-width: 620px;
+    margin: 0 0 clamp(0.5rem, 2vw, 1rem);
+  }
+
+  .cat-price-from {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.5);
     margin: 0 0 clamp(1rem, 3vw, 1.75rem);
+  }
+  .cat-price-from .sk-price {
+    color: #c4b5f4;
   }
 
   /* ── Trust badges ── */
