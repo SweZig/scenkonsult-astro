@@ -62,7 +62,7 @@ import dj from '../../../data/dj.json';
               <li class="flex gap-1.5"><span class="text-green-400">▸</span>{item}</li>
             ))}
           </ul>
-          <p class="mt-3 text-xs text-gray-500 italic">{dj.djService.note}</p>
+          <p class="mt-3 text-xs text-gray-400 italic">{dj.djService.note}</p>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ import dj from '../../../data/dj.json';
           House, Rock, Schlager, Hip-Hop, Soul, Italo Disco, Euro, EDM m.m.
           Vi utformar kvällen efter önskemål i samråd med kunden.
         </p>
-        <p class="text-xs text-gray-500 mb-4">
+        <p class="text-xs text-gray-400 mb-4">
           Alla tider är effektiva speltimmar. DJ-hårdvara ingår. Resa, scen, ljud och ljus tillkommer.
           <br />¹Digital utrustning kräver fungerande internetanslutning.
         </p>
@@ -103,8 +103,8 @@ import dj from '../../../data/dj.json';
                           <span class="sk-price-excl">{row.junior.toLocaleString('sv')} kr</span>
                           <span class="sk-price-incl hidden">{row.juniorInkl.toLocaleString('sv')} kr</span>
                         </div>
-                        <div class="text-gray-500 text-[10px] sk-price-excl">exkl moms</div>
-                        <div class="text-gray-500 text-[10px] sk-price-incl hidden">inkl moms</div>
+                        <div class="text-gray-400 text-[10px] sk-price-excl">exkl moms</div>
+                        <div class="text-gray-400 text-[10px] sk-price-incl hidden">inkl moms</div>
                       </div>
                       <CartButton id={`dj-junior-${row.hours.replace(' ','')}`} name={`DJ Junior – ${row.hours}`} price={row.junior} category="DJ-tjänst" size="sm" iconOnly={true} />
                     </div>
@@ -117,8 +117,8 @@ import dj from '../../../data/dj.json';
                           <span class="sk-price-excl">{row.senior.toLocaleString('sv')} kr</span>
                           <span class="sk-price-incl hidden">{row.seniorInkl.toLocaleString('sv')} kr</span>
                         </div>
-                        <div class="text-gray-500 text-[10px] sk-price-excl">exkl moms</div>
-                        <div class="text-gray-500 text-[10px] sk-price-incl hidden">inkl moms</div>
+                        <div class="text-gray-400 text-[10px] sk-price-excl">exkl moms</div>
+                        <div class="text-gray-400 text-[10px] sk-price-incl hidden">inkl moms</div>
                       </div>
                       <CartButton id={`dj-senior-${row.hours.replace(' ','')}`} name={`DJ Senior – ${row.hours}`} price={row.senior} category="DJ-tjänst" size="sm" iconOnly={true} />
                     </div>
@@ -134,7 +134,7 @@ import dj from '../../../data/dj.json';
           </table>
         </div>
 
-        <a href="/kontakt/" class="mt-5 inline-block bg-brand-orange hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm">
+        <a href="/kontakt/" class="mt-5 inline-block bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-lg font-semibold transition-colors text-sm">
           Boka DJ
         </a>
       </div>
@@ -198,7 +198,7 @@ import dj from '../../../data/dj.json';
           <p class="text-gray-400 text-xs leading-relaxed mb-3 border-t border-white/10 pt-3">
             <span class="text-gray-300 font-semibold">Artister: </span>{d.artists}
           </p>
-          <p class="text-gray-500 text-xs italic">{d.ageGroup}</p>
+          <p class="text-gray-400 text-xs italic">{d.ageGroup}</p>
         </div>
       ))}
     </div>
@@ -229,7 +229,7 @@ import dj from '../../../data/dj.json';
               <div class="leading-none">
                 <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price} kr</span>
                 <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price * 1.25)} kr</span>
-                <div class="text-gray-500 text-xs">{p.priceNote}</div>
+                <div class="text-gray-400 text-xs">{p.priceNote}</div>
               </div>
               <CartButton id={`dj-utr-${p.slug}`} name={p.name} price={p.price} category="DJ-utrustning" image={p.image} size="sm" label="Lägg i varukorg" />
             </div>

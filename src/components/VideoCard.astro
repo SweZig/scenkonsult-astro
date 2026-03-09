@@ -91,7 +91,7 @@ const vcId = `vc-${Math.random().toString(36).slice(2,7)}`;
       <div class="border-t border-white/10 pt-3 mb-3 space-y-2">
         {rows.map(g => (
           <div>
-            {g.label && <div class="text-gray-500 text-[10px] uppercase tracking-wide mb-1">{g.label}</div>}
+            {g.label && <div class="text-gray-400 text-[10px] uppercase tracking-wide mb-1">{g.label}</div>}
             <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
               {g.rows.map(r => (
                 <div class="text-gray-400 text-xs">{r}</div>
@@ -115,7 +115,7 @@ const vcId = `vc-${Math.random().toString(36).slice(2,7)}`;
       <div class="shrink-0">
         <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{priceExcl.toLocaleString('sv')} kr</span>
         <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(priceExcl*1.25).toLocaleString('sv')} kr</span>
-        <div class="text-gray-500 text-[10px]">{priceSuffix}</div>
+        <div class="text-gray-400 text-[10px]">{priceSuffix}</div>
       </div>
       <CartButton id={cartId} name={title} price={priceExcl} priceNote={`/${priceSuffix.replace(/^\//, '')}`} category={category} image={img} size="sm" label="Lägg i varukorg" />
     </div>

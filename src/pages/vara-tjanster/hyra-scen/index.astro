@@ -89,7 +89,7 @@ const pageSchema = {
             </div>
             <p class="text-gray-400 text-sm leading-relaxed mb-4" itemprop="description">{p.description}</p>
 
-            <div class="space-y-1.5 text-xs text-gray-500 mb-4">
+            <div class="space-y-1.5 text-xs text-gray-400 mb-4">
               <div class="flex gap-2">
                 <span class="text-gray-600">Mått:</span>
                 <span class="text-gray-400">{p.dimensions}</span>
@@ -116,7 +116,7 @@ const pageSchema = {
                 <meta itemprop="price" content={String(p.price)} />
                 <meta itemprop="availability" content="https://schema.org/InStock" />
                 <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" /></span>
-                <span class="text-gray-500 text-xs ml-1">{p.priceNote}</span>
+                <span class="text-gray-400 text-xs ml-1">{p.priceNote}</span>
               </div>
               <CartButton id={`scen-${p.id}`} name={p.name} price={p.price} priceNote={`/${p.priceNote ?? "dygn"}`} category="Scen" image={p.image} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" />
             </div>
@@ -137,7 +137,7 @@ const pageSchema = {
               <img src={a.image} alt={a.alt} width="300" height="250" loading="lazy" class="w-full h-full object-contain" style="background-color:#1a2744" />
             </div>
             <h3 class="text-white font-semibold text-sm mb-1">{a.name}</h3>
-            <p class="text-gray-500 text-xs mb-3">{a.description}</p>
+            <p class="text-gray-400 text-xs mb-3">{a.description}</p>
             <div class="flex items-center justify-between gap-2 border-t border-white/10 pt-3">
               <span class="text-brand-orange font-bold shrink-0"><Price amount={a.price} size="base" /></span>
               <CartButton id={`scen-acc-${a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={a.name} price={a.price} priceNote="/dygn" category="Scen tillbehör" image={a.image} size="sm" label="Lägg till" />
