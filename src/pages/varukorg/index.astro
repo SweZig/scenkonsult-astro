@@ -796,8 +796,10 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   }
 
   // ── EMAIL ─────────────────────────────────────────────────
-  document.getElementById('btnEmail')?.addEventListener('click', () => {
+  document.getElementById('btnEmail')?.addEventListener('click', async () => {
     const { cart, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
+    const btn = document.getElementById('btnEmail');
+
     const prodLines = cart.map(i => `- ${i.name} × ${i.qty}  →  ${(i.price*i.qty).toLocaleString('sv')} kr`).join('\n');
     const custInfo = [
       `Namn: ${customer.name}`,
@@ -810,7 +812,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       customer.notes ? `Övrig info: ${customer.notes}` : '',
     ].filter(Boolean).join('\n');
 
-    const body = encodeURIComponent(
+    const msgBody =
       `Hej Scenkonsult!\n\nJag är intresserad av att hyra:\n\n${prodLines}`
       + (extraLines.length ? `\n\nTilläggstjänster:\n` + extraLines.map(l=>'- '+l).join('\n') : '')
       + `\n\nProdukter: ${subtotal.toLocaleString('sv')} kr exkl. moms`
@@ -818,10 +820,33 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       + `\nMoms: ${vat.toLocaleString('sv')} kr\nTotalt: ${total.toLocaleString('sv')} kr inkl. moms`
       + `\n\nObs: Alla frakt- och tjänstepriser är estimat och bekräftas som en del av orderprocessen.`
       + `\n\n── Kontaktuppgifter ──\n${custInfo}`
-      + `\n\nMed vänliga hälsningar,\n${customer.name}`
-    );
-    window.location.href = `mailto:${atob('aW5mb0BzY2Vua29uc3VsdC5zZQ==')}?subject=Offertf%C3%B6rfr%C3%A5gan%20fr%C3%A5n%20scenkonsult.se&body=${body}`;
-    setTimeout(() => { window.location.href = '/tack/'; }, 1500);
+      + `\n\nMed vänliga hälsningar,\n${customer.name}`;
+
+    // Visa laddningsindikator
+    btn.disabled = true;
+    btn.textContent = 'Skickar…';
+
+    try {
+      const resp = await fetch('/.netlify/functions/skicka-offert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer, cart, body: msgBody }),
+      });
+
+      const result = await resp.json();
+
+      if (resp.ok && result.ok) {
+        window.location.href = '/tack/';
+      } else {
+        alert(result.error || 'Något gick fel, försök igen eller ring oss på 072-448 10 00.');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg> Maila offertförfrågan`;
+      }
+    } catch (err) {
+      alert('Nätverksfel — försök igen eller ring 072-448 10 00.');
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg> Maila offertförfrågan`;
+    }
   });
 
   // ── PDF / PRINT ───────────────────────────────────────────

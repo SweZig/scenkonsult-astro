@@ -104,6 +104,20 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
     })();
   </script>
 
+  <!-- Netlify Forms: dolt formulär för registrering vid bygge -->
+  <form name="offertforfragan" netlify netlify-honeypot="website" hidden>
+    <input type="text" name="name" />
+    <input type="email" name="email" />
+    <input type="text" name="phone" />
+    <input type="text" name="company" />
+    <input type="text" name="datum_from" />
+    <input type="text" name="datum_to" />
+    <input type="text" name="adress" />
+    <textarea name="meddelande"></textarea>
+    <textarea name="varukorg"></textarea>
+    <input type="text" name="website" /> <!-- honeypot -->
+  </form>
+
   <!-- TICKER -->
   <div class="ticker">
     <div class="ticker-track">
