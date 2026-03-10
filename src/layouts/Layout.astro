@@ -409,5 +409,451 @@ const {
 
   <InlineEditor />
 
-</body>
-</html>
+  <!-- ========== SVEN INTENDENTEN — CHATBOT ========== -->
+  <div id="sven-chat-widget" aria-label="Chatta med Sven">
+
+    <!-- Trigger-knapp -->
+    <button id="sven-toggle" aria-label="Öppna chatten med Sven" title="Chatta med Sven – intendenten">
+      <span id="sven-icon-open">
+        <!-- Headset-ikon -->
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/>
+          <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+        </svg>
+      </span>
+      <span id="sven-icon-close" style="display:none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </span>
+      <span id="sven-unread" style="display:none"></span>
+    </button>
+
+    <!-- Chattfönster -->
+    <div id="sven-window" role="dialog" aria-modal="true" aria-label="Chatta med Sven">
+      <!-- Header -->
+      <div id="sven-header">
+        <div id="sven-avatar">S</div>
+        <div id="sven-header-text">
+          <strong>Sven — Intendenten</strong>
+          <span>Fråga om utrustning & priser</span>
+        </div>
+        <button id="sven-close-btn" aria-label="Stäng chatten">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Meddelanden -->
+      <div id="sven-messages" role="log" aria-live="polite"></div>
+
+      <!-- Snabbval -->
+      <div id="sven-chips"></div>
+
+      <!-- Inmatning -->
+      <div id="sven-input-row">
+        <input
+          id="sven-input"
+          type="text"
+          placeholder="Skriv din fråga…"
+          maxlength="500"
+          autocomplete="off"
+          aria-label="Din fråga till Sven"
+        />
+        <button id="sven-send" aria-label="Skicka" title="Skicka">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* === Widget container === */
+    #sven-chat-widget {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      font-family: 'Source Sans 3', system-ui, sans-serif;
+    }
+
+    /* === Toggle-knapp === */
+    #sven-toggle {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: none;
+      background: #c4b5f4;
+      color: #0c0a24;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(196,181,244,0.45);
+      transition: background 0.2s, transform 0.2s;
+      position: relative;
+      margin-left: auto;
+    }
+    #sven-toggle:hover { background: #e2dcfb; transform: scale(1.07); }
+
+    /* Unread badge */
+    #sven-unread {
+      position: absolute;
+      top: -2px; right: -2px;
+      width: 14px; height: 14px;
+      background: #e63946;
+      border-radius: 50%;
+      border: 2px solid #0c0a24;
+    }
+
+    /* === Chattfönster === */
+    #sven-window {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      width: 340px;
+      max-height: 520px;
+      background: #13112e;
+      border: 1px solid rgba(196,181,244,0.25);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+      animation: svenSlideIn 0.22s ease;
+    }
+    #sven-window.open { display: flex; }
+
+    @keyframes svenSlideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Header */
+    #sven-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      background: #1e1850;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    #sven-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #c4b5f4;
+      color: #0c0a24;
+      font-weight: 900;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    #sven-header-text { flex: 1; line-height: 1.2; }
+    #sven-header-text strong { display: block; color: #fff; font-size: 14px; }
+    #sven-header-text span { color: rgba(255,255,255,0.5); font-size: 11px; }
+    #sven-close-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.4); padding: 4px;
+      border-radius: 6px; transition: color 0.15s;
+    }
+    #sven-close-btn:hover { color: #fff; }
+
+    /* Meddelandelista */
+    #sven-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+    #sven-messages::-webkit-scrollbar { width: 4px; }
+    #sven-messages::-webkit-scrollbar-track { background: transparent; }
+    #sven-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+    /* Bubblor */
+    .sven-bubble {
+      max-width: 85%;
+      padding: 9px 13px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .sven-bubble.bot {
+      background: #1e1850;
+      color: rgba(255,255,255,0.9);
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
+    .sven-bubble.user {
+      background: #c4b5f4;
+      color: #0c0a24;
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+      font-weight: 500;
+    }
+    .sven-bubble a {
+      color: #c4b5f4;
+      text-decoration: underline;
+    }
+    .sven-bubble.bot a { color: #c4b5f4; }
+
+    /* Skrivindikator */
+    .sven-typing {
+      display: flex; gap: 4px; align-items: center;
+      padding: 10px 13px;
+    }
+    .sven-typing span {
+      width: 7px; height: 7px;
+      background: rgba(196,181,244,0.6);
+      border-radius: 50%;
+      animation: svenBounce 1.1s infinite;
+    }
+    .sven-typing span:nth-child(2) { animation-delay: 0.18s; }
+    .sven-typing span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes svenBounce {
+      0%,60%,100% { transform: translateY(0); }
+      30%          { transform: translateY(-6px); }
+    }
+
+    /* Snabbval-chips */
+    #sven-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0 14px 10px;
+      flex-shrink: 0;
+    }
+    .sven-chip {
+      background: rgba(196,181,244,0.1);
+      border: 1px solid rgba(196,181,244,0.3);
+      color: #c4b5f4;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .sven-chip:hover { background: rgba(196,181,244,0.22); }
+
+    /* Inmatning */
+    #sven-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    #sven-input {
+      flex: 1;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: #fff;
+      font-size: 13.5px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    #sven-input:focus { border-color: rgba(196,181,244,0.5); }
+    #sven-input::placeholder { color: rgba(255,255,255,0.3); }
+    #sven-send {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      border: none;
+      background: #c4b5f4;
+      color: #0c0a24;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #sven-send:hover { background: #e2dcfb; }
+    #sven-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Mobilanpassning */
+    @media (max-width: 400px) {
+      #sven-window { width: calc(100vw - 32px); right: -8px; }
+      #sven-chat-widget { right: 16px; bottom: 16px; }
+    }
+  </style>
+
+  <script>
+    (function() {
+      const CHIPS_INITIAL = [
+        "Vad kostar en scen?",
+        "Ljud för 100 gäster",
+        "Hyr DJ",
+        "Leverans?",
+      ];
+
+      const toggle      = document.getElementById('sven-toggle');
+      const win         = document.getElementById('sven-window');
+      const messages    = document.getElementById('sven-messages');
+      const input       = document.getElementById('sven-input');
+      const sendBtn     = document.getElementById('sven-send');
+      const closeBtn    = document.getElementById('sven-close-btn');
+      const chips       = document.getElementById('sven-chips');
+      const iconOpen    = document.getElementById('sven-icon-open');
+      const iconClose   = document.getElementById('sven-icon-close');
+      const unread      = document.getElementById('sven-unread');
+
+      let history = [];
+      let isOpen  = false;
+      let hasGreeted = false;
+
+      function open() {
+        isOpen = true;
+        win.classList.add('open');
+        iconOpen.style.display = 'none';
+        iconClose.style.display = 'flex';
+        unread.style.display = 'none';
+        input.focus();
+        if (!hasGreeted) {
+          hasGreeted = true;
+          setTimeout(() => {
+            addBubble('bot',
+              'Hej! Sven här — intendent på Scenkonsult. Hade jag fått bestämma hade jag stått på scenen nu istället, men här är vi. 🎭\n\nVad kan jag hjälpa dig med?'
+            );
+            renderChips(CHIPS_INITIAL);
+          }, 300);
+        }
+      }
+
+      function close() {
+        isOpen = false;
+        win.classList.remove('open');
+        iconOpen.style.display = 'flex';
+        iconClose.style.display = 'none';
+      }
+
+      toggle.addEventListener('click', () => isOpen ? close() : open());
+      closeBtn.addEventListener('click', close);
+
+      // Stäng med Escape
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && isOpen) close();
+      });
+
+      function escapeHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      function formatMessage(text) {
+        // Radbrytningar → <br>, **text** → <strong>, [text](url) → <a>
+        return escapeHtml(text)
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g, '<a href="$1">$1 →</a>')
+          .replace(/\n/g, '<br>');
+      }
+
+      function addBubble(role, text) {
+        const div = document.createElement('div');
+        div.className = `sven-bubble ${role}`;
+        div.innerHTML = formatMessage(text);
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+        return div;
+      }
+
+      function showTyping() {
+        const div = document.createElement('div');
+        div.className = 'sven-bubble bot sven-typing';
+        div.id = 'sven-typing-indicator';
+        div.innerHTML = '<span></span><span></span><span></span>';
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function removeTyping() {
+        document.getElementById('sven-typing-indicator')?.remove();
+      }
+
+      function renderChips(list) {
+        chips.innerHTML = '';
+        list.forEach(label => {
+          const btn = document.createElement('button');
+          btn.className = 'sven-chip';
+          btn.textContent = label;
+          btn.addEventListener('click', () => {
+            chips.innerHTML = '';
+            sendMessage(label);
+          });
+          chips.appendChild(btn);
+        });
+      }
+
+      async function sendMessage(text) {
+        const msg = text.trim();
+        if (!msg) return;
+
+        input.value = '';
+        chips.innerHTML = '';
+        addBubble('user', msg);
+        history.push({ role: 'user', content: msg });
+
+        sendBtn.disabled = true;
+        showTyping();
+
+        try {
+          const res = await fetch('/api/sven-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: history }),
+          });
+
+          removeTyping();
+
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          const reply = data.reply || 'Något gick fel, försök igen.';
+
+          addBubble('bot', reply);
+          history.push({ role: 'assistant', content: reply });
+
+          // Visa offert-chip om svaret är köpnära
+          const lowerReply = reply.toLowerCase();
+          if (
+            lowerReply.includes('offert') ||
+            lowerReply.includes('kontakt') ||
+            lowerReply.includes('boka') ||
+            lowerReply.includes('formulär')
+          ) {
+            renderChips(['Skicka offertförfrågan →']);
+          }
+
+        } catch (err) {
+          removeTyping();
+          addBubble('bot', 'Hm, något krånglar med förbindelsen. Prova att ringa oss på 072-448 10 00 istället — vi svarar genast!');
+        } finally {
+          sendBtn.disabled = false;
+          if (document.activeElement !== input) input.focus();
+        }
+      }
+
+      sendBtn.addEventListener('click', () => sendMessage(input.value));
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage(input.value);
+        }
+      });
+
+      // Visa unread-badge efter 8 sek om chatten inte öppnats
+      setTimeout(() => {
+        if (!isOpen && !hasGreeted) {
+          unread.style.display = 'block';
+        }
+      }, 8000);
+    })();
+  </script>
+  <!-- ========== /SVEN ========== -->
