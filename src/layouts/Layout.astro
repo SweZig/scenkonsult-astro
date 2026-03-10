@@ -470,12 +470,44 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 
     // ─── CART SYSTEM ─────────────────────────────────────────────
     const SK_CART_KEY = 'sk-cart';
+    const SK_CART_TTL = 21 * 24 * 60 * 60 * 1000; // 21 dagar
+
+    function skGenCartId() {
+      const hex = () => Math.random().toString(16).slice(2, 6).toUpperCase();
+      return `SK-${hex()}${hex()}-${hex()}`;
+    }
+
+    function skGetCartData() {
+      try {
+        const raw = localStorage.getItem(SK_CART_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        // Stöd gammal format (ren array) → migrera
+        if (Array.isArray(data)) {
+          return { id: skGenCartId(), expires: Date.now() + SK_CART_TTL, items: data };
+        }
+        // Kolla utgångsdatum
+        if (data.expires && Date.now() > data.expires) {
+          localStorage.removeItem(SK_CART_KEY);
+          return null;
+        }
+        return data;
+      } catch { return null; }
+    }
 
     function skGetCart() {
-      try { return JSON.parse(localStorage.getItem(SK_CART_KEY) || '[]'); } catch { return []; }
+      return skGetCartData()?.items || [];
     }
-    function skSaveCart(cart) {
-      try { localStorage.setItem(SK_CART_KEY, JSON.stringify(cart)); } catch {}
+    function skSaveCart(items) {
+      try {
+        const existing = skGetCartData();
+        const data = {
+          id: existing?.id || skGenCartId(),
+          expires: Date.now() + SK_CART_TTL,
+          items,
+        };
+        localStorage.setItem(SK_CART_KEY, JSON.stringify(data));
+      } catch {}
     }
     function skCartTotal() {
       return skGetCart().reduce((sum, item) => sum + item.qty, 0);

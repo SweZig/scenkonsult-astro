@@ -185,10 +185,10 @@ const fraktRules = JSON.stringify(frakt);
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Spara som PDF
       </button>
-      <a href="/bokningssida/" id="btnBoka" class="cart-btn accent disabled-btn" aria-disabled="true" tabindex="-1">
+      <button id="btnBoka" class="cart-btn accent disabled-btn" aria-disabled="true" disabled>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
         Boka detta nu
-      </a>
+      </button>
       <button id="btnClear" class="cart-btn ghost">Töm varukorg</button>
     </div>
     <p class="villkor-hint hidden" id="villkorHint">Vänligen godkänn hyresvillkoren och fyll i namn, e-post och telefon för att fortsätta.</p>
@@ -498,7 +498,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
 .villkor-hint {
   font-family:'Space Grotesk',sans-serif;
   font-size:0.8rem; color:rgba(248,113,113,0.8);
-  margin-top:-0.75rem; margin-bottom:1rem;
+  margin-top:0.25rem; margin-bottom:1rem;
   padding:0.5rem 0.75rem;
   background:rgba(248,113,113,0.07);
   border:1px solid rgba(248,113,113,0.2);
@@ -538,8 +538,26 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
 <script define:vars={{ fraktRules }}>
   const FRAKT = JSON.parse(fraktRules);
   const fmt = n => n.toLocaleString('sv') + ' kr';
-  const getCart = () => { try { return JSON.parse(localStorage.getItem('sk-cart')||'[]'); } catch { return []; } };
-  const saveCart = c => { try { localStorage.setItem('sk-cart', JSON.stringify(c)); } catch {} };
+  const SK_TTL = 21 * 24 * 60 * 60 * 1000;
+  function _genCartId() { const h=()=>Math.random().toString(16).slice(2,6).toUpperCase(); return `SK-${h()}${h()}-${h()}`; }
+  function _getCartData() {
+    try {
+      const raw = localStorage.getItem('sk-cart');
+      if (!raw) return null;
+      const d = JSON.parse(raw);
+      if (Array.isArray(d)) return { id: _genCartId(), expires: Date.now()+SK_TTL, items: d };
+      if (d.expires && Date.now() > d.expires) { localStorage.removeItem('sk-cart'); return null; }
+      return d;
+    } catch { return null; }
+  }
+  const getCart = () => _getCartData()?.items || [];
+  const getCartId = () => _getCartData()?.id || null;
+  const saveCart = items => {
+    try {
+      const ex = _getCartData();
+      localStorage.setItem('sk-cart', JSON.stringify({ id: ex?.id || _genCartId(), expires: Date.now()+SK_TTL, items }));
+    } catch {}
+  };
 
   function updateNavBadge() {
     const total = getCart().reduce((s,i) => s + i.qty, 0);
@@ -609,11 +627,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     const hint     = document.getElementById('villkorHint');
 
     if (btnEmail) { btnEmail.disabled = !ok; }
-    if (btnBoka)  {
-      btnBoka.classList.toggle('disabled-btn', !ok);
-      btnBoka.setAttribute('aria-disabled', String(!ok));
-      btnBoka.style.pointerEvents = ok ? '' : 'none';
-    }
+    if (btnBoka)  { btnBoka.disabled = !ok; btnBoka.classList.toggle('disabled-btn', !ok); }
     if (hint) hint.classList.toggle('hidden', ok);
   }
 
@@ -801,9 +815,8 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   }
 
   // ── EMAIL ─────────────────────────────────────────────────
-  document.getElementById('btnEmail')?.addEventListener('click', async () => {
+  async function submitOffert(triggerBtn) {
     const { cart, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
-    const btn = document.getElementById('btnEmail');
 
     const prodLines = cart.map(i => `- ${i.name} × ${i.qty}  →  ${(i.price*i.qty).toLocaleString('sv')} kr`).join('\n');
     const custInfo = [
@@ -827,9 +840,15 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       + `\n\n── Kontaktuppgifter ──\n${custInfo}`
       + `\n\nMed vänliga hälsningar,\n${customer.name}`;
 
-    // Visa laddningsindikator
-    btn.disabled = true;
-    btn.textContent = 'Skickar…';
+    const origHtml = triggerBtn.innerHTML;
+    triggerBtn.disabled = true;
+    triggerBtn.textContent = 'Skickar…';
+
+    // Lås även den andra knappen
+    const btnEmail = document.getElementById('btnEmail');
+    const btnBoka  = document.getElementById('btnBoka');
+    if (btnEmail) btnEmail.disabled = true;
+    if (btnBoka)  btnBoka.disabled = true;
 
     try {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
@@ -844,15 +863,22 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
         window.location.href = '/tack/';
       } else {
         alert(result.error || 'Något gick fel, försök igen eller ring oss på 072-448 10 00.');
-        btn.disabled = false;
-        btn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg> Maila offertförfrågan`;
+        triggerBtn.disabled = false;
+        triggerBtn.innerHTML = origHtml;
+        if (btnEmail) btnEmail.disabled = false;
+        if (btnBoka)  btnBoka.disabled = false;
       }
     } catch (err) {
       alert('Nätverksfel — försök igen eller ring 072-448 10 00.');
-      btn.disabled = false;
-      btn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg> Maila offertförfrågan`;
+      triggerBtn.disabled = false;
+      triggerBtn.innerHTML = origHtml;
+      if (btnEmail) btnEmail.disabled = false;
+      if (btnBoka)  btnBoka.disabled = false;
     }
-  });
+  }
+
+  document.getElementById('btnEmail')?.addEventListener('click', function() { submitOffert(this); });
+  document.getElementById('btnBoka')?.addEventListener('click', function() { submitOffert(this); });
 
   // ── PDF / PRINT ───────────────────────────────────────────
   document.getElementById('btnSave')?.addEventListener('click', () => {
