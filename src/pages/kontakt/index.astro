@@ -191,6 +191,62 @@ const orter = [
       </div>
     </section>
 
+    <!-- Google-recensioner -->
+    <section class="mb-14">
+      <div class="flex items-center gap-3 mb-6">
+        <h2 class="text-2xl font-bold text-white" style="font-family:'DM Serif Display',serif">Vad kunderna säger</h2>
+        <a href="https://www.google.com/maps/search/Scenkonsult+Vällingby" target="_blank" rel="noopener"
+          class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors"
+          style="background:#1e1850;border:1px solid rgba(255,255,255,0.1);color:rgba(196,181,244,0.9)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.33 0 9.25-3.65 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/></svg>
+          5,0 · 3 recensioner
+        </a>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          {
+            name: "Cecilia Örnjäger",
+            initials: "CÖ",
+            time: "För 2 år sedan",
+            text: "Varmt rekommenderat! Bäst när det gäller. Professionella med en glimt i ögat.",
+          },
+          {
+            name: "Charlotte Axelsson",
+            initials: "CA",
+            time: "För ett år sedan",
+            text: "DJ Måns gjorde kvällen till en succé och ingen ville lämna dansgolvet! Superproffsigt och bra kommunikation hela vägen. Varmt rekommenderat!",
+          },
+          {
+            name: "Charlotta Frennby",
+            initials: "CF",
+            time: "För 2 år sedan",
+            text: "Hyrde ljud för en helg och det var toppen. Väldigt hjälpsamma och lätta att ha att göra med.",
+          },
+        ].map(r => (
+          <div class="rounded-2xl p-5 flex flex-col gap-3" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:#c4b5f4;color:#0c0a24">
+                {r.initials}
+              </div>
+              <div>
+                <div class="text-white text-sm font-semibold leading-tight">{r.name}</div>
+                <div class="text-gray-400 text-xs">{r.time}</div>
+              </div>
+              <!-- Google G -->
+              <svg class="ml-auto flex-shrink-0" width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.33 0 9.25-3.65 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/></svg>
+            </div>
+            <!-- 5 stjärnor -->
+            <div class="flex gap-0.5">
+              {[1,2,3,4,5].map(() => (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5a623"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              ))}
+            </div>
+            <p class="text-gray-400 text-sm leading-relaxed flex-1">{r.text}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
     <!-- Leveransområde -->
     <section>
       <h2 class="text-2xl font-bold text-white mb-2" style="font-family:'DM Serif Display',serif">Leveransområde</h2>
