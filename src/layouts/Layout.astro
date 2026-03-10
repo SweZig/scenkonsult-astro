@@ -1004,6 +1004,12 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
         msgs.scrollTop = msgs.scrollHeight;
       }
 
+      // Synka moms-toggle med kundtyp från Sven
+      function syncVat(mode) {
+        const btn = document.getElementById(mode === 'incl' ? 'sk-vat-incl' : 'sk-vat-excl');
+        if (btn) btn.click();
+      }
+
       function close() {
         isOpen = false;
         win.classList.remove("open");
@@ -1134,9 +1140,9 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
               return;
             }
             // Tolka kundtyp direkt från chip
-            if (/företag/i.test(label)) customerType = "company";
-            else if (/privatperson/i.test(label)) customerType = "private";
-            else if (/förening|organisation/i.test(label)) customerType = "org";
+            if (/företag/i.test(label)) { customerType = "company"; syncVat("excl"); }
+            else if (/privatperson/i.test(label)) { customerType = "private"; syncVat("incl"); }
+            else if (/förening|organisation/i.test(label)) { customerType = "org"; syncVat("excl"); }
             sendMessage(label);
           });
           chips.appendChild(btn);
@@ -1187,9 +1193,9 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
         if (!msg) return;
 
         // Spara kundtyp från fritextinmatning
-        if (/\bföretag\b/i.test(msg)) customerType = "company";
-        else if (/\bprivatperson\b|\bprivat\b/i.test(msg)) customerType = "private";
-        else if (/\bförening\b|\borgani/i.test(msg)) customerType = "org";
+        if (/\bföretag\b/i.test(msg)) { customerType = "company"; syncVat("excl"); }
+        else if (/\bprivatperson\b|\bprivat\b/i.test(msg)) { customerType = "private"; syncVat("incl"); }
+        else if (/\bförening\b|\borgani/i.test(msg)) { customerType = "org"; syncVat("excl"); }
 
         input.value = "";
         chips.innerHTML = "";
