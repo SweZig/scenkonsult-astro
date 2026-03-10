@@ -94,8 +94,11 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
           var raw = localStorage.getItem(CONSENT_KEY);
           if (!raw) return null;
           var data = JSON.parse(raw);
-          // Gammalt format (sträng) — migrera
-          if (typeof data === 'string') return data;
+          // Gammalt format (sträng) — migrera till nytt format med utgångsdatum
+          if (typeof data === 'string') {
+            setConsent(data); // spara om med expires
+            return data;
+          }
           // Kolla utgångsdatum
           if (data.expires && Date.now() > data.expires) {
             localStorage.removeItem(CONSENT_KEY);
@@ -905,8 +908,16 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
     .sven-star.rated { color: #c4b5f4; cursor: default; }
 
     /* Mobilanpassning */
-    @media (max-width: 400px) {
-      #sven-window { width: calc(100vw - 32px); right: -8px; }
+    @media (max-width: 480px) {
+      #sven-window {
+        width: calc(100vw - 24px) !important;
+        height: clamp(320px, 65vh, 520px) !important;
+        right: -4px;
+        bottom: 70px;
+        border-radius: 14px;
+      }
+      #sven-resize-handle { display: none; } /* ingen drag på mobil */
+    }
       #sven-chat-widget { right: 16px; bottom: 16px; }
     }
   </style>
@@ -1060,9 +1071,12 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
         const minH     = 320;
         const newH     = Math.min(Math.max(desired, minH), maxH);
 
-        // Öka bara, minska aldrig automatiskt (låt användaren dra manuellt)
+        // Öka om innehållet inte får plats, minska om det finns gott om plats
+        const tolerance = 40; // px slack innan vi krymper
         if (newH > win.offsetHeight) {
           win.style.height = newH + 'px';
+        } else if (newH < win.offsetHeight - tolerance) {
+          win.style.height = Math.max(newH, minH) + 'px';
         }
       }
 
