@@ -25,14 +25,23 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
   <script>
     (function() {
       window.dataLayer = window.dataLayer || [];
-      // Ladda GTM om samtycke redan finns
-      if (localStorage.getItem('sk_cookie_consent') === 'accepted') {
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-TL37V2GR');
-      }
+      // Ladda GTM om samtycke finns och inte gått ut
+      try {
+        var raw = localStorage.getItem('sk_cookie_consent');
+        if (raw) {
+          var data = JSON.parse(raw);
+          var value = typeof data === 'string' ? data : data.value;
+          var expires = typeof data === 'object' ? data.expires : null;
+          var valid = !expires || Date.now() < expires;
+          if (value === 'accepted' && valid) {
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-TL37V2GR');
+          }
+        }
+      } catch(e) {}
     })();
   </script>
   <meta charset="UTF-8" />
@@ -77,10 +86,34 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 
   <script is:inline>
     (function() {
-      var consent = localStorage.getItem('sk_cookie_consent');
+      var CONSENT_KEY = 'sk_cookie_consent';
+      var CONSENT_DAYS = 395; // 13 månader per personuppgiftspolicyn
+
+      function getConsent() {
+        try {
+          var raw = localStorage.getItem(CONSENT_KEY);
+          if (!raw) return null;
+          var data = JSON.parse(raw);
+          // Gammalt format (sträng) — migrera
+          if (typeof data === 'string') return data;
+          // Kolla utgångsdatum
+          if (data.expires && Date.now() > data.expires) {
+            localStorage.removeItem(CONSENT_KEY);
+            return null;
+          }
+          return data.value;
+        } catch { return null; }
+      }
+
+      function setConsent(value) {
+        var expires = Date.now() + CONSENT_DAYS * 24 * 60 * 60 * 1000;
+        localStorage.setItem(CONSENT_KEY, JSON.stringify({ value: value, expires: expires }));
+      }
+
+      var consent = getConsent();
       var banner = document.getElementById('sk-cookie-banner');
 
-      // Visa banner om inget val gjorts
+      // Visa banner om inget val gjorts (eller utgånget)
       if (!consent && banner) banner.style.display = 'flex';
 
       function loadGTM() {
@@ -92,13 +125,13 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
       }
 
       document.getElementById('sk-cookie-accept')?.addEventListener('click', function() {
-        localStorage.setItem('sk_cookie_consent', 'accepted');
+        setConsent('accepted');
         if (banner) banner.style.display = 'none';
         loadGTM();
       });
 
       document.getElementById('sk-cookie-decline')?.addEventListener('click', function() {
-        localStorage.setItem('sk_cookie_consent', 'declined');
+        setConsent('declined');
         if (banner) banner.style.display = 'none';
       });
     })();
