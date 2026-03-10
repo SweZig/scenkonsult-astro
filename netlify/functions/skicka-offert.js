@@ -1,5 +1,5 @@
 // netlify/functions/skicka-offert.js
-// Resend API — HTML + plain-text, branded mail
+// Resend API — ljust mailtheme, rate limit-hantering
 
 const RATE_LIMIT = {};
 const RATE_WINDOW_MS = 60 * 1000;
@@ -9,40 +9,42 @@ const TO_INTERNAL = 'info@scenkonsult.se';
 const TRELLO_EMAIL = 'sunxpertadm+kvz53qihlyplkt6r9xnb@app.trello.com';
 const LOGO_URL = 'https://scenkonsult-astro.netlify.app/logo-white.png';
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 function htmlWrapper(title, bodyHtml) {
   return `<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head>
-<body style="margin:0;padding:0;background:#0c0a24;font-family:'Helvetica Neue',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a24;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
 <tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-<tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:28px 32px;text-align:center;border-bottom:2px solid rgba(196,181,244,0.25);">
-  <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="140" height="40" style="display:block;margin:0 auto 12px;" />
-  <p style="margin:0;color:rgba(255,255,255,0.55);font-size:13px;letter-spacing:0.05em;">Ljud &middot; Ljus &middot; Scen &middot; DJ &mdash; Stockholm sedan 1986</p>
+<tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
+  <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="130" style="display:block;margin:0 auto 10px;height:auto;" />
+  <p style="margin:0;color:rgba(255,255,255,0.65);font-size:13px;">Ljud &middot; Ljus &middot; Scen &middot; DJ &mdash; Stockholm sedan 1986</p>
 </td></tr>
-<tr><td style="background:#1e1850;padding:32px;">${bodyHtml}</td></tr>
-<tr><td style="background:#111030;border-radius:0 0 12px 12px;padding:20px 32px;text-align:center;border-top:2px solid rgba(196,181,244,0.25);">
-  <p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:12px;">Scenkonsult Norden &middot; Grimstagatan 164, 162 58 Vallingby</p>
-  <p style="margin:0;color:rgba(255,255,255,0.4);font-size:12px;">072-448 10 00 &middot; <a href="https://scenkonsult.se" style="color:#c4b5f4;text-decoration:none;">scenkonsult.se</a></p>
+<tr><td style="background:#ffffff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">${bodyHtml}</td></tr>
+<tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:18px 32px;text-align:center;">
+  <p style="margin:0 0 4px;color:rgba(255,255,255,0.5);font-size:12px;">Scenkonsult Norden &middot; Grimstagatan 164, 162 58 Vallingby</p>
+  <p style="margin:0;color:rgba(255,255,255,0.5);font-size:12px;">072-448 10 00 &middot; <a href="https://scenkonsult.se" style="color:#c4b5f4;text-decoration:none;">scenkonsult.se</a></p>
 </td></tr>
 </table></td></tr></table></body></html>`;
 }
 
 function cartTable(cart) {
-  if (!cart || cart.length === 0) return '<p style="color:rgba(255,255,255,0.55);">Ingen utrustning angiven.</p>';
+  if (!cart || cart.length === 0) return '<p style="color:#888;">Ingen utrustning angiven.</p>';
   const rows = cart.map(item => `<tr>
-    <td style="padding:10px 12px;color:#fff;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.08);">${item.name||''}</td>
-    <td style="padding:10px 12px;color:rgba(255,255,255,0.55);font-size:14px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08);">${item.quantity||1} st</td>
-    <td style="padding:10px 12px;color:#c4b5f4;font-size:14px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.08);">${item.price?((item.price*(item.quantity||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
+    <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${item.name||''}</td>
+    <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${item.quantity||1} st</td>
+    <td style="padding:9px 10px;color:#4a3faa;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${item.price?((item.price*(item.quantity||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
   </tr>`).join('');
   const total = cart.reduce((s,i)=>s+((i.price||0)*(i.quantity||1)),0);
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;margin-top:8px;">
-    <tr style="background:rgba(255,255,255,0.05);">
-      <th style="padding:10px 12px;color:rgba(255,255,255,0.55);font-size:12px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt</th>
-      <th style="padding:10px 12px;color:rgba(255,255,255,0.55);font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
-      <th style="padding:10px 12px;color:rgba(255,255,255,0.55);font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;">
+    <tr style="background:#f7f7fb;">
+      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt</th>
+      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
+      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
     </tr>${rows}
-    <tr style="background:rgba(196,181,244,0.08);">
-      <td colspan="2" style="padding:12px;color:#c4b5f4;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
-      <td style="padding:12px;color:#c4b5f4;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
+    <tr style="background:#f0eeff;">
+      <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
+      <td style="padding:11px 10px;color:#4a3faa;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
     </tr>
   </table>`;
 }
@@ -51,12 +53,12 @@ function cartText(cart) {
   if (!cart || cart.length === 0) return 'Ingen utrustning angiven.';
   const rows = cart.map(i => `  ${i.name||''} x${i.quantity||1} — ${i.price?(i.price*(i.quantity||1)).toLocaleString('sv-SE')+' kr':'–'}`).join('\n');
   const total = cart.reduce((s,i)=>s+((i.price||0)*(i.quantity||1)),0);
-  return `${rows}\n  ---\n  Totalt: ${total.toLocaleString('sv-SE')} kr (exkl. moms)`;
+  return `${rows}\n  Totalt: ${total.toLocaleString('sv-SE')} kr (exkl. moms)`;
 }
 
 function field(label, value) {
   if (!value) return '';
-  return `<tr><td style="padding:6px 0;color:rgba(255,255,255,0.5);font-size:13px;width:130px;vertical-align:top;">${label}</td><td style="padding:6px 0;color:#fff;font-size:14px;">${value}</td></tr>`;
+  return `<tr><td style="padding:7px 0;color:#666;font-size:13px;width:130px;vertical-align:top;border-bottom:1px solid #f0f0f5;">${label}</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${value}</td></tr>`;
 }
 
 async function sendEmail(apiKey, payload) {
@@ -71,14 +73,14 @@ async function sendEmail(apiKey, payload) {
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
-  const headers = { 'Access-Control-Allow-Origin': 'https://scenkonsult.se', 'Content-Type': 'application/json' };
+  const headers = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
 
   let data;
   try { data = JSON.parse(event.body); }
   catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltig data' }) }; }
 
   if (data.website || data.phone2 || data.honeypot) {
-    console.log('SPAM_HONEYPOT:', JSON.stringify({ ip: event.headers['x-forwarded-for'] }));
+    console.log('SPAM_HONEYPOT');
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   }
 
@@ -86,73 +88,67 @@ exports.handler = async (event) => {
   const now = Date.now();
   if (!RATE_LIMIT[ip]) RATE_LIMIT[ip] = [];
   RATE_LIMIT[ip] = RATE_LIMIT[ip].filter(t => now - t < RATE_WINDOW_MS);
-  if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'For manga forfrågningar, forsok igen om en minut.' }) };
+  if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'For manga forfrågningar.' }) };
   RATE_LIMIT[ip].push(now);
 
-  const { customer, cart, body: msgBody, sendCopy } = data;
+  const { customer, cart, sendCopy } = data;
 
-  console.log('OFFERT_INCOMING:', JSON.stringify({ name: customer?.name, email: customer?.email, sendCopy, cartLen: cart?.length }));
+  console.log('OFFERT_INCOMING:', JSON.stringify({ name: customer?.name, email: customer?.email, sendCopy: !!sendCopy, cartLen: cart?.length }));
 
   if (!customer?.name || !customer?.email || !customer?.phone)
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Namn, e-post och telefon kravs.' }) };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email))
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltig e-postadress.' }) };
-  const spamPatterns = [/\b(viagra|casino|crypto|bitcoin|loan|click here|free money)\b/i, /https?:\/\//i];
-  if (spamPatterns.some(p => p.test(customer.notes || ''))) {
-    console.log('SPAM_CONTENT:', JSON.stringify({ ip, email: customer.email }));
-    return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
-  }
-  if (!cart || cart.length === 0) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Varukorgen ar tom.' }) };
+  if (!cart || cart.length === 0)
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Varukorgen ar tom.' }) };
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'E-postkonfiguration saknas.' }) };
 
   const datumStr = customer.from && customer.to ? `${customer.from} – ${customer.to}` : (customer.from || customer.to || '');
-
-  const plainInternal = `Ny offertforfrågan\n\nNamn: ${customer.name}\nE-post: ${customer.email}\nTelefon: ${customer.phone}\nForetag: ${customer.company||'-'}\nDatum: ${datumStr||'-'}\nAdress: ${customer.address||'-'}\nOvrigt: ${customer.notes||'-'}\n\nVarukorg:\n${cartText(cart)}\n\n---\nScenkonsult Norden | 072-448 10 00`;
+  const plainInternal = `Ny offertforfragan\n\nNamn: ${customer.name}\nE-post: ${customer.email}\nTelefon: ${customer.phone}\nForetag: ${customer.company||'-'}\nDatum: ${datumStr||'-'}\nAdress: ${customer.address||'-'}\nOvrigt: ${customer.notes||'-'}\n\nVarukorg:\n${cartText(cart)}\n\n---\nScenkonsult Norden | 072-448 10 00`;
 
   const htmlInternal = htmlWrapper('Ny offertforfragan', `
-    <h2 style="margin:0 0 20px;color:#fff;font-size:22px;font-family:'Georgia',serif;">Ny offertforfragan</h2>
+    <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Ny offertforfragan</h2>
+    <p style="margin:0 0 20px;color:#888;font-size:13px;">Mottaget via scenkonsult.se</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       ${field('Namn', customer.name)}
-      ${field('E-post', `<a href="mailto:${customer.email}" style="color:#c4b5f4;">${customer.email}</a>`)}
-      ${field('Telefon', `<a href="tel:${customer.phone}" style="color:#c4b5f4;">${customer.phone}</a>`)}
+      ${field('E-post', `<a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a>`)}
+      ${field('Telefon', `<a href="tel:${customer.phone}" style="color:#4a3faa;">${customer.phone}</a>`)}
       ${field('Foretag', customer.company)}
       ${field('Datum', datumStr)}
       ${field('Adress', customer.address)}
       ${field('Ovrigt', customer.notes)}
     </table>
-    <h3 style="margin:0 0 12px;color:#c4b5f4;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;">Varukorg</h3>
+    <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Varukorg</p>
     ${cartTable(cart)}
-    <div style="margin-top:24px;padding:16px;background:rgba(196,181,244,0.08);border-radius:8px;border-left:3px solid #c4b5f4;">
-      <p style="margin:0;color:rgba(255,255,255,0.7);font-size:13px;">Svara kunden: <a href="mailto:${customer.email}" style="color:#c4b5f4;">${customer.email}</a></p>
-    </div>`);
+    <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a></p>`);
 
   try {
     await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: customer.email, subject: `Offertforfragan fran ${customer.name}`, html: htmlInternal, text: plainInternal });
+    await sleep(600);
 
     try {
       await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Offert: ${customer.name} — ${datumStr}`, html: htmlInternal, text: plainInternal });
     } catch (e) { console.error('TRELLO_COPY_ERROR:', e.message); }
 
     if (sendCopy && customer.email) {
+      await sleep(600);
       console.log('KUNDKOPIA_SENDING to:', customer.email);
       try {
         const plainCustomer = `Tack, ${customer.name}!\n\nVi har tagit emot din forfragan och aterkommer vardagar 09:00-17:00 med en offert.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n\n---\nScenkonsult Norden | scenkonsult.se`;
         const htmlCustomer = htmlWrapper('Din offertforfragan ar mottagen', `
-          <h2 style="margin:0 0 16px;color:#fff;font-size:22px;font-family:'Georgia',serif;">Tack, ${customer.name}!</h2>
-          <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har tagit emot din forfragan och aterkommer vardagar 09:00-17:00 med en offert. Fragor? Ring oss pa <a href="tel:0724481000" style="color:#c4b5f4;">072-448 10 00</a>.</p>
-          <h3 style="margin:0 0 12px;color:#c4b5f4;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;">Din bestallning</h3>
+          <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>
+          <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har tagit emot din forfragan och aterkommer vardagar 09:00-17:00 med en offert. Fragor? Ring oss pa <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.</p>
+          <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din bestallning</p>
           ${cartTable(cart)}
-          ${datumStr ? `<p style="margin:16px 0 0;color:rgba(255,255,255,0.55);font-size:13px;">Datum: ${datumStr}</p>` : ''}`);
+          ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">Datum: ${datumStr}</p>` : ''}`);
         await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: 'Din offertforfragan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
         console.log('KUNDKOPIA_SENT to:', customer.email);
       } catch (e) { console.error('KUNDKOPIA_ERROR:', e.message); }
-    } else {
-      console.log('KUNDKOPIA_SKIPPED: sendCopy=', sendCopy, 'email=', customer.email);
     }
 
-    console.log('OFFERT_OK:', JSON.stringify({ ip, name: customer.name, email: customer.email, items: cart.length, sendCopy: !!sendCopy }));
+    console.log('OFFERT_OK:', JSON.stringify({ ip, name: customer.name, items: cart.length, sendCopy: !!sendCopy }));
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   } catch (err) {
     console.error('OFFERT_ERROR:', err.message);
