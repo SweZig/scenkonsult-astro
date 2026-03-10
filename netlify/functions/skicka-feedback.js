@@ -67,7 +67,7 @@ exports.handler = async (event) => {
   });
 
   try {
-    const resp = await fetch('https://scenkonsult.se/', {
+    const resp = await fetch('https://scenkonsult-astro.netlify.app/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData.toString(),
