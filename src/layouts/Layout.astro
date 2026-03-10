@@ -607,7 +607,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
           <svg width="26" height="26" id="sven-avatar-mask"><use id="sven-avatar-use" href="#mask-glad"/></svg>
         </div>
         <div id="sven-header-text">
-          <strong>Jag heter Sven och är intendent här på Scenkonsult</strong>
+          <strong>Sven heter jag, intendent här på Scenkonsult</strong>
           <span>Fråga om utrustning, priser & bokning</span>
         </div>
         <button id="sven-close-btn" aria-label="Stäng chatten">
@@ -1021,6 +1021,34 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
         msgs.scrollTop = msgs.scrollHeight;
       }
 
+      // ── AUTO-EXPAND FÖNSTERHÖJD ─────────────────────────
+      function autoExpandWindow() {
+        if (!isOpen) return;
+        const header   = document.getElementById('sven-header');
+        const msgArea  = document.getElementById('sven-messages');
+        const chipArea = document.getElementById('sven-chips');
+        const inputRow = document.querySelector('#sven-window .sven-input-row');
+        const ratingR  = document.getElementById('sven-rating-row');
+        if (!msgArea) return;
+
+        const usedH = (header?.offsetHeight || 0)
+                    + (chipArea?.offsetHeight || 0)
+                    + (inputRow?.offsetHeight || 0)
+                    + (ratingR?.offsetHeight || 0)
+                    + 16; // padding
+
+        const contentH = msgArea.scrollHeight;
+        const desired  = usedH + contentH;
+        const maxH     = Math.floor(window.innerHeight * 0.82);
+        const minH     = 320;
+        const newH     = Math.min(Math.max(desired, minH), maxH);
+
+        // Öka bara, minska aldrig automatiskt (låt användaren dra manuellt)
+        if (newH > win.offsetHeight) {
+          win.style.height = newH + 'px';
+        }
+      }
+
       // Synka moms-toggle med kundtyp från Sven
       function syncVat(mode) {
         const btn = document.getElementById(mode === 'incl' ? 'sk-vat-incl' : 'sk-vat-excl');
@@ -1139,6 +1167,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
         div.innerHTML = formatMsg(text);
         msgs.appendChild(div);
         msgs.scrollTop = msgs.scrollHeight;
+        setTimeout(autoExpandWindow, 50);
 
         if (role === "bot") {
           setMood(detectMood(text));
@@ -1212,6 +1241,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
           chips.appendChild(btn);
         });
         saveSession();
+        setTimeout(autoExpandWindow, 50);
       }
 
       // ── BETYGSÄTTNING ──────────────────────────────────
