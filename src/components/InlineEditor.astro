@@ -17,7 +17,8 @@
 ---
 
 <!-- Editor-knapp -->
-<div id="sk-editor-toggle" class="fixed bottom-6 right-6 z-50">
+<!-- Redigera-knappen är dold — aktivera via Alt+E eller ?edit=1 i URL -->
+<div id="sk-editor-toggle" class="fixed bottom-6 right-6 z-50" style="display:none">
   <button
     id="sk-edit-btn"
     class="bg-brand-orange hover:bg-brand-orange-light text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-brand-orange/40 flex items-center gap-2 transition-all"
@@ -447,11 +448,19 @@ function storeOriginals() {
 
 // Alt+E snabbtangent
 document.addEventListener('keydown', (e) => {
-  if (e.altKey && e.key === 'e') { e.preventDefault(); setEditMode(!editMode); }
+  if (e.altKey && e.key === 'e') {
+    e.preventDefault();
+    const toggleEl = document.getElementById('sk-editor-toggle');
+    if (toggleEl) toggleEl.style.display = '';
+    setEditMode(!editMode);
+  }
 });
 
 // URL-param ?edit=1
 if (new URLSearchParams(window.location.search).get('edit') === '1') {
+  // Visa knappen när redigeringsläge aktiveras via URL
+  const toggleEl = document.getElementById('sk-editor-toggle');
+  if (toggleEl) toggleEl.style.display = '';
   setEditMode(true);
 }
 
