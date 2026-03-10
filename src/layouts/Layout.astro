@@ -599,6 +599,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 
     <!-- Chattfönster -->
     <div id="sven-window" role="dialog" aria-modal="true" aria-label="Chatta med Sven">
+      <div id="sven-resize-handle" title="Dra för att ändra storlek"></div>
 
       <!-- Header -->
       <div id="sven-header">
@@ -689,17 +690,33 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
       flex-direction: column;
       position: absolute;
       bottom: 74px; right: 0;
-      width: 350px; max-height: 540px;
+      width: clamp(300px, 90vw, 420px);
+      height: clamp(380px, 60vh, 680px);
+      min-width: 280px; max-width: 480px;
+      min-height: 320px; max-height: 80vh;
       background: #13112e;
       border: 1px solid rgba(196,181,244,0.25);
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+      resize: none; /* hanteras manuellt via drag-handle */
     }
     #sven-window.open {
       display: flex;
       animation: svenSlideIn 0.22s ease;
     }
+    /* Drag-to-resize handtag längst upp */
+    #sven-resize-handle {
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 48px; height: 5px;
+      background: rgba(196,181,244,0.35);
+      border-radius: 0 0 4px 4px;
+      cursor: ns-resize;
+      z-index: 10;
+      transition: background 0.15s;
+    }
+    #sven-resize-handle:hover { background: rgba(196,181,244,0.7); }
     @keyframes svenSlideIn {
       from { opacity: 0; transform: translateY(10px) scale(0.97); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -1008,6 +1025,53 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
       function syncVat(mode) {
         const btn = document.getElementById(mode === 'incl' ? 'sk-vat-incl' : 'sk-vat-excl');
         if (btn) btn.click();
+      }
+
+      // ── RESIZE-HANDTAG (drag upp/ned) ──────────────────
+      const resizeHandle = document.getElementById('sven-resize-handle');
+      if (resizeHandle) {
+        let isDragging = false;
+        let startY = 0;
+        let startH = 0;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startY = e.clientY;
+          startH = win.offsetHeight;
+          document.body.style.userSelect = 'none';
+          e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          const delta = startY - e.clientY; // drag upp = större
+          const newH = Math.min(Math.max(startH + delta, 320), window.innerHeight * 0.85);
+          win.style.height = newH + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+          if (isDragging) {
+            isDragging = false;
+            document.body.style.userSelect = '';
+          }
+        });
+
+        // Touch-stöd för mobil
+        resizeHandle.addEventListener('touchstart', (e) => {
+          isDragging = true;
+          startY = e.touches[0].clientY;
+          startH = win.offsetHeight;
+          e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          const delta = startY - e.touches[0].clientY;
+          const newH = Math.min(Math.max(startH + delta, 320), window.innerHeight * 0.85);
+          win.style.height = newH + 'px';
+        });
+
+        document.addEventListener('touchend', () => { isDragging = false; });
       }
 
       function close() {
