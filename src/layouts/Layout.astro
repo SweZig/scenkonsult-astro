@@ -930,10 +930,16 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
           // Helt ny session — visa hälsning
           hasGreeted = true;
           setTimeout(() => {
+            const isProactive = !!proactiveMsg;
             const msg = proactiveMsg ||
               "Hej! Sven här — intendent på Scenkonsult sedan 1986. Hade jag fått bestämma hade jag stått på scenen nu, men livet tar sina svängar. 🎭\n\nFörst — hyr ni åt ett **företag**, som **privatperson** eller är ni en **förening/organisation**? Det styr om jag visar priser med eller utan moms.";
             addBubble("bot", msg);
-            renderChips(CHIPS_KUNDTYP);
+            // Vid proaktiv öppning: enkla Ja/Nej-knappar istället för momsval
+            if (isProactive) {
+              renderChips(["Ja tack, gärna! 🙌", "Nej tack, jag klarar mig"]);
+            } else {
+              renderChips(CHIPS_KUNDTYP);
+            }
             saveSession();
           }, 320);
         } else if (msgs.children.length === 0) {
@@ -1075,6 +1081,25 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
             const navUrl = NAV_CHIPS[label];
             if (navUrl) { window.location.href = navUrl; return; }
             chips.innerHTML = "";
+            // Hantera Ja/Nej från proaktiv popup
+            if (/ja tack.*gärna/i.test(label)) {
+              addBubble("user", label);
+              setTimeout(() => {
+                addBubble("bot", "Toppen! Då hjälper jag dig gärna. Börja med att berätta — hyr ni åt ett **företag**, som **privatperson** eller är ni en **förening/organisation**? Det styr om jag visar priser med eller utan moms.");
+                renderChips(CHIPS_KUNDTYP);
+                saveSession();
+              }, 320);
+              return;
+            }
+            if (/nej tack/i.test(label)) {
+              addBubble("user", label);
+              setTimeout(() => {
+                addBubble("bot", "Självklart! Jag finns här om du ändrar dig. 🎭");
+                saveSession();
+              }, 320);
+              close();
+              return;
+            }
             // Tolka kundtyp direkt från chip
             if (/företag/i.test(label)) customerType = "company";
             else if (/privatperson/i.test(label)) customerType = "private";
