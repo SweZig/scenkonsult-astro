@@ -410,20 +410,46 @@ const {
   <InlineEditor />
 
   <!-- ========== SVEN INTENDENTEN — CHATBOT ========== -->
+
+  <!-- SVG-definitioner för teatermaskarna -->
+  <svg style="display:none" aria-hidden="true">
+    <symbol id="mask-glad" viewBox="0 0 32 32" fill="none">
+      <ellipse cx="16" cy="14" rx="13" ry="12" fill="currentColor"/>
+      <path d="M9 11.5 Q11 9 13 11.5" stroke="rgba(12,10,36,0.65)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M19 11.5 Q21 9 23 11.5" stroke="rgba(12,10,36,0.65)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M9 18.5 Q16 26 23 18.5" stroke="rgba(12,10,36,0.65)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <line x1="16" y1="26" x2="16" y2="31" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="mask-ledsen" viewBox="0 0 32 32" fill="none">
+      <ellipse cx="16" cy="16" rx="13" ry="12" fill="currentColor"/>
+      <path d="M9 13.5 Q11 16 13 13.5" stroke="rgba(12,10,36,0.65)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M19 13.5 Q21 16 23 13.5" stroke="rgba(12,10,36,0.65)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M9 22 Q16 15.5 23 22" stroke="rgba(12,10,36,0.65)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <line x1="16" y1="28" x2="16" y2="32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="mask-duo" viewBox="0 0 44 32" fill="none">
+      <!-- Ledsen mask (bak) -->
+      <ellipse cx="18" cy="17" rx="12" ry="11" fill="rgba(196,181,244,0.55)"/>
+      <path d="M10 14 Q12 16.5 14 14" stroke="rgba(12,10,36,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M21 14 Q23 16.5 25 14" stroke="rgba(12,10,36,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M10 21.5 Q17.5 16 25 21.5" stroke="rgba(12,10,36,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Glad mask (fram) -->
+      <ellipse cx="28" cy="15" rx="12" ry="11" fill="currentColor"/>
+      <path d="M21 11.5 Q23 9 25 11.5" stroke="rgba(12,10,36,0.65)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M31 11.5 Q33 9 35 11.5" stroke="rgba(12,10,36,0.65)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <path d="M21 19 Q28 25.5 35 19" stroke="rgba(12,10,36,0.65)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
   <div id="sven-chat-widget" aria-label="Chatta med Sven">
 
-    <!-- Trigger-knapp -->
+    <!-- Trigger-knapp (teatermaskar) -->
     <button id="sven-toggle" aria-label="Öppna chatten med Sven" title="Chatta med Sven – intendenten">
       <span id="sven-icon-open">
-        <!-- Headset-ikon -->
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/>
-          <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-        </svg>
+        <svg width="34" height="24" aria-hidden="true"><use href="#mask-duo"/></svg>
       </span>
       <span id="sven-icon-close" style="display:none">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
       </span>
@@ -432,12 +458,15 @@ const {
 
     <!-- Chattfönster -->
     <div id="sven-window" role="dialog" aria-modal="true" aria-label="Chatta med Sven">
+
       <!-- Header -->
       <div id="sven-header">
-        <div id="sven-avatar">S</div>
+        <div id="sven-avatar" class="glad">
+          <svg width="26" height="26" id="sven-avatar-mask"><use id="sven-avatar-use" href="#mask-glad"/></svg>
+        </div>
         <div id="sven-header-text">
-          <strong>Sven — Intendenten</strong>
-          <span>Fråga om utrustning & priser</span>
+          <strong>Jag heter Sven och är intendent här på Scenkonsult</strong>
+          <span>Fråga om utrustning, priser & bokning</span>
         </div>
         <button id="sven-close-btn" aria-label="Stäng chatten">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -454,15 +483,9 @@ const {
 
       <!-- Inmatning -->
       <div id="sven-input-row">
-        <input
-          id="sven-input"
-          type="text"
-          placeholder="Skriv din fråga…"
-          maxlength="500"
-          autocomplete="off"
-          aria-label="Din fråga till Sven"
-        />
-        <button id="sven-send" aria-label="Skicka" title="Skicka">
+        <input id="sven-input" type="text" placeholder="Skriv din fråga…"
+          maxlength="500" autocomplete="off" aria-label="Din fråga till Sven"/>
+        <button id="sven-send" aria-label="Skicka">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
@@ -473,11 +496,14 @@ const {
       <div id="sven-rating-row">
         <span id="sven-rating-label">Betygsätt Sven</span>
         <div id="sven-stars" role="group" aria-label="Betyg 1–5 stjärnor">
-          {[1,2,3,4,5].map(n => (
-            <button class="sven-star" data-star={n} aria-label={`${n} stjärnor`} title={`${n} stjärnor`}>★</button>
-          ))}
+          <button class="sven-star" data-star="1" aria-label="1 stjärna">★</button>
+          <button class="sven-star" data-star="2" aria-label="2 stjärnor">★</button>
+          <button class="sven-star" data-star="3" aria-label="3 stjärnor">★</button>
+          <button class="sven-star" data-star="4" aria-label="4 stjärnor">★</button>
+          <button class="sven-star" data-star="5" aria-label="5 stjärnor">★</button>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -493,24 +519,20 @@ const {
 
     /* === Toggle-knapp === */
     #sven-toggle {
-      width: 58px;
-      height: 58px;
+      width: 62px; height: 62px;
       border-radius: 50%;
       border: none;
       background: #c4b5f4;
       color: #0c0a24;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 20px rgba(196,181,244,0.45);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 24px rgba(196,181,244,0.5);
       transition: background 0.2s, transform 0.2s;
       position: relative;
       margin-left: auto;
     }
     #sven-toggle:hover { background: #e2dcfb; transform: scale(1.07); }
 
-    /* Unread badge */
     #sven-unread {
       position: absolute;
       top: -2px; right: -2px;
@@ -525,62 +547,61 @@ const {
       display: none;
       flex-direction: column;
       position: absolute;
-      bottom: 70px;
-      right: 0;
-      width: 340px;
-      max-height: 520px;
+      bottom: 74px; right: 0;
+      width: 350px; max-height: 540px;
       background: #13112e;
       border: 1px solid rgba(196,181,244,0.25);
       border-radius: 18px;
       overflow: hidden;
-      box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+    }
+    #sven-window.open {
+      display: flex;
       animation: svenSlideIn 0.22s ease;
     }
-    #sven-window.open { display: flex; }
-
     @keyframes svenSlideIn {
-      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      from { opacity: 0; transform: translateY(10px) scale(0.97); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     /* Header */
     #sven-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 16px;
+      display: flex; align-items: flex-start;
+      gap: 10px; padding: 13px 14px 12px;
       background: #1e1850;
       border-bottom: 1px solid rgba(255,255,255,0.08);
       flex-shrink: 0;
     }
     #sven-avatar {
-      width: 36px; height: 36px;
+      width: 40px; height: 40px;
       border-radius: 50%;
       background: #c4b5f4;
       color: #0c0a24;
-      font-weight: 900;
-      font-size: 16px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      transition: background 0.4s;
     }
-    #sven-header-text { flex: 1; line-height: 1.2; }
-    #sven-header-text strong { display: block; color: #fff; font-size: 14px; }
-    #sven-header-text span { color: rgba(255,255,255,0.5); font-size: 11px; }
+    #sven-avatar.bitter { background: #a99bd4; }
+    #sven-header-text { flex: 1; line-height: 1.25; }
+    #sven-header-text strong {
+      display: block; color: #fff;
+      font-size: 12.5px; font-weight: 700;
+      margin-bottom: 1px;
+    }
+    #sven-header-text span { color: rgba(255,255,255,0.45); font-size: 10.5px; }
     #sven-close-btn {
       background: none; border: none; cursor: pointer;
-      color: rgba(255,255,255,0.4); padding: 4px;
+      color: rgba(255,255,255,0.35); padding: 2px;
       border-radius: 6px; transition: color 0.15s;
+      margin-top: 1px;
     }
     #sven-close-btn:hover { color: #fff; }
 
     /* Meddelandelista */
     #sven-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px 14px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      flex: 1; overflow-y: auto;
+      padding: 14px 13px 8px;
+      display: flex; flex-direction: column; gap: 9px;
       scroll-behavior: smooth;
     }
     #sven-messages::-webkit-scrollbar { width: 4px; }
@@ -589,45 +610,47 @@ const {
 
     /* Bubblor */
     .sven-bubble {
-      max-width: 85%;
-      padding: 9px 13px;
-      border-radius: 14px;
-      font-size: 13.5px;
-      line-height: 1.55;
-      word-break: break-word;
-      margin: 0;
+      max-width: 88% !important;
+      padding: 9px 13px !important;
+      border-radius: 14px !important;
+      font-size: 13.5px !important;
+      line-height: 1.58 !important;
+      word-break: break-word !important;
+      margin: 0 !important;
     }
     .sven-bubble.bot {
-      background: #1e1850;
-      color: rgba(255,255,255,0.9);
-      border-bottom-left-radius: 4px;
-      align-self: flex-start;
+      background: #1e1850 !important;
+      color: rgba(255,255,255,0.92) !important;
+      border-bottom-left-radius: 4px !important;
+      align-self: flex-start !important;
     }
     .sven-bubble.user {
-      background: #c4b5f4;
-      color: #0c0a24;
-      border-bottom-right-radius: 4px;
-      align-self: flex-end;
-      font-weight: 500;
+      background: #c4b5f4 !important;
+      color: #0c0a24 !important;
+      border-bottom-right-radius: 4px !important;
+      align-self: flex-end !important;
+      font-weight: 500 !important;
     }
     .sven-bubble a {
-      color: #c4b5f4;
-      text-decoration: underline;
+      color: #c4b5f4 !important;
+      text-decoration: underline !important;
+      font-weight: 600 !important;
     }
-    .sven-bubble.bot a { color: #c4b5f4; }
+    .sven-bubble.user a { color: #3d2f80 !important; }
 
     /* Skrivindikator */
     .sven-typing {
-      display: flex; gap: 4px; align-items: center;
-      padding: 10px 13px;
-      background: #1e1850;
+      display: flex !important; gap: 5px !important;
+      align-items: center !important;
+      padding: 11px 14px !important;
+      background: #1e1850 !important;
     }
     .sven-typing span {
-      width: 7px; height: 7px;
-      background: rgba(196,181,244,0.6);
-      border-radius: 50%;
-      animation: svenBounce 1.1s infinite;
-      display: block;
+      width: 7px !important; height: 7px !important;
+      background: rgba(196,181,244,0.65) !important;
+      border-radius: 50% !important;
+      animation: svenBounce 1.1s infinite !important;
+      display: block !important;
     }
     .sven-typing span:nth-child(2) { animation-delay: 0.18s; }
     .sven-typing span:nth-child(3) { animation-delay: 0.36s; }
@@ -636,91 +659,73 @@ const {
       30%          { transform: translateY(-6px); }
     }
 
-    /* Snabbval-chips */
+    /* Chips */
     #sven-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding: 0 14px 10px;
-      flex-shrink: 0;
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 0 13px 10px; flex-shrink: 0;
     }
     .sven-chip {
       background: rgba(196,181,244,0.1);
       border: 1px solid rgba(196,181,244,0.3);
-      color: #c4b5f4;
+      color: #c4b5f4 !important;
       border-radius: 20px;
       padding: 5px 12px;
       font-size: 12px;
       cursor: pointer;
       transition: background 0.15s;
       white-space: nowrap;
+      font-family: inherit;
     }
-    .sven-chip:hover { background: rgba(196,181,244,0.22); }
+    .sven-chip:hover { background: rgba(196,181,244,0.2); }
 
-    /* Inmatning */
+    /* Input */
     #sven-input-row {
-      display: flex;
-      gap: 8px;
-      padding: 10px 14px 14px;
-      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex; gap: 8px;
+      padding: 10px 13px 13px;
+      border-top: 1px solid rgba(255,255,255,0.07);
       flex-shrink: 0;
     }
     #sven-input {
       flex: 1;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      padding: 9px 12px;
-      color: #fff;
-      font-size: 13.5px;
-      outline: none;
-      font-family: inherit;
+      background: rgba(255,255,255,0.07) !important;
+      border: 1px solid rgba(255,255,255,0.12) !important;
+      border-radius: 10px !important;
+      padding: 9px 12px !important;
+      color: #fff !important;
+      font-size: 13.5px !important;
+      outline: none !important;
+      font-family: inherit !important;
       transition: border-color 0.15s;
     }
-    #sven-input:focus { border-color: rgba(196,181,244,0.5); }
-    #sven-input::placeholder { color: rgba(255,255,255,0.3); }
+    #sven-input:focus { border-color: rgba(196,181,244,0.5) !important; }
+    #sven-input::placeholder { color: rgba(255,255,255,0.3) !important; }
     #sven-send {
       width: 38px; height: 38px;
-      border-radius: 10px;
-      border: none;
-      background: #c4b5f4;
-      color: #0c0a24;
+      border-radius: 10px; border: none;
+      background: #c4b5f4; color: #0c0a24;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s;
+      flex-shrink: 0; transition: background 0.15s;
     }
     #sven-send:hover { background: #e2dcfb; }
     #sven-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Betygsättning */
+    /* Betyg */
     #sven-rating-row {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 14px 12px;
+      display: none; align-items: center; justify-content: space-between;
+      padding: 8px 13px 12px;
       border-top: 1px solid rgba(255,255,255,0.06);
       flex-shrink: 0;
     }
     #sven-rating-row.visible { display: flex; }
-    #sven-rating-label {
-      font-size: 11px;
-      color: rgba(255,255,255,0.35);
-      font-family: 'Space Grotesk', sans-serif;
-    }
+    #sven-rating-label { font-size: 11px; color: rgba(255,255,255,0.3); }
     #sven-stars { display: flex; gap: 3px; }
     .sven-star {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 20px;
-      color: rgba(255,255,255,0.2);
-      padding: 0 1px;
-      transition: color 0.15s, transform 0.1s;
-      line-height: 1;
+      background: none; border: none; cursor: pointer;
+      font-size: 20px; color: rgba(255,255,255,0.2);
+      padding: 0 1px; transition: color 0.15s, transform 0.1s; line-height: 1;
     }
-    .sven-star:hover,
-    .sven-star.active { color: #c4b5f4; }
+    .sven-star:hover, .sven-star.active { color: #c4b5f4; }
     .sven-star:hover { transform: scale(1.2); }
     .sven-star.rated { color: #c4b5f4; cursor: default; }
 
@@ -734,187 +739,281 @@ const {
   <script>
     (function() {
       const CHIPS_INITIAL = [
+        "Företag eller privat?",
         "Vad kostar en scen?",
         "Ljud för 100 gäster",
         "Ljuseffekter till festen",
-        "Leverans?",
       ];
 
-      const toggle      = document.getElementById('sven-toggle');
-      const win         = document.getElementById('sven-window');
-      const messages    = document.getElementById('sven-messages');
-      const input       = document.getElementById('sven-input');
-      const sendBtn     = document.getElementById('sven-send');
-      const closeBtn    = document.getElementById('sven-close-btn');
-      const chips       = document.getElementById('sven-chips');
-      const iconOpen    = document.getElementById('sven-icon-open');
-      const iconClose   = document.getElementById('sven-icon-close');
-      const unread      = document.getElementById('sven-unread');
-      const ratingRow   = document.getElementById('sven-rating-row');
-      const starBtns    = document.querySelectorAll('.sven-star');
+      const PROACTIVE_MSGS = [
+        "Hm, du verkar leta efter något. Kan det vara så att du behöver lite hjälp? Fråga mig — jag har ingenting bättre att göra bakom scenen ändå. 🎭",
+        "Fortfarande kvar? Antingen är du verkligen intresserad, eller har du somnat. I båda fall — kan jag hjälpa dig hitta rätt utrustning?",
+        "Psst! Sven här. Bakom kulisserna alltid. Hittar du inte det du letar efter? Säg till — det är bokstavligen mitt enda jobb.",
+      ];
+
+      const el = id => document.getElementById(id);
+      const toggle    = el("sven-toggle");
+      const win       = el("sven-window");
+      const msgs      = el("sven-messages");
+      const input     = el("sven-input");
+      const sendBtn   = el("sven-send");
+      const closeBtn  = el("sven-close-btn");
+      const chips     = el("sven-chips");
+      const iconOpen  = el("sven-icon-open");
+      const iconClose = el("sven-icon-close");
+      const unread    = el("sven-unread");
+      const ratingRow = el("sven-rating-row");
+      const avatar    = el("sven-avatar");
+      const avatarUse = el("sven-avatar-use");
+      const starBtns  = document.querySelectorAll(".sven-star");
 
       let history    = [];
       let isOpen     = false;
       let hasGreeted = false;
       let hasRated   = false;
+      let customerType = "unknown"; // company | private | org | unknown
+      let inactivityTimer = null;
       const sessionId = Math.random().toString(36).slice(2, 10);
 
-      function open() {
+      // ── MASK-HUMÖR ─────────────────────────────────────
+      function setMood(bitter) {
+        if (bitter) {
+          avatar.classList.add("bitter");
+          avatarUse.setAttribute("href", "#mask-ledsen");
+        } else {
+          avatar.classList.remove("bitter");
+          avatarUse.setAttribute("href", "#mask-glad");
+        }
+      }
+
+      function detectMood(text) {
+        const bitterWords = /artistliv|bakom scen|aldrig riktigt|sandviken|musikallärare|medelmåttigt|undervärderade|intendent|bättre att göra|scenen nu|C-betyg|ingenting bättre|nötskal|utan scenen/i;
+        return bitterWords.test(text);
+      }
+
+      // ── ÖPPNA / STÄNG ──────────────────────────────────
+      function open(proactiveMsg) {
         isOpen = true;
-        win.classList.add('open');
-        iconOpen.style.display = 'none';
-        iconClose.style.display = 'flex';
-        unread.style.display = 'none';
+        win.classList.add("open");
+        iconOpen.style.display = "none";
+        iconClose.style.display = "flex";
+        unread.style.display = "none";
+        clearInactivityTimer();
         input.focus();
+
         if (!hasGreeted) {
           hasGreeted = true;
           setTimeout(() => {
-            addBubble('bot',
-              'Hej! Sven här — intendent på Scenkonsult. Hade jag fått bestämma hade jag stått på scenen nu istället, men här är vi. 🎭\n\nVad kan jag hjälpa dig med?'
-            );
-            renderChips(CHIPS_INITIAL);
-          }, 300);
+            const msg = proactiveMsg ||
+              "Hej! Sven här — intendent på Scenkonsult sedan 1986. Hade jag fått bestämma hade jag stått på scenen nu, men livet tar sina svängar. 🎭\n\nFörst — hyr ni åt ett **företag**, som **privatperson** eller är ni en **förening/organisation**? Det styr om jag visar priser med eller utan moms.";
+            addBubble("bot", msg);
+            renderChips(["Företag (exkl. moms)", "Privatperson (inkl. moms)", "Förening/organisation"]);
+          }, 320);
         }
       }
 
       function close() {
         isOpen = false;
-        win.classList.remove('open');
-        iconOpen.style.display = 'flex';
-        iconClose.style.display = 'none';
+        win.classList.remove("open");
+        iconOpen.style.display = "flex";
+        iconClose.style.display = "none";
+        startInactivityTimer();
       }
 
-      toggle.addEventListener('click', () => isOpen ? close() : open());
-      closeBtn.addEventListener('click', close);
-      document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) close(); });
+      toggle.addEventListener("click", () => isOpen ? close() : open());
+      closeBtn.addEventListener("click", close);
+      document.addEventListener("keydown", e => { if (e.key === "Escape" && isOpen) close(); });
 
-      function escapeHtml(str) {
-        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      // ── INAKTIVITETSDETEKTION ───────────────────────────
+      function startInactivityTimer() {
+        clearInactivityTimer();
+        if (hasGreeted) return;
+        inactivityTimer = setTimeout(() => {
+          if (!isOpen && !hasGreeted) {
+            unread.style.display = "block";
+            // Auto-öppna efter ytterligare 8 sek
+            setTimeout(() => {
+              if (!isOpen && !hasGreeted) {
+                const msg = PROACTIVE_MSGS[Math.floor(Math.random() * PROACTIVE_MSGS.length)];
+                open(msg);
+              }
+            }, 8000);
+          }
+        }, 40000);
       }
 
-      function formatMessage(text) {
-        return escapeHtml(text)
-          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g, '<a href="$1">$1 →</a>')
-          .replace(/\n/g, '<br>');
+      function clearInactivityTimer() {
+        if (inactivityTimer) { clearTimeout(inactivityTimer); inactivityTimer = null; }
       }
 
+      // Nollställ timer vid aktivitet
+      ["mousemove", "scroll", "keydown", "touchstart"].forEach(evt =>
+        document.addEventListener(evt, () => {
+          if (!isOpen && !hasGreeted) startInactivityTimer();
+        }, { passive: true })
+      );
+      startInactivityTimer();
+
+      // ── FORMATTERING ───────────────────────────────────
+      function escHtml(s) {
+        return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      }
+
+      function formatMsg(text) {
+        return escHtml(text)
+          .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+          // Markdown-länk [text](/sökväg) → klickbar länk
+          .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+            '<a href="$2" target="_blank" rel="noopener">$1 ↗</a>')
+          .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g,
+            '<a href="$2">$1 →</a>')
+          .replace(/\n/g, "<br>");
+      }
+
+      // ── BUBBLOR ────────────────────────────────────────
       function addBubble(role, text) {
-        const div = document.createElement('div');
-        div.className = `sven-bubble ${role}`;
-        div.innerHTML = formatMessage(text);
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-        // Visa betygsstjärnor efter 2 bot-svar
-        if (role === 'bot' && !hasRated) {
-          const botCount = messages.querySelectorAll('.sven-bubble.bot').length;
-          if (botCount >= 2) ratingRow.classList.add('visible');
+        const div = document.createElement("div");
+        div.className = "sven-bubble " + role;
+        div.innerHTML = formatMsg(text);
+        msgs.appendChild(div);
+        msgs.scrollTop = msgs.scrollHeight;
+
+        if (role === "bot") {
+          setMood(detectMood(text));
+          if (!hasRated) {
+            const botCount = msgs.querySelectorAll(".sven-bubble.bot").length;
+            if (botCount >= 2) ratingRow.classList.add("visible");
+          }
         }
         return div;
       }
 
       function showTyping() {
-        const div = document.createElement('div');
-        div.className = 'sven-bubble bot sven-typing';
-        div.id = 'sven-typing-indicator';
-        div.innerHTML = '<span></span><span></span><span></span>';
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
+        const div = document.createElement("div");
+        div.className = "sven-bubble bot sven-typing";
+        div.id = "sven-typing";
+        div.innerHTML = "<span></span><span></span><span></span>";
+        msgs.appendChild(div);
+        msgs.scrollTop = msgs.scrollHeight;
       }
+      function removeTyping() { document.getElementById("sven-typing")?.remove(); }
 
-      function removeTyping() {
-        document.getElementById('sven-typing-indicator')?.remove();
-      }
-
+      // ── CHIPS ──────────────────────────────────────────
       function renderChips(list) {
-        chips.innerHTML = '';
+        chips.innerHTML = "";
         list.forEach(label => {
-          const btn = document.createElement('button');
-          btn.className = 'sven-chip';
+          const btn = document.createElement("button");
+          btn.className = "sven-chip";
           btn.textContent = label;
-          btn.addEventListener('click', () => { chips.innerHTML = ''; sendMessage(label); });
+          btn.addEventListener("click", () => {
+            chips.innerHTML = "";
+            // Tolka kundtyp direkt från chip
+            if (/företag/i.test(label)) customerType = "company";
+            else if (/privatperson/i.test(label)) customerType = "private";
+            else if (/förening|organisation/i.test(label)) customerType = "org";
+            sendMessage(label);
+          });
           chips.appendChild(btn);
         });
       }
 
-      // ── Betygsättning ──
+      // ── BETYGSÄTTNING ──────────────────────────────────
       starBtns.forEach(btn => {
-        btn.addEventListener('mouseenter', () => {
+        btn.addEventListener("mouseenter", () => {
           if (hasRated) return;
           const n = +btn.dataset.star;
-          starBtns.forEach(s => s.classList.toggle('active', +s.dataset.star <= n));
+          starBtns.forEach(s => s.classList.toggle("active", +s.dataset.star <= n));
         });
-        btn.addEventListener('mouseleave', () => {
+        btn.addEventListener("mouseleave", () => {
           if (hasRated) return;
-          starBtns.forEach(s => s.classList.remove('active'));
+          starBtns.forEach(s => s.classList.remove("active"));
         });
-        btn.addEventListener('click', async () => {
+        btn.addEventListener("click", async () => {
           if (hasRated) return;
           const stars = +btn.dataset.star;
           hasRated = true;
           starBtns.forEach(s => {
-            s.classList.remove('active');
-            s.classList.toggle('rated', +s.dataset.star <= stars);
+            s.classList.remove("active");
+            s.classList.toggle("rated", +s.dataset.star <= stars);
             s.disabled = true;
           });
-          document.getElementById('sven-rating-label').textContent =
-            '★'.repeat(stars) + '☆'.repeat(5 - stars);
+          el("sven-rating-label").textContent = "★".repeat(stars) + "☆".repeat(5 - stars);
+          // Bitter mask vid lågt betyg
+          setMood(stars <= 2);
           try {
-            const res = await fetch('/api/sven-chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'rate', stars, sessionId, messageCount: history.length }),
+            const res = await fetch("/api/sven-chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "rate", stars, sessionId, messageCount: history.length }),
             });
             const data = await res.json();
-            if (data.comment) addBubble('bot', data.comment);
+            if (data.comment) addBubble("bot", data.comment);
           } catch {
-            addBubble('bot', 'Betyget noterat, tack! (Sven log det mentalt och log sedan bort i sina tankar.)');
+            addBubble("bot", "Betyget noterat. (Sven noterade det i sin mentala dagbok och stirrade ut i tomma intet en stund.)");
           }
         });
       });
 
-      // ── Skicka meddelande ──
+      // ── SKICKA MEDDELANDE ──────────────────────────────
       async function sendMessage(text) {
         const msg = text.trim();
         if (!msg) return;
-        input.value = '';
-        chips.innerHTML = '';
-        addBubble('user', msg);
-        history.push({ role: 'user', content: msg });
+
+        // Spara kundtyp från fritextinmatning
+        if (/\bföretag\b/i.test(msg)) customerType = "company";
+        else if (/\bprivatperson\b|\bprivat\b/i.test(msg)) customerType = "private";
+        else if (/\bförening\b|\borgani/i.test(msg)) customerType = "org";
+
+        input.value = "";
+        chips.innerHTML = "";
+        addBubble("user", msg);
+        history.push({ role: "user", content: msg });
+
         sendBtn.disabled = true;
         showTyping();
+
         try {
-          const res = await fetch('/api/sven-chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: history, sessionId }),
+          const res = await fetch("/api/sven-chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: history, sessionId, customerType }),
           });
           removeTyping();
-          if (!res.ok) throw new Error('HTTP ' + res.status);
+          if (!res.ok) throw new Error("HTTP " + res.status);
           const data = await res.json();
-          const reply = data.reply || 'Något gick fel, försök igen.';
-          addBubble('bot', reply);
-          history.push({ role: 'assistant', content: reply });
+          const reply = data.reply || "Något gick fel, försök igen.";
+
+          addBubble("bot", reply);
+          history.push({ role: "assistant", content: reply });
+
+          // Offert-chip
           if (/offert|kontakt|boka|formulär/i.test(reply)) {
-            renderChips(['Skicka offertförfrågan →']);
+            renderChips(["Gå till offertformulär →"]);
           }
+          // Varukorg-chip
+          if (/varukorg|lägg|cart/i.test(reply)) {
+            renderChips(["Visa varukorgen →"]);
+          }
+
         } catch {
           removeTyping();
-          addBubble('bot', 'Hm, något krånglar. Prova att ringa oss på 072-448 10 00 — vi svarar genast!');
+          addBubble("bot", "Hm, något krånglar med förbindelsen. Prova att ringa oss på [072-448 10 00](tel:+46724481000) — vi svarar direkt!");
         } finally {
           sendBtn.disabled = false;
           input.focus();
         }
       }
 
-      sendBtn.addEventListener('click', () => sendMessage(input.value));
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input.value); }
+      sendBtn.addEventListener("click", () => sendMessage(input.value));
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input.value); }
       });
 
+      // Unread badge efter 8 sek om chatten inte öppnats
       setTimeout(() => {
-        if (!isOpen && !hasGreeted) unread.style.display = 'block';
+        if (!isOpen && !hasGreeted) unread.style.display = "block";
       }, 8000);
+
     })();
   </script>
   <!-- ========== /SVEN ========== -->
