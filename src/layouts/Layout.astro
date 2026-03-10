@@ -738,18 +738,16 @@ const {
 
   <script>
     (function() {
-      const CHIPS_INITIAL = [
-        "Företag eller privat?",
-        "Vad kostar en scen?",
-        "Ljud för 100 gäster",
-        "Ljuseffekter till festen",
-      ];
-
       const PROACTIVE_MSGS = [
         "Hm, du verkar leta efter något. Kan det vara så att du behöver lite hjälp? Fråga mig — jag har ingenting bättre att göra bakom scenen ändå. 🎭",
         "Fortfarande kvar? Antingen är du verkligen intresserad, eller har du somnat. I båda fall — kan jag hjälpa dig hitta rätt utrustning?",
         "Psst! Sven här. Bakom kulisserna alltid. Hittar du inte det du letar efter? Säg till — det är bokstavligen mitt enda jobb.",
       ];
+
+      // Chips när kundtyp INTE är känd ännu
+      const CHIPS_KUNDTYP = ["Företag (exkl. moms)", "Privatperson (inkl. moms)", "Förening/organisation"];
+      // Fallback-chips när backend inte returnerar chips
+      const CHIPS_FALLBACK = ["Vad kostar en scen?", "Ljud för mitt event", "Ljuseffekter till festen", "Gå till offertformulär"];
 
       const el = id => document.getElementById(id);
       const toggle    = el("sven-toggle");
@@ -767,13 +765,33 @@ const {
       const avatarUse = el("sven-avatar-use");
       const starBtns  = document.querySelectorAll(".sven-star");
 
-      let history    = [];
-      let isOpen     = false;
-      let hasGreeted = false;
-      let hasRated   = false;
-      let customerType = "unknown"; // company | private | org | unknown
+      // ── SESSION-PERSISTENS (sessionStorage = lever per flik, nollställs vid stängd flik) ──
+      const SS_KEY = "sven_session";
+      function loadSession() {
+        try {
+          const raw = sessionStorage.getItem(SS_KEY);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch { return null; }
+      }
+      function saveSession() {
+        try {
+          sessionStorage.setItem(SS_KEY, JSON.stringify({
+            history, customerType, hasGreeted, hasRated, sessionId,
+            lastChips: Array.from(chips.querySelectorAll(".sven-chip")).map(c => c.textContent),
+          }));
+        } catch {}
+      }
+
+      // Återställ eller starta ny session
+      const saved = loadSession();
+      let history      = saved?.history      ?? [];
+      let hasGreeted   = saved?.hasGreeted   ?? false;
+      let hasRated     = saved?.hasRated     ?? false;
+      let customerType = saved?.customerType ?? "unknown";
+      let isOpen       = false;
       let inactivityTimer = null;
-      const sessionId = Math.random().toString(36).slice(2, 10);
+      const sessionId  = saved?.sessionId ?? Math.random().toString(36).slice(2, 10);
 
       // ── MASK-HUMÖR ─────────────────────────────────────
       function setMood(bitter) {
@@ -799,17 +817,44 @@ const {
         iconClose.style.display = "flex";
         unread.style.display = "none";
         clearInactivityTimer();
-        input.focus();
 
         if (!hasGreeted) {
+          // Helt ny session — visa hälsning
           hasGreeted = true;
           setTimeout(() => {
             const msg = proactiveMsg ||
               "Hej! Sven här — intendent på Scenkonsult sedan 1986. Hade jag fått bestämma hade jag stått på scenen nu, men livet tar sina svängar. 🎭\n\nFörst — hyr ni åt ett **företag**, som **privatperson** eller är ni en **förening/organisation**? Det styr om jag visar priser med eller utan moms.";
             addBubble("bot", msg);
-            renderChips(["Företag (exkl. moms)", "Privatperson (inkl. moms)", "Förening/organisation"]);
+            renderChips(CHIPS_KUNDTYP);
+            saveSession();
           }, 320);
+        } else if (msgs.children.length === 0) {
+          // Historik finns men DOM är tom (ny sidladdning) — återrendera
+          restoreHistory();
         }
+        input.focus();
+      }
+
+      function restoreHistory() {
+        // Återrendera hela konversationen från sparad historik
+        msgs.innerHTML = "";
+        history.forEach(m => addBubble(m.role === "user" ? "user" : "bot", m.content, true));
+        // Återrendera senaste chips om kundtyp ej känd
+        const saved = loadSession();
+        if (saved?.lastChips?.length) {
+          renderChips(saved.lastChips);
+        } else if (customerType === "unknown") {
+          renderChips(CHIPS_KUNDTYP);
+        }
+        // Betygsstjärnor
+        if (!hasRated && msgs.querySelectorAll(".sven-bubble.bot").length >= 2) {
+          ratingRow.classList.add("visible");
+        }
+        if (hasRated) {
+          ratingRow.classList.add("visible");
+          starBtns.forEach(s => { s.disabled = true; s.classList.add("rated"); });
+        }
+        msgs.scrollTop = msgs.scrollHeight;
       }
 
       function close() {
@@ -871,7 +916,7 @@ const {
       }
 
       // ── BUBBLOR ────────────────────────────────────────
-      function addBubble(role, text) {
+      function addBubble(role, text, silent = false) {
         const div = document.createElement("div");
         div.className = "sven-bubble " + role;
         div.innerHTML = formatMsg(text);
@@ -885,6 +930,7 @@ const {
             if (botCount >= 2) ratingRow.classList.add("visible");
           }
         }
+        if (!silent) saveSession();
         return div;
       }
 
@@ -899,13 +945,27 @@ const {
       function removeTyping() { document.getElementById("sven-typing")?.remove(); }
 
       // ── CHIPS ──────────────────────────────────────────
+      // Navigationslänkar — klick navigerar direkt istället för att chatta
+      const NAV_CHIPS = {
+        "Gå till offertformulär": "/bokningssida/",
+        "Gå till offertformulär →": "/bokningssida/",
+        "Lägg i varukorgen": "/varukorg/",
+        "Visa varukorgen": "/varukorg/",
+        "Visa varukorgen →": "/varukorg/",
+        "Ring oss nu": "tel:+46724481000",
+      };
+
       function renderChips(list) {
+        if (!list || list.length === 0) return;
         chips.innerHTML = "";
         list.forEach(label => {
           const btn = document.createElement("button");
           btn.className = "sven-chip";
           btn.textContent = label;
           btn.addEventListener("click", () => {
+            // Navigationschipen — hoppa direkt
+            const navUrl = NAV_CHIPS[label];
+            if (navUrl) { window.location.href = navUrl; return; }
             chips.innerHTML = "";
             // Tolka kundtyp direkt från chip
             if (/företag/i.test(label)) customerType = "company";
@@ -915,6 +975,7 @@ const {
           });
           chips.appendChild(btn);
         });
+        saveSession();
       }
 
       // ── BETYGSÄTTNING ──────────────────────────────────
@@ -985,14 +1046,13 @@ const {
 
           addBubble("bot", reply);
           history.push({ role: "assistant", content: reply });
+          saveSession();
 
-          // Offert-chip
-          if (/offert|kontakt|boka|formulär/i.test(reply)) {
-            renderChips(["Gå till offertformulär →"]);
-          }
-          // Varukorg-chip
-          if (/varukorg|lägg|cart/i.test(reply)) {
-            renderChips(["Visa varukorgen →"]);
+          // Rendera chips från backend, annars fallback
+          if (data.chips && data.chips.length > 0) {
+            renderChips(data.chips);
+          } else {
+            renderChips(CHIPS_FALLBACK);
           }
 
         } catch {

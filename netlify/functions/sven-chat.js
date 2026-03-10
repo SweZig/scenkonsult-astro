@@ -123,7 +123,19 @@ DJ → /vara-tjanster/hyra-dj/
 - Självinstallation: Ja, alltid. Montering tillval: 600 kr/tim.
 - Leverans: Hela Storstockholm.
 - Akutbokning: Möjligt — ring 072-448 10 00.
-- Deposition: Normalt ingen.`;
+- Deposition: Normalt ingen.
+
+═══ CHIPS (VIKTIGT — GÖR ALLTID) ═══
+Avsluta VARJE svar med en ny rad som börjar exakt så här:
+CHIPS:["chip1","chip2","chip3"]
+
+Välj 2–4 chips som är logiska nästa steg för kunden. Exempel:
+- Om du rekommenderat en produkt: ["Lägg i varukorgen", "Se hela scensidan", "Jag vill ha ljud också"]
+- Om kunden frågat om pris generellt: ["Ljud för mitt event", "Scen för bandet", "Jag behöver ljus också"]
+- Om kunden verkar köpredo: ["Gå till offertformulär", "Lägg i varukorgen", "Ring oss nu"]
+- Om kunden frågat om leverans/praktiskt: ["Vad kostar frakt?", "Kan ni montera?", "Hur bokar jag?"]
+- Undvik chips som upprepar det kunden just frågat.
+- Chips ska vara korta, max 5–6 ord, handlingsinriktade.`;
 
 const RATING_RESPONSES = {
   1: [
@@ -247,7 +259,16 @@ export default async (req) => {
     }
 
     const data = await apiRes.json();
-    const reply = data.content?.[0]?.text ?? "Sven verkar ha gått och lagt sig.";
+    const rawReply = data.content?.[0]?.text ?? "Sven verkar ha gått och lagt sig.";
+    
+    // Extrahera chips från svaret (sista raden CHIPS:[...])
+    let reply = rawReply;
+    let chips = [];
+    const chipsMatch = rawReply.match(/\nCHIPS:(\[.*?\])\s*$/s);
+    if (chipsMatch) {
+      try { chips = JSON.parse(chipsMatch[1]); } catch {}
+      reply = rawReply.replace(/\nCHIPS:\[.*?\]\s*$/s, "").trim();
+    }
 
     logEvent({
       type: "message", sessionId, customerType,
@@ -256,7 +277,7 @@ export default async (req) => {
       replyPreview: reply.substring(0, 200),
     });
 
-    return new Response(JSON.stringify({ reply }), {
+    return new Response(JSON.stringify({ reply, chips }), {
       status: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
