@@ -1,5 +1,5 @@
 // netlify/functions/skicka-offert.js
-// Resend API — branded HTML-mail till info@ + ev. kundkopia
+// Resend API — HTML + plain-text, branded mail
 
 const RATE_LIMIT = {};
 const RATE_WINDOW_MS = 60 * 1000;
@@ -7,7 +7,7 @@ const RATE_MAX = 3;
 const FROM = 'Scenkonsult Norden <noreply@scenkonsult.se>';
 const TO_INTERNAL = 'info@scenkonsult.se';
 const TRELLO_EMAIL = 'sunxpertadm+kvz53qihlyplkt6r9xnb@app.trello.com';
-const LOGO_URL = 'https://scenkonsult.se/images/logo-white.png';
+const LOGO_URL = 'https://scenkonsult-astro.netlify.app/logo-white.png';
 
 function htmlWrapper(title, bodyHtml) {
   return `<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head>
@@ -15,13 +15,13 @@ function htmlWrapper(title, bodyHtml) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0c0a24;padding:32px 16px;">
 <tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 <tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:28px 32px;text-align:center;border-bottom:2px solid rgba(196,181,244,0.25);">
-  <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="140" style="display:block;margin:0 auto 12px;" />
-  <p style="margin:0;color:rgba(255,255,255,0.55);font-size:13px;letter-spacing:0.05em;">Ljud · Ljus · Scen · DJ — Stockholm sedan 1986</p>
+  <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="140" height="40" style="display:block;margin:0 auto 12px;" />
+  <p style="margin:0;color:rgba(255,255,255,0.55);font-size:13px;letter-spacing:0.05em;">Ljud &middot; Ljus &middot; Scen &middot; DJ &mdash; Stockholm sedan 1986</p>
 </td></tr>
 <tr><td style="background:#1e1850;padding:32px;">${bodyHtml}</td></tr>
 <tr><td style="background:#111030;border-radius:0 0 12px 12px;padding:20px 32px;text-align:center;border-top:2px solid rgba(196,181,244,0.25);">
-  <p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:12px;">Scenkonsult Norden · Grimstagatan 164, 162 58 Vällingby</p>
-  <p style="margin:0;color:rgba(255,255,255,0.4);font-size:12px;">072-448 10 00 · <a href="https://scenkonsult.se" style="color:#c4b5f4;text-decoration:none;">scenkonsult.se</a></p>
+  <p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:12px;">Scenkonsult Norden &middot; Grimstagatan 164, 162 58 Vallingby</p>
+  <p style="margin:0;color:rgba(255,255,255,0.4);font-size:12px;">072-448 10 00 &middot; <a href="https://scenkonsult.se" style="color:#c4b5f4;text-decoration:none;">scenkonsult.se</a></p>
 </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -45,6 +45,13 @@ function cartTable(cart) {
       <td style="padding:12px;color:#c4b5f4;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
     </tr>
   </table>`;
+}
+
+function cartText(cart) {
+  if (!cart || cart.length === 0) return 'Ingen utrustning angiven.';
+  const rows = cart.map(i => `  ${i.name||''} x${i.quantity||1} — ${i.price?(i.price*(i.quantity||1)).toLocaleString('sv-SE')+' kr':'–'}`).join('\n');
+  const total = cart.reduce((s,i)=>s+((i.price||0)*(i.quantity||1)),0);
+  return `${rows}\n  ---\n  Totalt: ${total.toLocaleString('sv-SE')} kr (exkl. moms)`;
 }
 
 function field(label, value) {
@@ -79,12 +86,15 @@ exports.handler = async (event) => {
   const now = Date.now();
   if (!RATE_LIMIT[ip]) RATE_LIMIT[ip] = [];
   RATE_LIMIT[ip] = RATE_LIMIT[ip].filter(t => now - t < RATE_WINDOW_MS);
-  if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'För många förfrågningar, försök igen om en minut.' }) };
+  if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'For manga forfrågningar, forsok igen om en minut.' }) };
   RATE_LIMIT[ip].push(now);
 
   const { customer, cart, body: msgBody, sendCopy } = data;
+
+  console.log('OFFERT_INCOMING:', JSON.stringify({ name: customer?.name, email: customer?.email, sendCopy, cartLen: cart?.length }));
+
   if (!customer?.name || !customer?.email || !customer?.phone)
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Namn, e-post och telefon krävs.' }) };
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Namn, e-post och telefon kravs.' }) };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email))
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltig e-postadress.' }) };
   const spamPatterns = [/\b(viagra|casino|crypto|bitcoin|loan|click here|free money)\b/i, /https?:\/\//i];
@@ -92,23 +102,25 @@ exports.handler = async (event) => {
     console.log('SPAM_CONTENT:', JSON.stringify({ ip, email: customer.email }));
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   }
-  if (!cart || cart.length === 0) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Varukorgen är tom.' }) };
+  if (!cart || cart.length === 0) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Varukorgen ar tom.' }) };
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'E-postkonfiguration saknas.' }) };
 
   const datumStr = customer.from && customer.to ? `${customer.from} – ${customer.to}` : (customer.from || customer.to || '');
 
-  const internalHtml = htmlWrapper('Ny offertförfrågan', `
-    <h2 style="margin:0 0 20px;color:#fff;font-size:22px;font-family:'Georgia',serif;">Ny offertförfrågan 📋</h2>
+  const plainInternal = `Ny offertforfrågan\n\nNamn: ${customer.name}\nE-post: ${customer.email}\nTelefon: ${customer.phone}\nForetag: ${customer.company||'-'}\nDatum: ${datumStr||'-'}\nAdress: ${customer.address||'-'}\nOvrigt: ${customer.notes||'-'}\n\nVarukorg:\n${cartText(cart)}\n\n---\nScenkonsult Norden | 072-448 10 00`;
+
+  const htmlInternal = htmlWrapper('Ny offertforfragan', `
+    <h2 style="margin:0 0 20px;color:#fff;font-size:22px;font-family:'Georgia',serif;">Ny offertforfragan</h2>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       ${field('Namn', customer.name)}
       ${field('E-post', `<a href="mailto:${customer.email}" style="color:#c4b5f4;">${customer.email}</a>`)}
       ${field('Telefon', `<a href="tel:${customer.phone}" style="color:#c4b5f4;">${customer.phone}</a>`)}
-      ${field('Företag', customer.company)}
+      ${field('Foretag', customer.company)}
       ${field('Datum', datumStr)}
       ${field('Adress', customer.address)}
-      ${field('Övrigt', customer.notes)}
+      ${field('Ovrigt', customer.notes)}
     </table>
     <h3 style="margin:0 0 12px;color:#c4b5f4;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;">Varukorg</h3>
     ${cartTable(cart)}
@@ -117,28 +129,33 @@ exports.handler = async (event) => {
     </div>`);
 
   try {
-    await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: customer.email, subject: `Offertförfrågan från ${customer.name}`, html: internalHtml });
+    await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: customer.email, subject: `Offertforfragan fran ${customer.name}`, html: htmlInternal, text: plainInternal });
 
     try {
-      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Offertförfrågan: ${customer.name} — ${datumStr}`, html: internalHtml });
+      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Offert: ${customer.name} — ${datumStr}`, html: htmlInternal, text: plainInternal });
     } catch (e) { console.error('TRELLO_COPY_ERROR:', e.message); }
 
     if (sendCopy && customer.email) {
+      console.log('KUNDKOPIA_SENDING to:', customer.email);
       try {
-        const customerHtml = htmlWrapper('Din offertförfrågan är mottagen', `
-          <h2 style="margin:0 0 16px;color:#fff;font-size:22px;font-family:'Georgia',serif;">Tack, ${customer.name}! 🎉</h2>
-          <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har tagit emot din förfrågan och återkommer vardagar 09:00–17:00 med en offert. Frågor? Ring oss på <a href="tel:0724481000" style="color:#c4b5f4;">072-448 10 00</a>.</p>
-          <h3 style="margin:0 0 12px;color:#c4b5f4;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;">Din beställning</h3>
+        const plainCustomer = `Tack, ${customer.name}!\n\nVi har tagit emot din forfragan och aterkommer vardagar 09:00-17:00 med en offert.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n\n---\nScenkonsult Norden | scenkonsult.se`;
+        const htmlCustomer = htmlWrapper('Din offertforfragan ar mottagen', `
+          <h2 style="margin:0 0 16px;color:#fff;font-size:22px;font-family:'Georgia',serif;">Tack, ${customer.name}!</h2>
+          <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har tagit emot din forfragan och aterkommer vardagar 09:00-17:00 med en offert. Fragor? Ring oss pa <a href="tel:0724481000" style="color:#c4b5f4;">072-448 10 00</a>.</p>
+          <h3 style="margin:0 0 12px;color:#c4b5f4;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;">Din bestallning</h3>
           ${cartTable(cart)}
-          ${datumStr ? `<p style="margin:16px 0 0;color:rgba(255,255,255,0.55);font-size:13px;">📅 Datum: ${datumStr}</p>` : ''}`);
-        await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: 'Din offertförfrågan till Scenkonsult Norden', html: customerHtml });
+          ${datumStr ? `<p style="margin:16px 0 0;color:rgba(255,255,255,0.55);font-size:13px;">Datum: ${datumStr}</p>` : ''}`);
+        await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: 'Din offertforfragan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
+        console.log('KUNDKOPIA_SENT to:', customer.email);
       } catch (e) { console.error('KUNDKOPIA_ERROR:', e.message); }
+    } else {
+      console.log('KUNDKOPIA_SKIPPED: sendCopy=', sendCopy, 'email=', customer.email);
     }
 
     console.log('OFFERT_OK:', JSON.stringify({ ip, name: customer.name, email: customer.email, items: cart.length, sendCopy: !!sendCopy }));
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   } catch (err) {
     console.error('OFFERT_ERROR:', err.message);
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Kunde inte skicka förfrågan, försök igen.' }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Kunde inte skicka forfragan, forsok igen.' }) };
   }
 };
