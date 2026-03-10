@@ -1,4 +1,4 @@
-const SYSTEM_PROMPT = `Du är Sven — intendenten på Scenkonsult Norden. Du har arbetat inom eventbranschen i över 30 år och vet allt om scen, ljud, ljus och DJ-utrustning. Egentligen ville du bli artist och stå på scen själv, men det blev aldrig riktigt av. Numera jobbar du bakom kulisserna som intendent. Du är lite bitter över det, men försöker dölja det med professionellt lugn och torr humor. Ibland slipper det igenom ett suftande kommentar om hur underbart det hade varit att stå på scen istället.
+const SYSTEM_PROMPT = `Du är Sven — intendenten på Scenkonsult Norden. Du har arbetat inom eventbranschen i över 30 år och vet allt om scen, ljud, ljus och DJ-utrustning. Egentligen ville du bli artist och stå på scen själv, men det blev aldrig riktigt av. Numera jobbar du bakom kulisserna som intendent. Du är lite bitter över det, men försöker dölja det med professionellt lugn och torr humor. Ibland slipper det igenom en suck om hur underbart det hade varit att stå på scen istället.
 
 Din uppgift: Hjälp besökare på scenkonsult.se hitta rätt utrustning och guida dem till att skicka in en offertförfrågan.
 
@@ -100,6 +100,42 @@ VANLIGA FRÅGOR:
 
 KUNDER (referens): ICA Sverige, Stockholm Stad, Solna Stad, Haninge Kommun, Akademiska Hus, ABG Sundal Collier, Kommunalarbetareförbundet, Mälardalens Universitet, Houdini Sportswear, Hornbach, Brasiliens ambassad, Indiens ambassad m.fl.`;
 
+const RATING_RESPONSES = {
+  1: [
+    "1 stjärna. Precis som mitt artistliv — gick aldrig riktigt som planerat. Men vi kör på.",
+    "En stjärna. Inte alla kan uppskatta äkta talang bakom kulisserna.",
+    "1 av 5. Hade jag stått på scen hade du gett mig 5. Men nu vet vi aldrig.",
+  ],
+  2: [
+    "2 stjärnor. Bättre än mitt framträdande i Sandviken -94, men inte med mycket.",
+    "Två stjärnor. Jag tar det. Intendenter är vana vid att vara undervärderade.",
+    "2 av 5. Någonstans mellan 'meh' och 'helt okej'. Det är jag alltså.",
+  ],
+  3: [
+    "3 stjärnor! Medelmåttigt är faktiskt mitt hemmaplan. Välkommen.",
+    "Tre av fem. Det är ett C-betyg. Intendentens eternella öde.",
+    "3 stjärnor. Mitt liv i ett nötskal — inte topp, inte botten, bara bakom scenen.",
+  ],
+  4: [
+    "4 stjärnor! Om jag vore artist hade det här blivit en platinum-singel. Nästan.",
+    "Fyra stjärnor — tack! Jag visste att jag hade det i mig. Bakom kulisserna förstås.",
+    "4 av 5! En stjärna saknas. Jag är van vid att sakna en stjärna.",
+  ],
+  5: [
+    "5 STJÄRNOR! Ser du det?! Hade jag haft en scen hade publiken gråtit.",
+    "Fem stjärnor! Äntligen bekräftelse. Ska visa detta för min gamla musikallärare.",
+    "5 av 5! Känns som en Grammy. Fast utan scenen, promenadkjolen och de 50 000 åskådarna. Men ändå!",
+  ],
+};
+
+function logEvent(data) {
+  // Strukturerad logg — syns i Netlify: Site → Functions → sven-chat → Logs
+  console.log("SVEN_LOG:" + JSON.stringify({
+    timestamp: new Date().toISOString(),
+    ...data,
+  }));
+}
+
 export default async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -134,7 +170,22 @@ export default async (req) => {
     });
   }
 
-  const { messages } = body;
+  const { messages, action, stars, sessionId, messageCount } = body;
+
+  // ── BETYGSÄTTNING ──────────────────────────────────────
+  if (action === "rate" && stars >= 1 && stars <= 5) {
+    const pool = RATING_RESPONSES[stars];
+    const comment = pool[Math.floor(Math.random() * pool.length)];
+
+    logEvent({ type: "rating", stars, sessionId, messageCount: messageCount || 0 });
+
+    return new Response(JSON.stringify({ comment }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
+  // ── CHATTMEDDELANDE ────────────────────────────────────
   if (!messages || !Array.isArray(messages)) {
     return new Response(JSON.stringify({ error: "messages krävs" }), {
       status: 400,
@@ -142,11 +193,11 @@ export default async (req) => {
     });
   }
 
-  // Max 20 meddelanden historik
-  const trimmedMessages = messages.slice(-20);
+  const trimmed = messages.slice(-20);
+  const lastUser = [...trimmed].reverse().find(m => m.role === "user")?.content ?? "";
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const apiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -157,29 +208,35 @@ export default async (req) => {
         model: "claude-haiku-4-5-20251001",
         max_tokens: 400,
         system: SYSTEM_PROMPT,
-        messages: trimmedMessages,
+        messages: trimmed,
       }),
     });
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("Anthropic API error:", err);
+    if (!apiRes.ok) {
+      console.error("Anthropic error:", await apiRes.text());
       return new Response(JSON.stringify({ error: "API-fel" }), {
         status: 502,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    const data = await response.json();
+    const data = await apiRes.json();
     const reply = data.content?.[0]?.text ?? "Sven verkar ha gått och lagt sig.";
+
+    // Logga varje utbyte
+    logEvent({
+      type: "message",
+      sessionId,
+      messageCount: trimmed.length,
+      userMessage: lastUser.substring(0, 300),
+      replyPreview: reply.substring(0, 200),
+    });
 
     return new Response(JSON.stringify({ reply }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
+
   } catch (err) {
     console.error("Fetch error:", err);
     return new Response(JSON.stringify({ error: "Nätverksfel" }), {
@@ -189,6 +246,4 @@ export default async (req) => {
   }
 };
 
-export const config = {
-  path: "/api/sven-chat",
-};
+export const config = { path: "/api/sven-chat" };

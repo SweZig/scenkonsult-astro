@@ -468,6 +468,16 @@ const {
           </svg>
         </button>
       </div>
+
+      <!-- Betygsättning -->
+      <div id="sven-rating-row">
+        <span id="sven-rating-label">Betygsätt Sven</span>
+        <div id="sven-stars" role="group" aria-label="Betyg 1–5 stjärnor">
+          {[1,2,3,4,5].map(n => (
+            <button class="sven-star" data-star={n} aria-label={`${n} stjärnor`} title={`${n} stjärnor`}>★</button>
+          ))}
+        </div>
+      </div>
     </div>
   </div>
 
@@ -680,6 +690,37 @@ const {
     #sven-send:hover { background: #e2dcfb; }
     #sven-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
+    /* Betygsättning */
+    #sven-rating-row {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    #sven-rating-row.visible { display: flex; }
+    #sven-rating-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    #sven-stars { display: flex; gap: 3px; }
+    .sven-star {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: rgba(255,255,255,0.2);
+      padding: 0 1px;
+      transition: color 0.15s, transform 0.1s;
+      line-height: 1;
+    }
+    .sven-star:hover,
+    .sven-star.active { color: #c4b5f4; }
+    .sven-star:hover { transform: scale(1.2); }
+    .sven-star.rated { color: #c4b5f4; cursor: default; }
+
     /* Mobilanpassning */
     @media (max-width: 400px) {
       #sven-window { width: calc(100vw - 32px); right: -8px; }
@@ -692,7 +733,7 @@ const {
       const CHIPS_INITIAL = [
         "Vad kostar en scen?",
         "Ljud för 100 gäster",
-        "Hyr DJ",
+        "Ljuseffekter till festen",
         "Leverans?",
       ];
 
@@ -706,10 +747,14 @@ const {
       const iconOpen    = document.getElementById('sven-icon-open');
       const iconClose   = document.getElementById('sven-icon-close');
       const unread      = document.getElementById('sven-unread');
+      const ratingRow   = document.getElementById('sven-rating-row');
+      const starBtns    = document.querySelectorAll('.sven-star');
 
-      let history = [];
-      let isOpen  = false;
+      let history    = [];
+      let isOpen     = false;
       let hasGreeted = false;
+      let hasRated   = false;
+      const sessionId = Math.random().toString(36).slice(2, 10);
 
       function open() {
         isOpen = true;
@@ -738,18 +783,13 @@ const {
 
       toggle.addEventListener('click', () => isOpen ? close() : open());
       closeBtn.addEventListener('click', close);
-
-      // Stäng med Escape
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && isOpen) close();
-      });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) close(); });
 
       function escapeHtml(str) {
         return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       }
 
       function formatMessage(text) {
-        // Radbrytningar → <br>, **text** → <strong>, [text](url) → <a>
         return escapeHtml(text)
           .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
           .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g, '<a href="$1">$1 →</a>')
@@ -762,6 +802,11 @@ const {
         div.innerHTML = formatMessage(text);
         messages.appendChild(div);
         messages.scrollTop = messages.scrollHeight;
+        // Visa betygsstjärnor efter 2 bot-svar
+        if (role === 'bot' && !hasRated) {
+          const botCount = messages.querySelectorAll('.sven-bubble.bot').length;
+          if (botCount >= 2) ratingRow.classList.add('visible');
+        }
         return div;
       }
 
@@ -784,75 +829,88 @@ const {
           const btn = document.createElement('button');
           btn.className = 'sven-chip';
           btn.textContent = label;
-          btn.addEventListener('click', () => {
-            chips.innerHTML = '';
-            sendMessage(label);
-          });
+          btn.addEventListener('click', () => { chips.innerHTML = ''; sendMessage(label); });
           chips.appendChild(btn);
         });
       }
 
+      // ── Betygsättning ──
+      starBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+          if (hasRated) return;
+          const n = +btn.dataset.star;
+          starBtns.forEach(s => s.classList.toggle('active', +s.dataset.star <= n));
+        });
+        btn.addEventListener('mouseleave', () => {
+          if (hasRated) return;
+          starBtns.forEach(s => s.classList.remove('active'));
+        });
+        btn.addEventListener('click', async () => {
+          if (hasRated) return;
+          const stars = +btn.dataset.star;
+          hasRated = true;
+          starBtns.forEach(s => {
+            s.classList.remove('active');
+            s.classList.toggle('rated', +s.dataset.star <= stars);
+            s.disabled = true;
+          });
+          document.getElementById('sven-rating-label').textContent =
+            '★'.repeat(stars) + '☆'.repeat(5 - stars);
+          try {
+            const res = await fetch('/api/sven-chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'rate', stars, sessionId, messageCount: history.length }),
+            });
+            const data = await res.json();
+            if (data.comment) addBubble('bot', data.comment);
+          } catch {
+            addBubble('bot', 'Betyget noterat, tack! (Sven log det mentalt och log sedan bort i sina tankar.)');
+          }
+        });
+      });
+
+      // ── Skicka meddelande ──
       async function sendMessage(text) {
         const msg = text.trim();
         if (!msg) return;
-
         input.value = '';
         chips.innerHTML = '';
         addBubble('user', msg);
         history.push({ role: 'user', content: msg });
-
         sendBtn.disabled = true;
         showTyping();
-
         try {
           const res = await fetch('/api/sven-chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: history }),
+            body: JSON.stringify({ messages: history, sessionId }),
           });
-
           removeTyping();
-
           if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
           const reply = data.reply || 'Något gick fel, försök igen.';
-
           addBubble('bot', reply);
           history.push({ role: 'assistant', content: reply });
-
-          // Visa offert-chip om svaret är köpnära
-          const lowerReply = reply.toLowerCase();
-          if (
-            lowerReply.includes('offert') ||
-            lowerReply.includes('kontakt') ||
-            lowerReply.includes('boka') ||
-            lowerReply.includes('formulär')
-          ) {
+          if (/offert|kontakt|boka|formulär/i.test(reply)) {
             renderChips(['Skicka offertförfrågan →']);
           }
-
-        } catch (err) {
+        } catch {
           removeTyping();
-          addBubble('bot', 'Hm, något krånglar med förbindelsen. Prova att ringa oss på 072-448 10 00 istället — vi svarar genast!');
+          addBubble('bot', 'Hm, något krånglar. Prova att ringa oss på 072-448 10 00 — vi svarar genast!');
         } finally {
           sendBtn.disabled = false;
-          if (document.activeElement !== input) input.focus();
+          input.focus();
         }
       }
 
       sendBtn.addEventListener('click', () => sendMessage(input.value));
       input.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage(input.value);
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input.value); }
       });
 
-      // Visa unread-badge efter 8 sek om chatten inte öppnats
       setTimeout(() => {
-        if (!isOpen && !hasGreeted) {
-          unread.style.display = 'block';
-        }
+        if (!isOpen && !hasGreeted) unread.style.display = 'block';
       }, 8000);
     })();
   </script>
