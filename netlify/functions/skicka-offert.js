@@ -91,9 +91,10 @@ exports.handler = async (event) => {
   if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'For manga forfrågningar.' }) };
   RATE_LIMIT[ip].push(now);
 
-  const { customer, cart, sendCopy } = data;
+  const { customer, cart, sendCopy, intent } = data;
+  const isBokning = intent === 'boka';
 
-  console.log('OFFERT_INCOMING:', JSON.stringify({ name: customer?.name, email: customer?.email, sendCopy: !!sendCopy, cartLen: cart?.length }));
+  console.log('OFFERT_INCOMING:', JSON.stringify({ name: customer?.name, email: customer?.email, sendCopy: !!sendCopy, cartLen: cart?.length, intent: intent||'offert' }));
 
   if (!customer?.name || !customer?.email || !customer?.phone)
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Namn, e-post och telefon kravs.' }) };
@@ -106,11 +107,17 @@ exports.handler = async (event) => {
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'E-postkonfiguration saknas.' }) };
 
   const datumStr = customer.from && customer.to ? `${customer.from} – ${customer.to}` : (customer.from || customer.to || '');
-  const plainInternal = `Ny offertforfragan\n\nNamn: ${customer.name}\nE-post: ${customer.email}\nTelefon: ${customer.phone}\nForetag: ${customer.company||'-'}\nDatum: ${datumStr||'-'}\nAdress: ${customer.address||'-'}\nOvrigt: ${customer.notes||'-'}\n\nVarukorg:\n${cartText(cart)}\n\n---\nScenkonsult Norden | 072-448 10 00`;
+  const subjectTag = isBokning ? '⭐ BOKNING' : 'Offertförfrågan';
+  const headingText = isBokning ? '⭐ Bokningsönskan' : 'Ny offertförfrågan';
+  const headingNote = isBokning
+    ? 'Kunden önskar boka — bekräfta tillgänglighet och skicka bokningsbekräftelse.'
+    : 'Mottaget via scenkonsult.se';
 
-  const htmlInternal = htmlWrapper('Ny offertforfragan', `
-    <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Ny offertforfragan</h2>
-    <p style="margin:0 0 20px;color:#888;font-size:13px;">Mottaget via scenkonsult.se</p>
+  const plainInternal = `${headingText}\n\nNamn: ${customer.name}\nE-post: ${customer.email}\nTelefon: ${customer.phone}\nForetag: ${customer.company||'-'}\nDatum: ${datumStr||'-'}\nAdress: ${customer.address||'-'}\nOvrigt: ${customer.notes||'-'}\n\nVarukorg:\n${cartText(cart)}\n\n---\nScenkonsult Norden | 072-448 10 00`;
+
+  const htmlInternal = htmlWrapper(headingText, `
+    <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">${headingText}</h2>
+    <p style="margin:0 0 20px;color:${isBokning?'#b45309':'#888'};font-size:13px;${isBokning?'font-weight:700;':''}"">${headingNote}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       ${field('Namn', customer.name)}
       ${field('E-post', `<a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a>`)}
@@ -125,25 +132,29 @@ exports.handler = async (event) => {
     <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a></p>`);
 
   try {
-    await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: customer.email, subject: `Offertforfragan fran ${customer.name}`, html: htmlInternal, text: plainInternal });
+    await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: customer.email, subject: `${subjectTag} från ${customer.name}`, html: htmlInternal, text: plainInternal });
     await sleep(600);
 
     try {
-      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Offert: ${customer.name} — ${datumStr}`, html: htmlInternal, text: plainInternal });
+      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `${subjectTag}: ${customer.name} — ${datumStr}`, html: htmlInternal, text: plainInternal });
     } catch (e) { console.error('TRELLO_COPY_ERROR:', e.message); }
 
     if (sendCopy && customer.email) {
       await sleep(600);
       console.log('KUNDKOPIA_SENDING to:', customer.email);
       try {
-        const plainCustomer = `Tack, ${customer.name}!\n\nVi har tagit emot din forfragan och aterkommer vardagar 09:00-17:00 med en offert.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n\n---\nScenkonsult Norden | scenkonsult.se`;
-        const htmlCustomer = htmlWrapper('Din offertforfragan ar mottagen', `
+        const customerTitle = isBokning ? 'Din bokningsönskan är mottagen' : 'Din offertförfrågan är mottagen';
+        const customerIntro = isBokning
+          ? `Vi har tagit emot din bokningsönskan och återkommer vardagar 09:00-17:00 med en bekräftelse. Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.`
+          : `Vi har tagit emot din förfrågan och återkommer vardagar 09:00-17:00 med en offert. Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.`;
+        const plainCustomer = `Tack, ${customer.name}!\n\n${isBokning?'Vi har tagit emot din bokningsönskan':'Vi har tagit emot din förfrågan'} och aterkommer vardagar 09:00-17:00.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n\n---\nScenkonsult Norden | scenkonsult.se`;
+        const htmlCustomer = htmlWrapper(customerTitle, `
           <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>
-          <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har tagit emot din forfragan och aterkommer vardagar 09:00-17:00 med en offert. Fragor? Ring oss pa <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.</p>
+          <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 24px;">${customerIntro}</p>
           <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din bestallning</p>
           ${cartTable(cart)}
           ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">Datum: ${datumStr}</p>` : ''}`);
-        await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: 'Din offertforfragan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
+        await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: isBokning ? 'Din bokningsönskan hos Scenkonsult Norden' : 'Din offertförfrågan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
         console.log('KUNDKOPIA_SENT to:', customer.email);
       } catch (e) { console.error('KUNDKOPIA_ERROR:', e.message); }
     }

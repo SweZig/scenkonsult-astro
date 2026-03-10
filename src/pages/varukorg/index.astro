@@ -815,8 +815,9 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   }
 
   // ── EMAIL ─────────────────────────────────────────────────
-  async function submitOffert(triggerBtn) {
+  async function submitOffert(triggerBtn, intent) {
     const { cart, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
+    const isBokning = intent === 'boka';
 
     const prodLines = cart.map(i => `- ${i.name} × ${i.qty}  →  ${(i.price*i.qty).toLocaleString('sv')} kr`).join('\n');
     const custInfo = [
@@ -830,8 +831,12 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       customer.notes ? `Övrig info: ${customer.notes}` : '',
     ].filter(Boolean).join('\n');
 
+    const inledning = isBokning
+      ? `Hej Scenkonsult!\n\n⭐ ÖNSKAR BOKA — Kunden vill boka följande utrustning:\n`
+      : `Hej Scenkonsult!\n\nOffertförfrågan — Kunden önskar prisförslag på:\n`;
+
     const msgBody =
-      `Hej Scenkonsult!\n\nJag är intresserad av att hyra:\n\n${prodLines}`
+      inledning + `\n${prodLines}`
       + (extraLines.length ? `\n\nTilläggstjänster:\n` + extraLines.map(l=>'- '+l).join('\n') : '')
       + `\n\nProdukter: ${subtotal.toLocaleString('sv')} kr exkl. moms`
       + (extras ? `\nTillägg (estimat): ${extras.toLocaleString('sv')} kr` : '')
@@ -854,7 +859,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart, body: msgBody, sendCopy: document.getElementById('sendCopyCheck')?.checked || false }),
+        body: JSON.stringify({ customer, cart, body: msgBody, intent, sendCopy: document.getElementById('sendCopyCheck')?.checked || false }),
       });
 
       const result = await resp.json();
@@ -877,8 +882,8 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     }
   }
 
-  document.getElementById('btnEmail')?.addEventListener('click', function() { submitOffert(this); });
-  document.getElementById('btnBoka')?.addEventListener('click', function() { submitOffert(this); });
+  document.getElementById('btnEmail')?.addEventListener('click', function() { submitOffert(this, 'offert'); });
+  document.getElementById('btnBoka')?.addEventListener('click', function() { submitOffert(this, 'boka'); });
 
   // ── PDF / PRINT ───────────────────────────────────────────
   document.getElementById('btnSave')?.addEventListener('click', () => {
