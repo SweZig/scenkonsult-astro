@@ -69,7 +69,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 </head>
 <body>
   <!-- Cookie-banner -->
-  <div id="sk-cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(12,10,36,0.97);border-top:1px solid rgba(196,181,244,0.25);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+  <div id="sk-cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(12,10,36,0.97);border-top:1px solid rgba(196,181,244,0.25);padding:1rem 1.5rem;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
     <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.875rem;font-family:'Space Grotesk',sans-serif;max-width:700px;">
       Vi använder cookies för besöksstatistik (Google Analytics) för att förbättra sajten. 
       <a href="/personuppgiftpolicy/" style="color:#c4b5f4;text-decoration:underline;">Läs mer</a>
@@ -116,8 +116,13 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
       var consent = getConsent();
       var banner = document.getElementById('sk-cookie-banner');
 
-      // Visa banner om inget val gjorts (eller utgånget)
-      if (!consent && banner) banner.style.display = 'flex';
+      // Visa eller dölj bannern explicit
+      if (!consent) {
+        if (banner) banner.style.display = 'flex';
+      } else {
+        if (banner) banner.style.display = 'none';
+        if (consent === 'accepted') loadGTM();
+      }
 
       function loadGTM() {
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
