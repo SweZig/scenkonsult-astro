@@ -1186,15 +1186,108 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
         return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
       }
 
-      function formatMsg(text) {
-        return escHtml(text)
+      // Produktregister för cart-tillägg från Sven
+      const SVEN_PRODUCTS = {
+        'scen-small':{'name':'Scenpaket Small','price':599,'category':'Scen'},
+        'scen-small-plus':{'name':'Scenpaket Small+','price':899,'category':'Scen'},
+        'scen-small-plusplus':{'name':'Scenpaket Small++','price':1199,'category':'Scen'},
+        'scen-medium':{'name':'Scenpaket Medium','price':1499,'category':'Scen'},
+        'scen-medium-plus':{'name':'Scenpaket Medium+','price':1799,'category':'Scen'},
+        'scen-medium-plus-tak':{'name':'Scenpaket Medium+ inkl. scentak','price':3799,'category':'Scen'},
+        'scen-medium-plusplus':{'name':'Scenpaket Medium++','price':2399,'category':'Scen'},
+        'scen-large':{'name':'Scenpaket Large','price':2999,'category':'Scen'},
+        'scen-large-plus':{'name':'Scenpaket Large+','price':3599,'category':'Scen'},
+        'scen-xl':{'name':'Scenpaket XL','price':5399,'category':'Scen'},
+        'scen-xl-plus':{'name':'Scenpaket XL+','price':7199,'category':'Scen'},
+        'event-small':{'name':'Event, Small','price':799,'category':'Ljud'},
+        'event-small-plus':{'name':'Event, Small+','price':1199,'category':'Ljud'},
+        'event-medium':{'name':'Event, Medium','price':1599,'category':'Ljud'},
+        'event-medium-plus':{'name':'Event, Medium+','price':2299,'category':'Ljud'},
+        'event-large':{'name':'Event, Large','price':3199,'category':'Ljud'},
+        'live-small':{'name':'Live, Small','price':599,'category':'Ljud'},
+        'live-medium':{'name':'Live, Medium','price':1199,'category':'Ljud'},
+        'live-large':{'name':'Live, Large','price':1599,'category':'Ljud'},
+        'live-xl':{'name':'Live/Music, XL','price':2299,'category':'Ljud'},
+        'live-xl-plus':{'name':'Live/Music, XL+','price':2999,'category':'Ljud'},
+        'live-xxl':{'name':'Live/Music, XXL','price':4999,'category':'Ljud'},
+        'live-concert':{'name':'Live/Music, Concert','price':6999,'category':'Ljud'},
+        'music-small':{'name':'Music, Small','price':999,'category':'Ljud'},
+        'music-small-plus':{'name':'Music, Small+','price':1299,'category':'Ljud'},
+        'music-medium':{'name':'Music, Medium','price':1499,'category':'Ljud'},
+        'music-large':{'name':'Music, Large','price':1899,'category':'Ljud'},
+        'portable-small':{'name':'Portable, Small','price':599,'category':'Ljud'},
+        'portable-small-plus':{'name':'Portable, Small+','price':699,'category':'Ljud'},
+        'portable-medium':{'name':'Portable, Medium','price':799,'category':'Ljud'},
+        'portable-medium-plus':{'name':'Portable, Medium+','price':999,'category':'Ljud'},
+        'portable-large':{'name':'Portable, Large','price':1199,'category':'Ljud'},
+        'portable-large-plus':{'name':'Portable, Large+','price':2299,'category':'Ljud'},
+        'mixer-2-2':{'name':'Mixerbord, 2+2 kanaler','price':159,'category':'Ljud'},
+        'mixer-4-2':{'name':'Mixerbord, 4+2 kanaler','price':199,'category':'Ljud'},
+        'mixer-4-4':{'name':'Mixerbord, 4+4 kanaler','price':299,'category':'Ljud'},
+        'mixer-6-4':{'name':'Mixerbord, 6+4 kanaler','price':349,'category':'Ljud'},
+        'ljus-small':{'name':'Ljuspaket, Small','price':399,'category':'Ljus'},
+        'ljus-small-plus':{'name':'Ljuspaket, Small+','price':599,'category':'Ljus'},
+        'ljus-small-pp':{'name':'Ljuspaket, Small++','price':799,'category':'Ljus'},
+        'ljus-medium':{'name':'Ljuspaket, Medium','price':1199,'category':'Ljus'},
+        'ljus-medium-plus':{'name':'Ljuspaket, Medium+','price':1299,'category':'Ljus'},
+        'ljus-medium-pp':{'name':'Ljuspaket, Medium++','price':1499,'category':'Ljus'},
+        'led-par':{'name':'LED PAR (14x8W RGBW)','price':79,'category':'Ljus'},
+        'rokmaskin-1500':{'name':'Rökmaskin (1500W)','price':349,'category':'Ljus'},
+        'konfettiavfyrare':{'name':'Konfettiavfyrare','price':499,'category':'Ljus'},
+        'dj-controller-numark':{'name':'DJ-controller Numark Mixstream Pro+','price':799,'category':'DJ'},
+        'dj-controller-denon-go':{'name':'DJ-controller Denon Prime GO+','price':999,'category':'DJ'},
+        'dj-controller-denon-prime4':{'name':'DJ-controller Denon Prime 4+','price':1499,'category':'DJ'},
+        'dj-rane-system-one':{'name':'DJ-system Rane System One','price':1999,'category':'DJ'},
+        'projektor-xga':{'name':'Projektor (XGA)','price':299,'category':'Bild'},
+        'projektor-fhd':{'name':'Projektor (FHD)','price':399,'category':'Bild'},
+        'skarm-65':{'name':'65" Skärm (4K UHD)','price':2399,'category':'Bild'},
+        'skarm-75':{'name':'75" Skärm (4K UHD)','price':2799,'category':'Bild'},
+      };
+
+      function svenAddCartAndGo(ids) {
+        let added = 0;
+        ids.forEach(id => {
+          const p = SVEN_PRODUCTS[id];
+          if (p) { window.skCart.add({ id, ...p }); added++; }
+        });
+        window.location.href = '/varukorg/';
+      }
+
+      function formatMsg(rawText) {
+        // Extrahera och ta bort [CART:id1,id2] innan escaping
+        let cartIds = [];
+        const text = rawText.replace(/\[CART:([^\]]+)\]/g, (_, ids) => {
+          cartIds = ids.split(',').map(s => s.trim()).filter(Boolean);
+          return ''; // ta bort taggen från texten
+        }).trim();
+
+        let html = escHtml(text)
           .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-          // Markdown-länk [text](/sökväg) → klickbar länk
           .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
             '<a href="$2" target="_blank" rel="noopener">$1 ↗</a>')
           .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g,
             '<a href="$2">$1 →</a>')
           .replace(/\n/g, "<br>");
+
+        // Rendera cart-knapp om Sven taggar produkter
+        if (cartIds.length > 0) {
+          const known = cartIds.filter(id => SVEN_PRODUCTS[id]);
+          if (known.length > 0) {
+            const names = known.map(id => SVEN_PRODUCTS[id].name).join(' + ');
+            const idsJson = JSON.stringify(known);
+            const label = known.length === 1
+              ? `Lägg ${SVEN_PRODUCTS[known[0]].name} i varukorgen →`
+              : `Lägg ${known.length} produkter i varukorgen →`;
+            html += `<div style="margin-top:10px">
+              <button class="sven-cart-add-btn" data-ids='${idsJson}' 
+                style="background:#c4b5f4;color:#0c0a24;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.3">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                ${escHtml(label)}
+              </button>
+            </div>`;
+          }
+        }
+        return html;
       }
 
       // ── BUBBLOR ────────────────────────────────────────
@@ -1366,6 +1459,16 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
           input.focus();
         }
       }
+
+      // Klick på Svens "Lägg i varukorgen"-knapp (event delegation)
+      msgs.addEventListener("click", e => {
+        const btn = e.target.closest(".sven-cart-add-btn");
+        if (!btn) return;
+        try {
+          const ids = JSON.parse(btn.dataset.ids || "[]");
+          if (ids.length > 0) svenAddCartAndGo(ids);
+        } catch {}
+      });
 
       sendBtn.addEventListener("click", () => sendMessage(input.value));
       input.addEventListener("keydown", e => {

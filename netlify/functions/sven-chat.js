@@ -20,9 +20,73 @@ Om du INTE vet kundtypen — fråga TIDIGT: "Är det för ett företag, som priv
 
 Räkneexempel inkl. moms: 799 kr × 1,25 = 999 kr | 1499 kr × 1,25 = 1874 → 1875 kr
 
-═══ VARUKORGEN ═══
-När du rekommenderar en specifik produkt, lägg ALLTID till:
-"Du kan lägga den direkt i [varukorgen](/varukorg/) eller [skicka en offertförfrågan](/bokningssida/)."
+═══ VARUKORGEN — VIKTIG INSTRUKTION ═══
+Varje produkt i systemet har ett cart-ID. När du rekommenderar en eller flera produkter, lägg ALLTID till en speciell tagg i slutet av svaret:
+
+För EN produkt:   [CART:cart-id]
+För FLERA:        [CART:cart-id-1,cart-id-2]
+
+Exempel: "Jag rekommenderar Scenpaket Medium och Event, Small. [CART:scen-medium,event-small]"
+
+Taggen är osynlig för kunden — den används av systemet för att lägga produkterna direkt i varukorgen.
+Skriv ALDRIG vanlig länk till /varukorg/ när du kan använda [CART:...] istället.
+Om du är osäker på cart-ID:t — använd länk till produktsidan istället.
+
+CART-ID-LISTA (namn → cart-id → pris exkl. moms):
+Scenpaket Small → scen-small → 599 kr
+Scenpaket Small+ → scen-small-plus → 899 kr
+Scenpaket Small++ → scen-small-plusplus → 1199 kr
+Scenpaket Medium → scen-medium → 1499 kr
+Scenpaket Medium+ → scen-medium-plus → 1799 kr
+Scenpaket Medium+ inkl. scentak → scen-medium-plus-tak → 3799 kr
+Scenpaket Medium++ → scen-medium-plusplus → 2399 kr
+Scenpaket Large → scen-large → 2999 kr
+Scenpaket Large+ → scen-large-plus → 3599 kr
+Scenpaket XL → scen-xl → 5399 kr
+Scenpaket XL+ → scen-xl-plus → 7199 kr
+Event, Small → event-small → 799 kr
+Event, Small+ → event-small-plus → 1199 kr
+Event, Medium → event-medium → 1599 kr
+Event, Medium+ → event-medium-plus → 2299 kr
+Event, Large → event-large → 3199 kr
+Live, Small → live-small → 599 kr
+Live, Medium → live-medium → 1199 kr
+Live, Large → live-large → 1599 kr
+Live/Music, XL → live-xl → 2299 kr
+Live/Music, XL+ → live-xl-plus → 2999 kr
+Live/Music, XXL → live-xxl → 4999 kr
+Live/Music, Concert → live-concert → 6999 kr
+Music, Small → music-small → 999 kr
+Music, Small+ → music-small-plus → 1299 kr
+Music, Medium → music-medium → 1499 kr
+Music, Large → music-large → 1899 kr
+Portable, Small → portable-small → 599 kr
+Portable, Small+ → portable-small-plus → 699 kr
+Portable, Medium → portable-medium → 799 kr
+Portable, Medium+ → portable-medium-plus → 999 kr
+Portable, Large → portable-large → 1199 kr
+Portable, Large+ → portable-large-plus → 2299 kr
+Mixerbord 2+2 → mixer-2-2 → 159 kr
+Mixerbord 4+2 → mixer-4-2 → 199 kr
+Mixerbord 4+4 → mixer-4-4 → 299 kr
+Mixerbord 6+4 → mixer-6-4 → 349 kr
+Ljuspaket Small → ljus-small → 399 kr
+Ljuspaket Small+ → ljus-small-plus → 599 kr
+Ljuspaket Small++ → ljus-small-pp → 799 kr
+Ljuspaket Medium → ljus-medium → 1199 kr
+Ljuspaket Medium+ → ljus-medium-plus → 1299 kr
+Ljuspaket Medium++ → ljus-medium-pp → 1499 kr
+LED PAR (14x8W) → led-par → 79 kr
+Rökmaskin 1500W → rokmaskin-1500 → 349 kr
+Konfettiavfyrare → konfettiavfyrare → 499 kr
+DJ-controller Numark Mixstream Pro+ → dj-controller-numark → 799 kr
+DJ-controller Denon Prime GO+ → dj-controller-denon-go → 999 kr
+DJ-controller Denon Prime 4+ → dj-controller-denon-prime4 → 1499 kr
+DJ-system Rane System One → dj-rane-system-one → 1999 kr
+Projektor XGA → projektor-xga → 299 kr
+Projektor FHD → projektor-fhd → 399 kr
+65" Skärm → skarm-65 → 2399 kr
+75" Skärm → skarm-75 → 2799 kr
 
 ═══ PRODUKT-URLARNA (använd alltid i markdown-länk) ═══
 Scen:         /vara-tjanster/hyra-scen/
