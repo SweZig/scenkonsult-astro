@@ -104,7 +104,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
     })();
   </script>
 
-  <!-- Netlify Forms: dolt formulär för registrering vid bygge -->
+  <!-- Netlify Forms: dolda formulär för registrering vid bygge -->
   <form name="offertforfragan" netlify netlify-honeypot="website" hidden>
     <input type="text" name="name" />
     <input type="email" name="email" />
@@ -115,7 +115,25 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
     <input type="text" name="adress" />
     <textarea name="meddelande"></textarea>
     <textarea name="varukorg"></textarea>
-    <input type="text" name="website" /> <!-- honeypot -->
+    <input type="text" name="website" />
+  </form>
+  <form name="kontaktformular" netlify netlify-honeypot="website" hidden>
+    <input type="text" name="namn" />
+    <input type="email" name="epost" />
+    <input type="text" name="telefon" />
+    <input type="text" name="typ" />
+    <input type="text" name="gaster" />
+    <input type="text" name="datum" />
+    <textarea name="meddelande"></textarea>
+    <input type="text" name="hittade" />
+    <input type="text" name="website" />
+  </form>
+  <form name="feedbackformular" netlify netlify-honeypot="website" hidden>
+    <input type="text" name="typ" />
+    <textarea name="meddelande"></textarea>
+    <input type="text" name="namn" />
+    <input type="email" name="epost" />
+    <input type="text" name="website" />
   </form>
 
   <!-- TICKER -->

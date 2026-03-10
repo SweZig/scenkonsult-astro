@@ -93,45 +93,47 @@ const orter = [
       <div class="rounded-2xl p-6" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
         <h2 class="text-white font-bold text-lg mb-4">Skicka meddelande</h2>
         <p class="text-gray-400 text-sm mb-5">Beskriv ditt behov — vi svarar med ett konkret prisförslag.</p>
+        <!-- Honeypot: dolt för riktiga användare -->
+        <input type="text" id="k-website" name="website" style="display:none" tabindex="-1" autocomplete="off" />
         <div class="space-y-3">
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs text-gray-400 mb-1">Typ</label>
-              <select class="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white">
+              <select id="k-typ" class="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white">
                 <option>Privat</option>
                 <option>Företag</option>
               </select>
             </div>
             <div>
               <label class="block text-xs text-gray-400 mb-1">Antal gäster</label>
-              <input type="number" placeholder="ex. 150" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+              <input id="k-gaster" type="number" placeholder="ex. 150" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
             </div>
           </div>
           <div>
             <label class="block text-xs text-gray-400 mb-1">Namn *</label>
-            <input type="text" placeholder="Förnamn Efternamn" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+            <input id="k-namn" type="text" placeholder="Förnamn Efternamn" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs text-gray-400 mb-1">Telefon *</label>
-              <input type="tel" placeholder="07X-XXX XX XX" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+              <input id="k-telefon" type="tel" placeholder="07X-XXX XX XX" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
             </div>
             <div>
               <label class="block text-xs text-gray-400 mb-1">E-post *</label>
-              <input type="email" placeholder="din@epost.se" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
+              <input id="k-epost" type="email" placeholder="din@epost.se" class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white" />
             </div>
           </div>
           <div>
             <label class="block text-xs text-gray-400 mb-1">Datum för eventet</label>
-            <input type="date" class="w-full rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white;color-scheme:dark" />
+            <input id="k-datum" type="date" class="w-full rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white;color-scheme:dark" />
           </div>
           <div>
             <label class="block text-xs text-gray-400 mb-1">Beskriv ditt behov *</label>
-            <textarea rows="4" placeholder="Typ av event, lokal, vad du behöver hyra..." class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none resize-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white"></textarea>
+            <textarea id="k-meddelande" rows="4" placeholder="Typ av event, lokal, vad du behöver hyra..." class="w-full rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none resize-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white"></textarea>
           </div>
           <div>
             <label class="block text-xs text-gray-400 mb-1">Var hittade du oss? (valfri)</label>
-            <select class="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white">
+            <select id="k-hittade" class="w-full rounded-lg px-3 py-2.5 text-sm focus:outline-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white">
               <option value="">Välj...</option>
               <option>Google</option>
               <option>Sociala medier</option>
@@ -141,7 +143,7 @@ const orter = [
             </select>
           </div>
           <button
-            onclick={`window.location.href='mailto:info@scenkonsult.se?subject=Offertf%C3%B6rfr%C3%A5gan&body=Hej%20Scenkonsult!'`}
+            id="k-skicka"
             class="w-full py-3.5 rounded-xl font-bold text-lg transition-colors cursor-pointer" style="background:#c4b5f4;color:#0c0a24;border:none">
             Skicka meddelande
           </button>
@@ -200,4 +202,47 @@ const orter = [
     </section>
 
   </div>
+
+  <script>
+    document.getElementById('k-skicka')?.addEventListener('click', async () => {
+      const btn = document.getElementById('k-skicka') as HTMLButtonElement;
+      const namn     = (document.getElementById('k-namn') as HTMLInputElement)?.value.trim();
+      const telefon  = (document.getElementById('k-telefon') as HTMLInputElement)?.value.trim();
+      const epost    = (document.getElementById('k-epost') as HTMLInputElement)?.value.trim();
+      const meddelande = (document.getElementById('k-meddelande') as HTMLTextAreaElement)?.value.trim();
+      const typ      = (document.getElementById('k-typ') as HTMLSelectElement)?.value;
+      const gaster   = (document.getElementById('k-gaster') as HTMLInputElement)?.value.trim();
+      const datum    = (document.getElementById('k-datum') as HTMLInputElement)?.value;
+      const hittade  = (document.getElementById('k-hittade') as HTMLSelectElement)?.value;
+      const honeypot = (document.getElementById('k-website') as HTMLInputElement)?.value;
+
+      if (!namn || !telefon || !epost || !meddelande) {
+        alert('Fyll i namn, telefon, e-post och ditt behov innan du skickar.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Skickar…';
+
+      try {
+        const resp = await fetch('/.netlify/functions/skicka-kontakt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ namn, telefon, epost, meddelande, typ, gaster, datum, hittade, honeypot }),
+        });
+        const result = await resp.json();
+        if (resp.ok && result.ok) {
+          window.location.href = '/tack/';
+        } else {
+          alert(result.error || 'Något gick fel, försök igen eller ring 072-448 10 00.');
+          btn.disabled = false;
+          btn.textContent = 'Skicka meddelande';
+        }
+      } catch {
+        alert('Nätverksfel — försök igen eller ring 072-448 10 00.');
+        btn.disabled = false;
+        btn.textContent = 'Skicka meddelande';
+      }
+    });
+  </script>
 </Layout>

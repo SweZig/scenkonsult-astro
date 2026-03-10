@@ -18,6 +18,9 @@ import Layout from '../../layouts/Layout.astro';
 
     <div class="rounded-2xl p-8" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
 
+      <!-- Honeypot -->
+      <input type="text" id="fb-website" name="website" style="display:none" tabindex="-1" autocomplete="off" />
+
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-300 mb-3">Vad handlar din feedback om? *</label>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="feedbackTypes">
@@ -58,18 +61,38 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 
   <script>
-    document.getElementById('fbSend')?.addEventListener('click', () => {
-      const type = (document.querySelector('input[name="feedbackType"]:checked') as HTMLInputElement)?.value || 'Ej angiven';
-      const text = (document.getElementById('fb-text') as HTMLTextAreaElement)?.value.trim();
-      const name = (document.getElementById('fb-name') as HTMLInputElement)?.value.trim();
-      const email = (document.getElementById('fb-email') as HTMLInputElement)?.value.trim();
-      if (!text) { alert('Beskriv din feedback innan du skickar.'); return; }
-      const body = encodeURIComponent(
-        `Feedback-typ: ${type}\n\n${text}` +
-        (name ? `\n\nFrån: ${name}` : '') +
-        (email ? `\nE-post: ${email}` : '')
-      );
-      window.location.href = `mailto:${atob('aW5mb0BzY2Vua29uc3VsdC5zZQ==')}?subject=Feedback%20fr%C3%A5n%20scenkonsult.se&body=${body}`;
+    document.getElementById('fbSend')?.addEventListener('click', async () => {
+      const btn = document.getElementById('fbSend') as HTMLButtonElement;
+      const typ  = (document.querySelector('input[name="feedbackType"]:checked') as HTMLInputElement)?.value || '';
+      const meddelande = (document.getElementById('fb-text') as HTMLTextAreaElement)?.value.trim();
+      const namn = (document.getElementById('fb-name') as HTMLInputElement)?.value.trim();
+      const epost = (document.getElementById('fb-email') as HTMLInputElement)?.value.trim();
+      const honeypot = (document.getElementById('fb-website') as HTMLInputElement)?.value;
+
+      if (!meddelande) { alert('Beskriv din feedback innan du skickar.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Skickar…';
+
+      try {
+        const resp = await fetch('/.netlify/functions/skicka-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ typ, meddelande, namn, epost, honeypot }),
+        });
+        const result = await resp.json();
+        if (resp.ok && result.ok) {
+          window.location.href = '/tack/';
+        } else {
+          alert(result.error || 'Något gick fel, försök igen.');
+          btn.disabled = false;
+          btn.textContent = 'Skicka feedback';
+        }
+      } catch {
+        alert('Nätverksfel — försök igen.');
+        btn.disabled = false;
+        btn.textContent = 'Skicka feedback';
+      }
     });
   </script>
 </Layout>
