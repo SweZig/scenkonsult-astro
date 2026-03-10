@@ -65,6 +65,26 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
     </div>
   </section>
 
+  <!-- MIXERBORD -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
+    <p class="text-gray-400 mb-8 text-sm">Koppla in mikrofoner och musikspelare. Mixerbord hyrs separat och ansluts till högtalarpaket.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <ProductCard name="Analogt mixerbord, 2+2 kanaler" price={159} image="/images/ljud/pp_ljud_mixer01.png"
+        description="Kompakt Alto-mixer med 2 mic-kanaler och 2 stereokanaler. Inbyggd Bluetooth. Passar till Portable Small/Small+."
+        specs={["2 mic/line (XLR + 6,3 mm)","2 stereo (RCA + 6,3 mm)","Bluetooth","Fantommatning 48V","Vikt: 1,4 kg"]} />
+      <ProductCard name="Analogt mixerbord, 4+2 kanaler" price={199} image="/images/ljud/pp_ljud_mixer02.png"
+        description="Alto-mixer med 4 mic-kanaler, 2 stereokanaler, inbyggda effekter och Bluetooth."
+        specs={["4 mic/line (XLR + 6,3 mm)","2 stereo (RCA + 6,3 mm)","Inbyggda effekter + Bluetooth","Fantommatning 48V","Vikt: 2 kg"]} />
+      <ProductCard name="Analogt mixerbord, 4+4 kanaler" price={299} image="/images/ljud/pp_ljud_mixer03.png"
+        description="Mackie-mixer med 4 mic och 4 stereokanaler. 60 dB gain. Levereras i transportväska."
+        specs={["4 mic/line (XLR + 6,3 mm)","4 stereo","Preamp 60 dB","Fantommatning 48V","Vikt: 3 kg"]} />
+      <ProductCard name="Analogt mixerbord, 6+4 kanaler" price={349} image="/images/ljud/pp_ljud_mixer04.png"
+        description="Allen & Heath ZED14 – 6 mic och 4 stereokanaler. 69 dB gain. Professionell mixer."
+        specs={["6 mic/line (XLR + 6,3 mm)","4 stereo","69 dB preamp gain","Fantommatning 48V","Vikt: 4,3 kg"]} />
+    </div>
+  </section>
+
   <!-- MIKROFONER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner &amp; tillbehör</h2>
@@ -88,31 +108,6 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
           <div class="border-t border-white/10 pt-2 flex items-center justify-between gap-1 mt-auto">
             <span class="text-brand-orange font-bold text-sm"><Price amount={item.price} size="sm" /></span>
             <CartButton id={`portable-mik-${item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={item.name} price={item.price} category="Ljud tillbehör" image={item.img} size="sm" iconOnly={true} />
-          </div>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <!-- MIXERBORD -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mixerbord</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      {[
-        { name:"Analogt mixerbord 2+2 kan.", desc:"Alto – inbyggd Bluetooth, 2 mic + 2 stereo",       price:159, img:"/images/ljud/pp_ljud_mixer01.png" },
-        { name:"Analogt mixerbord 4+2 kan.", desc:"Alto – inbyggda effekter, Bluetooth",               price:199, img:"/images/ljud/pp_ljud_mixer02.png" },
-        { name:"Analogt mixerbord 4+4 kan.", desc:"Mackie – 60 dB gain range, transportväska",         price:299, img:"/images/ljud/pp_ljud_mixer03.png" },
-        { name:"Analogt mixerbord 6+4 kan.", desc:"Allen & Heath – 69 dB gain range, transportväska",  price:349, img:"/images/ljud/pp_ljud_mixer04.png" },
-      ].map(item => (
-        <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 flex flex-col gap-2 transition-colors">
-          <div class="aspect-square bg-brand-dark rounded-lg overflow-hidden">
-            <img src={item.img} alt={item.name} width="200" height="200" loading="lazy" class="w-full h-full object-contain p-1" />
-          </div>
-          <p class="text-white font-semibold text-sm">{item.name}</p>
-          <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
-          <div class="border-t border-white/10 pt-2 flex items-center justify-between gap-1 mt-auto">
-            <span class="text-brand-orange font-bold text-sm"><Price amount={item.price} size="sm" /></span>
-            <CartButton id={`portable-mix-${item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={item.name} price={item.price} category="Ljud tillbehör" image={item.img} size="sm" iconOnly={true} />
           </div>
         </div>
       ))}
