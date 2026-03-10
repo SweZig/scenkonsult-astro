@@ -142,6 +142,10 @@ const orter = [
               <option>Annat</option>
             </select>
           </div>
+          <label class="send-copy-label">
+            <input type="checkbox" id="sendCopyCheck" />
+            <span>Sänd en kopia till mig</span>
+          </label>
           <button
             id="k-skicka"
             class="w-full py-3.5 rounded-xl font-bold text-lg transition-colors cursor-pointer" style="background:#c4b5f4;color:#0c0a24;border:none">
@@ -228,7 +232,7 @@ const orter = [
         const resp = await fetch('/.netlify/functions/skicka-kontakt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ namn, telefon, epost, meddelande, typ, gaster, datum, hittade, honeypot }),
+          body: JSON.stringify({ namn, telefon, epost, meddelande, typ, gaster, datum, hittade, honeypot, sendCopy: document.getElementById('sendCopyCheck')?.checked || false }),
         });
         const result = await resp.json();
         if (resp.ok && result.ok) {

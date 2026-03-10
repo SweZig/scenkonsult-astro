@@ -169,6 +169,23 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
     <input type="text" name="website" />
   </form>
 
+  <!-- Netlify Forms: trello-kopia och kundkopia (dolda, för byggtidsregistrering) -->
+  <form name="trello-kopia" netlify netlify-honeypot="website" hidden>
+    <input type="text" name="name" />
+    <input type="email" name="email" />
+    <input type="email" name="trello_to" />
+    <input type="text" name="formular" />
+    <textarea name="sammanfattning"></textarea>
+    <input type="text" name="website" />
+  </form>
+  <form name="kundkopia" netlify netlify-honeypot="website" hidden>
+    <input type="email" name="email" />
+    <input type="text" name="namn" />
+    <input type="text" name="formular" />
+    <textarea name="sammanfattning"></textarea>
+    <input type="text" name="website" />
+  </form>
+
   <!-- TICKER -->
   <div class="ticker">
     <div class="ticker-track">

@@ -49,6 +49,10 @@ import Layout from '../../layouts/Layout.astro';
         </div>
       </div>
 
+      <label class="send-copy-label">
+        <input type="checkbox" id="sendCopyCheck" />
+        <span>Sänd en kopia till mig</span>
+      </label>
       <button
         id="fbSend"
         class="w-full py-3.5 rounded-xl font-bold text-lg transition-colors cursor-pointer"
@@ -78,7 +82,7 @@ import Layout from '../../layouts/Layout.astro';
         const resp = await fetch('/.netlify/functions/skicka-feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ typ, meddelande, namn, epost, honeypot }),
+          body: JSON.stringify({ typ, meddelande, namn, epost, honeypot, sendCopy: document.getElementById('sendCopyCheck')?.checked || false }),
         });
         const result = await resp.json();
         if (resp.ok && result.ok) {
