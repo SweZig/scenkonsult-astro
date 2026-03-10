@@ -21,13 +21,20 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-TL37V2GR');</script>
-  <!-- End Google Tag Manager -->
+  <!-- GTM laddas endast efter cookie-samtycke -->
+  <script>
+    (function() {
+      window.dataLayer = window.dataLayer || [];
+      // Ladda GTM om samtycke redan finns
+      if (localStorage.getItem('sk_cookie_consent') === 'accepted') {
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-TL37V2GR');
+      }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content={description} />
@@ -52,10 +59,50 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TL37V2GR"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+  <!-- Cookie-banner -->
+  <div id="sk-cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(12,10,36,0.97);border-top:1px solid rgba(196,181,244,0.25);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.875rem;font-family:'Space Grotesk',sans-serif;max-width:700px;">
+      Vi använder cookies för besöksstatistik (Google Analytics) för att förbättra sajten. 
+      <a href="/personuppgiftpolicy/" style="color:#c4b5f4;text-decoration:underline;">Läs mer</a>
+    </p>
+    <div style="display:flex;gap:0.75rem;flex-shrink:0;">
+      <button id="sk-cookie-decline" style="padding:0.5rem 1.1rem;border-radius:0.5rem;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);font-size:0.875rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
+        Avvisa
+      </button>
+      <button id="sk-cookie-accept" style="padding:0.5rem 1.25rem;border-radius:0.5rem;border:none;background:#c4b5f4;color:#0c0a24;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
+        Godkänn
+      </button>
+    </div>
+  </div>
+
+  <script is:inline>
+    (function() {
+      var consent = localStorage.getItem('sk_cookie_consent');
+      var banner = document.getElementById('sk-cookie-banner');
+
+      // Visa banner om inget val gjorts
+      if (!consent && banner) banner.style.display = 'flex';
+
+      function loadGTM() {
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-TL37V2GR');
+      }
+
+      document.getElementById('sk-cookie-accept')?.addEventListener('click', function() {
+        localStorage.setItem('sk_cookie_consent', 'accepted');
+        if (banner) banner.style.display = 'none';
+        loadGTM();
+      });
+
+      document.getElementById('sk-cookie-decline')?.addEventListener('click', function() {
+        localStorage.setItem('sk_cookie_consent', 'declined');
+        if (banner) banner.style.display = 'none';
+      });
+    })();
+  </script>
 
   <!-- TICKER -->
   <div class="ticker">
