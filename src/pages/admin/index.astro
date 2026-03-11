@@ -862,19 +862,19 @@ function prodAddRow() {
   newRow.dataset.idx = idx;
   newRow.innerHTML = `
     <td>
-      <input class="prod-input prod-name" value="" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.875rem">
-      <input class="prod-input prod-meta" value="" placeholder="Kategori" data-field="category" data-idx="${idx}" style="width:55%;font-size:0.72rem;margin-top:3px">
-      <input class="prod-input prod-meta" value="" placeholder="ID (valfri)" data-field="id" data-idx="${idx}" style="width:40%;font-size:0.72rem;margin-top:3px;margin-left:3%">
+      <input class="prod-input prod-name" value="" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-meta" value="" placeholder="Kategori" data-field="category" data-idx="${idx}" style="width:55%;font-size:0.72rem;margin-top:3px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-meta" value="" placeholder="ID (valfri)" data-field="id" data-idx="${idx}" style="width:40%;font-size:0.72rem;margin-top:3px;margin-left:3%;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
     </td>
     <td style="text-align:center;vertical-align:top;padding-top:0.75rem">
       <div style="display:flex;align-items:center;justify-content:center;gap:4px">
         <button class="qty-btn" onclick="prodQty(${idx},-1)">−</button>
-        <input class="prod-input prod-qty" value="1" data-field="qty" data-idx="${idx}" style="width:44px;text-align:center;font-size:0.875rem">
+        <input class="prod-input prod-qty" value="1" data-field="qty" data-idx="${idx}" style="width:44px;text-align:center;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
         <button class="qty-btn" onclick="prodQty(${idx},1)">＋</button>
       </div>
     </td>
     <td style="text-align:right;vertical-align:top;padding-top:0.75rem">
-      <input class="prod-input prod-price" value="0" data-field="price" data-idx="${idx}" style="width:90px;text-align:right;font-size:0.875rem">
+      <input class="prod-input prod-price" value="0" data-field="price" data-idx="${idx}" style="width:90px;text-align:right;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
     </td>
     <td style="text-align:right;vertical-align:top;padding-top:0.75rem;font-weight:600;color:var(--brand-lav)" id="prod-sum-${idx}">0</td>
     <td style="vertical-align:top;padding-top:0.75rem">
@@ -920,7 +920,7 @@ function renderInfoTab() {
   return `
     <div class="section-label">Status</div>
     <div class="status-row">
-      <select class="status-select" id="status-select">
+      <select class="status-select" id="status-select" style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;padding-right:2.25rem">
         ${Object.entries(STATUS_LABELS).map(([k,v]) =>
           `<option value="${k}" ${k === c.status ? 'selected' : ''}>${v.icon} ${v.label}</option>`
         ).join('')}
@@ -959,7 +959,7 @@ function renderInfoTab() {
     </div>
 
     <div class="section-label">Intern anteckning (visas ej för kund)</div>
-    <textarea class="admin-note-area" id="admin-notes" placeholder="Anteckna priser, tillgänglighet, intern kommunikation...">${c.notes_admin || ''}</textarea>
+    <textarea class="admin-note-area" id="admin-notes" style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;" placeholder="Anteckna priser, tillgänglighet, intern kommunikation...">${c.notes_admin || ''}</textarea>
     <button class="btn-action" id="save-notes-btn" style="margin-top:0.75rem">💾 Spara anteckning</button>
   `;
 }
@@ -999,19 +999,19 @@ function prodRowHTML(i, idx) {
   const pid = i.id || '';
   return `<tr data-idx="${idx}" class="prod-row">
     <td>
-      <input class="prod-input prod-name" value="${(i.name||'').replace(/"/g,'&quot;')}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.875rem">
-      <input class="prod-input prod-meta" value="${cat}" placeholder="Kategori" data-field="category" data-idx="${idx}" style="width:55%;font-size:0.72rem;margin-top:3px">
-      <input class="prod-input prod-meta" value="${pid}" placeholder="ID (valfri)" data-field="id" data-idx="${idx}" style="width:40%;font-size:0.72rem;margin-top:3px;margin-left:3%">
+      <input class="prod-input prod-name" value="${(i.name||'').replace(/"/g,'&quot;')}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-meta" value="${cat}" placeholder="Kategori" data-field="category" data-idx="${idx}" style="width:55%;font-size:0.72rem;margin-top:3px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-meta" value="${pid}" placeholder="ID (valfri)" data-field="id" data-idx="${idx}" style="width:40%;font-size:0.72rem;margin-top:3px;margin-left:3%;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
     </td>
     <td style="text-align:center;vertical-align:top;padding-top:0.75rem">
       <div style="display:flex;align-items:center;justify-content:center;gap:4px">
         <button class="qty-btn" onclick="prodQty(${idx},-1)">−</button>
-        <input class="prod-input prod-qty" value="${qty}" data-field="qty" data-idx="${idx}" style="width:44px;text-align:center;font-size:0.875rem">
+        <input class="prod-input prod-qty" value="${qty}" data-field="qty" data-idx="${idx}" style="width:44px;text-align:center;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
         <button class="qty-btn" onclick="prodQty(${idx},1)">＋</button>
       </div>
     </td>
     <td style="text-align:right;vertical-align:top;padding-top:0.75rem">
-      <input class="prod-input prod-price" value="${price}" data-field="price" data-idx="${idx}" style="width:90px;text-align:right;font-size:0.875rem">
+      <input class="prod-input prod-price" value="${price}" data-field="price" data-idx="${idx}" style="width:90px;text-align:right;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
     </td>
     <td style="text-align:right;vertical-align:top;padding-top:0.75rem;font-weight:600;color:var(--brand-lav)" id="prod-sum-${idx}">${fmt(sum)}</td>
     <td style="vertical-align:top;padding-top:0.75rem">
