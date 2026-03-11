@@ -551,9 +551,14 @@ async function api(path, opts = {}) {
   });
   const data = await res.json();
   if (res.status === 401) {
-    toast('Session utgången — logga in igen', 'error');
     sessionStorage.removeItem('sk_admin_token');
-    setTimeout(() => location.reload(), 1500);
+    TOKEN = '';
+    $('app').style.display = 'none';
+    $('login-screen').style.display = 'flex';
+    $('login-error').style.display = 'block';
+    $('login-error').textContent = 'Fel lösenord, försök igen.';
+    $('login-pw').value = '';
+    $('login-pw').focus();
     throw new Error('Unauthorized');
   }
   return { ok: res.ok, status: res.status, data };
