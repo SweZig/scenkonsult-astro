@@ -123,7 +123,13 @@
     .kanban-col {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 14px; padding: 1rem; min-height: 200px;
+      border-left-width: 3px;
     }
+    .kanban-col:has(.s-open)      { border-left-color: var(--gray);  }
+    .kanban-col:has(.s-proposal)  { border-left-color: var(--blue);  }
+    .kanban-col:has(.s-waiting)   { border-left-color: var(--amber); }
+    .kanban-col:has(.s-confirmed) { border-left-color: var(--green); }
+    .kanban-col:has(.s-cancelled) { border-left-color: var(--red);   }
     .kanban-col-header {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
@@ -139,7 +145,8 @@
       padding: 1rem; cursor: pointer; transition: all 0.15s;
     }
     .cart-card:hover { border-color: var(--brand-lav); transform: translateY(-1px); }
-    .cart-card-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .cart-card-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.1rem; }
+    .cart-card-sub  { font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.4rem; }
     .cart-card-meta { color: var(--text-muted); font-size: 0.78rem; display: flex; flex-direction: column; gap: 2px; }
     .cart-card-footer {
       display: flex; align-items: center; justify-content: space-between;
@@ -630,9 +637,11 @@ function renderKanban() {
       </div>`;
   }).join('');
 
-  board.querySelectorAll('.cart-card').forEach(el => {
-    el.addEventListener('click', () => openDetail(el.dataset.id));
-  });
+  // Event delegation — survives re-renders
+  board.onclick = e => {
+    const card = e.target.closest('.cart-card');
+    if (card) openDetail(card.dataset.id);
+  };
 }
 
 function cartCardHTML(c) {
@@ -644,12 +653,11 @@ function cartCardHTML(c) {
   return `
     <div class="cart-card" data-id="${c.id}">
       <div class="cart-card-name">${c.customer_name || 'Okänd kund'}</div>
+      <div class="cart-card-sub">${c.customer_email || ''}</div>
       <div class="cart-card-meta">
-        <span style="font-family:monospace;font-size:0.72rem;color:var(--brand-lav);opacity:0.7">${c.id}</span>
-        ${c.event_date ? `<span>📅 <strong style="color:var(--text)">${fmtDate(c.event_date)}</strong></span>` : ''}
+        ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
         ${c.event_location ? `<span>📍 ${c.event_location}</span>` : ''}
-        ${c.customer_phone ? `<span>📞 ${c.customer_phone}</span>` : ''}
-        ${ageStr ? `<span style="color:var(--text-faint)">🕐 ${ageStr}</span>` : ''}
+        ${ageStr ? `<span>🕐 ${ageStr}</span>` : ''}
       </div>
       <div class="cart-card-footer">
         <span class="cart-card-price">${total}</span>
@@ -673,8 +681,14 @@ async function openDetail(cartId) {
   $('panel-footer').innerHTML = '';
   $('panel-title').textContent = 'Laddar…';
 
-  const { ok, data } = await api(`admin-carts?id=${cartId}`);
-  if (!ok) { toast('Kunde inte ladda varukorg', 'error'); return; }
+  let ok, data;
+  try {
+    ({ ok, data } = await api(`admin-carts?id=${cartId}`));
+  } catch(e) {
+    toast('Kunde inte ladda varukorg: ' + e.message, 'error');
+    closePanel(); return;
+  }
+  if (!ok) { toast('Kunde inte ladda varukorg', 'error'); closePanel(); return; }
 
   currentCart     = data.cart;
   currentMessages = data.messages || [];
