@@ -1,5 +1,8 @@
 // netlify/functions/skicka-offert.js
 // Resend API — ljust mailtheme, rate limit-hantering
+// Supabase-synk: skapar/uppdaterar varukorg vid offert/bokning
+
+const { supabase: createSupabase, generateCartToken, logAudit } = require('./_lib');
 
 const RATE_LIMIT = {};
 const RATE_WINDOW_MS = 60 * 1000;
@@ -106,6 +109,43 @@ exports.handler = async (event) => {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'E-postkonfiguration saknas.' }) };
 
+  // ── Supabase-synk ─────────────────────────────────────────
+  // Hämta cart_id från body (skickas med från frontend sedan 2026-03-11)
+  const cartId = data.cart_id || null;
+  let cartToken = null;
+  let cartUrl   = null;
+
+  if (cartId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
+    try {
+      const db = createSupabase();
+      cartToken = generateCartToken();
+      const totalExcl = (cart || []).reduce((s, i) => s + ((i.price || 0) * (i.quantity || i.qty || 1)), 0);
+
+      await db.upsert('carts', {
+        id:               cartId,
+        status:           'proposal',
+        items:            cart || [],
+        customer_name:    customer.name,
+        customer_email:   customer.email,
+        customer_phone:   customer.phone,
+        customer_message: customer.notes || '',
+        event_date:       customer.from || null,
+        event_location:   customer.address || '',
+        total_excl:       totalExcl * 100,
+        cart_token:       cartToken,
+        expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
+      cartUrl = `https://scenkonsult.se/varukorg/?cart=${cartId}&token=${cartToken}`;
+      await logAudit(db, cartId, 'customer', 'proposal_sent', { intent: intent || 'offert' });
+      console.log('SUPABASE_SYNC_OK:', cartId);
+    } catch (supaErr) {
+      // Mjuk felhantering — mail skickas ändå
+      console.error('SUPABASE_SYNC_ERROR:', supaErr.message);
+    }
+  }
+  // ─────────────────────────────────────────────────────────
+
   const datumStr = customer.from && customer.to ? `${customer.from} – ${customer.to}` : (customer.from || customer.to || '');
   const subjectTag = isBokning ? '⭐ BOKNING' : 'Offertförfrågan';
   const headingText = isBokning ? '⭐ Bokningsönskan' : 'Ny offertförfrågan';
@@ -129,7 +169,8 @@ exports.handler = async (event) => {
     </table>
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Varukorg</p>
     ${cartTable(cart)}
-    <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a></p>`);
+    <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a></p>
+    ${cartUrl ? `<p style="margin:12px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Öppna varukorg →</a></p>` : ''}`);
 
   try {
     await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: customer.email, subject: `${subjectTag} från ${customer.name}`, html: htmlInternal, text: plainInternal });
