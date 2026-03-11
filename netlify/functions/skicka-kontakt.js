@@ -7,7 +7,7 @@ const RATE_MAX = 3;
 const FROM = 'Scenkonsult Norden <noreply@scenkonsult.se>';
 const TO_INTERNAL = 'info@scenkonsult.se';
 const TRELLO_EMAIL = 'sunxpertadm+kvz53qihlyplkt6r9xnb@app.trello.com';
-const LOGO_URL = 'https://scenkonsult-astro.netlify.app/logo-white.png';
+const LOGO_URL = 'https://scenkonsult.se/logo-white.png';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
