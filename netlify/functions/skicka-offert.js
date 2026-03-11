@@ -118,8 +118,11 @@ exports.handler = async (event) => {
   if (cartId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
     try {
       const db = createSupabase();
-      cartToken = generateCartToken();
       const totalExcl = (cart || []).reduce((s, i) => s + ((i.price || 0) * (i.quantity || i.qty || 1)), 0);
+
+      // Återanvänd befintlig token om den finns — ny token gör gamla mail-länkar ogiltiga
+      const { data: existing } = await db.from('carts').select('cart_token').eq('id', cartId).single().catch(() => ({ data: null }));
+      cartToken = existing?.cart_token || generateCartToken();
 
       await db.upsert('carts', {
         id:               cartId,
