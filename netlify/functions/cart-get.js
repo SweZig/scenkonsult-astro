@@ -18,8 +18,8 @@ exports.handler = async (event) => {
   const db = supabase();
 
   try {
-    // ── Admin: hämta med ID ─────────────────────────────────
-    if (id) {
+    // ── Admin: hämta med ID (kräver admin-token, INTE cart_token) ─────
+    if (id && !token) {
       if (!isAdmin(event)) return err('Ej behörig', 401);
       const { data: cart, error } = await db.from('carts').select('*').eq('id', id).single();
       if (error || !cart) return err('Varukorg hittades ej', 404);

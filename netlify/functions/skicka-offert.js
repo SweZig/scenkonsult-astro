@@ -136,7 +136,7 @@ exports.handler = async (event) => {
         expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString()
       });
 
-      cartUrl = `https://scenkonsult.se/varukorg/?cart=${cartId}&token=${cartToken}`;
+      cartUrl = `https://scenkonsult.se/order/?cart=${cartId}&token=${cartToken}`;
       await logAudit(db, cartId, 'customer', 'proposal_sent', { intent: intent || 'offert' });
       console.log('SUPABASE_SYNC_OK:', cartId);
     } catch (supaErr) {

@@ -69,7 +69,10 @@ exports.handler = async (event) => {
     } else {
       // ── Kund skickar meddelande ───────────────────────────
       if (!body.token) return err('Token krävs', 400);
-      const { data, error } = await db.from('carts').select('*').eq('cart_token', body.token).single();
+      // Kund kan skicka antingen token direkt eller cart_id + token
+      const { data, error } = body.cart_id
+        ? await db.from('carts').select('*').eq('id', body.cart_id).eq('cart_token', body.token).single()
+        : await db.from('carts').select('*').eq('cart_token', body.token).single();
       if (error || !data) return err('Varukorg hittades ej', 404);
       if (data.expires_at && new Date(data.expires_at) < new Date()) return err('Varukorgen har gått ut', 410);
       cart = data;

@@ -1,0 +1,493 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout
+  title="Din order – Scenkonsult Norden"
+  description="Följ status på din order och chatta med oss direkt."
+>
+
+<style>
+  .order-page {
+    min-height: 100vh;
+    padding-top: calc(var(--nav-offset, 166px) + 2.5rem);
+    padding-bottom: 4rem;
+  }
+  .order-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+
+  /* ── STATES ───────────────────────────────────────────── */
+  .state { display: none; }
+  .state.active { display: block; }
+
+  /* Loading */
+  .loading-box {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: rgba(255,255,255,0.45);
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid rgba(196,181,244,0.2);
+    border-top-color: #c4b5f4;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error */
+  .error-box {
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.25);
+    border-radius: 16px;
+    padding: 2.5rem;
+    text-align: center;
+    color: #f87171;
+  }
+  .error-box h2 { margin-bottom: 0.5rem; }
+  .error-box p { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+
+  /* ── ORDER CARD ────────────────────────────────────────── */
+  .order-header { margin-bottom: 2rem; }
+  .order-id {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 0.5rem;
+  }
+  .order-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .order-subtitle { color: rgba(255,255,255,0.5); font-size: 0.95rem; }
+
+  /* Status banner */
+  .status-banner {
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid transparent;
+  }
+  .status-banner.s-open      { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+  .status-banner.s-proposal  { background: rgba(96,165,250,0.08);  border-color: rgba(96,165,250,0.2);  }
+  .status-banner.s-waiting   { background: rgba(251,191,36,0.08);  border-color: rgba(251,191,36,0.2);  }
+  .status-banner.s-confirmed { background: rgba(74,222,128,0.08);  border-color: rgba(74,222,128,0.25); }
+  .status-banner.s-cancelled { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.2); }
+  .status-icon { font-size: 2rem; flex-shrink: 0; }
+  .status-label {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+  }
+  .status-desc { color: rgba(255,255,255,0.5); font-size: 0.875rem; }
+
+  /* ── SECTION ───────────────────────────────────────────── */
+  .section {
+    background: #1a1740;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  .section-head {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+  .section-body { padding: 1.25rem 1.5rem; }
+
+  /* Info grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .info-field { }
+  .info-label { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-bottom: 0.2rem; }
+  .info-value { font-size: 0.95rem; font-weight: 500; }
+
+  /* Product table */
+  .prod-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .prod-table th {
+    text-align: left;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0 0 0.625rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .prod-table td {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: middle;
+  }
+  .prod-table tr:last-child td { border-bottom: none; }
+  .prod-name { font-weight: 600; }
+  .prod-cat  { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+  .prod-total { color: #c4b5f4; font-weight: 700; }
+  .total-row td {
+    padding-top: 1rem;
+    border-top: 2px solid rgba(196,181,244,0.2);
+    font-weight: 700;
+  }
+  .grand-total { color: #c4b5f4; font-size: 1.05rem; }
+  .moms-note { font-size: 0.78rem; color: rgba(255,255,255,0.3); margin-top: 0.5rem; }
+
+  /* ── CHATT ─────────────────────────────────────────────── */
+  .chat-messages { display: flex; flex-direction: column; gap: 1rem; }
+  .msg-wrap { display: flex; flex-direction: column; }
+  .msg-wrap.admin    { align-items: flex-start; }
+  .msg-wrap.customer { align-items: flex-end; }
+  .msg-bubble {
+    max-width: 82%;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+  .msg-wrap.admin    .msg-bubble { background: #221f50; color: #f0eeff; border-bottom-left-radius: 4px; }
+  .msg-wrap.customer .msg-bubble { background: #332885; color: #fff;    border-bottom-right-radius: 4px; }
+  .msg-meta {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.3);
+    margin-top: 0.3rem;
+    padding: 0 0.25rem;
+  }
+  .chat-empty {
+    text-align: center;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.875rem;
+    padding: 2rem;
+  }
+
+  /* Chat input */
+  .chat-input-wrap { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.07); }
+  .chat-textarea {
+    width: 100%;
+    background: #0f0d2a;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 0.875rem;
+    color: #f0eeff;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+  }
+  .chat-textarea:focus { outline: none; border-color: #c4b5f4; }
+  .chat-send-btn {
+    background: #332885;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .chat-send-btn:hover { background: #c4b5f4; color: #0c0a24; }
+  .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── FOOTER ─────────────────────────────────────────────── */
+  .order-footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.82rem;
+    line-height: 1.8;
+  }
+  .order-footer a { color: #c4b5f4; text-decoration: none; }
+  .order-footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 560px) {
+    .info-grid { grid-template-columns: 1fr; }
+    .prod-table th:nth-child(2),
+    .prod-table td:nth-child(2) { display: none; }
+  }
+</style>
+
+<div class="order-page">
+<div class="order-wrap">
+
+  <!-- LOADING -->
+  <div class="state active" id="stateLoading">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      Hämtar din order…
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="state" id="stateError">
+    <div class="error-box">
+      <h2>Länken är ogiltig</h2>
+      <p>Orderinformationen kunde inte hittas. Kontrollera att du använder rätt länk från bekräftelsemailet.</p>
+      <p style="margin-top:1.5rem">
+        Frågor? Ring oss på <a href="tel:0724481000" style="color:#f87171">072-448 10 00</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ORDER -->
+  <div class="state" id="stateOrder">
+
+    <!-- Header -->
+    <div class="order-header">
+      <div class="order-id" id="orderId"></div>
+      <h1 class="order-title" id="orderTitle">Din order</h1>
+      <p class="order-subtitle" id="orderSubtitle"></p>
+    </div>
+
+    <!-- Status banner -->
+    <div class="status-banner" id="statusBanner">
+      <div class="status-icon" id="statusIcon"></div>
+      <div>
+        <div class="status-label" id="statusLabel"></div>
+        <div class="status-desc" id="statusDesc"></div>
+      </div>
+    </div>
+
+    <!-- Event info -->
+    <div class="section" id="sectionEvent" style="display:none">
+      <div class="section-head">Eventinformation</div>
+      <div class="section-body">
+        <div class="info-grid" id="eventGrid"></div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="section">
+      <div class="section-head">Din beställning</div>
+      <div class="section-body">
+        <table class="prod-table">
+          <thead>
+            <tr>
+              <th>Produkt</th>
+              <th style="text-align:center">Antal</th>
+              <th style="text-align:right">Pris</th>
+              <th style="text-align:right">Summa</th>
+            </tr>
+          </thead>
+          <tbody id="prodTableBody"></tbody>
+          <tfoot id="prodTableFoot"></tfoot>
+        </table>
+        <p class="moms-note">* Priser exklusive moms. Moms tillkommer med 25%.</p>
+      </div>
+    </div>
+
+    <!-- Chatt -->
+    <div class="section">
+      <div class="section-head">Meddelanden <span id="unreadBadge" style="display:none;background:#f87171;color:#fff;border-radius:99px;padding:1px 7px;font-size:0.7rem;margin-left:6px;font-weight:700;text-transform:none;letter-spacing:0"></span></div>
+      <div class="section-body">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-empty">Inga meddelanden ännu.</div>
+        </div>
+        <div class="chat-input-wrap">
+          <textarea class="chat-textarea" id="chatInput" placeholder="Skriv ett meddelande till Scenkonsult…"></textarea>
+          <button class="chat-send-btn" id="chatSendBtn">Skicka meddelande →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="order-footer">
+      Scenkonsult Norden &nbsp;·&nbsp;
+      <a href="tel:0724481000">072-448 10 00</a> &nbsp;·&nbsp;
+      <a href="mailto:info@scenkonsult.se">info@scenkonsult.se</a><br>
+      Mån–Sön 08:00–20:00
+    </div>
+
+  </div><!-- /stateOrder -->
+
+</div>
+</div>
+
+<script>
+const STATUS = {
+  open:      { icon: '🛒', label: 'Öppen förfrågan',    desc: 'Vi har tagit emot din förfrågan och återkommer snart.',                  cls: 's-open'      },
+  proposal:  { icon: '📋', label: 'Orderförslag',       desc: 'Vi har tagit emot din förfrågan och arbetar på ett svar till dig.',      cls: 's-proposal'  },
+  waiting:   { icon: '⏳', label: 'Inväntar ditt svar', desc: 'Vi har skickat dig ett förslag — väntar på din bekräftelse.',            cls: 's-waiting'   },
+  confirmed: { icon: '✅', label: 'Order bekräftad!',   desc: 'Ordern är bekräftad. Vi ses på eventet!',                               cls: 's-confirmed' },
+  cancelled: { icon: '❌', label: 'Avbruten',            desc: 'Den här ordern är avbruten. Kontakta oss om du har frågor.',            cls: 's-cancelled' },
+};
+
+const fmt     = n  => typeof n === 'number' ? n.toLocaleString('sv-SE') : '–';
+const fmtDate = d  => d ? new Date(d).toLocaleDateString('sv-SE', { year:'numeric', month:'long', day:'numeric' }) : null;
+const fmtTime = d  => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }) : '';
+
+let cartId    = null;
+let cartToken = null;
+let messages  = [];
+
+function show(id) {
+  ['stateLoading','stateError','stateOrder'].forEach(s => {
+    document.getElementById(s).classList.toggle('active', s === id);
+  });
+}
+
+async function loadOrder() {
+  const params = new URLSearchParams(location.search);
+  cartId    = params.get('cart');
+  cartToken = params.get('token');
+
+  if (!cartId || !cartToken) { show('stateError'); return; }
+
+  try {
+    const res  = await fetch(`/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`);
+    const data = await res.json();
+    if (!res.ok) { show('stateError'); return; }
+    renderOrder(data.cart);
+    messages = data.messages || [];
+    renderMessages();
+    show('stateOrder');
+  } catch {
+    show('stateError');
+  }
+}
+
+function renderOrder(c) {
+  // Header
+  document.getElementById('orderId').textContent    = c.id;
+  document.getElementById('orderTitle').textContent = `Hej ${c.customer_name?.split(' ')[0] || 'där'}!`;
+  document.getElementById('orderSubtitle').textContent = c.event_date
+    ? `Order för event ${fmtDate(c.event_date)}${c.event_location ? ' · ' + c.event_location : ''}`
+    : 'Här kan du följa status på din order och skicka meddelanden till oss.';
+
+  // Status
+  const s = STATUS[c.status] || STATUS.open;
+  const banner = document.getElementById('statusBanner');
+  banner.className = `status-banner ${s.cls}`;
+  document.getElementById('statusIcon').textContent  = s.icon;
+  document.getElementById('statusLabel').textContent = s.label;
+  document.getElementById('statusDesc').textContent  = s.desc;
+
+  // Event section
+  const fields = [];
+  if (c.event_date)     fields.push(['Datum',   fmtDate(c.event_date)]);
+  if (c.event_location) fields.push(['Plats',   c.event_location]);
+  if (c.customer_phone) fields.push(['Telefon', c.customer_phone]);
+  if (c.customer_email) fields.push(['E-post',  c.customer_email]);
+  if (fields.length > 0) {
+    document.getElementById('sectionEvent').style.display = '';
+    document.getElementById('eventGrid').innerHTML = fields.map(([l,v]) =>
+      `<div class="info-field"><div class="info-label">${l}</div><div class="info-value">${v}</div></div>`
+    ).join('');
+  }
+
+  // Products
+  const items   = c.items || [];
+  const subtotal = items.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);
+  document.getElementById('prodTableBody').innerHTML = items.map(i => {
+    const qty = i.qty || i.quantity || 1;
+    return `<tr>
+      <td><div class="prod-name">${i.name || '–'}</div>${i.category ? `<div class="prod-cat">${i.category}</div>` : ''}</td>
+      <td style="text-align:center">${qty}</td>
+      <td style="text-align:right">${fmt(i.price)} kr</td>
+      <td style="text-align:right" class="prod-total">${fmt((i.price||0)*qty)} kr</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('prodTableFoot').innerHTML = `
+    <tr class="total-row">
+      <td colspan="3">Totalt exkl. moms</td>
+      <td style="text-align:right" class="grand-total">${fmt(subtotal)} kr</td>
+    </tr>
+    <tr>
+      <td colspan="3" style="color:rgba(255,255,255,0.3);font-size:0.82rem">Inkl. 25% moms</td>
+      <td style="text-align:right;color:rgba(255,255,255,0.4);font-size:0.85rem">${fmt(Math.round(subtotal*1.25))} kr</td>
+    </tr>`;
+}
+
+function renderMessages() {
+  const container = document.getElementById('chatMessages');
+  const unread    = messages.filter(m => m.sender === 'admin' && !m.read_at);
+
+  // Unread badge
+  const badge = document.getElementById('unreadBadge');
+  if (unread.length > 0) {
+    badge.style.display = 'inline';
+    badge.textContent   = `${unread.length} ny${unread.length > 1 ? 'a' : 't'}`;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  if (messages.length === 0) {
+    container.innerHTML = '<div class="chat-empty">Inga meddelanden ännu. Hör gärna av dig om du har frågor!</div>';
+    return;
+  }
+
+  container.innerHTML = messages.map(m => `
+    <div class="msg-wrap ${m.sender}">
+      <div class="msg-bubble">${m.body.replace(/\n/g,'<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" style="color:#c4b5f4">$1</a>')}</div>
+      <div class="msg-meta">${m.sender === 'admin' ? 'Scenkonsult' : 'Du'} · ${fmtTime(m.created_at)}</div>
+    </div>`).join('');
+
+  // Scroll to bottom
+  setTimeout(() => container.scrollTop = container.scrollHeight, 50);
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const btn   = document.getElementById('chatSendBtn');
+  const text  = input?.value.trim();
+  if (!text) return;
+
+  btn.disabled      = true;
+  btn.textContent   = 'Skickar…';
+
+  try {
+    const res  = await fetch('/.netlify/functions/cart-message', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ cart_id: cartId, token: cartToken, body: text })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      messages.push({
+        id:         data.message?.id || Date.now(),
+        sender:     'customer',
+        body:       text,
+        read_at:    null,
+        created_at: new Date().toISOString()
+      });
+      input.value = '';
+      renderMessages();
+    } else {
+      alert(data.error || 'Kunde inte skicka meddelandet. Försök igen.');
+    }
+  } catch {
+    alert('Nätverksfel — kontrollera din anslutning och försök igen.');
+  }
+
+  btn.disabled    = false;
+  btn.textContent = 'Skicka meddelande →';
+}
+
+document.getElementById('chatSendBtn').addEventListener('click', sendMessage);
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendMessage();
+});
+
+loadOrder();
+</script>
+
+</Layout>
