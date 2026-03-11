@@ -471,7 +471,7 @@
 <div id="toast"></div>
 
 <script>
-// ── STATE ─────────────────────────────────────────────────────
+// ── STATE ──────────────────────────────────────────────────── v2
 let TOKEN = '';
 let carts = [];
 let currentCart = null;
@@ -483,10 +483,10 @@ let calMonth = new Date().getMonth();
 let refreshTimer = null;
 
 // ── HELPERS ───────────────────────────────────────────────────
-const $ = id => document.getElementById(id);
+const $ = id => document.getElementById(id); // admin v2
 const fmt = n => typeof n === 'number' ? n.toLocaleString('sv-SE') : '–';
 const fmtDate = d => d ? new Date(d).toLocaleDateString('sv-SE') : '–';
-const fmtTime = d => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }) : '–';
+const fmtTime = d => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short', hour12:false }) : '–';
 const fmtPrice = p => p ? fmt(Math.round(p/100)) + ' kr' : '–';
 
 function toast(msg, type = 'success') {
@@ -499,7 +499,7 @@ function toast(msg, type = 'success') {
 
 const STATUS_LABELS = {
   open:      { icon: '🛒', label: 'Öppen varukorg',   cls: 's-open'      },
-  proposal:  { icon: '📋', label: 'Orderförslag',      cls: 's-proposal'  },
+  proposal:  { icon: '📋', label: 'Orderförslag',       cls: 's-proposal'  },
   waiting:   { icon: '⏳', label: 'Inväntar svar',    cls: 's-waiting'   },
   confirmed: { icon: '✅', label: 'Orderbekräftelse',  cls: 's-confirmed' },
   cancelled: { icon: '❌', label: 'Avbruten',          cls: 's-cancelled' },
