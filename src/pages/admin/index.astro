@@ -747,6 +747,13 @@ function renderTab(tab) {
   const body = $('panel-body');
   if (tab === 'info')     body.innerHTML = renderInfoTab();
   if (tab === 'products') body.innerHTML = renderProductsTab();
+  // Force browser to respect dark styling on form elements
+  requestAnimationFrame(() => {
+    const sel = document.querySelector('.status-select');
+    const note = document.querySelector('.admin-note-area');
+    if (sel) { sel.style.background = '#221f50'; sel.style.color = '#f0eeff'; sel.style.border = '1px solid rgba(196,181,244,0.25)'; }
+    if (note) { note.style.background = '#221f50'; note.style.color = '#f0eeff'; note.style.border = '1px solid rgba(196,181,244,0.25)'; }
+  });
   if (tab === 'chat')     renderChatTab();
   if (tab === 'log')      body.innerHTML = renderLogTab();
 
