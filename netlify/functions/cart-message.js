@@ -47,7 +47,15 @@ exports.handler = async (event) => {
   if (rateLimit(ip, 5)) return err('För många förfrågningar', 429);
 
   let body;
-  try { body = JSON.parse(event.body || '{}'); } catch { return err('Ogiltig JSON', 400); }
+  try {
+    let raw = event.body || '';
+    if (event.isBase64Encoded && raw) raw = Buffer.from(raw, 'base64').toString('utf-8');
+    console.log('CART_MESSAGE_RAW:', JSON.stringify(raw?.slice(0,200)), 'b64:', event.isBase64Encoded);
+    body = JSON.parse(raw || '{}');
+  } catch (e) {
+    console.error('CART_MESSAGE_PARSE_ERROR:', e.message);
+    return err('Ogiltig JSON', 400);
+  }
 
   const msgText = (body.body || '').trim();
   if (!msgText) return err('Meddelande kan inte vara tomt', 400);
