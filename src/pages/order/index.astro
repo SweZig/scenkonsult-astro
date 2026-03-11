@@ -163,9 +163,16 @@ import Layout from '../../layouts/Layout.astro';
   }
   .msg-wrap.admin    .msg-bubble { background: #221f50; color: #f0eeff; border-bottom-left-radius: 4px; }
   .msg-wrap.customer .msg-bubble { background: #332885; color: #fff;    border-bottom-right-radius: 4px; }
+  .msg-sender-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 0.25rem;
+    padding: 0 0.25rem;
+  }
   .msg-meta {
     font-size: 0.72rem;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255,255,255,0.35);
     margin-top: 0.3rem;
     padding: 0 0.25rem;
   }
@@ -437,8 +444,9 @@ function renderMessages() {
 
   container.innerHTML = messages.map(m => `
     <div class="msg-wrap ${m.sender}">
+      <div class="msg-sender-label">${m.sender === 'admin' ? '🎭 Scenkonsult Norden' : '👤 Du'}</div>
       <div class="msg-bubble">${m.body.replace(/\n/g,'<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" style="color:#c4b5f4">$1</a>')}</div>
-      <div class="msg-meta">${m.sender === 'admin' ? 'Scenkonsult' : 'Du'} · ${fmtTime(m.created_at)}</div>
+      <div class="msg-meta">${fmtTime(m.created_at)}</div>
     </div>`).join('');
 
   // Scroll to bottom

@@ -67,7 +67,8 @@ function supabase() {
       const url2 = `${url}/rest/v1/${table}`;
       const res  = await fetch(url2, { method: 'POST', headers, body: JSON.stringify(row) });
       if (!res.ok) throw new Error(`Supabase INSERT ${table}: ${res.status} ${await res.text()}`);
-      return res.json();
+      const txt = await res.text();
+      return txt ? JSON.parse(txt) : null;
     },
 
     // UPDATE — matchar på kolumn=värde
@@ -75,7 +76,8 @@ function supabase() {
       const url2 = `${url}/rest/v1/${table}?${matchCol}=eq.${encodeURIComponent(matchVal)}`;
       const res  = await fetch(url2, { method: 'PATCH', headers, body: JSON.stringify(data) });
       if (!res.ok) throw new Error(`Supabase UPDATE ${table}: ${res.status} ${await res.text()}`);
-      return res.json();
+      const txt2 = await res.text();
+      return txt2 ? JSON.parse(txt2) : null;
     },
 
     // UPSERT
@@ -84,7 +86,8 @@ function supabase() {
       const h    = { ...headers, 'Prefer': 'return=representation,resolution=merge-duplicates' };
       const res  = await fetch(url2, { method: 'POST', headers: h, body: JSON.stringify(row) });
       if (!res.ok) throw new Error(`Supabase UPSERT ${table}: ${res.status} ${await res.text()}`);
-      return res.json();
+      const txt3 = await res.text();
+      return txt3 ? JSON.parse(txt3) : null;
     },
 
     // RPC (anropa Postgres-funktion)
@@ -92,7 +95,8 @@ function supabase() {
       const url2 = `${url}/rest/v1/rpc/${fnName}`;
       const res  = await fetch(url2, { method: 'POST', headers, body: JSON.stringify(params) });
       if (!res.ok) throw new Error(`Supabase RPC ${fnName}: ${res.status} ${await res.text()}`);
-      return res.json();
+      const txt4 = await res.text();
+      return txt4 ? JSON.parse(txt4) : null;
     }
   };
 }

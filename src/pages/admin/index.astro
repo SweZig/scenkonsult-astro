@@ -639,13 +639,17 @@ function cartCardHTML(c) {
   const total = c.total_excl ? fmt(Math.round(c.total_excl/100)) + ' kr' : '–';
   const unread = c.unread_count > 0
     ? `<span class="unread-pill">💬 ${c.unread_count} ny${c.unread_count > 1 ? 'a' : 't'}</span>` : '';
+  const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
+  const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
   return `
     <div class="cart-card" data-id="${c.id}">
       <div class="cart-card-name">${c.customer_name || 'Okänd kund'}</div>
       <div class="cart-card-meta">
-        <span>${c.id}</span>
-        ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
+        <span style="font-family:monospace;font-size:0.72rem;color:var(--brand-lav);opacity:0.7">${c.id}</span>
+        ${c.event_date ? `<span>📅 <strong style="color:var(--text)">${fmtDate(c.event_date)}</strong></span>` : ''}
         ${c.event_location ? `<span>📍 ${c.event_location}</span>` : ''}
+        ${c.customer_phone ? `<span>📞 ${c.customer_phone}</span>` : ''}
+        ${ageStr ? `<span style="color:var(--text-faint)">🕐 ${ageStr}</span>` : ''}
       </div>
       <div class="cart-card-footer">
         <span class="cart-card-price">${total}</span>
@@ -677,6 +681,9 @@ async function openDetail(cartId) {
   currentAudit    = data.audit_log || [];
 
   $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
+  // Add quick-action links to header
+  const existingQuick = document.getElementById('panel-quick');
+  if (existingQuick) existingQuick.remove();
 
   // Update unread badge on chat tab
   const unread = currentMessages.filter(m => m.sender === 'customer' && !m.read_at).length;
@@ -774,6 +781,13 @@ function renderInfoTab() {
     <div style="background:var(--bg);border-radius:8px;padding:1rem;font-size:0.9rem;line-height:1.6;font-family:'Source Sans 3',sans-serif;color:var(--text-muted)">
       ${c.customer_message.replace(/\n/g,'<br>')}
     </div>` : ''}
+
+    <div class="section-label">Snabblänkar</div>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+      ${c.customer_email ? `<a href="mailto:${c.customer_email}" style="background:var(--surface2);border:1px solid var(--border);color:var(--brand-lav);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">✉ ${c.customer_email}</a>` : ''}
+      ${c.customer_phone ? `<a href="tel:${c.customer_phone}" style="background:var(--surface2);border:1px solid var(--border);color:var(--brand-lav);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">📞 ${c.customer_phone}</a>` : ''}
+      ${c.cart_token ? `<a href="https://scenkonsult.se/order/?cart=${c.id}&token=${c.cart_token}" target="_blank" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">🔗 Kundlänk ↗</a>` : ''}
+    </div>
 
     <div class="section-label">Tidsstämplar</div>
     <div class="info-grid">
