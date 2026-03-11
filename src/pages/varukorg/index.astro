@@ -859,7 +859,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart, body: msgBody, intent, sendCopy: document.getElementById('sendCopyCheck')?.checked || false, cart_id: skCart.get()?.id || null }),
+        body: JSON.stringify({ customer, cart, body: msgBody, intent, sendCopy: document.getElementById('sendCopyCheck')?.checked || false, cart_id: getCartId() }),
       });
 
       const result = await resp.json();
