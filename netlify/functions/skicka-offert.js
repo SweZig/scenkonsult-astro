@@ -170,7 +170,7 @@ exports.handler = async (event) => {
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Varukorg</p>
     ${cartTable(cart)}
     <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a></p>
-    ${cartUrl ? `<p style="margin:12px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Öppna varukorg →</a></p>` : ''}`);
+    ${cartUrl ? `<p style="margin:12px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Öppna order →</a></p>` : ''}`);
 
   try {
     console.log('ADMIN_MAIL_SENDING to:', TO_INTERNAL);
@@ -190,13 +190,14 @@ exports.handler = async (event) => {
         const customerIntro = isBokning
           ? `Vi har tagit emot din bokningsönskan och återkommer vardagar 09:00-17:00 med en bekräftelse. Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.`
           : `Vi har tagit emot din förfrågan och återkommer vardagar 09:00-17:00 med en offert. Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.`;
-        const plainCustomer = `Tack, ${customer.name}!\n\n${isBokning?'Vi har tagit emot din bokningsönskan':'Vi har tagit emot din förfrågan'} och aterkommer vardagar 09:00-17:00.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n\n---\nScenkonsult Norden | scenkonsult.se`;
+        const plainCustomer = `Tack, ${customer.name}!\n\n${isBokning?'Vi har tagit emot din bokningsönskan':'Vi har tagit emot din förfrågan'} och aterkommer vardagar 09:00-17:00.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n${cartUrl ? 'Följ din order: ' + cartUrl + '\n' : ''}\n---\nScenkonsult Norden | scenkonsult.se`;
         const htmlCustomer = htmlWrapper(customerTitle, `
           <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>
           <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 24px;">${customerIntro}</p>
           <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din bestallning</p>
           ${cartTable(cart)}
-          ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">Datum: ${datumStr}</p>` : ''}`);
+          ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">Datum: ${datumStr}</p>` : ''}
+          ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">Följ din order →</a></p><p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du följa status och skicka meddelanden till oss.</p>` : ''}`);
         await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: isBokning ? 'Din bokningsönskan hos Scenkonsult Norden' : 'Din offertförfrågan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
         console.log('KUNDKOPIA_SENT to:', customer.email);
       } catch (e) { console.error('KUNDKOPIA_ERROR:', e.message); }
