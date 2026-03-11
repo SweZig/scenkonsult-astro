@@ -962,6 +962,14 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 
   <script>
     (function() {
+      // Dölj Sven på varukorg och bokningssida — kunden har redan tagit beslut
+      const _noSvenPaths = ['/varukorg/', '/bokningssida/', '/order/'];
+      if (_noSvenPaths.some(p => window.location.pathname.startsWith(p))) {
+        const _sw = document.getElementById('sven-chat-widget');
+        if (_sw) _sw.style.display = 'none';
+        return;
+      }
+
       const PROACTIVE_MSGS = [
         "Hm, du verkar leta efter något. Kan det vara så att du behöver lite hjälp? Fråga mig — jag har ingenting bättre att göra bakom scenen ändå. 🎭",
         "Fortfarande kvar? Antingen är du verkligen intresserad, eller har du somnat. I båda fall — kan jag hjälpa dig hitta rätt utrustning?",

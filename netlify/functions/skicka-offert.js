@@ -173,7 +173,7 @@ exports.handler = async (event) => {
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Varukorg</p>
     ${cartTable(cart)}
     <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a></p>
-    ${cartUrl ? `<p style="margin:12px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Öppna order →</a></p>` : ''}`);
+    <p style="margin:12px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Adminpanel →</a></p>`);
 
   try {
     console.log('ADMIN_MAIL_SENDING to:', TO_INTERNAL);

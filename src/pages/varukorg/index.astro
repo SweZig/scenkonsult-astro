@@ -170,13 +170,6 @@ const fraktRules = JSON.stringify(frakt);
       </span>
     </label>
 
-    <!-- SÄND KOPIA -->
-    <label class="villkor-row" id="sendCopyRow">
-      <input type="checkbox" id="sendCopyCheck" class="sr-only" />
-      <div class="service-check villkor-check" id="sendCopyVisual"></div>
-      <span class="villkor-text">Sänd en kopia till mig</span>
-    </label>
-
     <!-- ACTIONS -->
     <div class="cart-actions">
       <button id="btnEmail" class="cart-btn primary" disabled>
@@ -861,7 +854,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart, body: msgBody, intent, sendCopy: document.getElementById('sendCopyCheck')?.checked || false, cart_id: getCartId() }),
+        body: JSON.stringify({ customer, cart, body: msgBody, intent, sendCopy: true, cart_id: getCartId() }),
       });
 
       const result = await resp.json();

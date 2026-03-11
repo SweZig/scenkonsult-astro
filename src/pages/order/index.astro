@@ -444,7 +444,7 @@ function renderMessages() {
 
   container.innerHTML = messages.map(m => `
     <div class="msg-wrap ${m.sender}">
-      <div class="msg-sender-label">${m.sender === 'admin' ? '🎭 Scenkonsult Norden' : '👤 Kund'}</div>
+      <div class="msg-sender-label">${m.sender === 'admin' ? '🎭 Scenkonsult Norden' : '👤 Du'}</div>
       <div class="msg-bubble">${m.body.replace(/\n/g,'<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" style="color:#c4b5f4">$1</a>')}</div>
       <div class="msg-meta">${fmtTime(m.created_at)}</div>
     </div>`).join('');
