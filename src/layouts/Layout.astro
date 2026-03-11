@@ -219,6 +219,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
       <img class="logo-w" src="/logo-white.png" alt="Scenkonsult" />
       <img class="logo-c" src="/logo-color.png" alt="Scenkonsult" />
     </a>
+    <a href="/varukorg/" class="nav-cart" id="navCartBtn" aria-label="Varukorg" style="margin-left:auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="nav-cart-badge hidden" id="navCartBadge">0</span></a>
     <button class="nav-hamburger" id="hamburger" aria-label="Öppna meny" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -257,7 +258,6 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
       <li><a href="/kontakt/">Kontakta oss</a></li>
     </ul>
     <Tel class="nav-phone" prefix="📞 " />
-    <a href="/varukorg/" class="nav-cart" id="navCartBtn" aria-label="Varukorg" style="margin-left:auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="nav-cart-badge hidden" id="navCartBadge">0</span></a>
   </nav>
 
   <!-- MOBILE MENU -->
@@ -946,17 +946,17 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 
     /* Mobilanpassning */
     @media (max-width: 480px) {
+      #sven-chat-widget { right: 16px; bottom: 16px; }
+      #sven-toggle { width: 48px; height: 48px; }
+      #sven-toggle svg { width: 22px; height: 22px; }
       #sven-window {
-        width: calc(100vw - 24px) !important;
-        height: clamp(320px, 65vh, 520px) !important;
+        width: calc(100vw - 20px) !important;
+        height: clamp(260px, 52vh, 400px) !important;
         right: -4px;
-        bottom: 70px;
+        bottom: 62px;
         border-radius: 14px;
       }
-      #sven-resize-handle { display: none; } /* ingen drag på mobil */
-    }
-    @media (max-width: 400px) {
-      #sven-chat-widget { right: 16px; bottom: 16px; }
+      #sven-resize-handle { display: none; }
     }
   </style>
 
