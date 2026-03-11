@@ -232,6 +232,7 @@
       background: var(--surface2) !important; border: 1px solid var(--border-lav) !important; border-radius: 8px;
       padding: 0.5rem 0.875rem; color: var(--text) !important; font-family: inherit; font-size: 0.875rem;
       cursor: pointer; appearance: none; -webkit-appearance: none;
+      color-scheme: dark;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c4b5f4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: right 0.75rem center;
       padding-right: 2.25rem;
@@ -252,9 +253,10 @@
 
     /* Editable product rows */
     .prod-input {
-      background: var(--surface2); border: 1px solid transparent; border-radius: 5px;
-      padding: 0.3rem 0.5rem; color: var(--text); font-family: inherit;
+      background: var(--surface2) !important; border: 1px solid transparent; border-radius: 5px;
+      padding: 0.3rem 0.5rem; color: var(--text) !important; font-family: inherit;
       transition: border-color 0.15s, background 0.15s;
+      color-scheme: dark;
     }
     .prod-input:hover { border-color: var(--border-lav); }
     .prod-input:focus { outline: none; border-color: var(--brand-lav); background: #2a275e; }
@@ -272,6 +274,7 @@
       width: 100%; background: var(--surface2) !important; border: 1px solid var(--border-lav) !important;
       border-radius: 8px; padding: 0.875rem; color: var(--text) !important; font-family: 'Source Sans 3', sans-serif;
       font-size: 0.9rem; resize: vertical; min-height: 100px; line-height: 1.6;
+      color-scheme: dark;
     }
     .admin-note-area:focus { outline: none; border-color: var(--brand-lav); background: #2a275e; }
     .admin-note-area::placeholder { color: rgba(196,181,244,0.35); }
@@ -749,10 +752,14 @@ function renderTab(tab) {
   if (tab === 'products') body.innerHTML = renderProductsTab();
   // Force browser to respect dark styling on form elements
   requestAnimationFrame(() => {
-    const sel = document.querySelector('.status-select');
-    const note = document.querySelector('.admin-note-area');
-    if (sel) { sel.style.background = '#221f50'; sel.style.color = '#f0eeff'; sel.style.border = '1px solid rgba(196,181,244,0.25)'; }
-    if (note) { note.style.background = '#221f50'; note.style.color = '#f0eeff'; note.style.border = '1px solid rgba(196,181,244,0.25)'; }
+    document.querySelectorAll('.status-select, .admin-note-area, .prod-input, .chat-textarea').forEach(el => {
+      el.style.setProperty('background', '#221f50', 'important');
+      el.style.setProperty('color', '#f0eeff', 'important');
+      el.style.setProperty('color-scheme', 'dark', 'important');
+      if (el.tagName === 'SELECT' || el.classList.contains('admin-note-area')) {
+        el.style.setProperty('border', '1px solid rgba(196,181,244,0.25)', 'important');
+      }
+    });
   });
   if (tab === 'chat')     renderChatTab();
   if (tab === 'log')      body.innerHTML = renderLogTab();
@@ -874,6 +881,11 @@ function prodAddRow() {
       <button class="qty-btn" style="color:var(--red);border-color:var(--red)" onclick="prodDelete(${idx})" title="Ta bort">×</button>
     </td>`;
   tbody.appendChild(newRow);
+  newRow.querySelectorAll('.prod-input').forEach(el => {
+    el.style.setProperty('background', '#221f50', 'important');
+    el.style.setProperty('color', '#f0eeff', 'important');
+    el.style.setProperty('color-scheme', 'dark', 'important');
+  });
   newRow.querySelector('.prod-name')?.focus();
 }
 
