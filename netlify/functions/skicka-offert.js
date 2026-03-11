@@ -10,7 +10,7 @@ const RATE_MAX = 3;
 const FROM = 'Scenkonsult Norden <noreply@scenkonsult.se>';
 const TO_INTERNAL = 'info@scenkonsult.se';
 const TRELLO_EMAIL = 'sunxpertadm+kvz53qihlyplkt6r9xnb@app.trello.com';
-const LOGO_URL = 'https://scenkonsult-astro.netlify.app/logo-white.png';
+const LOGO_URL = 'https://scenkonsult.se/logo-white.png';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -173,7 +173,9 @@ exports.handler = async (event) => {
     ${cartUrl ? `<p style="margin:12px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Öppna varukorg →</a></p>` : ''}`);
 
   try {
+    console.log('ADMIN_MAIL_SENDING to:', TO_INTERNAL);
     await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: customer.email, subject: `${subjectTag} från ${customer.name}`, html: htmlInternal, text: plainInternal });
+    console.log('ADMIN_MAIL_SENT ok');
     await sleep(600);
 
     try {
