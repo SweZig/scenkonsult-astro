@@ -730,6 +730,17 @@ footer { background: #0a0820; padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 5vw,
 .id-logo img { max-height: 80px; }
 .footer-brand img { max-height: 52px; }
 
+/* ── RESPONSIVE 2-COL GRID UTILITY ───────────────────────────── */
+.g2c {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .g2c { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
 /* ── VAT TOGGLE ─────────────────────────────────────────────────── */
 #sk-vat-toggle {
   position: fixed;
