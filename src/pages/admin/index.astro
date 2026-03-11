@@ -1261,6 +1261,20 @@ function startRefreshTimer() {
 
 // ── INIT ──────────────────────────────────────────────────────
 checkAuth();
+
+// Exponera funktioner som används i onclick-attribut i dynamisk innerHTML
+// (Astro kompilerar script som ES-moduler — utan window. är de ej globala)
+window.prodQty      = prodQty;
+window.prodDelete   = prodDelete;
+window.prodAddRow   = prodAddRow;
+window.prodSave     = prodSave;
+window.renderTab    = renderTab;
+window.openPanel    = openPanel;
+window.closePanel   = closePanel;
+window.sendMessage  = sendMessage;
+window.confirmOrder = confirmOrder;
+window.cancelOrder  = cancelOrder;
+window.notifyCustomer = notifyCustomer;
 </script>
 
 </body>
