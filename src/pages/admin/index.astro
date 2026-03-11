@@ -1,0 +1,1060 @@
+---
+// src/pages/admin/index.astro
+// Adminpanel — Scenkonsult Norden
+// Tillgänglig på /admin/ — kräver ADMIN_TOKEN
+
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Scenkonsult Norden</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand-dark:    #0c0a24;
+      --brand-navy:    #1e1850;
+      --brand-purple:  #332885;
+      --brand-lav:     #c4b5f4;
+      --brand-lav-l:   #e2dcfb;
+      --bg:            #0f0d2a;
+      --surface:       #1a1740;
+      --surface2:      #221f50;
+      --border:        rgba(255,255,255,0.08);
+      --border-lav:    rgba(196,181,244,0.25);
+      --text:          #f0eeff;
+      --text-muted:    rgba(255,255,255,0.55);
+      --text-faint:    rgba(255,255,255,0.3);
+      --green:         #4ade80;
+      --green-bg:      rgba(74,222,128,0.12);
+      --amber:         #fbbf24;
+      --amber-bg:      rgba(251,191,36,0.12);
+      --blue:          #60a5fa;
+      --blue-bg:       rgba(96,165,250,0.12);
+      --red:           #f87171;
+      --red-bg:        rgba(248,113,113,0.12);
+      --gray:          rgba(255,255,255,0.35);
+      --gray-bg:       rgba(255,255,255,0.06);
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+
+    /* ── LOGIN ─────────────────────────────────────────── */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem;
+    }
+    .login-box {
+      background: var(--surface); border: 1px solid var(--border-lav);
+      border-radius: 20px; padding: 3rem; width: 100%; max-width: 420px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    }
+    .login-logo { font-size: 1.5rem; font-weight: 700; color: var(--brand-lav); margin-bottom: 0.25rem; }
+    .login-sub  { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; }
+    .login-box input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.875rem 1rem; color: var(--text);
+      font-family: inherit; font-size: 1rem; margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+    .login-box input:focus { outline: none; border-color: var(--brand-lav); }
+    .login-error { color: var(--red); font-size: 0.875rem; margin-bottom: 1rem; display: none; }
+    .btn-primary {
+      width: 100%; background: var(--brand-purple); color: #fff;
+      border: none; border-radius: 10px; padding: 0.875rem; font-family: inherit;
+      font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--brand-lav); color: var(--brand-dark); }
+
+    /* ── APP SHELL ─────────────────────────────────────── */
+    #app { display: none; flex-direction: column; min-height: 100vh; }
+
+    /* Topbar */
+    .topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem; height: 60px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-left  { display: flex; align-items: center; gap: 1rem; }
+    .topbar-brand { font-weight: 700; color: var(--brand-lav); font-size: 1.1rem; }
+    .topbar-nav   { display: flex; gap: 0.25rem; }
+    .nav-btn {
+      background: none; border: none; color: var(--text-muted); font-family: inherit;
+      font-size: 0.875rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .nav-btn:hover  { background: var(--surface2); color: var(--text); }
+    .nav-btn.active { background: var(--brand-purple); color: #fff; }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; }
+    .unread-badge {
+      background: var(--red); color: #fff; font-size: 0.75rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 99px; display: none;
+    }
+    .btn-sm {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+      font-family: inherit; font-size: 0.8rem; padding: 0.4rem 0.875rem; border-radius: 8px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-sm:hover { border-color: var(--brand-lav); color: var(--text); }
+
+    /* ── VIEWS ─────────────────────────────────────────── */
+    .view { display: none; flex: 1; padding: 1.5rem; }
+    .view.active { display: block; }
+
+    /* ── KANBAN ────────────────────────────────────────── */
+    .kanban-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .kanban-title { font-size: 1.4rem; font-weight: 700; }
+    .kanban-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .filter-input {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.5rem 0.875rem; color: var(--text); font-family: inherit; font-size: 0.875rem;
+    }
+    .filter-input:focus { outline: none; border-color: var(--brand-lav); }
+
+    .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .kanban-col {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1rem; min-height: 200px;
+    }
+    .kanban-col-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+    }
+    .col-title { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+    .col-count {
+      background: var(--surface2); color: var(--text-muted); font-size: 0.75rem;
+      padding: 2px 7px; border-radius: 99px; font-weight: 600;
+    }
+    .kanban-cards { display: flex; flex-direction: column; gap: 0.75rem; }
+    .cart-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem; cursor: pointer; transition: all 0.15s;
+    }
+    .cart-card:hover { border-color: var(--brand-lav); transform: translateY(-1px); }
+    .cart-card-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .cart-card-meta { color: var(--text-muted); font-size: 0.78rem; display: flex; flex-direction: column; gap: 2px; }
+    .cart-card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);
+    }
+    .cart-card-price { color: var(--brand-lav); font-weight: 700; font-size: 0.9rem; }
+    .unread-pill {
+      background: var(--red-bg); color: var(--red); font-size: 0.72rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 99px;
+    }
+    .empty-col { color: var(--text-faint); font-size: 0.85rem; text-align: center; padding: 2rem 1rem; }
+
+    /* Status colors */
+    .s-open      { color: var(--gray);  }
+    .s-proposal  { color: var(--blue);  }
+    .s-waiting   { color: var(--amber); }
+    .s-confirmed { color: var(--green); }
+    .s-cancelled { color: var(--red);   }
+
+    /* ── DETAIL PANEL ──────────────────────────────────── */
+    #detail-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 200; backdrop-filter: blur(2px);
+    }
+    #detail-overlay.open { display: block; }
+    #detail-panel {
+      position: fixed; right: 0; top: 0; bottom: 0; width: min(780px, 100vw);
+      background: var(--surface); border-left: 1px solid var(--border-lav);
+      z-index: 201; display: flex; flex-direction: column;
+      transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    #detail-panel.open { transform: translateX(0); }
+
+    .panel-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .panel-title { font-weight: 700; font-size: 1.1rem; }
+    .panel-close {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .panel-close:hover { border-color: var(--red); color: var(--red); }
+
+    .panel-tabs {
+      display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .panel-tab {
+      flex: 1; padding: 0.875rem; text-align: center; font-size: 0.875rem;
+      font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.15s; background: none; border-left: none; border-right: none; border-top: none;
+      font-family: inherit;
+    }
+    .panel-tab:hover  { color: var(--text); }
+    .panel-tab.active { color: var(--brand-lav); border-bottom-color: var(--brand-lav); }
+
+    .panel-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
+    .panel-body::-webkit-scrollbar { width: 6px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+    .panel-footer {
+      padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0;
+      display: flex; gap: 0.75rem; flex-wrap: wrap;
+    }
+
+    /* Detail sections */
+    .section-label {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-faint); margin-bottom: 0.75rem; margin-top: 1.5rem;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .info-field { background: var(--bg); border-radius: 8px; padding: 0.75rem; }
+    .info-field-label { font-size: 0.72rem; color: var(--text-faint); margin-bottom: 0.25rem; }
+    .info-field-value { font-size: 0.9rem; font-weight: 500; }
+
+    /* Status selector */
+    .status-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .status-select {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.5rem 0.875rem; color: var(--text); font-family: inherit; font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .status-select:focus { outline: none; border-color: var(--brand-lav); }
+
+    /* Product table */
+    .product-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .product-table th {
+      text-align: left; color: var(--text-faint); font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
+    }
+    .product-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .product-table tr:last-child td { border-bottom: none; }
+    .product-table tr:hover td { background: var(--bg); }
+    .total-row td { font-weight: 700; color: var(--brand-lav); border-top: 2px solid var(--border-lav); }
+
+    /* Admin notes */
+    .admin-note-area {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.875rem; color: var(--text); font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.9rem; resize: vertical; min-height: 100px;
+    }
+    .admin-note-area:focus { outline: none; border-color: var(--brand-lav); }
+
+    /* ── CHATT ─────────────────────────────────────────── */
+    .chat-messages { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+    .msg-wrap { display: flex; flex-direction: column; }
+    .msg-wrap.admin { align-items: flex-end; }
+    .msg-wrap.customer { align-items: flex-start; }
+    .msg-bubble {
+      max-width: 80%; padding: 0.75rem 1rem; border-radius: 12px;
+      font-size: 0.9rem; line-height: 1.5; font-family: 'Source Sans 3', sans-serif;
+    }
+    .msg-wrap.admin    .msg-bubble { background: var(--brand-purple); color: #fff; border-bottom-right-radius: 4px; }
+    .msg-wrap.customer .msg-bubble { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; }
+    .msg-meta {
+      font-size: 0.72rem; color: var(--text-faint); margin-top: 0.3rem; display: flex;
+      align-items: center; gap: 0.5rem;
+    }
+    .read-check { color: var(--brand-lav); }
+    .chat-input-wrap { display: flex; flex-direction: column; gap: 0.75rem; }
+    .chat-textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.875rem; color: var(--text); font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.9rem; resize: vertical; min-height: 80px;
+    }
+    .chat-textarea:focus { outline: none; border-color: var(--brand-lav); }
+    .chat-send-btn {
+      background: var(--brand-purple); color: #fff; border: none; border-radius: 8px;
+      padding: 0.75rem 1.5rem; font-family: inherit; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; align-self: flex-end; transition: background 0.15s;
+    }
+    .chat-send-btn:hover { background: var(--brand-lav); color: var(--brand-dark); }
+    .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .chat-empty { color: var(--text-faint); font-size: 0.875rem; text-align: center; padding: 2rem; }
+
+    /* ── KALENDER ──────────────────────────────────────── */
+    #view-calendar { display: none; }
+    #view-calendar.active { display: block; }
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .cal-title { font-size: 1.4rem; font-weight: 700; }
+    .cal-nav { display: flex; gap: 0.5rem; }
+    .cal-nav-btn {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: 0.5rem 1rem; font-family: inherit; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cal-nav-btn:hover { border-color: var(--brand-lav); }
+    .cal-grid {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      overflow: hidden;
+    }
+    .cal-weekdays {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+    .cal-weekday {
+      padding: 0.75rem; text-align: center; font-size: 0.75rem; font-weight: 600;
+      color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .cal-day {
+      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      min-height: 100px; padding: 0.5rem; position: relative;
+    }
+    .cal-day:nth-child(7n) { border-right: none; }
+    .cal-day.other-month .cal-day-num { color: var(--text-faint); }
+    .cal-day.today { background: rgba(196,181,244,0.05); }
+    .cal-day.today .cal-day-num {
+      background: var(--brand-purple); color: #fff; border-radius: 50%;
+      width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    }
+    .cal-day-num { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .cal-event {
+      background: var(--brand-navy); border-left: 3px solid var(--brand-lav);
+      border-radius: 0 4px 4px 0; padding: 2px 6px; font-size: 0.7rem;
+      margin-bottom: 2px; cursor: pointer; overflow: hidden; white-space: nowrap;
+      text-overflow: ellipsis; transition: background 0.15s;
+    }
+    .cal-event:hover { background: var(--brand-purple); }
+    .cal-event.s-confirmed { border-left-color: var(--green); }
+    .cal-event.s-proposal  { border-left-color: var(--blue); }
+    .cal-event.s-waiting   { border-left-color: var(--amber); }
+    .cal-event.s-cancelled { border-left-color: var(--red); opacity: 0.5; }
+
+    /* ── BUTTONS ───────────────────────────────────────── */
+    .btn-action {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: 0.6rem 1rem; font-family: inherit; font-size: 0.85rem;
+      font-weight: 500; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-action:hover { border-color: var(--brand-lav); color: var(--brand-lav); }
+    .btn-danger  { border-color: var(--red-bg);  color: var(--red); }
+    .btn-danger:hover  { background: var(--red-bg);  border-color: var(--red); }
+    .btn-success { border-color: var(--green-bg); color: var(--green); }
+    .btn-success:hover { background: var(--green-bg); border-color: var(--green); }
+
+    /* ── TOAST ─────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem; background: var(--surface);
+      border: 1px solid var(--border-lav); border-radius: 10px; padding: 0.875rem 1.25rem;
+      font-size: 0.875rem; z-index: 999; transform: translateY(20px); opacity: 0;
+      transition: all 0.3s; pointer-events: none;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error   { border-color: var(--red);   color: var(--red); }
+
+    /* ── LOADING ───────────────────────────────────────── */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid var(--border);
+      border-top-color: var(--brand-lav); border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-center { display: flex; justify-content: center; align-items: center; padding: 3rem; }
+
+    /* ── RESPONSIVE ────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .info-grid { grid-template-columns: 1fr; }
+      .kanban-board { grid-template-columns: 1fr; }
+      #detail-panel { width: 100vw; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ───────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">⚙ Scenkonsult Admin</div>
+    <div class="login-sub">Adminpanel — ej publik</div>
+    <input type="password" id="login-pw" placeholder="Adminlösenord" autocomplete="current-password" />
+    <div class="login-error" id="login-error">Fel lösenord, försök igen.</div>
+    <button class="btn-primary" id="login-btn">Logga in</button>
+  </div>
+</div>
+
+<!-- ── APP ─────────────────────────────────────────────────── -->
+<div id="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-brand">⚙ Admin</div>
+      <div class="topbar-nav">
+        <button class="nav-btn active" data-view="kanban">📋 Ordrar</button>
+        <button class="nav-btn" data-view="calendar">📅 Kalender</button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="unread-badge" id="global-unread">0 nya</span>
+      <button class="btn-sm" id="refresh-btn">↻ Uppdatera</button>
+      <button class="btn-sm" id="logout-btn">Logga ut</button>
+    </div>
+  </div>
+
+  <!-- ── KANBAN VIEW ──────────────────────────────────────── -->
+  <div class="view active" id="view-kanban">
+    <div class="kanban-header">
+      <div class="kanban-title">Orderöversikt</div>
+      <div class="kanban-filters">
+        <input class="filter-input" id="filter-search" placeholder="🔍 Sök kund..." style="width:180px" />
+        <input class="filter-input" type="date" id="filter-from" title="Event från" />
+        <input class="filter-input" type="date" id="filter-to"   title="Event till" />
+      </div>
+    </div>
+    <div class="kanban-board" id="kanban-board">
+      <div class="loading-center"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- ── CALENDAR VIEW ────────────────────────────────────── -->
+  <div class="view" id="view-calendar">
+    <div class="cal-header">
+      <div class="cal-title" id="cal-month-label">—</div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="cal-prev">◀</button>
+        <button class="cal-nav-btn" id="cal-today">Idag</button>
+        <button class="cal-nav-btn" id="cal-next">▶</button>
+      </div>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Mån</div><div class="cal-weekday">Tis</div>
+        <div class="cal-weekday">Ons</div><div class="cal-weekday">Tor</div>
+        <div class="cal-weekday">Fre</div><div class="cal-weekday">Lör</div>
+        <div class="cal-weekday">Sön</div>
+      </div>
+      <div class="cal-days" id="cal-days"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── DETAIL PANEL ─────────────────────────────────────────── -->
+<div id="detail-overlay"></div>
+<div id="detail-panel">
+  <div class="panel-header">
+    <div class="panel-title" id="panel-title">Varukorg</div>
+    <button class="panel-close" id="panel-close">✕</button>
+  </div>
+  <div class="panel-tabs">
+    <button class="panel-tab active" data-tab="info">ℹ Info</button>
+    <button class="panel-tab" data-tab="products">📦 Produkter</button>
+    <button class="panel-tab" data-tab="chat">💬 Chatt <span id="chat-unread-badge" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 6px;font-size:0.7rem;margin-left:4px"></span></button>
+    <button class="panel-tab" data-tab="log">📜 Logg</button>
+  </div>
+  <div class="panel-body" id="panel-body">
+    <div class="loading-center"><div class="spinner"></div></div>
+  </div>
+  <div class="panel-footer" id="panel-footer"></div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────
+let TOKEN = '';
+let carts = [];
+let currentCart = null;
+let currentMessages = [];
+let currentAudit = [];
+let activeTab = 'info';
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let refreshTimer = null;
+
+// ── HELPERS ───────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = n => typeof n === 'number' ? n.toLocaleString('sv-SE') : '–';
+const fmtDate = d => d ? new Date(d).toLocaleDateString('sv-SE') : '–';
+const fmtTime = d => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }) : '–';
+const fmtPrice = p => p ? fmt(Math.round(p/100)) + ' kr' : '–';
+
+function toast(msg, type = 'success') {
+  const el = $('toast');
+  el.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 3000);
+}
+
+const STATUS_LABELS = {
+  open:      { icon: '🛒', label: 'Öppen varukorg',   cls: 's-open'      },
+  proposal:  { icon: '📋', label: 'Orderförslag',      cls: 's-proposal'  },
+  waiting:   { icon: '⏳', label: 'Inväntar svar',    cls: 's-waiting'   },
+  confirmed: { icon: '✅', label: 'Orderbekräftelse',  cls: 's-confirmed' },
+  cancelled: { icon: '❌', label: 'Avbruten',          cls: 's-cancelled' },
+};
+
+// ── AUTH ──────────────────────────────────────────────────────
+function checkAuth() {
+  const t = sessionStorage.getItem('sk_admin_token');
+  if (t) { TOKEN = t; showApp(); }
+}
+
+$('login-pw').addEventListener('keydown', e => e.key === 'Enter' && doLogin());
+$('login-btn').addEventListener('click', doLogin);
+
+function doLogin() {
+  const pw = $('login-pw').value.trim();
+  if (!pw) return;
+  TOKEN = pw;
+  sessionStorage.setItem('sk_admin_token', pw);
+  showApp();
+}
+
+function showApp() {
+  $('login-screen').style.display = 'none';
+  $('app').style.display = 'flex';
+  loadCarts();
+  startRefreshTimer();
+}
+
+$('logout-btn').addEventListener('click', () => {
+  sessionStorage.removeItem('sk_admin_token');
+  location.reload();
+});
+
+// ── NAV ───────────────────────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    const view = btn.dataset.view;
+    $(`view-${view}`).classList.add('active');
+    if (view === 'calendar') renderCalendar();
+  });
+});
+
+// ── API ───────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(`/.netlify/functions/${path}`, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${TOKEN}`,
+      ...(opts.headers || {})
+    }
+  });
+  const data = await res.json();
+  if (res.status === 401) {
+    toast('Session utgången — logga in igen', 'error');
+    sessionStorage.removeItem('sk_admin_token');
+    setTimeout(() => location.reload(), 1500);
+    throw new Error('Unauthorized');
+  }
+  return { ok: res.ok, status: res.status, data };
+}
+
+// ── LOAD CARTS ────────────────────────────────────────────────
+async function loadCarts() {
+  const { ok, data } = await api('admin-carts');
+  if (!ok) {
+    if (data.error === 'Ej behörig') {
+      $('login-error').style.display = 'block';
+      $('login-error').textContent = 'Fel lösenord.';
+      $('app').style.display = 'none';
+      $('login-screen').style.display = 'flex';
+      sessionStorage.removeItem('sk_admin_token');
+      return;
+    }
+    toast('Kunde inte hämta varukorgar', 'error');
+    return;
+  }
+  carts = data.carts || [];
+  const totalUnread = data.summary?.total_unread || 0;
+  const badge = $('global-unread');
+  if (totalUnread > 0) {
+    badge.style.display = 'inline';
+    badge.textContent = `${totalUnread} nya`;
+  } else {
+    badge.style.display = 'none';
+  }
+  renderKanban();
+  if ($('view-calendar').classList.contains('active')) renderCalendar();
+}
+
+// ── KANBAN ────────────────────────────────────────────────────
+function getFilteredCarts() {
+  const search = $('filter-search').value.toLowerCase().trim();
+  const from   = $('filter-from').value;
+  const to     = $('filter-to').value;
+  return carts.filter(c => {
+    if (search && !((c.customer_name || '').toLowerCase().includes(search) || (c.id || '').toLowerCase().includes(search))) return false;
+    if (from && c.event_date && c.event_date < from) return false;
+    if (to   && c.event_date && c.event_date > to)   return false;
+    return true;
+  });
+}
+
+['filter-search','filter-from','filter-to'].forEach(id => {
+  $(id).addEventListener('input', renderKanban);
+});
+
+function renderKanban() {
+  const filtered = getFilteredCarts();
+  const cols = ['open','proposal','waiting','confirmed','cancelled'];
+  const board = $('kanban-board');
+  board.innerHTML = cols.map(status => {
+    const s = STATUS_LABELS[status];
+    const colCarts = filtered.filter(c => c.status === status);
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-header">
+          <div class="col-title ${s.cls}">${s.icon} ${s.label}</div>
+          <div class="col-count">${colCarts.length}</div>
+        </div>
+        <div class="kanban-cards">
+          ${colCarts.length === 0
+            ? '<div class="empty-col">Tom</div>'
+            : colCarts.map(c => cartCardHTML(c)).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  board.querySelectorAll('.cart-card').forEach(el => {
+    el.addEventListener('click', () => openDetail(el.dataset.id));
+  });
+}
+
+function cartCardHTML(c) {
+  const total = c.total_excl ? fmt(Math.round(c.total_excl/100)) + ' kr' : '–';
+  const unread = c.unread_count > 0
+    ? `<span class="unread-pill">💬 ${c.unread_count} ny${c.unread_count > 1 ? 'a' : 't'}</span>` : '';
+  return `
+    <div class="cart-card" data-id="${c.id}">
+      <div class="cart-card-name">${c.customer_name || 'Okänd kund'}</div>
+      <div class="cart-card-meta">
+        <span>${c.id}</span>
+        ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
+        ${c.event_location ? `<span>📍 ${c.event_location}</span>` : ''}
+      </div>
+      <div class="cart-card-footer">
+        <span class="cart-card-price">${total}</span>
+        ${unread}
+      </div>
+    </div>`;
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────
+async function openDetail(cartId) {
+  currentCart = null;
+  currentMessages = [];
+  currentAudit = [];
+  activeTab = 'info';
+
+  const overlay = $('detail-overlay');
+  const panel   = $('detail-panel');
+  overlay.classList.add('open');
+  panel.classList.add('open');
+  $('panel-body').innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+  $('panel-footer').innerHTML = '';
+  $('panel-title').textContent = 'Laddar…';
+
+  const { ok, data } = await api(`admin-carts?id=${cartId}`);
+  if (!ok) { toast('Kunde inte ladda varukorg', 'error'); return; }
+
+  currentCart     = data.cart;
+  currentMessages = data.messages || [];
+  currentAudit    = data.audit_log || [];
+
+  $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
+
+  // Update unread badge on chat tab
+  const unread = currentMessages.filter(m => m.sender === 'customer' && !m.read_at).length;
+  const chatBadge = $('chat-unread-badge');
+  if (unread > 0) { chatBadge.style.display = 'inline'; chatBadge.textContent = unread; }
+  else chatBadge.style.display = 'none';
+
+  renderPanelTabs();
+  renderTab('info');
+  renderPanelFooter();
+}
+
+function renderPanelTabs() {
+  document.querySelectorAll('.panel-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.tab === activeTab);
+    tab.onclick = () => {
+      activeTab = tab.dataset.tab;
+      renderPanelTabs();
+      renderTab(activeTab);
+    };
+  });
+}
+
+function renderTab(tab) {
+  const body = $('panel-body');
+  if (tab === 'info')     body.innerHTML = renderInfoTab();
+  if (tab === 'products') body.innerHTML = renderProductsTab();
+  if (tab === 'chat')     renderChatTab();
+  if (tab === 'log')      body.innerHTML = renderLogTab();
+
+  // Bind status change
+  if (tab === 'info') {
+    $('status-select')?.addEventListener('change', async e => {
+      const newStatus = e.target.value;
+      if (!confirm(`Ändra status till "${STATUS_LABELS[newStatus]?.label}"?`)) {
+        e.target.value = currentCart.status; return;
+      }
+      const { ok } = await api('cart-update', {
+        method: 'POST',
+        body: JSON.stringify({ cart_id: currentCart.id, status: newStatus })
+      });
+      if (ok) {
+        currentCart.status = newStatus;
+        toast('Status uppdaterad!');
+        loadCarts();
+        renderPanelFooter();
+      } else toast('Fel vid statusändring', 'error');
+    });
+
+    // Save admin notes
+    $('save-notes-btn')?.addEventListener('click', async () => {
+      const notes = $('admin-notes').value;
+      const { ok } = await api('cart-update', {
+        method: 'POST',
+        body: JSON.stringify({ cart_id: currentCart.id, notes_admin: notes })
+      });
+      if (ok) { currentCart.notes_admin = notes; toast('Anteckning sparad!'); }
+      else toast('Kunde inte spara', 'error');
+    });
+  }
+
+  if (tab === 'chat') {
+    $('chat-send-btn')?.addEventListener('click', sendMessage);
+    $('chat-input')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendMessage();
+    });
+  }
+}
+
+function renderInfoTab() {
+  const c = currentCart;
+  const s = STATUS_LABELS[c.status];
+  return `
+    <div class="section-label">Status</div>
+    <div class="status-row">
+      <select class="status-select" id="status-select">
+        ${Object.entries(STATUS_LABELS).map(([k,v]) =>
+          `<option value="${k}" ${k === c.status ? 'selected' : ''}>${v.icon} ${v.label}</option>`
+        ).join('')}
+      </select>
+      <span class="${s.cls}" style="font-size:0.85rem;font-weight:600;">${s.icon} ${s.label}</span>
+    </div>
+
+    <div class="section-label">Kundinformation</div>
+    <div class="info-grid">
+      <div class="info-field"><div class="info-field-label">Namn</div><div class="info-field-value">${c.customer_name || '–'}</div></div>
+      <div class="info-field"><div class="info-field-label">E-post</div><div class="info-field-value">${c.customer_email ? `<a href="mailto:${c.customer_email}" style="color:var(--brand-lav)">${c.customer_email}</a>` : '–'}</div></div>
+      <div class="info-field"><div class="info-field-label">Telefon</div><div class="info-field-value">${c.customer_phone ? `<a href="tel:${c.customer_phone}" style="color:var(--brand-lav)">${c.customer_phone}</a>` : '–'}</div></div>
+      <div class="info-field"><div class="info-field-label">Eventdatum</div><div class="info-field-value">${fmtDate(c.event_date)}</div></div>
+      <div class="info-field" style="grid-column:1/-1"><div class="info-field-label">Plats / Adress</div><div class="info-field-value">${c.event_location || '–'}</div></div>
+    </div>
+
+    ${c.customer_message ? `
+    <div class="section-label">Kundens meddelande</div>
+    <div style="background:var(--bg);border-radius:8px;padding:1rem;font-size:0.9rem;line-height:1.6;font-family:'Source Sans 3',sans-serif;color:var(--text-muted)">
+      ${c.customer_message.replace(/\n/g,'<br>')}
+    </div>` : ''}
+
+    <div class="section-label">Tidsstämplar</div>
+    <div class="info-grid">
+      <div class="info-field"><div class="info-field-label">Skapad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.created_at)}</div></div>
+      <div class="info-field"><div class="info-field-label">Uppdaterad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.updated_at)}</div></div>
+      <div class="info-field"><div class="info-field-label">Kund senast aktiv</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.last_read_customer)}</div></div>
+      <div class="info-field"><div class="info-field-label">Utgår</div><div class="info-field-value" style="font-size:0.8rem;color:${c.expires_at ? 'var(--amber)' : 'var(--green)'}">${c.expires_at ? fmtDate(c.expires_at) : '♾ Bekräftad'}</div></div>
+    </div>
+
+    <div class="section-label">Intern anteckning (visas ej för kund)</div>
+    <textarea class="admin-note-area" id="admin-notes" placeholder="Anteckna priser, tillgänglighet, intern kommunikation...">${c.notes_admin || ''}</textarea>
+    <button class="btn-action" id="save-notes-btn" style="margin-top:0.75rem">💾 Spara anteckning</button>
+  `;
+}
+
+function renderProductsTab() {
+  const items = currentCart.items || [];
+  const total = items.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);
+  return `
+    <div class="section-label">Produkter (${items.length} st)</div>
+    ${items.length === 0 ? '<div class="empty-col">Inga produkter i varukorgen</div>' : `
+    <table class="product-table">
+      <thead><tr>
+        <th>Produkt</th><th style="text-align:center">Antal</th>
+        <th style="text-align:right">à-pris</th><th style="text-align:right">Summa</th>
+      </tr></thead>
+      <tbody>
+        ${items.map(i => {
+          const qty = i.qty || i.quantity || 1;
+          const sum = (i.price||0) * qty;
+          return `<tr>
+            <td>${i.name || '–'}<br><span style="color:var(--text-faint);font-size:0.75rem">${i.category||''} ${i.id ? '· '+i.id : ''}</span></td>
+            <td style="text-align:center">${qty}</td>
+            <td style="text-align:right">${fmt(i.price)} kr</td>
+            <td style="text-align:right;color:var(--brand-lav);font-weight:600">${fmt(sum)} kr</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot><tr class="total-row">
+        <td colspan="3">Totalt (exkl. moms)</td>
+        <td style="text-align:right">${fmt(total)} kr</td>
+      </tr>
+      <tr><td colspan="3" style="color:var(--text-faint);font-size:0.8rem">Inkl. 25% moms</td>
+        <td style="text-align:right;color:var(--text-muted);font-size:0.85rem">${fmt(Math.round(total*1.25))} kr</td>
+      </tr></tfoot>
+    </table>`}
+    <div style="margin-top:1.5rem;padding:1rem;background:var(--bg);border-radius:8px;font-size:0.82rem;color:var(--text-faint)">
+      💡 Produktredigering via adminpanel kommer i nästa version. Ändringar görs tills vidare direkt i Supabase.
+    </div>
+  `;
+}
+
+function renderChatTab() {
+  const body = $('panel-body');
+  const msgs = currentMessages;
+
+  const msgsHTML = msgs.length === 0
+    ? '<div class="chat-empty">Ingen chatt ännu.</div>'
+    : `<div class="chat-messages">${msgs.map(m => {
+        const readMark = m.sender === 'admin'
+          ? (m.read_at ? `<span class="read-check">✓✓</span> Läst ${fmtTime(m.read_at)}` : '⏳ Inte läst')
+          : (m.read_at ? `Läst ${fmtTime(m.read_at)}` : '');
+        return `
+          <div class="msg-wrap ${m.sender}">
+            <div class="msg-bubble">${m.body.replace(/\n/g,'<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" style="color:var(--brand-lav)">$1</a>')}</div>
+            <div class="msg-meta">
+              <span>${m.sender === 'admin' ? '👤 Du' : '🧑 Kund'} · ${fmtTime(m.created_at)}</span>
+              ${readMark ? `<span>${readMark}</span>` : ''}
+            </div>
+          </div>`;
+      }).join('')}</div>`;
+
+  body.innerHTML = `
+    ${msgsHTML}
+    <div class="section-label">Nytt meddelande till kund</div>
+    <div class="chat-input-wrap">
+      <textarea class="chat-textarea" id="chat-input" placeholder="Skriv ett meddelande… (Ctrl+Enter för att skicka)"></textarea>
+      <button class="chat-send-btn" id="chat-send-btn">Skicka till kund →</button>
+    </div>`;
+
+  // Scroll to bottom
+  setTimeout(() => {
+    const msgs = body.querySelector('.chat-messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    body.scrollTop = body.scrollHeight;
+  }, 50);
+}
+
+async function sendMessage() {
+  const input = $('chat-input');
+  const btn   = $('chat-send-btn');
+  const text  = input?.value.trim();
+  if (!text) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Skickar…';
+
+  const { ok, data } = await api('cart-message', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: currentCart.id, body: text })
+  });
+
+  if (ok) {
+    currentMessages.push({
+      id: data.message?.id || Date.now(),
+      cart_id: currentCart.id,
+      sender: 'admin',
+      body: text,
+      read_at: null,
+      created_at: new Date().toISOString()
+    });
+    input.value = '';
+    renderTab('chat');
+    toast('Meddelande skickat!');
+    loadCarts();
+  } else {
+    toast(data.error || 'Kunde inte skicka', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Skicka till kund →';
+  }
+}
+
+function renderLogTab() {
+  const logs = currentAudit;
+  if (logs.length === 0) return '<div class="empty-col" style="padding:3rem">Ingen logg ännu.</div>';
+  return `
+    <div class="section-label">Händelselogg (senaste 50)</div>
+    <div style="display:flex;flex-direction:column;gap:0.5rem">
+      ${logs.map(l => `
+        <div style="background:var(--bg);border-radius:8px;padding:0.75rem;display:flex;gap:1rem;align-items:flex-start">
+          <div style="font-size:0.75rem;color:var(--text-faint);white-space:nowrap;min-width:130px">${fmtTime(l.created_at)}</div>
+          <div>
+            <div style="font-size:0.85rem;font-weight:600">${l.event_type}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">${l.actor} ${l.payload && Object.keys(l.payload).length ? '· ' + JSON.stringify(l.payload) : ''}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderPanelFooter() {
+  const c = currentCart;
+  const footer = $('panel-footer');
+  footer.innerHTML = '';
+
+  const makeBtn = (label, cls, fn) => {
+    const b = document.createElement('button');
+    b.className = `btn-action ${cls}`;
+    b.textContent = label;
+    b.onclick = fn;
+    footer.appendChild(b);
+  };
+
+  if (c.status !== 'confirmed' && c.status !== 'cancelled') {
+    makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
+    makeBtn('📩 Skicka notis till kund', '', sendCustomerNotice);
+  }
+  if (c.status !== 'cancelled') {
+    makeBtn('❌ Avbryt order', 'btn-danger', cancelOrder);
+  }
+
+  // Cart link
+  if (c.cart_token) {
+    makeBtn('🔗 Kopiera kundlänk', '', () => {
+      const url = `https://scenkonsult.se/varukorg/?cart=${c.id}&token=${c.cart_token}`;
+      navigator.clipboard.writeText(url);
+      toast('Kundlänk kopierad!');
+    });
+  }
+}
+
+async function confirmOrder() {
+  if (!confirm('Bekräfta ordern? Status ändras till Orderbekräftelse och TTL tas bort.')) return;
+  const { ok } = await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: currentCart.id, status: 'confirmed' })
+  });
+  if (ok) {
+    currentCart.status = 'confirmed';
+    toast('Order bekräftad! ✅');
+    loadCarts();
+    renderTab('info');
+    renderPanelFooter();
+  } else toast('Fel vid bekräftelse', 'error');
+}
+
+async function cancelOrder() {
+  if (!confirm('Avbryt ordern? Den sparas i 90 dagar.')) return;
+  const { ok } = await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: currentCart.id, status: 'cancelled' })
+  });
+  if (ok) {
+    currentCart.status = 'cancelled';
+    toast('Order avbruten');
+    loadCarts();
+    renderTab('info');
+    renderPanelFooter();
+  } else toast('Fel vid avbrytning', 'error');
+}
+
+async function sendCustomerNotice() {
+  const msg = prompt('Meddelande till kund (skickas via e-post):');
+  if (!msg?.trim()) return;
+  const { ok } = await api('cart-message', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: currentCart.id, body: msg.trim() })
+  });
+  if (ok) {
+    toast('Notis skickad till kund! 📩');
+    currentMessages.push({
+      id: Date.now(), cart_id: currentCart.id,
+      sender: 'admin', body: msg.trim(),
+      read_at: null, created_at: new Date().toISOString()
+    });
+    if (activeTab === 'chat') renderTab('chat');
+  } else toast('Kunde inte skicka notis', 'error');
+}
+
+// ── PANEL CLOSE ───────────────────────────────────────────────
+$('panel-close').addEventListener('click', closePanel);
+$('detail-overlay').addEventListener('click', closePanel);
+document.addEventListener('keydown', e => e.key === 'Escape' && closePanel());
+
+function closePanel() {
+  $('detail-overlay').classList.remove('open');
+  $('detail-panel').classList.remove('open');
+  currentCart = null;
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────
+$('cal-prev').addEventListener('click',  () => { if (--calMonth < 0)  { calMonth = 11; calYear--; } renderCalendar(); });
+$('cal-next').addEventListener('click',  () => { if (++calMonth > 11) { calMonth = 0;  calYear++; } renderCalendar(); });
+$('cal-today').addEventListener('click', () => { calYear = new Date().getFullYear(); calMonth = new Date().getMonth(); renderCalendar(); });
+
+function renderCalendar() {
+  const months = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+  $('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth + 1, 0);
+  const today    = new Date();
+
+  // Mon=0 offset
+  let startDow = firstDay.getDay() - 1;
+  if (startDow < 0) startDow = 6;
+
+  const days = $('cal-days');
+  days.innerHTML = '';
+
+  const totalCells = Math.ceil((startDow + lastDay.getDate()) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    const dayOffset = i - startDow + 1;
+    const date = new Date(calYear, calMonth, dayOffset);
+    const isOther = dayOffset < 1 || dayOffset > lastDay.getDate();
+    const isToday = !isOther && date.toDateString() === today.toDateString();
+
+    const dateStr = date.toISOString().split('T')[0];
+    const dayCarts = carts.filter(c => c.event_date === dateStr && c.status !== 'cancelled');
+
+    const cell = document.createElement('div');
+    cell.className = `cal-day${isOther ? ' other-month' : ''}${isToday ? ' today' : ''}`;
+    cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>
+      ${dayCarts.map(c => `
+        <div class="cal-event s-${c.status}" data-id="${c.id}">
+          ${STATUS_LABELS[c.status]?.icon} ${c.customer_name || c.id}
+        </div>`).join('')}`;
+
+    cell.querySelectorAll('.cal-event').forEach(el => {
+      el.addEventListener('click', e => { e.stopPropagation(); openDetail(el.dataset.id); });
+    });
+    days.appendChild(cell);
+  }
+}
+
+// ── REFRESH ───────────────────────────────────────────────────
+$('refresh-btn').addEventListener('click', () => { loadCarts(); toast('Uppdaterat!'); });
+
+function startRefreshTimer() {
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(loadCarts, 30_000); // var 30 sek
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+checkAuth();
+</script>
+
+</body>
+</html>
