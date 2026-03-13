@@ -1,0 +1,232 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CategoryHero from '../components/CategoryHero.astro';
+import orter from '../data/orter.json';
+
+export async function getStaticPaths() {
+  return orter.map((ort) => ({
+    params: { ort: ort.slug },
+    props: { ort },
+  }));
+}
+
+const { ort } = Astro.props;
+
+const faq = [
+  {
+    q: `Levererar ni till ${ort.namn}?`,
+    a: `Ja, vi levererar till ${ort.namn} och hela Storstockholm. Från vårt lager i Vällingby är det ca ${ort.distans} och ${ort.distansMin} minuter till ${ort.namn}. Du kan också hämta utrustningen själv i Vällingby om du föredrar det.`
+  },
+  {
+    q: `Hur lång tid tar det att ställa upp utrustningen i ${ort.namn}?`,
+    a: `Ett standard PA-paket tar 30–60 minuter att rigga. En komplett scen med ljus och ljud tar 2–4 timmar beroende på storlek. Vi kan boka specifik leveranstid och hjälper gärna till med tips inför er installering.`
+  },
+  {
+    q: `Vad kostar leverans till ${ort.namn}?`,
+    a: `Leveransavgiften baseras på avstånd från Vällingby. För ${ort.namn} (ca ${ort.distans}) tillkommer ett frakttillägg — be om offert så räknar vi ut exakt kostnad för ert event. Hämtning i Vällingby är alltid kostnadsfritt.`
+  },
+  {
+    q: `Kan jag hyra för en kväll i ${ort.namn}?`,
+    a: `Absolut. Vår standardperiod är ett dygn (24 h), men vi erbjuder flexibla upplägg för kortare och längre hyresperioder. Kontakta oss eller lägg produkterna i varukorgen och begär offert — så löser vi det.`
+  }
+];
+
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "name": "Scenkonsult Norden",
+      "telephone": "+46724481000",
+      "url": `https://scenkonsult.se/hyra-ljud-scen-${ort.slug}/`,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Grimstagatan 164",
+        "addressLocality": "Vällingby",
+        "postalCode": "162 58",
+        "addressCountry": "SE"
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": ort.namn
+      },
+      "description": `Hyr scen, ljud och ljus i ${ort.namn}. Leverans från Vällingby på ca ${ort.distansMin} min. Professionell eventutrustning sedan 1986.`,
+      "openingHours": "Mo-Su 08:00-20:00",
+      "priceRange": "$$"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": faq.map(f => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      }))
+    }
+  ]
+};
+---
+
+<Layout
+  title={`Hyra Scen, Ljud & Ljus i ${ort.namn} | Scenkonsult Norden`}
+  description={`Hyr scen, PA-system, ljusutrustning och DJ-utrustning i ${ort.namn} — leverans från Vällingby på ca ${ort.distansMin} min. Eventutrustning sedan 1986. Ring 072-448 10 00.`}
+  schemaExtra={pageSchema}
+>
+
+  <CategoryHero
+    h1={`Hyra scen & ljud i`}
+    h1Accent={ort.namn}
+    intro={`Vi levererar professionell eventutrustning till ${ort.namn} och hela Storstockholm. Scen, PA-system, ljus och DJ-utrustning — hyrt av hundratals kunder sedan 1986. Från Vällingby till ${ort.namn} på ca ${ort.distansMin} minuter.`}
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: ort.namn }
+    ]}
+    badges={[
+      `Leverans till ${ort.namn} på ca ${ort.distansMin} min`,
+      "Scen, ljud, ljus & DJ",
+      "Hämtning i Vällingby kostnadsfritt",
+      "Öppet mån–sön 08–20"
+    ]}
+  />
+
+  <!-- Intro & beskrivning av orten -->
+  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Eventutrustning i {ort.namn}</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:white; margin:0 0 1.25rem; max-width:700px;">Professionell scen- och ljudutrustning — levererat till {ort.namn}</h2>
+      <p style="color:rgba(255,255,255,0.65); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.8; max-width:700px; margin:0 0 1.5rem;">
+        {ort.areaDesc}
+      </p>
+      <p style="color:rgba(255,255,255,0.65); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.8; max-width:700px; margin:0 0 3rem;">
+        Vi hyr ut scener, PA-system, ljusutrustning och DJ-utrustning till privatpersoner, företag och föreningar i {ort.namn}. Allt hyrs per dygn med möjlighet till leverans direkt till er eventplats.
+      </p>
+
+      <!-- Tjänster grid -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.25rem;">
+        {[
+          {
+            icon: "🎭",
+            title: "Scen & podium",
+            desc: `Modulscener i olika storlekar för event i ${ort.namn}. Från kompakt podium till fullskalig konsertscen.`,
+            link: "/vara-tjanster/hyra-scen/",
+            cta: "Se scener"
+          },
+          {
+            icon: "🔊",
+            title: "PA-system / Ljud",
+            desc: `Aktiva PA-system dimensionerade för er lokal i ${ort.namn}. Trådlösa mikrofoner, mixerbord och mer.`,
+            link: "/vara-tjanster/hyra-ljud/",
+            cta: "Se ljudpaket"
+          },
+          {
+            icon: "💡",
+            title: "Ljusutrustning",
+            desc: `Stämningsljus, moving heads, uplights och lasrar. Sätter rätt stämning på ert event i ${ort.namn}.`,
+            link: "/vara-tjanster/hyra-ljus/",
+            cta: "Se ljuspaket"
+          },
+          {
+            icon: "🎧",
+            title: "DJ-utrustning",
+            desc: `Kompletta DJ-set med mixerbord, CDJ:s och monitorhögtalare — eller hyr en av våra DJ:s.`,
+            link: "/vara-tjanster/hyra-dj/",
+            cta: "Se DJ-utrustning"
+          }
+        ].map(tj => (
+          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; gap:0.75rem;">
+            <span style="font-size:2rem;">{tj.icon}</span>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; font-weight:700; color:white; margin:0;">{tj.title}</h3>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; line-height:1.6; margin:0; flex:1;">{tj.desc}</p>
+            <a href={tj.link} style="display:inline-flex; align-items:center; gap:0.4rem; color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.85rem; font-weight:600; text-decoration:none;">
+              {tj.cta} →
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Eventbild + USP -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;">
+      <div>
+        <img
+          src={ort.image}
+          alt={ort.imageAlt}
+          style="width:100%; border-radius:16px; object-fit:cover; aspect-ratio:4/3;"
+          loading="lazy"
+        />
+      </div>
+      <div>
+        <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Varför Scenkonsult i {ort.namn}?</p>
+        <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 1.5rem;">Snabb leverans, hög kvalitet — sedan 1986</h2>
+        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:1rem;">
+          {[
+            `Lager i Vällingby — ca ${ort.distans} och ${ort.distansMin} min till ${ort.namn}`,
+            "Utrustning från ledande märken: RCF, Chauvet, Yamaha, Pioneer",
+            "Fri rådgivning — vi hjälper dig välja rätt setup för din lokal",
+            "Öppet måndag–söndag 08:00–20:00",
+            "Hämtning i Vällingby alltid kostnadsfritt",
+            "Tekniker tillgänglig om ni vill ha hjälp på plats (600 kr/tim)"
+          ].map(item => (
+            <li style="display:flex; gap:0.75rem; align-items:flex-start; color:rgba(255,255,255,0.7); font-size:0.95rem; line-height:1.5;">
+              <span style="color:#a3e635; flex-shrink:0; margin-top:2px;">✓</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Referenskunder -->
+  <section style="background:#111030; padding: clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px; margin:0 auto; text-align:center;">
+      <p style="color:rgba(255,255,255,0.45); font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Utvalda kunder vi levererat till i Storstockholm</p>
+      <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+        {["ICA Sverige", "Hornbach", "ABG Sundal Collier", "Houdini Sportswear", "Solna Stad", "Ung Företagsamhet", "Odd Fellow", "Kommunalarbetareförbundet"].map(k => (
+          <span style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:0.4rem 1rem; font-family:'Space Grotesk',sans-serif; font-size:0.82rem; color:rgba(255,255,255,0.6);">
+            {k}
+          </span>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:800px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem; text-align:center;">Vanliga frågor</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.6rem); color:white; text-align:center; margin:0 0 2.5rem;">Frågor om hyra i {ort.namn}</h2>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {faq.map((f, i) => (
+          <details style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.25rem 1.5rem;">
+            <summary style="font-family:'Space Grotesk',sans-serif; font-weight:600; color:white; font-size:1rem; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+              {f.q}
+              <span style="color:#c4b5f4; flex-shrink:0; font-size:1.2rem;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.65); font-size:0.95rem; line-height:1.75; margin:1rem 0 0;">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 100%); padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem); border-top:1px solid rgba(196,181,244,0.15);">
+    <div style="max-width:700px; margin:0 auto; text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:white; margin:0 0 1rem;">Boka utrustning till {ort.namn}</h2>
+      <p style="color:rgba(255,255,255,0.65); font-size:1rem; line-height:1.7; margin:0 0 2.5rem;">
+        Lägg produkterna i varukorgen och begär offert — vi svarar inom en arbetsdag. Eller ring oss direkt på 072-448 10 00 (öppet mån–sön 08–20).
+      </p>
+      <div style="display:flex; flex-wrap:wrap; gap:1rem; justify-content:center;">
+        <a href="/vara-tjanster/" style="background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; padding:0.9rem 2rem; border-radius:10px; text-decoration:none; font-size:1rem;">
+          Bläddra bland produkter →
+        </a>
+        <a href="/varukorg/" style="background:transparent; color:#c4b5f4; border:1px solid rgba(196,181,244,0.4); font-family:'Space Grotesk',sans-serif; font-weight:600; padding:0.9rem 2rem; border-radius:10px; text-decoration:none; font-size:1rem;">
+          Till varukorgen
+        </a>
+      </div>
+    </div>
+  </section>
+
+</Layout>
