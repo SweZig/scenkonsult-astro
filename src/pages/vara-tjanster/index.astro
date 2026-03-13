@@ -82,7 +82,7 @@ const kategorier = [
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
       {kategorier.map(k => (
-        <a href={k.href} class="group flex flex-col rounded-2xl p-6 transition-all border hover:border-opacity-40"
+        <div onclick={`window.location='${k.href}'`} class="group flex flex-col rounded-2xl p-6 transition-all border cursor-pointer hover:border-opacity-40"
            style="background:#1e1850;border-color:rgba(255,255,255,0.08)" 
            onmouseover="this.style.borderColor='rgba(196,181,244,0.35)'"
            onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
@@ -100,9 +100,9 @@ const kategorier = [
           <div class="flex flex-wrap gap-2 pt-4 border-t border-white/5">
             {k.tjanster.map(t => (
               typeof t === 'object' ? (
-                <button onclick={`event.stopPropagation();window.location='${t.href}'`} class="text-xs px-2.5 py-1 rounded-full transition-colors cursor-pointer hover:bg-brand-orange/20" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
+                <a href={t.href} onclick="event.stopPropagation()" class="text-xs px-2.5 py-1 rounded-full transition-colors hover:bg-brand-orange/20" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
                   {t.label}
-                </button>
+                </a>
               ) : (
                 <span class="text-xs px-2.5 py-1 rounded-full" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
                   {t}
@@ -110,8 +110,9 @@ const kategorier = [
               )
             ))}
           </div>
-        </a>
+        </div>
       ))}
+    </div>
     </div>
 
     <!-- USP-rad -->
