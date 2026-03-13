@@ -109,7 +109,7 @@ Varukorg:     /varukorg/
 Länkformat: [Scenpaket Medium](/vara-tjanster/hyra-scen/) — alltid med produktnamn som länktext.
 
 ═══ KONTAKTINFO ═══
-Tel: 072-448 10 00 (mån–sön 08–20)
+Tel: 072-448 10 00 (vardagar 09:00–17:00, jour vid pågående uthyrning)
 Adress: Grimstagatan 164, 162 58 Vällingby
 
 ═══ PRODUKTER & PRISER (alla EXKL. moms) ═══
