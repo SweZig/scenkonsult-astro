@@ -16,7 +16,12 @@ const kategorier = [
     href: "/vara-tjanster/hyra-ljud/",
     fran: "Offert",
     icon: "🔊",
-    tjanster: ["Event / tal & konferens", "Live / band & konsert", "Musik / DJ & dans", "Portabelt ljud"],
+    tjanster: [
+      { label: "Event / tal & konferens", href: "/vara-tjanster/hyra-ljud/event/" },
+      { label: "Live / band & konsert",   href: "/vara-tjanster/hyra-ljud/live/" },
+      { label: "Musik / DJ & dans",       href: "/vara-tjanster/hyra-ljud/music/" },
+      { label: "Portabelt ljud",          href: "/vara-tjanster/hyra-ljud/portable/" },
+    ],
   },
   {
     rubrik: "Ljus",
@@ -24,7 +29,12 @@ const kategorier = [
     href: "/vara-tjanster/hyra-ljus/",
     fran: "Offert",
     icon: "💡",
-    tjanster: ["Färdiga ljuspaket", "Lösa ljuseffekter", "Rök & pyroteknik", "Stativ & tross"],
+    tjanster: [
+      { label: "Färdiga ljuspaket",  href: "/vara-tjanster/hyra-ljus/fardiga-paket/" },
+      { label: "Lösa ljuseffekter",  href: "/vara-tjanster/hyra-ljus/ljuseffekter/" },
+      { label: "Rök & pyroteknik",   href: "/vara-tjanster/hyra-ljus/rok-pyro/" },
+      { label: "Stativ & tross",     href: "/vara-tjanster/hyra-ljus/stativ-tross/" },
+    ],
   },
   {
     rubrik: "Bild – Projektorer & Skärmar",
@@ -89,9 +99,15 @@ const kategorier = [
           <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-1">{k.beskrivning}</p>
           <div class="flex flex-wrap gap-2 pt-4 border-t border-white/5">
             {k.tjanster.map(t => (
-              <span class="text-xs px-2.5 py-1 rounded-full" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
-                {t}
-              </span>
+              typeof t === 'object' ? (
+                <a href={t.href} onclick="event.stopPropagation()" class="text-xs px-2.5 py-1 rounded-full transition-colors hover:bg-brand-orange/20" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
+                  {t.label}
+                </a>
+              ) : (
+                <span class="text-xs px-2.5 py-1 rounded-full" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
+                  {t}
+                </span>
+              )
             ))}
           </div>
         </a>
