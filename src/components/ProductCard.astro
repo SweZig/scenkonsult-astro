@@ -30,6 +30,10 @@ const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" itemprop="image" />
     </div>
   )}
+  {!image && <meta itemprop="image" content="https://scenkonsult.se/images/hero/scen3_hero.webp" />}
+  <!-- Product schema metadata -->
+  <meta itemprop="brand" content="Scenkonsult Norden" />
+  {!description && <meta itemprop="description" content={`Hyra ${name} från Scenkonsult Norden. Leverans i hela Storstockholm.`} />}
   {videoSrc && (
     <div class="bg-black" style="aspect-ratio:16/9">
       <video src={videoSrc} controls preload="none" class="w-full h-full" poster={image ?? undefined} />
@@ -73,6 +77,9 @@ const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       <meta itemprop="price" content={String(price)} />
       <meta itemprop="priceValidUntil" content="2027-12-31" />
       <meta itemprop="availability" content="https://schema.org/InStock" />
+      <meta itemprop="seller" content="Scenkonsult Norden" />
+      <link itemprop="hasMerchantReturnPolicy" href="https://scenkonsult.se/hyresvillkor/" />
+      <link itemprop="shippingDetails" href="https://scenkonsult.se/hyresvillkor/" />
       {typeof price === 'number' ? (
         <>
           <span class="text-brand-orange font-extrabold text-xl shrink-0">
