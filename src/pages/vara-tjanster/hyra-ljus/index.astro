@@ -87,6 +87,9 @@ const faqSchema = {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {ljusData.paket.products.map(p => (
           <article class="bg-brand-dark border border-white/10 hover:border-brand-orange/40 rounded-2xl p-5 transition-all" itemscope itemtype="https://schema.org/Product">
+            <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
+            <meta itemprop="brand" content="Scenkonsult Norden" />
+            <meta itemprop="description" content={p.tagline ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
             <span class="text-xs text-brand-orange font-bold uppercase tracking-wide">{p.guests}</span>
             <h3 class="font-bold text-white text-lg mt-1 mb-1" itemprop="name">{p.name}</h3>
             <p class="text-gray-400 text-xs mb-3">{p.tagline}</p>
@@ -100,6 +103,8 @@ const faqSchema = {
               <meta itemprop="price" content={String(p.price)} />
               <meta itemprop="priceValidUntil" content="2027-12-31" />
               <meta itemprop="availability" content="https://schema.org/InStock" />
+              <link itemprop="hasMerchantReturnPolicy" href="https://scenkonsult.se/hyresvillkor/" />
+              <link itemprop="shippingDetails" href="https://scenkonsult.se/hyresvillkor/" />
               <div>
                 <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" suffix={p.priceNote} /></span>
                 

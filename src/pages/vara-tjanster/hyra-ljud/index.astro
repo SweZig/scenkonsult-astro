@@ -103,8 +103,10 @@ const extraFaq = [
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       {[...ljudData.event.products.slice(0,1), ...ljudData.music.products.slice(0,1), ...ljudData.live.products.slice(0,1)].map(p => (
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group" itemscope itemtype="https://schema.org/Product">
+          <meta itemprop="brand" content="Scenkonsult Norden" />
+          <meta itemprop="description" content={p.tagline ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
           <div class="aspect-video bg-brand-dark overflow-hidden">
-            <img src={p.image} alt={p.alt} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <img src={p.image} alt={p.alt} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" itemprop="image" />
           </div>
           <div class="p-5">
             <h3 class="font-bold text-white text-lg mb-1 group-hover:text-brand-orange transition-colors" itemprop="name">{p.name}</h3>
@@ -120,6 +122,8 @@ const extraFaq = [
               <meta itemprop="price" content={String(p.price)} />
               <meta itemprop="priceValidUntil" content="2027-12-31" />
               <meta itemprop="availability" content="https://schema.org/InStock" />
+              <link itemprop="hasMerchantReturnPolicy" href="https://scenkonsult.se/hyresvillkor/" />
+              <link itemprop="shippingDetails" href="https://scenkonsult.se/hyresvillkor/" />
               <div class="leading-none">
                 <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{p.price.toLocaleString('sv-SE')} kr</span>
                 <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
