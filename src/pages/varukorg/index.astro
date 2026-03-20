@@ -535,6 +535,16 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   const FRAKT = JSON.parse(fraktRules);
   const fmt = n => n.toLocaleString('sv') + ' kr';
   const SK_TTL = 21 * 24 * 60 * 60 * 1000;
+
+  // Fallback-bilder för produkter utan image-fält (t.ex. från admin-offert)
+  const PROD_IMG = {"small":"/images/scen/pp_small.png","small-plus":"/images/scen/pp_small_plus.png","small-plusplus":"/images/scen/pp_small_pp.png","medium":"/images/scen/pp_medium.png","medium-plus":"/images/scen/pp_medium_plus.png","medium-plus-tak":"/images/scen/pp_medium_plus_tak.png","medium-plusplus":"/images/scen/pp_medium_pp.png","large":"/images/scen/pp_large.png","large-plus":"/images/scen/pp_large_plus.png","large-plus-tak":"/images/scen/pp_large_plus_tak.png","xl":"/images/scen/pp_xl.png","xl-plus":"/images/scen/pp_xl_plus.png","event-small":"/images/ljud/pp_ljud_event_small.png","event-small-plus":"/images/ljud/pp_ljud_event_small-.png","event-medium":"/images/ljud/pp_ljud_event_medium.png","event-medium-plus":"/images/ljud/pp_ljud_event_medium-.png","event-large":"/images/ljud/pp_ljud_event_large.png","portable-small":"/images/ljud/pp_ljud_portable_small.png","portable-medium":"/images/ljud/pp_ljud_portable_medium.png","portable-medium-plus":"/images/ljud/pp_ljud_portable_medium_.png","portable-large":"/images/ljud/pp_ljud_portable_large.png","music-small":"/images/ljud/pp_ljud_music_small.png","music-small-plus":"/images/ljud/pp_ljud_music_small-.png","music-medium":"/images/ljud/pp_ljud_music_medium.png","music-large":"/images/ljud/pp_ljud_music_large.png","live-small":"/images/ljud/pp_ljud_live_small.png","live-medium":"/images/ljud/pp_ljud_live_medium.png","live-large":"/images/ljud/pp_ljud_live_large.png","mixer-2-2":"/images/ljud/pp_ljud_mixer01.png","mixer-4-2":"/images/ljud/pp_ljud_mixer02.png","mixer-4-4":"/images/ljud/pp_ljud_mixer03.png","mixer-12-4":"/images/ljud/pp_ljud_mixer05.png","dj-controller-numark":"/images/dj/pp_DJ_small.png","dj-controller-denon-go":"/images/dj/pp_DJ_denon_go_plus.png","dj-controller-denon-prime4":"/images/dj/pp_DJ_large1.png","dj-rane-system-one":"/images/dj/pp_DJ_large2.png","dj-bord":"/images/dj/pp_DJ_bord.png","projektor-xga":"/images/bild/pp_bild_projektor.png","projektor-fhd":"/images/bild/pp_bild_projektor1.png","skarm-65":"/images/bild/pp_bild_65-skarm.png","skarm-75":"/images/bild/pp_bild_75-skarm.png","stativ-400":"/images/ljus/pp_ljus_stativ06.png","stativ-1200":"/images/ljus/pp_ljus_stativ_1200.png","tross-1m":"/images/ljus/pp_ljus_tross01.png","ljus-small":"/images/ljus/pp_ljus_small.png","ljus-medium":"/images/ljus/pp_ljus_medium.png","ljus-large":"/images/ljus/pp_ljus_large.png","rokmaskin-1500":"/images/ljus/pp_ljus_rokmaskin.png","rokmaskin-650":"/images/ljus/pp_ljus_rokmaskin650.png"};
+
+  function _getImg(item) {
+    if (item.image) return item.image;
+    // Försök med exakt id, annars stripped prefix (scen-small → small, ljud-event-small → event-small)
+    const id = item.id || '';
+    return PROD_IMG[id] || PROD_IMG[id.replace(/^(scen-|ljud-|ljus-|dj-utr-)/,'')] || '';
+  }
   function _genCartId() { const h=()=>Math.random().toString(16).slice(2,6).toUpperCase(); return `SK-${h()}${h()}-${h()}`; }
   function _getCartData() {
     try {
@@ -646,18 +656,20 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     contentEl.style.display = 'block';
 
     const tbody = document.getElementById('cartTableBody');
-    tbody.innerHTML = cart.map(item => `
+    tbody.innerHTML = cart.map(item => {
+      const imgSrc = _getImg(item);
+      return `
       <tr data-id="${item.id}">
         <td>
           <div class="cart-product">
-            ${item.image
-              ? `<img class="cart-thumb" src="${item.image}" alt="${item.name}" loading="lazy" width="72" height="60" onerror="this.style.display='none'">`
+            ${imgSrc
+              ? `<img class="cart-thumb" src="${imgSrc}" alt="${item.name}" loading="lazy" width="72" height="60" onerror="this.style.display='none'">`
               : `<div class="cart-thumb-ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>`
             }
             <div class="cart-product-text">
               <div class="cart-pname">${item.name}</div>
-              <div class="cart-pcat">${item.category}</div>
-              <div class="cart-pnote">${item.priceNote}</div>
+              <div class="cart-pcat">${item.category || ''}</div>
+              <div class="cart-pnote">${item.priceNote || '/dygn'}</div>
             </div>
           </div>
         </td>
@@ -680,7 +692,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
           </button>
         </td>
       </tr>
-    `).join('');
+    `}).join('');
 
     tbody.querySelectorAll('.qty-btn').forEach(btn => {
       btn.addEventListener('click', () => {
