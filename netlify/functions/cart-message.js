@@ -104,7 +104,7 @@ exports.handler = async (event) => {
 
     // ── Notiser ───────────────────────────────────────────────
     const cartUrl = cart.cart_token
-      ? `https://scenkonsult.se/varukorg/?cart=${cart.id}&token=${cart.cart_token}`
+      ? `https://scenkonsult.se/order/?cart=${cart.id}&token=${cart.cart_token}`
       : null;
 
     if (!admin && cart.customer_email !== null) {
@@ -130,8 +130,8 @@ exports.handler = async (event) => {
         <h2 style="color:#1e1850;margin:0 0 16px;">Svar från Scenkonsult Norden</h2>
         <p style="color:#555;margin:0 0 8px;">Vi har skickat ett meddelande angående din offert/bokning:</p>
         <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${msgText.replace(/\n/g, '<br>')}</div>
-        ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Öppna din varukorg →</a></p>` : ''}
-        <p style="color:#888;font-size:13px;margin:24px 0 0;">Svara direkt i varukorgen via länken ovan.</p>
+        ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Svara på meddelandet →</a></p>` : ''}
+        <p style="color:#888;font-size:13px;margin:16px 0 0;">Via länken kan du se ditt orderförslag, svara och följa status.</p>
       `);
       await sendMail(
         cart.customer_email,
