@@ -55,11 +55,16 @@ const extraFaq = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-8">Välj kategori</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {ljudData.categories.map((cat, i) => (
+      {ljudData.categories.map((cat) => (
         <a href={cat.href} class="bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group block">
-          <div class={`h-28 bg-gradient-to-br ${categoryGradients[i]} bg-brand-dark flex items-center justify-center relative overflow-hidden`}>
-            <span class="text-5xl text-brand-orange/30 group-hover:text-brand-orange/50 transition-colors select-none font-bold tracking-tighter">{categoryIcons[i]}</span>
-            <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle at 30% 50%, rgba(196,181,244,0.4) 0%, transparent 70%)"></div>
+          <div class="h-40 bg-brand-dark overflow-hidden relative">
+            <img
+              src={cat.image}
+              alt={cat.name}
+              width="600" height="333"
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
           </div>
           <div class="p-5">
             <h3 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors mb-2">{cat.name}</h3>
