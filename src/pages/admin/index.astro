@@ -515,48 +515,72 @@
 
 <!-- ── OFFERT-MODAL ──────────────────────────────────────────── -->
 <div class="modal-overlay" id="quote-overlay">
-  <div class="modal">
+  <div class="modal" style="max-width:640px">
     <div class="modal-head">
       <div class="modal-title">✉ Skicka offert till kund</div>
       <button class="panel-close" id="quote-close">✕</button>
     </div>
     <div class="modal-body" id="quote-body">
-      <div style="margin-bottom:1rem">
-        <div class="section-label" style="margin-top:0">Kunduppgifter</div>
-        <div class="form-row">
-          <div><label class="form-label">Namn *</label><input class="form-input" id="qc-name" placeholder="För- och efternamn" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-          <div><label class="form-label">E-post *</label><input class="form-input" type="email" id="qc-email" placeholder="kund@exempel.se" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        </div>
-        <div class="form-row">
-          <div><label class="form-label">Telefon</label><input class="form-input" id="qc-phone" placeholder="070 000 00 00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-          <div><label class="form-label">Eventdatum</label><input class="form-input" type="date" id="qc-date" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        </div>
-        <div class="form-row full">
-          <div><label class="form-label">Plats / Adress</label><input class="form-input" id="qc-location" placeholder="Lokal eller adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        </div>
+
+      <!-- Kunduppgifter -->
+      <div class="section-label" style="margin-top:0">Kunduppgifter</div>
+      <div class="form-row">
+        <div><label class="form-label">Namn *</label><input class="form-input" id="qc-name" placeholder="För- och efternamn" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div><label class="form-label">E-post *</label><input class="form-input" type="email" id="qc-email" placeholder="kund@exempel.se" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+      </div>
+      <div class="form-row">
+        <div><label class="form-label">Telefon</label><input class="form-input" id="qc-phone" placeholder="070 000 00 00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div><label class="form-label">Eventdatum</label><input class="form-input" type="date" id="qc-date" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+      </div>
+      <div class="form-row full" style="margin-bottom:0">
+        <div><label class="form-label">Plats / Adress</label><input class="form-input" id="qc-location" placeholder="Lokal eller adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
       </div>
 
-      <div class="section-label">Produkter</div>
+      <!-- Produktväljare -->
+      <div class="section-label">Lägg till produkter</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.5rem;align-items:end;margin-bottom:0.75rem" id="quote-picker-row">
+        <div>
+          <label class="form-label">Kategori</label>
+          <select id="qp-cat" onchange="quotePickerCat()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.55rem 0.75rem;font-family:inherit;font-size:0.82rem">
+            <option value="">— välj —</option>
+          </select>
+        </div>
+        <div id="qp-sub-wrap" style="display:none">
+          <label class="form-label">Underkategori</label>
+          <select id="qp-sub" onchange="quotePickerSub()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.55rem 0.75rem;font-family:inherit;font-size:0.82rem">
+            <option value="">— välj —</option>
+          </select>
+        </div>
+        <div id="qp-prod-wrap">
+          <label class="form-label">Produkt</label>
+          <select id="qp-prod" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.55rem 0.75rem;font-family:inherit;font-size:0.82rem">
+            <option value="">— välj kategori —</option>
+          </select>
+        </div>
+        <button class="btn-action btn-success" onclick="quotePickerAdd()" style="height:34px;padding:0 0.75rem;font-size:0.82rem;white-space:nowrap">＋ Lägg till</button>
+      </div>
+
+      <!-- Produkttabell -->
       <table class="quote-prod-table" id="quote-prod-table">
         <thead><tr>
-          <th style="width:auto">Produkt / Tjänst</th>
-          <th style="width:70px;text-align:center">Antal</th>
+          <th>Produkt / Tjänst</th>
+          <th style="width:80px;text-align:center">Antal</th>
           <th style="width:100px;text-align:right">à-pris (kr)</th>
+          <th style="width:80px;text-align:right">Summa</th>
           <th style="width:28px"></th>
         </tr></thead>
-        <tbody id="quote-prod-tbody">
-          <!-- rader läggs till av JS -->
-        </tbody>
+        <tbody id="quote-prod-tbody"></tbody>
+        <tfoot id="quote-prod-tfoot"></tfoot>
       </table>
-      <button class="btn-sm" onclick="quoteAddRow()" style="margin-bottom:1rem;border-color:var(--border-lav)">＋ Lägg till rad</button>
 
-      <div class="section-label">Anmärkning (synlig för kunden)</div>
+      <!-- Anmärkning -->
+      <div class="section-label" style="margin-top:1rem">Anmärkning (synlig för kunden)</div>
       <textarea class="form-input" id="qc-note" rows="3" placeholder="Leveransinfo, villkor, övrigt..." style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;resize:vertical;min-height:70px"></textarea>
 
       <div id="quote-error" style="display:none;margin-top:0.75rem;padding:0.75rem;background:var(--red-bg);border-radius:8px;color:var(--red);font-size:0.85rem"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn-action" id="quote-cancel-btn" onclick="closeQuoteModal()">Avbryt</button>
+      <button class="btn-action" onclick="closeQuoteModal()">Avbryt</button>
       <button class="btn-action btn-success" id="quote-send-btn" onclick="sendQuote()">✉ Skicka offert</button>
     </div>
   </div>
@@ -1235,6 +1259,7 @@ function renderPanelFooter() {
   if (c.status !== 'confirmed' && c.status !== 'cancelled') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
     makeBtn('📩 Skicka notis till kund', '', sendCustomerNotice);
+    makeBtn('✉ Skicka offert', '', () => openQuoteModalForCart(c));
   }
   if (c.status !== 'cancelled') {
     makeBtn('❌ Avbryt order', 'btn-danger', cancelOrder);
@@ -1299,70 +1324,223 @@ async function sendCustomerNotice() {
 }
 
 // ── OFFERT-MODAL ──────────────────────────────────────────────
-$('new-quote-btn').addEventListener('click', openQuoteModal);
+// Produktkatalog — kategori → (sub →) produkter med pris
+const QUOTE_CATALOG = {
+  'Scen': { products: [
+    {id:'small',name:'Scenpaket Small',price:599},{id:'small-plus',name:'Scenpaket Small+',price:899},
+    {id:'small-plusplus',name:'Scenpaket Small++',price:1199},{id:'medium',name:'Scenpaket Medium',price:1499},
+    {id:'medium-plus',name:'Scenpaket Medium+',price:1799},{id:'medium-plusplus',name:'Scenpaket Medium++',price:2399},
+    {id:'medium-plus-tak',name:'Scenpaket Medium+ inkl. scentak',price:3799},
+    {id:'large',name:'Scenpaket Large',price:2999},{id:'large-plus',name:'Scenpaket Large+',price:3599},
+    {id:'large-plus-tak',name:'Scenpaket Large+ inkl. scentak',price:11999},
+    {id:'xl',name:'Scenpaket XL',price:5399},{id:'xl-plus',name:'Scenpaket XL+',price:7199},
+  ]},
+  'Ljud': { sub: {
+    'Portable': [
+      {id:'portable-small',name:'Portable, Small',price:599},{id:'portable-small-plus',name:'Portable, Small+',price:699},
+      {id:'portable-medium',name:'Portable, Medium',price:799},{id:'portable-medium-plus',name:'Portable, Medium+',price:999},
+      {id:'portable-large',name:'Portable, Large',price:1199},
+    ],
+    'Event': [
+      {id:'event-small',name:'Event, Small',price:799},{id:'event-small-plus',name:'Event, Small+',price:1199},
+      {id:'event-medium',name:'Event, Medium',price:1599},{id:'event-medium-plus',name:'Event, Medium+',price:2299},
+      {id:'event-large',name:'Event, Large',price:3199},
+    ],
+    'Music': [
+      {id:'music-small',name:'Music, Small',price:999},{id:'music-small-plus',name:'Music, Small+',price:1299},
+      {id:'music-medium',name:'Music, Medium',price:1799},{id:'music-medium-plus',name:'Music, Medium+',price:2399},
+    ],
+    'Live': [
+      {id:'live-small',name:'Live, Small',price:599},{id:'live-medium',name:'Live, Medium',price:1199},
+      {id:'live-large',name:'Live, Large',price:1999},
+    ],
+  }},
+  'Ljus': { sub: {
+    'Färdiga paket': [
+      {id:'ljuspaket-small',name:'Ljuspaket, Small',price:399},{id:'ljuspaket-small-plus',name:'Ljuspaket, Small+',price:599},
+      {id:'ljuspaket-medium',name:'Ljuspaket, Medium',price:799},{id:'ljuspaket-medium-plus',name:'Ljuspaket, Medium+',price:999},
+      {id:'ljuspaket-large',name:'Ljuspaket, Large',price:1299},{id:'ljuspaket-large-plus',name:'Ljuspaket, Large+',price:1699},
+    ],
+    'Rök & pyro': [
+      {id:'rokmaskin-1500',name:'Rökmaskin (1500W)',price:349},{id:'rokmaskin-650',name:'Rökmaskin (650W)',price:449},
+      {id:'kallgnist',name:'Kallgnistmaskin',price:499},{id:'konfetti',name:'Konfettiavfyrare',price:499},
+      {id:'hagel-rok',name:'Hagelrök',price:199},
+    ],
+    'Stativ & tross': [
+      {id:'stativ-400',name:'Stativ med T-bar (400 mm)',price:40},{id:'stativ-1200',name:'Stativ med T-bar (1200 mm)',price:40},
+      {id:'tross-3m',name:'Tross 3m',price:299},{id:'tross-6m',name:'Tross 6m',price:499},
+    ],
+  }},
+  'Projektor & skärm': { products: [
+    {id:'projektor-xga',name:'Projektor (XGA)',price:299},{id:'projektor-fhd',name:'Projektor (Full HD)',price:499},
+    {id:'projektor-4k',name:'Projektor (4K)',price:799},{id:'duk-100',name:'Duk 100"',price:149},
+    {id:'skarm-55',name:'Skärm 55"',price:499},{id:'skarm-75',name:'Skärm 75"',price:799},
+  ]},
+  'DJ-utrustning': { products: [
+    {id:'dj-numark',name:'DJ-controller Numark Mixstream Pro+',price:799},
+    {id:'dj-denon-go',name:'DJ-controller Denon Prime GO+',price:999},
+    {id:'dj-denon-4',name:'DJ-controller Denon Prime 4+',price:1299},
+    {id:'dj-rane',name:'DJ-system Rane System One',price:1799},
+  ]},
+  'Tillägg': { products: [
+    {id:'lev-standard',name:'Leverans & upphämtning (standard)',price:1118},
+    {id:'lev-skrymmande',name:'Leverans & upphämtning (skrymmande)',price:1598},
+    {id:'rigg-teknik',name:'Teknikertjänst på plats (per tim)',price:600},
+    {id:'faktura',name:'Fakturaavgift',price:49},
+    {id:'montering',name:'Montering & demontering (per tim)',price:600},
+  ]},
+};
+
+$('new-quote-btn').addEventListener('click', () => openQuoteModal(null));
 $('quote-close').addEventListener('click', closeQuoteModal);
 $('quote-overlay').addEventListener('click', e => { if (e.target === $('quote-overlay')) closeQuoteModal(); });
 
-let quoteRowIdx = 0;
+let quoteItems = []; // { id, name, price, qty }
 
-function openQuoteModal() {
-  quoteRowIdx = 0;
-  $('qc-name').value = '';
-  $('qc-email').value = '';
-  $('qc-phone').value = '';
-  $('qc-date').value = '';
-  $('qc-location').value = '';
-  $('qc-note').value = '';
+function openQuoteModal(prefill) {
+  quoteItems = [];
+  $('qc-name').value     = prefill?.customer_name || '';
+  $('qc-email').value    = prefill?.customer_email || '';
+  $('qc-phone').value    = prefill?.customer_phone || '';
+  $('qc-date').value     = prefill?.event_date || '';
+  $('qc-location').value = prefill?.event_location || '';
+  $('qc-note').value     = '';
   $('quote-error').style.display = 'none';
-  $('quote-prod-tbody').innerHTML = '';
-  quoteAddRow(); // en tom rad direkt
+  $('quote-send-btn').disabled = false;
+  $('quote-send-btn').textContent = '✉ Skicka offert';
+
+  // Pre-fill items from existing cart
+  if (prefill?.items?.length) {
+    prefill.items.filter(i => !i._note).forEach(i => {
+      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1 });
+    });
+    const note = prefill.items.find(i => i._note);
+    if (note) $('qc-note').value = note.name;
+  }
+
+  // Init picker
+  const catSel = $('qp-cat');
+  catSel.innerHTML = '<option value="">— välj kategori —</option>' +
+    Object.keys(QUOTE_CATALOG).map(k => `<option value="${k}">${k}</option>`).join('');
+  $('qp-sub-wrap').style.display = 'none';
+  $('qp-prod').innerHTML = '<option value="">— välj kategori —</option>';
+
+  quoteRenderTable();
   $('quote-overlay').classList.add('open');
   $('qc-name').focus();
+}
+
+function openQuoteModalForCart(cart) {
+  openQuoteModal(cart);
 }
 
 function closeQuoteModal() {
   $('quote-overlay').classList.remove('open');
 }
 
-function quoteAddRow() {
-  const idx = quoteRowIdx++;
+function quotePickerCat() {
+  const cat = $('qp-cat').value;
+  const entry = QUOTE_CATALOG[cat];
+  const subWrap = $('qp-sub-wrap');
+  const prodSel = $('qp-prod');
+
+  if (!entry) {
+    subWrap.style.display = 'none';
+    prodSel.innerHTML = '<option value="">— välj kategori —</option>';
+    return;
+  }
+
+  if (entry.sub) {
+    // Has sub-categories
+    const subSel = $('qp-sub');
+    subSel.innerHTML = '<option value="">— välj underkategori —</option>' +
+      Object.keys(entry.sub).map(k => `<option value="${k}">${k}</option>`).join('');
+    subWrap.style.display = '';
+    prodSel.innerHTML = '<option value="">— välj underkategori —</option>';
+  } else {
+    subWrap.style.display = 'none';
+    quotePopulateProducts(entry.products);
+  }
+}
+
+function quotePickerSub() {
+  const cat = $('qp-cat').value;
+  const sub = $('qp-sub').value;
+  const entry = QUOTE_CATALOG[cat];
+  if (!entry?.sub || !sub) return;
+  quotePopulateProducts(entry.sub[sub] || []);
+}
+
+function quotePopulateProducts(prods) {
+  const prodSel = $('qp-prod');
+  prodSel.innerHTML = '<option value="">— välj produkt —</option>' +
+    prods.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name.replace(/"/g,'&quot;')}">${p.name} — ${p.price.toLocaleString('sv')} kr</option>`).join('');
+}
+
+function quotePickerAdd() {
+  const prodSel = $('qp-prod');
+  const opt = prodSel.options[prodSel.selectedIndex];
+  if (!opt || !opt.value) { return; }
+  const name  = opt.dataset.name || opt.textContent.split(' — ')[0];
+  const price = parseInt(opt.dataset.price) || 0;
+  const id    = opt.value;
+
+  // If same product already in list, increment qty
+  const existing = quoteItems.find(i => i.id === id && i.name === name);
+  if (existing) { existing.qty++; }
+  else { quoteItems.push({ id, name, price, qty: 1 }); }
+
+  quoteRenderTable();
+  // Reset product selector
+  prodSel.selectedIndex = 0;
+}
+
+function quoteRenderTable() {
   const tbody = $('quote-prod-tbody');
-  const tr = document.createElement('tr');
-  tr.dataset.qidx = idx;
-  tr.innerHTML = `
-    <td><input class="prod-input" value="" placeholder="Produktnamn / tjänst" data-qfield="name" data-qidx="${idx}" style="width:100%;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid transparent;padding:0.25rem 0.4rem;"></td>
-    <td style="text-align:center">
-      <div style="display:flex;align-items:center;justify-content:center;gap:3px">
-        <button class="qty-btn" onclick="quoteQty(${idx},-1)" style="width:22px;height:22px;font-size:0.9rem">−</button>
-        <input class="prod-input" value="1" data-qfield="qty" data-qidx="${idx}" style="width:36px;text-align:center;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid transparent;padding:0.25rem 0.2rem;">
-        <button class="qty-btn" onclick="quoteQty(${idx},1)" style="width:22px;height:22px;font-size:0.9rem">＋</button>
-      </div>
-    </td>
-    <td style="text-align:right">
-      <input class="prod-input" value="" placeholder="0" data-qfield="price" data-qidx="${idx}" style="width:84px;text-align:right;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid transparent;padding:0.25rem 0.4rem;">
-    </td>
-    <td>
-      <button class="qty-btn" style="color:var(--red);border-color:var(--red);width:22px;height:22px" onclick="quoteDelRow(${idx})" title="Ta bort">×</button>
-    </td>`;
-  tbody.appendChild(tr);
-  tr.querySelector('[data-qfield="name"]').focus();
+  const tfoot = $('quote-prod-tfoot');
+  if (!tbody) return;
+  tbody.innerHTML = quoteItems.map((item, idx) => `
+    <tr data-qidx="${idx}">
+      <td style="font-size:0.82rem">${item.name}</td>
+      <td style="text-align:center">
+        <div style="display:flex;align-items:center;justify-content:center;gap:3px">
+          <button class="qty-btn" onclick="quoteQtyIdx(${idx},-1)" style="width:22px;height:22px;font-size:0.9rem">−</button>
+          <span style="min-width:24px;text-align:center;font-size:0.82rem">${item.qty}</span>
+          <button class="qty-btn" onclick="quoteQtyIdx(${idx},1)" style="width:22px;height:22px;font-size:0.9rem">＋</button>
+        </div>
+      </td>
+      <td style="text-align:right">
+        <input class="prod-input" value="${item.price}" onchange="quoteEditPrice(${idx},this.value)"
+          style="width:80px;text-align:right;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid transparent;padding:0.2rem 0.4rem;">
+      </td>
+      <td style="text-align:right;font-size:0.82rem;font-weight:600;color:var(--brand-lav)">${fmt(item.price * item.qty)} kr</td>
+      <td><button class="qty-btn" style="color:var(--red);border-color:var(--red);width:22px;height:22px" onclick="quoteDelIdx(${idx})">×</button></td>
+    </tr>`).join('');
+
+  const total = quoteItems.reduce((s,i) => s + i.price * i.qty, 0);
+  tfoot.innerHTML = quoteItems.length
+    ? `<tr><td colspan="3" style="font-weight:700;padding-top:0.5rem;font-size:0.82rem">Totalt (exkl. moms)</td>
+       <td style="text-align:right;font-weight:700;color:var(--brand-lav);font-size:0.82rem">${fmt(total)} kr</td><td></td></tr>
+       <tr><td colspan="3" style="color:var(--text-faint);font-size:0.72rem">Inkl. 25% moms</td>
+       <td style="text-align:right;color:var(--text-muted);font-size:0.72rem">${fmt(Math.round(total*1.25))} kr</td><td></td></tr>`
+    : '';
 }
 
-function quoteQty(idx, delta) {
-  const inp = document.querySelector(`[data-qfield="qty"][data-qidx="${idx}"]`);
-  if (inp) inp.value = Math.max(1, (parseInt(inp.value)||1) + delta);
+function quoteQtyIdx(idx, delta) {
+  if (!quoteItems[idx]) return;
+  quoteItems[idx].qty = Math.max(1, quoteItems[idx].qty + delta);
+  quoteRenderTable();
 }
 
-function quoteDelRow(idx) {
-  const tr = document.querySelector(`[data-qidx="${idx}"]`);
-  if (tr) tr.remove();
+function quoteEditPrice(idx, val) {
+  if (!quoteItems[idx]) return;
+  quoteItems[idx].price = parseFloat(val) || 0;
+  quoteRenderTable();
 }
 
-function quoteGetItems() {
-  return Array.from(document.querySelectorAll('#quote-prod-tbody tr[data-qidx]')).map(tr => {
-    const get = f => tr.querySelector(`[data-qfield="${f}"]`)?.value?.trim() || '';
-    return { name: get('name'), qty: parseInt(get('qty'))||1, price: parseFloat(get('price'))||0, id: '', category: '' };
-  }).filter(i => i.name);
+function quoteDelIdx(idx) {
+  quoteItems.splice(idx, 1);
+  quoteRenderTable();
 }
 
 async function sendQuote() {
@@ -1373,9 +1551,7 @@ async function sendQuote() {
 
   if (!name)  { errEl.textContent = 'Namn krävs.'; errEl.style.display = 'block'; $('qc-name').focus(); return; }
   if (!email || !email.includes('@')) { errEl.textContent = 'Giltig e-post krävs.'; errEl.style.display = 'block'; $('qc-email').focus(); return; }
-
-  const items = quoteGetItems();
-  if (items.length === 0) { errEl.textContent = 'Lägg till minst en produkt.'; errEl.style.display = 'block'; return; }
+  if (quoteItems.length === 0) { errEl.textContent = 'Lägg till minst en produkt.'; errEl.style.display = 'block'; return; }
 
   const btn = $('quote-send-btn');
   btn.disabled = true; btn.textContent = '⏳ Skickar…';
@@ -1387,7 +1563,7 @@ async function sendQuote() {
       date:     $('qc-date').value || null,
       location: $('qc-location').value.trim() || null,
     },
-    items,
+    items: quoteItems,
     note: $('qc-note').value.trim() || null,
   };
 
@@ -1398,14 +1574,15 @@ async function sendQuote() {
       toast(`Offert skickad till ${email}! 🎉`);
       loadCarts();
     } else {
-      errEl.textContent = data.error || 'Kunde inte skicka offert.';
+      errEl.textContent = data?.error || 'Kunde inte skicka offert.';
       errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = '✉ Skicka offert';
     }
   } catch (e) {
     errEl.textContent = 'Nätverksfel — försök igen.';
     errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = '✉ Skicka offert';
   }
-  btn.disabled = false; btn.textContent = '✉ Skicka offert';
 }
 
 // ── PANEL CLOSE ───────────────────────────────────────────────
@@ -1477,22 +1654,26 @@ function startRefreshTimer() {
 checkAuth();
 
 // Exponera funktioner som används i onclick-attribut i dynamisk innerHTML
-window.prodQty      = prodQty;
-window.prodDelete   = prodDelete;
-window.prodAddRow   = prodAddRow;
-window.prodSave     = prodSave;
-window.renderTab    = renderTab;
-window.openPanel    = openPanel;
-window.closePanel   = closePanel;
-window.sendMessage  = sendMessage;
-window.confirmOrder = confirmOrder;
-window.cancelOrder  = cancelOrder;
-window.notifyCustomer = sendCustomerNotice;
-window.quoteAddRow  = quoteAddRow;
-window.quoteQty     = quoteQty;
-window.quoteDelRow  = quoteDelRow;
-window.sendQuote    = sendQuote;
+window.prodQty         = prodQty;
+window.prodDelete      = prodDelete;
+window.prodAddRow      = prodAddRow;
+window.prodSave        = prodSave;
+window.renderTab       = renderTab;
+window.openPanel       = openDetail;
+window.closePanel      = closePanel;
+window.sendMessage     = sendMessage;
+window.confirmOrder    = confirmOrder;
+window.cancelOrder     = cancelOrder;
+window.notifyCustomer  = sendCustomerNotice;
+window.quotePickerCat  = quotePickerCat;
+window.quotePickerSub  = quotePickerSub;
+window.quotePickerAdd  = quotePickerAdd;
+window.quoteQtyIdx     = quoteQtyIdx;
+window.quoteEditPrice  = quoteEditPrice;
+window.quoteDelIdx     = quoteDelIdx;
+window.sendQuote       = sendQuote;
 window.closeQuoteModal = closeQuoteModal;
+window.openQuoteModalForCart = openQuoteModalForCart;
 </script>
 
 </body>
