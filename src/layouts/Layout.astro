@@ -1585,3 +1585,82 @@ const localBusinessSchema = {
     })();
   </script>
   <!-- ========== /SVEN ========== -->
+
+  <!-- ========== LIGHTBOX ========== -->
+  <div id="sk-lightbox" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(8,6,28,0.92);backdrop-filter:blur(4px);align-items:center;justify-content:center;cursor:zoom-out" onclick="window.skLightboxClose()">
+    <button onclick="event.stopPropagation();window.skLightboxClose()" style="position:absolute;top:1rem;right:1.25rem;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.5rem;width:2.5rem;height:2.5rem;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+    <img id="sk-lightbox-img" src="" alt="" style="display:none;max-width:90vw;max-height:85vh;object-fit:contain;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,0.6)" onclick="event.stopPropagation()" />
+    <video id="sk-lightbox-vid" src="" controls style="display:none;max-width:90vw;max-height:85vh;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,0.6)" onclick="event.stopPropagation()"></video>
+  </div>
+  <script is:global>
+    (function() {
+      const lb   = document.getElementById('sk-lightbox');
+      const lImg = document.getElementById('sk-lightbox-img');
+      const lVid = document.getElementById('sk-lightbox-vid');
+
+      window.skLightboxOpen = function(type, src, alt) {
+        if (type === 'video') {
+          lImg.style.display = 'none';
+          lVid.style.display = 'block';
+          lVid.src = src;
+          lVid.play();
+        } else {
+          lVid.style.display = 'none';
+          lImg.style.display = 'block';
+          lImg.src = src;
+          lImg.alt = alt || '';
+        }
+        lb.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.skLightboxClose = function() {
+        lb.style.display = 'none';
+        lVid.pause();
+        lVid.src = '';
+        lImg.src = '';
+        document.body.style.overflow = '';
+      };
+
+      // Close on Escape
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') window.skLightboxClose();
+      });
+
+      // Make product images clickable — runs on DOMContentLoaded + after any Astro navigation
+      function initLightboxTriggers() {
+        // ProductCard images (aspect-ratio:1024/853 container)
+        document.querySelectorAll('[style*="aspect-ratio:1024/853"] img, [style*="aspect-ratio:1024/853"] video').forEach(el => {
+          if (el.dataset.lbInit) return;
+          el.dataset.lbInit = '1';
+          el.style.cursor = 'zoom-in';
+          el.addEventListener('click', e => {
+            // Don't intercept VideoCard play buttons — only the img element when video is hidden
+            if (el.tagName === 'VIDEO' && !el.classList.contains('hidden')) return;
+            if (el.tagName === 'IMG') {
+              e.stopPropagation();
+              window.skLightboxOpen('image', el.src, el.alt);
+            }
+          });
+        });
+
+        // VideoCard: also open video in lightbox when clicking the video element
+        document.querySelectorAll('[id*="-vid-"]').forEach(vid => {
+          if (vid.dataset.lbInit) return;
+          vid.dataset.lbInit = '1';
+          // Override: clicking visible video opens it in lightbox fullscreen
+          vid.addEventListener('click', e => {
+            if (!vid.classList.contains('hidden')) {
+              e.stopPropagation();
+              window.skLightboxOpen('video', vid.src, '');
+            }
+          });
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', initLightboxTriggers);
+      // Re-run after short delay to catch dynamically rendered cards
+      document.addEventListener('DOMContentLoaded', () => setTimeout(initLightboxTriggers, 800));
+    })();
+  </script>
+  <!-- ========== /LIGHTBOX ========== -->
