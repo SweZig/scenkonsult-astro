@@ -33,18 +33,21 @@ function htmlWrapper(title, bodyHtml) {
 
 function cartTable(cart) {
   if (!cart || cart.length === 0) return '<p style="color:#888;">Ingen utrustning angiven.</p>';
-  const rows = cart.map(item => `<tr>
+  const realItems = cart.filter(i => !i._note);
+  const noteItem  = cart.find(i => i._note);
+  const rows = realItems.map(item => `<tr>
     <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${item.name||''}</td>
-    <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${item.quantity||1} st</td>
-    <td style="padding:9px 10px;color:#4a3faa;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${item.price?((item.price*(item.quantity||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
+    <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${item.quantity||item.qty||1} st</td>
+    <td style="padding:9px 10px;color:#4a3faa;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${item.price?((item.price*(item.quantity||item.qty||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
   </tr>`).join('');
-  const total = cart.reduce((s,i)=>s+((i.price||0)*(i.quantity||1)),0);
+  const total = realItems.reduce((s,i)=>s+((i.price||0)*(i.quantity||i.qty||1)),0);
+  const noteRow = noteItem ? `<tr><td colspan="3" style="padding:8px 10px;color:#666;font-size:12px;font-style:italic;border-top:1px solid #f0f0f5;">📝 ${noteItem.name}</td></tr>` : '';
   return `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;">
     <tr style="background:#f7f7fb;">
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt</th>
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
-    </tr>${rows}
+    </tr>${rows}${noteRow}
     <tr style="background:#f0eeff;">
       <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
       <td style="padding:11px 10px;color:#4a3faa;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>

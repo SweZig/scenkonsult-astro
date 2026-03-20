@@ -49,10 +49,13 @@ exports.handler = async (event) => {
     }
 
     if (admin) {
-      if (body.notes_admin   !== undefined) updates.notes_admin   = body.notes_admin;
-      if (body.event_date    !== undefined) updates.event_date    = body.event_date || null;
+      if (body.notes_admin    !== undefined) updates.notes_admin    = body.notes_admin;
+      if (body.event_date     !== undefined) updates.event_date     = body.event_date || null;
       if (body.event_location !== undefined) updates.event_location = body.event_location;
-      if (body.total_excl    !== undefined) updates.total_excl    = body.total_excl;
+      if (body.total_excl     !== undefined) updates.total_excl     = body.total_excl;
+      if (body.customer_name  !== undefined) updates.customer_name  = body.customer_name;
+      if (body.customer_email !== undefined) updates.customer_email = body.customer_email;
+      if (body.customer_phone !== undefined) updates.customer_phone = body.customer_phone;
 
       // Statusändring
       if (body.status !== undefined) {

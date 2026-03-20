@@ -896,6 +896,34 @@ function renderTab(tab) {
       } else toast('Fel vid statusändring', 'error');
     });
 
+    // Save customer info fields
+    $('save-info-btn')?.addEventListener('click', async () => {
+      const btn = $('save-info-btn');
+      btn.disabled = true; btn.textContent = '⏳ Sparar…';
+      const updates = {
+        cart_id:        currentCart.id,
+        customer_name:  $('edit-name')?.value.trim()     || null,
+        customer_email: $('edit-email')?.value.trim()    || null,
+        customer_phone: $('edit-phone')?.value.trim()    || null,
+        event_date:     $('edit-date')?.value            || null,
+        event_location: $('edit-location')?.value.trim() || null,
+      };
+      const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
+      if (ok) {
+        Object.assign(currentCart, {
+          customer_name:  updates.customer_name,
+          customer_email: updates.customer_email,
+          customer_phone: updates.customer_phone,
+          event_date:     updates.event_date,
+          event_location: updates.event_location,
+        });
+        $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
+        toast('Kunduppgifter sparade!');
+        loadCarts();
+      } else toast('Kunde inte spara', 'error');
+      btn.disabled = false; btn.textContent = '💾 Spara kunduppgifter';
+    });
+
     // Save admin notes
     $('save-notes-btn')?.addEventListener('click', async () => {
       const notes = $('admin-notes').value;
@@ -1050,12 +1078,28 @@ function renderInfoTab() {
 
     <div class="section-label">Kundinformation</div>
     <div class="info-grid">
-      <div class="info-field"><div class="info-field-label">Namn</div><div class="info-field-value">${c.customer_name || '–'}</div></div>
-      <div class="info-field"><div class="info-field-label">E-post</div><div class="info-field-value">${c.customer_email ? `<a href="mailto:${c.customer_email}" style="color:var(--brand-lav)">${c.customer_email}</a>` : '–'}</div></div>
-      <div class="info-field"><div class="info-field-label">Telefon</div><div class="info-field-value">${c.customer_phone ? `<a href="tel:${c.customer_phone}" style="color:var(--brand-lav)">${c.customer_phone}</a>` : '–'}</div></div>
-      <div class="info-field"><div class="info-field-label">Eventdatum</div><div class="info-field-value">${fmtDate(c.event_date)}</div></div>
-      <div class="info-field" style="grid-column:1/-1"><div class="info-field-label">Plats / Adress</div><div class="info-field-value">${c.event_location || '–'}</div></div>
+      <div class="info-field">
+        <div class="info-field-label">Namn</div>
+        <input class="info-edit-input" id="edit-name" value="${(c.customer_name||'').replace(/"/g,'&quot;')}" placeholder="Namn" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;font-weight:500">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">E-post</div>
+        <input class="info-edit-input" id="edit-email" type="email" value="${(c.customer_email||'').replace(/"/g,'&quot;')}" placeholder="E-post" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">Telefon</div>
+        <input class="info-edit-input" id="edit-phone" value="${(c.customer_phone||'').replace(/"/g,'&quot;')}" placeholder="Telefon" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">Eventdatum</div>
+        <input class="info-edit-input" id="edit-date" type="date" value="${c.event_date||''}" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field" style="grid-column:1/-1">
+        <div class="info-field-label">Plats / Adress</div>
+        <input class="info-edit-input" id="edit-location" value="${(c.event_location||'').replace(/"/g,'&quot;')}" placeholder="Plats / Adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
     </div>
+    <button class="btn-action" id="save-info-btn" style="margin-top:0.5rem;font-size:0.8rem">💾 Spara kunduppgifter</button>
 
     ${c.customer_message ? `
     <div class="section-label">Kundens meddelande</div>
