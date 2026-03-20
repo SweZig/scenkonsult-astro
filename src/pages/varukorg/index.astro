@@ -115,6 +115,7 @@ const fraktRules = JSON.stringify(frakt);
       <div class="summ-row" id="rowLeverans" style="display:none"><span>Leverans</span><span id="summLeverans">–</span></div>
       <div class="summ-row" id="rowMontering" style="display:none"><span>Montering & demontering</span><span id="summMontering">–</span></div>
       <div id="rowsTillagg"></div>
+      <div class="summ-row muted"><span>Fakturaavgift</span><span>49 kr</span></div>
       <div class="summ-row muted"><span>Moms 25%</span><span id="cartVat">–</span></div>
       <div class="summ-row total"><span>Totalt (inkl. moms)</span><span id="cartTotal">–</span></div>
       <p class="summ-note">* Priser avser hyra per dygn (22 h). Slutlig faktura bekräftas vid bokning.</p>
@@ -747,10 +748,11 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
         `<div class="summ-row"><span>${chk.dataset.label}${qty>1?' × '+qty:''}</span><span>${fmt(tot)}</span></div>`);
     });
 
-    const vat = Math.round((subtotal + extras) * 0.25);
+    const FAKTURAAVGIFT = 49;
+    const vat = Math.round((subtotal + extras + FAKTURAAVGIFT) * 0.25);
     document.getElementById('cartSubtotal').textContent = fmt(subtotal);
     document.getElementById('cartVat').textContent = fmt(vat);
-    document.getElementById('cartTotal').textContent = fmt(subtotal + extras + vat);
+    document.getElementById('cartTotal').textContent = fmt(subtotal + extras + FAKTURAAVGIFT + vat);
   }
 
   // Service events
@@ -795,7 +797,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       extraLines.push(`${chk.dataset.label}${qty>1?' × '+qty:''}: ${tot.toLocaleString('sv')} kr`);
     });
 
-    const vat = Math.round((subtotal + extras) * 0.25);
+    const vat = Math.round((subtotal + extras + 49) * 0.25);
     const customer = {
       name:    document.getElementById('f-name')?.value.trim() || '',
       company: document.getElementById('f-company')?.value.trim() || '',
@@ -806,7 +808,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       address: document.getElementById('f-address')?.value.trim() || '',
       notes:   document.getElementById('f-notes')?.value.trim() || '',
     };
-    return { cart, subtotal, extras, extraLines, vat, total: subtotal + extras + vat, customer };
+    return { cart, subtotal, extras, extraLines, vat, total: subtotal + extras + 49 + vat, customer };
   }
 
   // ── EMAIL ─────────────────────────────────────────────────
@@ -930,8 +932,52 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     }
   });
 
+  // ── URL-PARAM CART LOADING (admin-skickad offert) ────────
+  async function loadCartFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const cartParam  = params.get('cart');
+    const tokenParam = params.get('token');
+    if (!cartParam || !tokenParam) return;
+
+    // Kontrollera att det inte redan är rätt cart i localStorage
+    const existing = _getCartData();
+    if (existing?.id === cartParam && (existing?.items?.length || 0) > 0) return;
+
+    try {
+      const res  = await fetch(`/.netlify/functions/cart-get?token=${encodeURIComponent(tokenParam)}`);
+      const data = await res.json();
+      if (!res.ok || !data.cart) return;
+
+      const c = data.cart;
+      // Filtrera bort _note-items (anmärkningar) och sätt format som varukorgssidan förstår
+      const items = (c.items || [])
+        .filter(i => !i._note && i.name)
+        .map(i => ({
+          id:       i.id || ('adm-' + Math.random().toString(36).slice(2,8)),
+          name:     i.name,
+          price:    i.price || 0,
+          qty:      i.qty || i.quantity || 1,
+          category: i.category || '',
+          priceNote: '',
+        }));
+
+      if (items.length > 0) {
+        localStorage.setItem('sk-cart', JSON.stringify({
+          id:      cartParam,
+          expires: Date.now() + SK_TTL,
+          items
+        }));
+        renderCart();
+        updateNavBadge();
+        updateSummary();
+      }
+    } catch (e) { /* tyst fel — fortsätt med tom varukorg */ }
+  }
+
   // ── INIT ─────────────────────────────────────────────────
-  renderCart();
-  updateNavBadge();
-  checkCanProceed();
+  loadCartFromUrl().then(() => {
+    renderCart();
+    updateNavBadge();
+    checkCanProceed();
+  });
 </script>
