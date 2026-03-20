@@ -1629,26 +1629,28 @@ const localBusinessSchema = {
 
       // Make product images clickable — runs on DOMContentLoaded + after any Astro navigation
       function initLightboxTriggers() {
-        // ProductCard images (aspect-ratio:1024/853 container)
-        document.querySelectorAll('[style*="aspect-ratio:1024/853"] img, [style*="aspect-ratio:1024/853"] video').forEach(el => {
+        // All product image containers: 1024/853 cards, aspect-square tillbehör, hyra-scen inline
+        const allImgs = document.querySelectorAll(
+          '[style*="aspect-ratio:1024/853"] img,' +
+          '[style*="aspect-ratio: 1024/853"] img,' +
+          '.aspect-square img,' +
+          '.sk-zoomable img'
+        );
+        allImgs.forEach(el => {
           if (el.dataset.lbInit) return;
+          if (el.closest('button') || el.closest('.sk-cart-btn')) return;
           el.dataset.lbInit = '1';
           el.style.cursor = 'zoom-in';
           el.addEventListener('click', e => {
-            // Don't intercept VideoCard play buttons — only the img element when video is hidden
-            if (el.tagName === 'VIDEO' && !el.classList.contains('hidden')) return;
-            if (el.tagName === 'IMG') {
-              e.stopPropagation();
-              window.skLightboxOpen('image', el.src, el.alt);
-            }
+            e.stopPropagation();
+            window.skLightboxOpen('image', el.src, el.alt);
           });
         });
 
-        // VideoCard: also open video in lightbox when clicking the video element
+        // VideoCard: clicking active (visible) video opens it in lightbox
         document.querySelectorAll('[id*="-vid-"]').forEach(vid => {
           if (vid.dataset.lbInit) return;
           vid.dataset.lbInit = '1';
-          // Override: clicking visible video opens it in lightbox fullscreen
           vid.addEventListener('click', e => {
             if (!vid.classList.contains('hidden')) {
               e.stopPropagation();
