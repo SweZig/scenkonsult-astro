@@ -1383,11 +1383,16 @@ const QUOTE_CATALOG = {
     {id:'dj-rane',name:'DJ-system Rane System One',price:1799},
   ]},
   'Tillägg': { products: [
-    {id:'lev-standard',name:'Leverans & upphämtning (standard)',price:1118},
-    {id:'lev-skrymmande',name:'Leverans & upphämtning (skrymmande)',price:1598},
+    {id:'lev-standard',name:'Leverans & upphämtning (standard bil)',price:1118},
+    {id:'lev-skrymmande',name:'Leverans & upphämtning (bil med släp)',price:1598},
+    {id:'lev-lastbil',name:'Leverans & upphämtning (lätt lastbil)',price:2198},
+    {id:'lev-bakgavel',name:'Leverans & upphämtning (lastbil med bakgavellift)',price:2998},
     {id:'rigg-teknik',name:'Teknikertjänst på plats (per tim)',price:600},
-    {id:'faktura',name:'Fakturaavgift',price:49},
     {id:'montering',name:'Montering & demontering (per tim)',price:600},
+    {id:'faktura',name:'Fakturaavgift',price:49},
+  ]},
+  'Egen rad': { products: [
+    {id:'custom',name:'Ange benämning och pris →',price:0,custom:true},
   ]},
 };
 
@@ -1474,24 +1479,41 @@ function quotePickerSub() {
 function quotePopulateProducts(prods) {
   const prodSel = $('qp-prod');
   prodSel.innerHTML = '<option value="">— välj produkt —</option>' +
-    prods.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name.replace(/"/g,'&quot;')}">${p.name} — ${p.price.toLocaleString('sv')} kr</option>`).join('');
+    prods.map(p => {
+      const label = p.custom ? '✏ Skriv in benämning och pris själv' : `${p.name} — ${p.price.toLocaleString('sv')} kr`;
+      return `<option value="${p.id}" data-price="${p.price}" data-name="${p.name.replace(/"/g,'&quot;')}" data-custom="${p.custom||false}">${label}</option>`;
+    }).join('');
 }
 
 function quotePickerAdd() {
   const prodSel = $('qp-prod');
   const opt = prodSel.options[prodSel.selectedIndex];
-  if (!opt || !opt.value) { return; }
+  if (!opt || !opt.value) return;
+
+  const isCustom = opt.dataset.custom === 'true';
+
+  if (isCustom) {
+    // Lägg till en tom custom-rad direkt i tabellen
+    quoteItems.push({ id: 'custom-' + Date.now(), name: '', price: 0, qty: 1, custom: true });
+    quoteRenderTable();
+    // Fokusera på namnfältet i den nya raden
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('.quote-custom-name');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }, 50);
+    return;
+  }
+
   const name  = opt.dataset.name || opt.textContent.split(' — ')[0];
   const price = parseInt(opt.dataset.price) || 0;
   const id    = opt.value;
 
-  // If same product already in list, increment qty
-  const existing = quoteItems.find(i => i.id === id && i.name === name);
+  // Om samma produkt redan finns, öka antal
+  const existing = quoteItems.find(i => i.id === id && !i.custom);
   if (existing) { existing.qty++; }
   else { quoteItems.push({ id, name, price, qty: 1 }); }
 
   quoteRenderTable();
-  // Reset product selector
   prodSel.selectedIndex = 0;
 }
 
@@ -1499,9 +1521,14 @@ function quoteRenderTable() {
   const tbody = $('quote-prod-tbody');
   const tfoot = $('quote-prod-tfoot');
   if (!tbody) return;
-  tbody.innerHTML = quoteItems.map((item, idx) => `
+  tbody.innerHTML = quoteItems.map((item, idx) => {
+    const nameCell = item.custom
+      ? `<input class="prod-input quote-custom-name" value="${item.name.replace(/"/g,'&quot;')}" placeholder="Ange benämning..." onchange="quoteEditName(${idx},this.value)"
+           style="width:100%;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid rgba(196,181,244,0.3);padding:0.2rem 0.5rem;">`
+      : `<span style="font-size:0.82rem">${item.name}</span>`;
+    return `
     <tr data-qidx="${idx}">
-      <td style="font-size:0.82rem">${item.name}</td>
+      <td>${nameCell}</td>
       <td style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px">
           <button class="qty-btn" onclick="quoteQtyIdx(${idx},-1)" style="width:22px;height:22px;font-size:0.9rem">−</button>
@@ -1515,7 +1542,8 @@ function quoteRenderTable() {
       </td>
       <td style="text-align:right;font-size:0.82rem;font-weight:600;color:var(--brand-lav)">${fmt(item.price * item.qty)} kr</td>
       <td><button class="qty-btn" style="color:var(--red);border-color:var(--red);width:22px;height:22px" onclick="quoteDelIdx(${idx})">×</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   const total = quoteItems.reduce((s,i) => s + i.price * i.qty, 0);
   tfoot.innerHTML = quoteItems.length
@@ -1530,6 +1558,11 @@ function quoteQtyIdx(idx, delta) {
   if (!quoteItems[idx]) return;
   quoteItems[idx].qty = Math.max(1, quoteItems[idx].qty + delta);
   quoteRenderTable();
+}
+
+function quoteEditName(idx, val) {
+  if (!quoteItems[idx]) return;
+  quoteItems[idx].name = val;
 }
 
 function quoteEditPrice(idx, val) {
@@ -1669,6 +1702,7 @@ window.quotePickerCat  = quotePickerCat;
 window.quotePickerSub  = quotePickerSub;
 window.quotePickerAdd  = quotePickerAdd;
 window.quoteQtyIdx     = quoteQtyIdx;
+window.quoteEditName   = quoteEditName;
 window.quoteEditPrice  = quoteEditPrice;
 window.quoteDelIdx     = quoteDelIdx;
 window.sendQuote       = sendQuote;
