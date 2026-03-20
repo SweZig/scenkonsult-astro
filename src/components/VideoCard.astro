@@ -53,8 +53,7 @@ const vcId = `vc-${Math.random().toString(36).slice(2,7)}`;
         id={`${vcId}-vid-${i}`}
         src={v}
         preload="none"
-        controls
-        class="absolute inset-0 w-full h-full object-contain bg-black hidden"
+        class="hidden"
       ></video>
     ))}
 
@@ -71,14 +70,6 @@ const vcId = `vc-${Math.random().toString(36).slice(2,7)}`;
           </button>
         ))}
       </div>
-    )}
-
-    {videos.length > 0 && (
-      <button
-        id={`${vcId}-close`}
-        data-vidcard-close={vcId}
-        class="absolute top-2 left-2 z-10 hidden bg-black/60 hover:bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-full transition-colors backdrop-blur-sm"
-      >✕ Stäng</button>
     )}
   </div>
 
@@ -127,34 +118,15 @@ const vcId = `vc-${Math.random().toString(36).slice(2,7)}`;
 if (!window.__vcInit) {
   window.__vcInit = true;
   document.addEventListener('click', e => {
-    const playBtn = e.target.closest('[data-vidcard-play]');
-    const closeBtn = e.target.closest('[data-vidcard-close]');
+    const playBtn = (e.target as Element).closest('[data-vidcard-play]');
     if (playBtn) {
-      const id = playBtn.dataset.vidcardPlay;
-      const idx = parseInt(playBtn.dataset.vidcardIdx, 10);
-      const img = document.getElementById(`${id}-img`);
-      const closeEl = document.getElementById(`${id}-close`);
-      // Stäng alla videos i kortet
-      document.querySelectorAll(`[id^="${id}-vid-"]`).forEach(v => {
-        (v as HTMLVideoElement).pause();
-        v.classList.add('hidden');
-      });
-      // Öppna vald video
+      const id = (playBtn as HTMLElement).dataset.vidcardPlay;
+      const idx = parseInt((playBtn as HTMLElement).dataset.vidcardIdx || '0', 10);
       const vid = document.getElementById(`${id}-vid-${idx}`) as HTMLVideoElement;
-      img?.classList.add('hidden');
-      vid?.classList.remove('hidden');
-      vid?.play();
-      closeEl?.classList.remove('hidden');
-    }
-    if (closeBtn) {
-      const id = closeBtn.dataset.vidcardClose;
-      const img = document.getElementById(`${id}-img`);
-      document.querySelectorAll(`[id^="${id}-vid-"]`).forEach(v => {
-        (v as HTMLVideoElement).pause();
-        v.classList.add('hidden');
-      });
-      img?.classList.remove('hidden');
-      closeBtn.classList.add('hidden');
+      if (vid && window.skLightboxOpen) {
+        e.stopPropagation();
+        window.skLightboxOpen('video', vid.src, '');
+      }
     }
   });
 }

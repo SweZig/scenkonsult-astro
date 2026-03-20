@@ -1646,18 +1646,6 @@ const localBusinessSchema = {
             window.skLightboxOpen('image', el.src, el.alt);
           });
         });
-
-        // VideoCard: clicking active (visible) video opens it in lightbox
-        document.querySelectorAll('[id*="-vid-"]').forEach(vid => {
-          if (vid.dataset.lbInit) return;
-          vid.dataset.lbInit = '1';
-          vid.addEventListener('click', e => {
-            if (!vid.classList.contains('hidden')) {
-              e.stopPropagation();
-              window.skLightboxOpen('video', vid.src, '');
-            }
-          });
-        });
       }
 
       document.addEventListener('DOMContentLoaded', initLightboxTriggers);
