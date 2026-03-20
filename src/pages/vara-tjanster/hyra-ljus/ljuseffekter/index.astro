@@ -3,6 +3,8 @@ import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
 import VideoCard from '../../../../components/VideoCard.astro';
 import LjusTillbehor from '../../../../components/LjusTillbehor.astro';
+import CartButton from '../../../../components/CartButton.astro';
+import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 
 const WP = '/videos';
 
@@ -233,6 +235,60 @@ const movingHeads = [
       <h2 class="text-xl font-bold text-white mb-2">Komplettera med stativ & tross</h2>
       <p class="text-gray-400 text-sm mb-4">Alla lösa armaturer behöver monteras på stativ eller tross. Se vårt sortiment av stativ, trosstorn och tillbehör.</p>
       <a href="/vara-tjanster/hyra-ljus/stativ-tross/" class="inline-block bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors">Se stativ & tross →</a>
+    </div>
+  </section>
+
+
+  <!-- LJUSSTYRNING (DMX) -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[
+        { img:"/images/ljus/pp_ljus_styrning02.png",  name:"Styrenhet 192 kan.",       excl:99,   desc:"12 scanners×16 kan, 240 sekvenser, musikstyrning" },
+        { img:"/images/ljus/pp_ljus_botex_sdc16.png", name:"Botex SDC-16",             excl:199,  desc:"16 kanalfaders + masterfader, startkanal via display" },
+        { img:"/images/ljus/pp_ljus_styrning03.png",  name:"Styrenhet 512 kan.",       excl:299,  desc:"48 enheter, 4 600 scener, 96 banker, musikstyrning" },
+        { img:"/images/ljus/pp_ljus_styrning04.png",  name:"PC-mjukvara DMX",          excl:799,  desc:"512 kan, dra/släpp programmering, BPM-analys, SSL2" },
+        { img:"/images/ljus/pp_ljus_styrning-m6.png", name:"Martin M6 Ljusstyrning",   excl:2499, desc:"Dubbla 15,4″ touchskärmar, 44 playbacks, 4× FastBlend RGB" },
+      ].map(p => (
+        <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl overflow-hidden transition-colors flex flex-col">
+          <div style="aspect-ratio:1024/853" class="bg-brand-dark overflow-hidden">
+            <img src={p.img} alt={p.name} width="256" height="213" loading="lazy" class="w-full h-full object-contain" />
+          </div>
+          <div class="p-3 flex flex-col flex-1">
+            <p class="text-white font-bold text-sm mb-1">{p.name}</p>
+            <p class="text-gray-400 text-xs mb-3 flex-1">{p.desc}</p>
+            <div class="flex items-center justify-between border-t border-white/10 pt-2 gap-2">
+              <div class="shrink-0">
+                <span class="sk-price-excl text-brand-orange font-bold text-sm">{p.excl} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-bold text-sm">{Math.round(p.excl*1.25)} kr</span>
+                <div class="text-gray-400 text-[10px]">/dygn</div>
+              </div>
+              <CartButton id={`dmx-${p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={p.name} price={p.excl} priceNote="/dygn" category="DMX-styrning" image={p.img} size="sm" label="Lägg i korg" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- EL-TILLBEHÖR -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+      {[
+        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",             excl:20 },
+        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m",            excl:48 },
+        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",       excl:80 },
+        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag på rulle 10 m",     excl:100 },
+        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag på rulle 25 m",     excl:159 },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 20 m 16A",  excl:236 },
+        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas", excl:320 },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 20 m 32A",  excl:396 },
+        { img:"/images/ljud/pp_ljud_tillbehor_elverk-small.png", name:"Elgenerator 2 200 W", excl:799 },
+        { img:"/images/ljud/pp_ljud_elverk-kipor.png",  name:"Elgenerator 7 700 W",         excl:1799 },
+      ].map(t => (
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="El-tillbehör" />
+      ))}
     </div>
   </section>
 
