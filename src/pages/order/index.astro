@@ -226,7 +226,28 @@ import Layout from '../../layouts/Layout.astro';
   .order-footer a { color: #c4b5f4; text-decoration: none; }
   .order-footer a:hover { text-decoration: underline; }
 
-  @media (max-width: 560px) {
+  .to-cart-btn {
+    display: inline-block;
+    background: #332885;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .to-cart-btn:hover { background: #c4b5f4; color: #0c0a24; }
+
+  #statusCta {
+    background: rgba(96,165,250,0.04);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    padding: 1rem 1.25rem 1.25rem;
+    margin-top: -2px;
+  }
     .info-grid { grid-template-columns: 1fr; }
     .prod-table th:nth-child(3),
     .prod-table td:nth-child(3) { display: none; }
@@ -287,11 +308,12 @@ import Layout from '../../layouts/Layout.astro';
     <!-- Status banner -->
     <div class="status-banner" id="statusBanner">
       <div class="status-icon" id="statusIcon"></div>
-      <div>
+      <div style="flex:1">
         <div class="status-label" id="statusLabel"></div>
         <div class="status-desc" id="statusDesc"></div>
       </div>
     </div>
+    <div id="statusCta" style="display:none"></div>
 
     <!-- Event info -->
     <div class="section" id="sectionEvent" style="display:none">
@@ -410,6 +432,25 @@ function renderOrder(c) {
   document.getElementById('statusIcon').textContent  = s.icon;
   document.getElementById('statusLabel').textContent = s.label;
   document.getElementById('statusDesc').textContent  = s.desc;
+
+  // "Gå till varukorg"-knapp — visas för proposal och waiting
+  const ctaEl = document.getElementById('statusCta');
+  if (c.status === 'proposal' || c.status === 'waiting') {
+    banner.style.borderRadius = '12px 12px 0 0';
+    const varuUrl = `/varukorg/?cart=${c.id}&token=${cartToken}`;
+    ctaEl.innerHTML = `
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08);">
+        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0 0 0.875rem;">Vill du justera produkter eller bekräfta ordern? Gå till din varukorg.</p>
+        <a href="${varuUrl}" class="to-cart-btn">
+          🛒 Gå till varukorg →
+        </a>
+      </div>`;
+    ctaEl.style.display = '';
+  } else {
+    banner.style.borderRadius = '';
+    ctaEl.style.display = 'none';
+    ctaEl.innerHTML = '';
+  }
 
   // Event section
   const fields = [];
