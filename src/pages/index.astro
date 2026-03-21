@@ -591,6 +591,77 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </section>
 
+<!-- ── HUR DET FUNGERAR (video) ── -->
+<section class="howto-section">
+  <div class="howto-inner">
+    <div class="howto-text">
+      <span class="overline" style="color:#c4b5f4;">Se det i verkligheten</span>
+      <h2 class="display" style="color:white;margin-top:0.5rem;">
+        Så enkelt är det<br><em>att hyra hos oss</em>
+      </h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:clamp(0.9rem,1.5vw,1rem);line-height:1.75;margin:1rem 0 2rem;max-width:420px;">
+        Från offert till leverans — vi tar hand om allt. Se vår korta guide om hur uthyrningen fungerar.
+      </p>
+      <a href="/kontakt" class="howto-cta">Kom igång →</a>
+    </div>
+    <div class="howto-video-wrap">
+      <video controls playsinline preload="metadata" poster="">
+        <source src="/videos/how-to-video.mp4" type="video/mp4" />
+      </video>
+    </div>
+  </div>
+</section>
+
+<style>
+.howto-section {
+  background: #0c0a24;
+  padding: clamp(3rem,7vw,6rem) clamp(1rem,5vw,5rem);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.howto-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: clamp(2.5rem,6vw,6rem);
+  align-items: center;
+}
+.howto-cta {
+  display: inline-block;
+  background: #c4b5f4;
+  color: #0c0a24;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.75rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.howto-cta:hover { background: #e2dcfb; }
+.howto-video-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  background: #000;
+}
+.howto-video-wrap video {
+  width: 100%;
+  display: block;
+  max-height: 480px;
+  object-fit: contain;
+}
+@media (max-width: 768px) {
+  .howto-inner {
+    grid-template-columns: 1fr;
+  }
+  .howto-text { order: 1; }
+  .howto-video-wrap { order: 2; }
+}
+</style>
+
 <!-- ── CTA ── -->
 <section class="cta2-section">
   <div class="cta2-deco"></div>
