@@ -68,6 +68,7 @@ const pageSchema = {
           itemtype="https://schema.org/Product"
         >
           <meta itemprop="brand" content="Scenkonsult Norden" />
+          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
           <div class="aspect-video bg-brand-dark flex items-center justify-center overflow-hidden sk-zoomable" style="cursor:zoom-in">
             <img
               src={p.image}
@@ -76,7 +77,6 @@ const pageSchema = {
               height="225"
               loading="lazy"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              itemprop="image"
             />
           </div>
           <div class="p-5">
