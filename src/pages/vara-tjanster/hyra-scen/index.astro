@@ -67,6 +67,7 @@ const pageSchema = {
           itemscope
           itemtype="https://schema.org/Product"
         >
+          <meta itemprop="brand" content="Scenkonsult Norden" />
           <div class="aspect-video bg-brand-dark flex items-center justify-center overflow-hidden sk-zoomable" style="cursor:zoom-in">
             <img
               src={p.image}
@@ -114,7 +115,35 @@ const pageSchema = {
               <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
                 <meta itemprop="priceCurrency" content="SEK" />
                 <meta itemprop="price" content={String(p.price)} />
+                <meta itemprop="priceValidUntil" content="2027-12-31" />
                 <meta itemprop="availability" content="https://schema.org/InStock" />
+                <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+                  <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
+                    <meta itemprop="addressCountry" content="SE" />
+                  </div>
+                  <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
+                    <meta itemprop="currency" content="SEK" />
+                    <meta itemprop="value" content="0" />
+                  </div>
+                  <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                    <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                      <meta itemprop="minValue" content="0" />
+                      <meta itemprop="maxValue" content="1" />
+                      <meta itemprop="unitCode" content="DAY" />
+                    </div>
+                    <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                      <meta itemprop="minValue" content="0" />
+                      <meta itemprop="maxValue" content="1" />
+                      <meta itemprop="unitCode" content="DAY" />
+                    </div>
+                  </div>
+                </div>
+                <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+                  <meta itemprop="applicableCountry" content="SE" />
+                  <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
+                  <meta itemprop="merchantReturnDays" content="1" />
+                  <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
+                </div>
                 <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" /></span>
                 <span class="text-gray-400 text-xs ml-1">{p.priceNote}</span>
               </div>

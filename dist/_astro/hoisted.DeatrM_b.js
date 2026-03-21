@@ -1,0 +1,1 @@
+import"./hoisted.BZl8SY3V.js";window.__vcInit||(window.__vcInit=!0,document.addEventListener("click",d=>{const t=d.target.closest("[data-vidcard-play]");if(t){const n=t.dataset.vidcardPlay,o=parseInt(t.dataset.vidcardIdx||"0",10),i=document.getElementById(`${n}-vid-${o}`);i&&window.skLightboxOpen&&(d.stopPropagation(),window.skLightboxOpen("video",i.src,""))}}));
