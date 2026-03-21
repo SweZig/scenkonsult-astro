@@ -101,7 +101,7 @@ exports.handler = async (event) => {
   }
 
   const totalExcl = realItems.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0);
-  const cartUrl   = `${SITE_URL}/varukorg/?cart=${cartId}&token=${cartToken}`;
+  const cartUrl   = `${SITE_URL}/order/?cart=${cartId}&token=${cartToken}`;
 
   try {
     await db.upsert('carts', {
