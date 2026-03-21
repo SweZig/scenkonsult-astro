@@ -99,8 +99,34 @@ const faqSchema = {
               <meta itemprop="price" content={String(p.price)} />
               <meta itemprop="priceValidUntil" content="2027-12-31" />
               <meta itemprop="availability" content="https://schema.org/InStock" />
-              <link itemprop="hasMerchantReturnPolicy" href="https://scenkonsult.se/hyresvillkor/" />
-              <link itemprop="shippingDetails" href="https://scenkonsult.se/hyresvillkor/" />
+
+                              <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+                                <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
+                  <meta itemprop="addressCountry" content="SE" />
+                        </div>
+                                <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
+                  <meta itemprop="currency" content="SEK" />
+                  <meta itemprop="value" content="0" />
+                        </div>
+                                <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                                  <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                            <meta itemprop="minValue" content="0" />
+                            <meta itemprop="maxValue" content="1" />
+                            <meta itemprop="unitCode" content="DAY" />
+                                  </div>
+                                  <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                            <meta itemprop="minValue" content="0" />
+                            <meta itemprop="maxValue" content="1" />
+                            <meta itemprop="unitCode" content="DAY" />
+                                  </div>
+                        </div>
+              </div>
+                              <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+                <meta itemprop="applicableCountry" content="SE" />
+                <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
+                <meta itemprop="merchantReturnDays" content="1" />
+                <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
+              </div>
               <div>
                 <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" suffix={p.priceNote} /></span>
                 
