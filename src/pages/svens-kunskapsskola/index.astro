@@ -1,0 +1,163 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const filmer = [
+  {
+    id: "hmIlyWm69nI",
+    titel: "Hur det fungerar att hyra hos oss",
+    beskrivning: "En snabb genomgång av hela uthyrningsprocessen — från att du kontaktar oss till att utrustningen är levererad och riggad. Perfekt om du aldrig hyrt AV-utrustning förut.",
+    tags: ["Kom igång", "Uthyrning"],
+    slug: "hur-det-fungerar"
+  },
+  {
+    id: "05nTsqFyjwM",
+    titel: "Hur man kopplar in ett hyrt ljudsystem",
+    beskrivning: "Steg för steg: hur du kopplar in PA-systemet du hyrt, vad som kopplas var och hur du undviker de vanligaste misstagen. Inga förkunskaper krävs.",
+    tags: ["Ljud", "Installation"],
+    slug: "koppla-in-ljudsystem"
+  },
+  {
+    id: "Is3Jvt4s-MA",
+    titel: "Ljud-kontakter — vad heter vad? (Del 1)",
+    beskrivning: "Lär dig känna igen och namnge de vanligaste kontakterna inom ljud — XLR, jack, RCA och mer. Bra att ha koll på innan du hyr.",
+    tags: ["Ljud", "Kontakter", "Teknik"],
+    slug: "kontakter-ljud-del-1"
+  },
+  {
+    id: "NtYcryqyfsw",
+    titel: "Ljud-kontakter — vad heter vad? (Del 2)",
+    beskrivning: "Fortsättningen — fler kontakttyper, adaptrar och hur du tänker när du ska koppla ihop utrustning från olika tillverkare.",
+    tags: ["Ljud", "Kontakter", "Teknik"],
+    slug: "kontakter-ljud-del-2"
+  }
+];
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Svens Kunskapsskola — videoguider om AV-teknik",
+  "description": "Videoguider om ljud, kontakter och uthyrning av AV-utrustning från Scenkonsult Norden.",
+  "itemListElement": filmer.map((f, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "item": {
+      "@type": "VideoObject",
+      "name": f.titel,
+      "embedUrl": `https://www.youtube.com/embed/${f.id}`
+    }
+  }))
+};
+---
+
+<Layout
+  title="Svens Kunskapsskola — Videoguider om AV-teknik | Scenkonsult"
+  description="Lär dig koppla in ljud, förstå kontakter och hyra AV-utrustning rätt. Korta, konkreta videoguider från Scenkonsult Nordens intendent Sven."
+  schemaExtra={schema}
+>
+
+  <!-- Hero -->
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);position:relative;overflow:hidden;">
+    <!-- Dekorativ cirkel -->
+    <div style="position:absolute;right:-5%;top:50%;transform:translateY(-50%);width:clamp(200px,35vw,460px);height:clamp(200px,35vw,460px);border-radius:50%;background-image:radial-gradient(circle,rgba(196,181,244,0.07) 2px,transparent 2px);background-size:22px 22px;pointer-events:none;"></div>
+
+    <div style="max-width:820px;margin:0 auto;position:relative;z-index:2;">
+      <!-- Brödsmulor -->
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
+        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.4);">
+          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
+          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
+          <li><span style="color:white;">Svens Kunskapsskola</span></li>
+        </ol>
+      </nav>
+
+      <!-- Sven-avatar badge -->
+      <div style="display:inline-flex;align-items:center;gap:0.6rem;background:rgba(196,181,244,0.1);border:1px solid rgba(196,181,244,0.2);border-radius:9999px;padding:0.35rem 1rem 0.35rem 0.5rem;margin-bottom:1.25rem;">
+        <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+          <use href="#mask-glad"/>
+        </svg>
+        <span style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">Sven Intendenten presenterar</span>
+      </div>
+
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">
+        Svens<br><em>Kunskapsskola</em>
+      </h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0 0 1.5rem;max-width:560px;">
+        Korta, konkreta videoguider om ljud-teknik, kontakter och hur du hyr utrustning rätt. Inga förkunskaper krävs — Sven förklarar som om du aldrig sett en XLR-kabel förut.
+      </p>
+      <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;font-style:italic;">
+        "Hade jag fått välja hade jag stått på scen. Nu förklarar jag hur den kopplas in istället." — Sven
+      </p>
+    </div>
+  </div>
+
+  <!-- Video-grid -->
+  <section style="background:#0c0a24;padding:clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:4rem;">
+
+      {filmer.map((film, i) => (
+        <div id={film.slug} style={`display:grid;grid-template-columns:${i % 2 === 0 ? '1.3fr 1fr' : '1fr 1.3fr'};gap:clamp(2rem,5vw,4rem);align-items:center;`} class="film-row">
+
+          <!-- Video (alternerande vänster/höger) -->
+          <div style={i % 2 !== 0 ? 'order:2' : ''} class="film-video">
+            <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);box-shadow:0 8px 40px rgba(0,0,0,0.5);background:#000;aspect-ratio:16/9;">
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${film.id}`}
+                title={film.titel}
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                style="display:block;"
+              ></iframe>
+            </div>
+          </div>
+
+          <!-- Text -->
+          <div style={i % 2 !== 0 ? 'order:1' : ''} class="film-text">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+              <span style="background:rgba(196,181,244,0.15);color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;padding:0.2rem 0.6rem;border-radius:4px;">AVSNITT {String(i + 1).padStart(2,'0')}</span>
+            </div>
+            <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,2.5vw,2rem);color:white;margin:0 0 1rem;line-height:1.2;">{film.titel}</h2>
+            <p style="color:rgba(255,255,255,0.55);font-size:clamp(0.9rem,1.5vw,1rem);line-height:1.75;margin:0 0 1.5rem;">{film.beskrivning}</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+              {film.tags.map(t => (
+                <span style="background:rgba(196,181,244,0.1);color:#c4b5f4;font-size:0.7rem;font-weight:600;padding:0.2rem 0.6rem;border-radius:9999px;">{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background:#111030;padding:clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);border-top:1px solid rgba(255,255,255,0.06);">
+    <div style="max-width:680px;margin:0 auto;text-align:center;">
+      <span style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">Redo att hyra?</span>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3vw,2.25rem);color:white;margin:0.75rem 0 1rem;">Nu vet du hur det fungerar —<br><em>dags att boka</em></h2>
+      <p style="color:rgba(255,255,255,0.5);font-size:clamp(0.9rem,1.5vw,1rem);line-height:1.75;margin:0 0 2rem;">Sven och teamet hjälper dig välja rätt utrustning och svarar på frågor — utan krångel.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;">
+        <a href="/kontakt" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:0.04em;padding:0.85rem 2rem;border-radius:6px;text-decoration:none;transition:background 0.2s;"
+           onmouseenter="this.style.background='#e2dcfb'" onmouseleave="this.style.background='#c4b5f4'">
+          Boka eller fråga om pris
+        </a>
+        <a href="/for/guider/" style="background:transparent;color:#c4b5f4;border:1px solid rgba(196,181,244,0.35);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.9rem;padding:0.85rem 2rem;border-radius:6px;text-decoration:none;">
+          Fler guider →
+        </a>
+      </div>
+    </div>
+  </section>
+
+</Layout>
+
+<style>
+@media (max-width: 768px) {
+  .film-row {
+    grid-template-columns: 1fr !important;
+  }
+  .film-video { order: 1 !important; }
+  .film-text  { order: 2 !important; }
+}
+</style>
