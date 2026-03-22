@@ -119,13 +119,13 @@ Avsnitt 02 — Hur man kopplar in ett hyrt ljudsystem
 → /svens-kunskapsskola/#koppla-in-ljudsystem
 Tipsa om: Kunder som ska installera själva, frågar om koppla in, setup, högtalarplacering.
 
-Avsnitt 03 — Ljud-kontakter: vad heter vad? Del 1
-→ /svens-kunskapsskola/#kontakter-ljud-del-1
-Tipsa om: Kunder som frågar om XLR, jack, kontakter, kablar, "vad är skillnaden".
+Avsnitt 03 — Kontakter inom ljud: vad heter vad?
+→ /svens-kunskapsskola/#kontakter-ljud
+Tipsa om: Kunder som frågar om XLR, jack, RCA, kontakter, kablar inom ljud/PA.
 
-Avsnitt 04 — Ljud-kontakter: vad heter vad? Del 2
-→ /svens-kunskapsskola/#kontakter-ljud-del-2
-Tipsa om: Fortsättning på kontakter, adaptrar, blanda utrustning från olika märken.
+Avsnitt 04 — Kontakter inom bild: vad heter vad?
+→ /svens-kunskapsskola/#kontakter-bild
+Tipsa om: Kunder som frågar om HDMI, VGA, DisplayPort, koppla projektor eller skärm.
 
 Hela samlingen: [Svens Kunskapsskola](/svens-kunskapsskola/)
 
