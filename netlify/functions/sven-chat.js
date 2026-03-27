@@ -66,6 +66,13 @@ Portable, Medium → portable-medium → 799 kr
 Portable, Medium+ → portable-medium-plus → 999 kr
 Portable, Large → portable-large → 1199 kr
 Portable, Large+ → portable-large-plus → 2299 kr
+Trådlös handmikrofon → event-mik-tr-dl-s-handmikrofon → 400 kr (även live/music/portable-prefix)
+Trådlöst headset → event-mik-tr-dl-st-headset → 480 kr (även live/music/portable-prefix)
+Shure SLXD trådlöst system 2 mik → event-mik-shure-slxd-tr-dl-st-system-2-mik → 1299 kr (även live/music/portable-prefix)
+Shure SLXD trådlöst system 1 mik → event-mik-shure-slxd-tr-dl-st-system-1-mik → 699 kr (även live/music/portable-prefix)
+Shure SLXD trådlöst system 2 headset → event-mik-shure-slxd-tr-dl-st-system-2-headset → 1399 kr (även live/music/portable-prefix)
+Effektrack matrix & feedback-suppressor → event-mik-effektrack-med-matrix-feedback-suppressor → 1036 kr (även live/music/portable-prefix)
+Trådlöst mikrofonset 8 kan → event-mik-tr-dl-st-mikrofonset-8-kan → 2999 kr (även live/music/portable-prefix)
 Mixerbord 2+2 → mixer-2-2 → 159 kr
 Mixerbord 4+2 → mixer-4-2 → 199 kr
 Mixerbord 4+4 → mixer-4-4 → 299 kr
