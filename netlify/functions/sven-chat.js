@@ -64,7 +64,11 @@ Portable, Small → portable-small → 599 kr
 Portable, Small+ → portable-small-plus → 699 kr
 Portable, Medium → portable-medium → 799 kr
 Portable, Medium+ → portable-medium-plus → 999 kr
+Portable, Small Duo → portable-small-duo → 1099 kr
 Portable, Large → portable-large → 1199 kr
+Portable, Small+ Duo → portable-small-plus-duo → 1299 kr
+Portable, Medium Duo → portable-medium-duo → 1499 kr (saknas ej, men var inte med)
+Portable, Medium+ Duo → portable-medium-plus-duo → 1899 kr (saknas ej, men var inte med)
 Portable, Large+ → portable-large-plus → 2299 kr
 Trådlös handmikrofon → event-mik-tr-dl-s-handmikrofon → 400 kr (även live/music/portable-prefix)
 Trådlöst headset → event-mik-tr-dl-st-headset → 480 kr (även live/music/portable-prefix)
