@@ -45,10 +45,11 @@ Scenpaket Large+ → scen-large-plus → 3599 kr
 Scenpaket XL → scen-xl → 5399 kr
 Scenpaket XL+ → scen-xl-plus → 7199 kr
 Event, Small → event-small → 799 kr
-Event, Small+ → event-small-plus → 1199 kr
-Event, Medium → event-medium → 1599 kr
-Event, Medium+ → event-medium-plus → 2299 kr
-Event, Large → event-large → 3199 kr
+Event, Medium → event-medium → 1199 kr
+Event, Small+ → event-small-plus → 1599 kr
+Event, Large → event-large → 1599 kr
+Event, Medium+ → event-medium-plus → 2399 kr
+Event, Large+ → event-large-plus → 3199 kr
 Live, Small → live-small → 599 kr
 Live, Medium → live-medium → 1199 kr
 Live, Large → live-large → 1599 kr
