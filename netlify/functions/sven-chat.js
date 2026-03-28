@@ -57,8 +57,8 @@ Live/Music, XL → live-xl → 2299 kr
 Live/Music, XL+ → live-xl-plus → 2999 kr
 Live/Music, XXL → live-xxl → 4999 kr
 Live/Music, Concert → live-concert → 6999 kr
-Line Array, Small → live-linearray-small → 12999 kr (från, beroende på konfiguration)
-Line Array, Large → live-linearray-large → 16999 kr (från, beroende på konfiguration)
+Line Array, Small → live-linearray-small → 14999 kr (från, beroende på konfiguration)
+Line Array, Medium → live-linearray-medium → 19999 kr (från, beroende på konfiguration)
 Lyfttorn för line array → live-mik-lyfttorn-f-r-line-array → 2999 kr
 Music, Small → music-small → 999 kr
 Music, Small+ → music-small-plus → 1299 kr
