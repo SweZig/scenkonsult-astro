@@ -147,6 +147,10 @@ Avsnitt 04 — Kontakter inom bild: vad heter vad?
 → /svens-kunskapsskola/#kontakter-bild
 Tipsa om: Kunder som frågar om HDMI, VGA, DisplayPort, koppla projektor eller skärm.
 
+Avsnitt 05 — LED-teknik: egenskaper och funktioner hos olika LED-skärmar
+→ /svens-kunskapsskola/#led-teknik
+Tipsa om: Kunder som frågar om LED-skärmar, pixelpitch, skillnad inomhus/utomhus, ljusstyrka, LED-trailer.
+
 Hela samlingen: [Svens Kunskapsskola](/svens-kunskapsskola/)
 
 Länkformat: [Scenpaket Medium](/vara-tjanster/hyra-scen/) — alltid med produktnamn som länktext.
