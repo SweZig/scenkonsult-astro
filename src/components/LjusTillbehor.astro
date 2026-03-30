@@ -22,8 +22,8 @@ import ElTillbehorCard from './ElTillbehorCard.astro';
         bullets:['Dubbla 15,4″ touchskärmar','44 playbacks, 4× FastBlend RGB','4× FastTrack linjär encoders','12× FastDial rotary encoders'] },
     ].map(c => (
       <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-          <img src={c.img} alt={c.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        <div class="bg-brand-dark overflow-hidden flex items-center justify-center" style="aspect-ratio:1/1;cursor:zoom-in">
+          <img src={c.img} alt={c.title} width="512" height="427" loading="lazy" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
         </div>
         <div class="p-4 flex flex-col flex-1">
           <h3 class="font-bold text-white text-xs leading-snug mb-2">{c.title}</h3>
@@ -49,14 +49,14 @@ import ElTillbehorCard from './ElTillbehorCard.astro';
   <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">DMX-tillbehör</h2>
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
     {[
-      { img:'/images/ljus/pp_ljus_half_coupler.png', name:'Half Coupler 35/50 mm', excl:20,  desc:'per coupler' },
-      { img:'/images/ljus/pp_ljus_kablar.png',        name:'DMX-kabel 1–5 m',     excl:20,  desc:'per kabel' },
-      { img:'/images/ljus/pp_ljus_kablar.png',        name:'DMX-kabel 10/15 m',   excl:40,  desc:'per kabel' },
-      { img:'/images/ljus/pp_ljus_tradlos01.png',     name:'DMX Trådlös startkit',excl:159, desc:'1 sänd + 2 mot.' },
-      { img:'/images/ljus/pp_ljus_tradlos02.png',     name:'DMX Trådlös sändare', excl:80,  desc:'extra sändare' },
-      { img:'/images/ljus/pp_ljus_tradlos03.png',     name:'DMX Trådlös mottagare',excl:80, desc:'extra mottagare' },
+      { img:'/images/ljus/pp_ljus_half_coupler.png', name:'Half Coupler 35/50 mm', artno:'SK-LJS-DMX-0001', excl:20,  desc:'per coupler' },
+      { img:'/images/ljus/pp_ljus_kablar.png',        name:'DMX-kabel 1–5 m', artno:'SK-LJS-DMX-0002',     excl:20,  desc:'per kabel' },
+      { img:'/images/ljus/pp_ljus_kablar.png',        name:'DMX-kabel 10/15 m', artno:'SK-LJS-DMX-0003',   excl:40,  desc:'per kabel' },
+      { img:'/images/ljus/pp_ljus_tradlos01.png',     name:'DMX Trådlös startkit', artno:'SK-LJS-DMX-0004',excl:159, desc:'1 sänd + 2 mot.' },
+      { img:'/images/ljus/pp_ljus_tradlos02.png',     name:'DMX Trådlös sändare', artno:'SK-LJS-DMX-0005', excl:80,  desc:'extra sändare' },
+      { img:'/images/ljus/pp_ljus_tradlos03.png',     name:'DMX Trådlös mottagare', artno:'SK-LJS-DMX-0006',excl:80, desc:'extra mottagare' },
     ].map(t => (
-      <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="DMX-tillbehör" />
+      <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="DMX-tillbehör" artno={t.artno} />
     ))}
   </div>
 </section>
@@ -66,21 +66,21 @@ import ElTillbehorCard from './ElTillbehorCard.astro';
   <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
     {[
-      { img:'/images/ljus/pp_ljus_powercon.png',      name:'PowerCon 0,5–1,5 m',          excl:20   },
-      { img:'/images/ljus/pp_ljus_iec_kabel.png',     name:'IEC C13/C14 0,5–1,5 m',      excl:20   },
-      { img:'/images/ljus/pp_el_grenuttag_sm.png',    name:'Grenuttag 1,5 m',             excl:20   },
-      { img:'/images/ljus/pp_el_forlangning.png',     name:'Förlängning 10 m 1-fas',      excl:48   },
-      { img:'/images/ljus/pp_ljus_powercon2.png',     name:'PowerCon 5–10 m',             excl:80   },
-      { img:'/images/ljus/pp_el_overloppsskydd.png',  name:'Överkörningsskydd 1 m',       excl:80   },
-      { img:'/images/ljus/pp_el_grenuttag_lg.png',    name:'Grenuttag 10 m IP44',         excl:100  },
-      { img:'/images/ljus/pp_el_grenuttag_25m.png',   name:'Grenuttag 25 m IP44',         excl:159  },
-      { img:'/images/ljus/pp_el_forlangning_20m.png', name:'Förlängning 20 m 3-fas 16A',  excl:236  },
-      { img:'/images/ljus/pp_el_omvandlare.png',      name:'3-fas → 1-fas omvandlare',    excl:320  },
-      { img:'/images/ljus/pp_el_forlangning_20m.png', name:'Förlängning 20 m 3-fas 32A',  excl:396  },
-      { img:'/images/ljud/pp_ljud_tillbehor_elverk-small.png', name:'Elgenerator 2 200 W', excl:799  },
-      { img:'/images/ljud/pp_ljud_elverk-kipor.png',  name:'Elgenerator 7 700 W',         excl:1799 },
+      { img:'/images/ljus/pp_ljus_powercon.png',      name:'PowerCon 0,5–1,5 m', artno:'SK-LJS-EL-0001',          excl:20   },
+      { img:'/images/ljus/pp_ljus_iec_kabel.png',     name:'IEC C13/C14 0,5–1,5 m', artno:'SK-LJS-EL-0002',      excl:20   },
+      { img:'/images/ljus/pp_el_grenuttag_sm.png',    name:'Grenuttag 1,5 m', artno:'SK-LJD-EL-0001',             excl:20   },
+      { img:'/images/ljus/pp_el_forlangning.png',     name:'Förlängning 10 m 1-fas', artno:'SK-LJD-EL-0002',      excl:48   },
+      { img:'/images/ljus/pp_ljus_powercon2.png',     name:'PowerCon 5–10 m', artno:'SK-LJS-EL-0003',             excl:80   },
+      { img:'/images/ljus/pp_el_overloppsskydd.png',  name:'Överkörningsskydd 1 m', artno:'SK-LJD-EL-0008',       excl:80   },
+      { img:'/images/ljus/pp_el_grenuttag_lg.png',    name:'Grenuttag 10 m IP44', artno:'SK-LJD-EL-0003',         excl:100  },
+      { img:'/images/ljus/pp_el_grenuttag_25m.png',   name:'Grenuttag 25 m IP44', artno:'SK-LJD-EL-0004',         excl:159  },
+      { img:'/images/ljus/pp_el_forlangning_20m.png', name:'Förlängning 20 m 3-fas 16A', artno:'SK-LJD-EL-0005',  excl:236  },
+      { img:'/images/ljus/pp_el_omvandlare.png',      name:'3-fas → 1-fas omvandlare', artno:'SK-LJD-EL-0007',    excl:320  },
+      { img:'/images/ljus/pp_el_forlangning_20m.png', name:'Förlängning 20 m 3-fas 32A', artno:'SK-LJD-EL-0006',  excl:396  },
+      { img:'/images/ljud/pp_ljud_tillbehor_elverk-small.png', name:'Elgenerator 2 200 W', artno:'SK-LJD-EL-0010', excl:799  },
+      { img:'/images/ljud/pp_ljud_elverk-kipor.png',  name:'Elgenerator 7 700 W', artno:'SK-LJD-EL-0011',         excl:1799 },
     ].map(t => (
-      <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="El-tillbehör" />
+      <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="El-tillbehör" artno={t.artno} />
     ))}
   </div>
 </section>

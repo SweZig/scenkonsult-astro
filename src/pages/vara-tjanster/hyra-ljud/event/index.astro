@@ -18,6 +18,21 @@ const _artnoAliases: Record<string,string> = {
   'Bluetooth-mottagare pro':               'SK-LJD-MIK-0011',
   'Trådlöst mikrofonset 8 kan.':           'SK-LJD-MIK-0030',
   'Trådlöst IEM':                          'SK-LJD-MIK-0018',
+  // El-tillbehör förkortade namn
+  'Grenuttag 1,5 m': 'SK-LJD-EL-0001',
+  'Förlängning 10 m': 'SK-LJD-EL-0002',
+  'Grenuttag på rulle 10 m': 'SK-LJD-EL-0003',
+  'Grenuttag på rulle 25 m': 'SK-LJD-EL-0004',
+  'Förlängning 3-fas 16A': 'SK-LJD-EL-0005',
+  'Förlängning 3-fas 32A': 'SK-LJD-EL-0006',
+  'Strömomvandlare 3-fas→1-fas': 'SK-LJD-EL-0007',
+  'Strömomvandlare 3-fas>1-fas': 'SK-LJD-EL-0007',
+  'Överkörningsskydd 1 m': 'SK-LJD-EL-0008',
+  'Elgenerator 2 200 W': 'SK-LJD-EL-0010',
+  'Elgenerator 7 700 W': 'SK-LJD-EL-0011',
+  'Regnskydd till högtalare': 'SK-LJD-EL-0009',
+  'Elgenerator 7700W': 'SK-LJD-EL-0011',
+  'Elgenerator, 2200W': 'SK-LJD-EL-0010',
 };
 const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntries(
   [...(_ljudData.tillbehor_mikrofon||[]), ...(_ljudData.tillbehor_el||[]), ...(_ljudData.mixers||[])]
@@ -160,7 +175,7 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
         { img:"/images/ljud/pp_ljud_elverk-kipor.png", name:"Elgenerator 7 700 W",       excl:1799, desc:"7 000 W kontinuerlig, bensin 4-takt. Kipor IG6000." },
       
       ].map(t => (
-        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" />
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" artno={artnoByName[t.name]} />
       ))}
     </div>
   </section>
