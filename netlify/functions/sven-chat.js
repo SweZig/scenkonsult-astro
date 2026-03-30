@@ -99,6 +99,8 @@ Ljuspaket Medium++ → ljus-medium-pp → 1499 kr
 LED PAR (14x8W) → led-par → 79 kr
 Rökmaskin 1500W → rokmaskin-1500 → 349 kr
 Konfettiavfyrare → konfettiavfyrare → 499 kr
+Hazer HZ-1500 Pro (1 st) → hazer-hz1500 → 649 kr
+Hazer HZ-1500 Pro (2 st) → hazer-hz1500-2x → 1199 kr
 DJ-controller Numark Mixstream Pro+ → dj-controller-numark → 799 kr
 DJ-controller Denon Prime GO+ → dj-controller-denon-go → 999 kr
 DJ-controller Denon Prime 4+ → dj-controller-denon-prime4 → 1499 kr
@@ -213,6 +215,7 @@ LJUS EFFEKTER → /vara-tjanster/hyra-ljus/ljuseffekter/
 - Laser: 349 kr/dygn
 - Strobe: 149 kr/dygn
 - Rökmaskin: 349 kr/dygn
+- Hazer HZ-1500 Pro: 649 kr/dygn (1 st), 1 199 kr/dygn (2 st) — fin dis, synliggör ljusstrålar, DMX
 
 PROJEKTOR & SKÄRM → /vara-tjanster/hyra-bild-projektorer-skarmar/
 - Projektor XGA: 299 kr/dygn
