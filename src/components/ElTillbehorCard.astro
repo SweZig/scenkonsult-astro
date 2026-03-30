@@ -13,8 +13,8 @@ const { img, name, excl, desc, category = 'Tillbehör', artno } = Astro.props;
 const cartId = `acc-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 ---
 <div class="bg-brand-navy/60 border border-white/10 rounded-xl p-3 flex flex-col h-full">
-  <div class="aspect-square rounded-lg overflow-hidden ring-1 ring-white/10 mb-2" style="cursor:zoom-in">
-    <img src={img} alt={name} width="150" height="150" loading="lazy" class="w-full h-full object-contain p-1" />
+  <div class="bg-brand-dark overflow-hidden rounded-lg mb-2" style="aspect-ratio:1024/853;cursor:zoom-in">
+    <img src={img} alt={name} width="150" height="150" loading="lazy" class="w-full h-full object-cover" />
   </div>
   <p class="text-white text-xs font-semibold leading-tight mb-0.5">{name}</p>
   {artno && <p class="artno-badge" style="margin-bottom:0.25rem">{artno}</p>}
