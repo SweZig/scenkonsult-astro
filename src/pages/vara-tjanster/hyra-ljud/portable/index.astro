@@ -7,16 +7,17 @@ import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import _ljudData from '../../../../data/ljud.json';
 const _artnoAliases: Record<string,string> = {
-  'XLR Multikabel 15 m, 6 kan.': 'SK-LJD-MIK-0014',
-  'XLR Multikabel 25 m, 8 kan.': 'SK-LJD-MIK-0015',
-  'XLR Multikabel 15 m, 24+8 kan.': 'SK-LJD-MIK-0020',
-  'Instrumentmikrofon, blås': 'SK-LJD-MIK-0008',
-  'Instrumentmikrofoner, slagverk': 'SK-LJD-MIK-0019',
-  'Shure SLXD – trådlöst system, 2 mik': 'SK-LJD-MIK-0026',
+  'XLR Multikabel 15 m, 6 kan.':          'SK-LJD-MIK-0014',
+  'XLR Multikabel 25 m, 8 kan.':          'SK-LJD-MIK-0015',
+  'XLR Multikabel 15 m, 24+8 kan.':       'SK-LJD-MIK-0020',
+  'Instrumentmikrofon, blås':              'SK-LJD-MIK-0008',
+  'Instrumentmikrofoner, slagverk':        'SK-LJD-MIK-0019',
+  'Shure SLXD – trådlöst system, 2 mik':  'SK-LJD-MIK-0026',
   'Shure SLXD – trådlöst system, 2 myggmikrofon': 'SK-LJD-MIK-0027',
-  'XLR-kablar': 'SK-LJD-MIK-0002',
-  'Bluetooth-mottagare pro': 'SK-LJD-MIK-0010',
-  'Trådlöst mikrofonset 8 kan.': 'SK-LJD-MIK-0030'
+  'XLR-kablar':                            'SK-LJD-MIK-0002',
+  'Bluetooth-mottagare pro':               'SK-LJD-MIK-0011',
+  'Trådlöst mikrofonset 8 kan.':           'SK-LJD-MIK-0030',
+  'Trådlöst IEM':                          'SK-LJD-MIK-0018',
 };
 const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntries(
   [...(_ljudData.tillbehor_mikrofon||[]), ...(_ljudData.tillbehor_el||[]), ...(_ljudData.mixers||[])]
@@ -155,7 +156,7 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
       
       ].map(item => (
         <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 flex flex-col gap-2 transition-colors">
-          <div class="aspect-square bg-brand-dark rounded-lg overflow-hidden flex items-center justify-center">
+          <div class="aspect-square rounded-lg overflow-hidden flex items-center justify-center">
             <img src={item.img} alt={item.name} width="200" height="200" loading="lazy" class="max-h-full max-w-full object-contain p-1" />
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
