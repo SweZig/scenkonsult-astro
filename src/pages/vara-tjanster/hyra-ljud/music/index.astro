@@ -5,6 +5,18 @@ import ProductCard from '../../../../components/ProductCard.astro';
 import Price from '../../../../components/Price.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
+import _ljudData from '../../../../data/ljud.json';
+const _artnoAliases: Record<string,string> = {
+  'Trådlöst mikrofonset 8 kan.': 'SK-LJD-MIK-0028',
+  'Trådlöst IEM': 'SK-LJD-MIK-0017',
+  'Bluetooth-mottagare pro': 'SK-LJD-MIK-0003',
+  'XLR-kablar': 'SK-LJD-MIK-0002',
+};
+const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntries(
+  [...(_ljudData.tillbehor_mikrofon||[]), ...(_ljudData.tillbehor_el||[]), ...(_ljudData.mixers||[])]
+    .filter((p:any) => p.artno)
+    .map((p:any) => [p.name, p.artno])
+)};
 ---
 <Layout
   title="Hyra Musikljud Stockholm – DJ-system med Sub-basar | Scenkonsult"
@@ -78,13 +90,13 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ProductCard name="Analogt mixerbord, 2+2 kanaler" price={159} image="/images/ljud/pp_ljud_mixer01.png" description="Alto, 2 mic + 2 stereo, Bluetooth." specs={["2 mic/line","2 stereo","Bluetooth","Fantommatning 48V"]} />
-      <ProductCard name="Analogt mixerbord, 4+2 kanaler" price={199} image="/images/ljud/pp_ljud_mixer02.png" description="Alto, 4 mic + 2 stereo, effekter + Bluetooth." specs={["4 mic/line","2 stereo","Effekter + Bluetooth"]} />
+      <ProductCard artno="SK-LJD-MIX-0001" name="Analogt mixerbord, 2+2 kanaler" price={159} image="/images/ljud/pp_ljud_mixer01.png" description="Alto, 2 mic + 2 stereo, Bluetooth." specs={["2 mic/line","2 stereo","Bluetooth","Fantommatning 48V"]} />
+      <ProductCard artno="SK-LJD-MIX-0002" name="Analogt mixerbord, 4+2 kanaler" price={199} image="/images/ljud/pp_ljud_mixer02.png" description="Alto, 4 mic + 2 stereo, effekter + Bluetooth." specs={["4 mic/line","2 stereo","Effekter + Bluetooth"]} />
       <ProductCard artno="SK-LJD-MIX-0003" name="Analogt mixerbord, 4+1 kanaler" price={249} image="/images/ljud/pp_ljud_mixer-vibz8dc.png" description="LD System Vibz8dc med 4 mic-kanaler, 2 stereokanaler och inbyggd kompressor på kanal 1 & 2." specs={["4 mic/line (XLR + 6,3 mm)", "Digital effektprocessor + kompressor", "Fantommatning 48V", "Vikt: 2,3 kg"]} />
-      <ProductCard name="Analogt mixerbord, 4+4 kanaler" price={299} image="/images/ljud/pp_ljud_mixer03.png" description="Mackie, 4 mic + 4 stereo, 60 dB gain." specs={["4 mic/line","4 stereo","60 dB preamp"]} />
-      <ProductCard name="Analogt mixerbord, 6+4 kanaler" price={349} image="/images/ljud/pp_ljud_mixer04.png" description="Allen & Heath ZED14, 6 mic + 4 stereo." specs={["6 mic/line","4 stereo","69 dB preamp"]} />
-      <ProductCard name="Analogt mixerbord, 12+4 kanaler" price={399} image="/images/ljud/pp_ljud_mixer05.png" description="Alto Live L16, 12 mic + 4 stereo, 256 effekter." specs={["12 mic/line","256 effekter"]} />
-      <ProductCard name="Analogt mixerbord, 16+3 kanaler" price={599} image="/images/ljud/pp_ljud_mixer06.png" description="Allen & Heath ZED22FX, 16 mic + 3 stereo, USB." specs={["16 mic/line","USB","High-pass filter"]} />
+      <ProductCard artno="SK-LJD-MIX-0004" name="Analogt mixerbord, 4+4 kanaler" price={299} image="/images/ljud/pp_ljud_mixer03.png" description="Mackie, 4 mic + 4 stereo, 60 dB gain." specs={["4 mic/line","4 stereo","60 dB preamp"]} />
+      <ProductCard artno="SK-LJD-MIX-0005" name="Analogt mixerbord, 6+4 kanaler" price={349} image="/images/ljud/pp_ljud_mixer04.png" description="Allen & Heath ZED14, 6 mic + 4 stereo." specs={["6 mic/line","4 stereo","69 dB preamp"]} />
+      <ProductCard artno="SK-LJD-MIX-0006" name="Analogt mixerbord, 12+4 kanaler" price={399} image="/images/ljud/pp_ljud_mixer05.png" description="Alto Live L16, 12 mic + 4 stereo, 256 effekter." specs={["12 mic/line","256 effekter"]} />
+      <ProductCard artno="SK-LJD-MIX-0007" name="Analogt mixerbord, 16+3 kanaler" price={599} image="/images/ljud/pp_ljud_mixer06.png" description="Allen & Heath ZED22FX, 16 mic + 3 stereo, USB." specs={["16 mic/line","USB","High-pass filter"]} />
       <ProductCard artno="SK-LJD-MIX-0008" name="Digitalt mixerbord, 32+16 kanaler" price={2499} image="/images/ljud/pp_ljud_mixer-ilive-t80.png" description="Allen & Heath iLive T80 studio- & konsert-mixer med Stagebox på scenen via CAT5/6-kabel." specs={["32 mik/line in, 16 XLR ut", "20 faders – 2 banker, 4 lager = 80 kontroller", "8 in, 8 ut ljud", "Vikt: 32 kg"]} />
     </div>
   </section>
@@ -138,6 +150,7 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
             <img src={item.img} alt={item.name} width="200" height="200" loading="lazy" class="w-full h-full object-contain p-1" />
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
+          {artnoByName[item.name] && <p class="artno-badge">{artnoByName[item.name]}</p>}
           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
           <div class="border-t border-white/10 pt-2 flex items-center justify-between gap-1 mt-auto">
             <span class="text-brand-orange font-bold text-sm"><Price amount={item.price} size="sm" /></span>

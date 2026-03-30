@@ -28,7 +28,7 @@ const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   {image && (
     <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
       <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
     </div>
   )}
   <meta itemprop="image" content={image ? `https://scenkonsult.se${image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />

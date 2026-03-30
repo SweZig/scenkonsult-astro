@@ -5,6 +5,18 @@ import ProductCard from '../../../../components/ProductCard.astro';
 import Price from '../../../../components/Price.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
+import _ljudData from '../../../../data/ljud.json';
+const _artnoAliases: Record<string,string> = {
+  'Trådlöst mikrofonset 8 kan.': 'SK-LJD-MIK-0028',
+  'Trådlöst IEM': 'SK-LJD-MIK-0017',
+  'Bluetooth-mottagare pro': 'SK-LJD-MIK-0003',
+  'XLR-kablar': 'SK-LJD-MIK-0002',
+};
+const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntries(
+  [...(_ljudData.tillbehor_mikrofon||[]), ...(_ljudData.tillbehor_el||[]), ...(_ljudData.mixers||[])]
+    .filter((p:any) => p.artno)
+    .map((p:any) => [p.name, p.artno])
+)};
 ---
 <Layout
   title="Hyra Portabelt Ljud Stockholm – Batteridrivet PA-system | Scenkonsult"
@@ -86,17 +98,17 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
     <p class="text-gray-400 mb-8 text-sm">Koppla in mikrofoner och musikspelare. Mixerbord hyrs separat och ansluts till högtalarpaket.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ProductCard name="Analogt mixerbord, 2+2 kanaler" price={159} image="/images/ljud/pp_ljud_mixer01.png"
+      <ProductCard artno="SK-LJD-MIX-0001" name="Analogt mixerbord, 2+2 kanaler" price={159} image="/images/ljud/pp_ljud_mixer01.png"
         description="Kompakt Alto-mixer med 2 mic-kanaler och 2 stereokanaler. Inbyggd Bluetooth. Passar till Portable Small/Small+."
         specs={["2 mic/line (XLR + 6,3 mm)","2 stereo (RCA + 6,3 mm)","Bluetooth","Fantommatning 48V","Vikt: 1,4 kg"]} />
-      <ProductCard name="Analogt mixerbord, 4+2 kanaler" price={199} image="/images/ljud/pp_ljud_mixer02.png"
+      <ProductCard artno="SK-LJD-MIX-0002" name="Analogt mixerbord, 4+2 kanaler" price={199} image="/images/ljud/pp_ljud_mixer02.png"
         description="Alto-mixer med 4 mic-kanaler, 2 stereokanaler, inbyggda effekter och Bluetooth."
         specs={["4 mic/line (XLR + 6,3 mm)","2 stereo (RCA + 6,3 mm)","Inbyggda effekter + Bluetooth","Fantommatning 48V","Vikt: 2 kg"]} />
       <ProductCard artno="SK-LJD-MIX-0003" name="Analogt mixerbord, 4+1 kanaler" price={249} image="/images/ljud/pp_ljud_mixer-vibz8dc.png" description="LD System Vibz8dc med 4 mic-kanaler, 2 stereokanaler och inbyggd kompressor på kanal 1 & 2." specs={["4 mic/line (XLR + 6,3 mm)", "Digital effektprocessor + kompressor", "Fantommatning 48V", "Vikt: 2,3 kg"]} />
-      <ProductCard name="Analogt mixerbord, 4+4 kanaler" price={299} image="/images/ljud/pp_ljud_mixer03.png"
+      <ProductCard artno="SK-LJD-MIX-0004" name="Analogt mixerbord, 4+4 kanaler" price={299} image="/images/ljud/pp_ljud_mixer03.png"
         description="Mackie-mixer med 4 mic och 4 stereokanaler. 60 dB gain. Levereras i transportväska."
         specs={["4 mic/line (XLR + 6,3 mm)","4 stereo","Preamp 60 dB","Fantommatning 48V","Vikt: 3 kg"]} />
-      <ProductCard name="Analogt mixerbord, 6+4 kanaler" price={349} image="/images/ljud/pp_ljud_mixer04.png"
+      <ProductCard artno="SK-LJD-MIX-0005" name="Analogt mixerbord, 6+4 kanaler" price={349} image="/images/ljud/pp_ljud_mixer04.png"
         description="Allen & Heath ZED14 – 6 mic och 4 stereokanaler. 69 dB gain. Professionell mixer."
         specs={["6 mic/line (XLR + 6,3 mm)","4 stereo","69 dB preamp gain","Fantommatning 48V","Vikt: 4,3 kg"]} />
     </div>
@@ -141,6 +153,7 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
             <img src={item.img} alt={item.name} width="200" height="200" loading="lazy" class="w-full h-full object-contain p-1" />
           </div>
           <p class="text-white font-semibold text-sm">{item.name}</p>
+          {artnoByName[item.name] && <p class="artno-badge">{artnoByName[item.name]}</p>}
           <p class="text-gray-400 text-xs flex-1">{item.desc}</p>
           <div class="border-t border-white/10 pt-2 flex items-center justify-between gap-1 mt-auto">
             <span class="text-brand-orange font-bold text-sm"><Price amount={item.price} size="sm" /></span>
