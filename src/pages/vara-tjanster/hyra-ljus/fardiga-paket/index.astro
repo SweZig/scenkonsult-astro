@@ -5,6 +5,12 @@ import VideoCard from '../../../../components/VideoCard.astro';
 import LjusTillbehor from '../../../../components/LjusTillbehor.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
+import ljusData from '../../../../data/ljus.json';
+
+// Artno lookup: title → artno
+const _artnoMap = Object.fromEntries(
+  (ljusData.paket?.products || []).map(p => [p.name, p.artno]).filter(([,a]) => a)
+);
 
 const WP = '/videos';
 const paket = [
@@ -136,6 +142,7 @@ const paket = [
         <div>
           <div class="mb-2 flex items-center gap-2">
             <span class="bg-brand-orange/20 text-brand-orange text-xs font-bold px-2 py-0.5 rounded-full">{p.persons}</span>
+            {_artnoMap[p.title] && <span class="artno-badge" style="margin:0">{_artnoMap[p.title]}</span>}
           </div>
           <VideoCard
             title={p.title}
