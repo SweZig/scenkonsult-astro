@@ -101,6 +101,14 @@ Rökmaskin 1500W → rokmaskin-1500 → 349 kr
 Konfettiavfyrare → konfettiavfyrare → 499 kr
 Hazer HZ-1500 Pro (1 st) → hazer-hz1500 → 649 kr
 Hazer HZ-1500 Pro (2 st) → hazer-hz1500-2x → 1199 kr
+Ackrylatbensin 1 l → ackrylatbensin-1l → 59 kr
+Ackrylatbensin 5 l → ackrylatbensin-5l → 239 kr
+Granulat 100 g (~3 min) → granulat-100g → 299 kr
+Granulat 200 g (~6 min) → granulat-200g → 479 kr
+Rökvätska 1 l → rokvatska-1l → 119 kr
+Rökvätska 3 l → rokvatska-3l → 239 kr
+Rökvätska 5 l → rokvatska-5l → 319 kr
+Rökvätska 5 l (Haze) → rokvatska-5l-haze → 339 kr
 DJ-controller Numark Mixstream Pro+ → dj-controller-numark → 799 kr
 DJ-controller Denon Prime GO+ → dj-controller-denon-go → 999 kr
 DJ-controller Denon Prime 4+ → dj-controller-denon-prime4 → 1499 kr
@@ -216,6 +224,9 @@ LJUS EFFEKTER → /vara-tjanster/hyra-ljus/ljuseffekter/
 - Strobe: 149 kr/dygn
 - Rökmaskin: 349 kr/dygn
 - Hazer HZ-1500 Pro: 649 kr/dygn (1 st), 1 199 kr/dygn (2 st) — fin dis, synliggör ljusstrålar, DMX
+- Rökvätska: 119 kr (1 l), 239 kr (3 l), 319 kr (5 l), 339 kr (5 l Haze)
+- Granulat till kallgnistmaskin: 299 kr (100 g/~3 min), 479 kr (200 g/~6 min)
+- Ackrylatbensin (Aspen 4): 59 kr (1 l), 239 kr (5 l)
 
 PROJEKTOR & SKÄRM → /vara-tjanster/hyra-bild-projektorer-skarmar/
 - Projektor XGA: 299 kr/dygn
