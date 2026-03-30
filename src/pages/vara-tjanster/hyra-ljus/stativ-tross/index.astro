@@ -44,6 +44,7 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
           </div>
           <div class="p-4 flex flex-col flex-1">
             <h2 class="font-bold text-white text-base mb-2">{p.title}</h2>
+            {p.artno && <p class="artno-badge">{p.artno}</p>}
             <p class="text-gray-400 text-xs mb-3">{p.desc}</p>
             <ul class="space-y-1 mb-4 text-xs text-gray-400">
               {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}

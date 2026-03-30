@@ -4,6 +4,7 @@ import CartButton from './CartButton.astro';
 import Price from './Price.astro';
 interface Props {
   id?: string;
+  artno?: string;
   name: string;
   price: number | string;
   priceNote?: string;
@@ -17,7 +18,7 @@ interface Props {
   wide?: boolean;
   category?: string;
 }
-const { id, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false, category = 'Produkt' } = Astro.props;
+const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false, category = 'Produkt' } = Astro.props;
 const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 ---
 <article
@@ -42,6 +43,7 @@ const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   <div class="p-5 flex flex-col flex-1">
 
     <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors leading-tight mb-1" itemprop="name">{name}</h2>
+    {artno && <p class="text-xs font-mono mb-1" style="color:rgba(196,181,244,0.45);letter-spacing:0.05em">{artno}</p>}
 
     {persons && <p class="text-brand-orange text-xs font-semibold mb-2">{persons}</p>}
     <p class="text-gray-400 text-sm leading-relaxed mb-3" itemprop="description">{description}</p>
