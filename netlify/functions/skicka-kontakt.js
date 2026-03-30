@@ -1,5 +1,8 @@
 // netlify/functions/skicka-kontakt.js
 // Resend API — ljust mailtheme (spam-säkert), rate limit-hantering
+// Skapar även en "open" varukorg i Supabase för uppföljning
+
+const { supabase: createSupabase, generateCartToken, logAudit } = require('./_lib');
 
 const RATE_LIMIT = {};
 const RATE_WINDOW_MS = 60 * 1000;
@@ -103,31 +106,63 @@ exports.handler = async (event) => {
   try {
     await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: epost, subject: `Kontaktmeddelande fran ${namn}`, html: htmlInternal, text: plainInternal });
 
-    // Vanta 600ms innan nasta for att undvika Resend rate limit
     await sleep(600);
-
     try {
       await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Kontakt: ${namn} — ${typ||'okant event'}`, html: htmlInternal, text: plainInternal });
     } catch (e) { console.error('TRELLO_COPY_ERROR:', e.message); }
 
-    if (sendCopy && epost) {
-      await sleep(600);
-      console.log('KUNDKOPIA_SENDING to:', epost);
+    console.log('KONTAKT_OK:', JSON.stringify({ ip, namn, epost, sendCopy: !!sendCopy }));
+
+    // ── Skapa öppen varukorg i Supabase ─────────────────────
+    let cartUrl = null;
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
       try {
-        const plainCustomer = `Tack, ${namn}!\n\nVi har tagit emot ditt meddelande och aterkommer inom kort.\nHar du brattom, ring oss pa 072-448 10 00.\n\nDitt meddelande:\n${meddelande}\n\n---\nScenkonsult Norden | scenkonsult.se`;
-        const htmlCustomer = htmlWrapper('Vi har tagit emot ditt meddelande', `
-          <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${namn}!</h2>
-          <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi har tagit emot ditt meddelande och aterkommer inom kort. Har du brattom, ring oss pa <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.</p>
-          <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;">
-            <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Ditt meddelande</p>
-            <p style="margin:0;color:#333;font-size:14px;line-height:1.7;">${meddelande.replace(/\n/g,'<br>')}</p>
-          </div>`);
-        await sendEmail(apiKey, { from: FROM, to: [epost], subject: 'Vi har tagit emot ditt meddelande — Scenkonsult', html: htmlCustomer, text: plainCustomer });
-        console.log('KUNDKOPIA_SENT to:', epost);
-      } catch (e) { console.error('KUNDKOPIA_ERROR:', e.message); }
+        const db = createSupabase();
+        const genId = () => {
+          const h = () => Math.random().toString(16).slice(2).toUpperCase().padStart(8, '0');
+          return `SK-${h().slice(0,8)}-${h().slice(0,4)}`;
+        };
+        const cartId    = genId();
+        const cartToken = generateCartToken();
+        await db.upsert('carts', {
+          id:               cartId,
+          status:           'open',
+          items:            [],
+          customer_name:    namn,
+          customer_email:   epost,
+          customer_phone:   telefon || null,
+          customer_message: meddelande,
+          event_date:       datum   || null,
+          event_location:   null,
+          total_excl:       0,
+          cart_token:       cartToken,
+          expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+        await logAudit(db, cartId, 'customer', 'contact_form', { typ: typ||'okänt' });
+        cartUrl = `https://scenkonsult.se/order/?cart=${cartId}&token=${cartToken}`;
+        console.log('KONTAKT_CART_CREATED:', cartId);
+
+        // Skicka uppdaterad kundkopia med kundlänk (om sendCopy vald)
+        if (sendCopy && epost) {
+          try {
+            const plainWithLink = `Tack, ${namn}!\n\nVi har tagit emot ditt meddelande och återkommer inom kort.\nVill du följa din förfrågan kan du använda länken nedan.\n\nDitt meddelande:\n${meddelande}\n\nSe din förfrågan: ${cartUrl}\n\n---\nScenkonsult Norden | scenkonsult.se`;
+            const htmlWithLink = htmlWrapper('Vi har tagit emot ditt meddelande', `
+              <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${namn}!</h2>
+              <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi har tagit emot ditt meddelande och återkommer inom kort. Har du bråttom, ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.</p>
+              <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;margin-bottom:20px;">
+                <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Ditt meddelande</p>
+                <p style="margin:0;color:#333;font-size:14px;line-height:1.7;">${meddelande.replace(/\n/g,'<br>')}</p>
+              </div>
+              <p style="margin:24px 0 8px;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">Se din förfrågan →</a></p>
+              <p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du följa status, se eventuella produkterbjudanden och chatta med oss.</p>`);
+            await sendEmail(apiKey, { from: FROM, to: [epost], subject: 'Vi har tagit emot ditt meddelande — Scenkonsult', html: htmlWithLink, text: plainWithLink });
+          } catch (e) { console.error('KUNDKOPIA_MED_LINK_ERROR:', e.message); }
+        }
+      } catch (cartErr) {
+        console.error('KONTAKT_CART_ERROR:', cartErr.message);
+      }
     }
 
-    console.log('KONTAKT_OK:', JSON.stringify({ ip, namn, epost, sendCopy: !!sendCopy }));
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   } catch (err) {
     console.error('KONTAKT_ERROR:', err.message);

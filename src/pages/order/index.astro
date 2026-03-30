@@ -474,7 +474,7 @@ function renderOrder(c) {
   const subtotal = realItems.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);
   document.getElementById('prodTableBody').innerHTML = realItems.map(i => {
     const qty   = i.qty || i.quantity || 1;
-    const imgSrc = PROD_IMG[i.id] || null;
+    const imgSrc = PROD_IMG[i.id] || PROD_IMG[(i.id||'').replace(/^(scen-|ljud-|ljus-|dj-utr-)/,'')] || null;
     const imgCell = imgSrc
       ? `<img src="${imgSrc}" alt="${i.name||''}" class="prod-thumb" loading="lazy" onerror="this.parentNode.innerHTML='<div class=prod-thumb-ph>📦</div>'">`
       : `<div class="prod-thumb-ph">📦</div>`;
