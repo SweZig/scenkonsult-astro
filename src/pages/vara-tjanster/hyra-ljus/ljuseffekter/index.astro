@@ -1,7 +1,7 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
-import VideoCard from '../../../../components/VideoCard.astro';
+import MediaCard from '../../../../components/MediaCard.astro';
 import LjusTillbehor from '../../../../components/LjusTillbehor.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
@@ -209,7 +209,7 @@ const movingHeads = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <h2 class="text-2xl font-bold text-white mb-6">LED PAR & armaturer</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {ledPar.map(p => <VideoCard title={p.title} img={p.img} priceExcl={p.excl} videos={p.videos} rows={p.rows} bullets={p.bullets} />)}
+      {ledPar.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} category="Ljuseffekter" />)}
     </div>
   </section>
 
@@ -217,7 +217,7 @@ const movingHeads = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <h2 class="text-2xl font-bold text-white mb-6">Scanner, Strobe & Laser</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {specialEffekter.map(p => <VideoCard title={p.title} img={p.img} priceExcl={p.excl} videos={p.videos} rows={p.rows} bullets={p.bullets} />)}
+      {specialEffekter.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} category="Ljuseffekter" />)}
     </div>
   </section>
 
@@ -225,7 +225,7 @@ const movingHeads = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6">Moving Heads</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {movingHeads.map(p => <VideoCard title={p.title} tag={p.tag} img={p.img} priceExcl={p.excl} videos={p.videos} rows={p.rows} bullets={p.bullets} />)}
+      {movingHeads.map(p => <MediaCard title={p.title} tag={p.tag} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} category="Ljuseffekter" />)}
     </div>
   </section>
 
