@@ -11,6 +11,7 @@ const WP = '/videos';
 const ledPar = [
   {
     title: 'LED PAR (14×8W RGBW)',
+    artno: 'SK-LJS-EFF-0001',
     img: '/images/ljus/pp_ljus_effekt19.png',
     excl: 79,
     videos: [],
@@ -21,6 +22,7 @@ const ledPar = [
   },
   {
     title: 'LED PAR (9×10W RGBW)',
+    artno: 'SK-LJS-EFF-0002',
     img: '/images/ljus/pp_ljus_effekt26.png',
     excl: 99,
     videos: [`${WP}/9LEDs_PAR_RGBW_MP4.mp4`],
@@ -31,6 +33,7 @@ const ledPar = [
   },
   {
     title: 'LED PAR UV',
+    artno: 'SK-LJS-EFF-0003',
     img: '/images/ljus/pp_ljus_effekt21.png',
     excl: 119,
     videos: [],
@@ -41,6 +44,7 @@ const ledPar = [
   },
   {
     title: 'LED PAR XL (60×2W RGBW)',
+    artno: 'SK-LJS-EFF-0004',
     img: '/images/ljus/pp_ljus_par_xl.png',
     excl: 149,
     videos: [`${WP}/PAR-XL.mp4`],
@@ -51,6 +55,7 @@ const ledPar = [
   },
   {
     title: 'LED Armatur, uppladdningsbar',
+    artno: 'SK-LJS-EFF-0005',
     img: '/images/ljus/pp_ljus_effekt22.png',
     excl: 199,
     videos: [`${WP}/4X18W_RGBWA_UV_Battery.mp4`],
@@ -61,6 +66,7 @@ const ledPar = [
   },
   {
     title: 'LED Bar',
+    artno: 'SK-LJS-EFF-0006',
     img: '/images/ljus/pp_ljus_effekt07.png',
     excl: 199,
     videos: [`${WP}/stairville_led_bar_240-8_rgb_dmx_30_02_02.mp4`],
@@ -74,6 +80,7 @@ const ledPar = [
 const specialEffekter = [
   {
     title: 'LED Scanner',
+    artno: 'SK-LJS-EFF-0007',
     img: '/images/ljus/pp_ljus_effekt05.png',
     excl: 239,
     videos: [`${WP}/stairville_matrixx-sc-100_dmx_led_03.mp4`],
@@ -82,6 +89,7 @@ const specialEffekter = [
   },
   {
     title: 'Strobe (2-pack)',
+    artno: 'SK-LJS-EFF-0008',
     img: '/images/ljus/pp_ljus_effekt04.png',
     excl: 399,
     videos: [`${WP}/Stairville-1-Strobe-1500-DMX-Power-Bundle.mp4`],
@@ -90,6 +98,7 @@ const specialEffekter = [
   },
   {
     title: 'Laser',
+    artno: 'SK-LJS-EFF-0009',
     img: '/images/ljus/pp_ljus_effekt06.png',
     excl: 499,
     videos: [`${WP}/cameo_wookie-400-RGB.mp4`],
@@ -102,6 +111,7 @@ const movingHeads = [
   {
     tag: 'Moving Head | Wash',
     title: 'Moving Head Wash (36×3W RGBW)',
+    artno: 'SK-LJS-EFF-0010',
     img: '/images/ljus/pp_ljus_effekt10.png',
     excl: 299,
     videos: [`${WP}/MH-100.mp4`],
@@ -120,6 +130,7 @@ const movingHeads = [
   {
     tag: 'Moving Head | Wash',
     title: 'Moving Head Wash (19×15W RGBW)',
+    artno: 'SK-LJS-EFF-0012',
     img: '/images/ljus/pp_ljus_effekt13.png',
     excl: 399,
     videos: [`${WP}/LM1915Z.mp4`],
@@ -129,6 +140,7 @@ const movingHeads = [
   {
     tag: 'Moving Head | Wash',
     title: 'Moving Head Wash (19×8W + 60×0,2W RGB)',
+    artno: 'SK-LJS-EFF-0013',
     img: '/images/ljus/pp_ljus_effekt14.png',
     excl: 499,
     videos: [`${WP}/LM1009Z.mp4`],
@@ -138,6 +150,7 @@ const movingHeads = [
   {
     tag: 'Moving Head | Beam/Spot',
     title: 'Moving Head Beam/Spot (100W COB)',
+    artno: 'SK-LJS-EFF-0014',
     img: '/images/ljus/pp_ljus_effekt16.png',
     excl: 299,
     videos: [`${WP}/LB100A.mp4`],
@@ -147,6 +160,7 @@ const movingHeads = [
   {
     tag: 'Moving Head | Beam/Spot',
     title: 'Moving Head Beam/Spot (180W COB)',
+    artno: 'SK-LJS-EFF-0015',
     img: '/images/ljus/pp_ljus_effekt17.png',
     excl: 399,
     videos: [`${WP}/LB230.mp4`],
@@ -156,6 +170,7 @@ const movingHeads = [
   {
     tag: 'Moving Head | Beam/Spot',
     title: 'Moving Head Beam/Spot (230W COB)',
+    artno: 'SK-LJS-EFF-0016',
     img: '/images/ljus/pp_ljus_effekt18.png',
     excl: 499,
     videos: [`${WP}/LB450C.mp4`],
@@ -165,6 +180,7 @@ const movingHeads = [
   {
     tag: 'Moving LED Bar',
     title: 'Moving LED Bar',
+    artno: 'SK-LJS-EFF-0017',
     img: '/images/ljus/pp_ljus_effekt09.png',
     excl: 399,
     videos: [`${WP}/Betopper_L1015_short_720p.mp4`],
@@ -209,7 +225,7 @@ const movingHeads = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <h2 class="text-2xl font-bold text-white mb-6">LED PAR & armaturer</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {ledPar.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} category="Ljuseffekter" />)}
+      {ledPar.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} artno={p.artno} category="Ljuseffekter" />)}
     </div>
   </section>
 
@@ -217,7 +233,7 @@ const movingHeads = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <h2 class="text-2xl font-bold text-white mb-6">Scanner, Strobe & Laser</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {specialEffekter.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} category="Ljuseffekter" />)}
+      {specialEffekter.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} artno={p.artno} category="Ljuseffekter" />)}
     </div>
   </section>
 
@@ -225,7 +241,7 @@ const movingHeads = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6">Moving Heads</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {movingHeads.map(p => <MediaCard title={p.title} tag={p.tag} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} category="Ljuseffekter" />)}
+      {movingHeads.map(p => <MediaCard title={p.title} tag={p.tag} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} artno={p.artno} category="Ljuseffekter" />)}
     </div>
   </section>
 
@@ -244,13 +260,23 @@ const movingHeads = [
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {[
-        { img:"/images/ljus/pp_ljus_styrning02.png",  name:"Styrenhet 192 kan.",       artno:"SK-LJS-DMX-0001", excl:99,   desc:"12 scanners×16 kan, 240 sekvenser, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_botex_sdc16.png", name:"Botex SDC-16",             artno:"SK-LJS-DMX-0002", excl:199,  desc:"16 kanalfaders + masterfader, startkanal via display" },
-        { img:"/images/ljus/pp_ljus_styrning03.png",  name:"Styrenhet 512 kan.",       artno:"SK-LJS-DMX-0003", excl:299,  desc:"48 enheter, 4 600 scener, 96 banker, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_styrning04.png",  name:"PC-mjukvara DMX",          artno:"SK-LJS-DMX-0004", excl:799,  desc:"512 kan, dra/släpp programmering, BPM-analys, SSL2" },
-        { img:"/images/ljus/pp_ljus_styrning-m6.png", name:"Martin M6 Ljusstyrning",   artno:"SK-LJS-DMX-0005", excl:2499, desc:"Dubbla 15,4″ touchskärmar, 44 playbacks, 4× FastBlend RGB" },
+        { img:"/images/ljus/pp_ljus_styrning02.png",  name:"Styrenhet 192 kan.",    artno:"SK-LJS-DMX-0001", excl:99,
+          desc:"Enkel DMX-kontroll för upp till 12 scannrar × 16 kanaler",
+          specs:["192 DMX-kanaler","12 scannrar × 16 kanaler","240 sekvenser i 30 banker","Musikstyrning via inbyggd mikrofon","Standalone – ingen dator krävs"] },
+        { img:"/images/ljus/pp_ljus_botex_sdc16.png", name:"Botex SDC-16",          artno:"SK-LJS-DMX-0002", excl:199,
+          desc:"16 individuella kanalfaders för direkt manuell styrning",
+          specs:["192 DMX-kanaler","16 individuella faders + masterfader","Startkanal ställs via display","Parallellstyrning av 16 enheter","Rack-monterbar"] },
+        { img:"/images/ljus/pp_ljus_styrning03.png",  name:"Styrenhet 512 kan.",    artno:"SK-LJS-DMX-0003", excl:299,
+          desc:"Professionell 512-kanalers DMX-kontroller för medelstora produktioner",
+          specs:["512 DMX-kanaler","Styr upp till 48 enheter","4 600 scener i 96 banker","Mjukpatch alla 512 kanaler","Musikstyrning via inbyggd mikrofon","LCD-display"] },
+        { img:"/images/ljus/pp_ljus_styrning04.png",  name:"PC-mjukvara + gränssnitt", artno:"SK-LJS-DMX-0004", excl:799,
+          desc:"Professionell DMX-programvara med USB-gränssnitt, 512 kanaler",
+          specs:["512 DMX-kanaler via USB","Dra-och-släpp programmering","Ljud-till-ljus med BPM-analys","Live-dimning och scen-uppspelning","Stöder Moving Heads, dimmer, LED","Inkl. Sunlite Suite 2 licens"] },
+        { img:"/images/ljus/pp_ljus_styrning-m6.png", name:"Martin M6 Ljusstyrning", artno:"SK-LJS-DMX-0005", excl:2499,
+          desc:"Professionell konsol för avancerade produktioner – dubbla touchskärmar",
+          specs:["Dubbla 15,4\" touchskärmar","44 playbacks med timing","4× FastBlend RGB-faders","12× FastDial rotary encoders","4× FastTrack linjära encoders","Kompakt rackmonterad design","Stöder Martin, Robe, Chauvet m.fl."] },
       ].map(p => (
-        <ElTillbehorCard img={p.img} name={p.name} excl={p.excl} desc={p.desc} category="DMX-styrning" artno={p.artno} modal={true} specs={[p.desc]} />
+        <ElTillbehorCard img={p.img} name={p.name} excl={p.excl} desc={p.desc} category="DMX-styrning" artno={p.artno} modal={true} specs={p.specs} />
       ))}
     </div>
   </section>
