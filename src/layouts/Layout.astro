@@ -1042,11 +1042,82 @@ const localBusinessSchema = {
         return;
       }
 
-      const PROACTIVE_MSGS = [
-        "Hm, du verkar leta efter något. Kan det vara så att du behöver lite hjälp? Fråga mig — jag har ingenting bättre att göra bakom scenen ändå. 🎭",
-        "Fortfarande kvar? Antingen är du verkligen intresserad, eller har du somnat. I båda fall — kan jag hjälpa dig hitta rätt utrustning?",
-        "Psst! Sven här. Bakom kulisserna alltid. Hittar du inte det du letar efter? Säg till — det är bokstavligen mitt enda jobb.",
-      ];
+      // ── SIDSPECIFIK + TIDSBASERAD PROAKTIV HÄLSNING ──────────────────
+      function getProactiveMsg() {
+        const path = window.location.pathname;
+        const hour = new Date().getHours();
+
+        const timeComment =
+          (hour >= 5  && hour < 8)  ? " Tidigt ute — bra. Jag har varit här sedan 06:00, som vanligt." :
+          (hour >= 12 && hour < 13) ? " (Jag äter fortfarande vid datorn. Det är mitt liv nu.)" :
+          (hour >= 17 && hour < 22) ? " Planerar man event på kvällen, eller sitter man och grubblar?" :
+          (hour >= 22 || hour < 5)  ? " Det är mitt i natten. Antingen desperat, eller DJ. Hör av dig." : "";
+
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+        if (path.includes('/hyra-scen'))
+          return pick([
+            `Hm. Du tittar på scener. Klokt — utan scen får artisterna stå på golvet.${timeComment} Hur stort event är det?`,
+            `Scensidan. Jag har riggt hundratals av dem sedan -86. Ingen av dem har tackat mig.${timeComment} Vad är storleken på ert event?`,
+          ]);
+
+        if (path.includes('/hyra-ljud'))
+          return pick([
+            `Ljud är mitt område.${timeComment} Hur många gäster är det, och är det dans eller tal? Det avgör allt.`,
+            `PA-sidan. Fel storlek är det vanligaste misstaget.${timeComment} Berätta om lokalen så hittar vi rätt.`,
+          ]);
+
+        if (path.includes('/rok-pyro'))
+          return pick([
+            `Rök och pyro.${timeComment} Det är häftigare än folk tror — och enklare att hantera än de fruktar. Vad är tanken?`,
+            `Kallgnistmaskin eller rökmaskin? Eller båda? Jag guidar gärna.${timeComment}`,
+          ]);
+
+        if (path.includes('/hyra-ljus') || path.includes('/ljuseffekter') || path.includes('/fardiga-paket'))
+          return pick([
+            `Ljus.${timeComment} Rätt ljussättning gör medelstora artister sekvärda. Jag vet. Jag har sett det hända.`,
+            `Färdiga paket eller eget ihopsatt? Jag guidar gärna — det är faktiskt kul, om jag ska vara ärlig.`,
+          ]);
+
+        if (path.includes('/hyra-dj'))
+          return pick([
+            `DJ-sidan.${timeComment} Jag försökte vara DJ en gång på 90-talet. Det gick inte bra. Men utrustningen vi hyr ut är riktigt bra.`,
+            `Ska ni hyra DJ-utrustning eller boka en DJ? Vi fixar det oavsett.`,
+          ]);
+
+        if (path.includes('/hyra-bild'))
+          return `Projektor eller skärm?${timeComment} Det beror på lokalen och hur mycket dagsljus ni har. Berätta mer.`;
+
+        if (path.includes('/brollop'))
+          return pick([
+            `Bröllop!${timeComment} Grattis på förhand. Jag har riggt hundratals bröllop. Alla trodde det var just deras event som var svårast. Alla hade rätt.`,
+            `Bröllopsljud och -ljus — det ska vara varmt och stämningsfullt, inte en konsert. Jag hjälper er hitta rätt nivå.`,
+          ]);
+
+        if (path.includes('/foretagsfest') || path.includes('/konferens'))
+          return pick([
+            `Företagsevent?${timeComment} Proffs behöver också ha kul ibland, sägs det. Vi fixar tekniken — ni fixar humöret.`,
+            `Konferens eller fest? Eller det klassiska: konferens som ska kännas som fest men inte riktigt lyckas? Oavsett — vi har lösningen.`,
+          ]);
+
+        if (path.includes('/for/festival'))
+          return `Utomhus-event.${timeComment} Kom ihåg: utomhus behöver ni dubbel effekt jämfört med inomhus. Och vädertäckt utrustning. Och en backup-plan.`;
+
+        if (path.includes('/stativ-tross'))
+          return `Stativ och tross — grunden för allt.${timeComment} Välj stativ och tross först, sedan armaturer. Inte tvärtom.`;
+
+        if (path.match(/hyra-ljud-scen-/)) {
+          const ort = path.replace(/.*hyra-ljud-scen-/, '').replace(/\/$/, '');
+          const ortNamn = ort.charAt(0).toUpperCase() + ort.slice(1);
+          return `Hej från Vällingby!${timeComment} Vi levererar till ${ortNamn} regelbundet — ca 20–35 min beroende på tid. Vad är det för event?`;
+        }
+
+        return pick([
+          `Psst! Sven här.${timeComment} Hittar du inte det du letar efter? Säg till.`,
+          `Fortfarande kvar?${timeComment} Antingen är du verkligen intresserad, eller har du somnat. I båda fall — kan jag hjälpa?`,
+          `Hm, du verkar leta.${timeComment} Bakom kulisserna sedan -86. Vad behöver du?`,
+        ]);
+      }
 
       // Chips när kundtyp INTE är känd ännu
       const CHIPS_KUNDTYP = ["Företag (exkl. moms)", "Privatperson (inkl. moms)", "Förening/organisation"];
@@ -1273,7 +1344,7 @@ const localBusinessSchema = {
             // Auto-öppna efter ytterligare 8 sek
             setTimeout(() => {
               if (!isOpen && !hasGreeted) {
-                const msg = PROACTIVE_MSGS[Math.floor(Math.random() * PROACTIVE_MSGS.length)];
+                const msg = getProactiveMsg();
                 open(msg);
               }
             }, 8000);
