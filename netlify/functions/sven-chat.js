@@ -109,6 +109,9 @@ Rökvätska 1 l → rokvatska-1l → 119 kr
 Rökvätska 3 l → rokvatska-3l → 239 kr
 Rökvätska 5 l → rokvatska-5l → 319 kr
 Rökvätska 5 l (Haze) → rokvatska-5l-haze → 339 kr
+Konfettirör, Multifärg → konfettirör-multi → 119 kr
+Konfettirör, Vit (snö) → konfettirör-vit → 119 kr
+Konfettirör, Guld → konfettirör-guld → 139 kr
 DJ-controller Numark Mixstream Pro+ → dj-controller-numark → 799 kr
 DJ-controller Denon Prime GO+ → dj-controller-denon-go → 999 kr
 DJ-controller Denon Prime 4+ → dj-controller-denon-prime4 → 1499 kr
@@ -227,6 +230,7 @@ LJUS EFFEKTER → /vara-tjanster/hyra-ljus/ljuseffekter/
 - Rökvätska: 119 kr (1 l), 239 kr (3 l), 319 kr (5 l), 339 kr (5 l Haze)
 - Granulat till kallgnistmaskin: 299 kr (100 g/~3 min), 479 kr (200 g/~6 min)
 - Ackrylatbensin (Aspen 4): 59 kr (1 l), 239 kr (5 l)
+- Konfettirör (extra till konfettiavfyraren): 119 kr (Multifärg), 119 kr (Vit/snö), 139 kr (Guld)
 
 PROJEKTOR & SKÄRM → /vara-tjanster/hyra-bild-projektorer-skarmar/
 - Projektor XGA: 299 kr/dygn
