@@ -5,6 +5,10 @@ import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import MediaCard from '../../../../components/MediaCard.astro';
 import ljusData from '../../../../data/ljus.json';
+
+const forbr = ljusData.rok.tillbehor.filter(t =>
+  !t.slug.startsWith('ackrylatbensin')
+);
 ---
 <Layout
   title="Hyr Rökmaskin & Kallgnistmaskin Stockholm – Granulat & Rökvätska | Scenkonsult"
@@ -29,6 +33,7 @@ import ljusData from '../../../../data/ljus.json';
     priceFrom={349}
   />
 
+  <!-- ① RÖKMASKINER, HAZER, KALLGNIST, KONFETTI -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
@@ -40,7 +45,7 @@ import ljusData from '../../../../data/ljus.json';
         priceSuffix="/st/dygn fr"
         artno="SK-LJS-ROK-0001"
         category="Rök & pyro"
-        bullets={["6×3W LED RGB inbyggd","Dimeffekt: 85 m³/min","Strömförbrukning: 1 500 W","Mått: 397×302×191 mm, Vikt: 5 kg","1 L rökvätska ingår i priset"]}
+        bullets={["6×3W LED RGB inbyggd","Dimeffekt: 85 m³/min","Strömförbrukning: 1 500 W","Mått: 397×302×191 mm, Vikt: 5 kg","1 L rökvätska ingår"]}
         rows={[
           {label:"Volympriser", rows:["1 st – 349 kr","2 st – 649 kr","4 st – 1 249 kr"]},
         ]}
@@ -54,9 +59,23 @@ import ljusData from '../../../../data/ljus.json';
         priceSuffix="/st/dygn fr"
         artno="SK-LJS-ROK-0002"
         category="Rök & pyro"
-        bullets={["12×3W LED RGB inbyggd","Dimeffekt: 125 m³/min","Strömförbrukning: 650 W","Vikt: 10 kg","1 L rökvätska ingår i priset"]}
+        bullets={["12×3W LED RGB inbyggd","Dimeffekt: 125 m³/min","Strömförbrukning: 650 W","Vikt: 10 kg","1 L rökvätska ingår"]}
         rows={[
           {label:"Volympriser", rows:["1 st – 449 kr","2 st – 849 kr","4 st – 1 699 kr"]},
+        ]}
+      />
+
+      <MediaCard
+        title="Hazer HZ-1500 Pro"
+        images={["/images/ljus/pp_ljus_rok3.png"]}
+        videos={["/videos/hazer-hz1500.mp4"]}
+        priceExcl={649}
+        priceSuffix="/st/dygn fr"
+        artno="SK-LJS-ROK-0005"
+        category="Rök & pyro"
+        bullets={["Finfördelat dis – synliggör ljusstrålar","DMX 512-styrning","Touring flightcase","Stabil kontinuerlig output","Inkl 1 l rökvätska"]}
+        rows={[
+          {label:"Volympriser", rows:["1 st – 649 kr","2 st – 1 199 kr"]},
         ]}
       />
 
@@ -82,118 +101,88 @@ import ljusData from '../../../../data/ljus.json';
         priceSuffix="/dygn"
         artno="SK-LJS-ROK-0004"
         category="Rök & pyro"
-        bullets={["Utskjutningsvinkel steglöst justerbar","DMX 512 Standard","Strömförbrukning: 100 W","/dygn inkl ett rör"]}
+        bullets={["Utskjutningsvinkel steglöst justerbar","DMX 512 Standard","Strömförbrukning: 100 W","Inkl ett konfettirör"]}
         rows={[
           {label:"Extra konfettirör", rows:["Multifärg – 119 kr","Vit (snöeffekt) – 119 kr","Guld – 139 kr"]},
         ]}
       />
 
-      <MediaCard
-        title="Hazer HZ-1500 Pro"
-        images={["/images/ljus/pp_ljus_rok3.png"]}
-        videos={["/videos/hazer-hz1500.mp4"]}
-        priceExcl={649}
-        priceSuffix="/st/dygn fr"
-        artno="SK-LJS-ROK-0005"
-        category="Rök & pyro"
-        bullets={["Finfördelat dis – synliggör ljusstrålar","DMX 512-styrning","Touring flightcase","Stabil kontinuerlig output","Inkl 1 l rökvätska"]}
-        rows={[
-          {label:"Volympriser", rows:["1 st – 649 kr","2 st – 1 199 kr"]},
-        ]}
-      />
     </div>
   </section>
 
-  <!-- TILLBEHÖR: Rökvätska, Granulat & Ackrylatbensin -->
+  <!-- ② LJUSSTYRNING (DMX) -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör</h2>
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {[
+        { img:"/images/ljus/pp_ljus_styrning02.png",  name:"Styrenhet 192 kan.",     excl:99,   artno:"SK-LJS-DMX-0001", desc:"12 scanners×16 kan, 240 sekvenser, musikstyrning" },
+        { img:"/images/ljus/pp_ljus_botex_sdc16.png", name:"Botex SDC-16",           excl:199,  artno:"SK-LJS-DMX-0002", desc:"16 kanalfaders + masterfader, startkanal via display" },
+        { img:"/images/ljus/pp_ljus_styrning03.png",  name:"Styrenhet 512 kan.",     excl:299,  artno:"SK-LJS-DMX-0003", desc:"48 enheter, 4 600 scener, 96 banker, musikstyrning" },
+        { img:"/images/ljus/pp_ljus_styrning04.png",  name:"PC-mjukvara DMX",        excl:799,  artno:"SK-LJS-DMX-0004", desc:"512 kan, dra/släpp programmering, BPM-analys, SSL2" },
+        { img:"/images/ljus/pp_ljus_styrning-m6.png", name:"Martin M6 Ljusstyrning", excl:2499, artno:"SK-LJS-DMX-0005", desc:"Dubbla 15,4\" touchskärmar, 44 playbacks, 4× FastBlend RGB" },
+      ].map(p => (
+        <ElTillbehorCard img={p.img} name={p.name} excl={p.excl} desc={p.desc} category="DMX-styrning" artno={p.artno} />
+      ))}
+    </div>
+  </section>
+
+  <!-- ③ FÖRBRUKNINGSARTIKLAR: Rökvätska & Granulat -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Förbrukningsartiklar</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {ljusData.rok.tillbehor.map(t => (
+      {forbr.map(t => (
         <ElTillbehorCard
           img={t.image}
           name={t.name}
           excl={t.price}
           desc={t.desc}
-          category="Rök tillbehör"
+          category="Förbrukningsartiklar"
           artno={t.artno}
         />
       ))}
     </div>
   </section>
 
-  <!-- DMX STYRNING -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {[
-        { img:"/images/ljus/pp_ljus_styrning02.png", name:"Styrenhet 192 kan.", excl:99,  desc:"12 scanners×16 kan, 240 sekvenser, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_botex_sdc16.png",name:"Botex SDC-16",       excl:199, desc:"16 kanalfaders + masterfader, startkanal via display" },
-        { img:"/images/ljus/pp_ljus_styrning03.png", name:"Styrenhet 512 kan.", excl:299, desc:"48 enheter, 4 600 scener, 96 banker, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_styrning04.png", name:"PC-mjukvara DMX",    excl:799, desc:"512 kan, dra/släpp programmering, BPM-analys, SSL2" },
-        { img:"/images/ljus/pp_ljus_styrning-m6.png",  name:"Martin M6 Ljusstyrning",    excl:2499, desc:"M6 ljuskontroll med dubbla 15,4\" touchskärmar, 44 playbacks, 4x FastBlend RGB" },
-      
-      ].map(p => (
-        <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl overflow-hidden transition-colors flex flex-col">
-          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-            <img src={p.img} alt={p.name} width="256" height="213" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <div class="p-3 flex flex-col flex-1">
-            <p class="text-white font-bold text-sm mb-1">{p.name}</p>
-            {p.artno && <p class="artno-badge">{p.artno}</p>}
-            <p class="text-gray-400 text-xs mb-3 flex-1">{p.desc}</p>
-            <div class="flex items-center justify-between border-t border-white/10 pt-2 gap-2">
-              <div class="shrink-0">
-                <span class="sk-price-excl text-brand-orange font-bold text-sm">{p.excl} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-bold text-sm">{Math.round(p.excl*1.25)} kr</span>
-                <div class="text-gray-400 text-[10px]">/dygn</div>
-              </div>
-              <CartButton id={`rok-dmx-${p.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={p.name} price={p.excl} priceNote="/dygn" category="DMX-styrning" image={p.img} size="sm" label="Lägg i korg" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <!-- TILLBEHÖR RÖK & DMX -->
+  <!-- ④ TILLBEHÖR: Fästen & DMX-kablar -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">Tillbehör – Fästen &amp; DMX</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {[
-        { img:"/images/ljus/pp_ljus_half_coupler.png",  name:"Half Coupler 35/50 mm",          excl:20  },
-        { img:"/images/ljus/pp_ljus_super_clamp.png",   name:"Super Clamp 50 mm",              excl:32  },
-        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 1–5 m",               excl:20  },
-        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 10–15 m",             excl:40  },
-        { img:"/images/ljus/pp_ljus_tradlos01.png",     name:"DMX Trådlös startkit (1+2)",     excl:159 },
-        { img:"/images/ljus/pp_ljus_tradlos02.png",     name:"DMX Trådlös extra sändare",      excl:80  },
-        { img:"/images/ljus/pp_ljus_tradlos03.png",     name:"DMX Trådlös extra mottagare",    excl:80  },
+        { img:"/images/ljus/pp_ljus_half_coupler.png",  name:"Half Coupler 35/50 mm",        artno:"SK-LJS-STV-0010", excl:20  },
+        { img:"/images/ljus/pp_ljus_super_clamp.png",   name:"Super Clamp 50 mm",            artno:"SK-LJS-STV-0011", excl:32  },
+        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 1–5 m",              artno:"SK-LJS-DMX-0006", excl:20  },
+        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 10–15 m",            artno:"SK-LJS-DMX-0007", excl:40  },
+        { img:"/images/ljus/pp_ljus_tradlos01.png",     name:"DMX Trådlös startkit (1+2)",   artno:"SK-LJS-DMX-0008", excl:159 },
+        { img:"/images/ljus/pp_ljus_tradlos02.png",     name:"DMX Trådlös extra sändare",    artno:"SK-LJS-DMX-0009", excl:80  },
+        { img:"/images/ljus/pp_ljus_tradlos03.png",     name:"DMX Trådlös extra mottagare",  artno:"SK-LJS-DMX-0010", excl:80  },
       ].map(t => (
         <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="DMX-tillbehör" artno={t.artno} />
       ))}
     </div>
   </section>
 
-  <!-- EL-TILLBEHÖR -->
+  <!-- ⑤ EL-TILLBEHÖR + Ackrylatbensin sist -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {[
-        { img:"/images/ljus/pp_ljus_powercon.png",      name:"PowerCon 0,5–1,5 m",         excl:20  },
-        { img:"/images/ljus/pp_ljus_iec_kabel.png",     name:"IEC C13/C14 0,5–1,5 m",     excl:20  },
-        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",            excl:20  },
-        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m 1-fas",     excl:48  },
-        { img:"/images/ljus/pp_ljus_powercon2.png",     name:"PowerCon 5–10 m",            excl:80  },
-        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",      excl:80  },
-        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag 10 m IP44",        excl:100 },
-        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag 25 m IP44",        excl:159 },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",      excl:236 },
-        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",excl:320 },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",      excl:396 },
-        { img:"/images/ljud/pp_ljud_tillbehor_elverk-small.png", name:"Elgenerator 2 200 W", excl:799 },
-        { img:"/images/ljud/pp_ljud_elverk-kipor.png", name:"Elgenerator 7 700 W", excl:1799 },
-      
+        { img:"/images/ljus/pp_ljus_powercon.png",      name:"PowerCon 0,5–1,5 m",          artno:"SK-LJS-EL-0001", excl:20   },
+        { img:"/images/ljus/pp_ljus_iec_kabel.png",     name:"IEC C13/C14 0,5–1,5 m",       artno:"SK-LJS-EL-0002", excl:20   },
+        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",              artno:"SK-LJS-EL-0003", excl:20   },
+        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m 1-fas",       artno:"SK-LJS-EL-0004", excl:48   },
+        { img:"/images/ljus/pp_ljus_powercon2.png",     name:"PowerCon 5–10 m",              artno:"SK-LJS-EL-0005", excl:80   },
+        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",        artno:"SK-LJS-EL-0006", excl:80   },
+        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag 10 m IP44",          artno:"SK-LJS-EL-0007", excl:100  },
+        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag 25 m IP44",          artno:"SK-LJS-EL-0008", excl:159  },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",        artno:"SK-LJS-EL-0009", excl:236  },
+        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",  artno:"SK-LJS-EL-0010", excl:320  },
+        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",        artno:"SK-LJS-EL-0011", excl:396  },
+        { img:"/images/ljud/pp_ljud_tillbehor_elverk-small.png", name:"Elgenerator 2 200 W", artno:"SK-LJS-EL-0012", excl:799  },
+        { img:"/images/ljud/pp_ljud_elverk-kipor.png",  name:"Elgenerator 7 700 W",          artno:"SK-LJS-EL-0013", excl:1799 },
+        { img:"/images/ljus/pp_ljus_ackrylatbensin_1L.png", name:"Ackrylatbensin 1 l",       artno:"SK-LJS-ROK-ACC-0001", excl:59, desc:"Aspen 4 · 4-taktsmotorer" },
+        { img:"/images/ljus/pp_ljus_ackrylatbensin_5L.png", name:"Ackrylatbensin 5 l",       artno:"SK-LJS-ROK-ACC-0002", excl:239, desc:"Aspen 4 · 4-taktsmotorer" },
       ].map(t => (
-        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="El-tillbehör" artno={t.artno} />
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" artno={t.artno} />
       ))}
     </div>
   </section>
