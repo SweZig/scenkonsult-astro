@@ -3,7 +3,7 @@ import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
-import VideoCard from '../../../../components/VideoCard.astro';
+import MediaCard from '../../../../components/MediaCard.astro';
 import ljusData from '../../../../data/ljus.json';
 ---
 <Layout
@@ -32,87 +32,74 @@ import ljusData from '../../../../data/ljus.json';
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 max-w-4xl">
 
-      <VideoCard
+      <MediaCard
         title="Rökmaskin, 1500W"
-        img="/images/ljus/pp_ljus_effekt23.png"
+        images={["/images/ljus/pp_ljus_effekt23.png"]}
+        videos={["/videos/1200W_Fog_Machine_6LEDs_Remote.mp4"]}
         priceExcl={349}
         priceSuffix="/st/dygn fr"
-        videos={["/videos/1200W_Fog_Machine_6LEDs_Remote.mp4"]}
+        artno="SK-LJS-ROK-0001"
+        category="Rök & pyro"
         bullets={["6×3W LED RGB inbyggd","Dimeffekt: 85 m³/min","Strömförbrukning: 1 500 W","Mått: 397×302×191 mm, Vikt: 5 kg","1 L rökvätska ingår i priset"]}
         rows={[
           {label:"Volympriser", rows:["1 st – 349 kr","2 st – 649 kr","4 st – 1 249 kr"]},
-          {label:"Extra rökvätska", rows:["1 l – 119 kr","3 l – 239 kr","5 l – 319 kr"]},
         ]}
       />
 
-      <VideoCard
+      <MediaCard
         title="Rökmaskin, 650W"
-        img="/images/ljus/pp_ljus_effekt24.png"
+        images={["/images/ljus/pp_ljus_effekt24.png"]}
+        videos={["/videos/adj_fog_fury_jett-04.mp4"]}
         priceExcl={449}
         priceSuffix="/st/dygn fr"
-        videos={["/videos/adj_fog_fury_jett-04.mp4"]}
+        artno="SK-LJS-ROK-0002"
+        category="Rök & pyro"
         bullets={["12×3W LED RGB inbyggd","Dimeffekt: 125 m³/min","Strömförbrukning: 650 W","Vikt: 10 kg","1 L rökvätska ingår i priset"]}
         rows={[
           {label:"Volympriser", rows:["1 st – 449 kr","2 st – 849 kr","4 st – 1 699 kr"]},
-          {label:"Extra rökvätska", rows:["1 l – 119 kr","3 l – 239 kr","5 l – 319 kr"]},
         ]}
       />
 
-      <VideoCard
+      <MediaCard
         title="Kallgnistmaskin"
-        img="/images/ljus/pp_ljus_effekt25.png"
+        images={["/images/ljus/pp_ljus_effekt25.png"]}
+        videos={["/videos/Cold_Spark_Machine.mp4"]}
         priceExcl={499}
         priceSuffix="/st/dygn fr"
-        videos={["/videos/Cold_Spark_Machine.mp4"]}
+        artno="SK-LJS-ROK-0003"
+        category="Rök & pyro"
         bullets={["Cold Spark – säkra gnisteffekter","Effekt: 700 W, förvärmningstid ~4 min","DMX 512, Vikt: 8 kg"]}
         rows={[
           {label:"Volympriser", rows:["1 st – 499 kr","2 st – 949 kr","4 st – 1 799 kr"]},
-          {label:"Granulat (drivmedel)", rows:["200 g (~6 min) – 479 kr"]},
+          {label:"Granulat (drivmedel)", rows:["100 g (~3 min) – 299 kr","200 g (~6 min) – 479 kr"]},
         ]}
       />
 
-      <!-- KONFETTIAVFYRARE -->
-      <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-          <img src="/images/ljus/pp_ljus_confettimaskin.png" alt="Konfettiavfyrare" width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-5 flex flex-col flex-1">
-          <h2 class="font-bold text-white text-sm leading-snug mb-3">Konfettiavfyrare</h2>
-          <div class="bg-brand-dark/60 rounded-xl p-3 mb-3 text-xs space-y-1">
-            <p class="text-white font-semibold mb-1">Extra konfettirör:</p>
-            <div class="flex justify-between"><span class="text-gray-400">Multifärg</span><span class="text-white font-semibold">119 kr</span></div>
-            <div class="flex justify-between"><span class="text-gray-400">Vit (snöeffekt)</span><span class="text-white font-semibold">119 kr</span></div>
-            <div class="flex justify-between"><span class="text-gray-400">Guld</span><span class="text-white font-semibold">139 kr</span></div>
-          </div>
-          <ul class="space-y-1 mb-3 flex-1 text-xs text-gray-400 border-t border-white/10 pt-3">
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Utskjutningsvinkel steglöst justerbar</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>DMX 512 Standard</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>Strömförbrukning: 100 W</li>
-            <li class="flex gap-1.5"><span class="text-green-400">▸</span>/dygn inkl ett rör</li>
-          </ul>
-          <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-3">
-            <div class="shrink-0">
-              <span class="sk-price-excl text-brand-orange font-extrabold text-lg">499 kr</span>
-              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(499*1.25)} kr</span>
-              <div class="text-gray-400 text-[10px]">/dygn</div>
-            </div>
-            <CartButton id="pyro-konfetti" name="Konfettimaskin" price={349} priceNote="/dygn" category="Rök & pyro" image="/images/ljus/pp_ljus_confettimaskin.png" size="sm" label="Lägg i varukorg" />
-          </div>
-        </div>
-      </article>
+      <MediaCard
+        title="Konfettiavfyrare"
+        images={["/images/ljus/pp_ljus_confettimaskin.png"]}
+        priceExcl={499}
+        priceSuffix="/dygn"
+        artno="SK-LJS-ROK-0004"
+        category="Rök & pyro"
+        bullets={["Utskjutningsvinkel steglöst justerbar","DMX 512 Standard","Strömförbrukning: 100 W","/dygn inkl ett rör"]}
+        rows={[
+          {label:"Extra konfettirör", rows:["Multifärg – 119 kr","Vit (snöeffekt) – 119 kr","Guld – 139 kr"]},
+        ]}
+      />
 
-      <VideoCard
+      <MediaCard
         title="Hazer HZ-1500 Pro"
-        img="/images/ljus/pp_ljus_rok3.png"
+        images={["/images/ljus/pp_ljus_rok3.png"]}
+        videos={["/videos/hazer-hz1500.mp4"]}
         priceExcl={649}
         priceSuffix="/st/dygn fr"
-        videos={["/videos/hazer-hz1500.mp4"]}
+        artno="SK-LJS-ROK-0005"
+        category="Rök & pyro"
         bullets={["Finfördelat dis – synliggör ljusstrålar","DMX 512-styrning","Touring flightcase","Stabil kontinuerlig output","Inkl 1 l rökvätska"]}
         rows={[
           {label:"Volympriser", rows:["1 st – 649 kr","2 st – 1 199 kr"]},
-          {label:"Extra rökvätska", rows:["1 l – 119 kr","3 l – 239 kr","5 l – 319 kr"]},
         ]}
-        category="Rök & pyro"
       />
     </div>
   </section>
