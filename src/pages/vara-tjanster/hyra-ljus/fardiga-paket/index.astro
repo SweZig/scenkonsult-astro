@@ -150,21 +150,16 @@ const paket = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {paket.map(p => (
-        <div>
-          <div class="mb-2 flex items-center gap-2">
-            <span class="bg-brand-orange/20 text-brand-orange text-xs font-bold px-2 py-0.5 rounded-full">{p.persons}</span>
-            {_artnoMap[p.title] && <span class="artno-badge" style="margin:0">{_artnoMap[p.title]}</span>}
-          </div>
-          <MediaCard
-            title={p.title}
-            images={[p.img]}
-            videos={p.videos ?? []}
-            priceExcl={p.excl}
-            bullets={p.bullets}
-            artno={p.artno}
-            category="Färdiga ljuspaket"
-          />
-        </div>
+        <MediaCard
+          title={p.title}
+          images={[p.img]}
+          videos={p.videos ?? []}
+          priceExcl={p.excl}
+          bullets={p.bullets}
+          artno={p.artno}
+          tag={p.persons}
+          category="Färdiga ljuspaket"
+        />
       ))}
     </div>
   </section>
