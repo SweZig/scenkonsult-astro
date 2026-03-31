@@ -62,10 +62,9 @@ const productJson = JSON.stringify({
   )}
   <div class="p-5 flex flex-col flex-1">
 
+    {persons && <p class="text-[10px] font-semibold uppercase tracking-wider mb-1" style="color:#c4b5f4">{persons}</p>}
     <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors leading-tight mb-1" itemprop="name">{name}</h2>
-    {artno && <p class="text-xs font-mono mb-1" style="color:rgba(196,181,244,0.45);letter-spacing:0.05em">{artno}</p>}
-
-    {persons && <p class="text-brand-orange text-xs font-semibold mb-2">{persons}</p>}
+    {artno && <p class="artno-badge mb-2">{artno}</p>}
     {dimensionTable && dimensionTable.length > 0 && (
       <div class="bg-brand-dark/50 rounded-lg p-3 mb-3 text-xs space-y-1 border border-white/5">
         {dimensionTable.map(row => (
