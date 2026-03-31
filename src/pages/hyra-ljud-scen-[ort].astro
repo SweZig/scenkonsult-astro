@@ -2,6 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import CategoryHero from '../components/CategoryHero.astro';
 import orter from '../data/orter.json';
+import ProductCard from '../components/ProductCard.astro';
+import MediaCard from '../components/MediaCard.astro';
+import ljudData from '../data/ljud.json';
+import scenData from '../data/scenes.json';
 
 export async function getStaticPaths() {
   return orter.map((ort) => ({
@@ -142,6 +146,53 @@ const pageSchema = {
           </div>
         ))}
       </div>
+    </div>
+  </section>
+
+  <!-- POPULÄRASTE PRODUKTER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#c4b5f4">Populäraste uthyrningar i {ort.namn}</p>
+    <h2 class="text-2xl font-bold text-white mb-8">Hyr till ditt event</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      {scenData.products.filter(p => ['medium','large'].includes(p.id)).map(p => (
+        <ProductCard
+          id={`scen-${p.id}`}
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={`/${p.priceNote ?? 'dygn'}`}
+          image={p.image}
+          alt={p.alt}
+          description={p.description}
+          specs={p.includes}
+          category="Scen"
+          dimensionTable={[
+            { label: 'Storlek', value: p.size },
+            { label: 'Mått', value: p.dimensions },
+            { label: 'Kapacitet', value: p.capacity },
+          ]}
+        />
+      ))}
+      {ljudData.event.products.filter(p => p.id === 'event-small').map(p => (
+        <ProductCard
+          id={p.id}
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote="/dygn"
+          image={p.image}
+          alt={p.alt}
+          description={p.description}
+          specs={p.includes}
+          category="Ljud"
+          persons={p.persons}
+        />
+      ))}
+    </div>
+    <div class="flex flex-wrap gap-4">
+      <a href="/vara-tjanster/hyra-scen/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Se alla scener →</a>
+      <a href="/vara-tjanster/hyra-ljud/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">Se alla ljud →</a>
+      <a href="/vara-tjanster/hyra-ljus/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">Se ljus & effekter →</a>
     </div>
   </section>
 
