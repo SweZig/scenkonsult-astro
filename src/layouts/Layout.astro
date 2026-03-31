@@ -1729,3 +1729,244 @@ const localBusinessSchema = {
     })();
   </script>
   <!-- ========== /LIGHTBOX ========== -->
+
+  <!-- ========== PRODUKTMODAL ========== -->
+  <div id="sk-modal-overlay" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(6,4,22,0.85);align-items:center;justify-content:center;padding:1rem" onclick="window.skModalClose()">
+    <div id="sk-modal-box" onclick="event.stopPropagation()" style="background:#1e1850;border:1px solid rgba(196,181,244,0.2);border-radius:18px;overflow:hidden;width:100%;max-width:860px;max-height:92vh;display:grid;grid-template-columns:1fr 1fr;position:relative">
+
+      <!-- Stäng-knapp -->
+      <button onclick="window.skModalClose()" style="position:absolute;top:.75rem;right:.75rem;z-index:10;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);width:2rem;height:2rem;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">✕</button>
+
+      <!-- Vänster: galleri + thumbnails -->
+      <div style="background:#0c0a24;display:flex;flex-direction:column">
+        <div id="sk-modal-main" style="flex:1;position:relative;min-height:300px;overflow:hidden;cursor:zoom-in"></div>
+        <div id="sk-modal-thumbs" style="display:flex;gap:6px;padding:8px 10px;background:#0c0a24;border-top:1px solid rgba(255,255,255,.08);flex-wrap:wrap"></div>
+      </div>
+
+      <!-- Höger: produktinfo -->
+      <div style="padding:24px 22px;display:flex;flex-direction:column;overflow-y:auto;max-height:92vh">
+        <div id="sk-modal-artno" style="font-size:9px;font-family:monospace;color:rgba(196,181,244,.4);letter-spacing:.06em;margin-bottom:4px"></div>
+        <h2 id="sk-modal-title" style="font-size:20px;font-weight:700;color:#fff;line-height:1.25;margin-bottom:4px"></h2>
+        <div id="sk-modal-persons" style="font-size:11px;color:#c4b5f4;font-weight:600;margin-bottom:10px;display:none"></div>
+        <p id="sk-modal-desc" style="font-size:12px;color:rgba(255,255,255,.52);line-height:1.65;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)"></p>
+        <div id="sk-modal-rows" style="margin-bottom:12px"></div>
+        <div id="sk-modal-specs-wrap" style="margin-bottom:16px;flex:1">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:8px;font-weight:600">Specifikation</div>
+          <ul id="sk-modal-specs" style="list-style:none;display:flex;flex-direction:column;gap:5px"></ul>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);padding:8px 10px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:14px;line-height:1.5">Alla priser <span id="sk-modal-vat-note">exkl.</span> moms. Hyrtid 22 h. Leverans i hela Storstockholm.</div>
+        <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:16px;margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div id="sk-modal-price" style="font-size:26px;font-weight:800;color:#c4b5f4;line-height:1"></div>
+            <div id="sk-modal-pnote" style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px"></div>
+          </div>
+          <button id="sk-modal-cart-btn" onclick="window.skModalAddCart()" style="background:#c4b5f4;color:#0c0a24;border:none;border-radius:8px;padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#e2dcfb'" onmouseout="this.style.background='#c4b5f4'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Lägg i varukorg
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:global>
+  (function() {
+    if (window.__skModalInit) return;
+    window.__skModalInit = true;
+
+    const overlay  = document.getElementById('sk-modal-overlay');
+    const mainArea = document.getElementById('sk-modal-main');
+    const thumbsEl = document.getElementById('sk-modal-thumbs');
+
+    let _current = 0;
+    let _product = null;
+
+    // ── Galleri-rendering (identisk logik som MediaCard) ──────────────
+    function renderSlide(idx) {
+      if (!_product) return;
+      _current = idx;
+      const slides = [..._product.images.map(s => ({type:'image',src:s})),
+                      ..._product.videos.map(s => ({type:'video',src:s}))];
+      if (!slides.length) return;
+      const slide = slides[idx];
+
+      // Stoppa eventuell video
+      const oldVid = mainArea.querySelector('video');
+      if (oldVid) { oldVid.pause(); oldVid.src = ''; }
+
+      if (slide.type === 'video') {
+        mainArea.style.cursor = 'pointer';
+        mainArea.innerHTML = `
+          <video src="${slide.src}" autoplay muted loop playsinline
+            style="width:100%;height:100%;object-fit:cover;display:block;min-height:300px"></video>
+          <div style="position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:5px;background:rgba(12,10,36,.75);border:1px solid rgba(196,181,244,.3);border-radius:4px;padding:3px 8px;font-size:9px;color:rgba(196,181,244,.85);font-weight:700;pointer-events:none">
+            <span style="width:6px;height:6px;border-radius:50%;background:#c4b5f4;animation:mcPulse 1.1s ease-in-out infinite"></span>SPELAS
+          </div>`;
+        mainArea.onclick = (e) => { e.stopPropagation(); if (window.skLightboxOpen) window.skLightboxOpen('video', slide.src, ''); };
+      } else {
+        mainArea.style.cursor = 'zoom-in';
+        mainArea.innerHTML = `<img src="${slide.src}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;min-height:300px" />`;
+        mainArea.onclick = (e) => { e.stopPropagation(); if (window.skLightboxOpen) window.skLightboxOpen('image', slide.src, ''); };
+      }
+
+      // Uppdatera thumbnails
+      if (thumbsEl) {
+        thumbsEl.querySelectorAll('.sk-m-thumb').forEach((t, i) => {
+          t.style.borderColor = i === idx ? '#c4b5f4' : 'transparent';
+        });
+      }
+    }
+
+    function buildThumbs() {
+      if (!_product || !thumbsEl) return;
+      const slides = [..._product.images.map(s => ({type:'image',src:s})),
+                      ..._product.videos.map(s => ({type:'video',src:s}))];
+      if (slides.length <= 1) { thumbsEl.style.display = 'none'; return; }
+      thumbsEl.style.display = 'flex';
+      thumbsEl.innerHTML = slides.map((s, i) => {
+        if (s.type === 'video') {
+          return `<div class="sk-m-thumb" data-idx="${i}" style="width:52px;height:43px;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid ${i===0?'#c4b5f4':'transparent'};background:#050410;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="52" height="43" viewBox="0 0 52 43"><rect width="52" height="43" fill="#06041e"/><path d="M22 16 L22 28 L33 22 Z" fill="#c4b5f4" opacity=".55"/></svg></div>`;
+        }
+        return `<div class="sk-m-thumb" data-idx="${i}" style="width:52px;height:43px;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid ${i===0?'#c4b5f4':'transparent'};flex-shrink:0">
+          <img src="${s.src}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`;
+      }).join('');
+      thumbsEl.querySelectorAll('.sk-m-thumb').forEach(t => {
+        t.addEventListener('click', e => { e.stopPropagation(); renderSlide(parseInt(t.dataset.idx)); });
+      });
+    }
+
+    function buildRows(rows) {
+      const el = document.getElementById('sk-modal-rows');
+      if (!el) return;
+      if (!rows || !rows.length) { el.innerHTML = ''; return; }
+      el.innerHTML = rows.map(g => `
+        <div style="margin-bottom:10px">
+          ${g.label ? `<div style="font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.28);margin-bottom:5px;font-weight:600">${g.label}</div>` : ''}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 10px">
+            ${g.rows.map(r => `<div style="font-size:11px;color:rgba(255,255,255,.5)">${r}</div>`).join('')}
+          </div>
+        </div>`).join('');
+      el.style.borderTop = '1px solid rgba(255,255,255,.1)';
+      el.style.paddingTop = '10px';
+    }
+
+    function updatePrices() {
+      if (!_product) return;
+      const inclMoms = document.querySelector('.sk-toggle')?.classList.contains('active') ?? false;
+      const mult = inclMoms ? 1.25 : 1;
+      const priceEl = document.getElementById('sk-modal-price');
+      const vatNote = document.getElementById('sk-modal-vat-note');
+      if (priceEl) priceEl.textContent = Math.round(_product.price * mult).toLocaleString('sv') + ' kr';
+      if (vatNote) vatNote.textContent = inclMoms ? 'inkl.' : 'exkl.';
+    }
+
+    // ── Öppna modal ───────────────────────────────────────────────────
+    window.skModalOpen = function(product) {
+      _product  = product;
+      _current  = 0;
+
+      document.getElementById('sk-modal-artno').textContent = product.artno || '';
+      document.getElementById('sk-modal-title').textContent = product.name;
+
+      const personsEl = document.getElementById('sk-modal-persons');
+      if (product.persons) { personsEl.textContent = product.persons; personsEl.style.display = 'block'; }
+      else { personsEl.style.display = 'none'; }
+
+      // Beskrivning — använd antingen desc-strängen (specs joined) eller tom
+      const descEl = document.getElementById('sk-modal-desc');
+      descEl.textContent = '';
+      descEl.style.display = 'none';
+
+      // Specs-lista (pipe-separerade)
+      const specsEl = document.getElementById('sk-modal-specs');
+      const specsWrap = document.getElementById('sk-modal-specs-wrap');
+      const specArr = product.desc ? product.desc.split('||').filter(Boolean) : [];
+      if (specArr.length) {
+        specsEl.innerHTML = specArr.map(s => `<li style="font-size:11.5px;color:rgba(255,255,255,.55);display:flex;gap:7px"><span style="color:#4ade80;flex-shrink:0">▸</span>${s}</li>`).join('');
+        specsWrap.style.display = 'block';
+      } else {
+        specsWrap.style.display = 'none';
+      }
+
+      buildRows(product.rows);
+      document.getElementById('sk-modal-pnote').textContent = product.priceNote || '/dygn';
+      updatePrices();
+      buildThumbs();
+      renderSlide(0);
+
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    };
+
+    // ── Stäng modal ───────────────────────────────────────────────────
+    window.skModalClose = function() {
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+      const vid = mainArea.querySelector('video');
+      if (vid) { vid.pause(); vid.src = ''; }
+      _product = null;
+    };
+
+    // ── Lägg i varukorg från modal ────────────────────────────────────
+    window.skModalAddCart = function() {
+      if (!_product || !window.skCart) return;
+      window.skCart.add({
+        id:       _product.cartId,
+        name:     _product.name,
+        price:    _product.price,
+        category: _product.category,
+        image:    (_product.images && _product.images[0]) || '',
+      });
+      // Visuell feedback
+      const btn = document.getElementById('sk-modal-cart-btn');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Tillagd!';
+        btn.style.background = '#4ade80';
+        setTimeout(() => { btn.innerHTML = orig; btn.style.background = '#c4b5f4'; }, 1800);
+      }
+    };
+
+    // ── Klickhanterare: fånga klick på produktkort ────────────────────
+    function handleCardClick(e) {
+      // Skippa om klick på knapp, länk, pil-knapp, eller dot
+      if (e.target.closest('button, a, [data-mc-dir], [data-mc-goto], .mc-dot, .mc-arr')) return;
+      const card = e.target.closest('[data-sk-product]');
+      if (!card) return;
+      try {
+        const product = JSON.parse(card.dataset.skProduct);
+        e.preventDefault();
+        window.skModalOpen(product);
+      } catch {}
+    }
+
+    document.addEventListener('click', handleCardClick);
+    document.addEventListener('astro:page-load', () => {
+      // Re-attach listener after navigation (idempotent tack vare __skModalInit check)
+    });
+
+    // ── Escape-tangent ────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && overlay.style.display === 'flex') window.skModalClose();
+    });
+
+    // ── Lyssna på moms-toggle-ändringar ──────────────────────────────
+    document.addEventListener('click', e => {
+      if (e.target.closest('.sk-toggle') && overlay.style.display === 'flex') {
+        setTimeout(updatePrices, 50);
+      }
+    });
+
+    // Pilar i modalen (tangentbord)
+    document.addEventListener('keydown', e => {
+      if (overlay.style.display !== 'flex') return;
+      if (!_product) return;
+      const total = (_product.images?.length || 0) + (_product.videos?.length || 0);
+      if (e.key === 'ArrowRight') renderSlide((_current + 1) % total);
+      if (e.key === 'ArrowLeft')  renderSlide((_current - 1 + total) % total);
+    });
+
+  })();
+  </script>
+  <!-- ========== /PRODUKTMODAL ========== -->

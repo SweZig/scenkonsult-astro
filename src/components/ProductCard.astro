@@ -20,10 +20,26 @@ interface Props {
 }
 const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false, category = 'Produkt' } = Astro.props;
 const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+const productJson = JSON.stringify({
+  name:      name,
+  artno:     artno ?? '',
+  desc:      (specs ?? []).join('||'),
+  rows:      quantityPrices ? [{ label: 'Volympriser', rows: quantityPrices.map(qp => `${qp.qty} – ${qp.price.toLocaleString('sv')} kr`) }] : [],
+  price:     typeof price === 'number' ? price : 0,
+  priceNote: priceNote,
+  category:  category,
+  cartId:    cartId,
+  images:    image ? [image] : [],
+  videos:    videoSrc ? [videoSrc] : [],
+  persons:   persons ?? '',
+});
 ---
 <article
   class={`bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full ${wide ? 'lg:col-span-2' : ''}`}
   itemscope itemtype="https://schema.org/Product"
+  data-sk-product={productJson}
+  style="cursor:pointer"
 >
   {image && (
     <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">

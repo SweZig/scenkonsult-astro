@@ -75,12 +75,28 @@ const hasMultiple = slides.length > 1;
 
 // Serialisera slides till JSON för JS-init
 const slidesJson = JSON.stringify(slides);
+
+// Produktdata för modal
+const productJson = JSON.stringify({
+  name:      title,
+  artno:     artno ?? '',
+  desc:      bullets.join('||'),
+  rows:      rows,
+  price:     priceExcl,
+  priceNote: priceSuffix,
+  category:  category,
+  cartId:    cartId,
+  images:    images,
+  videos:    videos,
+});
 ---
 
 <article
   class={`bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group h-full flex flex-col ${extra}`}
   data-mc-id={mcId}
   data-mc-slides={slidesJson}
+  data-sk-product={productJson}
+  style="cursor:pointer"
 >
 
   <!-- ── GALLERIYTA ── -->
