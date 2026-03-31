@@ -3,6 +3,7 @@ import Layout from '../../../../layouts/Layout.astro';
 import CategoryHero from '../../../../components/CategoryHero.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
+import ProductCard from '../../../../components/ProductCard.astro';
 ---
 <Layout
   title="Hyr Ljusstativ & Trosstorn Stockholm – T-bar, Tross & Traverser | Scenkonsult"
@@ -31,34 +32,13 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstativ med T-bar</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
       {[
-        { img:"/images/ljus/pp_ljus_stativ06.png", title:"Stativ T-bar 400 mm",      excl:40,  desc:"Standardstativ med 400 mm T-bar. Plats för upp till 2 effekter.", specs:["T-bar: 400 mm","Höjd: 1,25–2,40 m","Max last: 20 kg, Vikt: 3,7 kg"] },
-        { img:"/images/ljus/pp_ljus_stativ_1200.png",title:"Stativ T-bar 1200 mm",     excl:40,  desc:"Standardstativ med 1200 mm T-bar. Plats för upp till 4 effekter.", specs:["T-bar: 1 200 mm","Höjd: 1,25–2,40 m","Max last: 20 kg, Vikt: 3,7 kg"] },
-        { img:"/images/ljus/pp_ljus_stativ01.png", title:"Stativ T-bar 900 mm ★ Premium",excl:60,desc:"Premiumstativ med 900 mm T-bar. Upp till 2,5 m höjd.", specs:["T-bar: 900 mm","Höjd: 1,10–2,50 m","Max last: 30 kg, Vikt: 5,8 kg"] },
-        { img:"/images/ljus/pp_ljus_stativ02.png", title:"Vevstativ T-bar 1200 mm",  excl:120, desc:"Vevstativ för hög monteringshöjd upp till 3,7 m.", specs:["T-bar: 1 200 mm","Höjd: 1,70–3,70 m","Max last: 35 kg, Vikt: 20 kg"] },
+        { id:"stativ-tbar-400",    img:"/images/ljus/pp_ljus_stativ06.png",    name:"Stativ T-bar 400 mm",        price:40,  description:"Standardstativ med 400 mm T-bar. Plats för upp till 2 effekter.", specs:["T-bar: 400 mm","Höjd: 1,25–2,40 m","Max last: 20 kg, Vikt: 3,7 kg"] },
+        { id:"stativ-tbar-1200",   img:"/images/ljus/pp_ljus_stativ_1200.png", name:"Stativ T-bar 1200 mm",       price:40,  description:"Standardstativ med 1200 mm T-bar. Plats för upp till 4 effekter.", specs:["T-bar: 1 200 mm","Höjd: 1,25–2,40 m","Max last: 20 kg, Vikt: 3,7 kg"] },
+        { id:"stativ-tbar-900",    img:"/images/ljus/pp_ljus_stativ01.png",    name:"Stativ T-bar 900 mm ★",      price:60,  description:"Premiumstativ med 900 mm T-bar. Upp till 2,5 m höjd.", specs:["T-bar: 900 mm","Höjd: 1,10–2,50 m","Max last: 30 kg, Vikt: 5,8 kg"] },
+        { id:"vevstativ-tbar-1200",img:"/images/ljus/pp_ljus_stativ02.png",    name:"Vevstativ T-bar 1200 mm",   price:120, description:"Vevstativ för hög monteringshöjd upp till 3,7 m.", specs:["T-bar: 1 200 mm","Höjd: 1,70–3,70 m","Max last: 35 kg, Vikt: 20 kg"] },
       ].map(p => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full">
-          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-            <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <div class="p-4 flex flex-col flex-1">
-            <h2 class="font-bold text-white text-base mb-2">{p.title}</h2>
-            {p.artno && <p class="artno-badge">{p.artno}</p>}
-            <p class="text-gray-400 text-xs mb-3">{p.desc}</p>
-            <ul class="space-y-1 mb-4 text-xs text-gray-400">
-              {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
-            </ul>
-            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2 mt-auto">
-              <div class="shrink-0">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.excl} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.excl*1.25)} kr</span>
-                <div class="text-gray-400 text-[10px]">/dygn</div>
-              </div>
-              <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
-            </div>
-          </div>
-        </article>
+        <ProductCard id={p.id} name={p.name} price={p.price} priceNote="/dygn" image={p.img} description={p.description} specs={p.specs} category="Stativ & tross" />
       ))}
     </div>
   </section>
@@ -68,29 +48,11 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstorn</h2>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
       {[
-        { img:"/images/ljus/pp_ljus_tross01.png", title:"Trosstorn 1,0 m",excl:300,specs:["4-punkts tross, 50 mm tub","Höjd: 1,0 m","Max last: 50 kg, Vikt: 16 kg"] },
-        { img:"/images/ljus/pp_ljus_tross03.png", title:"Trosstorn 1,5 m",excl:360,specs:["4-punkts tross, 50 mm tub","Höjd: 1,5 m","Max last: 50 kg, Vikt: 18 kg"] },
-        { img:"/images/ljus/pp_ljus_tross04.png", title:"Trosstorn 2,0 m",excl:400,specs:["4-punkts tross, 50 mm tub","Höjd: 2,0 m","Max last: 50 kg, Vikt: 20 kg"] },
+        { id:"trosstorn-1m",  img:"/images/ljus/pp_ljus_tross01.png", name:"Trosstorn 1,0 m", price:300, specs:["4-punkts tross, 50 mm tub","Höjd: 1,0 m","Max last: 50 kg, Vikt: 16 kg"] },
+        { id:"trosstorn-15m", img:"/images/ljus/pp_ljus_tross03.png", name:"Trosstorn 1,5 m", price:360, specs:["4-punkts tross, 50 mm tub","Höjd: 1,5 m","Max last: 50 kg, Vikt: 18 kg"] },
+        { id:"trosstorn-2m",  img:"/images/ljus/pp_ljus_tross04.png", name:"Trosstorn 2,0 m", price:400, specs:["4-punkts tross, 50 mm tub","Höjd: 2,0 m","Max last: 50 kg, Vikt: 20 kg"] },
       ].map(p => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full">
-          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-            <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <div class="p-4 flex flex-col flex-1">
-            <h2 class="font-bold text-white text-base mb-2">{p.title}</h2>
-            <ul class="space-y-1 mb-4 text-xs text-gray-400">
-              {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
-            </ul>
-            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2 mt-auto">
-              <div class="shrink-0">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.excl} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.excl*1.25)} kr</span>
-                <div class="text-gray-400 text-[10px]">/dygn</div>
-              </div>
-              <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
-            </div>
-          </div>
-        </article>
+        <ProductCard id={p.id} name={p.name} price={p.price} priceNote="/dygn" image={p.img} specs={p.specs} category="Stativ & tross" />
       ))}
     </div>
   </section>
@@ -100,32 +62,13 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstraverser &amp; Trossbågar</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {[
-        { img:"/images/ljus/pp_ljus_stativ03.png", title:"Trosstravers 3,0 m",  excl:460,  desc:"Kan hissas upp till 3,7 m. 3,0 m bred. Upp till 5 effekter.", specs:["4-punkts tross, 50 mm tub","3,0 m bred","Max last: 50 kg, Vikt: 30 kg"] },
-        { img:"/images/ljus/pp_ljus_stativ04.png", title:"Trosstravers 4,0 m",  excl:500,  desc:"Kan hissas upp till 3,7 m. 4,0 m bred. Upp till 8 effekter.", specs:["4-punkts tross, 50 mm tub","4,0 m bred","Max last: 50 kg, Vikt: 35 kg"] },
-        { img:"/images/ljus/pp_ljus_tross06.png",  title:"Trossbåge 2,5×4,0 m",excl:1500, desc:"Byggs 2,5 m hög och 4,0 m bred. Upp till 18 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 2,5 m, Bredd: 4,0 m","Max last: 75 kg, Vikt: 40 kg"] },
-        { img:"/images/ljus/pp_ljus_tross08.png",  title:"Trossbåge 3,0×6,0 m",excl:2100, desc:"Byggs 3,0 m hög och 6,0 m bred. Upp till 24 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 3,0 m, Bredd: 6,0 m","Max last: 75 kg, Vikt: 60 kg"] },
-        { img:"/images/ljus/pp_ljus_tross09.png",  title:"Trossvägg 2,5×2,0 m",excl:2100, desc:"Byggs 2,5 m hög och 2,0 m bred. Passar 8–16 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 2,5 m, Bredd: 2,0 m","Max last: 75 kg, Vikt: 60 kg"] },
+        { id:"trosstravers-3m",  img:"/images/ljus/pp_ljus_stativ03.png", name:"Trosstravers 3,0 m",  price:460,  description:"Kan hissas upp till 3,7 m. 3,0 m bred. Upp till 5 effekter.", specs:["4-punkts tross, 50 mm tub","3,0 m bred","Max last: 50 kg, Vikt: 30 kg"] },
+        { id:"trosstravers-4m",  img:"/images/ljus/pp_ljus_stativ04.png", name:"Trosstravers 4,0 m",  price:500,  description:"Kan hissas upp till 3,7 m. 4,0 m bred. Upp till 8 effekter.", specs:["4-punkts tross, 50 mm tub","4,0 m bred","Max last: 50 kg, Vikt: 35 kg"] },
+        { id:"trossbage-25x40",  img:"/images/ljus/pp_ljus_tross06.png",  name:"Trossbåge 2,5×4,0 m",price:1500, description:"Byggs 2,5 m hög och 4,0 m bred. Upp till 18 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 2,5 m, Bredd: 4,0 m","Max last: 75 kg, Vikt: 40 kg"] },
+        { id:"trossbage-30x60",  img:"/images/ljus/pp_ljus_tross08.png",  name:"Trossbåge 3,0×6,0 m",price:2100, description:"Byggs 3,0 m hög och 6,0 m bred. Upp till 24 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 3,0 m, Bredd: 6,0 m","Max last: 75 kg, Vikt: 60 kg"] },
+        { id:"trossvagg-25x20",  img:"/images/ljus/pp_ljus_tross09.png",  name:"Trossvägg 2,5×2,0 m",price:2100, description:"Byggs 2,5 m hög och 2,0 m bred. Passar 8–16 effekter.", specs:["4-punkts tross, 50 mm tub","Höjd: 2,5 m, Bredd: 2,0 m","Max last: 75 kg, Vikt: 60 kg"] },
       ].map(p => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full">
-          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-            <img src={p.img} alt={p.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover" />
-          </div>
-          <div class="p-4 flex flex-col flex-1">
-            <h2 class="font-bold text-white text-base mb-2">{p.title}</h2>
-            <p class="text-gray-400 text-xs mb-3">{p.desc}</p>
-            <ul class="space-y-1 mb-4 text-xs text-gray-400">
-              {p.specs.map(s => <li class="flex gap-1.5"><span class="text-green-400">▸</span>{s}</li>)}
-            </ul>
-            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2 mt-auto">
-              <div class="shrink-0">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.excl} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.excl*1.25)} kr</span>
-                <div class="text-gray-400 text-[10px]">/dygn</div>
-              </div>
-              <CartButton id={`stativ-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.title} price={p.excl} priceNote="/dygn" category="Stativ & tross" image={p.img} size="sm" label="Lägg i varukorg" />
-            </div>
-          </div>
-        </article>
+        <ProductCard id={p.id} name={p.name} price={p.price} priceNote="/dygn" image={p.img} description={p.description} specs={p.specs} category="Stativ & tross" />
       ))}
     </div>
   </section>
@@ -168,10 +111,11 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
         { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",excl:320 },
         { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",      excl:396 },
         { img:"/images/ljud/pp_ljud_tillbehor_elverk-small.png", name:"Elgenerator 2 200 W", excl:799 },
-        { img:"/images/ljud/pp_ljud_elverk-kipor.png", name:"Elgenerator 7 700 W", excl:1799 },
-      
+        { img:"/images/ljud/pp_ljud_elverk-kipor.png",           name:"Elgenerator 7 700 W",  excl:1799 },
+        { img:"/images/ljus/pp_ljus_ackrylatbensin_1L.png",         name:"Ackrylatbensin 1 l",    excl:59,  desc:"Aspen 4 · 4-taktsmotorer" },
+        { img:"/images/ljus/pp_ljus_ackrylatbensin_5L.png",         name:"Ackrylatbensin 5 l",    excl:239, desc:"Aspen 4 · 4-taktsmotorer" },
       ].map(t => (
-        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="Tillbehör" artno={t.artno} />
+        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" artno={t.artno} />
       ))}
     </div>
   </section>

@@ -143,7 +143,7 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
       
       
       ].map(item => (
-        <ElTillbehorCard img={item.img} name={item.name} excl={item.price} desc={item.desc} category="Ljud tillbehör" artno={artnoByName[item.name]} />
+        <ElTillbehorCard img={item.img} name={item.name} excl={item.price} desc={item.desc} category="Ljud tillbehör" artno={artnoByName[item.name]} modal={item.price >= 400} specs={[item.desc]} />
       ))}
     </div>
   </section>

@@ -1,5 +1,6 @@
 ---
 // ElTillbehorCard.astro — litet tillbehörskort med pris vänster, icon-knapp höger
+// modal?: om satt öppnas produktmodal vid klick på kortet
 import CartButton from './CartButton.astro';
 interface Props {
   img: string;
@@ -8,12 +9,32 @@ interface Props {
   desc?: string;
   category?: string;
   artno?: string;
+  modal?: boolean;
+  specs?: string[];
 }
-const { img, name, excl, desc, category = 'Tillbehör', artno } = Astro.props;
-const cartId = `acc-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+const { img, name, excl, desc, category = 'Tillbehör', artno, modal = false, specs } = Astro.props;
+const cartId = `acc-${name.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').replace(/[^a-z0-9]+/g, '-')}`;
+
+const productJson = modal ? JSON.stringify({
+  name,
+  artno: artno ?? '',
+  desc:  (specs ?? (desc ? [desc] : [])).join('||'),
+  rows:  [],
+  price: excl,
+  priceNote: '/dygn',
+  category,
+  cartId,
+  images: [img],
+  videos: [],
+}) : null;
 ---
-<div class="bg-brand-navy/60 border border-white/10 rounded-xl p-3 flex flex-col h-full">
-  <div class="bg-brand-dark overflow-hidden rounded-lg mb-2" style="aspect-ratio:1024/853;cursor:zoom-in">
+<div
+  class="bg-brand-navy/60 border border-white/10 rounded-xl p-3 flex flex-col h-full"
+  class:list={[modal && 'hover:border-brand-orange/40 transition-colors']}
+  data-sk-product={productJson ?? undefined}
+  style={modal ? 'cursor:pointer' : undefined}
+>
+  <div class="bg-brand-dark overflow-hidden rounded-lg mb-2" style="aspect-ratio:1024/853">
     <img src={img} alt={name} width="150" height="150" loading="lazy" class="w-full h-full object-cover" />
   </div>
   <p class="text-white text-xs font-semibold leading-tight mb-0.5">{name}</p>

@@ -4,46 +4,6 @@ import ElTillbehorCard from './ElTillbehorCard.astro';
 // Ljusstyrning + DMX-tillbehör + El-tillbehör – visas på både fardiga-paket och ljuseffekter
 ---
 
-<!-- LJUSSTYRNING -->
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-  <h2 class="text-2xl font-bold text-white mb-2">Ljusstyrning</h2>
-  <p class="text-gray-400 text-sm mb-6">DMX-512 styrenheter för professionell kontroll. Kompletteras med DMX-kablar eller trådlös styrning (se tillbehör nedan).</p>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-    {[
-      { title:'Styrenhet 192 kanaler', img:'/images/ljus/pp_ljus_styrning02.png', excl:99,
-        bullets:['192 DMX-kanaler','12 scannrar × 16 kan.','240 sekvenser i 30 banker','Musikstyrning via mikrofon'] },
-      { title:'Botex SDC-16 (16 faders)', img:'/images/ljus/pp_ljus_botex_sdc16.png', excl:199,
-        bullets:['192 DMX-kanaler','16 individuella faders + master','Parallellstyrning av 16 kanaler','Startkanal via display'] },
-      { title:'Styrenhet 512 kanaler', img:'/images/ljus/pp_ljus_styrning03.png', excl:299,
-        bullets:['48-kanals DMX styrenhet','4 600 scener i 96 banker','Mjukpatch alla 512 kanaler','Musikstyrning via mikrofon'] },
-      { title:'PC-mjukvara + gränssnitt', img:'/images/ljus/pp_ljus_styrning04.png', excl:799,
-        bullets:['512 DMX-kanaler','Dra-och-släpp programmering','Ljud-till-ljus BPM-analys','Live scen-dimning'] },
-      { title:'Martin M6 Ljusstyrning', img:'/images/ljus/pp_ljus_styrning-m6.png', excl:2499,
-        bullets:['Dubbla 15,4″ touchskärmar','44 playbacks, 4× FastBlend RGB','4× FastTrack linjär encoders','12× FastDial rotary encoders'] },
-    ].map(c => (
-      <div class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
-        <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-          <img src={c.img} alt={c.title} width="512" height="427" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        </div>
-        <div class="p-4 flex flex-col flex-1">
-          <h3 class="font-bold text-white text-xs leading-snug mb-2">{c.title}</h3>
-          <ul class="space-y-0.5 mb-3 flex-1">
-            {c.bullets.map(b => <li class="text-gray-400 text-[10px] flex gap-1"><span class="text-green-400">▸</span>{b}</li>)}
-          </ul>
-          <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2">
-            <div class="shrink-0">
-              <span class="sk-price-excl text-brand-orange font-extrabold text-sm">{c.excl} kr</span>
-              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-sm">{Math.round(c.excl*1.25)} kr</span>
-              <div class="text-gray-400 text-[10px]">/dygn</div>
-            </div>
-            <CartButton id={`ljus-styrning-${c.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`} name={c.title} price={c.excl} category="Ljusstyrning" image={c.img} size="sm" label="Lägg i varukorg" />
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
-
 <!-- DMX-TILLBEHÖR — fullbredd -->
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
   <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">DMX-tillbehör</h2>
@@ -79,8 +39,10 @@ import ElTillbehorCard from './ElTillbehorCard.astro';
       { img:'/images/ljus/pp_el_forlangning_20m.png', name:'Förlängning 20 m 3-fas 32A', artno:'SK-LJD-EL-0006',  excl:396  },
       { img:'/images/ljud/pp_ljud_tillbehor_elverk-small.png', name:'Elgenerator 2 200 W', artno:'SK-LJD-EL-0010', excl:799  },
       { img:'/images/ljud/pp_ljud_elverk-kipor.png',  name:'Elgenerator 7 700 W', artno:'SK-LJD-EL-0011',         excl:1799 },
+      { img:'/images/ljus/pp_ljus_ackrylatbensin_1L.png', name:'Ackrylatbensin 1 l', artno:'SK-LJS-ROK-ACC-0001', excl:59,  desc:'Aspen 4 · 4-taktsmotorer' },
+      { img:'/images/ljus/pp_ljus_ackrylatbensin_5L.png', name:'Ackrylatbensin 5 l', artno:'SK-LJS-ROK-ACC-0002', excl:239, desc:'Aspen 4 · 4-taktsmotorer' },
     ].map(t => (
-      <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="El-tillbehör" artno={t.artno} />
+      <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" artno={t.artno} />
     ))}
   </div>
 </section>
