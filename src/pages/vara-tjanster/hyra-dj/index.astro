@@ -2,6 +2,7 @@
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
 import CartButton from '../../../components/CartButton.astro';
+import MediaCard from '../../../components/MediaCard.astro';
 import dj from '../../../data/dj.json';
 ---
 <Layout
@@ -204,38 +205,21 @@ import dj from '../../../data/dj.json';
     </div>
   </section>
 
-  <!-- HYR DJ-UTRUSTNING — ny bottom-bar layout med CartButton -->
+  <!-- HYR DJ-UTRUSTNING -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <h2 class="text-2xl font-bold text-white mb-6">HYR DJ-UTRUSTNING</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <h2 class="text-2xl font-bold text-white mb-6">Hyr DJ-utrustning</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {dj.equipment.map(p => (
-        <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden hover:border-brand-orange/40 transition-all flex flex-col">
-          <div class="bg-brand-dark overflow-hidden sk-zoomable" style="aspect-ratio:4/3;cursor:zoom-in">
-            <img src={p.image} alt={p.alt} width="400" height="300" loading="lazy"
-              class="w-full h-full object-contain p-4" />
-          </div>
-          <div class="p-5 flex flex-col flex-1">
-            <h3 class="text-white font-bold text-sm leading-snug mb-2">{p.name}</h3>
-              {p.artno && <p class="artno-badge">{p.artno}</p>}
-            <p class="text-gray-400 text-xs leading-relaxed mb-3 flex-1">{p.description}</p>
-            {p.includes && p.includes.length > 0 && (
-              <ul class="space-y-1 text-xs text-gray-400 border-t border-white/10 pt-3 mb-3">
-                {p.includes.map(item => (
-                  <li class="flex gap-1.5"><span class="text-green-400">▸</span>{item}</li>
-                ))}
-              </ul>
-            )}
-            <!-- Bottom-bar: pris vänster, CartButton höger — samma som ljud/ljus -->
-            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-3 mt-auto">
-              <div class="leading-none">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price * 1.25)} kr</span>
-                <div class="text-gray-400 text-xs">{p.priceNote}</div>
-              </div>
-              <CartButton id={`dj-utr-${p.slug}`} name={p.name} price={p.price} category="DJ-utrustning" image={p.image} size="sm" label="Lägg i varukorg" />
-            </div>
-          </div>
-        </div>
+        <MediaCard
+          id={`dj-utr-${p.slug}`}
+          title={p.name}
+          images={[p.image]}
+          priceExcl={p.price}
+          priceSuffix={p.priceNote}
+          artno={p.artno}
+          category="DJ-utrustning"
+          bullets={p.includes ?? []}
+        />
       ))}
     </div>
   </section>
