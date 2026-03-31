@@ -15,17 +15,21 @@ interface Props {
   specs?: string[];
   videoSrc?: string;
   quantityPrices?: { qty: string; price: number }[];
+  dimensionTable?: { label: string; value: string; highlight?: boolean }[];
   wide?: boolean;
   category?: string;
 }
-const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, wide = false, category = 'Produkt' } = Astro.props;
+const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, dimensionTable, wide = false, category = 'Produkt' } = Astro.props;
 const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 const productJson = JSON.stringify({
   name:      name,
   artno:     artno ?? '',
   desc:      (specs ?? []).join('||'),
-  rows:      quantityPrices ? [{ label: 'Volympriser', rows: quantityPrices.map(qp => `${qp.qty} – ${qp.price.toLocaleString('sv')} kr`) }] : [],
+  rows:      [
+    ...(quantityPrices ? [{ label: 'Volympriser', rows: quantityPrices.map(qp => `${qp.qty} – ${qp.price.toLocaleString('sv')} kr`) }] : []),
+    ...(dimensionTable ? [{ label: 'Mått & kapacitet', rows: dimensionTable.map(r => `${r.label}: ${r.value}`) }] : []),
+  ],
   price:     typeof price === 'number' ? price : 0,
   priceNote: priceNote,
   category:  category,
@@ -62,6 +66,16 @@ const productJson = JSON.stringify({
     {artno && <p class="text-xs font-mono mb-1" style="color:rgba(196,181,244,0.45);letter-spacing:0.05em">{artno}</p>}
 
     {persons && <p class="text-brand-orange text-xs font-semibold mb-2">{persons}</p>}
+    {dimensionTable && dimensionTable.length > 0 && (
+      <div class="bg-brand-dark/50 rounded-lg p-3 mb-3 text-xs space-y-1 border border-white/5">
+        {dimensionTable.map(row => (
+          <div class="flex justify-between gap-2">
+            <span class="text-white/40">{row.label}</span>
+            <span class={row.highlight ? 'text-amber-400 font-semibold' : 'text-white/70'}>{row.value}</span>
+          </div>
+        ))}
+      </div>
+    )}
     <p class="text-gray-400 text-sm leading-relaxed mb-3" itemprop="description">{description}</p>
 
     {quantityPrices && quantityPrices.length > 0 && (

@@ -1,9 +1,10 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import Price from '../../../components/Price.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
-import scenData from '../../../data/scenes.json';
+import ProductCard from '../../../components/ProductCard.astro';
+import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import CartButton from '../../../components/CartButton.astro';
+import scenData from '../../../data/scenes.json';
 
 const pageSchema = {
   "@context": "https://schema.org",
@@ -28,24 +29,6 @@ const pageSchema = {
         "availability": "https://schema.org/InStock",
         "seller": { "@type": "Organization", "name": "Scenkonsult Norden" },
         "url": `https://scenkonsult.se/vara-tjanster/hyra-scen/#${p.id}`,
-        "shippingDetails": {
-          "@type": "OfferShippingDetails",
-          "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "SE" },
-          "shippingRate": { "@type": "MonetaryAmount", "currency": "SEK", "value": "0" },
-          "deliveryTime": {
-            "@type": "ShippingDeliveryTime",
-            "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY" },
-            "transitTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY" }
-          }
-        },
-        "hasMerchantReturnPolicy": {
-          "@type": "MerchantReturnPolicy",
-          "applicableCountry": "SE",
-          "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-          "merchantReturnDays": 1,
-          "returnMethod": "https://schema.org/ReturnInStore",
-          "returnFees": "https://schema.org/FreeReturn"
-        }
       }
     }
   }))
@@ -75,129 +58,60 @@ const pageSchema = {
     priceFrom={599}
   />
 
-  <!-- Products grid -->
+  <!-- SCENPAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {scenData.products.map(p => (
-        <article
-          id={p.id}
-          class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group"
-          itemscope
-          itemtype="https://schema.org/Product"
-        >
-          <meta itemprop="brand" content="Scenkonsult Norden" />
-          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
-          <div class="aspect-video bg-brand-dark flex items-center justify-center overflow-hidden sk-zoomable" style="cursor:zoom-in">
-            <img
-              src={p.image}
-              alt={p.alt}
-              width="400"
-              height="225"
-              loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <div class="p-5">
-            <div class="flex items-start justify-between mb-2">
-              <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors" itemprop="name">
-                {p.name}
-              </h2>
-              {p.artno && <p class="text-xs font-mono mt-0.5 mb-1" style="color:rgba(196,181,244,0.45);letter-spacing:0.05em">{p.artno}</p>}
-              <span class="bg-brand-orange/20 text-brand-orange text-xs font-bold px-2 py-1 rounded-lg ml-2 shrink-0">
-                {p.size}
-              </span>
-            </div>
-            <p class="text-gray-400 text-sm leading-relaxed mb-4" itemprop="description">{p.description}</p>
-
-            <div class="space-y-1.5 text-xs text-gray-400 mb-4">
-              <div class="flex gap-2">
-                <span class="text-gray-600">Mått:</span>
-                <span class="text-gray-400">{p.dimensions}</span>
-              </div>
-              <div class="flex gap-2">
-                <span class="text-gray-600">Höjd:</span>
-                <span class="text-gray-400">{p.heights.join(' / ')}</span>
-              </div>
-              <div class="flex gap-2">
-                <span class="text-gray-600">Kapacitet:</span>
-                <span class="text-gray-400">{p.capacity}</span>
-              </div>
-              <div class="flex gap-2">
-                <span class="text-gray-600">Transport:</span>
-                <span class={p.transport === 'ingår' ? 'text-amber-400' : 'text-gray-400'}>
-                  {p.transport === 'ingår' ? '⚠ Kräver transport & montering' : 'Tilläggstjänst'}
-                </span>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between border-t border-white/10 pt-4">
-              <div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-                <meta itemprop="priceCurrency" content="SEK" />
-                <meta itemprop="price" content={String(p.price)} />
-                <meta itemprop="priceValidUntil" content="2027-12-31" />
-                <meta itemprop="availability" content="https://schema.org/InStock" />
-                <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
-                  <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
-                    <meta itemprop="addressCountry" content="SE" />
-                  </div>
-                  <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
-                    <meta itemprop="currency" content="SEK" />
-                    <meta itemprop="value" content="0" />
-                  </div>
-                  <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
-                    <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
-                      <meta itemprop="minValue" content="0" />
-                      <meta itemprop="maxValue" content="1" />
-                      <meta itemprop="unitCode" content="DAY" />
-                    </div>
-                    <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
-                      <meta itemprop="minValue" content="0" />
-                      <meta itemprop="maxValue" content="1" />
-                      <meta itemprop="unitCode" content="DAY" />
-                    </div>
-                  </div>
-                </div>
-                <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
-                  <meta itemprop="applicableCountry" content="SE" />
-                  <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
-                  <meta itemprop="merchantReturnDays" content="1" />
-                  <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
-        <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
-                </div>
-                <span class="text-brand-orange font-extrabold text-xl"><Price amount={p.price} size="xl" /></span>
-                <span class="text-gray-400 text-xs ml-1">{p.priceNote}</span>
-              </div>
-              <CartButton id={`scen-${p.id}`} name={p.name} price={p.price} priceNote={`/${p.priceNote ?? "dygn"}`} category="Scen" image={p.image} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" />
-            </div>
-          </div>
-        </article>
+        <div id={p.id}>
+          <ProductCard
+            id={`scen-${p.id}`}
+            artno={p.artno}
+            name={p.name}
+            price={p.price}
+            priceNote={`/${p.priceNote ?? 'dygn'}`}
+            image={p.image}
+            alt={p.alt}
+            description={p.description}
+            category="Scen"
+            bulky={p.bulky ?? false}
+            monteringMin={p.monteringMin}
+            dimensionTable={[
+              { label: 'Storlek', value: p.size },
+              { label: 'Mått', value: p.dimensions },
+              { label: 'Höjd', value: p.heights.join(' / ') },
+              { label: 'Kapacitet', value: p.capacity },
+              {
+                label: 'Transport',
+                value: p.transport === 'ingår' ? 'Krävs – ingår i priset' : 'Tilläggstjänst',
+                highlight: p.transport === 'ingår'
+              },
+            ]}
+          />
+        </div>
       ))}
     </div>
   </section>
 
-  <!-- Accessories -->
+  <!-- TILLBEHÖR -->
   <section class="bg-brand-navy border-y border-white/10 py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-2xl font-bold text-white mb-6">Tillbehör</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {scenData.accessories.map(a => (
-          <div class="bg-brand-dark border border-white/10 rounded-xl p-4">
-            <div class="aspect-[6/5] bg-brand-navy rounded-lg overflow-hidden mb-3 flex items-center justify-center sk-zoomable" style="cursor:zoom-in">
-              <img src={a.image} alt={a.alt} width="300" height="250" loading="lazy" class="w-full h-full object-contain" style="background-color:#1a2744" />
-            </div>
-            <h3 class="text-white font-semibold text-sm mb-1">{a.name}</h3>
-            <p class="text-gray-400 text-xs mb-3">{a.description}</p>
-            <div class="flex items-center justify-between gap-2 border-t border-white/10 pt-3">
-              <span class="text-brand-orange font-bold shrink-0"><Price amount={a.price} size="base" /></span>
-              <CartButton id={`scen-acc-${a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={a.name} price={a.price} priceNote="/dygn" category="Scen tillbehör" image={a.image} size="sm" label="Lägg till" />
-            </div>
-          </div>
+          <ElTillbehorCard
+            img={a.image}
+            name={a.name}
+            excl={a.price}
+            desc={a.description}
+            category="Scen tillbehör"
+            artno={a.artno}
+          />
         ))}
       </div>
     </div>
   </section>
 
-  <!-- General info + CTA -->
+  <!-- INFO + CTA -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
     <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
       <h2 class="text-2xl font-bold text-white mb-4">Generell information om våra scener</h2>
