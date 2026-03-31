@@ -219,31 +219,6 @@ const fraktRules = JSON.stringify(frakt);
 </div>
 </section>
 
-<!-- ── PRODUKT-POPUP ──────────────────────────────────────── -->
-<div id="prod-popup-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:900;backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem">
-  <div id="prod-popup" style="background:#1a1740;border:1px solid rgba(196,181,244,0.3);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,0.6)">
-    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between">
-      <div style="font-weight:700;font-size:1.05rem;color:#c4b5f4" id="popup-title">–</div>
-      <button id="popup-close" style="background:rgba(255,255,255,0.08);border:none;color:#f0eeff;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-    <div style="display:grid;grid-template-columns:180px 1fr;gap:0" id="popup-body">
-      <div style="background:#0c0a24;border-radius:0 0 0 16px;padding:1.25rem;display:flex;align-items:flex-start;justify-content:center">
-        <img id="popup-img" src="" alt="" style="width:140px;height:116px;object-fit:contain;display:none" />
-        <div id="popup-img-ph" style="width:140px;height:116px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15);font-size:2.5rem">📦</div>
-      </div>
-      <div style="padding:1.25rem">
-        <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;margin-bottom:0.25rem" id="popup-cat">–</div>
-        <div style="color:#c4b5f4;font-size:1.3rem;font-weight:700;margin-bottom:0.75rem" id="popup-price">–</div>
-        <p style="color:rgba(255,255,255,0.72);font-size:0.9rem;line-height:1.6;margin:0 0 0.875rem" id="popup-desc">–</p>
-        <ul id="popup-includes" style="list-style:none;padding:0;margin:0 0 1rem;display:none"></ul>
-      </div>
-    </div>
-    <div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between">
-      <a id="popup-link" href="#" style="color:rgba(196,181,244,0.7);font-size:0.85rem;text-decoration:none">Se produktsida →</a>
-      <button id="popup-add-btn" style="background:#332885;color:#fff;border:none;border-radius:8px;padding:0.75rem 1.5rem;font-family:inherit;font-weight:600;font-size:0.9rem;cursor:pointer">Lägg i varukorg</button>
-    </div>
-  </div>
-</div>
 </Layout>
 
 <style is:global>
@@ -757,59 +732,25 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   // ── PRODUKTBESKRIVNINGAR (för popup) ─────────────────────
   const PROD_DESC = {"small":{"desc":"Scenpodie som kan fungera som en liten scen eller podie på en större scen. Passar för 1 person inkl. instrument.","cat":"Scen","link":"/vara-tjanster/hyra-scen/"},"small-plus":{"desc":"Scenpodie för 1–2 personer. Kan byggas vertikalt (2×3 m) eller horisontellt (3×2 m).","cat":"Scen","link":"/vara-tjanster/hyra-scen/"},"small-plusplus":{"desc":"Scenpodie för 2–3 personer. Flexibla dimensioner – vertikalt 2×4 m eller horisontellt 3×2 m.","cat":"Scen","link":"/vara-tjanster/hyra-scen/"},"medium":{"desc":"Scenpodie för 3–4 personer. Passar utmärkt för ett litet band eller talarpanel.","cat":"Scen","link":"/vara-tjanster/hyra-scen/"},"medium-plus":{"desc":"Scenpodie för 4–5 personer. Bra storlek för band på 4–5 musiker eller konferensscen.","cat":"Scen","link":"/vara-tjanster/hyra-scen/"},"large":{"desc":"Scen för 5–8 musiker eller uppträdande. Byggs horisontellt 5×4 m. Inkl. transport och montering.","cat":"Scen","link":"/vara-tjanster/hyra-scen/"},"xl":{"desc":"Stor konsertscen för 8–12 musiker, 9×4 m. Inkl. transport, montering och demontering.","cat":"Scen","link":"/vara-tjanster/hyra-scen/"},"event-small":{"desc":"Passar för tal, sång och bakgrundsmusik för upp till 100 personer. Två Alto 10\" på stativ.","cat":"Ljud — Event","includes":["2x Alto 10\" fullrange","2000W peak","Max 130 dB","48–20000 Hz"],"link":"/vara-tjanster/hyra-ljud/event/"},"event-small-plus":{"desc":"Upp till 180 personer. Två Alto 12\" fullrange på stativ.","cat":"Ljud — Event","link":"/vara-tjanster/hyra-ljud/event/"},"event-medium":{"desc":"Fyra Alto 10\" fullrange på stativ för upp till 240 personer.","cat":"Ljud — Event","link":"/vara-tjanster/hyra-ljud/event/"},"event-medium-plus":{"desc":"Fyra Alto 12\" fullrange på stativ för upp till 380 personer.","cat":"Ljud — Event","link":"/vara-tjanster/hyra-ljud/event/"},"event-large":{"desc":"Fyra Alto 15\" fullrange på stativ för upp till 560 personer.","cat":"Ljud — Event","link":"/vara-tjanster/hyra-ljud/event/"},"portable-small":{"desc":"Batteridrift 20+ tim, inbyggd mixer och Bluetooth. 6,5\" element.","cat":"Ljud — Portable","link":"/vara-tjanster/hyra-ljud/portable/"},"portable-medium":{"desc":"Alto TS108 C kolumnhögtalare. 8\" bas och sex 2,75\" diskant. Bluetooth.","cat":"Ljud — Portable","link":"/vara-tjanster/hyra-ljud/portable/"},"portable-large":{"desc":"LD Systems Maui 28 G2. Två 8\" bas och 16 st 3\" element. Bluetooth.","cat":"Ljud — Portable","link":"/vara-tjanster/hyra-ljud/portable/"},"music-small":{"desc":"DJ/trubadur för 20–80 personer. Två 10\" fullrange och en 12\" sub-bas.","cat":"Ljud — Music","link":"/vara-tjanster/hyra-ljud/music/"},"music-medium":{"desc":"DJ för 60–120 pers. Två 12\" fullrange och två 12\" sub-basar.","cat":"Ljud — Music","link":"/vara-tjanster/hyra-ljud/music/"},"live-small":{"desc":"Trubadur för 20–60 personer. Två Alto 12\" högtalarenheter med inbyggd mixer.","cat":"Ljud — Live","link":"/vara-tjanster/hyra-ljud/live/"},"live-medium":{"desc":"Trubadur eller DJ för 60–100 personer. Två 15\" sub-basar och två 12\" fullrange.","cat":"Ljud — Live","link":"/vara-tjanster/hyra-ljud/live/"},"ljus-small":{"desc":"LED T-bar med fyra RGB PAR armaturer på stativ. Synkar till musik. Plug and play.","cat":"Ljus — Färdiga paket","link":"/vara-tjanster/hyra-ljus/fardiga-paket/"},"ljus-medium":{"desc":"Två trosstorn med 120W COB LED + 26 RGBW moving heads. DMX eller automatik.","cat":"Ljus — Färdiga paket","link":"/vara-tjanster/hyra-ljus/fardiga-paket/"},"ljus-large":{"desc":"Professionellt ljuspaket med flera effekter. Passar för medelstora event och galor.","cat":"Ljus — Färdiga paket","link":"/vara-tjanster/hyra-ljus/fardiga-paket/"},"ljus-large-plus":{"desc":"Komplett ljusrigg för större event med moving heads, PAR och stroboskop.","cat":"Ljus — Färdiga paket","link":"/vara-tjanster/hyra-ljus/fardiga-paket/"},"dj-controller-numark":{"desc":"Standalone DJ-controller. Stödjer Amazon Music, Tidal, Beatport, SoundCloud. 7\" touch-display.","cat":"DJ-utrustning","includes":["Standalone – ingen dator krävs","Amazon Music, Tidal, Beatport, SoundCloud","4 inbyggda effekter","DMX-styrning"],"link":"/vara-tjanster/hyra-dj/"},"dj-controller-denon-go":{"desc":"Bärbar standalone DJ-controller med inbyggt batteri (upp till 4 tim) och Bluetooth.","cat":"DJ-utrustning","includes":["Upp till 4 tim batteridrift","Bluetooth för trådlösa högtalare","26 Main FX + 10 Touch FX"],"link":"/vara-tjanster/hyra-dj/"},"projektor-xga":{"desc":"Miniprojektor Toshiba XGA (1024×768). Utmärkt för presentationer. Klarar 60\"–100\".","cat":"Projektor & skärm","includes":["1024×768 (XGA)","1100 ANSI lumen","Vikt: 0,9 kg"],"link":"/vara-tjanster/hyra-bild-projektorer-skarmar/"},"projektor-fhd":{"desc":"BenQ Full HD-projektor (1920×1080). Fungerar i dagsljus. Klarar 60\"–300\".","cat":"Projektor & skärm","includes":["Full HD 1920×1080","3200 ANSI lumen","Vikt: 2,6 kg"],"link":"/vara-tjanster/hyra-bild-projektorer-skarmar/"}};
 
-  // ── PRODUKT-POPUP ─────────────────────────────────────────
-  let _popupItem = null;
-
-  function openProductPopup(item) {
-    _popupItem = item;
+  // ── PRODUKT-MODAL (globalt via Layout.astro sk-modal) ─────
+  function openProductModal(item) {
+    if (!window.skModalOpen) return;
     const info = PROD_DESC[item.id] || PROD_DESC[item.id?.replace(/^(scen-)/,'')] || {};
     const imgSrc = _getImg(item);
-
-    document.getElementById('popup-title').textContent   = item.name;
-    document.getElementById('popup-cat').textContent     = info.cat || item.category || '';
-    document.getElementById('popup-price').textContent   = fmt(item.price) + ' ' + (item.priceNote || '/dygn');
-    document.getElementById('popup-desc').textContent    = info.desc || '';
-
-    const imgEl = document.getElementById('popup-img');
-    const phEl  = document.getElementById('popup-img-ph');
-    if (imgSrc) {
-      imgEl.src = imgSrc; imgEl.style.display = 'block'; phEl.style.display = 'none';
-    } else {
-      imgEl.style.display = 'none'; phEl.style.display = 'flex';
-    }
-
-    const ul = document.getElementById('popup-includes');
-    if (info.includes?.length) {
-      ul.innerHTML = info.includes.map(i => `<li style="color:rgba(255,255,255,0.55);font-size:0.82rem;padding:2px 0;display:flex;gap:0.4rem"><span style="color:#c4b5f4">✓</span>${i}</li>`).join('');
-      ul.style.display = 'block';
-    } else {
-      ul.style.display = 'none';
-    }
-
-    const link = document.getElementById('popup-link');
-    if (info.link) { link.href = info.link; link.style.display = 'inline'; }
-    else link.style.display = 'none';
-
-    const overlay = document.getElementById('prod-popup-overlay');
-    overlay.style.display = 'flex';
+    window.skModalOpen({
+      name:      item.name,
+      artno:     '',
+      desc:      (info.includes || []).join('||'),
+      rows:      [],
+      price:     item.price,
+      priceNote: item.priceNote || '/dygn',
+      category:  item.category || '',
+      cartId:    item.id,
+      images:    imgSrc ? [imgSrc] : [],
+      videos:    [],
+      persons:   '',
+    });
   }
-
-  document.getElementById('popup-close').addEventListener('click', () => {
-    document.getElementById('prod-popup-overlay').style.display = 'none';
-  });
-  document.getElementById('prod-popup-overlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('prod-popup-overlay'))
-      document.getElementById('prod-popup-overlay').style.display = 'none';
-  });
-  document.getElementById('popup-add-btn').addEventListener('click', () => {
-    if (!_popupItem) return;
-    const cart = getCart();
-    const ex = cart.find(i => i.id === _popupItem.id);
-    if (ex) { ex.qty++; } else { cart.push({ ..._popupItem, qty: 1 }); }
-    saveCart(cart);
-    updateNavBadge(); renderCart(); updateSummary();
-    document.getElementById('prod-popup-overlay').style.display = 'none';
-  });
 
   // ── PRODUKTVÄLJARE ────────────────────────────────────────
   (function initPicker() {
@@ -1043,7 +984,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
         if (e.target.closest('.qty-btn, .remove-btn, .qty-input')) return;
         const id   = row.dataset.id;
         const item = getCart().find(i => i.id === id);
-        if (item) openProductPopup(item);
+        if (item) openProductModal(item);
       });
     });
 
