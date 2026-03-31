@@ -260,12 +260,9 @@ if (!window.__mcInit) {
           <div style="height:100%;background:#c4b5f4;animation:mcProgress 8s linear infinite"></div>
         </div>`;
 
-      // Klick på video-slide → lightbox med ljud
+      // Klick på area → hanteras av handleCardClick i Layout (öppnar modal)
       area.style.cursor = 'pointer';
-      area.onclick = (e) => {
-        e.stopPropagation();
-        if (window.skLightboxOpen) window.skLightboxOpen('video', slide.src, '');
-      };
+      area.onclick = null;
     } else {
       // Vanlig bild
       area.innerHTML = `<img
@@ -277,10 +274,7 @@ if (!window.__mcInit) {
         style="display:block;transition:transform .3s"
       />`;
       area.style.cursor = 'pointer';
-      area.onclick = (e) => {
-        e.stopPropagation();
-        if (window.skLightboxOpen) window.skLightboxOpen('image', slide.src, '');
-      };
+      area.onclick = null;
     }
 
     // Uppdatera dots
