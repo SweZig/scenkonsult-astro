@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.join(__dirname, '..');
 const DATA      = path.join(ROOT, 'src/data');
 const OUT       = path.join(__dirname, 'functions/_products-generated.js');
+const OUT_JSON  = path.join(ROOT, 'src/data/quote-catalog.json');
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.join(DATA, file), 'utf8'));
@@ -246,6 +247,7 @@ export const QUOTE_CATALOG = ${QUOTE_CATALOG_JS};
 `;
 
 fs.writeFileSync(OUT, output, 'utf8');
+fs.writeFileSync(OUT_JSON, JSON.stringify(QUOTE_CAT, null, 2), 'utf8');
 
 const cartCount = cartLines.length;
 const prodCount = sects.filter(l => l.startsWith('-')).length;

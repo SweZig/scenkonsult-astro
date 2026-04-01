@@ -2,7 +2,7 @@
 // src/pages/admin/index.astro
 // Adminpanel — Scenkonsult Norden
 // Tillgänglig på /admin/ — kräver ADMIN_TOKEN
-
+import quoteCatalogData from '../../data/quote-catalog.json';
 ---
 <!DOCTYPE html>
 <html lang="sv">
@@ -443,7 +443,7 @@
       #detail-panel { width: 100vw; }
     }
   </style>
-  <script is:inline define:vars={{ quoteCatalog: QUOTE_CATALOG }}>
+  <script is:inline define:vars={{ quoteCatalog: quoteCatalogData }}>
     window.__ADMIN_QUOTE_CATALOG__ = quoteCatalog;
   </script>
 </head>
