@@ -215,8 +215,22 @@ exports.handler = async (event) => {
     const matchVal = admin ? body.cart_id : body.token;
     await db.update('carts', updates, matchCol, matchVal);
 
-    // Förläng TTL (om ej bekräftad/avbruten)
-    await db.rpc('extend_cart_ttl', { cart_id: cart.id });
+    // Hantera expires_at baserat på ny status
+    const newStatus = updates.status || cart.status;
+    if (newStatus === 'cancelled') {
+      // Avbruten order sparas i 90 dagar
+      await db.update('carts', {
+        expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+      }, 'id', cart.id);
+    } else if (newStatus !== 'confirmed' && newStatus !== 'betald') {
+      // Förläng TTL med 21 dagar för aktiva ordrar
+      try { await db.rpc('extend_cart_ttl', { cart_id: cart.id }); } catch (e) {
+        // extend_cart_ttl RPC saknas — sätt expires_at direkt
+        await db.update('carts', {
+          expires_at: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString()
+        }, 'id', cart.id).catch(() => {});
+      }
+    }
 
     // Skicka orderbekräftelsemail om status just satte till confirmed
     if (admin && body.status === 'confirmed') {

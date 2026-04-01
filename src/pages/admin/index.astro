@@ -1720,7 +1720,7 @@ async function cancelOrder() {
   if (ok) {
     currentCart.status = 'cancelled';
     toast('Order avbruten');
-    loadCarts();
+    await loadCarts();
     renderTab('info');
     renderPanelFooter();
   } else toast('Fel vid avbrytning', 'error');
