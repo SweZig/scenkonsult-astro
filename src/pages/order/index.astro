@@ -445,13 +445,8 @@ function renderOrder(c) {
   ctaEl.style.display = 'none';
   banner.style.borderRadius = '';
 
-  if (c.status === 'confirmed' && !c.confirmed_at) {
-    // Kund har INTE bekräftat digitalt ännu — visa bekräftelseruta
-    banner.style.borderRadius = '12px 12px 0 0';
-    ctaEl.style.display = '';
-    ctaEl.innerHTML = renderConfirmBox(c);
-  } else if (c.status === 'confirmed' && c.confirmed_at) {
-    // Redan digitalt bekräftad
+  if (c.confirmed_at) {
+    // Kund har redan bekräftat digitalt
     banner.style.borderRadius = '12px 12px 0 0';
     ctaEl.style.display = '';
     ctaEl.innerHTML = `
@@ -462,16 +457,20 @@ function renderOrder(c) {
           <div style="color:rgba(255,255,255,0.5);font-size:0.8rem">Du godkände denna order ${fmtTime(c.confirmed_at)}</div>
         </div>
       </div>`;
-  } else if (c.status === 'waiting') {
-    // Offert klar — visa "kontakta oss för att bekräfta"
+  } else if (c.status === 'confirmed' || c.status === 'waiting') {
+    // Offert klar — kund kan bekräfta digitalt
+    banner.style.borderRadius = '12px 12px 0 0';
+    ctaEl.style.display = '';
+    ctaEl.innerHTML = renderConfirmBox(c);
+  } else if (c.status === 'proposal' || c.status === 'open') {
+    // Vi håller på att se över förfrågan
     banner.style.borderRadius = '12px 12px 0 0';
     ctaEl.style.display = '';
     ctaEl.innerHTML = `
       <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08);">
-        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0 0 0.75rem;">Se detaljerna nedan. Hör av dig om du har frågor eller vill justera något.</p>
-        <a href="tel:0724481000" style="display:inline-flex;align-items:center;gap:6px;background:rgba(196,181,244,0.15);border:1px solid rgba(196,181,244,0.3);color:#c4b5f4;border-radius:8px;padding:0.5rem 1rem;font-size:0.9rem;text-decoration:none;font-family:inherit">
-          📞 Ring oss — 072-448 10 00
-        </a>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0;">Vi ser över din förfrågan och återkommer med en offert. Frågor? Ring oss på
+          <a href="tel:0724481000" style="color:#c4b5f4;">072-448 10 00</a>.
+        </p>
       </div>`;
   }
 
