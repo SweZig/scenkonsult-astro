@@ -779,11 +779,16 @@ function getFilteredCarts() {
 
 function renderKanban() {
   const filtered = getFilteredCarts();
-  const cols = ['open','proposal','waiting','confirmed','fakturerad','betald','cancelled'];
+  const cols = ['open','waiting','confirmed','fakturerad','betald','cancelled']; // proposal dold — ersatt av waiting i nya flödet
   const board = $('kanban-board');
   board.innerHTML = cols.map(status => {
     const s = STATUS_LABELS[status];
-    const colCarts = filtered.filter(c => c.status === status);
+    // proposal-ordrar (gamla) visas under Väntar svar
+    const colCarts = filtered.filter(c =>
+      status === 'waiting'
+        ? (c.status === 'waiting' || c.status === 'proposal')
+        : c.status === status
+    );
     return `
       <div class="kanban-col">
         <div class="kanban-col-header">
