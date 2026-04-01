@@ -2064,6 +2064,14 @@ async function sendQuote() {
     if (success) {
       closeQuoteModal();
       toast(`Offert skickad till ${email}! 🎉`);
+      // Sätt status → waiting så kunden ser bekräftelseknappen på /order/
+      if (currentCart?.id && ['open','proposal'].includes(currentCart.status)) {
+        await api('cart-update', {
+          method: 'POST',
+          body: JSON.stringify({ cart_id: currentCart.id, status: 'waiting' })
+        });
+        currentCart.status = 'waiting';
+      }
       loadCarts();
     } else {
       errEl.textContent = data?.error || 'Kunde inte skicka offert.';
