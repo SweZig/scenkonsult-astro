@@ -2096,19 +2096,29 @@ const localBusinessSchema = {
 
   <script is:inline>
   (function() {
-    const SS_KEY   = 'sk_admin_mode';
+    const LS_KEY   = 'sk_admin_mode';   // localStorage — persisterar 8 h
     const FAIL_KEY = 'sk_admin_failures';
     const LOCK_KEY = 'sk_admin_locked_until';
+    const TTL_MS   = 8 * 60 * 60 * 1000; // 8 timmar
+
+    function isAdminActive() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return false;
+        const { ts } = JSON.parse(raw);
+        return (Date.now() - ts) < TTL_MS;
+      } catch { return false; }
+    }
 
     function activateAdmin() {
-      sessionStorage.setItem(SS_KEY, 'true');
+      localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now() }));
       document.body.classList.add('sk-admin');
       const badge = document.getElementById('sk-admin-badge');
       if (badge) badge.style.display = 'flex';
     }
 
     function deactivateAdmin() {
-      sessionStorage.removeItem(SS_KEY);
+      localStorage.removeItem(LS_KEY);
       sessionStorage.removeItem(FAIL_KEY);
       sessionStorage.removeItem(LOCK_KEY);
       document.body.classList.remove('sk-admin');
@@ -2225,14 +2235,14 @@ const localBusinessSchema = {
     document.addEventListener('DOMContentLoaded', function() {
 
       // Återaktivera vid sidladdning om sessionStorage satt
-      if (sessionStorage.getItem(SS_KEY) === 'true') {
+      if (isAdminActive()) {
         activateAdmin();
       }
 
       // Öppna modal vid ?admin=1
       const params = new URLSearchParams(location.search);
       if (params.get('admin') === '1') {
-        if (sessionStorage.getItem(SS_KEY) === 'true') {
+        if (isAdminActive()) {
           // Redan inloggad — bara rensa URL
           const url = new URL(location.href);
           url.searchParams.delete('admin');
