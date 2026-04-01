@@ -2262,6 +2262,11 @@ const localBusinessSchema = {
         e.stopPropagation();
         deactivateAdmin();
       });
+      if (badge) badge.addEventListener('click', function(e) {
+        if (!e.target.closest('#sk-admin-badge-logout')) {
+          location.href = '/admin/';
+        }
+      });
 
       // Stäng modal vid klick utanför rutan
       const modal = document.getElementById('sk-admin-modal');
