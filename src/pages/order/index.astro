@@ -591,10 +591,14 @@ async function confirmOrder() {
   btn.disabled = true;
   btn.textContent = '⏳ Bekräftar…';
 
-  const c = window._currentCart;
-  const confirmationText = `Order ${c.id} bekräftad av kund. Hyresvillkor §1–§15 godkända. Totalt ${(c.items||[]).filter(i=>!i._note).reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0)} kr exkl. moms.`;
-
   try {
+    const c = window._currentCart;
+    if (!c) throw new Error('Order ej laddad — ladda om sidan och försök igen.');
+    if (!cartToken) throw new Error('Token saknas — öppna länken från mailet igen.');
+
+    const total = (c.items||[]).filter(i=>!i._note).reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+    const confirmationText = `Order ${c.id} bekräftad av kund. Hyresvillkor §1–§15 godkända. Totalt ${total} kr exkl. moms.`;
+
     const res = await fetch('/.netlify/functions/cart-update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -629,8 +633,8 @@ async function confirmOrder() {
       btn.disabled = false;
       btn.textContent = '✅ Bekräfta order';
     }
-  } catch {
-    alert('Nätverksfel — kontrollera din anslutning och försök igen.');
+  } catch(e) {
+    alert(e.message || 'Nätverksfel — kontrollera din anslutning och försök igen.');
     btn.disabled = false;
     btn.textContent = '✅ Bekräfta order';
   }
