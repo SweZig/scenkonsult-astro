@@ -540,12 +540,11 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
 }
 </style>
 
-<script is:inline define:vars={{ fraktRulesInline: frakt }}>
-(function() {
-  // Script placeras efter </html> av Astro — DOMContentLoaded har redan avfyrats.
-  // Kör direkt i IIFE; DOM är fullt parsad vid det här laget.
-  const FRAKT = (function(){ try { return JSON.parse(JSON.stringify(fraktRulesInline)); } catch { return {}; } })();
-  const fmt = n => n.toLocaleString('sv') + ' kr';
+<script>
+  // Vanligt Astro-script — Vite bundlar som ES-modul, körs deferred efter DOM är redo
+  import fraktData from '../../data/frakt.json';
+  const FRAKT = fraktData;
+  const fmt = (n) => n.toLocaleString('sv') + ' kr';
   const SK_TTL = 21 * 24 * 60 * 60 * 1000;
 
   // ── Komplett lokal cart-implementation (iOS-säker, ej beroende av window.skCart) ──
@@ -629,10 +628,6 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       persons:   '',
     });
   }
-
-  // ── PRODUKTVÄLJARE ────────────────────────────────────────
-  (function initPicker() {
-  
 
   // Leverans: automatisk bil/släpvagn beroende på om varukorgen har skrymmande produkt
   function cartHasBulky(cart) {
@@ -1087,5 +1082,4 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     updateNavBadge();
     checkCanProceed();
   });
-})(); // IIFE
 </script>
