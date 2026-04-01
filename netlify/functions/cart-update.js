@@ -200,6 +200,7 @@ exports.handler = async (event) => {
         updates.confirmed_ip           = ip;
         updates.confirmed_user_agent   = ua;
         updates.confirmation_text      = body.confirmation_text || `Order ${cart.id} bekräftad digitalt`;
+        updates.status                 = 'confirmed';
 
         await logAudit(db, cart.id, 'customer', 'order_confirmed_by_customer', {
           ip, ua, text: updates.confirmation_text
