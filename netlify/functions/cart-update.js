@@ -153,7 +153,7 @@ exports.handler = async (event) => {
 
       // Statusändring
       if (body.status !== undefined) {
-        const ALLOWED = ['open', 'proposal', 'waiting', 'confirmed', 'cancelled'];
+        const ALLOWED = ['open', 'proposal', 'waiting', 'confirmed', 'cancelled', 'fakturerad', 'betald'];
         if (!ALLOWED.includes(body.status)) return err('Ogiltig status', 400);
 
         const oldStatus = cart.status;

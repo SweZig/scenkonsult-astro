@@ -1,0 +1,119 @@
+const reviews = [
+	{
+		author: "Ann P",
+		location: "Huddinge",
+		rating: 5,
+		text: "Tack för superbra service, rekommenderas!"
+	},
+	{
+		author: "Jenny L",
+		location: "Stockholm",
+		rating: 5,
+		text: "Tack för i Lördags, Allt var toppen! Så bra drag på dansgolvet."
+	},
+	{
+		author: "Charlotta F",
+		location: "Stockholm",
+		rating: 5,
+		text: "Hyrde ljud för en helg och var toppen. Mycket hjälpsamma och enkla att ha att göra med."
+	},
+	{
+		author: "Roger L",
+		location: "Täby",
+		rating: 5,
+		text: "Riktigt professionella, gjorde min fest till succé!"
+	},
+	{
+		author: "Jonas A",
+		location: "Stockholm",
+		rating: 5,
+		text: "Så värt att hyra in en DJ till festen, precis som krogen på 90-talet 😉"
+	}
+];
+const clients = [
+	"A Beautiful Soap",
+	"ABG Sundal Collier",
+	"Aiva Productions",
+	"Akademiska Hus",
+	"Backingminds",
+	"Benefit Cosmetics",
+	"Brasiliens Ambassad",
+	"Cash In Drop Out",
+	"Christian Dior",
+	"Ekologigruppen",
+	"Favorevent",
+	"Forum Civ",
+	"Fredericia Furniture",
+	"Hacksaw Studios",
+	"Haninge Kommun",
+	"Hornbach",
+	"Houdini Sportsware",
+	"ICA Sverige",
+	"Immersive Music Group",
+	"Indiens Ambassad",
+	"Kameo",
+	"Kommunalarbetareförbundet",
+	"Korpen",
+	"Kustom",
+	"Linnskog-Rudh & Partner",
+	"Miljöpartiet",
+	"Mälardalens Universitet",
+	"Odd Fellow",
+	"Solna Stad",
+	"Solna Tingsrätt",
+	"Stockholm Stad",
+	"Tyresö Kommun",
+	"Ung Företagsamhet",
+	"Vision",
+	"Vänsterpartiet",
+	"iOffice"
+];
+const faq = [
+	{
+		q: "Hur länge är hyresperioden?",
+		a: "Normal hyresperiod är hämtning eller leverans kl 13:00 och återlämning dagen efter kl 11:00 (22 timmar). Vi är flexibla – behöver du hämta dagen innan eller lämna tillbaka dagen efter löser vi det utan extra kostnad om utrustningen inte är bokad."
+	},
+	{
+		q: "Kan jag installera utrustningen själv?",
+		a: "Ja! Alla standardpaket är valda för att vara enkla att installera – vi går alltid igenom hur det fungerar och tillhandahåller instruktioner, manualer och video. Föredrar du hjälp erbjuder vi montering som tilläggstjänst (600 kr/tim, min 15 min)."
+	},
+	{
+		q: "Kan man använda utrustningen utomhus?",
+		a: "Ja, all vår utrustning har en IP-klass som tål normal väta och hög luftfuktighet. Vi rekommenderar alltid väderskydd för känsligare elektronik vid längre utomhusarrangemang. Fråga oss vid bokning om du är osäker."
+	},
+	{
+		q: "Hur långt i förväg måste man boka?",
+		a: "Du kan boka med bara några timmars varsel – vi hanterar akuta bokningar och har jourtjänst. Populära helger och sommarsäsong bokas snabbt, så mer framförhållning är alltid bättre. Vi svarar på förfrågan inom ett par timmar."
+	},
+	{
+		q: "Levererar ni till hela Stockholm?",
+		a: "Vi levererar i hela Storstockholm inklusive Vällingby, Bromma, Solna, Sundbyberg, Järfälla, Nacka, Huddinge, Botkyrka, Södertälje, Täby, Sigtuna, Upplands Väsby, Ekerö, Haninge, Värmdö och mer. Kontakta oss för längre sträckor."
+	},
+	{
+		q: "Hur stor scen behöver jag för mitt event?",
+		a: "Tumregel: räkna ca 2–3 m² per person på scenen. En trubadur eller DJ klarar sig på 4–6 m², ett band med 3–4 musiker behöver 10–16 m², ett fullständigt band med backline vill ha 20 m² eller mer. Vi hjälper dig räkna ut exakt vad som passar."
+	},
+	{
+		q: "Hur stor PA-anläggning behöver jag för 100 gäster?",
+		a: "För 100 gäster inomhus räcker Event Medium eller Live Small. Utomhus dubblas effektbehovet – vi rekommenderar Live Medium eller larger. Hör av dig med plats, lokal och typ av event så tar vi fram exakt rätt storlek."
+	},
+	{
+		q: "Vad ska man tänka på vid val av högtalarstorlek?",
+		a: "Det beror på lokalen, antal gäster och musiktyp. Talljud kräver lägre effekt än dans/konsert. En tom lokal låter annorlunda mot en med folk. Kontakta oss med era förutsättningar så ger vi en konkret rekommendation."
+	},
+	{
+		q: "Kan jag boka utrustning med bara en dags varsel?",
+		a: "Absolut – vi hanterar akuta bokningar och har jourtjänst. Betalning krävs direkt vid bokning om det är under 72 timmar. Ring oss på 072-448 10 00 för snabbast svar."
+	},
+	{
+		q: "Finns det deposition?",
+		a: "Normalt sett tar vi ingen deposition, men vi förbehåller oss rätten att begära en vid hyra av dyrare utrustning. Vi diskuterar alltid detta öppet vid bokning."
+	}
+];
+const site = {
+	reviews: reviews,
+	clients: clients,
+	faq: faq
+};
+
+export { site as s };

@@ -125,11 +125,13 @@
       border-radius: 12px; padding: 0.75rem; min-height: 180px;
       border-left-width: 3px;
     }
-    .kanban-col:has(.s-open)      { border-left-color: var(--gray);  }
-    .kanban-col:has(.s-proposal)  { border-left-color: var(--blue);  }
-    .kanban-col:has(.s-waiting)   { border-left-color: var(--amber); }
-    .kanban-col:has(.s-confirmed) { border-left-color: var(--green); }
-    .kanban-col:has(.s-cancelled) { border-left-color: var(--red);   }
+    .kanban-col:has(.s-open)       { border-left-color: var(--amber); }
+    .kanban-col:has(.s-proposal)   { border-left-color: var(--blue);  }
+    .kanban-col:has(.s-waiting)    { border-left-color: var(--blue);  }
+    .kanban-col:has(.s-confirmed)  { border-left-color: var(--green); }
+    .kanban-col:has(.s-fakturerad) { border-left-color: var(--brand-lav); }
+    .kanban-col:has(.s-betald)     { border-left-color: var(--green); }
+    .kanban-col:has(.s-cancelled)  { border-left-color: var(--red);   }
     .kanban-col-header {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
@@ -441,6 +443,9 @@
       #detail-panel { width: 100vw; }
     }
   </style>
+  <script is:inline define:vars={{ quoteCatalog: QUOTE_CATALOG }}>
+    window.__ADMIN_QUOTE_CATALOG__ = quoteCatalog;
+  </script>
 </head>
 <body>
 
@@ -469,7 +474,7 @@
     </div>
     <div class="topbar-right">
       <span class="unread-badge" id="global-unread">0 nya</span>
-      <button class="btn-sm" id="new-quote-btn" style="border-color:var(--brand-lav);color:var(--brand-lav)">✉ Skicka offert</button>
+      <button class="btn-sm" id="new-quote-btn" style="border-color:var(--brand-lav);color:var(--brand-lav)">✉ Ny manuell order</button>
       <button class="btn-sm" id="refresh-btn">↻ Uppdatera</button>
       <a href="https://scenkonsult.se" target="_blank" class="btn-sm" style="text-decoration:none;">↗ Sajten</a>
       <button class="btn-sm" id="logout-btn">Logga ut</button>
@@ -597,6 +602,7 @@
   <div class="panel-tabs">
     <button class="panel-tab active" data-tab="info">ℹ Info</button>
     <button class="panel-tab" data-tab="products">📦 Produkter</button>
+    <button class="panel-tab" data-tab="faktura">🧾 Faktura</button>
     <button class="panel-tab" data-tab="chat">💬 Chatt <span id="chat-unread-badge" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 6px;font-size:0.7rem;margin-left:4px"></span></button>
     <button class="panel-tab" data-tab="log">📜 Logg</button>
   </div>
@@ -637,11 +643,13 @@ function toast(msg, type = 'success') {
 }
 
 const STATUS_LABELS = {
-  open:      { icon: '🛒', label: 'Öppen varukorg',   cls: 's-open'      },
-  proposal:  { icon: '📋', label: 'Orderförslag',       cls: 's-proposal'  },
-  waiting:   { icon: '⏳', label: 'Inväntar svar',    cls: 's-waiting'   },
-  confirmed: { icon: '✅', label: 'Orderbekräftelse',  cls: 's-confirmed' },
-  cancelled: { icon: '❌', label: 'Avbruten',          cls: 's-cancelled' },
+  open:       { icon: '📬', label: 'Inkommen',       cls: 's-open'       },
+  proposal:   { icon: '📤', label: 'Offert skickad', cls: 's-proposal'   },
+  waiting:    { icon: '⏳', label: 'Väntar svar',    cls: 's-waiting'    },
+  confirmed:  { icon: '✅', label: 'Bekräftad',      cls: 's-confirmed'  },
+  fakturerad: { icon: '🧾', label: 'Fakturerad',     cls: 's-fakturerad' },
+  betald:     { icon: '💚', label: 'Betald',          cls: 's-betald'     },
+  cancelled:  { icon: '❌', label: 'Avbruten',       cls: 's-cancelled'  },
 };
 
 // ── AUTH ──────────────────────────────────────────────────────
@@ -771,7 +779,7 @@ function getFilteredCarts() {
 
 function renderKanban() {
   const filtered = getFilteredCarts();
-  const cols = ['open','proposal','waiting','confirmed','cancelled'];
+  const cols = ['open','proposal','waiting','confirmed','fakturerad','betald','cancelled'];
   const board = $('kanban-board');
   board.innerHTML = cols.map(status => {
     const s = STATUS_LABELS[status];
@@ -878,6 +886,7 @@ function renderTab(tab) {
   const body = $('panel-body');
   if (tab === 'info')     body.innerHTML = renderInfoTab();
   if (tab === 'products') body.innerHTML = renderProductsTab();
+  if (tab === 'faktura')  body.innerHTML = renderFakturaTab();
   // Force browser to respect dark styling on form elements
   requestAnimationFrame(() => {
     document.querySelectorAll('.status-select, .admin-note-area, .prod-input, .chat-textarea').forEach(el => {
@@ -1143,39 +1152,199 @@ function renderInfoTab() {
   `;
 }
 
+function buildCatalogOptions() {
+  let html = '<option value="">+ Välj produkt att lägga till</option>';
+  Object.entries(QUOTE_CATALOG).forEach(([cat, data]) => {
+    if (data.products) {
+      html += `<optgroup label="${cat}">`;
+      data.products.forEach(p => {
+        const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:cat}).replace(/"/g,'&quot;');
+        html += `<option value="${v}">${p.name} — ${fmt(p.price)} kr</option>`;
+      });
+      html += '</optgroup>';
+    } else if (data.sub) {
+      Object.entries(data.sub).forEach(([sub, prods]) => {
+        html += `<optgroup label="${cat} — ${sub}">`;
+        prods.forEach(p => {
+          const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:`${cat} — ${sub}`}).replace(/"/g,'&quot;');
+          html += `<option value="${v}">${p.name} — ${fmt(p.price)} kr</option>`;
+        });
+        html += '</optgroup>';
+      });
+    }
+  });
+  return html;
+}
+
+function catIcon(category) {
+  const c = (category||'').toLowerCase();
+  if (c.includes('scen'))    return { icon: '🎪', color: 'var(--blue)' };
+  if (c.includes('ljud'))    return { icon: '🔊', color: 'var(--green)' };
+  if (c.includes('ljus'))    return { icon: '💡', color: 'var(--amber)' };
+  if (c.includes('dj'))      return { icon: '🎧', color: 'var(--brand-lav)' };
+  if (c.includes('bild'))    return { icon: '📽', color: 'var(--blue)' };
+  if (c.includes('tjänst') || c.includes('leverans') || c.includes('montering')) return { icon: '🚚', color: 'var(--gray)' };
+  return { icon: '📦', color: 'var(--gray)' };
+}
+
 function renderProductsTab() {
   const allItems = (currentCart.items || []);
   const noteItem = allItems.find(i => i._note);
-  const items = allItems.filter(i => !i._note).map((i,idx) => ({...i, _idx: idx}));
+  const items = allItems.filter(i => !i._note);
+  const total = items.reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
+
+  const rows = items.map((item, idx) => {
+    const qty = item.qty || item.quantity || 1;
+    const price = item.price || 0;
+    const sub = qty * price;
+    const {icon, color} = catIcon(item.category);
+    const pid = item.id || '';
+    const desc = (typeof PROD_DESC !== 'undefined' && PROD_DESC[pid]) ? PROD_DESC[pid] : null;
+    const popoutContent = desc
+      ? `<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-top:4px">${desc.desc||''}</div>${desc.includes?.length ? '<ul style="font-size:0.72rem;color:var(--text-faint);padding-left:14px;margin-top:3px">' + desc.includes.map(s=>`<li>${s}</li>`).join('') + '</ul>' : ''}`
+      : `<div style="font-size:0.78rem;color:var(--text-faint);margin-top:4px">Artno: ${pid || '–'} · Kategori: ${item.category || '–'}</div>`;
+
+    return `<tr data-idx="${idx}" class="prod-row">
+      <td style="vertical-align:top;padding:8px 6px">
+        <div style="display:flex;align-items:flex-start;gap:6px">
+          <button onclick="prodTogglePopout(${idx})" style="flex-shrink:0;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:rgba(0,0,0,.2);color:${color};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center" title="Produktinfo">${icon}</button>
+          <div style="flex:1;min-width:0">
+            <input class="prod-input prod-name" value="${(item.name||'').replace(/"/g,'&quot;')}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+            <div id="po-${idx}" style="display:none">${popoutContent}</div>
+          </div>
+        </div>
+      </td>
+      <td style="text-align:center;vertical-align:top;padding-top:10px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+          <button class="qty-btn" onclick="prodQty(${idx},-1)">−</button>
+          <input class="prod-input prod-qty" value="${qty}" data-field="qty" data-idx="${idx}" style="width:38px;text-align:center;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+          <button class="qty-btn" onclick="prodQty(${idx},1)">＋</button>
+        </div>
+      </td>
+      <td style="text-align:right;vertical-align:top;padding-top:10px">
+        <input class="prod-input prod-price" value="${price}" data-field="price" data-idx="${idx}" style="width:78px;text-align:right;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      </td>
+      <td style="text-align:right;vertical-align:top;padding-top:10px;font-weight:600;color:var(--brand-lav);font-size:0.85rem" id="prod-sum-${idx}">${fmt(sub)} kr</td>
+      <td style="vertical-align:top;padding-top:10px">
+        <button class="qty-btn" style="color:var(--red);border-color:var(--red)" onclick="prodDelete(${idx})" title="Ta bort">×</button>
+      </td>
+    </tr>`;
+  }).join('');
+
   return `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
-      <div class="section-label" style="margin:0">Produkter (${items.length} st)</div>
-      <button class="btn-sm" onclick="prodAddRow()" style="background:var(--surface2);border-color:var(--border-lav)">＋ Lägg till rad</button>
-    </div>
+    <div class="section-label">Produkter (${items.length} st)</div>
     <table class="product-table" id="prod-edit-table">
       <thead><tr>
-        <th>Produkt / Tjänst</th>
-        <th style="text-align:center;width:90px">Antal</th>
-        <th style="text-align:right;width:110px">à-pris (kr)</th>
-        <th style="text-align:right;width:90px">Summa</th>
-        <th style="width:36px"></th>
+        <th>Produkt</th>
+        <th style="text-align:center;width:88px">Antal</th>
+        <th style="text-align:right;width:80px">à-pris</th>
+        <th style="text-align:right;width:80px">Summa</th>
+        <th style="width:28px"></th>
       </tr></thead>
-      <tbody id="prod-tbody">
-        ${items.map(i => prodRowHTML(i, i._idx)).join('')}
-      </tbody>
-      <tfoot id="prod-tfoot">${prodTotals()}</tfoot>
+      <tbody id="prod-tbody">${rows}</tbody>
     </table>
-    <div style="margin-top:1rem">
-      <div class="section-label" style="margin-top:0.75rem">Anmärkningar (visas för kunden)</div>
-      <textarea class="admin-note-area" id="prod-note" rows="3"
-        style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;min-height:70px"
-        placeholder="Leveransinfo, specifikationer, prisvillkor…">${noteItem?.name || ''}</textarea>
+    <select id="prod-add-select" onchange="prodAddFromCatalog(this)"
+      style="width:100%;margin-top:8px;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed var(--border-lav);border-radius:8px">
+      ${buildCatalogOptions()}
+    </select>
+    <button onclick="prodAddFreeRow()" style="width:100%;margin-top:6px;font-size:0.78rem;padding:5px;background:transparent;border:1px dashed rgba(255,255,255,0.12);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
+      + Fri rad (specialfrakt, rabatt, övrigt…)
+    </button>
+
+    <div class="section-label" style="margin-top:14px">Tjänster</div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;font-size:0.82rem">
+      <span style="color:var(--text-muted)">Leverans</span>
+      <select id="svc-leverans" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+        <option value="">— (välj)</option>
+        <option value="Leverans — Vanlig bil (t&r)|1118|lev-standard">Vanlig bil t&r — 1 118 kr</option>
+        <option value="Leverans — Bil med släp (t&r)|1598|lev-skrymmande">Bil med släp t&r — 1 598 kr</option>
+        <option value="Leverans — Vanlig bil (enkel)|559|lev-standard-e">Vanlig bil enkel — 559 kr</option>
+        <option value="Leverans — Lastbil (t&r)|2998|lev-lastbil">Lastbil t&r — 2 998 kr</option>
+        <option value="">Ingen leverans</option>
+      </select>
+      <span style="color:var(--text-muted)">Montering</span>
+      <select id="svc-montering" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+        <option value="">— (ingen)</option>
+        <option value="Montering & demontering|600|montering">600 kr (auto)</option>
+        <option value="Montering & demontering|1200|montering">1 200 kr (2 tim)</option>
+        <option value="Montering & demontering|1800|montering">1 800 kr (3 tim)</option>
+        <option value="Montering & demontering|300|montering">300 kr (30 min)</option>
+      </select>
     </div>
-    <div style="margin-top:0.75rem;display:flex;gap:0.75rem;align-items:center">
-      <button class="btn-action" id="save-items-btn" onclick="prodSave()">💾 Spara produkter</button>
-      <span id="prod-save-status" style="font-size:0.8rem;color:var(--text-muted)"></span>
+
+    <div class="section-label" style="margin-top:12px">Fakturaavgift</div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;font-size:0.82rem">
+      <span style="color:var(--text-muted)">Fakturaavgift</span>
+      <select id="svc-faktura" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+        <option value="Fakturaavgift|49|fakturaavgift" selected>49 kr (standard)</option>
+        <option value="Fakturaavgift|29|fakturaavgift">29 kr</option>
+        <option value="">Ingen</option>
+      </select>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:10px">
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Produkter exkl. moms</span><span>${fmt(total)} kr</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Moms 25%</span><span>${fmt(Math.round(total*0.25))} kr</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;color:var(--brand-lav)"><span>Inkl. moms</span><span>${fmt(Math.round(total*1.25))} kr</span></div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-action" onclick="prodSave()" style="flex:1">💾 Spara</button>
+      <button class="btn-action" onclick="prodSaveAndSendOffer()" style="flex:1;border-color:var(--brand-lav);color:var(--brand-lav)">📤 Spara & skicka offert</button>
+    </div>
+    <div style="margin-top:6px">
+      <div class="section-label" style="margin-top:0">Anmärkningar till kund</div>
+      <textarea class="admin-note-area" id="prod-note" rows="2"
+        style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;min-height:55px"
+        placeholder="Leveransinfo, prisvillkor…">${noteItem?.name || ''}</textarea>
     </div>
   `;
+}
+
+function prodTogglePopout(idx) {
+  const el = document.getElementById('po-' + idx);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function prodAddFromCatalog(sel) {
+  if (!sel.value) return;
+  try {
+    const p = JSON.parse(sel.value.replace(/&quot;/g,'"'));
+    const items = prodGetItems();
+    items.push({ id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'' });
+    currentCart.items = items;
+    renderTab('products');
+  } catch(e) { toast('Fel vid tillägg', 'error'); }
+}
+
+function prodAddFreeRow() {
+  const items = prodGetItems();
+  items.push({ id: '', name: '', price: 0, qty: 1, category: '' });
+  currentCart.items = items;
+  renderTab('products');
+}
+
+function prodUpdateSvc() {
+  // Remove existing service rows, add back selected ones
+  const items = prodGetItems().filter(i => !['lev-standard','lev-skrymmande','lev-lastbil','lev-standard-e','montering','fakturaavgift',
+    'lev-standard-e','lev-skrymmande-e','lev-lastbil-e'].some(sid => i.id === sid || i.id === sid + '-e'));
+  
+  const addSvc = (selId) => {
+    const sel = document.getElementById(selId);
+    if (!sel || !sel.value) return;
+    const [name, price, id] = sel.value.split('|');
+    if (name && price) items.push({ id, name, price: parseInt(price), qty: 1, category: 'Tjänster' });
+  };
+  addSvc('svc-leverans');
+  addSvc('svc-montering');
+  addSvc('svc-faktura');
+  currentCart.items = items;
+  renderTab('products');
+}
+
+async function prodSaveAndSendOffer() {
+  await prodSave();
+  openQuoteModalForCart(currentCart);
 }
 
 function prodRowHTML(i, idx) {
@@ -1302,6 +1471,118 @@ function renderLogTab() {
     </div>`;
 }
 
+function renderFakturaTab() {
+  const c = currentCart;
+  const items = (c.items||[]).filter(i=>!i._note);
+  const total = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+  const invNum = c.invoice_number || '— (ej skapad)';
+  const isPaid = !!c.invoice_paid_at;
+  const isSent = !!c.invoice_sent_at;
+
+  return `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:1rem;font-weight:700;color:var(--brand-lav)">${invNum}</span>
+      ${isPaid ? '<span class="s-betald" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">💚 Betald</span>' :
+        isSent ? '<span class="s-fakturerad" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">🧾 Skickad</span>' :
+        '<span class="s-waiting" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">⏳ Ej skickad</span>'}
+    </div>
+
+    <div class="section-label">Fakturainformation</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.82rem;margin-bottom:8px">
+      <div>
+        <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Fakturadatum</div>
+        <input id="inv-date" type="date" value="${c.invoice_date || new Date().toISOString().slice(0,10)}"
+          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+      </div>
+      <div>
+        <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Förfallodag</div>
+        <input id="inv-due" type="date" value="${c.invoice_due_date || ''}"
+          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+      </div>
+      <div>
+        <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Betalningsvillkor</div>
+        <select id="inv-terms" style="width:100%;font-size:0.78rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+          <option value="5" ${(c.payment_terms_days||5)==5?'selected':''}>5 dagar netto</option>
+          <option value="10" ${(c.payment_terms_days||5)==10?'selected':''}>10 dagar netto</option>
+          <option value="20" ${(c.payment_terms_days||5)==20?'selected':''}>20 dagar netto</option>
+          <option value="30" ${(c.payment_terms_days||5)==30?'selected':''}>30 dagar netto</option>
+          <option value="0" ${(c.payment_terms_days||5)==0?'selected':''}>Förskott</option>
+        </select>
+      </div>
+      <div>
+        <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Vår referens</div>
+        <input id="inv-ref" type="text" value="${c.invoice_ref || 'Per S'}"
+          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+      </div>
+    </div>
+
+    <div class="section-label">Kund (B2B)</div>
+    <div style="display:grid;gap:5px;font-size:0.82rem;margin-bottom:8px">
+      <div><div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Organisationsnummer</div>
+        <input id="inv-orgnr" type="text" placeholder="556xxx-xxxx" value="${c.customer_orgnr||''}"
+          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid ${c.customer_orgnr?'var(--border)':'var(--red)'};border-radius:5px">
+      </div>
+      <div><div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Fakturaadress</div>
+        <input id="inv-addr" type="text" placeholder="Gatuadress, postnr, ort" value="${c.customer_address||''}"
+          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid ${c.customer_address?'var(--border)':'var(--red)'};border-radius:5px">
+      </div>
+      <div><div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Er referens</div>
+        <input id="inv-custref" type="text" placeholder="T.ex. Hannah Johansson" value="${c.customer_ref||''}"
+          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+      </div>
+    </div>
+
+    <div class="section-label">Belopp</div>
+    <div style="font-size:0.82rem">
+      <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text-muted)"><span>Produkter & tjänster exkl. moms</span><span>${fmt(total)} kr</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text-muted)"><span>Moms 25%</span><span>${fmt(Math.round(total*0.25))} kr</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:0.95rem;color:var(--brand-lav);border-top:1px solid var(--border);margin-top:4px"><span>Att betala inkl. moms</span><span>${fmt(Math.round(total*1.25))} kr</span></div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn-action" onclick="invSaveFields()" style="font-size:0.8rem">💾 Spara uppgifter</button>
+      <button class="btn-action" onclick="toast('PDF-generering kommer i nästa version','error')" style="font-size:0.8rem">🖨 Förhandsgranska PDF</button>
+      <button class="btn-action" onclick="toast('Fakturautskick kommer i nästa version','error')" style="font-size:0.8rem;border-color:var(--brand-lav);color:var(--brand-lav)">📧 Skicka faktura</button>
+      ${!isPaid ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
+    </div>
+  `;
+}
+
+async function invSaveFields() {
+  const updates = {
+    cart_id: currentCart.id,
+    customer_orgnr:   document.getElementById('inv-orgnr')?.value.trim() || null,
+    customer_address: document.getElementById('inv-addr')?.value.trim() || null,
+    customer_ref:     document.getElementById('inv-custref')?.value.trim() || null,
+    invoice_date:     document.getElementById('inv-date')?.value || null,
+    invoice_due_date: document.getElementById('inv-due')?.value || null,
+    payment_terms_days: parseInt(document.getElementById('inv-terms')?.value || '5'),
+  };
+  const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
+  if (ok) {
+    Object.assign(currentCart, updates);
+    toast('Fakturauppgifter sparade!');
+    renderTab('faktura');
+  } else toast('Kunde inte spara', 'error');
+}
+
+async function invMarkPaid() {
+  if (!confirm('Markera ordern som betald?')) return;
+  const now = new Date().toISOString();
+  const { ok } = await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: currentCart.id, status: 'betald', invoice_paid_at: now })
+  });
+  if (ok) {
+    currentCart.status = 'betald';
+    currentCart.invoice_paid_at = now;
+    toast('Order markerad som betald! 💚');
+    loadCarts();
+    renderTab('faktura');
+    renderPanelFooter();
+  } else toast('Fel vid markering', 'error');
+}
+
 function renderPanelFooter() {
   const c = currentCart;
   const footer = $('panel-footer');
@@ -1315,19 +1596,36 @@ function renderPanelFooter() {
     footer.appendChild(b);
   };
 
-  if (c.status !== 'confirmed' && c.status !== 'cancelled') {
+  // Context-sensitive buttons based on status
+  if (c.status === 'open') {
+    makeBtn('📤 Skapa & skicka offert', 'btn-success', () => { renderTab('products'); });
+    makeBtn('❌ Avvisa', 'btn-danger', cancelOrder);
+  } else if (c.status === 'proposal') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
-    makeBtn('📩 Skicka notis till kund', '', sendCustomerNotice);
-    makeBtn('✉ Skicka offert', '', () => openQuoteModalForCart(c));
-  }
-  if (c.status !== 'cancelled') {
-    makeBtn('❌ Avbryt order', 'btn-danger', cancelOrder);
+    makeBtn('📦 Justera produkter', '', () => renderTab('products'));
+    makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
+  } else if (c.status === 'waiting') {
+    makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
+    makeBtn('📩 Påminn kund', '', sendCustomerNotice);
+    makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
+  } else if (c.status === 'confirmed') {
+    makeBtn('🧾 Skapa faktura', 'btn-success', () => renderTab('faktura'));
+    makeBtn('📩 Skicka notis', '', sendCustomerNotice);
+  } else if (c.status === 'fakturerad') {
+    makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
+    makeBtn('📩 Påminn om betalning', '', sendCustomerNotice);
+  } else if (c.status === 'betald') {
+    // Avslutad — bara info
+  } else if (c.status !== 'cancelled') {
+    makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
+    makeBtn('📤 Skicka offert', '', () => openQuoteModalForCart(c));
+    makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
   }
 
-  // Cart link
+  // Always: copy customer link if exists
   if (c.cart_token) {
     makeBtn('🔗 Kopiera kundlänk', '', () => {
-      const url = `https://scenkonsult.se/varukorg/?cart=${c.id}&token=${c.cart_token}`;
+      const url = `https://scenkonsult.se/order/?cart=${c.id}&token=${c.cart_token}`;
       navigator.clipboard.writeText(url);
       toast('Kundlänk kopierad!');
     });
@@ -1804,7 +2102,14 @@ window.prodQty         = prodQty;
 window.prodDelete      = prodDelete;
 window.prodAddRow      = prodAddRow;
 window.prodSave        = prodSave;
-window.renderTab       = renderTab;
+window.renderTab           = renderTab;
+window.prodTogglePopout    = prodTogglePopout;
+window.prodAddFromCatalog  = prodAddFromCatalog;
+window.prodAddFreeRow      = prodAddFreeRow;
+window.prodUpdateSvc       = prodUpdateSvc;
+window.prodSaveAndSendOffer= prodSaveAndSendOffer;
+window.invMarkPaid         = invMarkPaid;
+window.invSaveFields       = invSaveFields;
 window.openPanel       = openDetail;
 window.closePanel      = closePanel;
 window.sendMessage     = sendMessage;
