@@ -30,30 +30,7 @@ const fraktRules = JSON.stringify(frakt);
   <div id="cartContent" style="display:none">
 
   <!-- PRODUKTLÄGG-TILL-VÄLJARE -->
-  <div class="prod-picker-wrap">
-    <div class="prod-picker-header">Lägg till produkter</div>
-    <div class="prod-picker-row" id="prod-picker-row">
-      <div>
-        <label class="prod-picker-label">Kategori</label>
-        <select id="pp-cat" class="prod-picker-sel">
-          <option value="">— välj kategori —</option>
-        </select>
-      </div>
-      <div id="pp-sub-wrap" style="display:none">
-        <label class="prod-picker-label">Underkategori</label>
-        <select id="pp-sub" class="prod-picker-sel">
-          <option value="">— välj —</option>
-        </select>
-      </div>
-      <div>
-        <label class="prod-picker-label">Produkt</label>
-        <select id="pp-prod" class="prod-picker-sel">
-          <option value="">— välj kategori —</option>
-        </select>
-      </div>
-      <button id="pp-add-btn" class="prod-picker-btn">＋ Lägg till</button>
-    </div>
-  </div>
+
 
   <!-- PRODUKTTABELL -->
     <div class="cart-table-wrap">
@@ -226,70 +203,6 @@ const fraktRules = JSON.stringify(frakt);
 .cart-row-clickable { cursor: pointer; transition: background 0.15s; }
 .cart-row-clickable:hover { background: rgba(196,181,244,0.06); }
 .cart-row-clickable:hover .cart-pname { color: #c4b5f4; }
-.prod-picker-wrap {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(196,181,244,0.15);
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.5rem;
-}
-.prod-picker-header {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(196,181,244,0.6);
-  margin-bottom: 0.75rem;
-}
-.prod-picker-row {
-  display: flex;
-  gap: 0.625rem;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-.prod-picker-row > div { flex: 1; min-width: 140px; }
-.prod-picker-label {
-  display: block;
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.4);
-  margin-bottom: 0.3rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.prod-picker-sel {
-  width: 100%;
-  background: #0f0d2a !important;
-  border: 1px solid rgba(255,255,255,0.12) !important;
-  border-radius: 8px;
-  padding: 0.55rem 0.75rem;
-  color: #f0eeff !important;
-  font-family: inherit;
-  font-size: 0.82rem;
-  color-scheme: dark;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5z' fill='%23c4b5f4' opacity='.5'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 0.6rem center !important;
-  padding-right: 1.8rem;
-}
-.prod-picker-sel:focus { outline: none; border-color: rgba(196,181,244,0.4) !important; }
-.prod-picker-btn {
-  background: #332885;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.55rem 1rem;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-.prod-picker-btn:hover { background: #c4b5f4; color: #0c0a24; }
-
 /* ─── GLOBAL ─────────────────────────────────────────────── */
 .cart-page {
   padding-top: calc(var(--nav-offset, 166px) + 2.5rem);
@@ -642,7 +555,6 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   }
 
   // ── PRODUKTKATALOG — auto-genererad från JSON (synkad) ─────────────────
-  const PROD_CATALOG = {"Scen":{"products":[{"id":"scen-small","name":"Scenpaket Small","price":599,"artno":"SK-SCN-0001","image":"/images/scen/pp_small.png","priceNote":"/dygn"},{"id":"scen-small-plus","name":"Scenpaket Small+","price":899,"artno":"SK-SCN-0002","image":"/images/scen/pp_small_plus.png","priceNote":"/dygn"},{"id":"scen-small-plusplus","name":"Scenpaket Small++","price":1199,"artno":"SK-SCN-0003","image":"/images/scen/pp_small_pp.png","priceNote":"/dygn"},{"id":"scen-medium","name":"Scenpaket Medium","price":1499,"artno":"SK-SCN-0004","image":"/images/scen/pp_medium.png","priceNote":"/dygn"},{"id":"scen-medium-plus","name":"Scenpaket Medium+","price":1799,"artno":"SK-SCN-0005","image":"/images/scen/pp_medium_plus.png","priceNote":"/dygn"},{"id":"scen-medium-plus-tak","name":"Scenpaket Medium+ inkl. scentak","price":3799,"artno":"SK-SCN-0006","image":"/images/scen/pp_medium_plus_tak.png","priceNote":"/dygn"},{"id":"scen-medium-plusplus","name":"Scenpaket Medium++","price":2399,"artno":"SK-SCN-0007","image":"/images/scen/pp_medium_pp.png","priceNote":"/dygn"},{"id":"scen-large","name":"Scenpaket Large","price":2999,"artno":"SK-SCN-0008","image":"/images/scen/pp_large.png","priceNote":"/dygn"},{"id":"scen-large-plus","name":"Scenpaket Large+","price":3599,"artno":"SK-SCN-0009","image":"/images/scen/pp_large_plus.png","priceNote":"/dygn"},{"id":"scen-large-plus-tak","name":"Scenpaket Large+ inkl. scentak","price":11999,"artno":"SK-SCN-0010","image":"/images/scen/pp_large_plus_tak.png","priceNote":"/dygn"},{"id":"scen-xl","name":"Scenpaket XL","price":5399,"artno":"SK-SCN-0011","image":"/images/scen/pp_xl.png","priceNote":"/dygn"},{"id":"scen-xl-plus","name":"Scenpaket XL+","price":7199,"artno":"SK-SCN-0012","image":"/images/scen/pp_xl_plus.png","priceNote":"/dygn"},{"id":"scentrapp_(40_cm)","name":"Scentrapp (40 cm)","price":279,"artno":"SK-SCN-ACC-0001","image":"/images/scen/pp_scentrapp.png","priceNote":"/st"},{"id":"scentrapp_(60_cm)","name":"Scentrapp (60 cm)","price":349,"artno":"SK-SCN-ACC-0002","image":"/images/scen/pp_scentrapp.png","priceNote":"/st"},{"id":"scenkjol_(per_4_m)","name":"Scenkjol (per 4 m)","price":79,"artno":"SK-SCN-ACC-0003","image":"/images/scen/pp_scenkjol.png","priceNote":"/st"},{"id":"backdrop_3,5×2,5_m","name":"Backdrop 3,5×2,5 m","price":799,"artno":"SK-SCN-ACC-0004","image":"/images/scen/pp_backdrop.png","priceNote":"/st"}]},"Ljud":{"sub":{"Portable":[{"id":"portable-small","name":"Portable, Small","price":599,"artno":"SK-LJD-POR-0001","image":"/images/ljud/pp_ljud_portable_small.png","priceNote":"/dygn"},{"id":"portable-small-plus","name":"Portable, Small+","price":699,"artno":"SK-LJD-POR-0002","image":"/images/ljud/pp_ljud_portable_small.png","priceNote":"/dygn"},{"id":"portable-medium","name":"Portable, Medium","price":799,"artno":"SK-LJD-POR-0003","image":"/images/ljud/pp_ljud_portable_medium.png","priceNote":"/dygn"},{"id":"portable-medium-plus","name":"Portable, Medium+","price":999,"artno":"SK-LJD-POR-0004","image":"/images/ljud/pp_ljud_portable_medium_.png","priceNote":"/dygn"},{"id":"portable-small-duo","name":"Portable, Small Duo","price":1099,"artno":"SK-LJD-POR-0005","image":"/images/ljud/pp_ljud_portable_small_duo.png","priceNote":"/dygn"},{"id":"portable-large","name":"Portable, Large","price":1199,"artno":"SK-LJD-POR-0006","image":"/images/ljud/pp_ljud_portable_large.png","priceNote":"/dygn"},{"id":"portable-small-plus-duo","name":"Portable, Small+ Duo","price":1299,"artno":"SK-LJD-POR-0007","image":"/images/ljud/pp_ljud_portable_small__duo.png","priceNote":"/dygn"},{"id":"portable-medium-duo","name":"Portable, Medium Duo","price":1499,"artno":"SK-LJD-POR-0008","image":"/images/ljud/pp_ljud_portable_medium_duo.png","priceNote":"/dygn"},{"id":"portable-medium-plus-duo","name":"Portable, Medium+ Duo","price":1899,"artno":"SK-LJD-POR-0009","image":"/images/ljud/pp_ljud_portable_medium_plus_duo.png","priceNote":"/dygn"},{"id":"portable-large-plus","name":"Portable, Large+","price":2299,"artno":"SK-LJD-POR-0010","image":"/images/ljud/pp_ljud_portable_large.png","priceNote":"/dygn"},{"id":"portable-large-duo","name":"Portable, Large Duo","price":2299,"artno":"SK-LJD-POR-0011","image":"/images/ljud/pp_ljud_portable_large_.png","priceNote":"/dygn"}],"Event":[{"id":"event-small","name":"Event, Small","price":799,"artno":"SK-LJD-EVE-0001","image":"/images/ljud/pp_ljud_event_small.png","priceNote":"/dygn"},{"id":"event-small-plus","name":"Event, Small+","price":1199,"artno":"SK-LJD-EVE-0002","image":"/images/ljud/pp_ljud_event_small-.png","priceNote":"/dygn"},{"id":"event-medium","name":"Event, Medium","price":1599,"artno":"SK-LJD-EVE-0003","image":"/images/ljud/pp_ljud_event_medium.png","priceNote":"/dygn"},{"id":"event-medium-plus","name":"Event, Medium+","price":2299,"artno":"SK-LJD-EVE-0004","image":"/images/ljud/pp_ljud_event_medium-.png","priceNote":"/dygn"},{"id":"event-large","name":"Event, Large","price":3199,"artno":"SK-LJD-EVE-0005","image":"/images/ljud/pp_ljud_event_large.png","priceNote":"/dygn"},{"id":"event-large-plus","name":"Event, Large+","price":3199,"artno":"SK-LJD-EVE-0006","image":"/images/ljud/pp_ljud_event_large_.png","priceNote":"/dygn"}],"Music":[{"id":"music-small","name":"Music, Small","price":999,"artno":"SK-LJD-MUS-0001","image":"/images/ljud/pp_ljud_music_small.png","priceNote":"/dygn"},{"id":"music-small-plus","name":"Music, Small+","price":1299,"artno":"SK-LJD-MUS-0002","image":"/images/ljud/pp_ljud_music_small-.png","priceNote":"/dygn"},{"id":"music-medium","name":"Music, Medium","price":1499,"artno":"SK-LJD-MUS-0003","image":"/images/ljud/pp_ljud_music_medium.png","priceNote":"/dygn"},{"id":"music-large","name":"Music, Large","price":1899,"artno":"SK-LJD-MUS-0004","image":"/images/ljud/pp_ljud_music_large.png","priceNote":"/dygn"},{"id":"music-xl","name":"Live/Music, XL","price":2299,"artno":"SK-LJD-MUS-0005","image":"/images/ljud/pp_ljud_music_xl.png","priceNote":"/dygn"},{"id":"music-xl-plus","name":"Live/Music, XL+","price":2999,"artno":"SK-LJD-MUS-0006","image":"/images/ljud/pp_ljud_music_xl-.png","priceNote":"/dygn"},{"id":"music-xxl","name":"Live/Music, XXL","price":4999,"artno":"SK-LJD-MUS-0007","image":"/images/ljud/pp_ljud_music_xxl.png","priceNote":"/dygn"},{"id":"music-concert","name":"Live/Music, Concert","price":6999,"artno":"SK-LJD-MUS-0008","image":"/images/ljud/pp_ljud_concert.png","priceNote":"/dygn"},{"id":"line-array-small","name":"Line Array, Small","price":14999,"artno":"SK-LJD-MUS-0009","image":"/images/ljud/pp_ljud_music_linearray1.png","priceNote":"/dygn"},{"id":"line-array-medium","name":"Line Array, Medium","price":19999,"artno":"SK-LJD-MUS-0010","image":"/images/ljud/pp_ljud_music_linearray2.png","priceNote":"/dygn"}],"Live":[{"id":"live-small","name":"Live, Small","price":599,"artno":"SK-LJD-LIV-0001","image":"/images/ljud/pp_ljud_live_small.png","priceNote":"/dygn"},{"id":"live-medium","name":"Live, Medium","price":1199,"artno":"SK-LJD-LIV-0002","image":"/images/ljud/pp_ljud_live_medium.png","priceNote":"/dygn"},{"id":"live-large","name":"Live, Large","price":1599,"artno":"SK-LJD-LIV-0003","image":"/images/ljud/pp_ljud_live_large.png","priceNote":"/dygn"},{"id":"live-xl","name":"Live/Music, XL","price":2299,"artno":"SK-LJD-LIV-0004","image":"/images/ljud/pp_ljud_music_xl.png","priceNote":"/dygn"},{"id":"live-xl-plus","name":"Live/Music, XL+","price":2999,"artno":"SK-LJD-LIV-0005","image":"/images/ljud/pp_ljud_music_xl-.png","priceNote":"/dygn"},{"id":"live-xxl","name":"Live/Music, XXL","price":4999,"artno":"SK-LJD-LIV-0006","image":"/images/ljud/pp_ljud_music_xxl.png","priceNote":"/dygn"},{"id":"live-concert","name":"Live/Music, Concert","price":6999,"artno":"SK-LJD-LIV-0007","image":"/images/ljud/pp_ljud_concert.png","priceNote":"/dygn"},{"id":"line-array-small","name":"Line Array, Small","price":14999,"artno":"SK-LJD-LIV-0008","image":"/images/ljud/pp_ljud_music_linearray1.png","priceNote":"/dygn"},{"id":"line-array-medium","name":"Line Array, Medium","price":19999,"artno":"SK-LJD-LIV-0009","image":"/images/ljud/pp_ljud_music_linearray2.png","priceNote":"/dygn"}],"Mixers":[{"id":"mixer-2-2","name":"Analogt Mixerbord, 2+2 kanaler","price":159,"artno":"SK-LJD-MIX-0001","image":"/images/ljud/pp_ljud_mixer01.png","priceNote":"/dygn"},{"id":"mixer-4-2","name":"Analogt Mixerbord, 4+2 kanaler","price":199,"artno":"SK-LJD-MIX-0002","image":"/images/ljud/pp_ljud_mixer02.png","priceNote":"/dygn"},{"id":"mixer-vibz8dc","name":"Analogt mixerbord, 4+1 kanaler","price":249,"artno":"SK-LJD-MIX-0003","image":"/images/ljud/pp_ljud_mixer-vibz8dc.png","priceNote":"/dygn"},{"id":"mixer-4-4","name":"Analogt Mixerbord, 4+4 kanaler","price":299,"artno":"SK-LJD-MIX-0004","image":"/images/ljud/pp_ljud_mixer03.png","priceNote":"/dygn"},{"id":"mixer-6-4","name":"Analogt Mixerbord, 6+4 kanaler","price":349,"artno":"SK-LJD-MIX-0005","image":"/images/ljud/pp_ljud_mixer04.png","priceNote":"/dygn"},{"id":"mixer-12-4","name":"Analogt Mixerbord, 12+4 kanaler","price":399,"artno":"SK-LJD-MIX-0006","image":"/images/ljud/pp_ljud_mixer05.png","priceNote":"/dygn"},{"id":"mixer-16-3","name":"Analogt Mixerbord, 16+3 kanaler","price":599,"artno":"SK-LJD-MIX-0007","image":"/images/ljud/pp_ljud_mixer06.png","priceNote":"/dygn"},{"id":"mixer-ilive-t80","name":"Digitalt mixerbord, 32+16 kanaler","price":2499,"artno":"SK-LJD-MIX-0008","image":"/images/ljud/pp_ljud_mixer-ilive-t80.png","priceNote":"/dygn"}],"Mikrofoner":[{"id":"hogtalarstativ-gravity","name":"Högtalarstativ Gravity","price":40,"artno":"SK-LJD-MIK-0001","image":"/images/ljud/pp_ljud_stativ-gravity.png","priceNote":"/dygn"},{"id":"xlr-kablar","name":"XLR kablar","price":40,"artno":"SK-LJD-MIK-0002","image":"/images/ljud/pp_ljud_tillbehor07.png","priceNote":"/dygn"},{"id":"hogtalarstativ-k&m","name":"Högtalarstativ K&M","price":50,"artno":"SK-LJD-MIK-0003","image":"/images/ljud/pp_ljud_stativ-km.png","priceNote":"/dygn"},{"id":"mikrofonstativ","name":"Mikrofonstativ","price":60,"artno":"SK-LJD-MIK-0004","image":"/images/ljud/pp_ljud_tillbehor06.png","priceNote":"/dygn"},{"id":"hogtalarstativ-gravity-premium","name":"Högtalarstativ Gravity Premium","price":60,"artno":"SK-LJD-MIK-0005","image":"/images/ljud/pp_ljud_stativ-gravity-premium.png","priceNote":"/dygn"},{"id":"handmikrofon","name":"Handmikrofon","price":80,"artno":"SK-LJD-MIK-0006","image":"/images/ljud/pp_ljud_mik01.png","priceNote":"/dygn"},{"id":"bluetooth-mottagare","name":"Bluetooth-mottagare","price":80,"artno":"SK-LJD-MIK-0007","image":"/images/ljud/pp_ljud_tillbehor04.png","priceNote":"/dygn"},{"id":"instrument-blas","name":"Instrumentmikrofon, blås","price":80,"artno":"SK-LJD-MIK-0008","image":"/images/ljud/pp_ljud_mik04.png","priceNote":"/dygn"},{"id":"instrumentmikrofon","name":"Instrumentmikrofon","price":120,"artno":"SK-LJD-MIK-0009","image":"/images/ljud/pp_ljud_mik02.png","priceNote":"/dygn"},{"id":"hogtalarstativ-gravity-med-vev","name":"Högtalarstativ Gravity med vev","price":120,"artno":"SK-LJD-MIK-0010","image":"/images/ljud/pp_ljud_stativ-gravity-vev.png","priceNote":"/dygn"},{"id":"bluetooth-mottagare-pro","name":"Bluetooth-mottagare Pro","price":140,"artno":"SK-LJD-MIK-0011","image":"/images/ljud/pp_ljud_tillbehor_BT-pro.png","priceNote":"/dygn"},{"id":"di-box-passiv","name":"DI-box (passiv)","price":160,"artno":"SK-LJD-MIK-0012","image":"/images/ljud/pp_ljud_tillbehor_DI-passiv.png","priceNote":"/dygn"},{"id":"di-box-aktiv","name":"DI-box (aktiv)","price":240,"artno":"SK-LJD-MIK-0013","image":"/images/ljud/pp_ljud_tillbehor_DI-aktiv.png","priceNote":"/dygn"},{"id":"xlr-multikabel-6ch","name":"XLR Multikabel 15 m, 6 kanaler","price":276,"artno":"SK-LJD-MIK-0014","image":"/images/ljud/pp_ljud_tillbehor_MK-small.png","priceNote":"/dygn"},{"id":"xlr-multikabel-8ch","name":"XLR Multikabel 25 m, 8 kanaler","price":384,"artno":"SK-LJD-MIK-0015","image":"/images/ljud/pp_ljud_tillbehor_MK-medium.png","priceNote":"/dygn"},{"id":"tradlos-handmikrofon","name":"Trådlös handmikrofon","price":400,"artno":"SK-LJD-MIK-0016","image":"/images/ljud/pp_ljud_mik05.png","priceNote":"/dygn"},{"id":"tradlost-headset","name":"Trådlöst headset","price":480,"artno":"SK-LJD-MIK-0017","image":"/images/ljud/pp_ljud_mik06.png","priceNote":"/dygn"},{"id":"tradlos-iem","name":"Trådlöst IEM","price":480,"artno":"SK-LJD-MIK-0018","image":"/images/ljud/pp_ljud_tillbehor01.png","priceNote":"/dygn"},{"id":"instrument-slagverk","name":"Instrumentmikrofoner, slagverk","price":480,"artno":"SK-LJD-MIK-0019","image":"/images/ljud/pp_ljud_mik03.png","priceNote":"/dygn"},{"id":"xlr-multikabel-24ch","name":"XLR Multikabel 15 m, 24+8 kanaler","price":632,"artno":"SK-LJD-MIK-0020","image":"/images/ljud/pp_ljud_tillbehor_MK-large.png","priceNote":"/dygn"},{"id":"slxd-1-mik","name":"Shure SLXD – trådlöst system, 1 mik","price":699,"artno":"SK-LJD-MIK-0021","image":"/images/ljud/pp_ljud_mik09.png","priceNote":"/dygn"},{"id":"slxd-1-myggmik","name":"Shure SLXD – trådlöst system, 1 myggmikrofon","price":699,"artno":"SK-LJD-MIK-0022","image":"/images/ljud/pp_ljud_mik13.png","priceNote":"/dygn"},{"id":"slxd-1-headset","name":"Shure SLXD – trådlöst system, 1 headset","price":749,"artno":"SK-LJD-MIK-0023","image":"/images/ljud/pp_ljud_mik12.png","priceNote":"/dygn"},{"id":"slxd-1-lagprofil","name":"Shure SLXD – trådlöst system, 1 lågprofil headset","price":799,"artno":"SK-LJD-MIK-0024","image":"/images/ljud/pp_ljud_mik14.png","priceNote":"/dygn"},{"id":"effektrack","name":"Effektrack med matrix & feedback-suppressor","price":1036,"artno":"SK-LJD-MIK-0025","image":"/images/ljud/pp_ljud_effektrack.png","priceNote":"/dygn"},{"id":"shure-slxd-–-digitalt-tradlost-system,-2-mikrofoner","name":"Shure SLXD – Digitalt trådlöst system, 2 mikrofoner","price":1299,"artno":"SK-LJD-MIK-0026","image":"/images/ljud/pp_ljud_mik-shure-slxd4d.png","priceNote":"/dygn"},{"id":"slxd-2-myggmik","name":"Shure SLXD – trådlöst system, 2 myggmikrofoner","price":1299,"artno":"SK-LJD-MIK-0027","image":"/images/ljud/pp_ljud_mik10.png","priceNote":"/dygn"},{"id":"slxd-2-headset","name":"Shure SLXD – trådlöst system, 2 headset","price":1399,"artno":"SK-LJD-MIK-0028","image":"/images/ljud/pp_ljud_mik08.png","priceNote":"/dygn"},{"id":"slxd-2-lagprofil","name":"Shure SLXD – trådlöst system, 2 lågprofil headset","price":1499,"artno":"SK-LJD-MIK-0029","image":"/images/ljud/pp_ljud_mik11.png","priceNote":"/dygn"},{"id":"wireless-8ch","name":"Trådlöst mikrofonset, 8 kanaler","price":3999,"artno":"SK-LJD-MIK-0030","image":"/images/ljud/pp_ljud_tillbehor20.png","priceNote":"/dygn"}]}},"Ljus":{"sub":{"Färdiga paket":[{"id":"ljus-small","name":"Ljuspaket, Small","price":399,"artno":"SK-LJS-PAK-0001","image":"/images/ljus/pp_ljus_small.png","priceNote":"/dygn"},{"id":"ljus-small-plus","name":"Ljuspaket, Small+","price":599,"artno":"SK-LJS-PAK-0002","image":"/images/ljus/pp_ljus_small-.png","priceNote":"/dygn"},{"id":"ljus-small-pp","name":"Ljuspaket, Small++","price":799,"artno":"SK-LJS-PAK-0003","image":"/images/ljus/pp_ljus_small--.png","priceNote":"/dygn"},{"id":"ljus-medium","name":"Ljuspaket, Medium","price":1199,"artno":"SK-LJS-PAK-0004","image":"/images/ljus/pp_ljus_medium.png","priceNote":"/dygn"},{"id":"ljus-medium-plus","name":"Ljuspaket, Medium+","price":1299,"artno":"SK-LJS-PAK-0005","image":"/images/ljus/pp_ljus_medium.png","priceNote":"/dygn"},{"id":"ljus-medium-pp","name":"Ljuspaket, Medium++","price":1499,"artno":"SK-LJS-PAK-0006","image":"/images/ljus/pp_ljus_medium.png","priceNote":"/dygn"},{"id":"ljus-large","name":"Ljuspaket, Large","price":1699,"artno":"SK-LJS-PAK-0007","image":"/images/ljus/pp_ljus_large.png","priceNote":"/dygn"},{"id":"ljus-large-plus","name":"Ljuspaket, Large+","price":2199,"artno":"SK-LJS-PAK-0008","image":"/images/ljus/pp_ljus_large_plus.png","priceNote":"/dygn"},{"id":"ljus-large-pp","name":"Ljuspaket, Large++","price":2699,"artno":"SK-LJS-PAK-0009","image":"/images/ljus/pp_ljus_large_plusplus.png","priceNote":"/dygn"}],"Rök & pyro":[{"id":"rokmaskin-1500","name":"Rökmaskin (1500W)","price":349,"artno":"SK-LJS-ROK-0001","image":"/images/ljus/pp_ljus_effekt23.png","priceNote":"/dygn"},{"id":"rokmaskin-650","name":"Rökmaskin (650W)","price":449,"artno":"SK-LJS-ROK-0002","image":"/images/ljus/pp_ljus_effekt24.png","priceNote":"/dygn"},{"id":"kallgnistmaskin","name":"Kallgnistmaskin","price":499,"artno":"SK-LJS-ROK-0003","image":"/images/ljus/pp_ljus_effekt25.png","priceNote":"/dygn"},{"id":"konfettiavfyrare","name":"Konfettiavfyrare","price":499,"artno":"SK-LJS-ROK-0004","image":"/images/ljus/pp_ljus_confettimaskin.png","priceNote":"/dygn"},{"id":"hazer-hz1500","name":"Hazer HZ-1500 Pro","price":649,"artno":"SK-LJS-ROK-0005","image":"/images/ljus/pp_ljus_rok3.png","priceNote":"/dygn"}],"Stativ & tross":[{"id":"stativ-400","name":"Stativ med T-bar (400 mm)","price":40,"artno":"SK-LJS-STV-0001","image":"/images/ljus/pp_ljus_stativ06.png","priceNote":"/dygn"},{"id":"stativ-1200","name":"Stativ med T-bar (1200 mm)","price":40,"artno":"SK-LJS-STV-0002","image":"/images/ljus/pp_ljus_stativ_1200.png","priceNote":"/dygn"},{"id":"stativ-900p","name":"Stativ med T-bar (900 mm, premium)","price":60,"artno":"SK-LJS-STV-0003","image":"/images/ljus/pp_ljus_stativ01.png","priceNote":"/dygn"},{"id":"vevstativ-1200","name":"Vevstativ med T-bar (1200 mm)","price":120,"artno":"SK-LJS-STV-0004","image":"/images/ljus/pp_ljus_stativ02.png","priceNote":"/dygn"},{"id":"tross-1m","name":"Trosstorn 1,0 m","price":300,"artno":"SK-LJS-STV-0005","image":"/images/ljus/pp_ljus_tross01.png","priceNote":"/dygn"},{"id":"tross-15m","name":"Trosstorn 1,5 m","price":360,"artno":"SK-LJS-STV-0006","image":"/images/ljus/pp_ljus_tross03.png","priceNote":"/dygn"}]}},"DJ-utrustning":{"products":[{"id":"dj-utr-dj-controller-numark","name":"DJ-controller, Standalone (Numark Mixstream Pro+)","price":799,"artno":"SK-DJ-0001","image":"/images/dj/pp_DJ_small.png","priceNote":"/dygn"},{"id":"dj-utr-dj-controller-denon-go","name":"DJ-controller, Standalone (Denon Prime GO+)","price":999,"artno":"SK-DJ-0002","image":"/images/dj/pp_DJ_denon_go_plus.png","priceNote":"/dygn"},{"id":"dj-utr-dj-controller-denon-prime4","name":"DJ-controller, Standalone (Denon Prime 4+)","price":1499,"artno":"SK-DJ-0003","image":"/images/dj/pp_DJ_large1.png","priceNote":"/dygn"},{"id":"dj-utr-dj-rane-system-one","name":"DJ-system, Rane System One","price":1999,"artno":"SK-DJ-0004","image":"/images/dj/pp_DJ_large2.png","priceNote":"/dygn"},{"id":"dj-utr-dj-bord","name":"DJ-bord","price":80,"artno":"SK-DJ-0005","image":"/images/dj/pp_DJ_bord.png","priceNote":"/dygn"},{"id":"dj-utr-dj-bord2","name":"DJ-bord med front- och sidopaneler","price":200,"artno":"SK-DJ-0006","image":"/images/dj/pp_DJ_bord2.png","priceNote":"/dygn"},{"id":"dj-utr-scenengineer","name":"Hyr Scenengineer","price":952,"artno":"SK-DJ-0007","image":"/images/dj/pp_DJ_engineer.png","priceNote":"/tim"},{"id":"dj-utr-media-editor","name":"Hyr Rörlig media-editor","price":952,"artno":"SK-DJ-0008","image":"/images/dj/pp_DJ_media-editor.png","priceNote":"/tim"}]},"Projektor & skärm":{"products":[{"id":"projektor-xga","name":"Projektor (XGA)","price":299,"artno":"SK-BLD-0001","image":"/images/bild/pp_bild_projektor.png","priceNote":"/dygn"},{"id":"projektor-fhd","name":"Projektor (FHD)","price":399,"artno":"SK-BLD-0002","image":"/images/bild/pp_bild_projektor1.png","priceNote":"/dygn"},{"id":"skarm-65","name":"65\" Skärm (4K UHD)","price":2399,"artno":"SK-BLD-0003","image":"/images/bild/pp_bild_65-skarm.png","priceNote":"/dygn"},{"id":"skarm-75","name":"75\" Skärm (4K UHD)","price":2799,"artno":"SK-BLD-0004","image":"/images/bild/pp_bild_75-skarm.png","priceNote":"/dygn"},{"id":"modulskarm-fhd","name":"Moduluppbyggd LED-skärm (FHD)","price":1199,"artno":"SK-BLD-0005","image":"/images/bild/pp_bild_modulskarm.png","priceNote":"/kvm/dygn"},{"id":"trailer-skarm","name":"LED-skärm på trailer (FHD)","price":15499,"artno":"SK-BLD-0006","image":"/images/bild/pp_bild_trailer_skarm.png","priceNote":"/dygn"}]}};
 
   // ── ARTNO-KARTA — id → artikelnummer ─────────────────────
   const PROD_ARTNO = {"scen-small":"SK-SCN-0001","scen-small-plus":"SK-SCN-0002","scen-small-plusplus":"SK-SCN-0003","scen-medium":"SK-SCN-0004","scen-medium-plus":"SK-SCN-0005","scen-medium-plus-tak":"SK-SCN-0006","scen-medium-plusplus":"SK-SCN-0007","scen-large":"SK-SCN-0008","scen-large-plus":"SK-SCN-0009","scen-large-plus-tak":"SK-SCN-0010","scen-xl":"SK-SCN-0011","scen-xl-plus":"SK-SCN-0012","portable-small":"SK-LJD-POR-0001","portable-small-plus":"SK-LJD-POR-0002","portable-medium":"SK-LJD-POR-0003","portable-medium-plus":"SK-LJD-POR-0004","portable-small-duo":"SK-LJD-POR-0005","portable-large":"SK-LJD-POR-0006","portable-small-plus-duo":"SK-LJD-POR-0007","portable-medium-duo":"SK-LJD-POR-0008","portable-medium-plus-duo":"SK-LJD-POR-0009","portable-large-plus":"SK-LJD-POR-0010","portable-large-duo":"SK-LJD-POR-0011","event-small":"SK-LJD-EVE-0001","event-small-plus":"SK-LJD-EVE-0002","event-medium":"SK-LJD-EVE-0003","event-medium-plus":"SK-LJD-EVE-0004","event-large":"SK-LJD-EVE-0005","event-large-plus":"SK-LJD-EVE-0006","music-small":"SK-LJD-MUS-0001","music-small-plus":"SK-LJD-MUS-0002","music-medium":"SK-LJD-MUS-0003","music-large":"SK-LJD-MUS-0004","music-xl":"SK-LJD-MUS-0005","music-xl-plus":"SK-LJD-MUS-0006","music-xxl":"SK-LJD-MUS-0007","music-concert":"SK-LJD-MUS-0008","line-array-small":"SK-LJD-LIV-0008","line-array-medium":"SK-LJD-LIV-0009","live-small":"SK-LJD-LIV-0001","live-medium":"SK-LJD-LIV-0002","live-large":"SK-LJD-LIV-0003","live-xl":"SK-LJD-LIV-0004","live-xl-plus":"SK-LJD-LIV-0005","live-xxl":"SK-LJD-LIV-0006","live-concert":"SK-LJD-LIV-0007","mixer-2-2":"SK-LJD-MIX-0001","mixer-4-2":"SK-LJD-MIX-0002","mixer-vibz8dc":"SK-LJD-MIX-0003","mixer-4-4":"SK-LJD-MIX-0004","mixer-6-4":"SK-LJD-MIX-0005","mixer-12-4":"SK-LJD-MIX-0006","mixer-16-3":"SK-LJD-MIX-0007","mixer-ilive-t80":"SK-LJD-MIX-0008","hogtalarstativ-gravity":"SK-LJD-MIK-0001","xlr-kablar":"SK-LJD-MIK-0002","hogtalarstativ-k&m":"SK-LJD-MIK-0003","mikrofonstativ":"SK-LJD-MIK-0004","hogtalarstativ-gravity-premium":"SK-LJD-MIK-0005","handmikrofon":"SK-LJD-MIK-0006","bluetooth-mottagare":"SK-LJD-MIK-0007","instrument-blas":"SK-LJD-MIK-0008","instrumentmikrofon":"SK-LJD-MIK-0009","hogtalarstativ-gravity-med-vev":"SK-LJD-MIK-0010","bluetooth-mottagare-pro":"SK-LJD-MIK-0011","di-box-passiv":"SK-LJD-MIK-0012","di-box-aktiv":"SK-LJD-MIK-0013","xlr-multikabel-6ch":"SK-LJD-MIK-0014","xlr-multikabel-8ch":"SK-LJD-MIK-0015","tradlos-handmikrofon":"SK-LJD-MIK-0016","tradlost-headset":"SK-LJD-MIK-0017","tradlos-iem":"SK-LJD-MIK-0018","instrument-slagverk":"SK-LJD-MIK-0019","xlr-multikabel-24ch":"SK-LJD-MIK-0020","slxd-1-mik":"SK-LJD-MIK-0021","slxd-1-myggmik":"SK-LJD-MIK-0022","slxd-1-headset":"SK-LJD-MIK-0023","slxd-1-lagprofil":"SK-LJD-MIK-0024","effektrack":"SK-LJD-MIK-0025","shure-slxd-–-digitalt-tradlost-system,-2-mikrofoner":"SK-LJD-MIK-0026","slxd-2-myggmik":"SK-LJD-MIK-0027","slxd-2-headset":"SK-LJD-MIK-0028","slxd-2-lagprofil":"SK-LJD-MIK-0029","wireless-8ch":"SK-LJD-MIK-0030","ljus-small":"SK-LJS-PAK-0001","ljus-small-plus":"SK-LJS-PAK-0002","ljus-small-pp":"SK-LJS-PAK-0003","ljus-medium":"SK-LJS-PAK-0004","ljus-medium-plus":"SK-LJS-PAK-0005","ljus-medium-pp":"SK-LJS-PAK-0006","ljus-large":"SK-LJS-PAK-0007","ljus-large-plus":"SK-LJS-PAK-0008","ljus-large-pp":"SK-LJS-PAK-0009","rokmaskin-1500":"SK-LJS-ROK-0001","rokmaskin-650":"SK-LJS-ROK-0002","kallgnistmaskin":"SK-LJS-ROK-0003","konfettiavfyrare":"SK-LJS-ROK-0004","hazer-hz1500":"SK-LJS-ROK-0005","stativ-400":"SK-LJS-STV-0001","stativ-1200":"SK-LJS-STV-0002","stativ-900p":"SK-LJS-STV-0003","vevstativ-1200":"SK-LJS-STV-0004","tross-1m":"SK-LJS-STV-0005","tross-15m":"SK-LJS-STV-0006","dj-utr-dj-controller-numark":"SK-DJ-0001","dj-utr-dj-controller-denon-go":"SK-DJ-0002","dj-utr-dj-controller-denon-prime4":"SK-DJ-0003","dj-utr-dj-rane-system-one":"SK-DJ-0004","dj-utr-dj-bord":"SK-DJ-0005","dj-utr-dj-bord2":"SK-DJ-0006","dj-utr-scenengineer":"SK-DJ-0007","dj-utr-media-editor":"SK-DJ-0008","projektor-xga":"SK-BLD-0001","projektor-fhd":"SK-BLD-0002","skarm-65":"SK-BLD-0003","skarm-75":"SK-BLD-0004","modulskarm-fhd":"SK-BLD-0005","trailer-skarm":"SK-BLD-0006"};
@@ -674,97 +586,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
 
   // ── PRODUKTVÄLJARE ────────────────────────────────────────
   (function initPicker() {
-    const catSel  = document.getElementById('pp-cat');
-    const subWrap = document.getElementById('pp-sub-wrap');
-    const subSel  = document.getElementById('pp-sub');
-    const prodSel = document.getElementById('pp-prod');
-    const addBtn  = document.getElementById('pp-add-btn');
-    if (!catSel) return;
-
-    // Fyll kategorier
-    catSel.innerHTML = '<option value="">— välj kategori —</option>' +
-      Object.keys(PROD_CATALOG).map(k => `<option value="${k}">${k}</option>`).join('');
-
-    function populateProducts(prods) {
-      prodSel.innerHTML = '<option value="">— välj produkt —</option>' +
-        (prods||[]).map(p => {
-          const artno = p.artno || PROD_ARTNO[p.id] || '';
-          const artnoStr = artno ? ` [${artno}]` : '';
-          return `<option value="${p.id}" data-price="${p.price}" data-name="${p.name.replace(/"/g,'&quot;')}" data-artno="${artno}">${p.name}${artnoStr} — ${p.price.toLocaleString('sv')} kr</option>`;
-        }).join('');
-    }
-
-    catSel.addEventListener('change', () => {
-      const entry = PROD_CATALOG[catSel.value];
-      subWrap.style.display = 'none';
-      prodSel.innerHTML = '<option value="">— välj kategori —</option>';
-      if (!entry) return;
-      if (entry.sub) {
-        subSel.innerHTML = '<option value="">— välj underkategori —</option>' +
-          Object.keys(entry.sub).map(k => `<option value="${k}">${k}</option>`).join('');
-        subWrap.style.display = '';
-      } else {
-        populateProducts(entry.products);
-      }
-    });
-
-    subSel.addEventListener('change', () => {
-      const entry = PROD_CATALOG[catSel.value];
-      if (entry?.sub && subSel.value) populateProducts(entry.sub[subSel.value]);
-    });
-
-    addBtn.addEventListener('click', () => {
-      const opt = prodSel.options[prodSel.selectedIndex];
-      if (!opt || !opt.value) return;
-      const id     = opt.value;
-      const name   = opt.dataset.name || opt.textContent.split(' — ')[0];
-      const price  = parseInt(opt.dataset.price) || 0;
-      const imgSrc = PROD_IMG[id] || '';
-      const artnoVal = opt.dataset.artno || PROD_ARTNO[id] || '';
-
-      const cart = getCart();
-      const ex = cart.find(i => i.id === id);
-      const artno = PROD_ARTNO[id] || '';
-      if (ex) { ex.qty++; } else {
-        cart.push({ id, name, price, qty: 1, category: catSel.value, priceNote: '/dygn', image: imgSrc, artno: artnoVal });
-      }
-      saveCart(cart);
-      updateNavBadge(); renderCart(); updateSummary();
-
-      // Visuell feedback
-      addBtn.textContent = '✓ Tillagd!';
-      addBtn.style.background = '#166534';
-      setTimeout(() => { addBtn.textContent = '＋ Lägg till'; addBtn.style.background = ''; }, 1500);
-      prodSel.selectedIndex = 0;
-    });
-  })();
-  function _genCartId() { const h=()=>Math.random().toString(16).slice(2,6).toUpperCase(); return `SK-${h()}${h()}-${h()}`; }
-  function _getCartData() {
-    try {
-      const raw = localStorage.getItem('sk-cart');
-      if (!raw) return null;
-      const d = JSON.parse(raw);
-      if (Array.isArray(d)) return { id: _genCartId(), expires: Date.now()+SK_TTL, items: d };
-      if (d.expires && Date.now() > d.expires) { localStorage.removeItem('sk-cart'); return null; }
-      return d;
-    } catch { return null; }
-  }
-  const getCart = () => _getCartData()?.items || [];
-  const getCartId = () => _getCartData()?.id || null;
-  const saveCart = items => {
-    try {
-      const ex = _getCartData();
-      localStorage.setItem('sk-cart', JSON.stringify({ id: ex?.id || _genCartId(), expires: Date.now()+SK_TTL, items }));
-    } catch {}
-  };
-
-  function updateNavBadge() {
-    const total = getCart().reduce((s,i) => s + i.qty, 0);
-    ['navCartBadge','mobileCartBadge'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.textContent = String(total); el.classList.toggle('hidden', total === 0); }
-    });
-  }
+  
 
   // Leverans: automatisk bil/släpvagn beroende på om varukorgen har skrymmande produkt
   function cartHasBulky(cart) {
