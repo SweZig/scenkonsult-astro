@@ -126,7 +126,6 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       border-left-width: 3px;
     }
     .kanban-col:has(.s-open)       { border-left-color: var(--amber); }
-    .kanban-col:has(.s-proposal)   { border-left-color: var(--blue);  }
     .kanban-col:has(.s-waiting)    { border-left-color: var(--blue);  }
     .kanban-col:has(.s-confirmed)  { border-left-color: var(--green); }
     .kanban-col:has(.s-fakturerad) { border-left-color: var(--brand-lav); }
@@ -166,7 +165,6 @@ import quoteCatalogData from '../../data/quote-catalog.json';
 
     /* Status colors */
     .s-open      { color: var(--gray);  }
-    .s-proposal  { color: var(--blue);  }
     .s-waiting   { color: var(--amber); }
     .s-confirmed { color: var(--green); }
     .s-cancelled { color: var(--red);   }
@@ -367,7 +365,6 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     }
     .cal-event:hover { background: var(--brand-purple); }
     .cal-event.s-confirmed { border-left-color: var(--green); }
-    .cal-event.s-proposal  { border-left-color: var(--blue); }
     .cal-event.s-waiting   { border-left-color: var(--amber); }
     .cal-event.s-cancelled { border-left-color: var(--red); opacity: 0.4; }
 
@@ -644,7 +641,6 @@ function toast(msg, type = 'success') {
 
 const STATUS_LABELS = {
   open:       { icon: '📬', label: 'Inkommen',       cls: 's-open'       },
-  proposal:   { icon: '📤', label: 'Offert skickad', cls: 's-proposal'   },
   waiting:    { icon: '⏳', label: 'Väntar svar',    cls: 's-waiting'    },
   confirmed:  { icon: '✅', label: 'Bekräftad',      cls: 's-confirmed'  },
   fakturerad: { icon: '🧾', label: 'Fakturerad',     cls: 's-fakturerad' },
@@ -783,12 +779,7 @@ function renderKanban() {
   const board = $('kanban-board');
   board.innerHTML = cols.map(status => {
     const s = STATUS_LABELS[status];
-    // proposal-ordrar (gamla) visas under Väntar svar
-    const colCarts = filtered.filter(c =>
-      status === 'waiting'
-        ? (c.status === 'waiting' || c.status === 'proposal')
-        : c.status === status
-    );
+    const colCarts = filtered.filter(c => c.status === status);
     return `
       <div class="kanban-col">
         <div class="kanban-col-header">
@@ -1653,10 +1644,7 @@ function renderPanelFooter() {
   if (c.status === 'open') {
     makeBtn('📤 Skapa & skicka offert', 'btn-success', () => { renderTab('products'); });
     makeBtn('❌ Avvisa', 'btn-danger', cancelOrder);
-  } else if (c.status === 'proposal') {
-    makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
-    makeBtn('📦 Justera produkter', '', () => renderTab('products'));
-    makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
+
   } else if (c.status === 'waiting') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
     makeBtn('📩 Påminn kund', '', sendCustomerNotice);
@@ -2070,7 +2058,7 @@ async function sendQuote() {
       closeQuoteModal();
       toast(`Offert skickad till ${email}! 🎉`);
       // Sätt status → waiting så kunden ser bekräftelseknappen på /order/
-      if (currentCart?.id && ['open','proposal'].includes(currentCart.status)) {
+      if (currentCart?.id && currentCart.status === 'open') {
         await api('cart-update', {
           method: 'POST',
           body: JSON.stringify({ cart_id: currentCart.id, status: 'waiting' })

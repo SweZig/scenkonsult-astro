@@ -74,7 +74,6 @@ exports.handler = async (event) => {
     // Sammanfattning per status
     const summary = {
       open:      enriched.filter(c => c.status === 'open').length,
-      proposal:  enriched.filter(c => c.status === 'proposal').length,
       waiting:   enriched.filter(c => c.status === 'waiting').length,
       confirmed: enriched.filter(c => c.status === 'confirmed').length,
       cancelled: enriched.filter(c => c.status === 'cancelled').length,
