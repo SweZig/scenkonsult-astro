@@ -646,7 +646,18 @@ const STATUS_LABELS = {
 
 // ── AUTH ──────────────────────────────────────────────────────
 function checkAuth() {
-  const t = sessionStorage.getItem('sk_admin_token');
+  // Försök sessionStorage (samma flik) först, sedan localStorage (korsfliks-token)
+  let t = sessionStorage.getItem('sk_admin_token');
+  if (!t) {
+    try {
+      const ls = JSON.parse(localStorage.getItem('sk_admin_mode') || '{}');
+      const TTL = 8 * 60 * 60 * 1000;
+      if (ls.token && ls.ts && (Date.now() - ls.ts) < TTL) {
+        t = ls.token;
+        sessionStorage.setItem('sk_admin_token', t); // cachelagra för fliken
+      }
+    } catch {}
+  }
   if (t) { TOKEN = t; showApp(); }
 }
 
@@ -658,8 +669,8 @@ function doLogin() {
   if (!pw) return;
   TOKEN = pw;
   sessionStorage.setItem('sk_admin_token', pw);
-  // Brygga till sitewide badge — aktiveras på publika sidor via localStorage
-  localStorage.setItem('sk_admin_mode', JSON.stringify({ ts: Date.now() }));
+  // Brygga till sitewide badge — sparar token för korsfliks-auth
+  localStorage.setItem('sk_admin_mode', JSON.stringify({ ts: Date.now(), token: pw }));
   showApp();
 }
 

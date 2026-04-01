@@ -2042,8 +2042,12 @@ const localBusinessSchema = {
       } catch { return false; }
     }
 
-    function activateAdmin() {
-      localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now() }));
+    function activateAdmin(token) {
+      const payload = { ts: Date.now() };
+      if (token) payload.token = token;
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
+      // Sätt också sessionStorage för nuvarande flik
+      if (token) sessionStorage.setItem('sk_admin_token', token);
       document.body.classList.add('sk-admin');
       const badge = document.getElementById('sk-admin-badge');
       if (badge) badge.style.display = 'flex';
@@ -2147,9 +2151,8 @@ const localBusinessSchema = {
           sessionStorage.removeItem(FAIL_KEY);
           sessionStorage.removeItem(LOCK_KEY);
           // Brygga till /admin/ — sparar token så adminpanelen slipper eget login
-          sessionStorage.setItem('sk_admin_token', pw);
           closeModal();
-          activateAdmin();
+          activateAdmin(pw);
         } else if (data.lockoutSeconds > 0) {
           const until = Date.now() + data.lockoutSeconds * 1000;
           sessionStorage.setItem(LOCK_KEY, String(until));
@@ -2171,10 +2174,15 @@ const localBusinessSchema = {
 
       // Återaktivera om localStorage-session är aktiv
       if (isAdminActive()) {
+        try {
+          const stored = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+          // Synka token till sessionStorage för denna flik
+          if (stored.token) sessionStorage.setItem('sk_admin_token', stored.token);
+        } catch {}
         activateAdmin();
       } else if (sessionStorage.getItem('sk_admin_token')) {
-        // Kom från /admin/ — aktivera badge utan ny inloggning
-        activateAdmin();
+        // Kom från /admin/ i samma flik
+        activateAdmin(sessionStorage.getItem('sk_admin_token'));
       }
 
       // Öppna modal vid ?admin=1
