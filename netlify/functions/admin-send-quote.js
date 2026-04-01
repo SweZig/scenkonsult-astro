@@ -48,7 +48,7 @@ function cartTable(items) {
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
     </tr>${rows}
-    <tr style="background:#f0eeff;">
+    <tr style="background:#ddd6f5;">
       <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
       <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
     </tr>
@@ -127,7 +127,7 @@ exports.handler = async (event) => {
   const datumStr   = customer.date ? `Eventdatum: ${customer.date}` : '';
   const platsStr   = customer.location ? `Plats: ${customer.location}` : '';
   const noteHtml   = note?.trim()
-    ? `<p style="margin:16px 0 0;padding:12px 14px;background:#f7f7fb;border-left:3px solid #c4b5f4;border-radius:0 6px 6px 0;color:#555;font-size:13px;line-height:1.6;">${note.trim().replace(/\n/g,'<br>')}</p>`
+    ? `<p style="margin:16px 0 0;padding:12px 14px;background:#f7f7fb;border-left:3px solid #8b7dd4;border-radius:0 6px 6px 0;color:#555;font-size:13px;line-height:1.6;">${note.trim().replace(/\n/g,'<br>')}</p>`
     : '';
 
   const htmlBody = `

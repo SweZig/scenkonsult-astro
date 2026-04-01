@@ -67,7 +67,7 @@ function cartTable(cart) {
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
     </tr>${mkRows(prodItems)}${noteRow}
-    <tr style="background:#f0eeff;">
+    <tr style="background:#ddd6f5;">
       <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Produkter totalt (exkl. moms)</td>
       <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${prodTotal.toLocaleString('sv-SE')} kr</td>
     </tr>

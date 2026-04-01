@@ -1240,18 +1240,26 @@ function renderProductsTab() {
   const items = allItems.filter(i => !i._note);
   const total = items.reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
 
+  const SVC_CATS_DISPLAY = ['Tjänster', 'Tillägg'];
+  const firstSvcIdx = items.findIndex(i => SVC_CATS_DISPLAY.includes(i.category));
+
   const rows = items.map((item, idx) => {
     const qty = item.qty || item.quantity || 1;
     const price = item.price || 0;
     const sub = qty * price;
     const {icon, color} = catIcon(item.category);
+    const isSvc = SVC_CATS_DISPLAY.includes(item.category);
+    // Separator-rad före första tjänst
+    const separator = (idx === firstSvcIdx && firstSvcIdx > 0)
+      ? `<tr><td colspan="5" style="padding:4px 0 2px"><div style="border-top:1px dashed rgba(196,181,244,0.25);margin:2px 0"></div><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.4);padding:2px 4px">Tjänster</div></td></tr>`
+      : '';
     const pid = item.id || '';
     const desc = (typeof PROD_DESC !== 'undefined' && PROD_DESC[pid]) ? PROD_DESC[pid] : null;
     const popoutContent = desc
       ? `<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-top:4px">${desc.desc||''}</div>${desc.includes?.length ? '<ul style="font-size:0.72rem;color:var(--text-faint);padding-left:14px;margin-top:3px">' + desc.includes.map(s=>`<li>${s}</li>`).join('') + '</ul>' : ''}`
       : `<div style="font-size:0.78rem;color:var(--text-faint);margin-top:4px">Artno: ${pid || '–'} · Kategori: ${item.category || '–'}</div>`;
 
-    return `<tr data-idx="${idx}" class="prod-row">
+    return separator + `<tr data-idx="${idx}" class="prod-row"
       <td style="vertical-align:top;padding:8px 6px">
         <div style="display:flex;align-items:flex-start;gap:6px">
           <button onclick="prodTogglePopout(${idx})" style="flex-shrink:0;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:rgba(0,0,0,.2);color:${color};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center" title="Produktinfo">${icon}</button>

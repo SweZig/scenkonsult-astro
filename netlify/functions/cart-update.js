@@ -171,9 +171,8 @@ exports.handler = async (event) => {
         updates.status = body.status;
 
         if (body.status === 'confirmed') {
-          updates.confirmed_at = new Date().toISOString();
-          updates.expires_at   = null; // Bekräftad — ingen TTL
-          // Skicka bekräftelsemail till kund efter DB-uppdatering (görs nedan)
+          updates.expires_at = null; // Bekräftad — ingen TTL
+          // confirmed_at sätts av kunden vid digital klick-bekräftelse, INTE här
         }
 
         await logAudit(db, cart.id, 'admin', 'status_change', {
