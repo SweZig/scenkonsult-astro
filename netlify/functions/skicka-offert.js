@@ -33,26 +33,44 @@ function htmlWrapper(title, bodyHtml) {
 
 function cartTable(cart) {
   if (!cart || cart.length === 0) return '<p style="color:#888;">Ingen utrustning angiven.</p>';
-  const realItems = cart.filter(i => !i._note);
+  const allReal   = cart.filter(i => !i._note);
   const noteItem  = cart.find(i => i._note);
-  const rows = realItems.map(item => `<tr>
+  const SVC_CATS  = ['Tjänster', 'Tillägg'];
+  const prodItems = allReal.filter(i => !SVC_CATS.includes(i.category));
+  const svcItems  = allReal.filter(i => SVC_CATS.includes(i.category));
+
+  const mkRows = items => items.map(item => `<tr>
     <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${item.name||''}</td>
     <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${item.quantity||item.qty||1} st</td>
     <td style="padding:9px 10px;color:#1e1850;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${item.price?((item.price*(item.quantity||item.qty||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
   </tr>`).join('');
-  const total = realItems.reduce((s,i)=>s+((i.price||0)*(i.quantity||i.qty||1)),0);
-  const noteRow = noteItem ? `<tr><td colspan="3" style="padding:8px 10px;color:#666;font-size:12px;font-style:italic;border-top:1px solid #f0f0f5;">📝 ${noteItem.name}</td></tr>` : '';
+
+  const prodTotal = prodItems.reduce((s,i)=>s+((i.price||0)*(i.quantity||i.qty||1)),0);
+  const svcTotal  = svcItems.reduce((s,i)=>s+((i.price||0)*(i.quantity||i.qty||1)),0);
+  const noteRow   = noteItem ? `<tr><td colspan="3" style="padding:8px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${noteItem.name}</td></tr>` : '';
+
+  const svcSection = svcItems.length ? `
+    <p style="margin:16px 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Tilläggstjänster (estimat)</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0d9a8;border-radius:8px;overflow:hidden;">
+      ${mkRows(svcItems)}
+      <tr style="background:#fffbeb;">
+        <td colspan="2" style="padding:11px 10px;color:#92400e;font-weight:700;font-size:14px;">Tillägg totalt (exkl. moms)</td>
+        <td style="padding:11px 10px;color:#92400e;font-weight:700;font-size:14px;text-align:right;">${svcTotal.toLocaleString('sv-SE')} kr</td>
+      </tr>
+    </table>
+    <p style="margin:8px 0 0;color:#b45309;font-size:11px;">⚠ Priser för leverans och tilläggstjänster är estimat — vi bekräftar slutpriset vid orderbekräftelse.</p>` : '';
+
   return `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;">
     <tr style="background:#f7f7fb;">
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt</th>
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
       <th style="padding:9px 10px;color:#888;font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
-    </tr>${rows}${noteRow}
+    </tr>${mkRows(prodItems)}${noteRow}
     <tr style="background:#f0eeff;">
-      <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
-      <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
+      <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Produkter totalt (exkl. moms)</td>
+      <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${prodTotal.toLocaleString('sv-SE')} kr</td>
     </tr>
-  </table>`;
+  </table>${svcSection}`;
 }
 
 function cartText(cart) {
@@ -129,7 +147,7 @@ exports.handler = async (event) => {
 
       await db.upsert('carts', {
         id:               cartId,
-        status:           'proposal',
+        status:           'open',
         items:            cart || [],
         customer_name:    customer.name,
         customer_email:   customer.email,
@@ -195,7 +213,7 @@ exports.handler = async (event) => {
         const customerTitle = isBokning ? 'Din bokningsönskan är mottagen' : 'Din offertförfrågan är mottagen';
         const customerIntro = isBokning
           ? `Vi har tagit emot din bokningsönskan och återkommer vardagar 09:00-17:00 med en bekräftelse. Frågor? Ring oss på <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a>.`
-          : `Vi har tagit emot din förfrågan och återkommer vardagar 09:00-17:00 med en offert. Frågor? Ring oss på <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a>.`;
+          : `Vi har tagit emot din förfrågan och återkommer vardagar 09:00-17:00 med en offert. <strong>Observera att alla priser i sammanställningen nedan är preliminära</strong> — vi bekräftar det slutliga priset i offerten. Frågor? Ring oss på <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a>.`;
         const plainCustomer = `Tack, ${customer.name}!\n\n${isBokning?'Vi har tagit emot din bokningsönskan':'Vi har tagit emot din förfrågan'} och aterkommer vardagar 09:00-17:00.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n${cartUrl ? 'Följ din order: ' + cartUrl + '\n' : ''}\n---\nScenkonsult Norden | scenkonsult.se`;
         const htmlCustomer = htmlWrapper(customerTitle, `
           <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>
