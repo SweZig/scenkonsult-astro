@@ -1306,35 +1306,45 @@ function renderProductsTab() {
     </button>
 
     <div class="section-label" style="margin-top:14px">Tjänster</div>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;font-size:0.82rem">
-      <span style="color:var(--text-muted)">Leverans</span>
-      <select id="svc-leverans" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
-        <option value="">— (välj)</option>
-        <option value="Leverans — Vanlig bil (t&r)|1118|lev-standard">Vanlig bil t&r — 1 118 kr</option>
-        <option value="Leverans — Bil med släp (t&r)|1598|lev-skrymmande">Bil med släp t&r — 1 598 kr</option>
-        <option value="Leverans — Vanlig bil (enkel)|559|lev-standard-e">Vanlig bil enkel — 559 kr</option>
-        <option value="Leverans — Lastbil (t&r)|2998|lev-lastbil">Lastbil t&r — 2 998 kr</option>
-        <option value="">Ingen leverans</option>
-      </select>
-      <span style="color:var(--text-muted)">Montering</span>
-      <select id="svc-montering" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
-        <option value="">— (ingen)</option>
-        <option value="Montering & demontering|600|montering">600 kr (auto)</option>
-        <option value="Montering & demontering|1200|montering">1 200 kr (2 tim)</option>
-        <option value="Montering & demontering|1800|montering">1 800 kr (3 tim)</option>
-        <option value="Montering & demontering|300|montering">300 kr (30 min)</option>
-      </select>
-    </div>
-
-    <div class="section-label" style="margin-top:12px">Fakturaavgift</div>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;font-size:0.82rem">
-      <span style="color:var(--text-muted)">Fakturaavgift</span>
-      <select id="svc-faktura" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
-        <option value="Fakturaavgift|49|fakturaavgift" selected>49 kr (standard)</option>
-        <option value="Fakturaavgift|29|fakturaavgift">29 kr</option>
-        <option value="">Ingen</option>
-      </select>
-    </div>
+    ${(function(){
+      const _si = (currentCart.items||[]).filter(function(i){return ['Tjänster','Tillägg'].includes(i.category);});
+      const _lev = _si.find(function(i){return i.id && i.id.startsWith('lev-');});
+      const _mon = _si.find(function(i){return i.id==='montering';});
+      const _fee = _si.find(function(i){return i.id && i.id.startsWith('fakturaavgift');});
+      const levMap={'lev-standard':'Leverans — Vanlig bil (t&r)|1118|lev-standard','lev-skrymmande':'Leverans — Bil med släp (t&r)|1598|lev-skrymmande','lev-standard-e':'Leverans — Vanlig bil (enkel)|559|lev-standard-e','lev-lastbil':'Leverans — Lastbil (t&r)|2998|lev-lastbil'};
+      const lo = _lev ? (levMap[_lev.id]||'') : '';
+      const mo = _mon ? ('Montering & demontering|'+_mon.price+'|montering') : '';
+      const fo = _fee ? ('Fakturaavgift|'+_fee.price+'|fakturaavgift') : 'Fakturaavgift|49|fakturaavgift';
+      const sel = function(a,b){return a===b?'selected':'';};
+      return '<div style="display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;font-size:0.82rem">'
+        +'<span style="color:var(--text-muted)">Leverans</span>'
+        +'<select id="svc-leverans" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">'
+        +'<option value="" '+(lo?'':'selected')+'>— (välj)</option>'
+        +'<option value="Leverans — Vanlig bil (t&r)|1118|lev-standard" '+sel(lo,'Leverans — Vanlig bil (t&r)|1118|lev-standard')+'>Vanlig bil t&amp;r — 1 118 kr</option>'
+        +'<option value="Leverans — Bil med släp (t&r)|1598|lev-skrymmande" '+sel(lo,'Leverans — Bil med släp (t&r)|1598|lev-skrymmande')+'>Bil med släp t&amp;r — 1 598 kr</option>'
+        +'<option value="Leverans — Vanlig bil (enkel)|559|lev-standard-e" '+sel(lo,'Leverans — Vanlig bil (enkel)|559|lev-standard-e')+'>Vanlig bil enkel — 559 kr</option>'
+        +'<option value="Leverans — Lastbil (t&r)|2998|lev-lastbil" '+sel(lo,'Leverans — Lastbil (t&r)|2998|lev-lastbil')+'>Lastbil t&amp;r — 2 998 kr</option>'
+        +'<option value="">Ingen leverans</option>'
+        +'</select>'
+        +'<span style="color:var(--text-muted)">Montering</span>'
+        +'<select id="svc-montering" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">'
+        +'<option value="" '+(mo?'':'selected')+'>— (ingen)</option>'
+        +'<option value="Montering & demontering|600|montering" '+sel(mo,'Montering & demontering|600|montering')+'>600 kr (auto)</option>'
+        +'<option value="Montering & demontering|1200|montering" '+sel(mo,'Montering & demontering|1200|montering')+'>1 200 kr (2 tim)</option>'
+        +'<option value="Montering & demontering|1800|montering" '+sel(mo,'Montering & demontering|1800|montering')+'>1 800 kr (3 tim)</option>'
+        +'<option value="Montering & demontering|300|montering" '+sel(mo,'Montering & demontering|300|montering')+'>300 kr (30 min)</option>'
+        +'</select>'
+        +'</div>'
+        +'<div class="section-label" style="margin-top:12px">Fakturaavgift</div>'
+        +'<div style="display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;font-size:0.82rem">'
+        +'<span style="color:var(--text-muted)">Fakturaavgift</span>'
+        +'<select id="svc-faktura" onchange="prodUpdateSvc()" style="font-size:0.78rem;padding:3px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">'
+        +'<option value="Fakturaavgift|49|fakturaavgift" '+sel(fo,'Fakturaavgift|49|fakturaavgift')+'>49 kr (standard)</option>'
+        +'<option value="Fakturaavgift|29|fakturaavgift" '+sel(fo,'Fakturaavgift|29|fakturaavgift')+'>29 kr</option>'
+        +'<option value="" '+(fo?'':'selected')+'>Ingen</option>'
+        +'</select>'
+        +'</div>';
+    })()}
 
     <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:10px">
       <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Produkter exkl. moms</span><span>${fmt(total)} kr</span></div>
