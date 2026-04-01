@@ -133,7 +133,10 @@ exports.handler = async (event) => {
 
   // ── Supabase-synk ─────────────────────────────────────────
   // Hämta cart_id från body (skickas med från frontend sedan 2026-03-11)
-  const cartId = data.cart_id || null;
+  // Validera cart_id-format (SK-[8HEX]-[4HEX]) — avvisa test-ID:n och skräp
+  const rawCartId = data.cart_id || null;
+  const cartId = rawCartId && /^SK-[0-9A-F]{8}-[0-9A-F]{4}$/i.test(rawCartId) ? rawCartId : null;
+  if (rawCartId && !cartId) console.warn('OFFERT: ogiltigt cart_id ignorerat:', rawCartId);
   let cartToken = null;
   let cartUrl   = null;
 
