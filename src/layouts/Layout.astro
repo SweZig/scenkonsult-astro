@@ -2064,3 +2064,237 @@ const localBusinessSchema = {
       }
     }
   </style>
+
+  <!-- ========== SITEWIDE ADMINLÄGE ========== -->
+  <div id="sk-admin-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(12,10,36,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+    <div style="background:#1a1740;border:1px solid rgba(196,181,244,0.35);border-radius:20px;padding:2.5rem;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,0.6);">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:#c4b5f4;margin-bottom:0.25rem;">Scenkonsult Admin</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:0.8rem;color:rgba(255,255,255,0.45);margin-bottom:1.75rem;">Ange adminlösenord för att aktivera adminläget</div>
+      <input id="sk-admin-pw" type="password" placeholder="Lösenord"
+        style="width:100%;background:#0c0a24;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:0.8rem 1rem;color:#f0eeff;font-family:'Space Grotesk',sans-serif;font-size:1rem;margin-bottom:0.75rem;outline:none;transition:border-color 0.2s;color-scheme:dark;"
+        autocomplete="current-password" />
+      <div id="sk-admin-error" style="display:none;color:#f87171;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;margin-bottom:0.75rem;"></div>
+      <div id="sk-admin-lockout" style="display:none;text-align:center;padding:1rem;background:rgba(251,191,36,0.1);border-radius:10px;margin-bottom:0.75rem;">
+        <span style="color:#fbbf24;font-family:'Space Grotesk',sans-serif;font-size:0.9rem;">🔒 Låst i <strong id="sk-admin-countdown">60</strong>s</span>
+      </div>
+      <button id="sk-admin-submit"
+        style="width:100%;background:#332885;color:#fff;border:none;border-radius:10px;padding:0.8rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.2s;">
+        Aktivera adminläge
+      </button>
+      <button id="sk-admin-cancel"
+        style="width:100%;margin-top:0.5rem;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.875rem;cursor:pointer;">
+        Avbryt
+      </button>
+    </div>
+  </div>
+
+  <!-- Admin pill-badge (visas när adminläge är aktivt) -->
+  <div id="sk-admin-badge" style="display:none;position:fixed;bottom:5.5rem;right:1rem;z-index:9000;background:#332885;border:1px solid rgba(196,181,244,0.5);border-radius:999px;padding:0.4rem 0.85rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:600;color:#c4b5f4;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4);display:flex;align-items:center;gap:0.4rem;user-select:none;">
+    <span>Admin ✦</span>
+    <span id="sk-admin-badge-logout" title="Avaktivera" style="opacity:0.5;font-size:0.7rem;margin-left:0.2rem;">✕</span>
+  </div>
+
+  <script is:inline>
+  (function() {
+    const SS_KEY   = 'sk_admin_mode';
+    const FAIL_KEY = 'sk_admin_failures';
+    const LOCK_KEY = 'sk_admin_locked_until';
+
+    function activateAdmin() {
+      sessionStorage.setItem(SS_KEY, 'true');
+      document.body.classList.add('sk-admin');
+      const badge = document.getElementById('sk-admin-badge');
+      if (badge) badge.style.display = 'flex';
+    }
+
+    function deactivateAdmin() {
+      sessionStorage.removeItem(SS_KEY);
+      sessionStorage.removeItem(FAIL_KEY);
+      sessionStorage.removeItem(LOCK_KEY);
+      document.body.classList.remove('sk-admin');
+      const badge = document.getElementById('sk-admin-badge');
+      if (badge) badge.style.display = 'none';
+    }
+
+    function openModal() {
+      const modal = document.getElementById('sk-admin-modal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        const pw = document.getElementById('sk-admin-pw');
+        if (pw) pw.focus();
+      }, 80);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('sk-admin-modal');
+      if (modal) modal.style.display = 'none';
+      // Rensa ?admin=1 från URL utan reload
+      const url = new URL(location.href);
+      if (url.searchParams.has('admin')) {
+        url.searchParams.delete('admin');
+        history.replaceState({}, '', url.toString());
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('sk-admin-error');
+      if (el) { el.textContent = msg; el.style.display = 'block'; }
+    }
+
+    function clearError() {
+      const el = document.getElementById('sk-admin-error');
+      if (el) el.style.display = 'none';
+    }
+
+    function startCountdown(seconds) {
+      const lockout = document.getElementById('sk-admin-lockout');
+      const cd      = document.getElementById('sk-admin-countdown');
+      const submit  = document.getElementById('sk-admin-submit');
+      const pwInput = document.getElementById('sk-admin-pw');
+      if (!lockout || !cd) return;
+
+      lockout.style.display = 'block';
+      if (submit) submit.disabled = true;
+      if (pwInput) pwInput.disabled = true;
+
+      let remaining = seconds;
+      cd.textContent = remaining;
+
+      const timer = setInterval(() => {
+        remaining--;
+        cd.textContent = remaining;
+        if (remaining <= 0) {
+          clearInterval(timer);
+          lockout.style.display = 'none';
+          if (submit) submit.disabled = false;
+          if (pwInput) { pwInput.disabled = false; pwInput.focus(); }
+          sessionStorage.removeItem(FAIL_KEY);
+          sessionStorage.removeItem(LOCK_KEY);
+        }
+      }, 1000);
+    }
+
+    async function doAuth() {
+      // Kontrollera lokal lockout
+      const lockedUntil = parseInt(sessionStorage.getItem(LOCK_KEY) || '0', 10);
+      if (lockedUntil > Date.now()) {
+        const secs = Math.ceil((lockedUntil - Date.now()) / 1000);
+        startCountdown(secs);
+        return;
+      }
+
+      const pwInput = document.getElementById('sk-admin-pw');
+      const pw = pwInput ? pwInput.value.trim() : '';
+      if (!pw) return;
+
+      clearError();
+      const submit = document.getElementById('sk-admin-submit');
+      if (submit) { submit.disabled = true; submit.textContent = 'Kontrollerar…'; }
+
+      try {
+        const res  = await fetch('/api/admin-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          sessionStorage.removeItem(FAIL_KEY);
+          sessionStorage.removeItem(LOCK_KEY);
+          closeModal();
+          activateAdmin();
+        } else if (data.lockoutSeconds > 0) {
+          const until = Date.now() + data.lockoutSeconds * 1000;
+          sessionStorage.setItem(LOCK_KEY, String(until));
+          showError(data.error || 'Kontot är låst.');
+          startCountdown(data.lockoutSeconds);
+        } else {
+          showError(data.error || 'Fel lösenord.');
+          if (pwInput) { pwInput.value = ''; pwInput.focus(); }
+        }
+      } catch (err) {
+        showError('Nätverksfel — försök igen.');
+      } finally {
+        if (submit) { submit.disabled = false; submit.textContent = 'Aktivera adminläge'; }
+      }
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+
+      // Återaktivera vid sidladdning om sessionStorage satt
+      if (sessionStorage.getItem(SS_KEY) === 'true') {
+        activateAdmin();
+      }
+
+      // Öppna modal vid ?admin=1
+      const params = new URLSearchParams(location.search);
+      if (params.get('admin') === '1') {
+        if (sessionStorage.getItem(SS_KEY) === 'true') {
+          // Redan inloggad — bara rensa URL
+          const url = new URL(location.href);
+          url.searchParams.delete('admin');
+          history.replaceState({}, '', url.toString());
+        } else {
+          openModal();
+          // Kolla lokal lockout direkt
+          const lockedUntil = parseInt(sessionStorage.getItem(LOCK_KEY) || '0', 10);
+          if (lockedUntil > Date.now()) {
+            const secs = Math.ceil((lockedUntil - Date.now()) / 1000);
+            startCountdown(secs);
+          }
+        }
+      }
+
+      // Event listeners
+      const submit = document.getElementById('sk-admin-submit');
+      const cancel = document.getElementById('sk-admin-cancel');
+      const pwInput = document.getElementById('sk-admin-pw');
+      const badge  = document.getElementById('sk-admin-badge');
+      const logoutBtn = document.getElementById('sk-admin-badge-logout');
+
+      if (submit)  submit.addEventListener('click', doAuth);
+      if (cancel)  cancel.addEventListener('click', closeModal);
+      if (pwInput) pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAuth(); });
+      if (logoutBtn) logoutBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        deactivateAdmin();
+      });
+
+      // Stäng modal vid klick utanför rutan
+      const modal = document.getElementById('sk-admin-modal');
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) closeModal();
+        });
+      }
+
+      // Hover-effekt submit-knapp
+      if (submit) {
+        submit.addEventListener('mouseenter', () => { if (!submit.disabled) submit.style.background = '#c4b5f4'; submit.style.color = '#0c0a24'; });
+        submit.addEventListener('mouseleave', () => { if (!submit.disabled) submit.style.background = '#332885'; submit.style.color = '#fff'; });
+      }
+    });
+  })();
+  </script>
+
+  <style is:global>
+    /* Sitewide admin mode — synlighetsklasser */
+    .sk-admin-only  { display: none !important; }
+    body.sk-admin .sk-admin-only { display: revert !important; }
+
+    /* Pulse-animation på badge */
+    #sk-admin-badge {
+      animation: none;
+    }
+    body.sk-admin #sk-admin-badge {
+      animation: sk-admin-pulse 3s ease-in-out infinite;
+    }
+    @keyframes sk-admin-pulse {
+      0%, 100% { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 0 rgba(196,181,244,0.3); }
+      50%       { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 6px rgba(196,181,244,0); }
+    }
+  </style>
+  <!-- ========== /SITEWIDE ADMINLÄGE ========== -->
