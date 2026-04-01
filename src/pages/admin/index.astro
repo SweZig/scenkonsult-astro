@@ -1516,20 +1516,13 @@ function renderFakturaTab() {
       </div>
     </div>
 
-    <div class="section-label">Kund (B2B)</div>
-    <div style="display:grid;gap:5px;font-size:0.82rem;margin-bottom:8px">
-      <div><div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Organisationsnummer</div>
-        <input id="inv-orgnr" type="text" placeholder="556xxx-xxxx" value="${c.customer_orgnr||''}"
-          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid ${c.customer_orgnr?'var(--border)':'var(--red)'};border-radius:5px">
-      </div>
-      <div><div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Fakturaadress</div>
-        <input id="inv-addr" type="text" placeholder="Gatuadress, postnr, ort" value="${c.customer_address||''}"
-          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid ${c.customer_address?'var(--border)':'var(--red)'};border-radius:5px">
-      </div>
-      <div><div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Er referens</div>
-        <input id="inv-custref" type="text" placeholder="T.ex. Hannah Johansson" value="${c.customer_ref||''}"
-          style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
-      </div>
+    <div class="section-label">Kund</div>
+    <div style="font-size:0.82rem;padding:8px 10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-bottom:8px">
+      <div style="font-weight:600;color:var(--text)">${c.customer_name||'—'} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${c.customer_type==='b2b'?'B2B':'Privatperson'})</span></div>
+      ${c.customer_orgnr ? `<div style="color:var(--text-muted)">Org.nr: ${c.customer_orgnr}</div>` : ''}
+      ${(c.customer_address||c.event_location) ? `<div style="color:var(--text-muted)">${c.customer_address||c.event_location}</div>` : ''}
+      ${c.customer_ref ? `<div style="color:var(--text-muted)">Er ref: ${c.customer_ref}</div>` : ''}
+      ${(!c.customer_address && !c.event_location)||(c.customer_type==='b2b'&&!c.customer_orgnr) ? '<a href="#" onclick="window.renderTab(\'info\');return false;" style="color:var(--amber);font-size:0.78rem">⚠ Komplettera i Info-fliken →</a>' : ''}
     </div>
 
     <div class="section-label">Belopp</div>
@@ -1542,7 +1535,7 @@ function renderFakturaTab() {
     <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn-action" onclick="invSaveFields()" style="font-size:0.8rem">💾 Spara uppgifter</button>
       <button class="btn-action" onclick="toast('PDF-generering kommer i nästa version','error')" style="font-size:0.8rem">🖨 Förhandsgranska PDF</button>
-      <button class="btn-action" onclick="toast('Fakturautskick kommer i nästa version','error')" style="font-size:0.8rem;border-color:var(--brand-lav);color:var(--brand-lav)">📧 Skicka faktura</button>
+      <button class="btn-action" onclick="invSendEmail()" style="font-size:0.8rem;border-color:var(--brand-lav);color:var(--brand-lav)">📧 Skicka faktura via mail</button>
       ${!isPaid ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
     </div>
   `;
@@ -1551,9 +1544,6 @@ function renderFakturaTab() {
 async function invSaveFields() {
   const updates = {
     cart_id: currentCart.id,
-    customer_orgnr:   document.getElementById('inv-orgnr')?.value.trim() || null,
-    customer_address: document.getElementById('inv-addr')?.value.trim() || null,
-    customer_ref:     document.getElementById('inv-custref')?.value.trim() || null,
     invoice_date:     document.getElementById('inv-date')?.value || null,
     invoice_due_date: document.getElementById('inv-due')?.value || null,
     payment_terms_days: parseInt(document.getElementById('inv-terms')?.value || '5'),
@@ -1564,6 +1554,36 @@ async function invSaveFields() {
     toast('Fakturauppgifter sparade!');
     renderTab('faktura');
   } else toast('Kunde inte spara', 'error');
+}
+
+async function invSendEmail() {
+  if (!currentCart.customer_email) { toast('Kunden saknar e-postadress', 'error'); return; }
+  if (!confirm(`Skicka faktura till ${currentCart.customer_email}?`)) return;
+  // Spara eventuella ändringar i fakturainfo först
+  await invSaveFields().catch(() => {});
+  const btn = document.querySelector('[onclick="invSendEmail()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Genererar PDF…'; }
+  try {
+    const { ok, data } = await api('invoice-send', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: currentCart.id })
+    });
+    if (ok && data.ok) {
+      currentCart.status = 'fakturerad';
+      currentCart.invoice_sent_at = new Date().toISOString();
+      currentCart.invoice_number = data.invoice_number;
+      toast(`Faktura ${data.invoice_number} skickad! 📧`);
+      loadCarts();
+      renderTab('faktura');
+      renderPanelFooter();
+    } else {
+      toast(data?.error || 'Fel vid utskick', 'error');
+    }
+  } catch (e) {
+    toast('Nätverksfel: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📧 Skicka faktura via mail'; }
+  }
 }
 
 async function invMarkPaid() {
@@ -2109,6 +2129,7 @@ window.prodAddFreeRow      = prodAddFreeRow;
 window.prodUpdateSvc       = prodUpdateSvc;
 window.prodSaveAndSendOffer= prodSaveAndSendOffer;
 window.invMarkPaid         = invMarkPaid;
+window.invSendEmail        = invSendEmail;
 window.invSaveFields       = invSaveFields;
 window.openPanel       = openDetail;
 window.closePanel      = closePanel;

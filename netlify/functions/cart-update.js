@@ -143,13 +143,24 @@ exports.handler = async (event) => {
     }
 
     if (admin) {
-      if (body.notes_admin    !== undefined) updates.notes_admin    = body.notes_admin;
-      if (body.event_date     !== undefined) updates.event_date     = body.event_date || null;
-      if (body.event_location !== undefined) updates.event_location = body.event_location;
-      if (body.total_excl     !== undefined) updates.total_excl     = body.total_excl;
-      if (body.customer_name  !== undefined) updates.customer_name  = body.customer_name;
-      if (body.customer_email !== undefined) updates.customer_email = body.customer_email;
-      if (body.customer_phone !== undefined) updates.customer_phone = body.customer_phone;
+      if (body.notes_admin      !== undefined) updates.notes_admin      = body.notes_admin;
+      if (body.event_date       !== undefined) updates.event_date       = body.event_date || null;
+      if (body.event_location   !== undefined) updates.event_location   = body.event_location;
+      if (body.total_excl       !== undefined) updates.total_excl       = body.total_excl;
+      if (body.customer_name    !== undefined) updates.customer_name    = body.customer_name;
+      if (body.customer_email   !== undefined) updates.customer_email   = body.customer_email;
+      if (body.customer_phone   !== undefined) updates.customer_phone   = body.customer_phone;
+      // Nya fält — kundtyp, adress, faktura
+      if (body.customer_type    !== undefined) updates.customer_type    = body.customer_type;
+      if (body.customer_address !== undefined) updates.customer_address = body.customer_address;
+      if (body.customer_orgnr   !== undefined) updates.customer_orgnr   = body.customer_orgnr;
+      if (body.customer_ref     !== undefined) updates.customer_ref     = body.customer_ref;
+      if (body.invoice_date     !== undefined) updates.invoice_date     = body.invoice_date || null;
+      if (body.invoice_due_date !== undefined) updates.invoice_due_date = body.invoice_due_date || null;
+      if (body.invoice_number   !== undefined) updates.invoice_number   = body.invoice_number;
+      if (body.invoice_sent_at  !== undefined) updates.invoice_sent_at  = body.invoice_sent_at;
+      if (body.invoice_paid_at  !== undefined) updates.invoice_paid_at  = body.invoice_paid_at;
+      if (body.payment_terms_days !== undefined) updates.payment_terms_days = parseInt(body.payment_terms_days) || 5;
 
       // Statusändring
       if (body.status !== undefined) {
