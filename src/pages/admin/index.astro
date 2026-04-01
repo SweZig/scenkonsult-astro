@@ -1343,7 +1343,22 @@ function renderProductsTab() {
         +'<option value="Fakturaavgift|29|fakturaavgift" '+sel(fo,'Fakturaavgift|29|fakturaavgift')+'>29 kr</option>'
         +'<option value="" '+(fo?'':'selected')+'>Ingen</option>'
         +'</select>'
-        +'</div>';
+        +'</div>'
+        // Visa extra tillägg (rigg-teknik etc.) som inte finns i dropdownarna
+        +(function(){
+          const known = ['lev-standard','lev-skrymmande','lev-standard-e','lev-lastbil','montering','fakturaavgift-49','fakturaavgift-29','fakturaavgift'];
+          const extras = (currentCart.items||[]).filter(function(i){
+            return i.category==='Tillägg' && !known.some(function(k){return i.id===k||i.id.startsWith(k);});
+          });
+          if (!extras.length) return '';
+          return '<div class="section-label" style="margin-top:12px">Övriga tillägg (från kund)</div>'
+            + extras.map(function(i){
+                return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;padding:4px 0;border-bottom:1px solid var(--border)">'
+                  +'<span style="color:var(--text-muted)">'+i.name+'</span>'
+                  +'<span style="color:var(--brand-lav);font-weight:600">'+i.price+' kr × '+(i.qty||1)+'</span>'
+                  +'</div>';
+              }).join('');
+        })();
     })()}
 
     <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:10px">
