@@ -567,9 +567,12 @@ Avbryt
       }
     });
   })();
-  </script>  <!-- ========== /SITEWIDE ADMINLÄGE ========== --></body></html>  <script>(function(){const fraktRules = "{\"_comment\":\"Alla priser exkl. moms. Uppdatera priser här — inga kodfiler behöver ändras.\",\"leverans\":{\"label\":\"Leverans & upphämtning\",\"description\":\"Vi kör ut och hämtar upp utrustningen. Priset avser tur-och-retur.\",\"zon\":\"Priser gäller inom Storstockholm. Längre transporter — kontakta oss.\",\"standard\":{\"id\":\"lev-standard\",\"label\":\"Vanlig bil (tur & retur)\",\"enkelresa\":559,\"pris\":1118,\"note\":\"559 kr × 2 resor\"},\"skrymmande\":{\"id\":\"lev-skrymmande\",\"label\":\"Bil med släpvagn — skrymmande gods (tur & retur)\",\"enkelresa\":799,\"pris\":1598,\"note\":\"799 kr × 2 resor — tillämpas automatiskt om varukorgen innehåller skrymmande produkt\"},\"lastbil\":{\"id\":\"lev-lastbil\",\"label\":\"Lätt/tung lastbil\",\"pris\":2998,\"note\":\"1499 kr × 2 resor\",\"enkelresa\":1499}},\"montering\":{\"label\":\"Montering & demontering\",\"description\":\"Vår personal monterar och demonterar utrustningen på plats.\",\"prisPerTimme\":600,\"minDebiteringMin\":15,\"note\":\"Monteringstid per produkt finns angiven i produktinfo. Demonteringstid = monteringstid × 2.\",\"note2\":\"Obligatorisk för scener ≥ Large (20 m²) vid leverans.\"},\"tillagg\":[{\"id\":\"rigg-teknik\",\"label\":\"Teknikertjänst på plats\",\"description\":\"Tekniker på plats under hela eventet (per timme, min 2 timmar)\",\"pris\":600,\"enhet\":\"/tim\",\"qty\":true}]}";
+  </script>  <!-- ========== /SITEWIDE ADMINLÄGE ========== --></body></html>  <script>(function(){const fraktRulesInline = {"_comment":"Alla priser exkl. moms. Uppdatera priser här — inga kodfiler behöver ändras.","leverans":{"label":"Leverans & upphämtning","description":"Vi kör ut och hämtar upp utrustningen. Priset avser tur-och-retur.","zon":"Priser gäller inom Storstockholm. Längre transporter — kontakta oss.","standard":{"id":"lev-standard","label":"Vanlig bil (tur & retur)","enkelresa":559,"pris":1118,"note":"559 kr × 2 resor"},"skrymmande":{"id":"lev-skrymmande","label":"Bil med släpvagn — skrymmande gods (tur & retur)","enkelresa":799,"pris":1598,"note":"799 kr × 2 resor — tillämpas automatiskt om varukorgen innehåller skrymmande produkt"},"lastbil":{"id":"lev-lastbil","label":"Lätt/tung lastbil","pris":2998,"note":"1499 kr × 2 resor","enkelresa":1499}},"montering":{"label":"Montering & demontering","description":"Vår personal monterar och demonterar utrustningen på plats.","prisPerTimme":600,"minDebiteringMin":15,"note":"Monteringstid per produkt finns angiven i produktinfo. Demonteringstid = monteringstid × 2.","note2":"Obligatorisk för scener ≥ Large (20 m²) vid leverans."},"tillagg":[{"id":"rigg-teknik","label":"Teknikertjänst på plats","description":"Tekniker på plats under hela eventet (per timme, min 2 timmar)","pris":600,"enhet":"/tim","qty":true}]};
 
-  const FRAKT = JSON.parse(fraktRules);
+(function() {
+  // Script placeras efter </html> av Astro — DOMContentLoaded har redan avfyrats.
+  // Kör direkt i IIFE; DOM är fullt parsad vid det här laget.
+  const FRAKT = (function(){ try { return JSON.parse(JSON.stringify(fraktRulesInline)); } catch { return {}; } })();
   const fmt = n => n.toLocaleString('sv') + ' kr';
   const SK_TTL = 21 * 24 * 60 * 60 * 1000;
 
@@ -1112,4 +1115,5 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     updateNavBadge();
     checkCanProceed();
   });
+})(); // IIFE
 })();</script>

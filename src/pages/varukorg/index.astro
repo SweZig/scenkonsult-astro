@@ -540,8 +540,11 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
 }
 </style>
 
-<script define:vars={{ fraktRules }}>
-  const FRAKT = JSON.parse(fraktRules);
+<script is:inline define:vars={{ fraktRulesInline: frakt }}>
+(function() {
+  // Script placeras efter </html> av Astro — DOMContentLoaded har redan avfyrats.
+  // Kör direkt i IIFE; DOM är fullt parsad vid det här laget.
+  const FRAKT = (function(){ try { return JSON.parse(JSON.stringify(fraktRulesInline)); } catch { return {}; } })();
   const fmt = n => n.toLocaleString('sv') + ' kr';
   const SK_TTL = 21 * 24 * 60 * 60 * 1000;
 
@@ -1084,4 +1087,5 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     updateNavBadge();
     checkCanProceed();
   });
+})(); // IIFE
 </script>
