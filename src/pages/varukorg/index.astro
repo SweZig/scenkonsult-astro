@@ -464,10 +464,17 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 .field-input:focus-visible { outline:2px solid rgba(196,181,244,0.4); outline-offset:2px; }
 .field-textarea { resize:vertical; min-height:100px; }
 
-/* Date input color fix */
+/* Date input — mörkt läge + synlig kalenderikon */
+input[type="date"].field-input {
+  color-scheme: dark;
+  -webkit-text-fill-color: rgba(255,255,255,0.85) !important;
+}
 input[type="date"].field-input::-webkit-calendar-picker-indicator {
-  filter:invert(1) opacity(0.4);
-  cursor:pointer;
+  filter: invert(1) opacity(0.65);
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  padding: 2px;
 }
 
 /* ─── HYRESVILLKOR ────────────────────────────────────────── */
