@@ -4,6 +4,57 @@ import InlineEditor from '../components/InlineEditor.astro';
 import Tel from '../components/Tel.astro';
 import Mail from '../components/Mail.astro';
 
+// ── Bygg SVEN_PRODUCTS från JSON-filer (auto-synkad vid varje deploy) ──
+import scenesJson from '../data/scenes.json';
+import ljudJson   from '../data/ljud.json';
+import ljusJson   from '../data/ljus.json';
+import djJson     from '../data/dj.json';
+import bildJson   from '../data/bild.json';
+
+type SvenProduct = { name: string; price: number; category: string };
+const svenProducts: Record<string, SvenProduct> = {};
+
+// Scen: cart-id = scen-{id}
+(scenesJson.products as any[]).forEach(p => {
+  if (p.id && p.price) svenProducts[`scen-${p.id}`] = { name: p.name, price: p.price, category: 'Scen' };
+});
+
+// Ljud: event / live / music / portable / mixers
+(['event','live','music','portable'] as const).forEach(sec => {
+  ((ljudJson as any)[sec]?.products as any[] || []).forEach((p: any) => {
+    if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
+  });
+});
+((ljudJson as any).mixers as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
+});
+
+// Ljus: paket / effekter / rok products + rok tillbehör
+(['paket','effekter'] as const).forEach(sec => {
+  ((ljusJson as any)[sec]?.products as any[] || []).forEach((p: any) => {
+    if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljus' };
+  });
+});
+((ljusJson as any).rok?.products as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljus' };
+});
+((ljusJson as any).rok?.tillbehor as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljus tillbehör' };
+});
+
+// DJ
+Object.values((djJson as any).equipment || {}).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'DJ' };
+});
+
+// Bild
+((bildJson as any).products as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
+});
+((bildJson as any).tillbehor as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
+});
+
 interface Props {
   title?: string;
   description?: string;
@@ -1032,6 +1083,10 @@ const localBusinessSchema = {
     }
   </style>
 
+  <!-- ── SVEN_PRODUCTS (auto-genererad från JSON vid build) ── -->
+  <script is:inline define:vars={{ svenProducts }}>
+    window.__SK_PRODUCTS__ = svenProducts;
+  </script>
   <script>
     (function() {
       // Dölj Sven på varukorg och bokningssida — kunden har redan tagit beslut
@@ -1369,131 +1424,8 @@ const localBusinessSchema = {
         return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
       }
 
-      // Produktregister för cart-tillägg från Sven
-      const SVEN_PRODUCTS = {
-        'scen-small':{'name':'Scenpaket Small','price':599,'category':'Scen'},
-        'scen-small-plus':{'name':'Scenpaket Small+','price':899,'category':'Scen'},
-        'scen-small-plusplus':{'name':'Scenpaket Small++','price':1199,'category':'Scen'},
-        'scen-medium':{'name':'Scenpaket Medium','price':1499,'category':'Scen'},
-        'scen-medium-plus':{'name':'Scenpaket Medium+','price':1799,'category':'Scen'},
-        'scen-medium-plus-tak':{'name':'Scenpaket Medium+ inkl. scentak','price':3799,'category':'Scen'},
-        'scen-medium-plusplus':{'name':'Scenpaket Medium++','price':2399,'category':'Scen'},
-        'scen-large':{'name':'Scenpaket Large','price':2999,'category':'Scen'},
-        'scen-large-plus':{'name':'Scenpaket Large+','price':3599,'category':'Scen'},
-        'scen-xl':{'name':'Scenpaket XL','price':5399,'category':'Scen'},
-        'scen-xl-plus':{'name':'Scenpaket XL+','price':7199,'category':'Scen'},
-        'event-small':{'name':'Event, Small','price':799,'category':'Ljud'},
-        'event-medium':{'name':'Event, Medium','price':1199,'category':'Ljud'},
-        'event-small-plus':{'name':'Event, Small+','price':1599,'category':'Ljud'},
-        'event-large':{'name':'Event, Large','price':1599,'category':'Ljud'},
-        'event-medium-plus':{'name':'Event, Medium+','price':2399,'category':'Ljud'},
-        'event-large-plus':{'name':'Event, Large+','price':3199,'category':'Ljud'},
-        'live-small':{'name':'Live, Small','price':599,'category':'Ljud'},
-        'live-medium':{'name':'Live, Medium','price':1199,'category':'Ljud'},
-        'live-large':{'name':'Live, Large','price':1599,'category':'Ljud'},
-        'live-xl':{'name':'Live/Music, XL','price':2299,'category':'Ljud'},
-        'live-xl-plus':{'name':'Live/Music, XL+','price':2999,'category':'Ljud'},
-        'live-xxl':{'name':'Live/Music, XXL','price':4999,'category':'Ljud'},
-        'live-concert':{'name':'Live/Music, Concert','price':6999,'category':'Ljud'},
-        'live-linearray-small':{'name':'Line Array, Small','price':14999,'category':'Ljud'},
-        'live-linearray-medium':{'name':'Line Array, Medium','price':19999,'category':'Ljud'},
-        'music-small':{'name':'Music, Small','price':999,'category':'Ljud'},
-        'music-small-plus':{'name':'Music, Small+','price':1299,'category':'Ljud'},
-        'music-medium':{'name':'Music, Medium','price':1499,'category':'Ljud'},
-        'music-large':{'name':'Music, Large','price':1899,'category':'Ljud'},
-        'portable-small':{'name':'Portable, Small','price':599,'category':'Ljud'},
-        'portable-small-plus':{'name':'Portable, Small+','price':699,'category':'Ljud'},
-        'portable-medium':{'name':'Portable, Medium','price':799,'category':'Ljud'},
-        'portable-medium-plus':{'name':'Portable, Medium+','price':999,'category':'Ljud'},
-        'portable-small-duo':{'name':'Portable, Small Duo','price':1099,'category':'Ljud'},
-        'portable-large':{'name':'Portable, Large','price':1199,'category':'Ljud'},
-        'portable-small-plus-duo':{'name':'Portable, Small+ Duo','price':1299,'category':'Ljud'},
-        'portable-medium-duo':{'name':'Portable, Medium Duo','price':1499,'category':'Ljud'},
-        'portable-medium-plus-duo':{'name':'Portable, Medium+ Duo','price':1899,'category':'Ljud'},
-        'portable-large-plus':{'name':'Portable, Large Duo','price':2299,'category':'Ljud'},
-        'event-mik-tr-dl-s-handmikrofon':{'name':'Trådlös handmikrofon','price':400,'category':'Ljud'},
-        'live-mik-tr-dl-s-handmikrofon':{'name':'Trådlös handmikrofon','price':400,'category':'Ljud'},
-        'music-mik-tr-dl-s-handmikrofon':{'name':'Trådlös handmikrofon','price':400,'category':'Ljud'},
-        'portable-mik-tr-dl-s-handmikrofon':{'name':'Trådlös handmikrofon','price':400,'category':'Ljud'},
-        'event-mik-tr-dl-st-headset':{'name':'Trådlöst headset','price':480,'category':'Ljud'},
-        'live-mik-tr-dl-st-headset':{'name':'Trådlöst headset','price':480,'category':'Ljud'},
-        'music-mik-tr-dl-st-headset':{'name':'Trådlöst headset','price':480,'category':'Ljud'},
-        'portable-mik-tr-dl-st-headset':{'name':'Trådlöst headset','price':480,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-2-mik':{'name':'Shure SLXD – trådlöst system, 2 mik','price':1299,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-2-mik':{'name':'Shure SLXD – trådlöst system, 2 mik','price':1299,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-2-mik':{'name':'Shure SLXD – trådlöst system, 2 mik','price':1299,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-2-mik':{'name':'Shure SLXD – trådlöst system, 2 mik','price':1299,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-1-mik':{'name':'Shure SLXD – trådlöst system, 1 mik','price':699,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-1-mik':{'name':'Shure SLXD – trådlöst system, 1 mik','price':699,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-1-mik':{'name':'Shure SLXD – trådlöst system, 1 mik','price':699,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-1-mik':{'name':'Shure SLXD – trådlöst system, 1 mik','price':699,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-1-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 1 myggmikrofon','price':699,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-1-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 1 myggmikrofon','price':699,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-1-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 1 myggmikrofon','price':699,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-1-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 1 myggmikrofon','price':699,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-1-headset':{'name':'Shure SLXD – trådlöst system, 1 headset','price':749,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-1-headset':{'name':'Shure SLXD – trådlöst system, 1 headset','price':749,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-1-headset':{'name':'Shure SLXD – trådlöst system, 1 headset','price':749,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-1-headset':{'name':'Shure SLXD – trådlöst system, 1 headset','price':749,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-1-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 1 lågprofil headset','price':799,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-1-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 1 lågprofil headset','price':799,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-1-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 1 lågprofil headset','price':799,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-1-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 1 lågprofil headset','price':799,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-2-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 2 myggmikrofon','price':1299,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-2-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 2 myggmikrofon','price':1299,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-2-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 2 myggmikrofon','price':1299,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-2-myggmikrofon':{'name':'Shure SLXD – trådlöst system, 2 myggmikrofon','price':1299,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-2-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 2 lågprofil headset','price':1499,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-2-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 2 lågprofil headset','price':1499,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-2-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 2 lågprofil headset','price':1499,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-2-l-gprofil-headset':{'name':'Shure SLXD – trådlöst system, 2 lågprofil headset','price':1499,'category':'Ljud'},
-        'event-mik-shure-slxd-tr-dl-st-system-2-headset':{'name':'Shure SLXD – trådlöst system, 2 headset','price':1399,'category':'Ljud'},
-        'live-mik-shure-slxd-tr-dl-st-system-2-headset':{'name':'Shure SLXD – trådlöst system, 2 headset','price':1399,'category':'Ljud'},
-        'music-mik-shure-slxd-tr-dl-st-system-2-headset':{'name':'Shure SLXD – trådlöst system, 2 headset','price':1399,'category':'Ljud'},
-        'portable-mik-shure-slxd-tr-dl-st-system-2-headset':{'name':'Shure SLXD – trådlöst system, 2 headset','price':1399,'category':'Ljud'},
-        'event-mik-effektrack-med-matrix-feedback-suppressor':{'name':'Effektrack med matrix & feedback-suppressor','price':1036,'category':'Ljud'},
-        'live-mik-effektrack-med-matrix-feedback-suppressor':{'name':'Effektrack med matrix & feedback-suppressor','price':1036,'category':'Ljud'},
-        'music-mik-effektrack-med-matrix-feedback-suppressor':{'name':'Effektrack med matrix & feedback-suppressor','price':1036,'category':'Ljud'},
-        'portable-mik-effektrack-med-matrix-feedback-suppressor':{'name':'Effektrack med matrix & feedback-suppressor','price':1036,'category':'Ljud'},
-        'event-mik-tr-dl-st-mikrofonset-8-kan':{'name':'Trådlöst mikrofonset 8 kan.','price':3999,'category':'Ljud'},
-        'live-mik-tr-dl-st-mikrofonset-8-kan':{'name':'Trådlöst mikrofonset 8 kan.','price':3999,'category':'Ljud'},
-        'music-mik-tr-dl-st-mikrofonset-8-kan':{'name':'Trådlöst mikrofonset 8 kan.','price':3999,'category':'Ljud'},
-        'portable-mik-tr-dl-st-mikrofonset-8-kan':{'name':'Trådlöst mikrofonset 8 kan.','price':3999,'category':'Ljud'},
-        'mixer-2-2':{'name':'Mixerbord, 2+2 kanaler','price':159,'category':'Ljud'},
-        'mixer-4-2':{'name':'Mixerbord, 4+2 kanaler','price':199,'category':'Ljud'},
-        'mixer-4-4':{'name':'Mixerbord, 4+4 kanaler','price':299,'category':'Ljud'},
-        'mixer-6-4':{'name':'Mixerbord, 6+4 kanaler','price':349,'category':'Ljud'},
-        'ljus-small':{'name':'Ljuspaket, Small','price':399,'category':'Ljus'},
-        'ljus-small-plus':{'name':'Ljuspaket, Small+','price':599,'category':'Ljus'},
-        'ljus-small-pp':{'name':'Ljuspaket, Small++','price':799,'category':'Ljus'},
-        'ljus-medium':{'name':'Ljuspaket, Medium','price':1199,'category':'Ljus'},
-        'ljus-medium-plus':{'name':'Ljuspaket, Medium+','price':1299,'category':'Ljus'},
-        'ljus-medium-pp':{'name':'Ljuspaket, Medium++','price':1499,'category':'Ljus'},
-        'led-par':{'name':'LED PAR (14x8W RGBW)','price':79,'category':'Ljus'},
-        'rokmaskin-1500':{'name':'Rökmaskin (1500W)','price':349,'category':'Ljus'},
-        'konfettiavfyrare':{'name':'Konfettiavfyrare','price':499,'category':'Ljus'},
-        'hazer-hz1500':{'name':'Hazer HZ-1500 Pro (1 st)','price':649,'category':'Ljus'},
-        'hazer-hz1500-2x':{'name':'Hazer HZ-1500 Pro (2 st)','price':1199,'category':'Ljus'},
-        'ackrylatbensin-1l':{'name':'Ackrylatbensin 1 l','price':59,'category':'Ljus tillbehör'},
-        'ackrylatbensin-5l':{'name':'Ackrylatbensin 5 l','price':239,'category':'Ljus tillbehör'},
-        'granulat-100g':{'name':'Granulat 100 g (~3 min)','price':299,'category':'Ljus tillbehör'},
-        'granulat-200g':{'name':'Granulat 200 g (~6 min)','price':479,'category':'Ljus tillbehör'},
-        'rokvatska-1l':{'name':'Rökvätska 1 l','price':119,'category':'Ljus tillbehör'},
-        'rokvatska-3l':{'name':'Rökvätska 3 l','price':239,'category':'Ljus tillbehör'},
-        'rokvatska-5l':{'name':'Rökvätska 5 l','price':319,'category':'Ljus tillbehör'},
-        'rokvatska-5l-haze':{'name':'Rökvätska 5 l (Haze)','price':339,'category':'Ljus tillbehör'},
-        'konfettirör-multi':{'name':'Konfettirör, Multifärg','price':119,'category':'Ljus tillbehör'},
-        'konfettirör-vit':{'name':'Konfettirör, Vit (snö)','price':119,'category':'Ljus tillbehör'},
-        'konfettirör-guld':{'name':'Konfettirör, Guld','price':139,'category':'Ljus tillbehör'},
-        'dj-controller-numark':{'name':'DJ-controller Numark Mixstream Pro+','price':799,'category':'DJ'},
-        'dj-controller-denon-go':{'name':'DJ-controller Denon Prime GO+','price':999,'category':'DJ'},
-        'dj-controller-denon-prime4':{'name':'DJ-controller Denon Prime 4+','price':1499,'category':'DJ'},
-        'dj-rane-system-one':{'name':'DJ-system Rane System One','price':1999,'category':'DJ'},
-        'projektor-xga':{'name':'Projektor (XGA)','price':299,'category':'Bild'},
-        'projektor-fhd':{'name':'Projektor (FHD)','price':399,'category':'Bild'},
-        'skarm-65':{'name':'65" Skärm (4K UHD)','price':2399,'category':'Bild'},
-        'skarm-75':{'name':'75" Skärm (4K UHD)','price':2799,'category':'Bild'},
-      };
+      // Produktregister — auto-genererat från JSON vid build (via window.__SK_PRODUCTS__)
+      const SVEN_PRODUCTS = window.__SK_PRODUCTS__ || {};
 
       function svenAddCartAndGo(ids) {
         let added = 0;
