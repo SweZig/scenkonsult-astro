@@ -190,6 +190,50 @@ sects.push('');
 
 const PRODUKTER_OCH_PRISER = sects.join('\n');
 
+// ── QUOTE_CATALOG (för admin-panelens produktväljare) ─────────────────────────
+function qp(p) {
+  return { id: p.slug || ('scen-' + p.id) || '', name: p.name, price: p.price || 0 };
+}
+const QUOTE_CAT = {};
+const frakt = readJson('frakt.json');
+
+QUOTE_CAT['Scen'] = { products: scenes.products.filter(p=>p.price).map(p=>({id:'scen-'+p.id,name:p.name,price:p.price})) };
+QUOTE_CAT['Scen tillbehör'] = { products: (scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||'scen-acc',name:p.name,price:p.price})) };
+
+QUOTE_CAT['Ljud'] = { sub: {} };
+['event','live','music','portable'].forEach(sec => {
+  const lbl = {event:'Event',live:'Live',music:'Music',portable:'Portable'}[sec];
+  QUOTE_CAT['Ljud'].sub[lbl] = (ljud[sec]?.products||[]).filter(p=>p.slug&&p.price).map(qp);
+});
+QUOTE_CAT['Ljud'].sub['Mixers'] = (ljud.mixers||[]).filter(p=>p.slug&&p.price).map(qp);
+const miksQ = miks.filter(p=>p.slug&&p.price).map(qp);
+if (miksQ.length) QUOTE_CAT['Ljud'].sub['Mikrofoner'] = miksQ;
+
+QUOTE_CAT['Ljus'] = { sub: {} };
+QUOTE_CAT['Ljus'].sub['Färdiga paket'] = (ljus.paket?.products||[]).filter(p=>p.slug&&p.price).map(qp);
+QUOTE_CAT['Ljus'].sub['Effekter']      = (ljus.effekter?.products||[]).filter(p=>p.slug&&p.price).map(qp);
+QUOTE_CAT['Ljus'].sub['Rök & pyro']   = (ljus.rok?.products||[]).filter(p=>p.slug&&p.price).map(qp);
+QUOTE_CAT['Ljus'].sub['Rök tillbehör']= (ljus.rok?.tillbehor||[]).filter(p=>p.slug&&p.price).map(qp);
+QUOTE_CAT['Ljus'].sub['Stativ & tross']= (ljus.stativ?.products||[]).filter(p=>p.slug&&p.price).map(qp);
+
+QUOTE_CAT['DJ'] = { products: Object.values(dj.equipment||{}).filter(p=>p.slug&&p.price).map(qp) };
+QUOTE_CAT['Bild'] = { products: [...(bild.products||[]),...(bild.tillbehor||[])].filter(p=>p.slug&&p.price).map(qp) };
+
+QUOTE_CAT['Tjänster'] = { products: [
+  {id:frakt.leverans.standard.id,   name:'Leverans — Vanlig bil (t&r)',      price:frakt.leverans.standard.pris},
+  {id:frakt.leverans.standard.id+'-e', name:'Leverans — Vanlig bil (enkel)', price:frakt.leverans.standard.enkelresa},
+  {id:frakt.leverans.skrymmande.id, name:'Leverans — Bil med släp (t&r)',    price:frakt.leverans.skrymmande.pris},
+  {id:frakt.leverans.skrymmande.id+'-e',name:'Leverans — Bil med släp (enkel)',price:frakt.leverans.skrymmande.enkelresa},
+  {id:frakt.leverans.lastbil.id,    name:'Leverans — Lastbil (t&r)',         price:frakt.leverans.lastbil.pris},
+  {id:frakt.leverans.lastbil.id+'-e',  name:'Leverans — Lastbil (enkel)',    price:frakt.leverans.lastbil.enkelresa},
+  {id:'montering-tim', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
+  {id:'fakturaavgift-49', name:'Fakturaavgift', price:49},
+  {id:'fakturaavgift-29', name:'Fakturaavgift (reducerad)', price:29},
+]};
+
+const QUOTE_CATALOG_JS = JSON.stringify(QUOTE_CAT);
+const qcCount = Object.values(QUOTE_CAT).reduce((n,v)=>n+(v.products?.length||0)+Object.values(v.sub||{}).reduce((m,a)=>m+a.length,0),0);
+
 // ── Skriv ut-fil ──────────────────────────────────────────────────────────────
 
 const output = `// AUTOGENERERAD — redigera inte manuellt
@@ -198,10 +242,11 @@ const output = `// AUTOGENERERAD — redigera inte manuellt
 
 export const CART_ID_LISTA = ${JSON.stringify(CART_ID_LISTA)};
 export const PRODUKTER_OCH_PRISER = ${JSON.stringify(PRODUKTER_OCH_PRISER)};
+export const QUOTE_CATALOG = ${QUOTE_CATALOG_JS};
 `;
 
 fs.writeFileSync(OUT, output, 'utf8');
 
 const cartCount = cartLines.length;
 const prodCount = sects.filter(l => l.startsWith('-')).length;
-console.log(`✅ _products-generated.js: ${cartCount} cart-IDs, ${prodCount} produktrader`);
+console.log(`✅ _products-generated.js: ${cartCount} cart-IDs, ${prodCount} produktrader, ${qcCount} poster i QUOTE_CATALOG`);
