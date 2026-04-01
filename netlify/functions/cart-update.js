@@ -186,7 +186,7 @@ exports.handler = async (event) => {
 
       // Klick-orderbekräftelse — kund signerar digitalt
       if (body.action === 'customer_confirm') {
-        if (cart.status !== 'confirmed') {
+        if (!['confirmed', 'waiting'].includes(cart.status)) {
           return err('Order måste vara bekräftad av admin innan kunden kan signera', 400);
         }
         if (cart.confirmed_at) {
