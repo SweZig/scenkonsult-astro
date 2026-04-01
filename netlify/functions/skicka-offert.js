@@ -38,7 +38,7 @@ function cartTable(cart) {
   const rows = realItems.map(item => `<tr>
     <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${item.name||''}</td>
     <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${item.quantity||item.qty||1} st</td>
-    <td style="padding:9px 10px;color:#4a3faa;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${item.price?((item.price*(item.quantity||item.qty||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
+    <td style="padding:9px 10px;color:#1e1850;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${item.price?((item.price*(item.quantity||item.qty||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
   </tr>`).join('');
   const total = realItems.reduce((s,i)=>s+((i.price||0)*(i.quantity||i.qty||1)),0);
   const noteRow = noteItem ? `<tr><td colspan="3" style="padding:8px 10px;color:#666;font-size:12px;font-style:italic;border-top:1px solid #f0f0f5;">📝 ${noteItem.name}</td></tr>` : '';
@@ -50,7 +50,7 @@ function cartTable(cart) {
     </tr>${rows}${noteRow}
     <tr style="background:#f0eeff;">
       <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
-      <td style="padding:11px 10px;color:#4a3faa;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
+      <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
     </tr>
   </table>`;
 }
@@ -166,8 +166,8 @@ exports.handler = async (event) => {
     <p style="margin:0 0 20px;color:${isBokning?'#b45309':'#888'};font-size:13px;${isBokning?'font-weight:700;':''}"">${headingNote}</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       ${field('Namn', customer.name)}
-      ${field('E-post', `<a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a>`)}
-      ${field('Telefon', `<a href="tel:${customer.phone}" style="color:#4a3faa;">${customer.phone}</a>`)}
+      ${field('E-post', `<a href="mailto:${customer.email}" style="color:#1e1850;">${customer.email}</a>`)}
+      ${field('Telefon', `<a href="tel:${customer.phone}" style="color:#1e1850;">${customer.phone}</a>`)}
       ${field('Foretag', customer.company)}
       ${field('Datum', datumStr)}
       ${field('Adress', customer.address)}
@@ -175,7 +175,7 @@ exports.handler = async (event) => {
     </table>
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Varukorg</p>
     ${cartTable(cart)}
-    <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#4a3faa;">${customer.email}</a></p>
+    <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#1e1850;">${customer.email}</a></p>
     <p style="margin:12px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Adminpanel →</a></p>`);
 
   try {
@@ -194,8 +194,8 @@ exports.handler = async (event) => {
       try {
         const customerTitle = isBokning ? 'Din bokningsönskan är mottagen' : 'Din offertförfrågan är mottagen';
         const customerIntro = isBokning
-          ? `Vi har tagit emot din bokningsönskan och återkommer vardagar 09:00-17:00 med en bekräftelse. Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.`
-          : `Vi har tagit emot din förfrågan och återkommer vardagar 09:00-17:00 med en offert. Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.`;
+          ? `Vi har tagit emot din bokningsönskan och återkommer vardagar 09:00-17:00 med en bekräftelse. Frågor? Ring oss på <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a>.`
+          : `Vi har tagit emot din förfrågan och återkommer vardagar 09:00-17:00 med en offert. Frågor? Ring oss på <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a>.`;
         const plainCustomer = `Tack, ${customer.name}!\n\n${isBokning?'Vi har tagit emot din bokningsönskan':'Vi har tagit emot din förfrågan'} och aterkommer vardagar 09:00-17:00.\nFragor? Ring oss pa 072-448 10 00.\n\nDin bestallning:\n${cartText(cart)}\n${datumStr?'\nDatum: '+datumStr:''}\n${cartUrl ? 'Följ din order: ' + cartUrl + '\n' : ''}\n---\nScenkonsult Norden | scenkonsult.se`;
         const htmlCustomer = htmlWrapper(customerTitle, `
           <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>

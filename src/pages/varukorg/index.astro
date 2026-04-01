@@ -849,7 +849,24 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       address: document.getElementById('f-address')?.value.trim() || '',
       notes:   document.getElementById('f-notes')?.value.trim() || '',
     };
-    return { cart, subtotal, extras, extraLines, vat, total: subtotal + extras + 49 + vat, customer };
+    // Lägg till tjänster som items i cart-arrayen (syns i mail och admin)
+    const allItems = [...cart];
+    if (document.getElementById('chkLeverans')?.checked) {
+      const lp = calcLev(cart);
+      allItems.push({ id: 'lev-standard', name: 'Leverans & upphämtning (t&r)', price: lp.price, qty: 1, category: 'Tjänster' });
+    }
+    if (document.getElementById('chkMontering')?.checked) {
+      const mp = calcMon(cart);
+      allItems.push({ id: 'montering', name: 'Montering & demontering', price: mp, qty: 1, category: 'Tjänster' });
+    }
+    document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
+      const pris = Number(chk.dataset.pris);
+      const qty  = chk.dataset.qty === 'true' ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent||1) : 1;
+      allItems.push({ id: chk.dataset.id, name: chk.dataset.label, price: pris, qty, category: 'Tillägg' });
+    });
+    allItems.push({ id: 'fakturaavgift-49', name: 'Fakturaavgift', price: 49, qty: 1, category: 'Tjänster' });
+
+    return { cart: allItems, subtotal, extras, extraLines, vat, total: subtotal + extras + 49 + vat, customer };
   }
 
   // ── EMAIL ─────────────────────────────────────────────────

@@ -38,7 +38,7 @@ function cartTable(items) {
     return `<tr>
       <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${i.name}</td>
       <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${qty} st</td>
-      <td style="padding:9px 10px;color:#4a3faa;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${sum.toLocaleString('sv-SE')} kr</td>
+      <td style="padding:9px 10px;color:#1e1850;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${sum.toLocaleString('sv-SE')} kr</td>
     </tr>`;
   }).join('');
   const total = realItems.reduce((s, i) => s + (i.price || 0) * (i.qty || i.quantity || 1), 0);
@@ -50,7 +50,7 @@ function cartTable(items) {
     </tr>${rows}
     <tr style="background:#f0eeff;">
       <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
-      <td style="padding:11px 10px;color:#4a3faa;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
+      <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
     </tr>
   </table>`;
 }
@@ -139,7 +139,7 @@ exports.handler = async (event) => {
     ${datumStr || platsStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">${[datumStr,platsStr].filter(Boolean).join(' &middot; ')}</p>` : ''}
     <p style="margin:28px 0 8px;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Se och bekräfta din offert →</a></p>
     <p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du justera produkter och skicka tillbaka din beställning. Länken är giltig i 21 dagar.</p>
-    <p style="margin:20px 0 0;color:#555;font-size:13px;">Frågor? Kontakta oss gärna på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a> eller svara på detta mail.</p>`;
+    <p style="margin:20px 0 0;color:#555;font-size:13px;">Frågor? Kontakta oss gärna på <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a> eller svara på detta mail.</p>`;
 
   const plainText = `Offert från Scenkonsult Norden\n\nHej ${customer.name}!\n\nVi har satt ihop en offert åt dig. Klicka på länken nedan för att se och bekräfta:\n${cartUrl}\n\n${realItems.map(i=>`${i.name} x${i.qty||1} — ${((i.price||0)*(i.qty||1)).toLocaleString('sv-SE')} kr`).join('\n')}\nTotalt: ${totalExcl.toLocaleString('sv-SE')} kr (exkl. moms)\n${note?.trim()?'\nAnmärkning:\n'+note.trim():''}${datumStr?'\n'+datumStr:''}\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
 

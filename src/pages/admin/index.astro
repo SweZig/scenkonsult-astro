@@ -921,25 +921,42 @@ function renderTab(tab) {
     });
 
     // Save customer info fields
+    // B2B/B2C toggle — show/hide org.nr fields
+    document.querySelectorAll('input[name="ctype"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const b2b = document.querySelector('input[name="ctype"]:checked')?.value === 'b2b';
+        const el = document.getElementById('b2b-fields');
+        if (el) el.style.display = b2b ? 'grid' : 'none';
+      });
+    });
+
     $('save-info-btn')?.addEventListener('click', async () => {
       const btn = $('save-info-btn');
       btn.disabled = true; btn.textContent = '⏳ Sparar…';
       const updates = {
         cart_id:        currentCart.id,
-        customer_name:  $('edit-name')?.value.trim()     || null,
-        customer_email: $('edit-email')?.value.trim()    || null,
-        customer_phone: $('edit-phone')?.value.trim()    || null,
-        event_date:     $('edit-date')?.value            || null,
-        event_location: $('edit-location')?.value.trim() || null,
+        customer_name:    $('edit-name')?.value.trim()     || null,
+        customer_email:   $('edit-email')?.value.trim()    || null,
+        customer_phone:   $('edit-phone')?.value.trim()    || null,
+        event_date:       $('edit-date')?.value            || null,
+        event_location:   $('edit-location')?.value.trim() || null,
+        customer_type:    document.querySelector('input[name="ctype"]:checked')?.value || 'b2c',
+        customer_address: $('edit-address')?.value.trim()  || null,
+        customer_orgnr:   $('edit-orgnr')?.value.trim()    || null,
+        customer_ref:     $('edit-custref')?.value.trim()   || null,
       };
       const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
       if (ok) {
         Object.assign(currentCart, {
-          customer_name:  updates.customer_name,
-          customer_email: updates.customer_email,
-          customer_phone: updates.customer_phone,
-          event_date:     updates.event_date,
-          event_location: updates.event_location,
+          customer_name:    updates.customer_name,
+          customer_email:   updates.customer_email,
+          customer_phone:   updates.customer_phone,
+          event_date:       updates.event_date,
+          event_location:   updates.event_location,
+          customer_type:    updates.customer_type,
+          customer_address: updates.customer_address,
+          customer_orgnr:   updates.customer_orgnr,
+          customer_ref:     updates.customer_ref,
         });
         $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
         toast('Kunduppgifter sparade!');
@@ -1100,7 +1117,19 @@ function renderInfoTab() {
       <span class="${s.cls}" style="font-size:0.85rem;font-weight:600;">${s.icon} ${s.label}</span>
     </div>
 
-    <div class="section-label">Kundinformation</div>
+    <div class="section-label">Kundtyp</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;padding:5px 12px;border-radius:6px;border:1px solid var(--border)">
+        <input type="radio" name="ctype" value="b2c" ${(!c.customer_type||c.customer_type==='b2c')?'checked':''}>
+        👤 Privatperson (B2C)
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.85rem;padding:5px 12px;border-radius:6px;border:1px solid var(--border)">
+        <input type="radio" name="ctype" value="b2b" ${c.customer_type==='b2b'?'checked':''}>
+        🏢 Företag/förening (B2B)
+      </label>
+    </div>
+
+    <div class="section-label">Kontaktuppgifter</div>
     <div class="info-grid">
       <div class="info-field">
         <div class="info-field-label">Namn</div>
@@ -1119,11 +1148,26 @@ function renderInfoTab() {
         <input class="info-edit-input" id="edit-date" type="date" value="${c.event_date||''}" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field" style="grid-column:1/-1">
-        <div class="info-field-label">Plats / Adress</div>
+        <div class="info-field-label">Eventplats / Leveransadress</div>
         <input class="info-edit-input" id="edit-location" value="${(c.event_location||'').replace(/"/g,'&quot;')}" placeholder="Plats / Adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
+      <div class="info-field" style="grid-column:1/-1">
+        <div class="info-field-label">Fakturaadress (om annan)</div>
+        <input class="info-edit-input" id="edit-address" value="${(c.customer_address||'').replace(/"/g,'&quot;')}" placeholder="Gatuadress, postnr, ort" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
     </div>
-    <button class="btn-action" id="save-info-btn" style="margin-top:0.5rem;font-size:0.8rem">💾 Spara kunduppgifter</button>
+
+    <div id="b2b-fields" style="display:${c.customer_type==='b2b'?'grid':'none'}" class="info-grid" onload="">
+      <div class="info-field">
+        <div class="info-field-label">Organisationsnummer</div>
+        <input class="info-edit-input" id="edit-orgnr" value="${(c.customer_orgnr||'').replace(/"/g,'&quot;')}" placeholder="556xxx-xxxx" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">Er referensperson</div>
+        <input class="info-edit-input" id="edit-custref" value="${(c.customer_ref||'').replace(/"/g,'&quot;')}" placeholder="T.ex. Hannah Johansson" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+    </div>
+    <button class="btn-action" id="save-info-btn" style="margin-top:0.75rem;font-size:0.8rem">💾 Spara kunduppgifter</button>
 
     ${c.customer_message ? `
     <div class="section-label">Kundens meddelande</div>
