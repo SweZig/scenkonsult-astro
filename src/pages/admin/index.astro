@@ -1074,7 +1074,15 @@ function prodAddRow() {
 async function prodSave() {
   const btn = document.getElementById('save-items-btn');
   const status = document.getElementById('prod-save-status');
-  const items = prodGetItems();
+  // Hämta produktrader från DOM
+  const prodItems = prodGetItems();
+
+  // Bevara tjänster/tillägg från currentCart (visas ej i tabellen)
+  const SVC_CATS_SAVE = ['Tjänster', 'Tillägg'];
+  const preserved = (currentCart.items || []).filter(i => SVC_CATS_SAVE.includes(i.category));
+
+  const items = [...prodItems, ...preserved];
+
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Sparar…'; }
 
   // Lägg till _note om fältet har innehåll
@@ -1083,7 +1091,7 @@ async function prodSave() {
     items.push({ _note: true, id: '_note', name: noteText, price: 0, qty: 1 });
   }
 
-  const total_excl = Math.round(items.filter(i => !i._note).reduce((s,i) => s + i.price * i.qty, 0) * 100);
+  const total_excl = Math.round(prodItems.filter(i => !i._note).reduce((s,i) => s + i.price * i.qty, 0) * 100);
   const { ok } = await api('cart-update', {
     method: 'POST',
     body: JSON.stringify({ cart_id: currentCart.id, items, total_excl })
@@ -1234,7 +1242,9 @@ function catIcon(category) {
 function renderProductsTab() {
   const allItems = (currentCart.items || []);
   const noteItem = allItems.find(i => i._note);
-  const items = allItems.filter(i => !i._note);
+  const SVC_CATS = ['Tjänster', 'Tillägg'];
+  // Visa enbart riktiga produkter i produkttabellen — tjänster hanteras i Tjänster-sektionen nedan
+  const items = allItems.filter(i => !i._note && !SVC_CATS.includes(i.category));
   const total = items.reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
 
   const rows = items.map((item, idx) => {
