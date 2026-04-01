@@ -849,24 +849,25 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       address: document.getElementById('f-address')?.value.trim() || '',
       notes:   document.getElementById('f-notes')?.value.trim() || '',
     };
-    // Lägg till tjänster som items i cart-arrayen (syns i mail och admin)
-    const allItems = [...cart];
+    // Bygg submitItems för API (produkter + tjänster) — rör INTE cart (localStorage)
+    const submitItems = [...cart];
     if (document.getElementById('chkLeverans')?.checked) {
       const lp = calcLev(cart);
-      allItems.push({ id: 'lev-standard', name: 'Leverans & upphämtning (t&r)', price: lp.price, qty: 1, category: 'Tjänster' });
+      submitItems.push({ id: 'lev-standard', name: 'Leverans & upphämtning (t&r)', price: lp.price, qty: 1, category: 'Tjänster' });
     }
     if (document.getElementById('chkMontering')?.checked) {
       const mp = calcMon(cart);
-      allItems.push({ id: 'montering', name: 'Montering & demontering', price: mp, qty: 1, category: 'Tjänster' });
+      submitItems.push({ id: 'montering', name: 'Montering & demontering', price: mp, qty: 1, category: 'Tjänster' });
     }
     document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
       const pris = Number(chk.dataset.pris);
       const qty  = chk.dataset.qty === 'true' ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent||1) : 1;
-      allItems.push({ id: chk.dataset.id, name: chk.dataset.label, price: pris, qty, category: 'Tillägg' });
+      submitItems.push({ id: chk.dataset.id, name: chk.dataset.label, price: pris, qty, category: 'Tillägg' });
     });
-    allItems.push({ id: 'fakturaavgift-49', name: 'Fakturaavgift', price: 49, qty: 1, category: 'Tjänster' });
+    submitItems.push({ id: 'fakturaavgift-49', name: 'Fakturaavgift', price: 49, qty: 1, category: 'Tjänster' });
 
-    return { cart: allItems, subtotal, extras, extraLines, vat, total: subtotal + extras + 49 + vat, customer };
+    // cart = originalvarukorgen (enbart produkter, påverkar INTE localStorage)
+    return { cart, submitItems, subtotal, extras, extraLines, vat, total: subtotal + extras + 49 + vat, customer };
   }
 
   // ── EMAIL ─────────────────────────────────────────────────
@@ -914,12 +915,14 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart, body: msgBody, intent, sendCopy: true, cart_id: getCartId() }),
+        body: JSON.stringify({ customer, cart: submitItems, body: msgBody, intent, sendCopy: true, cart_id: getCartId() }),
       });
 
       const result = await resp.json();
 
       if (resp.ok && result.ok) {
+        // Rensa varukorgen i localStorage innan redirect
+        try { localStorage.removeItem('sk-cart'); } catch(e) {}
         window.location.href = '/tack/';
       } else {
         alert(result.error || 'Något gick fel, försök igen eller ring oss på 072-448 10 00.');
