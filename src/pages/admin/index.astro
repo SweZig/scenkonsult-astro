@@ -658,6 +658,8 @@ function doLogin() {
   if (!pw) return;
   TOKEN = pw;
   sessionStorage.setItem('sk_admin_token', pw);
+  // Brygga till sitewide badge — aktiveras på publika sidor via localStorage
+  localStorage.setItem('sk_admin_mode', JSON.stringify({ ts: Date.now() }));
   showApp();
 }
 
@@ -670,6 +672,7 @@ function showApp() {
 
 $('logout-btn').addEventListener('click', () => {
   sessionStorage.removeItem('sk_admin_token');
+  localStorage.removeItem('sk_admin_mode');
   location.reload();
 });
 

@@ -2053,6 +2053,7 @@ const localBusinessSchema = {
       localStorage.removeItem(LS_KEY);
       sessionStorage.removeItem(FAIL_KEY);
       sessionStorage.removeItem(LOCK_KEY);
+      sessionStorage.removeItem('sk_admin_token');
       document.body.classList.remove('sk-admin');
       const badge = document.getElementById('sk-admin-badge');
       if (badge) badge.style.display = 'none';
@@ -2145,6 +2146,8 @@ const localBusinessSchema = {
         if (data.ok) {
           sessionStorage.removeItem(FAIL_KEY);
           sessionStorage.removeItem(LOCK_KEY);
+          // Brygga till /admin/ — sparar token så adminpanelen slipper eget login
+          sessionStorage.setItem('sk_admin_token', pw);
           closeModal();
           activateAdmin();
         } else if (data.lockoutSeconds > 0) {
@@ -2166,8 +2169,11 @@ const localBusinessSchema = {
     // ── Init ──────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
 
-      // Återaktivera vid sidladdning om sessionStorage satt
+      // Återaktivera om localStorage-session är aktiv
       if (isAdminActive()) {
+        activateAdmin();
+      } else if (sessionStorage.getItem('sk_admin_token')) {
+        // Kom från /admin/ — aktivera badge utan ny inloggning
         activateAdmin();
       }
 
