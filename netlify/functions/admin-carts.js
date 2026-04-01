@@ -42,11 +42,8 @@ exports.handler = async (event) => {
     };
 
     // Hämta varukorgar
-    // Hämta aktiva carts (ej utgångna) SAMT alla cancelled (sparas 90 dagar, kan ha gammal expires_at)
-    // Använder OR: status=eq.cancelled OR expires_at=gt.now() (eller null)
+    // Hämta alla varukorgar — service key bypasser RLS, inga radfilter behövs
     let q = `${supaUrl}/rest/v1/carts?select=id,status,customer_name,customer_email,event_date,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,created_at,updated_at&order=updated_at.desc`;
-    // Visa alltid: cancelled/betald/confirmed + de som inte gått ut
-    q += `&or=(status.eq.cancelled,status.eq.betald,status.eq.confirmed,expires_at.is.null,expires_at.gt.${new Date().toISOString()})`;
     if (status) q += `&status=eq.${status}`;
     if (from_date) q += `&event_date=gte.${from_date}`;
     if (to_date)   q += `&event_date=lte.${to_date}`;
