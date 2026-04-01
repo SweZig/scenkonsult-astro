@@ -974,6 +974,9 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   // Service events
   document.getElementById('chkLeverans')?.addEventListener('change', updateSummary);
   document.getElementById('chkMontering')?.addEventListener('change', updateSummary);
+  // Admin leverans-override: uppdatera pris live vid val
+  document.getElementById('adminLevType')?.addEventListener('change', updateSummary);
+  document.getElementById('adminLevResor')?.addEventListener('change', updateSummary);
   document.querySelectorAll('.chk-tillagg').forEach(chk => {
     chk.addEventListener('change', function() {
       const w = document.getElementById('qty-wrap-'+this.dataset.id);
