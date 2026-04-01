@@ -36,8 +36,9 @@ function cartTable(cart) {
   const allReal   = cart.filter(i => !i._note);
   const noteItem  = cart.find(i => i._note);
   const SVC_CATS  = ['Tjänster', 'Tillägg'];
-  const prodItems = allReal.filter(i => !SVC_CATS.includes(i.category));
-  const svcItems  = allReal.filter(i => SVC_CATS.includes(i.category));
+  // Fakturaavgift visas ej i offert-mail — enbart på orderbekräftelse/faktura
+  const prodItems = allReal.filter(i => !(i.id && i.id.startsWith('fakturaavgift')));
+  const svcItems  = allReal.filter(i => SVC_CATS.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
 
   const mkRows = items => items.map(item => `<tr>
     <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${item.name||''}</td>
