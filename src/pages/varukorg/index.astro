@@ -913,7 +913,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
 
   // ── EMAIL ─────────────────────────────────────────────────
   async function submitOffert(triggerBtn, intent) {
-    const { cart, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
+    const { cart, submitItems, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
     const isBokning = intent === 'boka';
 
     const prodLines = cart.map(i => `- ${i.name} × ${i.qty}  →  ${(i.price*i.qty).toLocaleString('sv')} kr`).join('\n');
