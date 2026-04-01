@@ -606,6 +606,7 @@ async function confirmOrder() {
       })
     });
     const data = await res.json();
+    console.log('CONFIRM_RESPONSE:', res.status, JSON.stringify(data));
 
     if (res.ok && data.ok) {
       // Update UI — show signed state
@@ -624,7 +625,7 @@ async function confirmOrder() {
           </div>
         </div>`;
     } else {
-      alert(data.error || 'Något gick fel. Försök igen eller kontakta oss.');
+      alert(data.error || data.message || `Fel ${res.status}: Något gick fel. Försök igen eller kontakta oss.`);
       btn.disabled = false;
       btn.textContent = '✅ Bekräfta order';
     }
