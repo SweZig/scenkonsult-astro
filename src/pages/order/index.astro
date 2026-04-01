@@ -610,8 +610,6 @@ async function confirmOrder() {
       })
     });
     const data = await res.json();
-    console.log('CONFIRM_RESPONSE:', res.status, JSON.stringify(data));
-
     if (res.ok && data.ok) {
       // Update UI — show signed state
       const ctaEl = document.getElementById('statusCta');
