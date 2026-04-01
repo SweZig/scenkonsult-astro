@@ -182,8 +182,30 @@ exports.handler = async (event) => {
         });
       }
     } else {
-      // Kund kan bara uppdatera sin anteckning
+      // Kund kan uppdatera sin anteckning eller bekräfta order
       if (body.notes_customer !== undefined) updates.customer_message = body.notes_customer;
+
+      // Klick-orderbekräftelse — kund signerar digitalt
+      if (body.action === 'customer_confirm') {
+        if (cart.status !== 'confirmed') {
+          return err('Order måste vara bekräftad av admin innan kunden kan signera', 400);
+        }
+        if (cart.confirmed_at) {
+          return err('Ordern är redan bekräftad', 409);
+        }
+        const ip = event.headers['x-forwarded-for']?.split(',')[0]?.trim()
+                || event.headers['x-real-ip']
+                || 'unknown';
+        const ua = event.headers['user-agent'] || 'unknown';
+        updates.confirmed_at           = new Date().toISOString();
+        updates.confirmed_ip           = ip;
+        updates.confirmed_user_agent   = ua;
+        updates.confirmation_text      = body.confirmation_text || `Order ${cart.id} bekräftad digitalt`;
+
+        await logAudit(db, cart.id, 'customer', 'order_confirmed_by_customer', {
+          ip, ua, text: updates.confirmation_text
+        });
+      }
     }
 
     if (Object.keys(updates).length === 0) return err('Inga giltiga fält att uppdatera', 400);

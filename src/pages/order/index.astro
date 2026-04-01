@@ -79,11 +79,13 @@ import Layout from '../../layouts/Layout.astro';
     margin-bottom: 2rem;
     border: 1px solid transparent;
   }
-  .status-banner.s-open      { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
-  .status-banner.s-proposal  { background: rgba(96,165,250,0.08);  border-color: rgba(96,165,250,0.2);  }
-  .status-banner.s-waiting   { background: rgba(251,191,36,0.08);  border-color: rgba(251,191,36,0.2);  }
-  .status-banner.s-confirmed { background: rgba(74,222,128,0.08);  border-color: rgba(74,222,128,0.25); }
-  .status-banner.s-cancelled { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.2); }
+  .status-banner.s-open       { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+  .status-banner.s-proposal   { background: rgba(96,165,250,0.08);  border-color: rgba(96,165,250,0.2);  }
+  .status-banner.s-waiting    { background: rgba(251,191,36,0.08);  border-color: rgba(251,191,36,0.2);  }
+  .status-banner.s-confirmed  { background: rgba(74,222,128,0.08);  border-color: rgba(74,222,128,0.25); }
+  .status-banner.s-fakturerad { background: rgba(196,181,244,0.10); border-color: rgba(196,181,244,0.3); }
+  .status-banner.s-betald     { background: rgba(74,222,128,0.10);  border-color: rgba(74,222,128,0.35); }
+  .status-banner.s-cancelled  { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.2); }
   .status-icon { font-size: 2rem; flex-shrink: 0; }
   .status-label {
     font-weight: 700;
@@ -375,11 +377,13 @@ import Layout from '../../layouts/Layout.astro';
 
 <script>
 const STATUS = {
-  open:      { icon: '🛒', label: 'Öppen förfrågan',    desc: 'Vi har tagit emot din förfrågan och återkommer snart.',                  cls: 's-open'      },
-  proposal:  { icon: '📋', label: 'Orderförslag',       desc: 'Vi har tagit emot din förfrågan och arbetar på ett svar till dig.',      cls: 's-proposal'  },
-  waiting:   { icon: '⏳', label: 'Inväntar ditt svar', desc: 'Vi har skickat dig ett förslag — väntar på din bekräftelse.',            cls: 's-waiting'   },
-  confirmed: { icon: '✅', label: 'Order bekräftad!',   desc: 'Ordern är bekräftad. Vi ses på eventet!',                               cls: 's-confirmed' },
-  cancelled: { icon: '❌', label: 'Avbruten',            desc: 'Den här ordern är avbruten. Kontakta oss om du har frågor.',            cls: 's-cancelled' },
+  open:        { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
+  proposal:    { icon: '📤', label: 'Offert skickad',      desc: 'Vi har skickat ett offert — se produkter och priser nedan.',                  cls: 's-proposal'  },
+  waiting:     { icon: '⏳', label: 'Offert klar',         desc: 'Offerten är klar — granska detaljerna nedan och hör av dig om du har frågor.', cls: 's-waiting'   },
+  confirmed:   { icon: '✅', label: 'Order bekräftad',     desc: 'Ordern är bekräftad av Scenkonsult Norden.',                                  cls: 's-confirmed' },
+  fakturerad:  { icon: '🧾', label: 'Faktura skickad',     desc: 'En faktura har skickats till din e-post. Välkommen på eventet!',              cls: 's-fakturerad'},
+  betald:      { icon: '💚', label: 'Betald — klart!',     desc: 'Tack! Betalning mottagen. Vi ses på eventet!',                               cls: 's-betald'    },
+  cancelled:   { icon: '❌', label: 'Avbruten',             desc: 'Den här ordern är avbruten. Kontakta oss om du har frågor.',                  cls: 's-cancelled' },
 };
 
 const fmt     = n  => typeof n === 'number' ? n.toLocaleString('sv-SE') : '–';
@@ -435,24 +439,44 @@ function renderOrder(c) {
   document.getElementById('statusLabel').textContent = s.label;
   document.getElementById('statusDesc').textContent  = s.desc;
 
-  // "Gå till varukorg"-knapp — visas för proposal och waiting
+  // Status-specifikt CTA-block
   const ctaEl = document.getElementById('statusCta');
-  if (c.status === 'proposal' || c.status === 'waiting') {
+  ctaEl.innerHTML = '';
+  ctaEl.style.display = 'none';
+  banner.style.borderRadius = '';
+
+  if (c.status === 'confirmed' && !c.confirmed_at) {
+    // Kund har INTE bekräftat digitalt ännu — visa bekräftelseruta
     banner.style.borderRadius = '12px 12px 0 0';
-    const varuUrl = `/varukorg/?cart=${c.id}&token=${cartToken}`;
+    ctaEl.style.display = '';
+    ctaEl.innerHTML = renderConfirmBox(c);
+  } else if (c.status === 'confirmed' && c.confirmed_at) {
+    // Redan digitalt bekräftad
+    banner.style.borderRadius = '12px 12px 0 0';
+    ctaEl.style.display = '';
+    ctaEl.innerHTML = `
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.4rem">✅</span>
+        <div>
+          <div style="color:rgba(255,255,255,0.9);font-size:0.9rem;font-weight:600">Digitalt bekräftad</div>
+          <div style="color:rgba(255,255,255,0.5);font-size:0.8rem">Du godkände denna order ${fmtTime(c.confirmed_at)}</div>
+        </div>
+      </div>`;
+  } else if (c.status === 'waiting') {
+    // Offert klar — visa "kontakta oss för att bekräfta"
+    banner.style.borderRadius = '12px 12px 0 0';
+    ctaEl.style.display = '';
     ctaEl.innerHTML = `
       <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08);">
-        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0 0 0.875rem;">Vill du justera produkter eller bekräfta ordern? Gå till din varukorg.</p>
-        <a href="${varuUrl}" class="to-cart-btn">
-          🛒 Gå till varukorg →
+        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0 0 0.75rem;">Se detaljerna nedan. Hör av dig om du har frågor eller vill justera något.</p>
+        <a href="tel:0724481000" style="display:inline-flex;align-items:center;gap:6px;background:rgba(196,181,244,0.15);border:1px solid rgba(196,181,244,0.3);color:#c4b5f4;border-radius:8px;padding:0.5rem 1rem;font-size:0.9rem;text-decoration:none;font-family:inherit">
+          📞 Ring oss — 072-448 10 00
         </a>
       </div>`;
-    ctaEl.style.display = '';
-  } else {
-    banner.style.borderRadius = '';
-    ctaEl.style.display = 'none';
-    ctaEl.innerHTML = '';
   }
+
+  // Sätt Cart-objekt globalt för bekräftelseflödet
+  window._currentCart = c;
 
   // Event section
   const fields = [];
@@ -528,6 +552,88 @@ function renderMessages() {
 
   // Scroll to bottom
   setTimeout(() => container.scrollTop = container.scrollHeight, 50);
+}
+
+function renderConfirmBox(c) {
+  const total = (c.items||[]).filter(i=>!i._note).reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+  return `
+    <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08)">
+      <div style="color:rgba(255,255,255,0.9);font-size:0.95rem;font-weight:600;margin-bottom:0.75rem">
+        Bekräfta din order
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.6">
+        Ordern avser <strong style="color:#fff">${c.items?.filter(i=>!i._note).length || 0} produkter</strong>
+        ${c.event_date ? ` för event <strong style="color:#fff">${fmtDate(c.event_date)}</strong>` : ''}
+        ${c.event_location ? ` i <strong style="color:#fff">${c.event_location}</strong>` : ''}.
+        Totalt <strong style="color:#c4b5f4">${Math.round(total*1.25).toLocaleString('sv-SE')} kr inkl. moms</strong>.
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:1rem">
+        <input type="checkbox" id="confirm-tos" onchange="document.getElementById('confirm-btn').disabled=!this.checked"
+          style="margin-top:2px;accent-color:#c4b5f4;width:16px;height:16px;flex-shrink:0">
+        <span style="color:rgba(255,255,255,0.7);font-size:0.85rem;line-height:1.5">
+          Jag har läst och godkänner
+          <a href="/hyresvillkor/" target="_blank" style="color:#c4b5f4">Scenkonsult Nordens allmänna hyresvillkor §1–§15</a>
+          och bekräftar denna order.
+        </span>
+      </label>
+      <button id="confirm-btn" disabled onclick="confirmOrder()"
+        style="width:100%;padding:0.875rem;background:#c4b5f4;color:#0c0a24;border:none;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;transition:opacity .2s;font-family:inherit">
+        ✅ Bekräfta order
+      </button>
+      <p style="color:rgba(255,255,255,0.3);font-size:0.75rem;margin-top:0.75rem;text-align:center">
+        Din bekräftelse loggas med tidsstämpel och IP-adress som bindande avtal.
+      </p>
+    </div>`;
+}
+
+async function confirmOrder() {
+  const btn = document.getElementById('confirm-btn');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = '⏳ Bekräftar…';
+
+  const c = window._currentCart;
+  const confirmationText = `Order ${c.id} bekräftad av kund. Hyresvillkor §1–§15 godkända. Totalt ${(c.items||[]).filter(i=>!i._note).reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0)} kr exkl. moms.`;
+
+  try {
+    const res = await fetch('/.netlify/functions/cart-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token:             cartToken,
+        cart_id:           cartId,
+        action:            'customer_confirm',
+        confirmation_text: confirmationText,
+      })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      // Update UI — show signed state
+      const ctaEl = document.getElementById('statusCta');
+      ctaEl.innerHTML = `
+        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.75rem">
+            <span style="font-size:1.5rem">✅</span>
+            <div>
+              <div style="color:rgba(255,255,255,0.9);font-size:0.95rem;font-weight:700">Order digitalt bekräftad!</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:0.8rem">Tack! Vi bekräftar via e-post och ses på eventet.</div>
+            </div>
+          </div>
+          <div style="font-size:0.8rem;color:rgba(255,255,255,0.3);font-family:monospace">
+            Ref: ${c.id} · ${new Date().toLocaleString('sv-SE')}
+          </div>
+        </div>`;
+    } else {
+      alert(data.error || 'Något gick fel. Försök igen eller kontakta oss.');
+      btn.disabled = false;
+      btn.textContent = '✅ Bekräfta order';
+    }
+  } catch {
+    alert('Nätverksfel — kontrollera din anslutning och försök igen.');
+    btn.disabled = false;
+    btn.textContent = '✅ Bekräfta order';
+  }
 }
 
 async function sendMessage() {
