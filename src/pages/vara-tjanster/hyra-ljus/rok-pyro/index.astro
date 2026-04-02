@@ -6,6 +6,18 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import MediaCard from '../../../../components/MediaCard.astro';
 import ljusData from '../../../../data/ljus.json';
 
+// Volymrad-helper — läser från JSON, inga hårdkodade priser i mallen
+const _rokVolMap: Record<string, {minQty:number,unitPrice:number}[]> = Object.fromEntries(
+  (ljusData.rok?.products ?? [])
+    .filter((p: any) => p.volumePricing?.length)
+    .map((p: any) => [p.artno, p.volumePricing])
+);
+function volRowsRok(artno: string) {
+  const tiers = _rokVolMap[artno];
+  if (!tiers?.length) return [];
+  return [{ label: 'Volympriser', rows: tiers.map((t: any) => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
+}
+
 const forbr = ljusData.rok.tillbehor.filter(t =>
   !t.slug?.startsWith('ackrylatbensin')
 );
@@ -46,9 +58,7 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
         artno="SK-LJS-ROK-0001"
         category="Rök & pyro"
         bullets={["6×3W LED RGB inbyggd","Dimeffekt: 85 m³/min","Strömförbrukning: 1 500 W","Mått: 397×302×191 mm, Vikt: 5 kg","1 L rökvätska ingår"]}
-        rows={[
-          {label:"Volympriser", rows:["1 st – 349 kr","2 st – 649 kr","4 st – 1 249 kr"]},
-        ]}
+        rows={volRowsRok('SK-LJS-ROK-0001')}
       />
 
       <MediaCard
@@ -60,9 +70,7 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
         artno="SK-LJS-ROK-0002"
         category="Rök & pyro"
         bullets={["12×3W LED RGB inbyggd","Dimeffekt: 125 m³/min","Strömförbrukning: 650 W","Vikt: 10 kg","1 L rökvätska ingår"]}
-        rows={[
-          {label:"Volympriser", rows:["1 st – 449 kr","2 st – 849 kr","4 st – 1 699 kr"]},
-        ]}
+        rows={volRowsRok('SK-LJS-ROK-0002')}
       />
 
       <MediaCard
@@ -74,9 +82,7 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
         artno="SK-LJS-ROK-0005"
         category="Rök & pyro"
         bullets={["Finfördelat dis – synliggör ljusstrålar","DMX 512-styrning","Touring flightcase","Stabil kontinuerlig output","Inkl 1 l rökvätska"]}
-        rows={[
-          {label:"Volympriser", rows:["1 st – 649 kr","2 st – 1 199 kr"]},
-        ]}
+        rows={volRowsRok('SK-LJS-ROK-0005')}
       />
 
       <MediaCard
@@ -88,10 +94,7 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
         artno="SK-LJS-ROK-0003"
         category="Rök & pyro"
         bullets={["Cold Spark – säkra gnisteffekter","Effekt: 700 W, förvärmningstid ~4 min","DMX 512, Vikt: 8 kg"]}
-        rows={[
-          {label:"Volympriser", rows:["1 st – 499 kr","2 st – 949 kr","4 st – 1 799 kr"]},
-          {label:"Granulat (drivmedel)", rows:["100 g (~3 min) – 299 kr","200 g (~6 min) – 479 kr"]},
-        ]}
+        rows={[...volRowsRok('SK-LJS-ROK-0003'), {label:"Granulat (drivmedel)", rows:["100 g (~3 min) – 299 kr","200 g (~6 min) – 479 kr"]}]}
       />
 
       <MediaCard

@@ -5,8 +5,26 @@ import MediaCard from '../../../../components/MediaCard.astro';
 import LjusTillbehor from '../../../../components/LjusTillbehor.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
+import ljusData from '../../../../data/ljus.json';
 
 const WP = '/videos';
+
+// Helper: genererar volymrader från JSON – inga hårdkodade priser i mallen
+const _ljusEffekterMap = Object.fromEntries(
+  [...(ljusData.effekter?.products ?? []), ...(ljusData.rok?.products ?? [])]
+    .filter(p => p.volumePricing?.length)
+    .map(p => [p.artno, p.volumePricing])
+);
+function volRows(artno: string) {
+  const tiers = _ljusEffekterMap[artno];
+  if (!tiers?.length) return [];
+  return [{
+    label: 'Volympriser',
+    rows: tiers.map((t: {minQty:number, unitPrice:number}) =>
+      `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`
+    )
+  }];
+}
 
 const ledPar = [
   {
@@ -15,9 +33,7 @@ const ledPar = [
     img: '/images/ljus/pp_ljus_effekt19.png',
     excl: 79,
     videos: [],
-    rows: [
-      { label: 'Volympriser', rows: ['1 st – 79 kr', '4 st – 299 kr', '8 st – 499 kr', '12 st – 699 kr', '24 st – 1 299 kr'] },
-    ],
+    rows: volRows('SK-LJS-EFF-0001'),
     bullets: ['14×8W RGBW, strålv. 16°, 60W','DMX 4/8 kan. eller direktstyrning','Dimmer och stroboskop','Mått 232×225×110 mm, 4 kg'],
   },
   {
@@ -26,9 +42,7 @@ const ledPar = [
     img: '/images/ljus/pp_ljus_effekt26.png',
     excl: 99,
     videos: [`${WP}/9LEDs_PAR_RGBW_MP4.mp4`],
-    rows: [
-      { label: 'Volympriser', rows: ['1 st – 99 kr', '4 st – 349 kr', '8 st – 599 kr'] },
-    ],
+    rows: volRows('SK-LJS-EFF-0002'),
     bullets: ['9×10W RGBW, strålv. 16°, 90W','DMX, fjärrkontroll eller ljudstyrning','Dimmer och stroboskop','Mått 150×150×100 mm, 4 kg'],
   },
   {
@@ -37,9 +51,7 @@ const ledPar = [
     img: '/images/ljus/pp_ljus_effekt21.png',
     excl: 119,
     videos: [],
-    rows: [
-      { label: 'Volympriser', rows: ['1 st – 119 kr', '4 st – 449 kr', '8 st – 799 kr'] },
-    ],
+    rows: volRows('SK-LJS-EFF-0003'),
     bullets: ['36×1W UV-lampor, strålv. 25°, 24W','Fluorescerande färger lyser i mörker','DMX 7 kanaler','Mått 232×225×110 mm, 4 kg'],
   },
   {
@@ -48,9 +60,7 @@ const ledPar = [
     img: '/images/ljus/pp_ljus_par_xl.png',
     excl: 149,
     videos: [`${WP}/PAR-XL.mp4`],
-    rows: [
-      { label: 'Volympriser', rows: ['1 st – 149 kr', '4 st – 499 kr', '8 st – 899 kr'] },
-    ],
+    rows: volRows('SK-LJS-EFF-0004'),
     bullets: ['60×2W RGBW, strålv. 25°, 120W','DMX 8 kanaler','Dimmer och stroboskop','Mått 235×235×65 mm, 4 kg'],
   },
   {
@@ -59,9 +69,7 @@ const ledPar = [
     img: '/images/ljus/pp_ljus_effekt22.png',
     excl: 199,
     videos: [`${WP}/4X18W_RGBWA_UV_Battery.mp4`],
-    rows: [
-      { label: 'Volympriser', rows: ['1 st – 199 kr', '4 st – 749 kr', '8 st – 1 399 kr', '16 st – 2 699 kr'] },
-    ],
+    rows: volRows('SK-LJS-EFF-0005'),
     bullets: ['4×18W RGBWA+UV, IP65 (utomhus OK)','14 tim batteridrift eller nätadapter','Wall wash-effekt, 4×15° strålvinkel','Case 360×260×220 mm, 20 kg'],
   },
   {
@@ -70,9 +78,7 @@ const ledPar = [
     img: '/images/ljus/pp_ljus_effekt07.png',
     excl: 199,
     videos: [`${WP}/stairville_led_bar_240-8_rgb_dmx_30_02_02.mp4`],
-    rows: [
-      { label: 'Volympriser', rows: ['1 st – 199 kr', '4 st – 749 kr', '8 st – 1 399 kr'] },
-    ],
+    rows: volRows('SK-LJS-EFF-0006'),
     bullets: ['240 st 10mm RGB LED, spridn. 30°','Wall wash för bakvägg/backdrop','DMX 2/3/5/24 kanaler','Mått 1064×89×65 mm, 2,6 kg'],
   },
 ];
@@ -84,7 +90,7 @@ const specialEffekter = [
     img: '/images/ljus/pp_ljus_effekt05.png',
     excl: 239,
     videos: [`${WP}/stairville_matrixx-sc-100_dmx_led_03.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 239 kr', '2 st – 399 kr'] }],
+    rows: volRows('SK-LJS-EFF-0007'),
     bullets: ['52×1W LED (RGBW), DMX 4 kanaler','Spegel med snabba rörelser','Mönster och färgvariationer','Mått 425×145×165 mm, 4 kg'],
   },
   {
