@@ -23,17 +23,25 @@ function fmtDate(iso) {
 // ── K-nummer ─────────────────────────────────────────────────────────────────
 async function getOrCreateInvoiceNumber(db, cart) {
   if (cart.invoice_number) return cart.invoice_number;
-  const { data: allCarts } = await db.from('carts')
-    .select('invoice_number')
-    .not('invoice_number', 'is', 'null')
-    .catch(() => ({ data: [] }));
+  // Hämta alla befintliga fakturanummer via REST direkt
+  const supaUrl = process.env.SUPABASE_URL;
+  const supaKey = process.env.SUPABASE_SERVICE_KEY;
   let maxNum = 2009;
-  (allCarts || []).forEach(c => {
-    if (c.invoice_number && c.invoice_number.startsWith('K')) {
-      const n = parseInt(c.invoice_number.slice(1));
-      if (n > maxNum) maxNum = n;
+  try {
+    const res = await fetch(
+      `${supaUrl}/rest/v1/carts?select=invoice_number&invoice_number=not.is.null`,
+      { headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}` } }
+    );
+    if (res.ok) {
+      const rows = await res.json();
+      (rows || []).forEach(c => {
+        if (c.invoice_number && c.invoice_number.startsWith('K')) {
+          const n = parseInt(c.invoice_number.slice(1));
+          if (n > maxNum) maxNum = n;
+        }
+      });
     }
-  });
+  } catch (e) { /* fortsätt med default */ }
   const newNum = 'K' + (maxNum + 1);
   await db.update('carts', { invoice_number: newNum }, 'id', cart.id);
   return newNum;
