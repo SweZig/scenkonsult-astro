@@ -1588,7 +1588,6 @@ async function invCreateAndSend() {
       method: 'POST',
       body: JSON.stringify({ cart_id: currentCart.id })
     });
-    console.log('INVOICE_RESPONSE:', status, JSON.stringify(data));
     if (ok && data.ok) {
       currentCart.status = 'fakturerad';
       currentCart.invoice_sent_at = new Date().toISOString();
