@@ -16,6 +16,7 @@ const WP = '/videos';
 const paket = [
   {
     title: 'Ljuspaket, Small',
+    id: 'ljus-small',
     artno: 'SK-LJS-PAK-0001',
     img: '/images/ljus/pp_ljus_small.png',
     excl: 399,
@@ -25,6 +26,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Small+',
+    id: 'ljus-small-plus',
     artno: 'SK-LJS-PAK-0002',
     img: '/images/ljus/pp_ljus_small_plus.png',
     excl: 599,
@@ -34,6 +36,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Small++',
+    id: 'ljus-small-pp',
     artno: 'SK-LJS-PAK-0003',
     img: '/images/ljus/pp_ljus_small_plusplus.png',
     excl: 799,
@@ -43,6 +46,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Medium',
+    id: 'ljus-medium',
     artno: 'SK-LJS-PAK-0004',
     img: '/images/ljus/pp_ljus_medium.png',
     excl: 1199,
@@ -52,6 +56,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Medium+',
+    id: 'ljus-medium-plus',
     artno: 'SK-LJS-PAK-0005',
     img: '/images/ljus/pp_ljus_medium_plus.png',
     excl: 1299,
@@ -61,6 +66,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Medium++',
+    id: 'ljus-medium-pp',
     artno: 'SK-LJS-PAK-0006',
     img: '/images/ljus/pp_ljus_medium_plusplus.png',
     excl: 1499,
@@ -70,6 +76,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Large',
+    id: 'ljus-large',
     artno: 'SK-LJS-PAK-0007',
     img: '/images/ljus/pp_ljus_large.png',
     excl: 1999,
@@ -79,6 +86,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Large+',
+    id: 'ljus-large-plus',
     artno: 'SK-LJS-PAK-0008',
     img: '/images/ljus/pp_ljus_large_plus.png',
     excl: 2299,
@@ -88,6 +96,7 @@ const paket = [
   },
   {
     title: 'Ljuspaket, Large++',
+    id: 'ljus-large-pp',
     artno: 'SK-LJS-PAK-0009',
     img: '/images/ljus/pp_ljus_large_plusplus.png',
     excl: 2999,
@@ -151,6 +160,7 @@ const paket = [
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {paket.map(p => (
         <MediaCard
+          id={p.id}
           title={p.title}
           images={[p.img]}
           videos={p.videos ?? []}

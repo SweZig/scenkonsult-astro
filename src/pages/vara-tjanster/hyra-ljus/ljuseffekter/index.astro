@@ -24,6 +24,7 @@ function volRows(artno: string) {
 // Hjälpfunktion för att bygga MediaCard-props från JSON-produkt
 function toCard(p: Effekt) {
   return {
+    id: p.slug,        // cart-ID = slug — säkerställer match mot PROD_CATALOG
     title: p.name,
     artno: p.artno,
     img: p.image,

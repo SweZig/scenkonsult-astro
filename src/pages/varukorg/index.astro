@@ -694,6 +694,17 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     return cat;
   }
   const PROD_CATALOG = _buildCatalog();
+  // Sekundärt index på artno — fallback för gamla carts eller om id saknas
+  const PROD_CATALOG_BY_ARTNO = {};
+  for (const [key, val] of Object.entries(PROD_CATALOG)) {
+    if (val.artno) PROD_CATALOG_BY_ARTNO[val.artno] = val;
+  }
+  function _lookupProduct(item) {
+    return PROD_CATALOG[item.id]
+        || PROD_CATALOG_BY_ARTNO[item.artno]
+        || PROD_CATALOG[item.id?.replace(/^mc-/,'')]
+        || {};
+  }
 
   // Genererar volymrader för modal — samma format som produktsidorna
   function _getModalRows(info) {
@@ -710,7 +721,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     // ── PRODUKT-MODAL (globalt via Layout.astro sk-modal) ─────
   function openProductModal(item) {
     if (!window.skModalOpen) return;
-    const info = PROD_CATALOG[item.id] || {};
+    const info = _lookupProduct(item);
     const imgSrc = _getImg(item);
     const artno = item.artno || info.artno || '';
     const specArr = info.includes?.length ? info.includes : (info.desc ? [info.desc] : []);
