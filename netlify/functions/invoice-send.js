@@ -2,52 +2,31 @@
 // POST { cart_id } + Bearer TOKEN
 // 1. Hämtar order från Supabase
 // 2. Sätter K-nummer om det saknas
-// 3. Genererar PDF med pdfmake
+// 3. Genererar PDF med PDFKit
 // 4. Skickar via Resend med PDF som bilaga
 // 5. Uppdaterar invoice_sent_at + status → fakturerad
 
 const { supabase: createSupabase, logAudit } = require('./_lib');
-const PdfPrinter = require('pdfmake');
-const path = require('path');
+const PDFDocument = require('pdfkit');
 
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <noreply@scenkonsult.se>';
-const SITE_URL   = 'https://scenkonsult.se';
 
-// ── Fonts för pdfmake ────────────────────────────────────────────────────────
-// Använder inbyggda standard PDF-fonter (helvetica) — kräver ingen fontfil
-const fonts = {
-  Helvetica: {
-    normal:      'Helvetica',
-    bold:        'Helvetica-Bold',
-    italics:     'Helvetica-Oblique',
-    bolditalics: 'Helvetica-BoldOblique',
-  },
-};
-
-const printer = new PdfPrinter(fonts);
-
-function fmtKr(ore) {
-  // ore = integer, pris i kronor (vi lagrar som kr, inte ören)
-  const n = parseInt(ore) || 0;
-  return n.toLocaleString('sv-SE') + ' kr';
+function fmtKr(n) {
+  return (parseInt(n) || 0).toLocaleString('sv-SE') + ' kr';
 }
-
 function fmtDate(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('sv-SE');
 }
 
-// ── K-nummer — hämta nästa lediga ────────────────────────────────────────────
+// ── K-nummer ─────────────────────────────────────────────────────────────────
 async function getOrCreateInvoiceNumber(db, cart) {
   if (cart.invoice_number) return cart.invoice_number;
-
-  // Hitta högsta befintliga K-nummer
   const { data: allCarts } = await db.from('carts')
     .select('invoice_number')
-    .neq('invoice_number', null)
+    .not('invoice_number', 'is', 'null')
     .catch(() => ({ data: [] }));
-
   let maxNum = 2009;
   (allCarts || []).forEach(c => {
     if (c.invoice_number && c.invoice_number.startsWith('K')) {
@@ -55,207 +34,167 @@ async function getOrCreateInvoiceNumber(db, cart) {
       if (n > maxNum) maxNum = n;
     }
   });
-
   const newNum = 'K' + (maxNum + 1);
   await db.update('carts', { invoice_number: newNum }, 'id', cart.id);
   return newNum;
 }
 
-// ── Bygg PDF-dokument ────────────────────────────────────────────────────────
-function buildInvoicePdf(cart, invoiceNumber, items) {
-  const today      = new Date().toISOString().slice(0, 10);
-  const invDate    = cart.invoice_date || today;
-  const terms      = cart.payment_terms_days || 5;
-  const dueDate    = cart.invoice_due_date || (() => {
-    const d = new Date(invDate);
-    d.setDate(d.getDate() + terms);
-    return d.toISOString().slice(0, 10);
-  })();
-
-  const realItems  = items.filter(i => !i._note);
-  const totalExcl  = realItems.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
-  const vat        = Math.round(totalExcl * 0.25);
-  const totalIncl  = totalExcl + vat;
-
-  const NAVY  = '#1e1850';
-  const LAV   = '#c4b5f4';
-  const GRAY  = '#666666';
-  const BLACK = '#1a1a2e';
-
-  const tableBody = [
-    // Header
-    [
-      { text: 'Produkt / Tjänst', style: 'tableHeader' },
-      { text: 'Antal', style: 'tableHeader', alignment: 'center' },
-      { text: 'À-pris', style: 'tableHeader', alignment: 'right' },
-      { text: 'Delsumma', style: 'tableHeader', alignment: 'right' },
-    ],
-    // Rows
-    ...realItems.map(i => [
-      { text: i.name || '—', fontSize: 9, color: BLACK },
-      { text: String(i.qty || 1), fontSize: 9, color: BLACK, alignment: 'center' },
-      { text: fmtKr(i.price), fontSize: 9, color: BLACK, alignment: 'right' },
-      { text: fmtKr((i.price || 0) * (i.qty || 1)), fontSize: 9, color: BLACK, alignment: 'right' },
-    ]),
-    // Totals
-    [
-      { text: 'Summa exkl. moms', colSpan: 3, fontSize: 9, color: GRAY, alignment: 'right', border: [false, true, false, false] },
-      {}, {},
-      { text: fmtKr(totalExcl), fontSize: 9, color: GRAY, alignment: 'right', border: [false, true, false, false] },
-    ],
-    [
-      { text: 'Moms 25%', colSpan: 3, fontSize: 9, color: GRAY, alignment: 'right', border: [false, false, false, false] },
-      {}, {},
-      { text: fmtKr(vat), fontSize: 9, color: GRAY, alignment: 'right', border: [false, false, false, false] },
-    ],
-    [
-      { text: 'Att betala (inkl. moms)', colSpan: 3, bold: true, fontSize: 11, color: NAVY, alignment: 'right', border: [false, true, false, false] },
-      {}, {},
-      { text: fmtKr(totalIncl), bold: true, fontSize: 11, color: NAVY, alignment: 'right', border: [false, true, false, false] },
-    ],
-  ];
-
-  const docDef = {
-    defaultStyle: { font: 'Helvetica', fontSize: 10, color: BLACK },
-    pageMargins: [50, 60, 50, 60],
-    content: [
-      // Header bar
-      {
-        canvas: [{ type: 'rect', x: -50, y: -60, w: 600, h: 80, color: NAVY }],
-        margin: [0, 0, 0, 0],
-      },
-      // Company name in header
-      {
-        text: 'SCENKONSULT NORDEN',
-        absolutePosition: { x: 50, y: 22 },
-        color: '#ffffff',
-        bold: true,
-        fontSize: 14,
-        font: 'Helvetica',
-      },
-      {
-        text: 'Grimstagatan 164 · 162 58 Vällingby · 072-448 10 00 · scenkonsult.se',
-        absolutePosition: { x: 50, y: 42 },
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 8,
-        font: 'Helvetica',
-      },
-
-      // FAKTURA heading
-      { text: 'FAKTURA', fontSize: 22, bold: true, color: NAVY, margin: [0, 30, 0, 4] },
-
-      // Two-column info block
-      {
-        columns: [
-          {
-            stack: [
-              { text: 'Fakturanummer', color: GRAY, fontSize: 8 },
-              { text: invoiceNumber, bold: true, fontSize: 11, color: NAVY },
-              { text: ' ', fontSize: 4 },
-              { text: 'Fakturadatum', color: GRAY, fontSize: 8 },
-              { text: fmtDate(invDate), fontSize: 10 },
-              { text: ' ', fontSize: 4 },
-              { text: 'Förfallodag', color: GRAY, fontSize: 8 },
-              { text: fmtDate(dueDate), fontSize: 10, bold: true },
-            ],
-          },
-          {
-            stack: [
-              { text: 'Kund', color: GRAY, fontSize: 8 },
-              { text: cart.customer_name || '—', bold: true, fontSize: 11 },
-              cart.customer_orgnr ? { text: 'Org.nr: ' + cart.customer_orgnr, fontSize: 9, color: GRAY } : {},
-              cart.customer_address || cart.event_location
-                ? { text: cart.customer_address || cart.event_location, fontSize: 9, color: GRAY }
-                : {},
-              cart.customer_ref ? { text: 'Er ref: ' + cart.customer_ref, fontSize: 9, color: GRAY } : {},
-              { text: ' ', fontSize: 4 },
-              { text: 'Vår referens', color: GRAY, fontSize: 8 },
-              { text: cart.invoice_ref || 'Per S', fontSize: 9 },
-            ],
-          },
-        ],
-        columnGap: 20,
-        margin: [0, 0, 0, 20],
-      },
-
-      // Event info
-      cart.event_date ? {
-        text: `Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl 15:00  •  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl 11:00`,
-        color: GRAY, fontSize: 9, margin: [0, 0, 0, 12],
-      } : {},
-
-      // Product table
-      {
-        table: {
-          headerRows: 1,
-          widths: ['*', 40, 70, 70],
-          body: tableBody,
-        },
-        layout: {
-          hLineWidth: (i) => i === 0 || i === 1 ? 1 : 0.5,
-          vLineWidth: () => 0,
-          hLineColor: () => '#e0e0e8',
-          fillColor: (i) => i === 0 ? '#f4f4f7' : (i % 2 === 0 ? '#fafafa' : null),
-          paddingLeft: () => 6,
-          paddingRight: () => 6,
-          paddingTop: () => 5,
-          paddingBottom: () => 5,
-        },
-        margin: [0, 0, 0, 20],
-      },
-
-      // Payment info
-      {
-        columns: [
-          {
-            stack: [
-              { text: 'Betalningsinformation', color: GRAY, fontSize: 8, bold: true },
-              { text: 'Bankgiro: 5132-0646', fontSize: 9 },
-              { text: 'Swish: 123 136 59 07', fontSize: 9 },
-              { text: `Betalningsvillkor: ${terms} dagar netto`, fontSize: 9, color: GRAY },
-            ],
-          },
-          {
-            stack: [
-              { text: 'Avsändare', color: GRAY, fontSize: 8, bold: true },
-              { text: 'Scenkonsult Norden (Sigvardsson Consulting AB)', fontSize: 9 },
-              { text: 'Org.nr: 559068-4931', fontSize: 9, color: GRAY },
-              { text: 'Postadress: Vinsta Skolgränd 4, 162 70 Vällingby', fontSize: 9, color: GRAY },
-            ],
-          },
-        ],
-        columnGap: 20,
-      },
-
-      // Footer line
-      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 495, y2: 0, lineWidth: 1, lineColor: LAV }], margin: [0, 20, 0, 8] },
-      {
-        text: 'Tack för ditt förtroende! Frågor? Ring 072-448 10 00 eller maila info@scenkonsult.se',
-        color: GRAY, fontSize: 8, alignment: 'center',
-      },
-    ],
-    styles: {
-      tableHeader: { bold: true, fontSize: 9, color: GRAY, fillColor: '#f4f4f7' },
-    },
-  };
-
-  return docDef;
-}
-
-// ── Generera PDF-buffer ───────────────────────────────────────────────────────
-function generatePdfBuffer(docDef) {
+// ── Generera PDF ─────────────────────────────────────────────────────────────
+function generatePdfBuffer(cart, invoiceNumber) {
   return new Promise((resolve, reject) => {
-    const doc = printer.createPdfKitDocument(docDef);
+    const today   = new Date().toISOString().slice(0,10);
+    const invDate = cart.invoice_date || today;
+    const terms   = cart.payment_terms_days || 5;
+    const dueDate = cart.invoice_due_date || (() => {
+      const d = new Date(invDate); d.setDate(d.getDate() + terms);
+      return d.toISOString().slice(0,10);
+    })();
+
+    const items     = (cart.items || []).filter(i => !i._note && i.name);
+    const totalExcl = items.reduce((s,i) => s + ((i.price||0)*(i.qty||1)), 0);
+    const vat       = Math.round(totalExcl * 0.25);
+    const totalIncl = totalExcl + vat;
+
+    const doc    = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks = [];
     doc.on('data', c => chunks.push(c));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
+
+    const NAVY  = '#1e1850';
+    const LAV   = '#c4b5f4';
+    const GRAY  = '#666666';
+    const W     = 495; // usable width
+
+    // ── Header ──
+    doc.rect(0, 0, 595, 70).fill(NAVY);
+    doc.fillColor('#ffffff').fontSize(16).font('Helvetica-Bold')
+       .text('SCENKONSULT NORDEN', 50, 20);
+    doc.fillColor('rgba(255,255,255,0.6)').fontSize(8).font('Helvetica')
+       .text('Grimstagatan 164 · 162 58 Vällingby · 072-448 10 00 · scenkonsult.se', 50, 42);
+
+    doc.moveDown(3);
+
+    // ── FAKTURA rubrik ──
+    doc.fillColor(NAVY).fontSize(22).font('Helvetica-Bold').text('FAKTURA', 50, 90);
+    doc.moveDown(0.5);
+
+    // ── Info-kolumner ──
+    const infoY = 130;
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Fakturanummer', 50, infoY);
+    doc.fontSize(12).font('Helvetica-Bold').fillColor(NAVY).text(invoiceNumber, 50, infoY + 10);
+
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Fakturadatum', 50, infoY + 30);
+    doc.fontSize(10).font('Helvetica').fillColor('#1a1a2e').text(fmtDate(invDate), 50, infoY + 40);
+
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Förfallodag', 50, infoY + 58);
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a2e').text(fmtDate(dueDate), 50, infoY + 68);
+
+    // Kund (höger kolumn)
+    const cx = 300;
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Kund', cx, infoY);
+    doc.fontSize(12).font('Helvetica-Bold').fillColor('#1a1a2e').text(cart.customer_name || '—', cx, infoY + 10);
+    let ky = infoY + 26;
+    if (cart.customer_orgnr) {
+      doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Org.nr: ' + cart.customer_orgnr, cx, ky);
+      ky += 14;
+    }
+    if (cart.customer_address || cart.event_location) {
+      doc.fontSize(9).fillColor(GRAY).text(cart.customer_address || cart.event_location, cx, ky);
+      ky += 14;
+    }
+    if (cart.customer_ref) {
+      doc.fontSize(9).fillColor(GRAY).text('Er ref: ' + cart.customer_ref, cx, ky);
+      ky += 14;
+    }
+    doc.fontSize(8).fillColor(GRAY).text('Vår referens', cx, ky + 4);
+    doc.fontSize(9).fillColor('#1a1a2e').text(cart.invoice_ref || 'Per S', cx, ky + 14);
+
+    // Eventdatum
+    const tableY = 230;
+    if (cart.event_date) {
+      doc.fontSize(9).font('Helvetica').fillColor(GRAY)
+         .text(`Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl 15:00  ·  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl 11:00`, 50, tableY - 18);
+    }
+
+    // ── Produkttabell ──
+    const colW = [W - 40 - 70 - 70, 40, 70, 70];
+    const cols = [50, 50 + colW[0], 50 + colW[0] + colW[1], 50 + colW[0] + colW[1] + colW[2]];
+
+    // Header
+    doc.rect(50, tableY, W, 20).fill('#f4f4f7');
+    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY);
+    ['Produkt / Tjänst', 'Antal', 'À-pris', 'Delsumma'].forEach((h, i) => {
+      const align = i === 0 ? 'left' : 'right';
+      doc.text(h, cols[i] + 4, tableY + 6, { width: colW[i] - 8, align });
+    });
+
+    // Rows
+    let ry = tableY + 20;
+    items.forEach((item, idx) => {
+      const qty = item.qty || 1;
+      const sum = (item.price || 0) * qty;
+      if (idx % 2 === 1) doc.rect(50, ry, W, 18).fill('#fafafa');
+      doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
+      doc.text(item.name || '—', cols[0] + 4, ry + 4, { width: colW[0] - 8, align: 'left' });
+      doc.text(String(qty), cols[1] + 4, ry + 4, { width: colW[1] - 8, align: 'right' });
+      doc.text(fmtKr(item.price), cols[2] + 4, ry + 4, { width: colW[2] - 8, align: 'right' });
+      doc.text(fmtKr(sum), cols[3] + 4, ry + 4, { width: colW[3] - 8, align: 'right' });
+      ry += 18;
+    });
+
+    // Border
+    doc.rect(50, tableY, W, ry - tableY).stroke('#e0e0e8');
+    doc.moveTo(50, tableY + 20).lineTo(50 + W, tableY + 20).stroke('#e0e0e8');
+
+    // Totals
+    ry += 8;
+    const totals = [
+      ['Summa exkl. moms', fmtKr(totalExcl), GRAY, 'Helvetica'],
+      ['Moms 25%',          fmtKr(vat),       GRAY, 'Helvetica'],
+      ['Att betala inkl. moms', fmtKr(totalIncl), NAVY, 'Helvetica-Bold'],
+    ];
+    totals.forEach(([label, amount, color, font]) => {
+      doc.fontSize(font === 'Helvetica-Bold' ? 11 : 9).font(font).fillColor(color);
+      doc.text(label,  50,   ry, { width: W - 80, align: 'right' });
+      doc.text(amount, 50,   ry, { width: W,      align: 'right' });
+      ry += font === 'Helvetica-Bold' ? 18 : 14;
+    });
+
+    // ── Betalningsinformation ──
+    ry += 20;
+    doc.moveTo(50, ry).lineTo(50 + W, ry).lineWidth(1).stroke(LAV);
+    ry += 12;
+    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Betalningsinformation', 50, ry);
+    ry += 12;
+    doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
+    doc.text('Bankgiro: 5132-0646', 50, ry);
+    doc.text('Swish: 123 136 59 07', 50, ry + 12);
+    doc.text(`Betalningsvillkor: ${terms} dagar netto`, 50, ry + 24, { color: GRAY });
+
+    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, ry);
+    doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e')
+       .text('Scenkonsult Norden (Sigvardsson Consulting AB)', 300, ry + 12)
+       .text('Org.nr: 559068-4931', 300, ry + 24, { fillColor: GRAY })
+       .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, ry + 36, { fillColor: GRAY });
+
+    // Footer
+    const footerY = doc.page.height - 50;
+    doc.moveTo(50, footerY - 10).lineTo(545, footerY - 10).lineWidth(0.5).stroke('#e0e0e8');
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY)
+       .text('Tack för ditt förtroende! Frågor? Ring 072-448 10 00 eller maila info@scenkonsult.se',
+             50, footerY, { width: W, align: 'center' });
+
     doc.end();
   });
 }
 
 // ── Skicka via Resend ─────────────────────────────────────────────────────────
 async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
+  const items     = (cart.items||[]).filter(i=>!i._note && i.name);
+  const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+  const totalIncl = Math.round(totalExcl * 1.25);
+
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
@@ -267,13 +206,9 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber}</h2>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${cart.customer_name || ''}!</p>
-  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Tack för att du valde Scenkonsult Norden. Bifogat finner du faktura <strong>${invoiceNumber}</strong> för din beställning.</p>
-  <p style="color:#444;font-size:14px;margin:0 0 8px;"><strong>Att betala:</strong> ${(() => {
-    const items = (cart.items||[]).filter(i=>!i._note);
-    const t = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
-    return Math.round(t*1.25).toLocaleString('sv-SE') + ' kr';
-  })()}</p>
-  <p style="color:#666;font-size:13px;margin:0 0 20px;">Betalas till Swish 123 136 59 07 eller Bankgiro 5132-0646.</p>
+  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Tack för att du valde Scenkonsult Norden. Bifogat finner du faktura <strong>${invoiceNumber}</strong>.</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Att betala:</strong> ${totalIncl.toLocaleString('sv-SE')} kr (inkl. moms)</p>
+  <p style="color:#666;font-size:13px;margin:0 0 20px;">Bankgiro 5132-0646 · Swish 123 136 59 07</p>
   <p style="color:#888;font-size:12px;margin:0;">Frågor? Ring <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a> eller svara på detta mail.</p>
 </td></tr>
 <tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:16px 32px;text-align:center;">
@@ -282,52 +217,37 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
 </table></td></tr></table>
 </body></html>`;
 
-  const plain = `Faktura ${invoiceNumber} från Scenkonsult Norden\n\nHej ${cart.customer_name||''}!\n\nBifogat finner du faktura ${invoiceNumber}.\n\nFrågor? Ring 072-448 10 00.\n\n---\nScenkonsult Norden`;
+  const plain = `Faktura ${invoiceNumber} från Scenkonsult Norden\n\nHej ${cart.customer_name||''}!\n\nBifogat finner du faktura ${invoiceNumber}.\nAtt betala: ${totalIncl.toLocaleString('sv-SE')} kr\n\nFrågor? Ring 072-448 10 00.\n\n---\nScenkonsult Norden`;
 
   const res = await fetch(RESEND_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
-      from:        FROM,
-      to:          [cart.customer_email],
-      reply_to:    'info@scenkonsult.se',
-      bcc:         ['info@scenkonsult.se'],
-      subject:     `Faktura ${invoiceNumber} — Scenkonsult Norden`,
-      html,
-      text:        plain,
+      from, to: [cart.customer_email],
+      reply_to: 'info@scenkonsult.se',
+      bcc:      ['info@scenkonsult.se'],
+      subject:  `Faktura ${invoiceNumber} — Scenkonsult Norden`,
+      html, text: plain,
       attachments: [{
-        filename:    `Faktura_${invoiceNumber}_Scenkonsult.pdf`,
-        content:     pdfBuffer.toString('base64'),
+        filename: `Faktura_${invoiceNumber}_Scenkonsult.pdf`,
+        content:  pdfBuffer.toString('base64'),
       }],
     }),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Resend ${res.status}: ${err}`);
-  }
+  if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
   return res.json();
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json',
-  };
-
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers, body: '' };
-  }
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
-  }
+  const headers = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
+  if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
   const adminToken = process.env.ADMIN_TOKEN;
   const auth = (event.headers['authorization'] || '').replace('Bearer ', '');
-  if (!adminToken || auth !== adminToken) {
+  if (!adminToken || auth !== adminToken)
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Ej behörig' }) };
-  }
 
   let body;
   try { body = JSON.parse(event.body || '{}'); }
@@ -341,40 +261,20 @@ exports.handler = async (event) => {
 
   try {
     const db = createSupabase();
-
-    // 1. Hämta order
     const { data: cart, error } = await db.from('carts').select('*').eq('id', cart_id).single();
     if (error || !cart) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Order hittades inte' }) };
     if (!cart.customer_email) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Kunden saknar e-postadress' }) };
 
-    // 2. K-nummer
     const invoiceNumber = await getOrCreateInvoiceNumber(db, cart);
-
-    // 3. Generera PDF
-    const items = cart.items || [];
-    const docDef = buildInvoicePdf({ ...cart, invoice_number: invoiceNumber }, invoiceNumber, items);
-    const pdfBuffer = await generatePdfBuffer(docDef);
-
-    // 4. Skicka mail
+    const pdfBuffer     = await generatePdfBuffer({ ...cart, invoice_number: invoiceNumber }, invoiceNumber);
     await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer);
 
-    // 5. Uppdatera DB
     const now = new Date().toISOString();
-    await db.update('carts', {
-      invoice_number:  invoiceNumber,
-      invoice_sent_at: now,
-      status:          'fakturerad',
-    }, 'id', cart_id);
-
+    await db.update('carts', { invoice_number: invoiceNumber, invoice_sent_at: now, status: 'fakturerad' }, 'id', cart_id);
     await logAudit(db, cart_id, 'admin', 'invoice_sent', { invoice_number: invoiceNumber, to: cart.customer_email });
 
-    console.log('INVOICE_SENT:', JSON.stringify({ cart_id, invoice_number: invoiceNumber, to: cart.customer_email }));
-
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ ok: true, invoice_number: invoiceNumber }),
-    };
+    console.log('INVOICE_SENT:', JSON.stringify({ cart_id, invoice_number: invoiceNumber }));
+    return { statusCode: 200, headers, body: JSON.stringify({ ok: true, invoice_number: invoiceNumber }) };
 
   } catch (err) {
     console.error('INVOICE_ERROR:', err.message);
