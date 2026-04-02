@@ -9,200 +9,36 @@ import ljusData from '../../../../data/ljus.json';
 
 const WP = '/videos';
 
-// Helper: genererar volymrader från JSON – inga hårdkodade priser i mallen
-const _ljusEffekterMap = Object.fromEntries(
-  [...(ljusData.effekter?.products ?? []), ...(ljusData.rok?.products ?? [])]
-    .filter(p => p.volumePricing?.length)
-    .map(p => [p.artno, p.volumePricing])
-);
+// Alla produkter läses från JSON — inga hårdkodade produktlistor här
+type Effekt = typeof ljusData.effekter.products[0] & { group?: string; tag?: string; video?: string; volumePricing?: {minQty:number,unitPrice:number}[] };
+const allEffekter = ljusData.effekter.products as unknown as Effekt[];
+
+// Volymrader från JSON — inga hårdkodade priser
 function volRows(artno: string) {
-  const tiers = _ljusEffekterMap[artno];
+  const p = allEffekter.find(x => x.artno === artno);
+  const tiers = p?.volumePricing;
   if (!tiers?.length) return [];
-  return [{
-    label: 'Volympriser',
-    rows: tiers.map((t: {minQty:number, unitPrice:number}) =>
-      `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`
-    )
-  }];
+  return [{ label: 'Volympriser', rows: tiers.map(t => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
 }
 
-const ledPar = [
-  {
-    title: 'LED PAR (14×8W RGBW)',
-    artno: 'SK-LJS-EFF-0001',
-    img: '/images/ljus/pp_ljus_effekt19.png',
-    excl: 79,
-    videos: [],
-    rows: volRows('SK-LJS-EFF-0001'),
-    bullets: ['14×8W RGBW, strålv. 16°, 60W','DMX 4/8 kan. eller direktstyrning','Dimmer och stroboskop','Mått 232×225×110 mm, 4 kg'],
-  },
-  {
-    title: 'LED PAR (9×10W RGBW)',
-    artno: 'SK-LJS-EFF-0002',
-    img: '/images/ljus/pp_ljus_effekt26.png',
-    excl: 99,
-    videos: [`${WP}/9LEDs_PAR_RGBW_MP4.mp4`],
-    rows: volRows('SK-LJS-EFF-0002'),
-    bullets: ['9×10W RGBW, strålv. 16°, 90W','DMX, fjärrkontroll eller ljudstyrning','Dimmer och stroboskop','Mått 150×150×100 mm, 4 kg'],
-  },
-  {
-    title: 'LED PAR UV',
-    artno: 'SK-LJS-EFF-0003',
-    img: '/images/ljus/pp_ljus_effekt21.png',
-    excl: 119,
-    videos: [],
-    rows: volRows('SK-LJS-EFF-0003'),
-    bullets: ['36×1W UV-lampor, strålv. 25°, 24W','Fluorescerande färger lyser i mörker','DMX 7 kanaler','Mått 232×225×110 mm, 4 kg'],
-  },
-  {
-    title: 'LED PAR XL (60×2W RGBW)',
-    artno: 'SK-LJS-EFF-0004',
-    img: '/images/ljus/pp_ljus_par_xl.png',
-    excl: 149,
-    videos: [`${WP}/PAR-XL.mp4`],
-    rows: volRows('SK-LJS-EFF-0004'),
-    bullets: ['60×2W RGBW, strålv. 25°, 120W','DMX 8 kanaler','Dimmer och stroboskop','Mått 235×235×65 mm, 4 kg'],
-  },
-  {
-    title: 'LED Armatur, uppladdningsbar',
-    artno: 'SK-LJS-EFF-0005',
-    img: '/images/ljus/pp_ljus_effekt22.png',
-    excl: 199,
-    videos: [`${WP}/4X18W_RGBWA_UV_Battery.mp4`],
-    rows: volRows('SK-LJS-EFF-0005'),
-    bullets: ['4×18W RGBWA+UV, IP65 (utomhus OK)','14 tim batteridrift eller nätadapter','Wall wash-effekt, 4×15° strålvinkel','Case 360×260×220 mm, 20 kg'],
-  },
-  {
-    title: 'LED Bar',
-    artno: 'SK-LJS-EFF-0006',
-    img: '/images/ljus/pp_ljus_effekt07.png',
-    excl: 199,
-    videos: [`${WP}/stairville_led_bar_240-8_rgb_dmx_30_02_02.mp4`],
-    rows: volRows('SK-LJS-EFF-0006'),
-    bullets: ['240 st 10mm RGB LED, spridn. 30°','Wall wash för bakvägg/backdrop','DMX 2/3/5/24 kanaler','Mått 1064×89×65 mm, 2,6 kg'],
-  },
-];
+// Hjälpfunktion för att bygga MediaCard-props från JSON-produkt
+function toCard(p: Effekt) {
+  return {
+    title: p.name,
+    artno: p.artno,
+    img: p.image,
+    excl: p.price,
+    videos: p.video ? [`${WP}/${p.video}`] : [],
+    rows: volRows(p.artno),
+    bullets: p.includes ?? [],
+    tag: p.tag,
+  };
+}
 
-const specialEffekter = [
-  {
-    title: 'LED Scanner',
-    artno: 'SK-LJS-EFF-0007',
-    img: '/images/ljus/pp_ljus_effekt05.png',
-    excl: 239,
-    videos: [`${WP}/stairville_matrixx-sc-100_dmx_led_03.mp4`],
-    rows: volRows('SK-LJS-EFF-0007'),
-    bullets: ['52×1W LED (RGBW), DMX 4 kanaler','Spegel med snabba rörelser','Mönster och färgvariationer','Mått 425×145×165 mm, 4 kg'],
-  },
-  {
-    title: 'Strobe (2-pack)',
-    artno: 'SK-LJS-EFF-0008',
-    img: '/images/ljus/pp_ljus_effekt04.png',
-    excl: 399,
-    videos: [`${WP}/Stairville-1-Strobe-1500-DMX-Power-Bundle.mp4`],
-    rows: [],
-    bullets: ['1500W Xenon, 0–15 blinkar/sek','0–100% dimning via DMX','DMX 2 kanaler','2 st i transportcase, 4 kg/st'],
-  },
-  {
-    title: 'Laser',
-    artno: 'SK-LJS-EFF-0009',
-    img: '/images/ljus/pp_ljus_effekt06.png',
-    excl: 499,
-    videos: [`${WP}/cameo_wookie-400-RGB.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 499 kr', '2 st – 899 kr'] }],
-    bullets: ['Animeringslaser 400 mW RGB','Anpassar sig automatiskt till musik','DMX 3/9 kanaler, kräver nödstopp','Laserklass 3B, max 500 mW (SE-gräns)'],
-  },
-];
-
-const movingHeads = [
-  {
-    tag: 'Moving Head | Wash',
-    title: 'Moving Head Wash (36×3W RGBW)',
-    artno: 'SK-LJS-EFF-0010',
-    img: '/images/ljus/pp_ljus_effekt10.png',
-    excl: 299,
-    videos: [`${WP}/MH-100.mp4`],
-    rows: [],
-    bullets: ['36×3W RGBW, strålv. 15°','540°/270° panorering/lutning','DMX 9/16 kanaler, LCD-display','Mått 252×314×155 mm, 4,8 kg'],
-  },
-  {
-    tag: 'Moving Head | Wash',
-    title: "Moving Head Wash – Demon's Eye",
-    img: '/images/ljus/pp_ljus_effekt11.png',
-    excl: 299,
-    videos: [`${WP}/Big-Dipper-LM120-introduction-720p.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 299 kr', '2 st – 499 kr', '4 st – 899 kr'] }],
-    bullets: ['285W LED, strålv. 10°–55°','Motoriserad fokus och zoom','540°/270° panorering/lutning','Mått 300×390×180 mm, 7 kg'],
-  },
-  {
-    tag: 'Moving Head | Wash',
-    title: 'Moving Head Wash (19×15W RGBW)',
-    artno: 'SK-LJS-EFF-0012',
-    img: '/images/ljus/pp_ljus_effekt13.png',
-    excl: 399,
-    videos: [`${WP}/LM1915Z.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 399 kr', '2 st – 699 kr', '4 st – 1 299 kr'] }],
-    bullets: ['19×15W RGBW, strålv. 10°–55°','Motoriserad fokus och zoom','540°/270° panorering/lutning','Mått 300×390×180 mm, 7 kg'],
-  },
-  {
-    tag: 'Moving Head | Wash',
-    title: 'Moving Head Wash (19×8W + 60×0,2W RGB)',
-    artno: 'SK-LJS-EFF-0013',
-    img: '/images/ljus/pp_ljus_effekt14.png',
-    excl: 499,
-    videos: [`${WP}/LM1009Z.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 499 kr', '2 st – 899 kr', '4 st – 1 699 kr'] }],
-    bullets: ['19×8W RGBW + 60×0,2W RGB','Strålv. 10°–60°, lux@5m: 10 000','540°/220° panorering/lutning','Mått 325×400×225 mm, 5,9 kg'],
-  },
-  {
-    tag: 'Moving Head | Beam/Spot',
-    title: 'Moving Head Beam/Spot (100W COB)',
-    artno: 'SK-LJS-EFF-0014',
-    img: '/images/ljus/pp_ljus_effekt16.png',
-    excl: 299,
-    videos: [`${WP}/LB100A.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 299 kr', '2 st – 499 kr', '4 st – 899 kr'] }],
-    bullets: ['100W COB LED, strålv. 3°','18 prismor, 7+1 gobos, 7+1 färger','540°/180° panorering/lutning','Mått 280×310×210 mm, 4,7 kg'],
-  },
-  {
-    tag: 'Moving Head | Beam/Spot',
-    title: 'Moving Head Beam/Spot (180W COB)',
-    artno: 'SK-LJS-EFF-0015',
-    img: '/images/ljus/pp_ljus_effekt17.png',
-    excl: 399,
-    videos: [`${WP}/LB230.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 399 kr', '2 st – 699 kr', '4 st – 1 299 kr'] }],
-    bullets: ['180W COB LED, strålv. 3°','6+12 prismor, 7+1 gobos','540°/180° panorering/lutning','Mått 205×305×205 mm, 4,5 kg'],
-  },
-  {
-    tag: 'Moving Head | Beam/Spot',
-    title: 'Moving Head Beam/Spot (230W COB)',
-    artno: 'SK-LJS-EFF-0016',
-    img: '/images/ljus/pp_ljus_effekt18.png',
-    excl: 499,
-    videos: [`${WP}/LB450C.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 499 kr', '2 st – 899 kr', '4 st – 1 699 kr'] }],
-    bullets: ['230W COB + 27×0,5W RGBW LED','18 prismor, 14+1 gobos, 13+1 färger','540°/270° panorering/lutning','Mått 290×450×240 mm, 10,2 kg'],
-  },
-  {
-    tag: 'Moving LED Bar',
-    title: 'Moving LED Bar',
-    artno: 'SK-LJS-EFF-0017',
-    img: '/images/ljus/pp_ljus_effekt09.png',
-    excl: 399,
-    videos: [`${WP}/Betopper_L1015_short_720p.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 399 kr', '2 st – 699 kr'] }],
-    bullets: ['10×15W RGBW 4-i-1 LED','180° spridningsvinkel, strobe 1–30Hz','DMX 7/13/43 kanaler','Mått 985×153×73 mm, 12 kg'],
-  },
-  {
-    tag: 'Moving Head Bar',
-    title: 'Moving Head Bar (4-huvud)',
-    img: '/images/ljus/pp_ljus_effekt08.png',
-    excl: 499,
-    videos: [`${WP}/cameo_hydrabeam_400_4x10W_Cree_rgbw_05.mp4`],
-    rows: [{ label: 'Volympriser', rows: ['1 st – 499 kr', '2 st – 899 kr'] }],
-    bullets: ['4 huvuden oberoende styrning','10W Quad-LED (RGBW), 11° strålv.','540°/270° panorering/lutning','Mått 810×250×130 mm, 7,5 kg'],
-  },
-];
+// Gruppering styrs av group-fältet i JSON
+const ledPar      = allEffekter.filter(p => p.group === 'led-par').map(toCard);
+const specialEffekter = allEffekter.filter(p => p.group === 'special').map(toCard);
+const movingHeads = allEffekter.filter(p => p.group === 'moving-head').map(toCard);
 ---
 <Layout
   title="Hyr Lösa Ljuseffekter Stockholm – LED PAR, Moving Heads & Laser | Scenkonsult"
