@@ -579,9 +579,19 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     }
   }
 
-  // Returnerar rätt enhetspris (kr/st) för given slug+qty, eller null om ingen volympris
-  function resolveUnitPrice(slug, qty) {
-    const tiers = VOL_PRICING[slug];
+  // Sekundärt volymprisindex på artno
+  const VOL_PRICING_BY_ARTNO = {};
+  for (const cat of [_ljusJson.effekter?.products, _ljusJson.rok?.products]) {
+    for (const p of (cat ?? [])) {
+      if (p.artno && p.volumePricing?.length) {
+        VOL_PRICING_BY_ARTNO[p.artno] = p.volumePricing;
+      }
+    }
+  }
+
+  // Returnerar rätt enhetspris för ett cart-item — söker på artno (primär) och slug (fallback)
+  function resolveUnitPrice(slug, qty, artno) {
+    const tiers = VOL_PRICING_BY_ARTNO[artno] || VOL_PRICING[slug];
     if (!tiers?.length) return null;
     let applicable = null;
     for (const t of tiers) {
@@ -593,7 +603,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
   // Applicerar volympriser på hela kundkorgen — anropas vid sidladdning och qty-ändringar
   function applyVolumePricing(cart) {
     return cart.map(item => {
-      const vp = resolveUnitPrice(item.id, item.qty || 1);
+      const vp = resolveUnitPrice(item.id, item.qty || 1, item.artno);
       if (vp !== null && item.price !== vp) return { ...item, price: vp };
       return item;
     });
@@ -846,7 +856,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
         </td>
         <td class="td-price">
           ${fmt(item.price)}
-          ${resolveUnitPrice(item.id, item.qty) !== null && item.qty > 1
+          ${resolveUnitPrice(item.id, item.qty, item.artno) !== null && item.qty > 1
             ? `<div class="vol-badge">Volymrabatt</div>`
             : ''}
         </td>
@@ -877,7 +887,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
         if (!it) return;
         it.qty += btn.dataset.action === 'inc' ? 1 : -1;
         // Applicera volympris om produkten har volymtrappor
-        const newVp = resolveUnitPrice(it.id, it.qty);
+        const newVp = resolveUnitPrice(it.id, it.qty, it.artno);
         if (newVp !== null) it.price = newVp;
         saveCart(c.filter(i => i.qty > 0));
         updateNavBadge(); renderCart(); updateSummary();
