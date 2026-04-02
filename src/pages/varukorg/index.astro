@@ -656,7 +656,16 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     function add(products, category, link) {
       for (const p of (products ?? [])) {
         if (!p.slug) continue;
-        cat[p.slug] = { desc: p.description || '', cat: category, link, includes: p.includes || [], artno: p.artno || '', image: p.image || '' };
+        cat[p.slug] = {
+          desc:    p.description || '',
+          cat:     category,
+          link,
+          includes: p.includes || [],
+          artno:   p.artno || '',
+          image:   p.image || '',
+          videos:  p.video ? ['/videos/' + p.video] : [],
+          volPricing: p.volumePricing || [],
+        };
       }
     }
     // Scen
@@ -677,7 +686,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     for (const p of (_djJson.equipment ?? [])) {
       if (!p.slug) continue;
       const cartId = 'dj-utr-' + p.slug;
-      cat[cartId] = { desc: p.description || '', cat: 'DJ-utrustning', link: '/vara-tjanster/hyra-dj/', includes: p.includes || [], artno: p.artno || '', image: p.image || '' };
+      cat[cartId] = { desc: p.description || '', cat: 'DJ-utrustning', link: '/vara-tjanster/hyra-dj/', includes: p.includes || [], artno: p.artno || '', image: p.image || '', videos: p.video ? ['/videos/' + p.video] : [], volPricing: p.volumePricing || [] };
     }
     // Bild
     add(_bildJson.products,  'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
@@ -685,6 +694,13 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     return cat;
   }
   const PROD_CATALOG = _buildCatalog();
+
+  // Genererar volymrader för modal — samma format som produktsidorna
+  function _getModalRows(info) {
+    const tiers = info?.volPricing;
+    if (!tiers?.length) return [];
+    return [{ label: 'Volympriser', rows: tiers.map(t => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
+  }
 
   function _getImg(item) {
     if (item.image) return item.image;
@@ -702,13 +718,13 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       name:      item.name,
       artno:     artno,
       desc:      specArr.join('||'),
-      rows:      [],
+      rows:      _getModalRows(info),
       price:     item.price,
       priceNote: item.priceNote || '/dygn',
-      category:  item.category || item.cat || '',
+      category:  item.category || info.cat || '',
       cartId:    item.id,
       images:    imgSrc ? [imgSrc] : [],
-      videos:    [],
+      videos:    info.videos || [],
       persons:   '',
     });
   }
