@@ -1516,16 +1516,17 @@ function renderFakturaTab() {
       <div>
         <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Fakturadatum</div>
         <input id="inv-date" type="date" value="${c.invoice_date || new Date().toISOString().slice(0,10)}"
+          onchange="invUpdateDueDate()"
           style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
       </div>
       <div>
         <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Förfallodag</div>
-        <input id="inv-due" type="date" value="${c.invoice_due_date || ''}"
+        <input id="inv-due" type="date" value="${(() => { if (c.invoice_due_date) return c.invoice_due_date; const d = new Date((c.invoice_date || new Date().toISOString().slice(0,10))); d.setDate(d.getDate() + (c.payment_terms_days||5)); return d.toISOString().slice(0,10); })()}"
           style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
       </div>
       <div>
         <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Betalningsvillkor</div>
-        <select id="inv-terms" style="width:100%;font-size:0.78rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+        <select id="inv-terms" onchange="invUpdateDueDate()" style="width:100%;font-size:0.78rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
           <option value="5" ${(c.payment_terms_days||5)==5?'selected':''}>5 dagar netto</option>
           <option value="10" ${(c.payment_terms_days||5)==10?'selected':''}>10 dagar netto</option>
           <option value="20" ${(c.payment_terms_days||5)==20?'selected':''}>20 dagar netto</option>
@@ -1558,11 +1559,51 @@ function renderFakturaTab() {
 
     <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn-action" onclick="invSaveFields()" style="font-size:0.8rem">💾 Spara uppgifter</button>
-      <button class="btn-action" onclick="toast('PDF-generering kommer i nästa version','error')" style="font-size:0.8rem">🖨 Förhandsgranska PDF</button>
-      <button class="btn-action" onclick="invSendEmail()" style="font-size:0.8rem;border-color:var(--brand-lav);color:var(--brand-lav)">📧 Skicka faktura via mail</button>
-      ${!isPaid ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
+      <button class="btn-action btn-success" onclick="invCreateAndSend()" style="font-size:0.8rem" ${isSent||isPaid?'disabled':''}>🧾 Skapa &amp; skicka faktura</button>
+      ${!isPaid && isSent ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
     </div>
   `;
+}
+
+function invUpdateDueDate() {
+  const dateEl  = document.getElementById('inv-date');
+  const dueEl   = document.getElementById('inv-due');
+  const termsEl = document.getElementById('inv-terms');
+  if (!dateEl || !dueEl || !termsEl) return;
+  const base = new Date(dateEl.value || new Date().toISOString().slice(0,10));
+  const days = parseInt(termsEl.value) || 5;
+  base.setDate(base.getDate() + days);
+  dueEl.value = base.toISOString().slice(0,10);
+}
+
+async function invCreateAndSend() {
+  if (!currentCart.customer_email) { toast('Kunden saknar e-postadress', 'error'); return; }
+  if (!confirm(`Skapa och skicka faktura till ${currentCart.customer_email}?`)) return;
+  // Spara uppgifter först
+  await invSaveFields();
+  const btn = document.querySelector('[onclick="invCreateAndSend()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Skapar faktura…'; }
+  try {
+    const { ok, data } = await api('invoice-send', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: currentCart.id })
+    });
+    if (ok && data.ok) {
+      currentCart.status = 'fakturerad';
+      currentCart.invoice_sent_at = new Date().toISOString();
+      currentCart.invoice_number = data.invoice_number;
+      toast('Faktura ' + data.invoice_number + ' skapad och skickad! 📧');
+      await loadCarts();
+      renderTab('faktura');
+      renderPanelFooter();
+    } else {
+      toast(data?.error || 'Fel vid fakturering', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '🧾 Skapa & skicka faktura'; }
+    }
+  } catch (e) {
+    toast('Nätverksfel: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '🧾 Skapa & skicka faktura'; }
+  }
 }
 
 async function invSaveFields() {
@@ -1651,7 +1692,6 @@ function renderPanelFooter() {
     makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
   } else if (c.status === 'confirmed') {
     makeBtn('🧾 Skapa faktura', 'btn-success', () => renderTab('faktura'));
-    makeBtn('📩 Skicka notis', '', sendCustomerNotice);
   } else if (c.status === 'fakturerad') {
     makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
     makeBtn('📩 Påminn om betalning', '', sendCustomerNotice);
@@ -2160,6 +2200,8 @@ window.prodSaveAndSendOffer= prodSaveAndSendOffer;
 window.invMarkPaid         = invMarkPaid;
 window.invSendEmail        = invSendEmail;
 window.invSaveFields       = invSaveFields;
+window.invUpdateDueDate    = invUpdateDueDate;
+window.invCreateAndSend    = invCreateAndSend;
 window.openPanel       = openDetail;
 window.closePanel      = closePanel;
 window.sendMessage     = sendMessage;
