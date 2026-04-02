@@ -1,4 +1,4 @@
-import"./hoisted.SuWTwZrV.js";if(!window.__mcInit){let d=function(e){const o=r[e];if(!o)return;const t=document.getElementById(`${e}-area`),i=document.getElementById(`${e}-dots`);if(!t)return;const n=o.slides[o.current],c=n.type==="video",s=t.querySelector("video");s&&(s.pause(),s.src=""),c?(t.innerHTML=`
+import"./hoisted.BBHk1fT0.js";if(!window.__mcInit){let d=function(e){const o=r[e];if(!o)return;const t=document.getElementById(`${e}-area`),i=document.getElementById(`${e}-dots`);if(!t)return;const n=o.slides[o.current],c=n.type==="video",s=t.querySelector("video");s&&(s.pause(),s.src=""),c?(t.innerHTML=`
         <video
           src="${n.src}"
           autoplay

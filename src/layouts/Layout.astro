@@ -1254,6 +1254,8 @@ const localBusinessSchema = {
             const msg = proactiveMsg ||
               "Hej! Sven här — intendent på Scenkonsult sedan 1986. Hade jag fått bestämma hade jag stått på scenen nu, men livet tar sina svängar. 🎭\n\nFörst — hyr ni åt ett **företag**, som **privatperson** eller är ni en **förening/organisation**? Det styr om jag visar priser med eller utan moms.";
             addBubble("bot", msg);
+            // Spara greeting i history så restoreHistory kan visa det vid sidnavigering
+            history.push({ role: "assistant", content: msg });
             // Vid proaktiv öppning: enkla Ja/Nej-knappar istället för momsval
             if (isProactive) {
               renderChips(["Ja tack, gärna! 🙌", "Nej tack, jag klarar mig"]);
