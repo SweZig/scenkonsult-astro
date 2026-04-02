@@ -1584,10 +1584,11 @@ async function invCreateAndSend() {
   const btn = document.querySelector('[onclick="invCreateAndSend()"]');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Skapar faktura…'; }
   try {
-    const { ok, data } = await api('invoice-send', {
+    const { ok, data, status } = await api('invoice-send', {
       method: 'POST',
       body: JSON.stringify({ cart_id: currentCart.id })
     });
+    console.log('INVOICE_RESPONSE:', status, JSON.stringify(data));
     if (ok && data.ok) {
       currentCart.status = 'fakturerad';
       currentCart.invoice_sent_at = new Date().toISOString();
@@ -1597,7 +1598,7 @@ async function invCreateAndSend() {
       renderTab('faktura');
       renderPanelFooter();
     } else {
-      toast(data?.error || 'Fel vid fakturering', 'error');
+      toast(data?.error || `Fel ${status} vid fakturering`, 'error');
       if (btn) { btn.disabled = false; btn.textContent = '🧾 Skapa & skicka faktura'; }
     }
   } catch (e) {
