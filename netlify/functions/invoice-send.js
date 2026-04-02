@@ -223,7 +223,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
-      from, to: [cart.customer_email],
+      from: FROM, to: [cart.customer_email],
       reply_to: 'info@scenkonsult.se',
       bcc:      ['info@scenkonsult.se'],
       subject:  `Faktura ${invoiceNumber} — Scenkonsult Norden`,
@@ -277,7 +277,7 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true, invoice_number: invoiceNumber }) };
 
   } catch (err) {
-    console.error('INVOICE_ERROR:', err.message);
+    console.error('INVOICE_ERROR:', err.message, err.stack);
     return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
   }
 };
