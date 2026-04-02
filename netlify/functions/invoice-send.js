@@ -278,7 +278,16 @@ exports.handler = async (event) => {
     await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer);
 
     const now = new Date().toISOString();
-    await db.update('carts', { invoice_number: invoiceNumber, invoice_sent_at: now, status: 'fakturerad' }, 'id', cart_id);
+    // Uppdatera invoice-fält (undviker ENUM-cast problem genom att separera status)
+    await db.update('carts', { invoice_number: invoiceNumber, invoice_sent_at: now }, 'id', cart_id);
+    // Status separat via raw PATCH
+    const supaUrl = process.env.SUPABASE_URL;
+    const supaKey = process.env.SUPABASE_SERVICE_KEY;
+    await fetch(`${supaUrl}/rest/v1/carts?id=eq.${encodeURIComponent(cart_id)}`, {
+      method: 'PATCH',
+      headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'fakturerad' })
+    });
     await logAudit(db, cart_id, 'admin', 'invoice_sent', { invoice_number: invoiceNumber, to: cart.customer_email });
 
     console.log('INVOICE_SENT:', JSON.stringify({ cart_id, invoice_number: invoiceNumber }));
