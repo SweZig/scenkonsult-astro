@@ -28,31 +28,94 @@ function htmlWrapper(bodyHtml) {
 </table></td></tr></table></body></html>`;
 }
 
-function cartTable(items) {
-  const realItems = items.filter(i => !i._note && i.name);
-  if (realItems.length === 0) return '<p style="color:#888;">Inga produkter angivna.</p>';
-  const rows = realItems.map(i => {
-    const qty   = i.qty || i.quantity || 1;
-    const price = i.price || 0;
-    const sum   = price * qty;
-    return `<tr>
-      <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${i.name}</td>
-      <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${qty} st</td>
-      <td style="padding:9px 10px;color:#1e1850;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${sum.toLocaleString('sv-SE')} kr</td>
+
+function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
+  const SVC_CATS = ['Tjänster', 'Tillägg'];
+  const allReal  = (cart || []).filter(i => !i._note && i.name);
+
+  const prodItems = allReal.filter(i =>
+    !SVC_CATS.includes(i.category) &&
+    !(i.id && i.id.startsWith('fakturaavgift'))
+  );
+  const svcItems  = allReal.filter(i =>
+    SVC_CATS.includes(i.category) &&
+    !(i.id && i.id.startsWith('fakturaavgift'))
+  );
+  const feeItem   = showFakturaavgift
+    ? allReal.find(i => i.id && i.id.startsWith('fakturaavgift'))
+    : null;
+  const noteItem  = (cart || []).find(i => i._note);
+
+  const qty  = i => i.quantity || i.qty || 1;
+  const sum  = i => (i.price || 0) * qty(i);
+  const fmtN = n => n.toLocaleString('sv-SE');
+
+  const mkRow = i => `<tr>
+    <td style="padding:8px 10px;color:#222;font-size:13px;border-bottom:1px solid #f0f0f5;">${i.name}</td>
+    <td style="padding:8px 10px;color:#666;font-size:13px;text-align:center;border-bottom:1px solid #f0f0f5;">${qty(i)} st</td>
+    <td style="padding:8px 10px;color:#333;font-size:13px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${fmtN(sum(i))} kr</td>
+  </tr>`;
+
+  const prodTotal = prodItems.reduce((s, i) => s + sum(i), 0);
+  const svcTotal  = svcItems.reduce((s, i) => s + sum(i), 0);
+  const feeTotal  = feeItem ? sum(feeItem) : 0;
+  const grandExcl = prodTotal + svcTotal + feeTotal;
+  const moms      = Math.round(grandExcl * 0.25);
+  const grandIncl = grandExcl + moms;
+
+  const noteRow = noteItem
+    ? `<tr><td colspan="3" style="padding:6px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${noteItem.name}</td></tr>`
+    : '';
+
+  const subHeader = (label, bg = '#f7f7fb') =>
+    `<tr><td colspan="3" style="padding:6px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;background:${bg};">${label}</td></tr>`;
+
+  const subtotalRow = (label, amount, bg, color) =>
+    `<tr style="background:${bg};">
+      <td colspan="2" style="padding:9px 10px;font-weight:700;font-size:13px;color:${color};">${label}</td>
+      <td style="padding:9px 10px;font-weight:700;font-size:13px;text-align:right;color:${color};">${fmtN(amount)} kr</td>
     </tr>`;
-  }).join('');
-  const total = realItems.reduce((s, i) => s + (i.price || 0) * (i.qty || i.quantity || 1), 0);
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;">
+
+  let html = `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;font-family:Arial,sans-serif;">
     <tr style="background:#f7f7fb;">
-      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt</th>
-      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
-      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
-    </tr>${rows}
-    <tr style="background:#ddd6f5;">
-      <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Totalt (exkl. moms)</td>
-      <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${total.toLocaleString('sv-SE')} kr</td>
-    </tr>
-  </table>`;
+      <th style="padding:8px 10px;color:#888;font-size:11px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt / Tjänst</th>
+      <th style="padding:8px 10px;color:#888;font-size:11px;text-align:center;font-weight:600;text-transform:uppercase;width:50px;">Antal</th>
+      <th style="padding:8px 10px;color:#888;font-size:11px;text-align:right;font-weight:600;text-transform:uppercase;width:90px;">Pris exkl.</th>
+    </tr>`;
+
+  if (prodItems.length > 0) {
+    html += subHeader('Utrustning');
+    html += prodItems.map(mkRow).join('');
+    html += noteRow;
+    html += subtotalRow('Utrustning exkl. moms', prodTotal, '#ddd6f5', '#1e1850');
+  }
+
+  if (svcItems.length > 0) {
+    html += subHeader('Tilläggstjänster');
+    html += svcItems.map(mkRow).join('');
+    html += subtotalRow('Tjänster exkl. moms (estimat)', svcTotal, '#fff8ec', '#92400e');
+  }
+
+  if (feeItem) {
+    html += subHeader('Fakturaavgift');
+    html += mkRow(feeItem);
+  }
+
+  html += `<tr style="background:#f0f0f0;">
+    <td colspan="2" style="padding:8px 10px;color:#555;font-size:12px;">Moms 25%</td>
+    <td style="padding:8px 10px;text-align:right;color:#555;font-size:12px;">${fmtN(moms)} kr</td>
+  </tr>
+  <tr style="background:#1e1850;">
+    <td colspan="2" style="padding:12px 10px;color:#fff;font-weight:700;font-size:15px;">TOTALT inkl. moms</td>
+    <td style="padding:12px 10px;text-align:right;color:#c4b5f4;font-weight:700;font-size:15px;">${fmtN(grandIncl)} kr</td>
+  </tr>`;
+
+  if (svcItems.length > 0) {
+    html += `<tr><td colspan="3" style="padding:6px 10px;color:#b45309;font-size:11px;">⚠ Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</td></tr>`;
+  }
+
+  html += '</table>';
+  return html;
 }
 
 async function sendEmail(apiKey, payload) {

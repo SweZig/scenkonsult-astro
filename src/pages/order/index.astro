@@ -490,13 +490,24 @@ function renderOrder(c) {
     ).join('');
   }
 
-  // Products
-  const items   = c.items || [];
+  // Products — separera produkter och tjänster, visa samlad total inkl. moms
+  const SVC_CATS_ORDER = ['Tjänster', 'Tillägg'];
+  const items     = c.items || [];
   const realItems = items.filter(i => !i._note);
   const noteItem  = items.find(i => i._note);
-  const subtotal = realItems.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);
-  document.getElementById('prodTableBody').innerHTML = realItems.map(i => {
-    const qty   = i.qty || i.quantity || 1;
+  const prodItems = realItems.filter(i => !SVC_CATS_ORDER.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
+  const svcItems  = realItems.filter(i => SVC_CATS_ORDER.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
+  const feeItem   = realItems.find(i => i.id && i.id.startsWith('fakturaavgift'));
+
+  const prodTotal = prodItems.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);
+  const svcTotal  = svcItems.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);
+  const feeTotal  = feeItem ? (feeItem.price||0) * (feeItem.qty||1) : 0;
+  const grandExcl = prodTotal + svcTotal + feeTotal;
+  const moms      = Math.round(grandExcl * 0.25);
+  const grandIncl = grandExcl + moms;
+
+  const mkRow = i => {
+    const qty = i.qty || i.quantity || 1;
     const imgSrc = PROD_IMG[i.id] || PROD_IMG[(i.id||'').replace(/^(scen-|ljud-|ljus-|dj-utr-)/,'')] || null;
     const imgCell = imgSrc
       ? `<img src="${imgSrc}" alt="${i.name||''}" class="prod-thumb" loading="lazy" onerror="this.parentNode.innerHTML='<div class=prod-thumb-ph>📦</div>'">`
@@ -508,19 +519,37 @@ function renderOrder(c) {
       <td style="text-align:right">${fmt(i.price)} kr</td>
       <td style="text-align:right" class="prod-total">${fmt((i.price||0)*qty)} kr</td>
     </tr>`;
-  }).join('') + (noteItem ? `<tr class="prod-note-row"><td colspan="5">📝 ${noteItem.name}</td></tr>` : '');
+  };
+
+  const sepRow = label => `<tr><td colspan="5" style="padding:4px 0.75rem 2px;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.45);font-weight:700;border-top:1px dashed rgba(255,255,255,0.08)">${label}</td></tr>`;
+  const subRow = (label, amount, color) => `<tr><td></td><td colspan="3" style="padding:6px 0.5rem;font-size:0.8rem;color:${color};font-weight:600">${label}</td><td style="text-align:right;padding:6px 0.5rem;font-size:0.8rem;color:${color};font-weight:600">${fmt(amount)} kr</td></tr>`;
+
+  let rows = '';
+  if (prodItems.length > 0) {
+    rows += sepRow('Utrustning');
+    rows += prodItems.map(mkRow).join('');
+    if (noteItem) rows += `<tr class="prod-note-row"><td colspan="5">📝 ${noteItem.name}</td></tr>`;
+    rows += subRow('Utrustning exkl. moms', prodTotal, 'rgba(196,181,244,0.7)');
+  }
+  if (svcItems.length > 0) {
+    rows += sepRow('Tilläggstjänster');
+    rows += svcItems.map(mkRow).join('');
+    rows += subRow('Tjänster exkl. moms', svcTotal, 'rgba(251,191,36,0.7)');
+  }
+  if (feeItem) {
+    rows += sepRow('Fakturaavgift');
+    rows += mkRow(feeItem);
+  }
+
+  document.getElementById('prodTableBody').innerHTML = rows;
   document.getElementById('prodTableFoot').innerHTML = `
-    <tr class="total-row">
-      <td></td>
-      <td colspan="2">Totalt exkl. moms</td>
-      <td></td>
-      <td style="text-align:right" class="grand-total">${fmt(subtotal)} kr</td>
+    <tr style="border-top:1px solid rgba(255,255,255,0.1)">
+      <td></td><td colspan="2" style="padding:6px 0.5rem;color:rgba(255,255,255,0.4);font-size:0.82rem">Moms 25%</td>
+      <td></td><td style="text-align:right;padding:6px 0.5rem;color:rgba(255,255,255,0.4);font-size:0.82rem">${fmt(moms)} kr</td>
     </tr>
-    <tr>
-      <td></td>
-      <td colspan="2" style="color:rgba(255,255,255,0.3);font-size:0.82rem">Inkl. 25% moms</td>
-      <td></td>
-      <td style="text-align:right;color:rgba(255,255,255,0.4);font-size:0.85rem">${fmt(Math.round(subtotal*1.25))} kr</td>
+    <tr class="total-row">
+      <td></td><td colspan="2">TOTALT inkl. moms</td>
+      <td></td><td style="text-align:right" class="grand-total">${fmt(grandIncl)} kr</td>
     </tr>`;
 }
 

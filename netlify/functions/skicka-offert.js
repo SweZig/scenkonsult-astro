@@ -31,47 +31,94 @@ function htmlWrapper(title, bodyHtml) {
 </table></td></tr></table></body></html>`;
 }
 
-function cartTable(cart) {
-  if (!cart || cart.length === 0) return '<p style="color:#888;">Ingen utrustning angiven.</p>';
-  const allReal   = cart.filter(i => !i._note);
-  const noteItem  = cart.find(i => i._note);
-  const SVC_CATS  = ['Tjänster', 'Tillägg'];
-  // Fakturaavgift visas ej i offert-mail — enbart på orderbekräftelse/faktura
-  const prodItems = allReal.filter(i => !(i.id && i.id.startsWith('fakturaavgift')));
-  const svcItems  = allReal.filter(i => SVC_CATS.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
 
-  const mkRows = items => items.map(item => `<tr>
-    <td style="padding:9px 10px;color:#222;font-size:14px;border-bottom:1px solid #f0f0f5;">${item.name||''}</td>
-    <td style="padding:9px 10px;color:#666;font-size:14px;text-align:center;border-bottom:1px solid #f0f0f5;">${item.quantity||item.qty||1} st</td>
-    <td style="padding:9px 10px;color:#1e1850;font-size:14px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${item.price?((item.price*(item.quantity||item.qty||1)).toLocaleString('sv-SE')+' kr'):'–'}</td>
-  </tr>`).join('');
+function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
+  const SVC_CATS = ['Tjänster', 'Tillägg'];
+  const allReal  = (cart || []).filter(i => !i._note && i.name);
 
-  const prodTotal = prodItems.reduce((s,i)=>s+((i.price||0)*(i.quantity||i.qty||1)),0);
-  const svcTotal  = svcItems.reduce((s,i)=>s+((i.price||0)*(i.quantity||i.qty||1)),0);
-  const noteRow   = noteItem ? `<tr><td colspan="3" style="padding:8px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${noteItem.name}</td></tr>` : '';
+  const prodItems = allReal.filter(i =>
+    !SVC_CATS.includes(i.category) &&
+    !(i.id && i.id.startsWith('fakturaavgift'))
+  );
+  const svcItems  = allReal.filter(i =>
+    SVC_CATS.includes(i.category) &&
+    !(i.id && i.id.startsWith('fakturaavgift'))
+  );
+  const feeItem   = showFakturaavgift
+    ? allReal.find(i => i.id && i.id.startsWith('fakturaavgift'))
+    : null;
+  const noteItem  = (cart || []).find(i => i._note);
 
-  const svcSection = svcItems.length ? `
-    <p style="margin:16px 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Tilläggstjänster (estimat)</p>
-    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0d9a8;border-radius:8px;overflow:hidden;">
-      ${mkRows(svcItems)}
-      <tr style="background:#fffbeb;">
-        <td colspan="2" style="padding:11px 10px;color:#92400e;font-weight:700;font-size:14px;">Tillägg totalt (exkl. moms)</td>
-        <td style="padding:11px 10px;color:#92400e;font-weight:700;font-size:14px;text-align:right;">${svcTotal.toLocaleString('sv-SE')} kr</td>
-      </tr>
-    </table>
-    <p style="margin:8px 0 0;color:#b45309;font-size:11px;">⚠ Priser för leverans och tilläggstjänster är estimat — vi bekräftar slutpriset vid orderbekräftelse.</p>` : '';
+  const qty  = i => i.quantity || i.qty || 1;
+  const sum  = i => (i.price || 0) * qty(i);
+  const fmtN = n => n.toLocaleString('sv-SE');
 
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;">
+  const mkRow = i => `<tr>
+    <td style="padding:8px 10px;color:#222;font-size:13px;border-bottom:1px solid #f0f0f5;">${i.name}</td>
+    <td style="padding:8px 10px;color:#666;font-size:13px;text-align:center;border-bottom:1px solid #f0f0f5;">${qty(i)} st</td>
+    <td style="padding:8px 10px;color:#333;font-size:13px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;">${fmtN(sum(i))} kr</td>
+  </tr>`;
+
+  const prodTotal = prodItems.reduce((s, i) => s + sum(i), 0);
+  const svcTotal  = svcItems.reduce((s, i) => s + sum(i), 0);
+  const feeTotal  = feeItem ? sum(feeItem) : 0;
+  const grandExcl = prodTotal + svcTotal + feeTotal;
+  const moms      = Math.round(grandExcl * 0.25);
+  const grandIncl = grandExcl + moms;
+
+  const noteRow = noteItem
+    ? `<tr><td colspan="3" style="padding:6px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${noteItem.name}</td></tr>`
+    : '';
+
+  const subHeader = (label, bg = '#f7f7fb') =>
+    `<tr><td colspan="3" style="padding:6px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;background:${bg};">${label}</td></tr>`;
+
+  const subtotalRow = (label, amount, bg, color) =>
+    `<tr style="background:${bg};">
+      <td colspan="2" style="padding:9px 10px;font-weight:700;font-size:13px;color:${color};">${label}</td>
+      <td style="padding:9px 10px;font-weight:700;font-size:13px;text-align:right;color:${color};">${fmtN(amount)} kr</td>
+    </tr>`;
+
+  let html = `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;font-family:Arial,sans-serif;">
     <tr style="background:#f7f7fb;">
-      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt</th>
-      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:center;font-weight:600;text-transform:uppercase;">Antal</th>
-      <th style="padding:9px 10px;color:#888;font-size:12px;text-align:right;font-weight:600;text-transform:uppercase;">Pris exkl. moms</th>
-    </tr>${mkRows(prodItems)}${noteRow}
-    <tr style="background:#ddd6f5;">
-      <td colspan="2" style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;">Produkter totalt (exkl. moms)</td>
-      <td style="padding:11px 10px;color:#1e1850;font-weight:700;font-size:15px;text-align:right;">${prodTotal.toLocaleString('sv-SE')} kr</td>
-    </tr>
-  </table>${svcSection}`;
+      <th style="padding:8px 10px;color:#888;font-size:11px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt / Tjänst</th>
+      <th style="padding:8px 10px;color:#888;font-size:11px;text-align:center;font-weight:600;text-transform:uppercase;width:50px;">Antal</th>
+      <th style="padding:8px 10px;color:#888;font-size:11px;text-align:right;font-weight:600;text-transform:uppercase;width:90px;">Pris exkl.</th>
+    </tr>`;
+
+  if (prodItems.length > 0) {
+    html += subHeader('Utrustning');
+    html += prodItems.map(mkRow).join('');
+    html += noteRow;
+    html += subtotalRow('Utrustning exkl. moms', prodTotal, '#ddd6f5', '#1e1850');
+  }
+
+  if (svcItems.length > 0) {
+    html += subHeader('Tilläggstjänster');
+    html += svcItems.map(mkRow).join('');
+    html += subtotalRow('Tjänster exkl. moms (estimat)', svcTotal, '#fff8ec', '#92400e');
+  }
+
+  if (feeItem) {
+    html += subHeader('Fakturaavgift');
+    html += mkRow(feeItem);
+  }
+
+  html += `<tr style="background:#f0f0f0;">
+    <td colspan="2" style="padding:8px 10px;color:#555;font-size:12px;">Moms 25%</td>
+    <td style="padding:8px 10px;text-align:right;color:#555;font-size:12px;">${fmtN(moms)} kr</td>
+  </tr>
+  <tr style="background:#1e1850;">
+    <td colspan="2" style="padding:12px 10px;color:#fff;font-weight:700;font-size:15px;">TOTALT inkl. moms</td>
+    <td style="padding:12px 10px;text-align:right;color:#c4b5f4;font-weight:700;font-size:15px;">${fmtN(grandIncl)} kr</td>
+  </tr>`;
+
+  if (svcItems.length > 0) {
+    html += `<tr><td colspan="3" style="padding:6px 10px;color:#b45309;font-size:11px;">⚠ Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</td></tr>`;
+  }
+
+  html += '</table>';
+  return html;
 }
 
 function cartText(cart) {
@@ -196,7 +243,7 @@ exports.handler = async (event) => {
       ${field('Ovrigt', customer.notes)}
     </table>
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Varukorg</p>
-    ${cartTable(cart)}
+    ${buildPriceTable(cart, { showFakturaavgift: false })}
     <p style="margin:16px 0 0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${customer.email}" style="color:#1e1850;">${customer.email}</a></p>
     <p style="margin:12px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Adminpanel →</a></p>`);
 
@@ -223,7 +270,7 @@ exports.handler = async (event) => {
           <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>
           <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 24px;">${customerIntro}</p>
           <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din bestallning</p>
-          ${cartTable(cart)}
+          ${buildPriceTable(cart, { showFakturaavgift: false })}
           ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">Datum: ${datumStr}</p>` : ''}
           ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">Följ din order →</a></p><p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du följa status och skicka meddelanden till oss.</p>` : ''}`);
         await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: isBokning ? 'Din bokningsönskan hos Scenkonsult Norden' : 'Din offertförfrågan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
