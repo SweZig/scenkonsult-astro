@@ -700,8 +700,10 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     if (val.artno) PROD_CATALOG_BY_ARTNO[val.artno] = val;
   }
   function _lookupProduct(item) {
-    return PROD_CATALOG[item.id]
-        || PROD_CATALOG_BY_ARTNO[item.artno]
+    // artno är mest tillförlitlig (unik, alltid från JSON)
+    // id-lookup som fallback (fungerar för nya items med korrekt slug)
+    return PROD_CATALOG_BY_ARTNO[item.artno]
+        || PROD_CATALOG[item.id]
         || PROD_CATALOG[item.id?.replace(/^mc-/,'')]
         || {};
   }

@@ -5,6 +5,7 @@ interface Props {
   name: string;
   price: number;
   priceNote?: string;
+  artno?: string;
   category: string;
   image?: string;
   bulky?: boolean;        // skrymmande = kräver bil med släpvagn
@@ -14,7 +15,7 @@ interface Props {
   iconOnly?: boolean;
 }
 const {
-  id, name, price, priceNote = '/dygn', category,
+  id, name, price, priceNote = '/dygn', artno = '', category,
   image = '', bulky = false, monteringMin, size = 'md', label, iconOnly = false
 } = Astro.props;
 
@@ -29,6 +30,7 @@ const sizeClasses = {
   class={`sk-cart-btn cart-add-btn inline-flex items-center whitespace-nowrap ${sizeClasses} bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold rounded-lg transition-all duration-200`}
   data-id={id}
   data-name={name}
+  data-artno={artno}
   data-price={price}
   data-price-note={priceNote}
   data-category={category}
