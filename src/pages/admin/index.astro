@@ -2082,6 +2082,7 @@ async function sendQuote() {
   btn.disabled = true; btn.textContent = '⏳ Skickar…';
 
   const payload = {
+    existing_cart_id: currentCart?.id || null,
     customer: {
       name, email,
       phone:    $('qc-phone').value.trim() || null,

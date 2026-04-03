@@ -142,7 +142,7 @@ exports.handler = async (event) => {
   try { data = JSON.parse(event.body); }
   catch { return err('Ogiltig data', 400); }
 
-  const { customer, items, note } = data;
+  const { customer, items, note, existing_cart_id } = data;
 
   if (!customer?.name || !customer?.email)
     return err('Namn och e-post krävs', 400);
@@ -153,7 +153,7 @@ exports.handler = async (event) => {
   if (!apiKey) return err('E-postkonfiguration saknas', 500);
 
   const db         = createSupabase();
-  const cartId     = genCartId();
+  const cartId     = existing_cart_id || genCartId();
   const cartToken  = generateCartToken();
   const realItems  = (items || []).filter(i => !i._note && i.name);
   
@@ -232,6 +232,10 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ ok: true, cart_id: cartId, cart_token: cartToken, cart_url: cartUrl }) };
   } catch (e) {
     console.error('ADMIN_QUOTE_MAIL_ERROR:', e.message);
+    // Om vi skapade en ny cart, ta bort den vid mailfel (rollback)
+    if (!existing_cart_id) {
+      try { await db.update('carts', { status: 'cancelled' }, 'id', cartId); } catch {}
+    }
     return err('Kunde inte skicka mail: ' + e.message, 500);
   }
 };
