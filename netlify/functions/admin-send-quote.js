@@ -169,7 +169,7 @@ exports.handler = async (event) => {
   try {
     await db.upsert('carts', {
       id:               cartId,
-      status:           'proposal',
+      status:           'waiting',
       items:            allItems,
       customer_name:    customer.name,
       customer_email:   customer.email,
