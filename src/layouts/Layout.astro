@@ -1906,6 +1906,9 @@ const localBusinessSchema = {
 
       buildRows(product.rows);
       document.getElementById('sk-modal-pnote').textContent = product.priceNote || '/dygn';
+      // Dölj varukorg-knapp om cartId är tomt (t.ex. order-sidan)
+      const cartBtn = document.getElementById('sk-modal-cart-btn');
+      if (cartBtn) cartBtn.style.display = (!product.cartId || product.hideCart) ? 'none' : '';
       updatePrices();
       buildThumbs();
       renderSlide(0);
