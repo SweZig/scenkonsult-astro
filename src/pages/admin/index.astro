@@ -1331,9 +1331,10 @@ function renderProductsTab() {
       ? `<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-top:4px">${desc.desc||''}</div>${desc.includes?.length ? '<ul style="font-size:0.72rem;color:var(--text-faint);padding-left:14px;margin-top:3px">' + desc.includes.map(s=>`<li>${s}</li>`).join('') + '</ul>' : ''}`
       : `<div style="font-size:0.78rem;color:var(--text-faint);margin-top:4px">Artno: ${pid || '–'} · Kategori: ${item.category || '–'}</div>`;
 
-    return separator + `<tr data-idx="${idx}" class="prod-row">
+    return separator + `<tr data-idx="${idx}" class="prod-row" draggable="true" ondragstart="prodDragStart(event,${idx})" ondragover="prodDragOver(event)" ondrop="prodDrop(event,${idx})" ondragend="prodDragEnd(event)" style="cursor:default">
       <td style="vertical-align:top;padding:8px 6px">
         <div style="display:flex;align-items:flex-start;gap:6px">
+          <span style="flex-shrink:0;width:16px;display:flex;flex-direction:column;justify-content:center;gap:3px;padding-top:6px;cursor:grab;opacity:0.35" title="Dra för att flytta">⠿</span>
           <button onclick="prodTogglePopout(${idx})" style="flex-shrink:0;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:rgba(0,0,0,.2);color:${color};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center" title="Produktinfo">${icon}</button>
           <div style="flex:1;min-width:0">
             <input class="prod-input prod-name" value="${(item.name||'').replace(/"/g,'&quot;')}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
@@ -1415,6 +1416,45 @@ function renderProductsTab() {
     </div>
   `;
 }
+
+// ── Drag-and-drop reordering ─────────────────────────────────
+let _dragSrcIdx = null;
+
+function prodDragStart(e, idx) {
+  _dragSrcIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.4';
+}
+
+function prodDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  // Highlight drop target
+  document.querySelectorAll('.prod-row').forEach(r => r.style.borderTop = '');
+  e.currentTarget.style.borderTop = '2px solid var(--brand-lav)';
+}
+
+function prodDrop(e, dropIdx) {
+  e.preventDefault();
+  if (_dragSrcIdx === null || _dragSrcIdx === dropIdx) return;
+  const items = prodGetItems();
+  const dragged = items[_dragSrcIdx];
+  items.splice(_dragSrcIdx, 1);
+  const newPos = _dragSrcIdx < dropIdx ? dropIdx - 1 : dropIdx;
+  items.splice(newPos, 0, dragged);
+  currentCart.items = items;
+  renderTab('products');
+}
+
+function prodDragEnd(e) {
+  _dragSrcIdx = null;
+  e.currentTarget.style.opacity = '';
+  document.querySelectorAll('.prod-row').forEach(r => r.style.borderTop = '');
+}
+window.prodDragStart = prodDragStart;
+window.prodDragOver  = prodDragOver;
+window.prodDrop      = prodDrop;
+window.prodDragEnd   = prodDragEnd;
 
 function prodTogglePopout(idx) {
   const el = document.getElementById('po-' + idx);

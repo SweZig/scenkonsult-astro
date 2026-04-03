@@ -178,8 +178,11 @@ exports.handler = async (event) => {
       customer_email:   customer.email,
       customer_phone:   customer.phone || null,
       customer_message: '',
-      event_date:       customer.date || null,
-      event_location:   customer.location || null,
+      event_date:        customer.date || null,
+      event_location:    customer.location || null,
+      delivery_time:     customer.delivery_time || '13:00',
+      return_time:       customer.return_time   || '11:00',
+      return_date:       customer.return_date   || null,
       total_excl:       totalExcl * 100,
       cart_token:       cartToken,
       expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString()
@@ -190,7 +193,12 @@ exports.handler = async (event) => {
     return err('Databasfel: ' + e.message, 500);
   }
 
-  const datumStr   = customer.date ? `Eventdatum: ${customer.date}` : '';
+  const dlTime  = customer.delivery_time || '13:00';
+  const rtTime  = customer.return_time   || '11:00';
+  const retDate = customer.return_date   || customer.date;
+  const datumStr = customer.date
+    ? `Utlämning: ${customer.date} kl ${dlTime}${retDate && retDate !== customer.date ? ' · Återlämning: ' + retDate + ' kl ' + rtTime : ' · Återlämning: ' + customer.date + ' kl ' + rtTime}`
+    : '';
   const platsStr   = customer.location ? `Plats: ${customer.location}` : '';
   const noteHtml   = note?.trim()
     ? `<p style="margin:16px 0 0;padding:12px 14px;background:#f7f7fb;border-left:3px solid #8b7dd4;border-radius:0 6px 6px 0;color:#555;font-size:13px;line-height:1.6;">${note.trim().replace(/\n/g,'<br>')}</p>`
@@ -198,7 +206,7 @@ exports.handler = async (event) => {
 
   const htmlBody = `
     <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px;">Offert från Scenkonsult Norden</h2>
-    <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 24px;">Hej ${customer.name}! Vi har satt ihop en offert åt dig baserat på dina önskemål. Klicka på knappen nedan för att se, granska och eventuellt justera produkterna — sedan kan du enkelt skicka tillbaka din bekräftelse till oss.</p>
+    <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 24px;">Hej ${customer.name}! Vi har satt ihop en offert åt dig baserat på dina önskemål. Klicka på knappen nedan för att se, granska och eventuellt justera — sedan kan du enkelt skicka tillbaka din bekräftelse till oss.</p>
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din offert</p>
     ${buildPriceTable(realItems)}
     ${noteHtml}

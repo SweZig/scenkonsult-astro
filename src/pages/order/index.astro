@@ -124,6 +124,116 @@ import Layout from '../../layouts/Layout.astro';
   .info-value { font-size: 0.95rem; font-weight: 500; color: #f0eeff; }
 
   /* Product table */
+  /* ── PRODUKTKORT (ny stil) ─────────────────────────────── */
+  .order-items-section { margin-bottom: 1.25rem; }
+  .order-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: rgba(196,181,244,0.55);
+    padding: 0.75rem 1.5rem 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .prod-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .prod-card:last-child { border-bottom: none; }
+  .prod-card-img {
+    width: 64px;
+    height: 54px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #0c0a24;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .prod-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .prod-card-img-ph {
+    font-size: 1.4rem;
+    opacity: 0.4;
+  }
+  .svc-card-icon {
+    width: 64px;
+    height: 54px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  .prod-card-info { flex: 1; min-width: 0; }
+  .prod-card-name { font-weight: 600; color: #f0eeff; font-size: 0.95rem; }
+  .prod-card-meta { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .prod-card-price {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .prod-card-total { font-weight: 700; color: #c4b5f4; font-size: 1rem; }
+  .prod-card-unit  { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+  .order-summary-box {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 0.4rem;
+  }
+  .summary-row.total {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #c4b5f4;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(196,181,244,0.2);
+    margin-bottom: 0;
+  }
+  .summary-note {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.3);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* Tidpunkter */
+  .time-row {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.45);
+  }
+  .time-item { display: flex; flex-direction: column; gap: 2px; }
+  .time-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; }
+  .time-value { color: #f0eeff; font-weight: 600; }
+
+  .prod-note-row {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.45);
+    font-style: italic;
+    border-top: 1px dashed rgba(255,255,255,0.06);
+  }
+
+  /* Keep old table styles for fallback */
   .prod-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   .prod-table th {
     text-align: left;
@@ -330,22 +440,7 @@ import Layout from '../../layouts/Layout.astro';
     <!-- Products -->
     <div class="section">
       <div class="section-head">Din beställning</div>
-      <div class="section-body">
-        <div style="overflow-x:auto"><table class="prod-table">
-          <thead>
-            <tr>
-              <th style="width:52px"></th>
-              <th>Produkt</th>
-              <th style="text-align:center">Antal</th>
-              <th style="text-align:right">Pris</th>
-              <th style="text-align:right">Summa</th>
-            </tr>
-          </thead>
-          <tbody id="prodTableBody"></tbody>
-          <tfoot id="prodTableFoot"></tfoot>
-        </table></div>
-        <p class="moms-note">* Priser exklusive moms. Moms tillkommer med 25%.</p>
-      </div>
+      <div id="prodTableWrap"></div>
     </div>
 
     <!-- Chatt -->
@@ -506,49 +601,104 @@ function renderOrder(c) {
   const moms      = Math.round(grandExcl * 0.25);
   const grandIncl = grandExcl + moms;
 
-  const mkRow = i => {
-    const qty = i.qty || i.quantity || 1;
-    const imgSrc = PROD_IMG[i.id] || PROD_IMG[(i.id||'').replace(/^(scen-|ljud-|ljus-|dj-utr-)/,'')] || null;
-    const imgCell = imgSrc
-      ? `<img src="${imgSrc}" alt="${i.name||''}" class="prod-thumb" loading="lazy" onerror="this.parentNode.innerHTML='<div class=prod-thumb-ph>📦</div>'">`
-      : `<div class="prod-thumb-ph">📦</div>`;
-    return `<tr>
-      <td style="padding:0.5rem 0.5rem 0.5rem 0.75rem;vertical-align:middle">${imgCell}</td>
-      <td><div class="prod-name">${i.name || '–'}</div>${i.category ? `<div class="prod-cat">${i.category}</div>` : ''}</td>
-      <td style="text-align:center">${qty}</td>
-      <td style="text-align:right">${fmt(i.price)} kr</td>
-      <td style="text-align:right" class="prod-total">${fmt((i.price||0)*qty)} kr</td>
-    </tr>`;
+  // ── Ikonkarta för tjänster ──
+  const svcIcon = id => {
+    const s = (id||'').toLowerCase();
+    if (s.includes('lev') || s.includes('transport')) return '🚚';
+    if (s.includes('monter') || s.includes('rigg'))   return '🔧';
+    if (s.includes('teknik') || s.includes('engineer')) return '👨‍💻';
+    if (s.includes('faktura'))                         return '🧾';
+    return '⚙️';
   };
 
-  const sepRow = label => `<tr><td colspan="5" style="padding:4px 0.75rem 2px;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.45);font-weight:700;border-top:1px dashed rgba(255,255,255,0.08)">${label}</td></tr>`;
-  const subRow = (label, amount, color) => `<tr><td></td><td colspan="3" style="padding:6px 0.5rem;font-size:0.8rem;color:${color};font-weight:600">${label}</td><td style="text-align:right;padding:6px 0.5rem;font-size:0.8rem;color:${color};font-weight:600">${fmt(amount)} kr</td></tr>`;
+  // Produktkort
+  const mkProdCard = i => {
+    const qty   = i.qty || i.quantity || 1;
+    const total = (i.price||0) * qty;
+    const imgSrc = PROD_IMG[i.id] || PROD_IMG[(i.id||'').replace(/^(scen-|ljud-|ljus-|dj-utr-)/,'')] || null;
+    const imgEl = imgSrc
+      ? `<div class="prod-card-img"><img src="${imgSrc}" alt="${i.name||''}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="prod-card-img-ph" style="display:none">📦</span></div>`
+      : `<div class="prod-card-img"><span class="prod-card-img-ph">📦</span></div>`;
+    return `<div class="prod-card">
+      ${imgEl}
+      <div class="prod-card-info">
+        <div class="prod-card-name">${i.name || '–'}</div>
+        ${qty > 1 ? `<div class="prod-card-meta">${qty} st × ${fmt(i.price)} kr</div>` : ''}
+      </div>
+      <div class="prod-card-price">
+        <div class="prod-card-total">${fmt(total)} kr</div>
+        <div class="prod-card-unit">exkl. moms</div>
+      </div>
+    </div>`;
+  };
 
-  let rows = '';
+  // Tjänstkort
+  const mkSvcCard = i => {
+    const qty   = i.qty || i.quantity || 1;
+    const total = (i.price||0) * qty;
+    const icon  = svcIcon(i.id);
+    return `<div class="prod-card">
+      <div class="svc-card-icon">${icon}</div>
+      <div class="prod-card-info">
+        <div class="prod-card-name">${i.name || '–'}</div>
+        ${qty > 1 ? `<div class="prod-card-meta">${qty} × ${fmt(i.price)} kr</div>` : '<div class="prod-card-meta">Tilläggstjänst</div>'}
+      </div>
+      <div class="prod-card-price">
+        <div class="prod-card-total">${fmt(total)} kr</div>
+        <div class="prod-card-unit">exkl. moms</div>
+      </div>
+    </div>`;
+  };
+
+  // Bygg HTML
+  let html = '';
+
   if (prodItems.length > 0) {
-    rows += sepRow('Utrustning');
-    rows += prodItems.map(mkRow).join('');
-    if (noteItem) rows += `<tr class="prod-note-row"><td colspan="5">📝 ${noteItem.name}</td></tr>`;
+    html += `<div class="order-section-title">Utrustning</div>`;
+    html += prodItems.map(mkProdCard).join('');
   }
   if (svcItems.length > 0) {
-    rows += sepRow('Tilläggstjänster');
-    rows += svcItems.map(mkRow).join('');
+    html += `<div class="order-section-title">Tilläggstjänster</div>`;
+    html += svcItems.map(mkSvcCard).join('');
   }
   if (feeItem) {
-    rows += sepRow('Fakturaavgift');
-    rows += mkRow(feeItem);
+    html += `<div class="prod-card">
+      <div class="svc-card-icon">🧾</div>
+      <div class="prod-card-info"><div class="prod-card-name">${feeItem.name}</div></div>
+      <div class="prod-card-price"><div class="prod-card-total">${fmt(feeItem.price)} kr</div><div class="prod-card-unit">exkl. moms</div></div>
+    </div>`;
+  }
+  if (noteItem) {
+    html += `<div class="prod-note-row">📝 ${noteItem.name}</div>`;
   }
 
-  document.getElementById('prodTableBody').innerHTML = rows;
-  document.getElementById('prodTableFoot').innerHTML = `
-    <tr style="border-top:1px solid rgba(255,255,255,0.1)">
-      <td></td><td colspan="2" style="padding:6px 0.5rem;color:rgba(255,255,255,0.4);font-size:0.82rem">Moms 25%</td>
-      <td></td><td style="text-align:right;padding:6px 0.5rem;color:rgba(255,255,255,0.4);font-size:0.82rem">${fmt(moms)} kr</td>
-    </tr>
-    <tr class="total-row">
-      <td></td><td colspan="2">TOTALT inkl. moms</td>
-      <td></td><td style="text-align:right" class="grand-total">${fmt(grandIncl)} kr</td>
-    </tr>`;
+  // Tidpunkter
+  if (c.event_date) {
+    const dlTime = c.delivery_time || '13:00';
+    const rtTime = c.return_time   || '11:00';
+    const retDate = c.return_date || c.event_date;
+    html += `<div class="time-row">
+      <div class="time-item">
+        <span class="time-label">Utlämning</span>
+        <span class="time-value">${fmtDate(c.event_date)} kl ${dlTime}</span>
+      </div>
+      <div class="time-item">
+        <span class="time-label">Återlämning</span>
+        <span class="time-value">${fmtDate(retDate)} kl ${rtTime}</span>
+      </div>
+    </div>`;
+  }
+
+  // Summering
+  const hasSvcEstimate = svcItems.length > 0;
+  html += `<div class="order-summary-box">
+    <div class="summary-row"><span>Exkl. moms</span><span>${fmt(grandExcl)} kr</span></div>
+    <div class="summary-row"><span>Moms 25%</span><span>${fmt(moms)} kr</span></div>
+    <div class="summary-row total"><span>Totalt inkl. moms</span><span>${fmt(grandIncl)} kr</span></div>
+    ${hasSvcEstimate ? '<div class="summary-note">* Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</div>' : ''}
+  </div>`;
+
+  document.getElementById('prodTableWrap').innerHTML = html;
 }
 
 function renderMessages() {
@@ -588,19 +738,23 @@ function renderConfirmBox(c) {
         Bekräfta din order
       </div>
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.6">
-        Ordern avser <strong style="color:#fff">${(() => {
+        ${(() => {
           const _prod = (c.items||[]).filter(i => !i._note && !['Tjänster','Tillägg'].includes(i.category) && !(i.id&&i.id.startsWith('fakturaavgift')));
           const _svc  = (c.items||[]).filter(i => !i._note && ['Tjänster','Tillägg'].includes(i.category) && !(i.id&&i.id.startsWith('fakturaavgift')));
-          const _fee  = (c.items||[]).some(i => !i._note && i.id&&i.id.startsWith('fakturaavgift'));
           const parts = [];
           if (_prod.length) parts.push(_prod.length + ' produkt' + (_prod.length>1?'er':''));
           if (_svc.length)  parts.push(_svc.length + ' tjänst' + (_svc.length>1?'er':''));
-          if (_fee)         parts.push('fakturaavgift');
-          return parts.join(', ') || '0 produkter';
-        })()}</strong>
-        ${c.event_date ? ` för event <strong style="color:#fff">${fmtDate(c.event_date)}</strong>` : ''}
-        ${c.event_location ? ` i <strong style="color:#fff">${c.event_location}</strong>` : ''}.
-        Totalt <strong style="color:#c4b5f4">${Math.round(total*1.25).toLocaleString('sv-SE')} kr inkl. moms</strong>.
+          const dlTime = c.delivery_time || '13:00';
+          const rtTime = c.return_time   || '11:00';
+          const retDate = c.return_date  || c.event_date;
+          const dateStr = c.event_date ? `${fmtDate(c.event_date)} kl ${dlTime}` : null;
+          const retStr  = retDate ? `${fmtDate(retDate)} kl ${rtTime}` : null;
+          return `Ordern avser <strong style="color:#fff">${parts.join(' och ') || 'produkter'}</strong>`
+            + (c.event_location ? ` till <strong style="color:#fff">${c.event_location}</strong>` : '')
+            + (dateStr ? `.<br>Utlämning <strong style="color:#fff">${dateStr}</strong>` : '')
+            + (retStr  ? ` · Återlämning <strong style="color:#fff">${retStr}</strong>` : '')
+            + `.<br>Totalt <strong style="color:#c4b5f4">${Math.round(total*1.25).toLocaleString('sv-SE')} kr inkl. moms</strong>.`;
+        })()}
       </div>
       <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:1rem">
         <input type="checkbox" id="confirm-tos" onchange="document.getElementById('confirm-btn').disabled=!this.checked"

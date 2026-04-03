@@ -129,8 +129,10 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
     // Eventdatum
     const tableY = 230;
     if (cart.event_date) {
+      const dlTime = cart.delivery_time || '13:00';
+      const rtTime = cart.return_time || '11:00';
       doc.fontSize(9).font('Helvetica').fillColor(GRAY)
-         .text(`Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl 15:00  ·  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl 11:00`, 50, tableY - 18);
+         .text(`Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl ${dlTime}  ·  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl ${rtTime}`, 50, tableY - 18);
     }
 
     // ── Produkttabell ──
@@ -206,7 +208,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
 }
 
 // ── Skicka via Resend ─────────────────────────────────────────────────────────
-async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
+async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail) {
   const items     = (cart.items||[]).filter(i=>!i._note && i.name);
   const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
   const totalIncl = Math.round(totalExcl * 1.25);
@@ -334,7 +336,7 @@ exports.handler = async (event) => {
       if (logoRes.ok) logoBuffer = Buffer.from(await logoRes.arrayBuffer());
     } catch(e) { /* fortsätt utan logo */ }
     const pdfBuffer     = await generatePdfBuffer({ ...cart, invoice_number: invoiceNumber }, invoiceNumber, logoBuffer);
-    await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer);
+    await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail);
 
     const now = new Date().toISOString();
     // Uppdatera invoice-fält (undviker ENUM-cast problem genom att separera status)

@@ -274,9 +274,10 @@ exports.handler = async (event) => {
         const htmlCustomer = htmlWrapper(customerTitle, `
           <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>
           <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 24px;">${customerIntro}</p>
-          <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din bestallning</p>
+          <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din beställning</p>
           ${buildPriceTable(cart, { showFakturaavgift: false })}
-          ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">Datum: ${datumStr}</p>` : ''}
+          ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">📅 Datum: <strong>${datumStr}</strong></p>` : ''}
+          ${customer.address ? `<p style="margin:6px 0 0;color:#666;font-size:13px;">📍 Plats: <strong>${customer.address}</strong></p>` : ''}
           ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">Följ din order →</a></p><p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du följa status och skicka meddelanden till oss.</p>` : ''}`);
         await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: isBokning ? 'Din bokningsönskan hos Scenkonsult Norden' : 'Din offertförfrågan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
         console.log('KUNDKOPIA_SENT to:', customer.email);
