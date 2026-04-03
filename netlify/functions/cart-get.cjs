@@ -4,7 +4,7 @@
 // GET /.netlify/functions/cart-get?id=<cart_id>  (admin only)
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
+const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib.cjs');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();

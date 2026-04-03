@@ -4,7 +4,7 @@
 // Kräver ADMIN_TOKEN
 
 'use strict';
-const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight } = require('./_lib');
+const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight } = require('./_lib.cjs');
 
 const FROM      = 'Scenkonsult Norden <noreply@scenkonsult.se>';
 const LOGO_URL  = 'https://scenkonsult.se/logo-white.png';

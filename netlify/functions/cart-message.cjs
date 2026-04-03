@@ -5,7 +5,7 @@
 // Body (admin): { cart_id, body }  + Authorization: Bearer <ADMIN_TOKEN>
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
+const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib.cjs');
 
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <noreply@scenkonsult.se>';

@@ -5,7 +5,7 @@
 // Body (admin): { cart_id, items?, notes_admin?, event_date?, event_location?, status?, total_excl? }
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
+const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib.cjs');
 
 // ── Gemensam prisvisningsfunktion (samma layout i alla mail) ──────────────────
 function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
