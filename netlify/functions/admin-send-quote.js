@@ -197,7 +197,7 @@ exports.handler = async (event) => {
     <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px;">Offert från Scenkonsult Norden</h2>
     <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 24px;">Hej ${customer.name}! Vi har satt ihop en offert åt dig baserat på dina önskemål. Klicka på knappen nedan för att se, granska och eventuellt justera produkterna — sedan kan du enkelt skicka tillbaka din bekräftelse till oss.</p>
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din offert</p>
-    ${cartTable(realItems)}
+    ${buildPriceTable(realItems)}
     ${noteHtml}
     ${datumStr || platsStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">${[datumStr,platsStr].filter(Boolean).join(' &middot; ')}</p>` : ''}
     <p style="margin:28px 0 8px;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Se och bekräfta din offert →</a></p>
