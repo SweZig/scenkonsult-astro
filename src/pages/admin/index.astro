@@ -1248,9 +1248,12 @@ function renderInfoTab() {
   `;
 }
 
-function buildCatalogOptions() {
+const SVC_CATALOG_KEYS = ['Tillägg'];
+
+function buildProductCatalogOptions() {
   let html = '<option value="">+ Välj produkt att lägga till</option>';
   Object.entries(QUOTE_CATALOG).forEach(([cat, data]) => {
+    if (SVC_CATALOG_KEYS.includes(cat) || cat === 'Egen rad') return;
     if (data.products) {
       html += `<optgroup label="${cat}">`;
       data.products.forEach(p => {
@@ -1271,6 +1274,25 @@ function buildCatalogOptions() {
   });
   return html;
 }
+
+function buildServiceCatalogOptions() {
+  let html = '<option value="">+ Välj tjänst att lägga till</option>';
+  Object.entries(QUOTE_CATALOG).forEach(([cat, data]) => {
+    if (!SVC_CATALOG_KEYS.includes(cat)) return;
+    if (data.products) {
+      html += `<optgroup label="${cat}">`;
+      data.products.forEach(p => {
+        const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:'Tjänster'}).replace(/"/g,'&quot;');
+        html += `<option value="${v}">${p.name} — ${fmt(p.price)} kr</option>`;
+      });
+      html += '</optgroup>';
+    }
+  });
+  return html;
+}
+
+// Legacy alias
+function buildCatalogOptions() { return buildProductCatalogOptions(); }
 
 function catIcon(category) {
   const c = (category||'').toLowerCase();
@@ -1350,13 +1372,28 @@ function renderProductsTab() {
       </tr></thead>
       <tbody id="prod-tbody">${rows}</tbody>
     </table>
-    <select id="prod-add-select" onchange="prodAddFromCatalog(this)"
-      style="width:100%;margin-top:8px;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed var(--border-lav);border-radius:8px">
-      ${buildCatalogOptions()}
-    </select>
-    <button onclick="prodAddFreeRow()" style="width:100%;margin-top:6px;font-size:0.78rem;padding:5px;background:transparent;border:1px dashed rgba(255,255,255,0.12);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
-      + Fri rad (specialfrakt, rabatt, övrigt…)
-    </button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+      <div>
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:rgba(196,181,244,0.5);margin-bottom:4px">Lägg till produkt</div>
+        <select id="prod-add-select" onchange="prodAddFromCatalog(this,false)"
+          style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed var(--border-lav);border-radius:8px">
+          ${buildProductCatalogOptions()}
+        </select>
+        <button onclick="prodAddFreeRow(false)" style="width:100%;margin-top:5px;font-size:0.75rem;padding:4px 6px;background:transparent;border:1px dashed rgba(255,255,255,0.1);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
+          + Fri produktrad
+        </button>
+      </div>
+      <div>
+        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:rgba(255,255,255,0.25);margin-bottom:4px">Lägg till tjänst</div>
+        <select id="svc-add-select" onchange="prodAddFromCatalog(this,true)"
+          style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed rgba(255,255,255,0.15);border-radius:8px">
+          ${buildServiceCatalogOptions()}
+        </select>
+        <button onclick="prodAddFreeRow(true)" style="width:100%;margin-top:5px;font-size:0.75rem;padding:4px 6px;background:transparent;border:1px dashed rgba(255,255,255,0.1);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
+          + Fri tjänstrad
+        </button>
+      </div>
+    </div>
 
 
 
@@ -1384,20 +1421,33 @@ function prodTogglePopout(idx) {
   if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
-function prodAddFromCatalog(sel) {
+function prodAddFromCatalog(sel, isService) {
   if (!sel.value) return;
   try {
     const p = JSON.parse(sel.value.replace(/&quot;/g,'"'));
     const items = prodGetItems();
-    items.push({ id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'' });
+    const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
+    const newItem = { id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'' };
+    if (isService || svcStart === -1) {
+      items.push(newItem); // tjänster alltid sist, eller om inga tjänster finns
+    } else {
+      items.splice(svcStart, 0, newItem); // produkter insertas före första tjänst
+    }
     currentCart.items = items;
     renderTab('products');
   } catch(e) { toast('Fel vid tillägg', 'error'); }
+  sel.value = '';
 }
 
-function prodAddFreeRow() {
+function prodAddFreeRow(isService) {
   const items = prodGetItems();
-  items.push({ id: '', name: '', price: 0, qty: 1, category: '' });
+  const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
+  const newItem = { id: '', name: '', price: 0, qty: 1, category: isService ? 'Tjänster' : '' };
+  if (isService || svcStart === -1) {
+    items.push(newItem);
+  } else {
+    items.splice(svcStart, 0, newItem);
+  }
   currentCart.items = items;
   renderTab('products');
 }
@@ -2049,14 +2099,27 @@ function quotePickerAdd() {
     return;
   }
 
-  const name  = opt.dataset.name || opt.textContent.split(' — ')[0];
-  const price = parseInt(opt.dataset.price) || 0;
-  const id    = opt.value;
+  const name     = opt.dataset.name || opt.textContent.split(' — ')[0];
+  const price    = parseInt(opt.dataset.price) || 0;
+  const id       = opt.value;
+  const selCat   = $('qp-cat')?.value || '';
+  const isSvc    = SVC_CATALOG_KEYS.includes(selCat);
 
   // Om samma produkt redan finns, öka antal
   const existing = quoteItems.find(i => i.id === id && !i.custom);
   if (existing) { existing.qty++; }
-  else { quoteItems.push({ id, name, price, qty: 1 }); }
+  else {
+    const newItem = { id, name, price, qty: 1 };
+    if (isSvc) {
+      quoteItems.push(newItem); // tjänster alltid sist
+    } else {
+      // Produkter insertas före första tjänst
+      const svcStart = quoteItems.findIndex(i => SVC_CATALOG_KEYS.includes(i._cat || '') || 
+        ['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','faktura'].some(s => i.id === s));
+      if (svcStart === -1) quoteItems.push(newItem);
+      else quoteItems.splice(svcStart, 0, newItem);
+    }
+  }
 
   quoteRenderTable();
   prodSel.selectedIndex = 0;

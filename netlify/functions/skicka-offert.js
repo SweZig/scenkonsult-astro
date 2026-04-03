@@ -90,13 +90,11 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
     html += subHeader('Utrustning');
     html += prodItems.map(mkRow).join('');
     html += noteRow;
-    html += subtotalRow('Utrustning exkl. moms', prodTotal, '#ddd6f5', '#1e1850');
   }
 
   if (svcItems.length > 0) {
     html += subHeader('Tilläggstjänster');
     html += svcItems.map(mkRow).join('');
-    html += subtotalRow('Tjänster exkl. moms (estimat)', svcTotal, '#fff8ec', '#92400e');
   }
 
   if (feeItem) {
@@ -104,9 +102,13 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
     html += mkRow(feeItem);
   }
 
-  html += `<tr style="background:#f0f0f0;">
-    <td colspan="2" style="padding:8px 10px;color:#555;font-size:12px;">Moms 25%</td>
-    <td style="padding:8px 10px;text-align:right;color:#555;font-size:12px;">${fmtN(moms)} kr</td>
+  html += `<tr style="background:#f7f7fb;">
+    <td colspan="2" style="padding:8px 10px;color:#555;font-size:12px;border-top:1px solid #e0e0e8;">Produkter &amp; tjänster exkl. moms</td>
+    <td style="padding:8px 10px;text-align:right;color:#444;font-size:12px;border-top:1px solid #e0e0e8;">${fmtN(grandExcl)} kr</td>
+  </tr>
+  <tr style="background:#f7f7fb;">
+    <td colspan="2" style="padding:6px 10px;color:#888;font-size:12px;">Moms 25%</td>
+    <td style="padding:6px 10px;text-align:right;color:#888;font-size:12px;">${fmtN(moms)} kr</td>
   </tr>
   <tr style="background:#1e1850;">
     <td colspan="2" style="padding:12px 10px;color:#fff;font-weight:700;font-size:15px;">TOTALT inkl. moms</td>
@@ -114,7 +116,7 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   </tr>`;
 
   if (svcItems.length > 0) {
-    html += `<tr><td colspan="3" style="padding:6px 10px;color:#b45309;font-size:11px;">⚠ Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</td></tr>`;
+    html += `<tr><td colspan="3" style="padding:6px 10px;color:#888;font-size:11px;font-style:italic;">* Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</td></tr>`;
   }
 
   html += '</table>';

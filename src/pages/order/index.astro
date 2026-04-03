@@ -529,12 +529,10 @@ function renderOrder(c) {
     rows += sepRow('Utrustning');
     rows += prodItems.map(mkRow).join('');
     if (noteItem) rows += `<tr class="prod-note-row"><td colspan="5">📝 ${noteItem.name}</td></tr>`;
-    rows += subRow('Utrustning exkl. moms', prodTotal, 'rgba(196,181,244,0.7)');
   }
   if (svcItems.length > 0) {
     rows += sepRow('Tilläggstjänster');
     rows += svcItems.map(mkRow).join('');
-    rows += subRow('Tjänster exkl. moms', svcTotal, 'rgba(251,191,36,0.7)');
   }
   if (feeItem) {
     rows += sepRow('Fakturaavgift');
