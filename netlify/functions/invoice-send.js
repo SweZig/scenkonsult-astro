@@ -11,6 +11,7 @@ const PDFDocument = require('pdfkit');
 
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <noreply@scenkonsult.se>';
+const LOGO_URL   = 'https://scenkonsult.se/logo-white.png';
 
 function fmtKr(n) {
   return (parseInt(n) || 0).toLocaleString('sv-SE') + ' kr';
@@ -48,7 +49,7 @@ async function getOrCreateInvoiceNumber(db, cart) {
 }
 
 // ── Generera PDF ─────────────────────────────────────────────────────────────
-function generatePdfBuffer(cart, invoiceNumber) {
+function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
   return new Promise((resolve, reject) => {
     const today   = new Date().toISOString().slice(0,10);
     const invDate = cart.invoice_date || today;
@@ -76,10 +77,17 @@ function generatePdfBuffer(cart, invoiceNumber) {
 
     // ── Header ──
     doc.rect(0, 0, 595, 70).fill(NAVY);
-    doc.fillColor('#ffffff').fontSize(16).font('Helvetica-Bold')
-       .text('SCENKONSULT NORDEN', 50, 20);
+    if (logoBuffer) {
+      try {
+        doc.image(logoBuffer, 50, 12, { height: 46, fit: [120, 46] });
+      } catch(e) {
+        doc.fillColor('#ffffff').fontSize(16).font('Helvetica-Bold').text('SCENKONSULT NORDEN', 50, 20);
+      }
+    } else {
+      doc.fillColor('#ffffff').fontSize(16).font('Helvetica-Bold').text('SCENKONSULT NORDEN', 50, 20);
+    }
     doc.fillColor('rgba(255,255,255,0.6)').fontSize(8).font('Helvetica')
-       .text('Grimstagatan 164 · 162 58 Vällingby · 072-448 10 00 · scenkonsult.se', 50, 42);
+       .text('Grimstagatan 164 · 162 58 Vällingby · 072-448 10 00 · scenkonsult.se', 50, 54);
 
     doc.moveDown(3);
 
@@ -208,8 +216,8 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
 <tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 <tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
-  <p style="margin:0;color:#fff;font-size:18px;font-weight:700;">Scenkonsult Norden</p>
-  <p style="margin:4px 0 0;color:rgba(255,255,255,0.6);font-size:12px;">Ljud · Ljus · Scen · DJ — Stockholm sedan 1986</p>
+  <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="90" style="display:block;margin:0 auto 10px;height:auto;" />
+  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;">Ljud · Ljus · Scen · DJ — Stockholm sedan 1986</p>
 </td></tr>
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber}</h2>
@@ -227,13 +235,13 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
 
   const plain = `Faktura ${invoiceNumber} från Scenkonsult Norden\n\nHej ${cart.customer_name||''}!\n\nBifogat finner du faktura ${invoiceNumber}.\nAtt betala: ${totalIncl.toLocaleString('sv-SE')} kr\n\nFrågor? Ring 072-448 10 00.\n\n---\nScenkonsult Norden`;
 
+  // Skicka till kund
   const res = await fetch(RESEND_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
       from: FROM, to: [cart.customer_email],
       reply_to: 'info@scenkonsult.se',
-      bcc:      ['info@scenkonsult.se'],
       subject:  `Faktura ${invoiceNumber} — Scenkonsult Norden`,
       html, text: plain,
       attachments: [{
@@ -243,6 +251,47 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
     }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+
+  // Intern kopia med tydlig ämnesrad
+  await new Promise(r => setTimeout(r, 600));
+  const internalHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
+<tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
+  <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="90" style="display:block;margin:0 auto 10px;height:auto;" />
+  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;">Ljud · Ljus · Scen · DJ — Stockholm sedan 1986</p>
+</td></tr>
+<tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
+  <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber} — skickad</h2>
+  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Faktura <strong>${invoiceNumber}</strong> har skickats till:</p>
+  <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${cart.customer_email}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${cart.customer_name || '—'}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Belopp:</strong> ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms</p>
+  <p style="color:#444;font-size:14px;margin:0;"><strong>Cart-ID:</strong> ${cart.id}</p>
+</td></tr>
+<tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:16px 32px;text-align:center;">
+  <p style="margin:0;color:rgba(255,255,255,0.5);font-size:11px;">Scenkonsult Norden · Grimstagatan 164, 162 58 Vällingby</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>`;
+
+  await fetch(RESEND_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      from: FROM, to: ['info@scenkonsult.se'],
+      reply_to: cart.customer_email,
+      subject: `Faktura ${invoiceNumber} skickad → ${cart.customer_email}`,
+      html: internalHtml,
+      text: `Faktura ${invoiceNumber} skickad till: ${cart.customer_email}\nKund: ${cart.customer_name||'—'}\nCart-ID: ${cart.id}`,
+      attachments: [{
+        filename: `Faktura_${invoiceNumber}_Scenkonsult.pdf`,
+        content:  pdfBuffer.toString('base64'),
+      }],
+    }),
+  });
+
   return res.json();
 }
 
@@ -274,7 +323,12 @@ exports.handler = async (event) => {
     if (!cart.customer_email) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Kunden saknar e-postadress' }) };
 
     const invoiceNumber = await getOrCreateInvoiceNumber(db, cart);
-    const pdfBuffer     = await generatePdfBuffer({ ...cart, invoice_number: invoiceNumber }, invoiceNumber);
+    let logoBuffer = null;
+    try {
+      const logoRes = await fetch('https://scenkonsult.se/logo-white.png');
+      if (logoRes.ok) logoBuffer = Buffer.from(await logoRes.arrayBuffer());
+    } catch(e) { /* fortsätt utan logo */ }
+    const pdfBuffer     = await generatePdfBuffer({ ...cart, invoice_number: invoiceNumber }, invoiceNumber, logoBuffer);
     await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer);
 
     const now = new Date().toISOString();

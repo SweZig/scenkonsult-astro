@@ -590,7 +590,16 @@ function renderConfirmBox(c) {
         Bekräfta din order
       </div>
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.6">
-        Ordern avser <strong style="color:#fff">${c.items?.filter(i=>!i._note).length || 0} produkter</strong>
+        Ordern avser <strong style="color:#fff">${(() => {
+          const _prod = (c.items||[]).filter(i => !i._note && !['Tjänster','Tillägg'].includes(i.category) && !(i.id&&i.id.startsWith('fakturaavgift')));
+          const _svc  = (c.items||[]).filter(i => !i._note && ['Tjänster','Tillägg'].includes(i.category) && !(i.id&&i.id.startsWith('fakturaavgift')));
+          const _fee  = (c.items||[]).some(i => !i._note && i.id&&i.id.startsWith('fakturaavgift'));
+          const parts = [];
+          if (_prod.length) parts.push(_prod.length + ' produkt' + (_prod.length>1?'er':''));
+          if (_svc.length)  parts.push(_svc.length + ' tjänst' + (_svc.length>1?'er':''));
+          if (_fee)         parts.push('fakturaavgift');
+          return parts.join(', ') || '0 produkter';
+        })()}</strong>
         ${c.event_date ? ` för event <strong style="color:#fff">${fmtDate(c.event_date)}</strong>` : ''}
         ${c.event_location ? ` i <strong style="color:#fff">${c.event_location}</strong>` : ''}.
         Totalt <strong style="color:#c4b5f4">${Math.round(total*1.25).toLocaleString('sv-SE')} kr inkl. moms</strong>.
