@@ -1,147 +1,136 @@
 [build]
   command = "node netlify/generate-products.mjs && node download_all_images.mjs && npm run build"
-    publish = "dist"
+  publish = "dist"
 
-    [build.environment]
-      NODE_VERSION = "20"
+[build.environment]
+  NODE_VERSION = "20"
 
-      [functions]
-        directory = "netlify/functions"
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
-        # Säkerhetshuvuden
-        [[headers]]
-          for = "/*"
-            [headers.values]
-              X-Frame-Options = "DENY"
-                X-Content-Type-Options = "nosniff"
-                  Referrer-Policy = "strict-origin-when-cross-origin"
-                    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-                      Cache-Control = "public, max-age=0, must-revalidate"
+# Säkerhetshuvuden
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
-                      # Astro-genererade assets har content-hash i filnamnet – kan cachas länge
-                      [[headers]]
-                        for = "/_astro/*"
-                          [headers.values]
-                            Cache-Control = "public, max-age=31536000, immutable"
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
-                            # Bilder – cachas 7 dagar
-                            [[headers]]
-                              for = "/images/*"
-                                [headers.values]
-                                  Cache-Control = "public, max-age=604800"
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
 
-                                  # ── www → icke-www (kanonisering) ──────────────────────────
-                                  [[redirects]]
-                                    from   = "https://www.scenkonsult.se/*"
-                                      to     = "https://scenkonsult.se/:splat"
-                                        status = 301
-                                          force  = true
+[[redirects]]
+  from   = "https://www.scenkonsult.se/*"
+  to     = "https://scenkonsult.se/:splat"
+  status = 301
+  force  = true
 
-                                          # ── Gamla WordPress-URL:er som syns i GSC ──────────────────
-                                          [[redirects]]
-                                            from   = "/search/*"
-                                              to     = "/vara-vanligaste-fragor-faq/"
-                                                status = 301
+[[redirects]]
+  from = "/search/*"
+  to = "/vara-vanligaste-fragor-faq/"
+  status = 301
 
-                                                [[redirects]]
-                                                  from   = "/requests/*"
-                                                    to     = "/"
-                                                      status = 410
+[[redirects]]
+  from = "/requests/*"
+  to = "/"
+  status = 410
 
-                                                      [[redirects]]
-                                                        from   = "/category/*"
-                                                          to     = "/"
-                                                            status = 410
+[[redirects]]
+  from = "/category/*"
+  to = "/"
+  status = 410
 
-                                                            [[redirects]]
-                                                              from   = "/hyra-ljus-old/*"
-                                                                to     = "/vara-tjanster/hyra-ljus/"
-                                                                  status = 301
+[[redirects]]
+  from = "/hyra-ljus-old/*"
+  to = "/vara-tjanster/hyra-ljus/"
+  status = 301
 
-                                                                  # ── 301-redirects från gamla WordPress-URL:er ──────────────
+[[redirects]]
+  from = "/hyra-ljus/"
+  to = "/vara-tjanster/hyra-ljus/"
+  status = 301
 
-                                                                  # Gamla ljus-URL:er
-                                                                  [[redirects]]
-                                                                    from = "/hyra-ljus/"
-                                                                      to = "/vara-tjanster/hyra-ljus/"
-                                                                        status = 301
+[[redirects]]
+  from = "/uthyrning-av-ljus-fardiga-paket/"
+  to = "/vara-tjanster/hyra-ljus/fardiga-paket/"
+  status = 301
 
-                                                                        [[redirects]]
-                                                                          from = "/uthyrning-av-ljus-fardiga-paket/"
-                                                                            to = "/vara-tjanster/hyra-ljus/fardiga-paket/"
-                                                                              status = 301
+[[redirects]]
+  from = "/uthyrning-av-ljuseffekter/"
+  to = "/vara-tjanster/hyra-ljus/ljuseffekter/"
+  status = 301
 
-                                                                              [[redirects]]
-                                                                                from = "/uthyrning-av-ljuseffekter/"
-                                                                                  to = "/vara-tjanster/hyra-ljus/ljuseffekter/"
-                                                                                    status = 301
+[[redirects]]
+  from = "/uthyrning-av-rok-pyro/"
+  to = "/vara-tjanster/hyra-ljus/rok-pyro/"
+  status = 301
 
-                                                                                    [[redirects]]
-                                                                                      from = "/uthyrning-av-rok-pyro/"
-                                                                                        to = "/vara-tjanster/hyra-ljus/rok-pyro/"
-                                                                                          status = 301
+[[redirects]]
+  from = "/uthyrning-av-stativ-tross/"
+  to = "/vara-tjanster/hyra-ljus/stativ-tross/"
+  status = 301
 
-                                                                                          [[redirects]]
-                                                                                            from = "/uthyrning-av-stativ-tross/"
-                                                                                              to = "/vara-tjanster/hyra-ljus/stativ-tross/"
-                                                                                                status = 301
+[[redirects]]
+  from = "/hyra-ljud/"
+  to = "/vara-tjanster/hyra-ljud/"
+  status = 301
 
-                                                                                                # Gamla ljud-URL:er (vanliga WP-mönster)
-                                                                                                [[redirects]]
-                                                                                                  from = "/hyra-ljud/"
-                                                                                                    to = "/vara-tjanster/hyra-ljud/"
-                                                                                                      status = 301
-                                                                                                      
-                                                                                                      [[redirects]]
-                                                                                                        from = "/uthyrning-av-ljud/"
-                                                                                                          to = "/vara-tjanster/hyra-ljud/"
-                                                                                                            status = 301
-                                                                                                            
-                                                                                                            # Gamla scen-URL:er
-                                                                                                            [[redirects]]
-                                                                                                              from = "/hyra-scen/"
-                                                                                                                to = "/vara-tjanster/hyra-scen/"
-                                                                                                                  status = 301
-                                                                                                                  
-                                                                                                                  [[redirects]]
-                                                                                                                    from = "/uthyrning-av-scen/"
-                                                                                                                      to = "/vara-tjanster/hyra-scen/"
-                                                                                                                        status = 301
-                                                                                                                        
-                                                                                                                        # Gamla DJ-URL:er
-                                                                                                                        [[redirects]]
-                                                                                                                          from = "/hyra-dj/"
-                                                                                                                            to = "/vara-tjanster/hyra-dj/"
-                                                                                                                              status = 301
-                                                                                                                              
-                                                                                                                              # Gamla bild/projektor-URL:er
-                                                                                                                              [[redirects]]
-                                                                                                                                from = "/hyra-projektor/"
-                                                                                                                                  to = "/vara-tjanster/hyra-bild-projektorer-skarmar/"
-                                                                                                                                    status = 301
-                                                                                                                                    
-                                                                                                                                    [[redirects]]
-                                                                                                                                      from = "/hyra-bild-projektorer-skarmar/"
-                                                                                                                                        to = "/vara-tjanster/hyra-bild-projektorer-skarmar/"
-                                                                                                                                          status = 301
-                                                                                                                                          
-                                                                                                                                          # WP-specifika sidor → närmaste motsvarighet
-                                                                                                                                          [[redirects]]
-                                                                                                                                            from = "/author/*"
-                                                                                                                                              to = "/om-oss/"
-                                                                                                                                                status = 301
-                                                                                                                                                
-                                                                                                                                                [[redirects]]
-                                                                                                                                                  from = "/wp-admin/*"
-                                                                                                                                                    to = "/"
-                                                                                                                                                      status = 301
-                                                                                                                                                      
-                                                                                                                                                      [[redirects]]
-                                                                                                                                                        from = "/wp-content/*"
-                                                                                                                                                          to = "/"
-                                                                                                                                                            status = 301
-                                                                                                                                                            
-                                                                                                                                                            [[redirects]]
-                                                                                                                                                              from = "/wp-login.php"
-                                                                                                                                                                to = "/"
-                                                                                                                                                                  status = 301
+[[redirects]]
+  from = "/uthyrning-av-ljud/"
+  to = "/vara-tjanster/hyra-ljud/"
+  status = 301
+
+[[redirects]]
+  from = "/hyra-scen/"
+  to = "/vara-tjanster/hyra-scen/"
+  status = 301
+
+[[redirects]]
+  from = "/uthyrning-av-scen/"
+  to = "/vara-tjanster/hyra-scen/"
+  status = 301
+
+[[redirects]]
+  from = "/hyra-dj/"
+  to = "/vara-tjanster/hyra-dj/"
+  status = 301
+
+[[redirects]]
+  from = "/hyra-projektor/"
+  to = "/vara-tjanster/hyra-bild-projektorer-skarmar/"
+  status = 301
+
+[[redirects]]
+  from = "/hyra-bild-projektorer-skarmar/"
+  to = "/vara-tjanster/hyra-bild-projektorer-skarmar/"
+  status = 301
+
+[[redirects]]
+  from = "/author/*"
+  to = "/om-oss/"
+  status = 301
+
+[[redirects]]
+  from = "/wp-admin/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/wp-content/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/wp-login.php"
+  to = "/"
+  status = 301
