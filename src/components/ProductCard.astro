@@ -19,7 +19,7 @@ interface Props {
   wide?: boolean;
   category?: string;
 }
-const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, dimensionTable, wide = false, category = 'Produkt' } = Astro.props;
+const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, dimensionTable, wide = false, category = 'Produkt', monteringMin } = Astro.props;
 const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 const productJson = JSON.stringify({
