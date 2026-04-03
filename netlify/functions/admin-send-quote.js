@@ -3,7 +3,8 @@
 // POST /.netlify/functions/admin-send-quote
 // Kräver ADMIN_TOKEN
 
-import { supabase as createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight } from './_lib.js';
+'use strict';
+const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight } = require('./_lib');
 
 const FROM      = 'Scenkonsult Norden <noreply@scenkonsult.se>';
 const LOGO_URL  = 'https://scenkonsult.se/logo-white.png';
@@ -132,7 +133,7 @@ function genCartId() {
   return `SK-${hex().slice(0,8)}-${hex().slice(0,4)}`;
 }
 
-export default async (event) => {
+exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (event.httpMethod !== 'POST') return err('Metod ej tillåten', 405);
   if (!isAdmin(event)) return err('Ej behörig', 401);
@@ -141,7 +142,7 @@ export default async (event) => {
   try { data = JSON.parse(event.body); }
   catch { return err('Ogiltig data', 400); }
 
-  const { customer, items, note, existing_cart_id } = data;
+  const { customer, items, note } = data;
 
   if (!customer?.name || !customer?.email)
     return err('Namn och e-post krävs', 400);
@@ -152,7 +153,7 @@ export default async (event) => {
   if (!apiKey) return err('E-postkonfiguration saknas', 500);
 
   const db         = createSupabase();
-  const cartId     = existing_cart_id || genCartId();
+  const cartId     = genCartId();
   const cartToken  = generateCartToken();
   const realItems  = (items || []).filter(i => !i._note && i.name);
   
@@ -231,10 +232,6 @@ export default async (event) => {
     return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ ok: true, cart_id: cartId, cart_token: cartToken, cart_url: cartUrl }) };
   } catch (e) {
     console.error('ADMIN_QUOTE_MAIL_ERROR:', e.message);
-    // Om vi skapade en ny cart, ta bort den vid mailfel (rollback)
-    if (!existing_cart_id) {
-      try { await db.update('carts', { status: 'cancelled' }, 'id', cartId); } catch {}
-    }
     return err('Kunde inte skicka mail: ' + e.message, 500);
   }
 };
