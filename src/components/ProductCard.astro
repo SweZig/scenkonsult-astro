@@ -103,7 +103,8 @@ const productJson = JSON.stringify({
     <div class="flex-1 min-h-[0.5rem]"></div>
 
     <!-- Scen-style bottom bar: pris vänster, knapp höger -->
-    <div class="flex items-center justify-between border-t border-white/10 pt-4 mt-auto gap-3" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+    <div class="flex flex-col border-t border-white/10 pt-4 mt-auto gap-2" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+    <div class="flex items-center justify-between gap-3">
       <meta itemprop="priceCurrency" content="SEK" />
       <meta itemprop="price" content={String(price)} />
       <meta itemprop="priceValidUntil" content="2027-12-31" />
@@ -140,7 +141,7 @@ const productJson = JSON.stringify({
       {typeof price === 'number' ? (
         <>
           <span class="text-brand-orange font-extrabold text-xl shrink-0">
-            <Price amount={price} suffix={priceNote} size="xl" />
+            <Price amount={price} suffix="/dygn" size="xl" />
           </span>
           <CartButton id={cartId} name={name} price={price} priceNote={priceNote} artno={artno ?? ''} category={category} image={image ?? ''} size="md" />
         </>
@@ -150,6 +151,10 @@ const productJson = JSON.stringify({
           <a href="/bokningssida/" class="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold px-4 py-2 text-sm rounded-lg whitespace-nowrap transition-colors">Boka</a>
         </>
       )}
+    </div>
+    {priceNote && priceNote !== '/dygn' && (
+      <p class="text-[10px] text-white/35 leading-tight">{priceNote.replace(/^\//, '')}</p>
+    )}
     </div>
 
   </div>
