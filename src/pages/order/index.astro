@@ -124,267 +124,106 @@ import Layout from '../../layouts/Layout.astro';
   .info-value { font-size: 0.95rem; font-weight: 500; color: #f0eeff; }
 
   /* Product table */
-  /* ── PRODUKTKORT (ny stil) ─────────────────────────────── */
-  .order-items-section { margin-bottom: 1.25rem; }
-  .order-section-title {
-    font-size: 0.72rem;
+  /* ── CHECKOUT-INSPIRERAD LAYOUT ──────────────────────────── */
+
+  /* Orderrader — likt varukorg */
+  .order-cart-wrap {
+    background: #151333;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  .order-cart-header {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.09em;
-    color: rgba(196,181,244,0.55);
-    padding: 0.75rem 1.5rem 0.5rem;
+    color: rgba(196,181,244,0.6);
     border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  .prod-card {
-    display: flex;
+    display: grid;
+    grid-template-columns: 52px 1fr 60px 72px 80px;
+    gap: 0.5rem;
     align-items: center;
-    gap: 1rem;
-    padding: 0.875rem 1.5rem;
+  }
+  .order-cart-row {
+    display: grid;
+    grid-template-columns: 52px 1fr 60px 72px 80px;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
     border-bottom: 1px solid rgba(255,255,255,0.05);
   }
-  .prod-card:last-child { border-bottom: none; }
-  .prod-card-img {
-    width: 64px;
-    height: 54px;
-    border-radius: 8px;
+  .order-cart-row:last-child { border-bottom: none; }
+  .order-cart-row.svc-row { background: rgba(255,255,255,0.015); }
+  .row-img {
+    width: 44px; height: 38px;
+    border-radius: 6px;
     overflow: hidden;
     background: #0c0a24;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
   }
-  .prod-card-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .prod-card-img-ph {
-    font-size: 1.4rem;
-    opacity: 0.4;
-  }
-  .svc-card-icon {
-    width: 64px;
-    height: 54px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-  }
-  .prod-card-info { flex: 1; min-width: 0; }
-  .prod-card-name { font-weight: 600; color: #f0eeff; font-size: 0.95rem; }
-  .prod-card-meta { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
-  .prod-card-price {
-    text-align: right;
-    flex-shrink: 0;
-  }
-  .prod-card-total { font-weight: 700; color: #c4b5f4; font-size: 1rem; }
-  .prod-card-unit  { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+  .row-img img { width:100%;height:100%;object-fit:cover; }
+  .row-name   { font-weight: 600; font-size: 0.9rem; color: #f0eeff; }
+  .row-cat    { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-top:1px; }
+  .row-qty    { text-align: center; color: rgba(255,255,255,0.6); font-size: 0.88rem; }
+  .row-price  { text-align: right; color: rgba(255,255,255,0.5); font-size: 0.88rem; }
+  .row-total  { text-align: right; color: #c4b5f4; font-weight: 700; font-size: 0.9rem; }
 
-  .order-summary-box {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgba(255,255,255,0.08);
+  /* Section separator */
+  .order-sec-label {
+    padding: 0.5rem 1.25rem 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: rgba(255,255,255,0.25);
+    border-top: 1px dashed rgba(255,255,255,0.07);
+    margin-top: 2px;
   }
-  .summary-row {
+  .order-sec-label:first-child { border-top: none; }
+
+  /* Tidpunkter */
+  .order-times {
     display: flex;
-    justify-content: space-between;
-    font-size: 0.875rem;
-    color: rgba(255,255,255,0.5);
+    gap: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: rgba(196,181,244,0.04);
+  }
+  .order-time-item { display: flex; flex-direction: column; gap: 1px; }
+  .order-time-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing:0.07em; color: rgba(255,255,255,0.35); }
+  .order-time-value { font-size: 0.88rem; font-weight: 600; color: #f0eeff; }
+
+  /* Totals box */
+  .order-totals {
+    background: #1a1740;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .totals-row {
+    display: flex; justify-content: space-between;
+    font-size: 0.875rem; color: rgba(255,255,255,0.5);
     margin-bottom: 0.4rem;
   }
-  .summary-row.total {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #c4b5f4;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
+  .totals-row.grand {
+    font-size: 1.1rem; font-weight: 700; color: #c4b5f4;
+    margin-top: 0.6rem; padding-top: 0.6rem;
     border-top: 1px solid rgba(196,181,244,0.2);
     margin-bottom: 0;
   }
-  .summary-note {
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.3);
-    margin-top: 0.5rem;
-    font-style: italic;
+  .totals-note { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top:0.5rem; font-style:italic; }
+
+  @media (max-width:480px) {
+    .order-cart-header { display: none; }
+    .order-cart-row { grid-template-columns: 44px 1fr 60px; }
+    .row-price { display: none; }
   }
 
-  /* Tidpunkter */
-  .time-row {
-    display: flex;
-    gap: 1rem;
-    padding: 0.75rem 1.5rem;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.45);
-  }
-  .time-item { display: flex; flex-direction: column; gap: 2px; }
-  .time-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; }
-  .time-value { color: #f0eeff; font-weight: 600; }
-
-  .prod-note-row {
-    padding: 0.5rem 1.5rem;
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.45);
-    font-style: italic;
-    border-top: 1px dashed rgba(255,255,255,0.06);
-  }
-
-  /* Keep old table styles for fallback */
-  .prod-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  .prod-table th {
-    text-align: left;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    padding: 0 0 0.625rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-  .prod-table td {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    vertical-align: middle;
-  }
-  .prod-table tr:last-child td { border-bottom: none; }
-  .prod-name { font-weight: 600; }
-  .prod-cat  { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
-  .prod-total { color: #c4b5f4; font-weight: 700; }
-  .total-row td {
-    padding-top: 1rem;
-    border-top: 2px solid rgba(196,181,244,0.2);
-    font-weight: 700;
-  }
-  .grand-total { color: #c4b5f4; font-size: 1.05rem; }
-  .moms-note { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin-top: 0.5rem; }
-
-  /* ── CHATT ─────────────────────────────────────────────── */
-  .chat-messages { display: flex; flex-direction: column; gap: 1rem; }
-  .msg-wrap { display: flex; flex-direction: column; }
-  .msg-wrap.admin    { align-items: flex-start; }
-  .msg-wrap.customer { align-items: flex-end; }
-  .msg-bubble {
-    max-width: 82%;
-    padding: 0.75rem 1rem;
-    border-radius: 14px;
-    font-size: 0.9rem;
-    line-height: 1.55;
-  }
-  .msg-wrap.admin    .msg-bubble { background: #221f50; color: #f0eeff; border-bottom-left-radius: 4px; }
-  .msg-wrap.customer .msg-bubble { background: #332885; color: #fff;    border-bottom-right-radius: 4px; }
-  .msg-sender-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: rgba(255,255,255,0.45);
-    margin-bottom: 0.25rem;
-    padding: 0 0.25rem;
-  }
-  .msg-meta {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.35);
-    margin-top: 0.3rem;
-    padding: 0 0.25rem;
-  }
-  .chat-empty {
-    text-align: center;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.875rem;
-    padding: 2rem;
-  }
-
-  /* Chat input */
-  .chat-input-wrap { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.07); }
-  .chat-textarea {
-    width: 100%;
-    background: #0f0d2a;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 0.875rem;
-    color: #f0eeff;
-    font-family: 'Source Sans 3', sans-serif;
-    font-size: 0.95rem;
-    resize: vertical;
-    min-height: 80px;
-    margin-bottom: 0.75rem;
-    transition: border-color 0.2s;
-  }
-  .chat-textarea:focus { outline: none; border-color: #c4b5f4; }
-  .chat-send-btn {
-    background: #332885;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 0.75rem 1.5rem;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .chat-send-btn:hover { background: #c4b5f4; color: #0c0a24; }
-  .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* ── FOOTER ─────────────────────────────────────────────── */
-  .order-footer {
-    text-align: center;
-    margin-top: 2.5rem;
-    color: rgba(255,255,255,0.5);
-    font-size: 0.82rem;
-    line-height: 1.8;
-  }
-  .order-footer a { color: #c4b5f4; text-decoration: none; }
-  .order-footer a:hover { text-decoration: underline; }
-
-  .to-cart-btn {
-    display: inline-block;
-    background: #332885;
-    color: #fff;
-    text-decoration: none;
-    padding: 0.7rem 1.5rem;
-    border-radius: 8px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: background 0.2s;
-  }
-  .to-cart-btn:hover { background: #c4b5f4; color: #0c0a24; }
-
-  #statusCta {
-    background: rgba(96,165,250,0.04);
-    border: 1px solid rgba(96,165,250,0.15);
-    border-top: none;
-    border-radius: 0 0 14px 14px;
-    padding: 1rem 1.25rem 1.25rem;
-    margin-top: -2px;
-  }
-
-  @media (max-width: 560px) {
-    .info-grid { grid-template-columns: 1fr; }
-    .prod-table th:nth-child(3),
-    .prod-table td:nth-child(3) { display: none; }
-  }
-  .prod-thumb {
-    width: 44px; height: 44px; border-radius: 6px;
-    background: #0c0a24; object-fit: contain; padding: 3px;
-    border: 1px solid rgba(255,255,255,0.08); display: block;
-  }
-  .prod-thumb-ph {
-    width: 44px; height: 44px; border-radius: 6px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    display: flex; align-items: center; justify-content: center;
-    color: rgba(255,255,255,0.2); font-size: 1.1rem;
-  }
-  .prod-note-row td {
-    padding: 0.4rem 0.75rem 0.75rem;
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.5);
-    font-style: italic;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
 </style>
 
 <div class="order-page">
@@ -429,18 +268,24 @@ import Layout from '../../layouts/Layout.astro';
     </div>
     <div id="statusCta" style="display:none"></div>
 
-    <!-- Event info -->
-    <div class="section" id="sectionEvent" style="display:none">
-      <div class="section-head">Eventinformation</div>
-      <div class="section-body">
-        <div class="info-grid" id="eventGrid"></div>
+    <!-- Products + event info combined checkout-style -->
+    <div class="order-cart-wrap" id="orderCartWrap">
+      <div class="order-cart-header">
+        <span></span>
+        <span>Produkt / Tjänst</span>
+        <span style="text-align:center">Antal</span>
+        <span style="text-align:right">À-pris</span>
+        <span style="text-align:right">Summa</span>
       </div>
+      <div id="prodTableWrap"></div>
     </div>
 
-    <!-- Products -->
-    <div class="section">
-      <div class="section-head">Din beställning</div>
-      <div id="prodTableWrap"></div>
+    <!-- Totals -->
+    <div class="order-totals" id="orderTotals" style="display:none">
+      <div class="totals-row" id="totalsExcl"></div>
+      <div class="totals-row" id="totalsMoms"></div>
+      <div class="totals-row grand" id="totalsGrand"></div>
+      <div class="totals-note" id="totalsNote" style="display:none">* Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</div>
     </div>
 
     <!-- Chatt -->
@@ -572,18 +417,7 @@ function renderOrder(c) {
   // Sätt Cart-objekt globalt för bekräftelseflödet
   window._currentCart = c;
 
-  // Event section
-  const fields = [];
-  if (c.event_date)     fields.push(['Datum',   fmtDate(c.event_date)]);
-  if (c.event_location) fields.push(['Plats',   c.event_location]);
-  if (c.customer_phone) fields.push(['Telefon', c.customer_phone]);
-  if (c.customer_email) fields.push(['E-post',  c.customer_email]);
-  if (fields.length > 0) {
-    document.getElementById('sectionEvent').style.display = '';
-    document.getElementById('eventGrid').innerHTML = fields.map(([l,v]) =>
-      `<div class="info-field"><div class="info-label">${l}</div><div class="info-value">${v}</div></div>`
-    ).join('');
-  }
+  // Event info visas nu inne i productTableWrap (order-times-row)
 
   // Products — separera produkter och tjänster, visa samlad total inkl. moms
   const SVC_CATS_ORDER = ['Tjänster', 'Tillägg'];
@@ -601,7 +435,7 @@ function renderOrder(c) {
   const moms      = Math.round(grandExcl * 0.25);
   const grandIncl = grandExcl + moms;
 
-  // ── Ikonkarta för tjänster ──
+  // ── Bygg checkout-inspirerade rader ──
   const svcIcon = id => {
     const s = (id||'').toLowerCase();
     if (s.includes('lev') || s.includes('transport')) return '🚚';
@@ -611,94 +445,83 @@ function renderOrder(c) {
     return '⚙️';
   };
 
-  // Produktkort
-  const mkProdCard = i => {
+  const mkProdRow = i => {
     const qty   = i.qty || i.quantity || 1;
     const total = (i.price||0) * qty;
     const imgSrc = PROD_IMG[i.id] || PROD_IMG[(i.id||'').replace(/^(scen-|ljud-|ljus-|dj-utr-)/,'')] || null;
     const imgEl = imgSrc
-      ? `<div class="prod-card-img"><img src="${imgSrc}" alt="${i.name||''}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="prod-card-img-ph" style="display:none">📦</span></div>`
-      : `<div class="prod-card-img"><span class="prod-card-img-ph">📦</span></div>`;
-    return `<div class="prod-card">
+      ? `<div class="row-img"><img src="${imgSrc}" alt="" loading="lazy" onerror="this.style.display='none'"></div>`
+      : `<div class="row-img">📦</div>`;
+    return `<div class="order-cart-row">
       ${imgEl}
-      <div class="prod-card-info">
-        <div class="prod-card-name">${i.name || '–'}</div>
-        ${qty > 1 ? `<div class="prod-card-meta">${qty} st × ${fmt(i.price)} kr</div>` : ''}
-      </div>
-      <div class="prod-card-price">
-        <div class="prod-card-total">${fmt(total)} kr</div>
-        <div class="prod-card-unit">exkl. moms</div>
-      </div>
+      <div><div class="row-name">${i.name||'–'}</div></div>
+      <div class="row-qty">${qty > 1 ? qty + ' st' : '1 st'}</div>
+      <div class="row-price">${fmt(i.price)} kr</div>
+      <div class="row-total">${fmt(total)} kr</div>
     </div>`;
   };
 
-  // Tjänstkort
-  const mkSvcCard = i => {
+  const mkSvcRow = i => {
     const qty   = i.qty || i.quantity || 1;
     const total = (i.price||0) * qty;
     const icon  = svcIcon(i.id);
-    return `<div class="prod-card">
-      <div class="svc-card-icon">${icon}</div>
-      <div class="prod-card-info">
-        <div class="prod-card-name">${i.name || '–'}</div>
-        ${qty > 1 ? `<div class="prod-card-meta">${qty} × ${fmt(i.price)} kr</div>` : '<div class="prod-card-meta">Tilläggstjänst</div>'}
-      </div>
-      <div class="prod-card-price">
-        <div class="prod-card-total">${fmt(total)} kr</div>
-        <div class="prod-card-unit">exkl. moms</div>
-      </div>
+    return `<div class="order-cart-row svc-row">
+      <div class="row-img">${icon}</div>
+      <div><div class="row-name">${i.name||'–'}</div><div class="row-cat">Tilläggstjänst</div></div>
+      <div class="row-qty">${qty > 1 ? qty + ' st' : '1 st'}</div>
+      <div class="row-price">${fmt(i.price)} kr</div>
+      <div class="row-total">${fmt(total)} kr</div>
     </div>`;
   };
 
-  // Bygg HTML
   let html = '';
 
   if (prodItems.length > 0) {
-    html += `<div class="order-section-title">Utrustning</div>`;
-    html += prodItems.map(mkProdCard).join('');
+    html += `<div class="order-sec-label">Utrustning</div>`;
+    html += prodItems.map(mkProdRow).join('');
   }
   if (svcItems.length > 0) {
-    html += `<div class="order-section-title">Tilläggstjänster</div>`;
-    html += svcItems.map(mkSvcCard).join('');
+    html += `<div class="order-sec-label">Tilläggstjänster</div>`;
+    html += svcItems.map(mkSvcRow).join('');
   }
   if (feeItem) {
-    html += `<div class="prod-card">
-      <div class="svc-card-icon">🧾</div>
-      <div class="prod-card-info"><div class="prod-card-name">${feeItem.name}</div></div>
-      <div class="prod-card-price"><div class="prod-card-total">${fmt(feeItem.price)} kr</div><div class="prod-card-unit">exkl. moms</div></div>
-    </div>`;
+    html += `<div class="order-sec-label">Fakturaavgift</div>`;
+    html += mkSvcRow(feeItem);
   }
   if (noteItem) {
-    html += `<div class="prod-note-row">📝 ${noteItem.name}</div>`;
+    html += `<div style="padding:0.6rem 1.25rem;font-size:0.8rem;color:rgba(255,255,255,0.4);font-style:italic;border-top:1px dashed rgba(255,255,255,0.06)">📝 ${noteItem.name}</div>`;
   }
 
   // Tidpunkter
   if (c.event_date) {
-    const dlTime = c.delivery_time || '13:00';
-    const rtTime = c.return_time   || '11:00';
-    const retDate = c.return_date || c.event_date;
-    html += `<div class="time-row">
-      <div class="time-item">
-        <span class="time-label">Utlämning</span>
-        <span class="time-value">${fmtDate(c.event_date)} kl ${dlTime}</span>
+    const dlTime  = c.delivery_time || '13:00';
+    const rtTime  = c.return_time   || '11:00';
+    const retDate = c.return_date   || c.event_date;
+    html += `<div class="order-times">
+      <div class="order-time-item">
+        <span class="order-time-label">📅 Utlämning</span>
+        <span class="order-time-value">${fmtDate(c.event_date)} kl ${dlTime}</span>
       </div>
-      <div class="time-item">
-        <span class="time-label">Återlämning</span>
-        <span class="time-value">${fmtDate(retDate)} kl ${rtTime}</span>
+      <div class="order-time-item">
+        <span class="order-time-label">📅 Återlämning</span>
+        <span class="order-time-value">${fmtDate(retDate)} kl ${rtTime}</span>
       </div>
+      ${c.event_location ? `<div class="order-time-item"><span class="order-time-label">📍 Plats</span><span class="order-time-value">${c.event_location}</span></div>` : ''}
     </div>`;
   }
 
-  // Summering
-  const hasSvcEstimate = svcItems.length > 0;
-  html += `<div class="order-summary-box">
-    <div class="summary-row"><span>Exkl. moms</span><span>${fmt(grandExcl)} kr</span></div>
-    <div class="summary-row"><span>Moms 25%</span><span>${fmt(moms)} kr</span></div>
-    <div class="summary-row total"><span>Totalt inkl. moms</span><span>${fmt(grandIncl)} kr</span></div>
-    ${hasSvcEstimate ? '<div class="summary-note">* Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</div>' : ''}
-  </div>`;
-
   document.getElementById('prodTableWrap').innerHTML = html;
+
+  // Totals box
+  const totalsEl = document.getElementById('orderTotals');
+  if (totalsEl && grandExcl > 0) {
+    document.getElementById('totalsExcl').innerHTML  = `<span>Exkl. moms</span><span>${fmt(grandExcl)} kr</span>`;
+    document.getElementById('totalsMoms').innerHTML  = `<span>Moms 25%</span><span>${fmt(moms)} kr</span>`;
+    document.getElementById('totalsGrand').innerHTML = `<span>Totalt inkl. moms</span><span>${fmt(grandIncl)} kr</span>`;
+    const noteEl = document.getElementById('totalsNote');
+    if (noteEl) noteEl.style.display = svcItems.length > 0 ? '' : 'none';
+    totalsEl.style.display = '';
+  }
 }
 
 function renderMessages() {

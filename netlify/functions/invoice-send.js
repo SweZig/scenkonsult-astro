@@ -109,8 +109,15 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
     // Kund (höger kolumn)
     const cx = 300;
     doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Kund', cx, infoY);
+    const displayName = cart.customer_company
+      ? cart.customer_name + '\n' + cart.customer_company
+      : cart.customer_name || '—';
     doc.fontSize(12).font('Helvetica-Bold').fillColor('#1a1a2e').text(cart.customer_name || '—', cx, infoY + 10);
     let ky = infoY + 26;
+    if (cart.customer_company) {
+      doc.fontSize(10).font('Helvetica').fillColor('#1a1a2e').text(cart.customer_company, cx, ky);
+      ky += 14;
+    }
     if (cart.customer_orgnr) {
       doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Org.nr: ' + cart.customer_orgnr, cx, ky);
       ky += 14;
@@ -268,7 +275,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber} — skickad</h2>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Faktura <strong>${invoiceNumber}</strong> har skickats till:</p>
   <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${invoiceToEmail}${invoiceToEmail!==cart.customer_email?" <span style=\"font-size:11px;color:#888\">(alternativ adress)</span>":""}</p>
-  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${cart.customer_name || '—'}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${cart.customer_name || '—'}${cart.customer_company ? ' / ' + cart.customer_company : ''}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Belopp:</strong> ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms</p>
   <p style="color:#444;font-size:14px;margin:0;"><strong>Cart-ID:</strong> ${cart.id}</p>
 </td></tr>

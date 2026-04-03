@@ -958,6 +958,7 @@ function renderTab(tab) {
         customer_type:    document.querySelector('input[name="ctype"]:checked')?.value || 'b2c',
         customer_address: $('edit-address')?.value.trim()  || null,
         customer_orgnr:   $('edit-orgnr')?.value.trim()    || null,
+        customer_company: $('edit-company')?.value.trim()   || null,
         customer_ref:     $('edit-custref')?.value.trim()   || null,
         delivery_time:    $('edit-delivery-time')?.value   || '13:00',
         return_time:      $('edit-return-time')?.value     || '11:00',
@@ -975,6 +976,7 @@ function renderTab(tab) {
           customer_type:    updates.customer_type,
           customer_address: updates.customer_address,
           customer_orgnr:   updates.customer_orgnr,
+          customer_company: updates.customer_company,
           customer_ref:     updates.customer_ref,
           delivery_time:    updates.delivery_time,
           return_time:      updates.return_time,
@@ -1159,6 +1161,10 @@ function renderInfoTab() {
       <div class="info-field">
         <div class="info-field-label">Namn</div>
         <input class="info-edit-input" id="edit-name" value="${(c.customer_name||'').replace(/"/g,'&quot;')}" placeholder="Namn" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;font-weight:500">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">Företagsnamn</div>
+        <input class="info-edit-input" id="edit-company" value="${(c.customer_company||'').replace(/"/g,'&quot;')}" placeholder="Företagsnamn (om B2B)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
         <div class="info-field-label">E-post</div>
@@ -1688,6 +1694,7 @@ function renderFakturaTab() {
     <div class="section-label">Kund</div>
     <div style="font-size:0.82rem;padding:8px 10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-bottom:8px">
       <div style="font-weight:600;color:var(--text)">${c.customer_name||'—'} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${c.customer_type==='b2b'?'B2B':'Privatperson'})</span></div>
+      ${c.customer_company ? `<div style="font-size:0.8rem;color:var(--text-muted)">${c.customer_company}</div>` : ''}
       ${c.customer_orgnr ? `<div style="color:var(--text-muted)">Org.nr: ${c.customer_orgnr}</div>` : ''}
       ${(c.customer_address||c.event_location) ? `<div style="color:var(--text-muted)">${c.customer_address||c.event_location}</div>` : ''}
       ${c.customer_ref ? `<div style="color:var(--text-muted)">Er ref: ${c.customer_ref}</div>` : ''}
@@ -1706,8 +1713,66 @@ function renderFakturaTab() {
       <button class="btn-action btn-success" onclick="invCreateAndSend()" style="font-size:0.8rem" ${isSent||isPaid?'disabled':''}>🧾 Skapa &amp; skicka faktura</button>
       ${!isPaid && isSent ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
     </div>
-  `;
+
+    <details style="margin-top:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <summary style="padding:8px 12px;cursor:pointer;font-size:0.78rem;font-weight:600;color:var(--text-muted);background:var(--surface);list-style:none;display:flex;align-items:center;gap:6px">
+        ⚙ Underhåll fakturanummerserie
+      </summary>
+      <div style="padding:12px;background:var(--bg);font-size:0.8rem">
+        <p style="color:var(--text-muted);margin:0 0 10px;line-height:1.5">
+          Används när manuella fakturor skickats utanför systemet och ett nummer måste hoppas över.
+          Ange nästa K-nummer som ska användas.
+        </p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div>
+            <div style="color:var(--text-faint);font-size:0.7rem;margin-bottom:3px">Nästa fakturanummer</div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="color:var(--text-muted);font-size:0.9rem;font-weight:600">K</span>
+              <input id="inv-next-num" type="number" min="1" step="1" placeholder="2012"
+                style="width:90px;font-size:0.85rem;padding:4px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+            </div>
+          </div>
+          <button class="btn-action" onclick="invSetNextNumber()" style="font-size:0.78rem;margin-top:18px">
+            Reservera nummer
+          </button>
+        </div>
+        <div id="inv-maint-status" style="margin-top:8px;font-size:0.75rem;color:var(--text-faint)"></div>
+        <p style="color:var(--text-faint);font-size:0.72rem;margin:8px 0 0;font-style:italic">
+          Tips: om du skickat faktura K2013 manuellt, sätt nästa nummer till 2014.
+        </p>
+      </div>
+    </details>
+  \`;
 }
+
+async function invSetNextNumber() {
+  const input = document.getElementById('inv-next-num');
+  const status = document.getElementById('inv-maint-status');
+  const num = parseInt(input?.value);
+  if (!num || num < 1) { if(status) status.textContent = '⚠ Ange ett giltigt nummer'; return; }
+  const reservedNum = 'K' + (num - 1); // Vi reserverar K(num-1) så nästa blir K(num)
+  if(status) status.textContent = '⏳ Reserverar…';
+  try {
+    // Skapa en dummy-post i carts med detta invoice_number för att "ta" det ur serien
+    // Enklare: POST till en dedikerad endpoint eller använd cart-update på currentCart
+    // Vi använder supabase direkt via cart-update med ett dummy invoice_number
+    const res = await fetch('/.netlify/functions/invoice-reserve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+      body: JSON.stringify({ next_number: num })
+    });
+    if (res.ok) {
+      if(status) { status.style.color='var(--green)'; status.textContent = `✓ Nästa faktura blir K${num}`; }
+      if(input) input.value = '';
+    } else {
+      const err = await res.json();
+      if(status) { status.style.color='var(--red)'; status.textContent = '⚠ ' + (err.error||'Fel'); }
+    }
+  } catch(e) {
+    if(status) { status.style.color='var(--red)'; status.textContent = '⚠ Nätverksfel'; }
+  }
+}
+window.invSetNextNumber = invSetNextNumber;
 
 function invUpdateDueDate() {
   const dateEl  = document.getElementById('inv-date');
