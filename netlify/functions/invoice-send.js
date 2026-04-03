@@ -240,7 +240,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
-      from: FROM, to: [cart.customer_email],
+      from: FROM, to: [invoiceToEmail],
       reply_to: 'info@scenkonsult.se',
       subject:  `Faktura ${invoiceNumber} — Scenkonsult Norden`,
       html, text: plain,
@@ -265,7 +265,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber} — skickad</h2>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Faktura <strong>${invoiceNumber}</strong> har skickats till:</p>
-  <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${cart.customer_email}</p>
+  <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${invoiceToEmail}${invoiceToEmail!==cart.customer_email?" <span style=\"font-size:11px;color:#888\">(alternativ adress)</span>":""}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${cart.customer_name || '—'}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Belopp:</strong> ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms</p>
   <p style="color:#444;font-size:14px;margin:0;"><strong>Cart-ID:</strong> ${cart.id}</p>
@@ -282,7 +282,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer) {
     body: JSON.stringify({
       from: FROM, to: ['info@scenkonsult.se'],
       reply_to: cart.customer_email,
-      subject: `Faktura ${invoiceNumber} skickad → ${cart.customer_email}`,
+      subject: `Faktura ${invoiceNumber} skickad → ${invoiceToEmail}`,
       html: internalHtml,
       text: `Faktura ${invoiceNumber} skickad till: ${cart.customer_email}\nKund: ${cart.customer_name||'—'}\nCart-ID: ${cart.id}`,
       attachments: [{
@@ -321,6 +321,11 @@ exports.handler = async (event) => {
     const { data: cart, error } = await db.from('carts').select('*').eq('id', cart_id).single();
     if (error || !cart) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Order hittades inte' }) };
     if (!cart.customer_email) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Kunden saknar e-postadress' }) };
+
+    // Bestäm fakturaadress: alternativ mail om toggle är aktiv och adressen är ifylld
+    const invoiceToEmail = (cart.use_invoice_email && cart.invoice_email)
+      ? cart.invoice_email
+      : cart.customer_email;
 
     const invoiceNumber = await getOrCreateInvoiceNumber(db, cart);
     let logoBuffer = null;

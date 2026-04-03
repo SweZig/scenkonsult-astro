@@ -917,6 +917,25 @@ function renderTab(tab) {
     });
 
     // Save customer info fields
+    // Faktura-mail toggle — uppdatera status-badge live
+    function toggleInvoiceEmailActive(checked) {
+      const emailVal = document.getElementById('edit-invoice-email')?.value.trim();
+      const customerEmail = currentCart?.customer_email || 'saknas';
+      const statusEl = document.getElementById('invoice-email-status');
+      const checkbox = document.getElementById('use-invoice-email');
+      if (checkbox) checkbox.checked = checked;
+      if (statusEl) {
+        if (checked && emailVal) {
+          statusEl.style.cssText = 'margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;background:rgba(196,181,244,0.15);color:#c4b5f4';
+          statusEl.innerHTML = '✓ Faktura skickas till: <strong>' + emailVal + '</strong>';
+        } else {
+          statusEl.style.cssText = 'margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45)';
+          statusEl.innerHTML = '→ Faktura skickas till kundens mail: <strong>' + customerEmail + '</strong>';
+        }
+      }
+    }
+    window.toggleInvoiceEmailActive = toggleInvoiceEmailActive;
+
     // B2B/B2C toggle — show/hide org.nr fields
     document.querySelectorAll('input[name="ctype"]').forEach(r => {
       r.addEventListener('change', () => {
@@ -940,6 +959,10 @@ function renderTab(tab) {
         customer_address: $('edit-address')?.value.trim()  || null,
         customer_orgnr:   $('edit-orgnr')?.value.trim()    || null,
         customer_ref:     $('edit-custref')?.value.trim()   || null,
+        delivery_time:    $('edit-delivery-time')?.value   || '13:00',
+        return_time:      $('edit-return-time')?.value     || '11:00',
+        invoice_email:    $('edit-invoice-email')?.value.trim() || null,
+        use_invoice_email: $('use-invoice-email')?.checked ? true : false,
       };
       const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
       if (ok) {
@@ -953,6 +976,10 @@ function renderTab(tab) {
           customer_address: updates.customer_address,
           customer_orgnr:   updates.customer_orgnr,
           customer_ref:     updates.customer_ref,
+          delivery_time:    updates.delivery_time,
+          return_time:      updates.return_time,
+          invoice_email:    updates.invoice_email,
+          use_invoice_email: updates.use_invoice_email,
         });
         $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
         toast('Kunduppgifter sparade!');
@@ -1152,6 +1179,33 @@ function renderInfoTab() {
       <div class="info-field" style="grid-column:1/-1">
         <div class="info-field-label">Fakturaadress (om annan)</div>
         <input class="info-edit-input" id="edit-address" value="${(c.customer_address||'').replace(/"/g,'&quot;')}" placeholder="Gatuadress, postnr, ort" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+    </div>
+
+    <div class="section-label">Tid & alternativ fakturamottagare</div>
+    <div class="info-grid">
+      <div class="info-field">
+        <div class="info-field-label">Utlämning (tid)</div>
+        <input class="info-edit-input" id="edit-delivery-time" type="time" value="${c.delivery_time||'13:00'}" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">Återlämning (tid)</div>
+        <input class="info-edit-input" id="edit-return-time" type="time" value="${c.return_time||'11:00'}" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field" style="grid-column:1/-1">
+        <div class="info-field-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Alternativ mailadress för faktura-PDF</span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer">
+            <input type="checkbox" id="use-invoice-email" ${c.invoice_email&&c.use_invoice_email?'checked':''} onchange="toggleInvoiceEmailActive(this.checked)" style="accent-color:#c4b5f4;width:14px;height:14px">
+            Använd denna istället för kundens mail
+          </label>
+        </div>
+        <input class="info-edit-input" id="edit-invoice-email" type="email" value="${(c.invoice_email||'').replace(/"/g,'&quot;')}" placeholder="fakturamail@foretag.se" oninput="toggleInvoiceEmailActive(document.getElementById('use-invoice-email')?.checked)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;margin-top:4px">
+        <div id="invoice-email-status" style="margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;${c.invoice_email&&c.use_invoice_email?'background:rgba(196,181,244,0.15);color:#c4b5f4':'background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45)'}">
+          ${c.invoice_email&&c.use_invoice_email
+            ? '✓ Faktura skickas till: <strong>'+c.invoice_email+'</strong>'
+            : '→ Faktura skickas till kundens mail: <strong>'+(c.customer_email||'saknas')+'</strong>'}
+        </div>
       </div>
     </div>
 

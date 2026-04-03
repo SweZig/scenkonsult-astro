@@ -148,7 +148,11 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         </div>
         <div class="field-group">
           <label class="field-label" for="f-company">Företag</label>
-          <input type="text" id="f-company" class="field-input" placeholder="Företagsnamn (valfritt)" autocomplete="organization" />
+          <input type="text" id="f-company" class="field-input" placeholder="Företagsnamn (valfritt)" autocomplete="organization" oninput="toggleOrgnr(this.value)" />
+        </div>
+        <div class="field-group" id="orgnr-group" style="display:none">
+          <label class="field-label" for="f-orgnr">Organisationsnummer *</label>
+          <input type="text" id="f-orgnr" class="field-input" placeholder="556xxx-xxxx" autocomplete="off" />
         </div>
         <div class="field-group">
           <label class="field-label" for="f-email">E-post *</label>
@@ -1016,6 +1020,7 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
     const customer = {
       name:    document.getElementById('f-name')?.value.trim() || '',
       company: document.getElementById('f-company')?.value.trim() || '',
+      orgnr:   document.getElementById('f-orgnr')?.value.trim() || '',
       email:   document.getElementById('f-email')?.value.trim() || '',
       phone:   document.getElementById('f-phone')?.value.trim() || '',
       from:    document.getElementById('f-date-from')?.value || '',

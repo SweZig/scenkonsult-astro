@@ -172,7 +172,12 @@ exports.handler = async (event) => {
       if (body.invoice_number   !== undefined) updates.invoice_number   = body.invoice_number;
       if (body.invoice_sent_at  !== undefined) updates.invoice_sent_at  = body.invoice_sent_at;
       if (body.invoice_paid_at  !== undefined) updates.invoice_paid_at  = body.invoice_paid_at;
-      if (body.payment_terms_days !== undefined) updates.payment_terms_days = parseInt(body.payment_terms_days) || 5;
+      if (body.payment_terms_days  !== undefined) updates.payment_terms_days  = parseInt(body.payment_terms_days) || 5;
+      if (body.delivery_time        !== undefined) updates.delivery_time        = body.delivery_time     || '13:00';
+      if (body.return_time          !== undefined) updates.return_time          = body.return_time       || '11:00';
+      if (body.invoice_email        !== undefined) updates.invoice_email        = body.invoice_email     || null;
+      if (body.use_invoice_email    !== undefined) updates.use_invoice_email    = !!body.use_invoice_email;
+      if (body.customer_company     !== undefined) updates.customer_company     = body.customer_company  || null;
 
       // Statusändring
       if (body.status !== undefined) {
