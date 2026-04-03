@@ -6,7 +6,7 @@
 // Kräver: Authorization: Bearer <ADMIN_TOKEN>
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight } = require('./_lib.cjs');
+const { supabase, isAdmin, ok, err, preflight } = require('./_lib.js');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();

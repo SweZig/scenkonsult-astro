@@ -157,4 +157,4 @@ function rateLimit(ip, maxPerMin = 10) {
   return RATE_STORE[ip].count > maxPerMin;
 }
 
-module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit };
+export { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit };

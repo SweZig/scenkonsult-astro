@@ -2,7 +2,7 @@
 // Resend API — ljust mailtheme (spam-säkert), rate limit-hantering
 // Skapar även en "open" varukorg i Supabase för uppföljning
 
-const { supabase: createSupabase, generateCartToken, logAudit } = require('./_lib.cjs');
+const { supabase: createSupabase, generateCartToken, logAudit } = require('./_lib.js');
 
 const RATE_LIMIT = {};
 const RATE_WINDOW_MS = 60 * 1000;

@@ -6,7 +6,7 @@
 // 4. Skickar via Resend med PDF som bilaga
 // 5. Uppdaterar invoice_sent_at + status → fakturerad
 
-const { supabase: createSupabase, logAudit } = require('./_lib.cjs');
+const { supabase: createSupabase, logAudit } = require('./_lib.js');
 const PDFDocument = require('pdfkit');
 
 const RESEND_API = 'https://api.resend.com/emails';

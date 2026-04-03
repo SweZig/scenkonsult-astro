@@ -3,8 +3,7 @@
 // POST /.netlify/functions/admin-send-quote
 // Kräver ADMIN_TOKEN
 
-'use strict';
-const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight } = require('./_lib.cjs');
+import { supabase as createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight } from './_lib.js';
 
 const FROM      = 'Scenkonsult Norden <noreply@scenkonsult.se>';
 const LOGO_URL  = 'https://scenkonsult.se/logo-white.png';
@@ -133,7 +132,7 @@ function genCartId() {
   return `SK-${hex().slice(0,8)}-${hex().slice(0,4)}`;
 }
 
-exports.handler = async (event) => {
+export default async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (event.httpMethod !== 'POST') return err('Metod ej tillåten', 405);
   if (!isAdmin(event)) return err('Ej behörig', 401);
