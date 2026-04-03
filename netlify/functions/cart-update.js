@@ -257,7 +257,7 @@ exports.handler = async (event) => {
       fields: Object.keys(updates)
     });
 
-    return ok({ success: true, cart_id: cart.id });
+    return ok({ ok: true, success: true, cart_id: cart.id });
 
   } catch (e) {
     console.error('CART_UPDATE_ERROR:', e.message);
