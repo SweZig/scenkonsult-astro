@@ -1758,7 +1758,7 @@ async function invSetNextNumber() {
     // Vi använder supabase direkt via cart-update med ett dummy invoice_number
     const res = await fetch('/.netlify/functions/invoice-reserve', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
       body: JSON.stringify({ next_number: num })
     });
     if (res.ok) {
