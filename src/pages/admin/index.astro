@@ -1662,9 +1662,8 @@ async function invMarkPaid() {
     currentCart.status = 'betald';
     currentCart.invoice_paid_at = now;
     toast('Order markerad som betald! 💚');
-    loadCarts();
-    renderTab('faktura');
-    renderPanelFooter();
+    await loadCarts();
+    if (currentCart) { renderTab('faktura'); renderPanelFooter(); }
   } else toast('Fel vid markering', 'error');
 }
 
