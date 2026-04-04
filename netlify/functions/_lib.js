@@ -138,9 +138,30 @@ function preflight() {
 // ── Audit log helper ─────────────────────────────────────────
 async function logAudit(db, cartId, actor, eventType, payload = {}) {
   try {
-    await db.insert('audit_log', { cart_id: cartId, actor, event_type: eventType, payload });
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY;
+    if (!url || !key) return;
+    const res = await fetch(`${url}/rest/v1/audit_log`, {
+      method: 'POST',
+      headers: {
+        'apikey':        key,
+        'Authorization': `Bearer ${key}`,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal'
+      },
+      body: JSON.stringify({
+        cart_id:    cartId,
+        actor:      actor,
+        event_type: eventType,
+        payload:    typeof payload === 'object' ? payload : {}
+      })
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error('AUDIT_LOG_FAIL:', res.status, txt);
+    }
   } catch (e) {
-    console.error('audit_log failed:', e.message);
+    console.error('AUDIT_LOG_ERROR:', e.message);
   }
 }
 
