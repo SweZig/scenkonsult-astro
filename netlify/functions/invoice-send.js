@@ -278,8 +278,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
 
-  // Intern kopia med tydlig ämnesrad
-  await new Promise(r => setTimeout(r, 600));
+  // Intern kopia med tydlig ämnesrad (fire-and-forget)
   const internalHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
@@ -302,7 +301,8 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
 </table></td></tr></table>
 </body></html>`;
 
-  await fetch(RESEND_API, {
+  // Intern kopia — fire and forget (blockerar ej svaret)
+  fetch(RESEND_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
@@ -316,7 +316,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
         content:  pdfBuffer.toString('base64'),
       }],
     }),
-  });
+  }).catch(e => console.error('INVOICE_INTERNAL_COPY_ERROR:', e.message));
 
   return res.json();
 }

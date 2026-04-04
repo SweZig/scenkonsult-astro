@@ -2209,7 +2209,8 @@ function quotePickerAdd() {
   const price    = parseInt(opt.dataset.price) || 0;
   const id       = opt.value;
   const selCat   = $('qp-cat')?.value || '';
-  const isSvc    = SVC_CATALOG_KEYS.includes(selCat);
+  const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+  const isSvc    = SVC_CATALOG_KEYS.includes(selCat) || SVC_IDS.has(id);
 
   // Om samma produkt redan finns, öka antal
   const existing = quoteItems.find(i => i.id === id && !i.custom);
