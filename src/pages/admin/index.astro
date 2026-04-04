@@ -534,7 +534,14 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       </div>
       <div class="form-row">
         <div><label class="form-label">Telefon</label><input class="form-input" id="qc-phone" placeholder="070 000 00 00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        <div><label class="form-label">Eventdatum</label><input class="form-input" type="date" id="qc-date" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div><label class="form-label">Datum, från *</label><input class="form-input" type="date" id="qc-date" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+      </div>
+      <div class="form-row">
+        <div><label class="form-label">Datum, till</label><input class="form-input" type="date" id="qc-date-to" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div><label class="form-label">Utlämning</label><input class="form-input" type="time" id="qc-time-from" value="13:00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+          <div><label class="form-label">Återlämning</label><input class="form-input" type="time" id="qc-time-to" value="11:00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        </div>
       </div>
       <div class="form-row">
         <div><label class="form-label">Företagsnamn</label><input class="form-input" id="qc-company" placeholder="Företag / organisation" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;" oninput="const v=this.value.trim();document.getElementById('qc-b2b-fields').style.display=v?'block':'none';document.getElementById('qc-b2b-placeholder').style.display=v?'none':''"></div>
@@ -813,9 +820,10 @@ function cartCardHTML(c) {
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
   const isBooking = c.order_intent === 'booking';
+  const showBadge = ['open','waiting'].includes(c.status) || isBooking;
   const intentBadge = isBooking
     ? `<span style="background:#f59e0b;color:#0c0a24;font-size:0.65rem;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0.04em">⭐ BOKNING</span>`
-    : `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`;
+    : (showBadge ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>` : '');
   return `
     <div class="cart-card${isBooking?' cart-card-booking':''}" data-id="${c.id}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
@@ -2206,6 +2214,9 @@ function openQuoteModal(prefill) {
   $('qc-email').value    = prefill?.customer_email || '';
   $('qc-phone').value    = prefill?.customer_phone || '';
   $('qc-date').value     = prefill?.event_date || '';
+  if ($('qc-date-to'))   $('qc-date-to').value   = prefill?.return_date   || '';
+  if ($('qc-time-from')) $('qc-time-from').value = prefill?.delivery_time || '13:00';
+  if ($('qc-time-to'))   $('qc-time-to').value   = prefill?.return_time   || '11:00';
   $('qc-location').value = prefill?.event_location || '';
   $('qc-company').value  = prefill?.customer_company || '';
   if ($('qc-orgnr')) $('qc-orgnr').value = prefill?.customer_orgnr || '';
@@ -2413,8 +2424,11 @@ async function sendQuote() {
     customer: {
       name, email,
       phone:    $('qc-phone').value.trim()   || null,
-      date:     $('qc-date').value           || null,
-      location: $('qc-location').value.trim() || null,
+      date:          $('qc-date').value           || null,
+      return_date:   $('qc-date-to')?.value         || null,
+      delivery_time: $('qc-time-from')?.value        || '13:00',
+      return_time:   $('qc-time-to')?.value          || '11:00',
+      location:      $('qc-location').value.trim()   || null,
       company:  $('qc-company')?.value.trim() || null,
       orgnr:    $('qc-orgnr')?.value.trim()   || null,
     },

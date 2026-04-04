@@ -186,29 +186,32 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
       ry += font === 'Helvetica-Bold' ? 18 : 14;
     });
 
-    // ── Betalningsinformation ──
-    ry += 20;
+    // ── Betalningsinformation + Avsändare (samma höjd) ──
+    ry += 16;
     doc.moveTo(50, ry).lineTo(50 + W, ry).lineWidth(1).stroke(LAV);
-    ry += 12;
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Betalningsinformation', 50, ry);
-    ry += 12;
+    ry += 10;
+    const payY = ry; // fast startpunkt för båda kolumnerna
+
+    // Vänster: Betalningsinformation
+    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Betalningsinformation', 50, payY);
     doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
-    doc.text('Bankgiro: 5132-0646', 50, ry);
-    doc.text('Swish: 123 136 59 07', 50, ry + 12);
-    doc.text(`Betalningsvillkor: ${terms} dagar netto`, 50, ry + 24, { color: GRAY });
+    doc.text('Bankgiro: 5132-0646', 50, payY + 12);
+    doc.text('Swish: 123 136 59 07', 50, payY + 24);
+    doc.text(`Betalningsvillkor: ${terms} dagar netto`, 50, payY + 36);
 
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, ry);
+    // Höger: Avsändare (exakt samma y-värde)
+    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, payY);
     doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e')
-       .text('Scenkonsult Norden (Sigvardsson Consulting AB)', 300, ry + 12)
-       .text('Org.nr: 559068-4931', 300, ry + 24, { fillColor: GRAY })
-       .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, ry + 36, { fillColor: GRAY });
+       .text('Scenkonsult Norden (Sigvardsson Consulting AB)', 300, payY + 12)
+       .text('Org.nr: 559068-4931', 300, payY + 24)
+       .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, payY + 36);
 
-    // Footer
-    const footerY = doc.page.height - 50;
-    doc.moveTo(50, footerY - 10).lineTo(545, footerY - 10).lineWidth(0.5).stroke('#e0e0e8');
+    // Footer — direkt under betalningsinfo, inte längst ned på sidan
+    ry = payY + 58;
+    doc.moveTo(50, ry).lineTo(50 + W, ry).lineWidth(0.5).stroke('#e0e0e8');
     doc.fontSize(8).font('Helvetica').fillColor(GRAY)
        .text('Tack för ditt förtroende! Frågor? Ring 072-448 10 00 eller maila info@scenkonsult.se',
-             50, footerY, { width: W, align: 'center' });
+             50, ry + 8, { width: W, align: 'center' });
 
     doc.end();
   });

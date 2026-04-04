@@ -168,6 +168,7 @@ import Layout from '../../layouts/Layout.astro';
     transition: transform 0.2s;
   }
   .row-img img { width:100%;height:100%;object-fit:cover; }
+  .svc-icon-wrap { padding: 10px !important; box-sizing: border-box; }
   .svc-icon-wrap svg { width:100%;height:100%;display:block; }
   .row-img-clickable { cursor: zoom-in; }
   .order-cart-row-clickable:hover .row-img { transform: scale(1.06); }
@@ -514,9 +515,13 @@ function renderOrder(c) {
   // Header
   document.getElementById('orderId').textContent    = c.id;
   document.getElementById('orderTitle').textContent = `Hej ${c.customer_name?.split(' ')[0] || 'där'}!`;
-  document.getElementById('orderSubtitle').textContent = c.event_date
-    ? `Order för event ${fmtDate(c.event_date)}${c.event_location ? ' · ' + c.event_location : ''}`
-    : 'Här kan du följa status på din order och skicka meddelanden till oss.';
+  // Visa företagsnamn om det finns
+  const subtitleParts = [];
+  if (c.customer_company) subtitleParts.push(c.customer_company);
+  if (c.event_date) subtitleParts.push(`Order för event ${fmtDate(c.event_date)}${c.event_location ? ' · ' + c.event_location : ''}`);
+  else subtitleParts.push('Här kan du följa status på din order och skicka meddelanden till oss.');
+  document.getElementById('orderSubtitle').textContent = subtitleParts.join(' · ');
+  // orderSubtitle set above with company info
 
   // Status
   const s = STATUS[c.status] || STATUS.open;
@@ -635,7 +640,7 @@ function renderOrder(c) {
     const total  = (i.price||0) * qty;
     const iconDef = svcIcon(i.id);
     return `<div class="order-cart-row svc-row">
-      <div class="row-img svc-icon-wrap" style="background:${iconDef.bg};padding:10px;border-radius:8px">${iconDef.svg}</div>
+      <div class="row-img svc-icon-wrap" style="background:${iconDef.bg}">${iconDef.svg}</div>
       <div><div class="row-name">${i.name||'–'}</div><div class="row-cat">Tilläggstjänst</div></div>
       <div class="row-qty">${qty > 1 ? qty + ' st' : '1 st'}</div>
       <div class="row-price">${fmt(i.price)} kr</div>
