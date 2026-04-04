@@ -786,6 +786,8 @@ function getFilteredCarts() {
 });
 
 function renderKanban() {
+  // Filtrera bort reservationsrader
+  carts = carts.filter(c => !c.id?.startsWith('SK-RESERVE-') && c.customer_name !== '[Reserverat fakturanummer]');
   const filtered = getFilteredCarts();
   const cols = ['open','waiting','confirmed','fakturerad','betald','cancelled']; // proposal dold — ersatt av waiting i nya flödet
   const board = $('kanban-board');
