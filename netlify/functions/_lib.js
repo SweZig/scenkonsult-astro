@@ -178,7 +178,6 @@ function rateLimit(ip, maxPerMin = 10) {
   return RATE_STORE[ip].count > maxPerMin;
 }
 
-module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit };
 
 // ── Mail-helpers (delade av alla mail-funktioner) ─────────────
 const MAIL_FROM     = 'Scenkonsult Norden <noreply@scenkonsult.se>';
@@ -255,8 +254,4 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   </tr></table>`;
   return html;
 }
-
-module.exports = Object.assign(module.exports, {
-  htmlWrapper, sendEmail, buildPriceTable,
-  MAIL_FROM, MAIL_LOGO_URL,
-});
+module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM, MAIL_LOGO_URL };
