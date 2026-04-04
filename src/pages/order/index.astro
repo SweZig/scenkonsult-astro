@@ -168,8 +168,7 @@ import Layout from '../../layouts/Layout.astro';
     transition: transform 0.2s;
   }
   .row-img img { width:100%;height:100%;object-fit:cover; }
-  .svc-icon-wrap { padding: 10px !important; box-sizing: border-box; }
-  .svc-icon-wrap svg { width:100%;height:100%;display:block; }
+  .row-img svg { width:100%;height:100%;display:block; }
   .row-img-clickable { cursor: zoom-in; }
   .order-cart-row-clickable:hover .row-img { transform: scale(1.06); }
   .order-cart-row-clickable:hover { background: rgba(196,181,244,0.05); }
@@ -640,7 +639,7 @@ function renderOrder(c) {
     const total  = (i.price||0) * qty;
     const iconDef = svcIcon(i.id);
     return `<div class="order-cart-row svc-row">
-      <div class="row-img svc-icon-wrap" style="background:${iconDef.bg}">${iconDef.svg}</div>
+      <div class="row-img" style="background:${iconDef.bg};padding:10px">${iconDef.svg}</div>
       <div><div class="row-name">${i.name||'–'}</div><div class="row-cat">Tilläggstjänst</div></div>
       <div class="row-qty">${qty > 1 ? qty + ' st' : '1 st'}</div>
       <div class="row-price">${fmt(i.price)} kr</div>

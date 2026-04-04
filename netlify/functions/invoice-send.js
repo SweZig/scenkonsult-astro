@@ -133,13 +133,15 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
     doc.fontSize(8).fillColor(GRAY).text('Vår referens', cx, ky + 4);
     doc.fontSize(9).fillColor('#1a1a2e').text(cart.invoice_ref || 'Per S', cx, ky + 14);
 
-    // Eventdatum
-    const tableY = 230;
+    // Eventdatum + hyresperiod — placeras dynamiskt baserat på var innehållet slutar
+    const minTableY = Math.max(ky + 30, 240); // aldrig för nära kundinfo
+    let tableY = minTableY;
     if (cart.event_date) {
       const dlTime = cart.delivery_time || '13:00';
       const rtTime = cart.return_time || '11:00';
+      const periodText = `Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl ${dlTime}  ·  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl ${rtTime}`;
       doc.fontSize(9).font('Helvetica').fillColor(GRAY)
-         .text(`Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl ${dlTime}  ·  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl ${rtTime}`, 50, tableY - 18);
+         .text(periodText, 50, tableY - 22, { width: W });
     }
 
     // ── Produkttabell ──
