@@ -155,9 +155,27 @@ exports.handler = async (event) => {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return err('E-postkonfiguration saknas', 500);
 
-  const db         = createSupabase();
-  const cartId     = existing_cart_id || genCartId();
-  const cartToken  = generateCartToken();
+  const db = createSupabase();
+
+  // Om existing_cart_id skickas: verifiera att den finns och inte är en annan kunds skyddade cart
+  let cartId    = existing_cart_id || genCartId();
+  let cartToken = generateCartToken();
+
+  if (existing_cart_id) {
+    const { data: existingCart } = await db.from('carts')
+      .select('id, cart_token, status, customer_email')
+      .eq('id', existing_cart_id).single().catch(() => ({ data: null }));
+
+    if (!existingCart) {
+      // existing_cart_id finns inte i databasen — generera nytt
+      console.warn('ADMIN_QUOTE: existing_cart_id hittades ej, genererar nytt:', existing_cart_id);
+      cartId    = genCartId();
+      cartToken = generateCartToken();
+    } else {
+      // Bevara befintlig token (så gamla länkarna fortfarande fungerar)
+      cartToken = existingCart.cart_token || cartToken;
+    }
+  }
   const realItems  = (items || []).filter(i => !i._note && i.name);
   
   // Lägg till notraden om det finns anteckningar

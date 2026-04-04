@@ -194,9 +194,22 @@ exports.handler = async (event) => {
       const db = createSupabase();
       const totalExcl = (cart || []).reduce((s, i) => s + ((i.price || 0) * (i.quantity || i.qty || 1)), 0);
 
-      // Återanvänd befintlig token om den finns — ny token gör gamla mail-länkar ogiltiga
-      const { data: existing } = await db.from('carts').select('cart_token').eq('id', cartId).single().catch(() => ({ data: null }));
+      // Hämta befintlig cart — bevara token, och skydda mot överskrivning av behandlade ordrar
+      const { data: existing } = await db.from('carts')
+        .select('cart_token, status')
+        .eq('id', cartId).single().catch(() => ({ data: null }));
+
       cartToken = existing?.cart_token || generateCartToken();
+
+      // SÄKERHETSSKYDD: Skriv aldrig över en cart som redan är hanterad av admin
+      const PROTECTED_STATUSES = ['waiting', 'confirmed', 'fakturerad', 'betald'];
+      if (existing && PROTECTED_STATUSES.includes(existing.status)) {
+        console.error('OFFERT_BLOCKED: Försök att skriva över skyddad cart', cartId, 'status:', existing.status);
+        // Returnera success till kunden (vi vill inte läcka info) men logga felet
+        // Mailet skickas fortfarande — men utan Supabase-synk
+        cartToken = null;
+        cartUrl = null;
+      } else {
 
       await db.upsert('carts', {
         id:               cartId,
@@ -223,6 +236,7 @@ exports.handler = async (event) => {
       cartUrl = `https://scenkonsult.se/order/?cart=${cartId}&token=${cartToken}`;
       await logAudit(db, cartId, 'customer', 'proposal_sent', { intent: intent || 'offert' });
       console.log('SUPABASE_SYNC_OK:', cartId);
+      } // end: if not protected
     } catch (supaErr) {
       // Mjuk felhantering — mail skickas ändå
       console.error('SUPABASE_SYNC_ERROR:', supaErr.message);
