@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import quoteCatalogData from '../../data/quote-catalog.json';
 ---
 <Layout
   title="Din order – Scenkonsult Norden"
@@ -390,7 +391,7 @@ import Layout from '../../layouts/Layout.astro';
 </div>
 </div>
 
-<script>
+<script define:vars={{ quoteCatalog: quoteCatalogData }}>
 const STATUS = {
   open:        { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
   proposal:    { icon: '📤', label: 'Offert skickad',      desc: 'Vi har skickat ett offert — se produkter och priser nedan.',                  cls: 's-proposal'  },
@@ -407,9 +408,7 @@ const fmtTime = d  => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short
 
 // Produktbild-karta: id → sökväg
 
-// ── Produktkatalog — läses från quote-catalog.json (single source of truth) ──
-import _quoteCatalog from '../../data/quote-catalog.json';
-
+// ── Produktkatalog — injiceras via define:vars från quote-catalog.json ──
 // Bygg flat lookup: id → { desc, image, artno, catName }
 const ORDER_CATALOG = (() => {
   const cat = {};
@@ -419,7 +418,7 @@ const ORDER_CATALOG = (() => {
       cat[p.id] = { desc: p.desc || '', image: p.image || '', artno: p.artno || '', catName };
     }
   };
-  for (const [catName, data] of Object.entries(_quoteCatalog)) {
+  for (const [catName, data] of Object.entries(quoteCatalog)) {
     if (data.products) add(data.products, catName);
     if (data.sub) for (const [subName, prods] of Object.entries(data.sub)) add(prods, subName);
   }
