@@ -183,6 +183,9 @@ exports.handler = async (event) => {
       delivery_time:     customer.delivery_time || '13:00',
       return_time:       customer.return_time   || '11:00',
       return_date:       customer.return_date   || null,
+      customer_company:  customer.company  || null,
+      customer_orgnr:    customer.orgnr    || null,
+      customer_type:     customer.company  ? 'b2b' : 'b2c',
       total_excl:       totalExcl * 100,
       cart_token:       cartToken,
       expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString()
