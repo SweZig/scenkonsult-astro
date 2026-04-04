@@ -822,11 +822,11 @@ function cartCardHTML(c) {
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
   const showBadge = ['new','waiting'].includes(c.status);
-  const intentBadge = isBooking
-    ? `<span style="background:#f59e0b;color:#0c0a24;font-size:0.65rem;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0.04em">⭐ BOKNING</span>`
-    : (showBadge ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>` : '');
+  const intentBadge = showBadge
+    ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`
+    : '';
   return `
-    <div class="cart-card${isBooking?' cart-card-booking':''}" data-id="${c.id}">
+    <div class="cart-card" data-id="${c.id}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
         <div class="cart-card-name" style="margin:0">${c.customer_name || 'Okänd kund'}</div>
         ${intentBadge}
