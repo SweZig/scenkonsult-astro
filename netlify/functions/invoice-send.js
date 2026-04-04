@@ -360,21 +360,20 @@ exports.handler = async (event) => {
       if (logoRes.ok) logoBuffer = Buffer.from(await logoRes.arrayBuffer());
     } catch(e) { /* fortsätt utan logo */ }
 
-    // Generera Swish QR
+    // Generera Swish QR — format per Swish C2B spec (avsnitt 6.1):
+    // C<nummer>;<belopp med komma>;<meddelande>;<lock_mask>
     let swishQrBuffer = null;
     if (QRCode) {
       try {
         const items     = (cart.items||[]).filter(i=>!i._note&&i.name);
         const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
         const totalIncl = Math.ceil(totalExcl * 1.25);
-        const swishData = JSON.stringify({
-          version: 1,
-          payee: { value: '1231365907', editable: false },
-          amount: { value: totalIncl, editable: false },
-          message: { value: invoiceNumber, editable: false }
-        });
-        const swishUrl = 'https://app.swish.nu/1/payment/new?data=' + Buffer.from(swishData).toString('base64');
-        const qrPng = await QRCode.toBuffer(swishUrl, { type: 'png', width: 144, margin: 1 });
+        // Belopp med 2 decimaler, komma som decimalseparator
+        const amountStr = totalIncl.toFixed(2).replace('.', ',');
+        // Meddelande URL-encodat (fakturanummer), lock_mask=0 = inget är redigerbart
+        const msg = encodeURIComponent(invoiceNumber);
+        const swishContent = `C1231365907;${amountStr};${msg};0`;
+        const qrPng = await QRCode.toBuffer(swishContent, { type: 'png', width: 200, margin: 2, errorCorrectionLevel: 'M' });
         swishQrBuffer = qrPng;
       } catch(e) { console.error('SWISH_QR_ERROR:', e.message); }
     }

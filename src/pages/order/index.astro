@@ -393,6 +393,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
 
 <script define:vars={{ ORDER_CATALOG: orderCatalog }}>
 const STATUS = {
+  new:         { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
   open:        { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
   proposal:    { icon: '📤', label: 'Offert skickad',      desc: 'Vi har skickat ett offert — se produkter och priser nedan.',                  cls: 's-proposal'  },
   waiting:     { icon: '⏳', label: 'Offert klar',         desc: 'Offerten är klar — granska detaljerna nedan och hör av dig om du har frågor.', cls: 's-waiting'   },
@@ -528,7 +529,7 @@ function renderOrder(c) {
     banner.style.borderRadius = '12px 12px 0 0';
     ctaEl.style.display = '';
     ctaEl.innerHTML = renderConfirmBox(c);
-  } else if (c.status === 'proposal' || c.status === 'open') {
+  } else if (c.status === 'proposal' || c.status === 'open' || c.status === 'new') {
     // Vi håller på att se över förfrågan
     banner.style.borderRadius = '12px 12px 0 0';
     ctaEl.style.display = '';
