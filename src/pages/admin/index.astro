@@ -125,7 +125,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       border-radius: 12px; padding: 0.75rem; min-height: 180px;
       border-left-width: 3px;
     }
-    .kanban-col:has(.s-open)       { border-left-color: var(--amber); }
+    .kanban-col:has(.s-new)        { border-left-color: var(--amber); }
     .kanban-col:has(.s-waiting)    { border-left-color: var(--blue);  }
     .kanban-col:has(.s-confirmed)  { border-left-color: var(--green); }
     .kanban-col:has(.s-fakturerad) { border-left-color: var(--brand-lav); }
@@ -165,7 +165,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .empty-col { color: var(--text-faint); font-size: 0.85rem; text-align: center; padding: 2rem 1rem; }
 
     /* Status colors */
-    .s-open      { color: var(--gray);  }
+    .s-new       { color: var(--amber); }
     .s-waiting   { color: var(--amber); }
     .s-confirmed { color: var(--green); }
     .s-cancelled { color: var(--red);   }
@@ -652,8 +652,8 @@ function toast(msg, type = 'success') {
 }
 
 const STATUS_LABELS = {
-  open:       { icon: '📬', label: 'Inkommen',       cls: 's-open'       },
-  waiting:    { icon: '⏳', label: 'Väntar svar',    cls: 's-waiting'    },
+  new:        { icon: '📬', label: 'Inkommen',       cls: 's-new'        },
+  waiting:    { icon: '⏳', label: 'Offert skickad', cls: 's-waiting'    },
   confirmed:  { icon: '✅', label: 'Bekräftad',      cls: 's-confirmed'  },
   fakturerad: { icon: '🧾', label: 'Fakturerad',     cls: 's-fakturerad' },
   betald:     { icon: '💚', label: 'Betald',          cls: 's-betald'     },
@@ -789,7 +789,7 @@ function renderKanban() {
   // Filtrera bort reservationsrader
   carts = carts.filter(c => !c.id?.startsWith('SK-RESERVE-') && c.customer_name !== '[Reserverat fakturanummer]');
   const filtered = getFilteredCarts();
-  const cols = ['open','waiting','confirmed','fakturerad','betald','cancelled']; // proposal dold — ersatt av waiting i nya flödet
+  const cols = ['new','waiting','confirmed','fakturerad','betald','cancelled'];
   const board = $('kanban-board');
   board.innerHTML = cols.map(status => {
     const s = STATUS_LABELS[status];
@@ -821,8 +821,7 @@ function cartCardHTML(c) {
     ? `<span class="unread-pill">💬 ${c.unread_count} ny${c.unread_count > 1 ? 'a' : 't'}</span>` : '';
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
-  const isBooking = c.order_intent === 'booking';
-  const showBadge = ['open','waiting'].includes(c.status) || isBooking;
+  const showBadge = ['new','waiting'].includes(c.status);
   const intentBadge = isBooking
     ? `<span style="background:#f59e0b;color:#0c0a24;font-size:0.65rem;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0.04em">⭐ BOKNING</span>`
     : (showBadge ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>` : '');
@@ -1998,7 +1997,7 @@ function renderPanelFooter() {
   };
 
   // Context-sensitive buttons based on status
-  if (c.status === 'open') {
+  if (c.status === 'new') {
     makeBtn('📤 Skapa & skicka offert', 'btn-success', () => { renderTab('products'); });
     makeBtn('❌ Avvisa', 'btn-danger', cancelOrder);
 
@@ -2327,7 +2326,7 @@ async function sendQuote() {
       closeQuoteModal();
       toast(`Offert skickad till ${email}! 🎉`);
       // Sätt status → waiting så kunden ser bekräftelseknappen på /order/
-      if (currentCart?.id && currentCart.status === 'open') {
+      if (currentCart?.id && currentCart.status === 'new') {
         await api('cart-update', {
           method: 'POST',
           body: JSON.stringify({ cart_id: currentCart.id, status: 'waiting' })
