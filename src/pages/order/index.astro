@@ -422,7 +422,7 @@ function _buildOrderCatalog() {
     for (const p of arr) {
       const id = p.slug || p.id || '';
       if (!id) continue;
-      cat[id] = { desc: p.description || '', catName, includes: p.includes || [], artno: p.artno || '', image: p.image || '', volPricing: p.volumePricing || [] };
+      cat[id] = { desc: p.description || p.desc || '', catName, includes: p.includes || [], artno: p.artno || '', image: p.image || '', volPricing: p.volumePricing || [] };
     }
   };
   add(_scenJson.products,  'Scen');
@@ -445,11 +445,24 @@ function _buildOrderCatalog() {
 }
 const ORDER_CATALOG = _buildOrderCatalog();
 
+function _normalizeId(id) {
+  // Normalisera gamla admin-ID:n: ta bort trailing dash, byt -m → m, -port- → port
+  return (id||'')
+    .replace(/-$/,'')           // projektorduk-100- → projektorduk-100
+    .replace(/-(\d+)-m$/,'-$1m')  // hdmi-kabel-5-m → hdmi-kabel-5m
+    .replace(/-4-port-?$/,'-4port')  // hdmi-splitter-4-port- → hdmi-splitter-4port
+    .replace(/-(\d+)"?-?$/,'-$1') // scenmonitor-23- → scenmonitor-23
+    .replace(/-clicker-$/,'-clicker'); // usb-clicker- → usb-clicker
+}
+
 function _lookupOrderProduct(item) {
-  return ORDER_CATALOG[item.id]
-      || ORDER_CATALOG['scen-' + (item.id||'')]
-      || ORDER_CATALOG[(item.id||'').replace(/^(scen-|dj-utr-)/,'')]
-      || ORDER_CATALOG[(item.id||'').replace(/^mc-/,'')]
+  const id = item.id || '';
+  const norm = _normalizeId(id);
+  return ORDER_CATALOG[id]
+      || ORDER_CATALOG[norm]
+      || ORDER_CATALOG['scen-' + id]
+      || ORDER_CATALOG[id.replace(/^(scen-|dj-utr-)/,'')]
+      || ORDER_CATALOG[id.replace(/^mc-/,'')]
       || {};
 }
 
