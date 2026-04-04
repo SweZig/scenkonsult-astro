@@ -2236,7 +2236,7 @@ function openQuoteModal(prefill) {
   // Pre-fill items from existing cart
   if (prefill?.items?.length) {
     prefill.items.filter(i => !i._note).forEach(i => {
-      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1 });
+      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1, category: i.category||'' });
     });
     const note = prefill.items.find(i => i._note);
     if (note) $('qc-note').value = note.name;
@@ -2333,7 +2333,7 @@ function quotePickerAdd() {
   const existing = quoteItems.find(i => i.id === id && !i.custom);
   if (existing) { existing.qty++; }
   else {
-    const newItem = { id, name, price, qty: 1 };
+    const newItem = { id, name, price, qty: 1, category: isSvc ? 'Tjänster' : '' };
     if (isSvc) {
       quoteItems.push(newItem); // tjänster alltid sist
     } else {

@@ -144,7 +144,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
     if (cart.event_date) {
       const dlTime = cart.delivery_time || '13:00';
       const rtTime = cart.return_time || '11:00';
-      const periodText = \`Hyresperiod: utlämning \${fmtDate(cart.event_date)} kl \${dlTime}  ·  återlämning \${fmtDate(cart.return_date || cart.event_date)} kl \${rtTime}\`;
+      const periodText = `Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl ${dlTime}  ·  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl ${rtTime}`;
       doc.fontSize(9).font('Helvetica').fillColor(GRAY)
          .text(periodText, 50, tableY - 22, { width: W });
     }
