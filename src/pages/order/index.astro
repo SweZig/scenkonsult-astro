@@ -619,7 +619,7 @@ function renderOrder(c) {
     const imgSrc = _getOrderImg(i);
     const info   = _lookupOrderProduct(i);
     // Visa popup bara om vi har faktiskt produktinnehåll (bild eller specs)
-    const hasInfo = !!(imgSrc && (info.desc || info.includes?.length || info.catName));
+    const hasInfo = !!(info.desc || info.includes?.length || info.catName || imgSrc);
     // Store item for onclick reference
     const key = 'p' + globalIdx;
     window._orderItems[key] = i;

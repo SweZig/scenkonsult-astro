@@ -373,7 +373,7 @@ exports.handler = async (event) => {
           amount: { value: totalIncl, editable: false },
           message: { value: invoiceNumber, editable: false }
         });
-        const swishUrl = 'swish://payment?data=' + encodeURIComponent(swishData);
+        const swishUrl = 'https://app.swish.nu/1/payment/new?data=' + Buffer.from(swishData).toString('base64');
         const qrPng = await QRCode.toBuffer(swishUrl, { type: 'png', width: 144, margin: 1 });
         swishQrBuffer = qrPng;
       } catch(e) { console.error('SWISH_QR_ERROR:', e.message); }

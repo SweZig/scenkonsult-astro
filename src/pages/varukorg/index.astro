@@ -84,7 +84,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
       <!-- Hämtningsinfo — visas när leverans EJ är vald -->
       <div id="pickupNotice" class="pickup-notice">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Utan leverans hämtar och lämnar du utrustningen på vårt lager: <strong>Grimstagatan 164, Vällingby</strong> (öppet mån–sön 08–20).</span>
+        <span>Utan leverans hämtar du utrustningen på vår depå: <strong>Grimstagatan 164, Vällingby</strong>. Utlämning sker efter tidsbokning — vi hör av oss för att boka tid.</span>
       </div>
 
       <!-- Montering -->
@@ -1135,7 +1135,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart: submitItems, body: msgBody, intent, sendCopy: true, cart_id: getCartId() }),
+        body: JSON.stringify({ customer, cart: submitItems, body: msgBody, intent, sendCopy: true, cart_id: getCartId(), selfPickup: !document.getElementById('chkLeverans')?.checked }),
       });
 
       const result = await resp.json();

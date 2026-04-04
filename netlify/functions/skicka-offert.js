@@ -165,7 +165,7 @@ exports.handler = async (event) => {
   if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'For manga forfrågningar.' }) };
   RATE_LIMIT[ip].push(now);
 
-  const { customer, cart, sendCopy, intent } = data;
+  const { customer, cart, sendCopy, intent, selfPickup } = data;
   const isBokning = intent === 'boka';
 
   console.log('OFFERT_INCOMING:', JSON.stringify({ name: customer?.name, email: customer?.email, sendCopy: !!sendCopy, cartLen: cart?.length, intent: intent||'offert' }));
@@ -262,7 +262,7 @@ exports.handler = async (event) => {
       ${field('Telefon', `<a href="tel:${customer.phone}" style="color:#1e1850;">${customer.phone}</a>`)}
       ${field('Foretag', customer.company)}
       ${field('Datum', datumStr)}
-      ${field('Adress', customer.address)}
+      ${field('Adress', selfPickup ? '🏠 Självhämtning — Grimstagatan 164, Vällingby (tidsbokning)' : customer.address)}
       ${field('Ovrigt', customer.notes)}
     </table>
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Varukorg</p>
@@ -295,7 +295,7 @@ exports.handler = async (event) => {
           <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din beställning</p>
           ${buildPriceTable(cart, { showFakturaavgift: false })}
           ${datumStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">📅 Datum: <strong>${datumStr}</strong></p>` : ''}
-          ${customer.address ? `<p style="margin:6px 0 0;color:#666;font-size:13px;">📍 Plats: <strong>${customer.address}</strong></p>` : ''}
+          ${selfPickup ? `<p style="margin:6px 0 0;color:#666;font-size:13px;">📍 Hämtas på vår depå: <strong>Grimstagatan 164, Vällingby</strong> — utlämning sker efter tidsbokning, vi hör av oss för att boka tid.</p>` : (customer.address ? `<p style="margin:6px 0 0;color:#666;font-size:13px;">📍 Leveransadress: <strong>${customer.address}</strong></p>` : '')}
           ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">Följ din order →</a></p><p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du följa status och skicka meddelanden till oss.</p>` : ''}`);
         await sendEmail(apiKey, { from: FROM, to: [customer.email], subject: isBokning ? 'Din bokningsönskan hos Scenkonsult Norden' : 'Din offertförfrågan till Scenkonsult Norden', html: htmlCustomer, text: plainCustomer });
         console.log('KUNDKOPIA_SENT to:', customer.email);
