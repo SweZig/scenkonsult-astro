@@ -537,7 +537,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
         <div><label class="form-label">Eventdatum</label><input class="form-input" type="date" id="qc-date" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
       </div>
       <div class="form-row">
-        <div><label class="form-label">Företagsnamn</label><input class="form-input" id="qc-company" placeholder="Företag / organisation" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;" oninput="document.getElementById('qc-b2b-fields').style.display=this.value.trim()?'grid':'none'"></div>
+        <div><label class="form-label">Företagsnamn</label><input class="form-input" id="qc-company" placeholder="Företag / organisation" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;" oninput="const v=this.value.trim();document.getElementById('qc-b2b-fields').style.display=v?'block':'none';document.getElementById('qc-b2b-placeholder').style.display=v?'none':''"></div>
         <div><label class="form-label">Organisationsnummer</label><div id="qc-b2b-fields" style="display:none"><input class="form-input" id="qc-orgnr" placeholder="556xxx-xxxx" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div><div id="qc-b2b-placeholder" style="color:rgba(255,255,255,0.25);font-size:0.8rem;padding:0.4rem 0">Fylls i när företag anges</div></div>
       </div>
       <div class="form-row full" style="margin-bottom:0">
