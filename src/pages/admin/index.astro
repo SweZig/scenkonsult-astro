@@ -1800,18 +1800,14 @@ function invUpdateDueDate() {
 async function invCreateAndSend() {
   if (!currentCart.customer_email) { toast('Kunden saknar e-postadress', 'error'); return; }
 
-  // Beräkna nästa fakturanummer för att visa i dialogen
+  // Beräkna nästa fakturanummer via cart-list (kräver admin-auth, hämtar alla carts)
   let previewNum = currentCart.invoice_number || '…';
   if (!currentCart.invoice_number) {
     try {
-      const supaUrl = 'https://ejhhgqvtvsmiwxygfqbu.supabase.co';
-      const res = await fetch(`${supaUrl}/rest/v1/carts?select=invoice_number&invoice_number=not.is.null`, {
-        headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqaGhncXZ0dnNtaXd4eWdmcWJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NTc5MTUsImV4cCI6MjA1NjMzMzkxNX0.QRFXVAzDFnAnSJDMxuB1MqMbYhkMxvl8o7rGcgI-dOI' }
-      });
-      if (res.ok) {
-        const rows = await res.json();
+      const { ok: listOk, data: listData } = await api('admin-carts', {});
+      if (listOk && listData?.carts) {
         let maxNum = 2009;
-        (rows||[]).forEach(c => {
+        listData.carts.forEach(c => {
           if (c.invoice_number?.startsWith('K')) {
             const n = parseInt(c.invoice_number.slice(1));
             if (n > maxNum) maxNum = n;
@@ -1819,7 +1815,7 @@ async function invCreateAndSend() {
         });
         previewNum = 'K' + (maxNum + 1);
       }
-    } catch(e) { /* fortsätt med … */ }
+    } catch(e) { /* fortsätt med fallback … */ }
   }
 
   // Visa bekräftelsedialog med fakturanummer

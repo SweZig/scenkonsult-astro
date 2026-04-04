@@ -43,7 +43,7 @@ exports.handler = async (event) => {
 
     // Hämta varukorgar
     // Hämta alla varukorgar — service key bypasser RLS, inga radfilter behövs
-    let q = `${supaUrl}/rest/v1/carts?select=id,status,customer_name,customer_email,event_date,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,created_at,updated_at&order=updated_at.desc`;
+    let q = `${supaUrl}/rest/v1/carts?select=id,status,order_intent,customer_name,customer_email,event_date,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,created_at,updated_at&order=updated_at.desc`;
     if (status) q += `&status=eq.${status}`;
     if (from_date) q += `&event_date=gte.${from_date}`;
     if (to_date)   q += `&event_date=lte.${to_date}`;
