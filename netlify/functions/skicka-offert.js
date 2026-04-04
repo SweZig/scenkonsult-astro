@@ -200,7 +200,8 @@ exports.handler = async (event) => {
 
       await db.upsert('carts', {
         id:               cartId,
-        status:           'open',
+        status:           isBokning ? 'confirmed' : 'open',
+        order_intent:     isBokning ? 'booking' : 'quote',
         items:            cart || [],
         customer_name:    customer.name,
         customer_email:   customer.email,

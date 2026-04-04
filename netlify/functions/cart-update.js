@@ -219,7 +219,47 @@ exports.handler = async (event) => {
         updates.confirmation_text      = body.confirmation_text || `Order ${cart.id} bekräftad digitalt`;
         updates.status                 = 'confirmed';
 
-        await logAudit(db, cart.id, 'customer', 'order_confirmed_by_customer', {
+        // Skicka intern notis till info@scenkonsult.se
+      const apiKey4confirm = process.env.RESEND_API_KEY;
+      if (apiKey4confirm) {
+        const confirmNotifHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
+<tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:20px 32px;text-align:center;">
+  <p style="margin:0;color:#fff;font-size:16px;font-weight:700;">Scenkonsult Norden</p>
+</td></tr>
+<tr><td style="background:#fff;padding:28px 32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
+  <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:1.5rem;">✅</span>
+    <div style="color:#166534;font-weight:700;font-size:15px;">Kund har bekräftat order!</div>
+  </div>
+  <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Kund:</strong> ${cart.customer_name||'–'}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>E-post:</strong> ${cart.customer_email||'–'}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Order:</strong> ${cart.id}</p>
+  ${cart.event_date ? `<p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Eventdatum:</strong> ${cart.event_date}</p>` : ''}
+  ${cart.event_location ? `<p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Plats:</strong> ${cart.event_location}</p>` : ''}
+  <p style="margin:20px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;display:inline-block;">Gå till adminpanelen →</a></p>
+</td></tr>
+<tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:14px 32px;text-align:center;">
+  <p style="margin:0;color:rgba(255,255,255,0.5);font-size:11px;">Scenkonsult Norden · Grimstagatan 164, 162 58 Vällingby</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>`;
+        fetch(RESEND_API, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${apiKey4confirm}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: FROM, to: ['info@scenkonsult.se'],
+            reply_to: cart.customer_email || 'info@scenkonsult.se',
+            subject: `✅ Order bekräftad av kund — ${cart.customer_name||''} (${cart.id})`,
+            html: confirmNotifHtml,
+            text: `Order bekräftad av kund!\n\nKund: ${cart.customer_name||'–'}\nE-post: ${cart.customer_email||'–'}\nOrder: ${cart.id}\n${cart.event_date?'Datum: '+cart.event_date+'\n':''}\nAdminpanel: https://scenkonsult.se/admin/`,
+          })
+        }).catch(e => console.error('CONFIRM_NOTIF_ERROR:', e.message));
+      }
+
+      await logAudit(db, cart.id, 'customer', 'order_confirmed_by_customer', {
           ip, ua, text: updates.confirmation_text
         });
       }

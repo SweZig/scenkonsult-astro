@@ -81,6 +81,12 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         <span class="service-price" id="leveransPrice">– kr</span>
       </label>
 
+      <!-- Hämtningsinfo — visas när leverans EJ är vald -->
+      <div id="pickupNotice" class="pickup-notice">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Utan leverans hämtar och lämnar du utrustningen på vårt lager: <strong>Grimstagatan 164, Vällingby</strong> (öppet mån–sön 08–20).</span>
+      </div>
+
       <!-- Montering -->
       <label class="service-row">
         <input type="checkbox" id="chkMontering" class="sr-only" />
@@ -169,6 +175,14 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         <div class="field-group">
           <label class="field-label" for="f-date-to">Önskat datum, till *</label>
           <input type="date" id="f-date-to" class="field-input" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-time-from">Utlämningstid (önskat)</label>
+          <input type="time" id="f-time-from" class="field-input" value="13:00" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-time-to">Återlämningstid (önskat)</label>
+          <input type="time" id="f-time-to" class="field-input" value="11:00" />
         </div>
         <div class="field-group field-full">
           <label class="field-label" for="f-address">Leveransadress</label>
@@ -338,6 +352,22 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 .remove-btn:hover { color:#f87171; }
 
 /* ─── TILLÄGGSTJÄNSTER ────────────────────────────────────── */
+.pickup-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0.6rem 1rem;
+  margin: 0 0 2px;
+  background: rgba(196,181,244,0.06);
+  border: 1px solid rgba(196,181,244,0.15);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+}
+.pickup-notice svg { flex-shrink:0; margin-top:1px; color: #c4b5f4; }
+.pickup-notice strong { color: rgba(255,255,255,0.85); }
+.pickup-notice.hidden { display: none; }
 .services-wrap {
   border:1px solid rgba(255,255,255,0.08);
   border-radius:14px; overflow:hidden; margin-bottom:1.5rem;
@@ -482,12 +512,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 .field-input:focus-visible { outline:2px solid rgba(196,181,244,0.4); outline-offset:2px; }
 .field-textarea { resize:vertical; min-height:100px; }
 
-/* Date input — mörkt läge + synlig kalenderikon */
-input[type="date"].field-input {
+/* Date + Time inputs — mörkt läge + synlig ikon */
+input[type="date"].field-input,
+input[type="time"].field-input {
   color-scheme: dark;
   -webkit-text-fill-color: rgba(255,255,255,0.85) !important;
 }
-input[type="date"].field-input::-webkit-calendar-picker-indicator {
+input[type="date"].field-input::-webkit-calendar-picker-indicator,
+input[type="time"].field-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   width: 18px;
   height: 18px;
@@ -1022,8 +1054,10 @@ input[type="date"].field-input::-webkit-calendar-picker-indicator {
       orgnr:   document.getElementById('f-orgnr')?.value.trim() || '',
       email:   document.getElementById('f-email')?.value.trim() || '',
       phone:   document.getElementById('f-phone')?.value.trim() || '',
-      from:    document.getElementById('f-date-from')?.value || '',
-      to:      document.getElementById('f-date-to')?.value || '',
+      from:         document.getElementById('f-date-from')?.value || '',
+      to:           document.getElementById('f-date-to')?.value || '',
+      delivery_time: document.getElementById('f-time-from')?.value || '13:00',
+      return_time:   document.getElementById('f-time-to')?.value || '11:00',
       address: document.getElementById('f-address')?.value.trim() || '',
       notes:   document.getElementById('f-notes')?.value.trim() || '',
     };

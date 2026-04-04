@@ -141,6 +141,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       padding: 2px 7px; border-radius: 99px; font-weight: 600;
     }
     .kanban-cards { display: flex; flex-direction: column; gap: 0; }
+  .cart-card-booking { border-left: 3px solid #f59e0b !important; }
     .cart-card {
       background: var(--bg); border: none; border-bottom: 1px solid var(--border); border-radius: 0;
       padding: 0.6rem 0.75rem; cursor: pointer; transition: background 0.12s;
@@ -807,9 +808,16 @@ function cartCardHTML(c) {
     ? `<span class="unread-pill">💬 ${c.unread_count} ny${c.unread_count > 1 ? 'a' : 't'}</span>` : '';
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
+  const isBooking = c.order_intent === 'booking';
+  const intentBadge = isBooking
+    ? `<span style="background:#f59e0b;color:#0c0a24;font-size:0.65rem;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0.04em">⭐ BOKNING</span>`
+    : `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`;
   return `
-    <div class="cart-card" data-id="${c.id}">
-      <div class="cart-card-name">${c.customer_name || 'Okänd kund'}</div>
+    <div class="cart-card${isBooking?' cart-card-booking':''}" data-id="${c.id}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <div class="cart-card-name" style="margin:0">${c.customer_name || 'Okänd kund'}</div>
+        ${intentBadge}
+      </div>
       <div class="cart-card-sub">${c.customer_email || ''}</div>
       <div class="cart-card-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
@@ -1787,7 +1795,37 @@ function invUpdateDueDate() {
 
 async function invCreateAndSend() {
   if (!currentCart.customer_email) { toast('Kunden saknar e-postadress', 'error'); return; }
-  if (!confirm(`Skapa och skicka faktura till ${currentCart.customer_email}?`)) return;
+
+  // Beräkna nästa fakturanummer för att visa i dialogen
+  let previewNum = currentCart.invoice_number || '…';
+  if (!currentCart.invoice_number) {
+    try {
+      const supaUrl = 'https://ejhhgqvtvsmiwxygfqbu.supabase.co';
+      const res = await fetch(`${supaUrl}/rest/v1/carts?select=invoice_number&invoice_number=not.is.null`, {
+        headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqaGhncXZ0dnNtaXd4eWdmcWJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3NTc5MTUsImV4cCI6MjA1NjMzMzkxNX0.QRFXVAzDFnAnSJDMxuB1MqMbYhkMxvl8o7rGcgI-dOI' }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        let maxNum = 2009;
+        (rows||[]).forEach(c => {
+          if (c.invoice_number?.startsWith('K')) {
+            const n = parseInt(c.invoice_number.slice(1));
+            if (n > maxNum) maxNum = n;
+          }
+        });
+        previewNum = 'K' + (maxNum + 1);
+      }
+    } catch(e) { /* fortsätt med … */ }
+  }
+
+  // Visa bekräftelsedialog med fakturanummer
+  const items = (currentCart.items||[]).filter(i=>!i._note&&i.name);
+  const total = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+  const totalIncl = Math.round(total * 1.25);
+
+  const confirmed = await showInvoiceConfirmDialog(previewNum, totalIncl);
+  if (!confirmed) return;
+
   // Spara uppgifter först
   await invSaveFields();
   const btn = document.querySelector('[onclick="invCreateAndSend()"]');
@@ -1814,6 +1852,66 @@ async function invCreateAndSend() {
     if (btn) { btn.disabled = false; btn.textContent = '🧾 Skapa & skicka faktura'; }
   }
 }
+
+function showInvoiceConfirmDialog(invoiceNum, totalIncl) {
+  return new Promise(resolve => {
+    // Remove any existing dialog
+    document.getElementById('inv-confirm-dialog')?.remove();
+
+    const dlg = document.createElement('div');
+    dlg.id = 'inv-confirm-dialog';
+    dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    dlg.innerHTML = `
+      <div style="background:#1a1740;border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:1.75rem;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+        <div style="font-size:1rem;font-weight:700;color:#f0eeff;margin-bottom:1rem">🧾 Bekräfta fakturautskick</div>
+        <div style="background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.2);border-radius:10px;padding:1rem;margin-bottom:1.25rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+            <span style="color:rgba(255,255,255,0.5);font-size:0.85rem">Fakturanummer</span>
+            <span style="color:#c4b5f4;font-weight:700;font-size:1rem">${invoiceNum}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+            <span style="color:rgba(255,255,255,0.5);font-size:0.85rem">Belopp inkl. moms</span>
+            <span style="color:#f0eeff;font-weight:600;font-size:0.9rem">${totalIncl.toLocaleString('sv-SE')} kr</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:rgba(255,255,255,0.5);font-size:0.85rem">Mottagare</span>
+            <span style="color:#f0eeff;font-size:0.85rem">${(currentCart.use_invoice_email && currentCart.invoice_email) ? currentCart.invoice_email : currentCart.customer_email}</span>
+          </div>
+        </div>
+        <div style="margin-bottom:1.25rem">
+          <label style="display:block;font-size:0.78rem;color:rgba(255,255,255,0.45);margin-bottom:4px">Justera fakturanummer (om fel)</label>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="color:rgba(255,255,255,0.5);font-weight:600">K</span>
+            <input id="inv-confirm-num" type="number" value="${invoiceNum.replace('K','')}" min="1"
+              style="flex:1;font-size:0.9rem;padding:6px 10px;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(196,181,244,0.3);border-radius:7px;font-family:inherit">
+          </div>
+          <p style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:5px">Om du ändrar numret reserveras det föregående automatiskt.</p>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button id="inv-confirm-cancel" style="flex:1;padding:0.75rem;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;font-size:0.85rem">Avbryt</button>
+          <button id="inv-confirm-ok" style="flex:2;padding:0.75rem;background:#c4b5f4;border:none;border-radius:8px;color:#0c0a24;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.9rem">Skicka faktura →</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(dlg);
+
+    dlg.querySelector('#inv-confirm-cancel').onclick = () => { dlg.remove(); resolve(false); };
+    dlg.querySelector('#inv-confirm-ok').onclick = async () => {
+      const inputNum = parseInt(dlg.querySelector('#inv-confirm-num').value);
+      // Om numret ändrats — reservera och uppdatera currentCart
+      if ('K' + inputNum !== invoiceNum && inputNum > 0) {
+        // Reservera gamla numret och sätt nytt
+        await api('invoice-reserve', { method:'POST', body: JSON.stringify({ next_number: inputNum }) });
+        await api('cart-update', { method:'POST', body: JSON.stringify({ cart_id: currentCart.id, invoice_number: 'K' + inputNum }) });
+        currentCart.invoice_number = 'K' + inputNum;
+      }
+      dlg.remove();
+      resolve(true);
+    };
+    dlg.onclick = e => { if (e.target === dlg) { dlg.remove(); resolve(false); } };
+  });
+}
+window.showInvoiceConfirmDialog = showInvoiceConfirmDialog;
 
 async function invSaveFields() {
   const updates = {
