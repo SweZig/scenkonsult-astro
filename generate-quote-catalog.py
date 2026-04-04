@@ -91,6 +91,30 @@ catalog['Tillägg'] = {'products': tillagg_products}
 catalog['Egen rad'] = {'products': [{'id': 'custom', 'name': 'Ange benämning och pris →', 'price': 0, 'artno': '', 'image': '', 'desc': '', 'custom': True}]}
 
 # ── Spara ─────────────────────────────────────────────────────────
+# ── Flat order-katalog (id → {desc, image, artno, catName}) ────────────────
+order_catalog = {}
+def add_flat(prods, cat_name):
+    for p in (prods or []):
+        if not p.get('id'): continue
+        order_catalog[p['id']] = {
+            'desc':    p.get('desc', ''),
+            'image':   p.get('image', ''),
+            'artno':   p.get('artno', ''),
+            'catName': cat_name,
+        }
+
+for cn, d in catalog.items():
+    if 'products' in d:
+        add_flat(d['products'], cn)
+    if 'sub' in d:
+        for sn, sp in d['sub'].items():
+            add_flat(sp, sn)
+
+flat_path = os.path.join(BASE, 'src/data/order-catalog-flat.json')
+with open(flat_path, 'w', encoding='utf-8') as f:
+    json.dump(order_catalog, f, ensure_ascii=False, indent=2)
+print(f"✅ order-catalog-flat.json skapad med {len(order_catalog)} poster")
+
 out_path = os.path.join(BASE, 'src/data/quote-catalog.json')
 with open(out_path, 'w', encoding='utf-8') as f:
     json.dump(catalog, f, ensure_ascii=False, indent=2)
