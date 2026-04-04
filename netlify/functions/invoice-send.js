@@ -130,16 +130,21 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
       doc.fontSize(9).fillColor(GRAY).text('Er ref: ' + cart.customer_ref, cx, ky);
       ky += 14;
     }
-    doc.fontSize(8).fillColor(GRAY).text('Vår referens', cx, ky + 4);
-    doc.fontSize(9).fillColor('#1a1a2e').text(cart.invoice_ref || 'Per S', cx, ky + 14);
+    // Vår referens moved above (before tableY calculation)
 
-    // Eventdatum + hyresperiod — placeras dynamiskt baserat på var innehållet slutar
-    const minTableY = Math.max(ky + 30, 240); // aldrig för nära kundinfo
-    let tableY = minTableY;
+    // Vår referens (alltid sist i höger kolumn)
+    doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Vår referens', cx, ky + 4);
+    doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e').text(cart.invoice_ref || 'Per S', cx, ky + 16);
+
+    // Eventdatum + hyresperiod — placeras under BÅDA kolumnerna
+    const leftBottom  = infoY + 80;        // vänster kolumn slutar ~rad 3 (förfallodag)
+    const rightBottom = ky + 32;           // höger kolumn + vår referens + värde
+    const minTableY   = Math.max(leftBottom, rightBottom) + 20;
+    let tableY = Math.max(minTableY, 260); // absolut minimum 260
     if (cart.event_date) {
       const dlTime = cart.delivery_time || '13:00';
       const rtTime = cart.return_time || '11:00';
-      const periodText = `Hyresperiod: utlämning ${fmtDate(cart.event_date)} kl ${dlTime}  ·  återlämning ${fmtDate(cart.return_date || cart.event_date)} kl ${rtTime}`;
+      const periodText = \`Hyresperiod: utlämning \${fmtDate(cart.event_date)} kl \${dlTime}  ·  återlämning \${fmtDate(cart.return_date || cart.event_date)} kl \${rtTime}\`;
       doc.fontSize(9).font('Helvetica').fillColor(GRAY)
          .text(periodText, 50, tableY - 22, { width: W });
     }

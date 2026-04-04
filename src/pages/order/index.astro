@@ -446,6 +446,7 @@ const ORDER_CATALOG = _buildOrderCatalog();
 
 function _lookupOrderProduct(item) {
   return ORDER_CATALOG[item.id]
+      || ORDER_CATALOG['scen-' + (item.id||'')]
       || ORDER_CATALOG[(item.id||'').replace(/^(scen-|dj-utr-)/,'')]
       || ORDER_CATALOG[(item.id||'').replace(/^mc-/,'')]
       || {};
