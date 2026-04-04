@@ -425,12 +425,13 @@ function _buildOrderCatalog() {
       cat[id] = { desc: p.description || '', catName, includes: p.includes || [], artno: p.artno || '', image: p.image || '', volPricing: p.volumePricing || [] };
     }
   };
-  add(_scenJson.scenes,  'Scen');
+  add(_scenJson.products,  'Scen');
   add(_ljudJson.portable?.products, 'Ljud');
   add(_ljudJson.event?.products,    'Ljud');
   add(_ljudJson.music?.products,    'Ljud');
   add(_ljudJson.live?.products,     'Ljud');
-  for (const sub of Object.values(_ljusJson.paket?.sub || {}))    add(sub, 'Ljus');
+  add(_ljusJson.paket?.products,    'Ljus');
+  for (const sub of Object.values(_ljusJson.paket?.sub || {})) add(sub, 'Ljus');
   add(_ljusJson.effekter?.products, 'Ljus');
   add(_ljusJson.rok?.products,      'Ljus');
   add(_ljusJson.stativ?.products,   'Ljus');

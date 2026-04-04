@@ -970,6 +970,10 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
     const chkLev = document.getElementById('chkLeverans');
     const rowLev = document.getElementById('rowLeverans');
+
+    // Visa hämtningsinfo när leverans inte är vald
+    const pickupNotice = document.getElementById('pickupNotice');
+    if (pickupNotice) pickupNotice.classList.toggle('hidden', !!chkLev?.checked);
     if (chkLev?.checked) {
       const lp = calcLev(cart).price;
       document.getElementById('summLeverans').textContent = fmt(lp);
@@ -1003,7 +1007,11 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   }
 
   // Service events
-  document.getElementById('chkLeverans')?.addEventListener('change', updateSummary);
+  document.getElementById('chkLeverans')?.addEventListener('change', () => {
+    updateSummary();
+    const pn = document.getElementById('pickupNotice');
+    if (pn) pn.classList.toggle('hidden', !!document.getElementById('chkLeverans')?.checked);
+  });
   document.getElementById('chkMontering')?.addEventListener('change', updateSummary);
   // Admin leverans-override: uppdatera pris live vid val
   document.getElementById('adminLevType')?.addEventListener('change', updateSummary);

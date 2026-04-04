@@ -8,6 +8,7 @@
 
 const { supabase: createSupabase, logAudit } = require('./_lib');
 const PDFDocument = require('pdfkit');
+let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <noreply@scenkonsult.se>';
@@ -49,7 +50,7 @@ async function getOrCreateInvoiceNumber(db, cart) {
 }
 
 // ── Generera PDF ─────────────────────────────────────────────────────────────
-function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
+function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
   return new Promise((resolve, reject) => {
     const today   = new Date().toISOString().slice(0,10);
     const invDate = cart.invoice_date || today;
@@ -206,6 +207,12 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer) {
     doc.text('Swish: 123 136 59 07', 50, payY + 24);
     doc.text(`Betalningsvillkor: ${terms} dagar netto`, 50, payY + 36);
 
+    // Swish QR-kod
+    if (swishQrBuffer) {
+      doc.fontSize(7).font('Helvetica').fillColor(GRAY).text('Betala med Swish', 50, payY + 54);
+      doc.image(swishQrBuffer, 50, payY + 64, { width: 72, height: 72 });
+    }
+
     // Höger: Avsändare (exakt samma y-värde)
     doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, payY);
     doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e')
@@ -352,7 +359,27 @@ exports.handler = async (event) => {
       const logoRes = await fetch('https://scenkonsult.se/logo-white.png');
       if (logoRes.ok) logoBuffer = Buffer.from(await logoRes.arrayBuffer());
     } catch(e) { /* fortsätt utan logo */ }
-    const pdfBuffer     = await generatePdfBuffer({ ...cart, invoice_number: invoiceNumber }, invoiceNumber, logoBuffer);
+
+    // Generera Swish QR
+    let swishQrBuffer = null;
+    if (QRCode) {
+      try {
+        const items     = (cart.items||[]).filter(i=>!i._note&&i.name);
+        const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+        const totalIncl = Math.ceil(totalExcl * 1.25);
+        const swishData = JSON.stringify({
+          version: 1,
+          payee: { value: '1231365907', editable: false },
+          amount: { value: totalIncl, editable: false },
+          message: { value: invoiceNumber, editable: false }
+        });
+        const swishUrl = 'swish://payment?data=' + encodeURIComponent(swishData);
+        const qrPng = await QRCode.toBuffer(swishUrl, { type: 'png', width: 144, margin: 1 });
+        swishQrBuffer = qrPng;
+      } catch(e) { console.error('SWISH_QR_ERROR:', e.message); }
+    }
+
+    const pdfBuffer = await generatePdfBuffer({ ...cart, invoice_number: invoiceNumber }, invoiceNumber, logoBuffer, swishQrBuffer);
     await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail);
 
     const now = new Date().toISOString();
