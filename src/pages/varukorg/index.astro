@@ -1086,31 +1086,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
   // ── EMAIL ─────────────────────────────────────────────────
   async function submitOffert(triggerBtn) {
-    const { cart, submitItems, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
-
-    const prodLines = cart.map(i => `- ${i.name} × ${i.qty}  →  ${(i.price*i.qty).toLocaleString('sv')} kr`).join('\n');
-    const custInfo = [
-      `Namn: ${customer.name}`,
-      customer.company ? `Företag: ${customer.company}` : '',
-      `E-post: ${customer.email}`,
-      `Telefon: ${customer.phone}`,
-      customer.from ? `Datum från: ${customer.from}` : '',
-      customer.to ? `Datum till: ${customer.to}` : '',
-      customer.address ? `Leveransadress: ${customer.address}` : '',
-      customer.notes ? `Övrig info: ${customer.notes}` : '',
-    ].filter(Boolean).join('\n');
-
-    const inledning = isBokning
-
-    const msgBody =
-      inledning + `\n${prodLines}`
-      + (extraLines.length ? `\n\nTilläggstjänster:\n` + extraLines.map(l=>'- '+l).join('\n') : '')
-      + `\n\nProdukter: ${subtotal.toLocaleString('sv')} kr exkl. moms`
-      + (extras ? `\nTillägg (estimat): ${extras.toLocaleString('sv')} kr` : '')
-      + `\nMoms: ${vat.toLocaleString('sv')} kr\nTotalt: ${total.toLocaleString('sv')} kr inkl. moms`
-      + `\n\nObs: Alla frakt- och tjänstepriser är estimat och bekräftas som en del av orderprocessen.`
-      + `\n\n── Kontaktuppgifter ──\n${custInfo}`
-      + `\n\nMed vänliga hälsningar,\n${customer.name}`;
+    const { cart, submitItems, customer } = buildOrder();
 
     const origHtml = triggerBtn.innerHTML;
     triggerBtn.disabled = true;
