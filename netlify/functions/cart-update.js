@@ -5,59 +5,7 @@
 // Body (admin): { cart_id, items?, notes_admin?, event_date?, event_location?, status?, total_excl? }
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
-
-// ── Gemensam prisvisningsfunktion (samma layout i alla mail) ──────────────────
-function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
-  const SVC_CATS = ['Tjänster', 'Tillägg'];
-  const allReal  = (cart || []).filter(i => !i._note && i.name);
-  const prodItems = allReal.filter(i => !SVC_CATS.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
-  const svcItems  = allReal.filter(i => SVC_CATS.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
-  const feeItem   = showFakturaavgift ? allReal.find(i => i.id && i.id.startsWith('fakturaavgift')) : null;
-  const noteItem  = (cart || []).find(i => i._note);
-  const qty  = i => i.quantity || i.qty || 1;
-  const sum  = i => (i.price || 0) * qty(i);
-  const fmtN = n => n.toLocaleString('sv-SE');
-  const mkRow = i => `<tr><td style="padding:8px 10px;color:#222;font-size:13px;border-bottom:1px solid #f0f0f5;">${i.name}</td><td style="padding:8px 10px;color:#666;font-size:13px;text-align:center;border-bottom:1px solid #f0f0f5;width:50px;">${qty(i)} st</td><td style="padding:8px 10px;color:#333;font-size:13px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;width:90px;">${fmtN(sum(i))} kr</td></tr>`;
-  const prodTotal = prodItems.reduce((s, i) => s + sum(i), 0);
-  const svcTotal  = svcItems.reduce((s, i) => s + sum(i), 0);
-  const feeTotal  = feeItem ? sum(feeItem) : 0;
-  const grandExcl = prodTotal + svcTotal + feeTotal;
-  const moms      = Math.round(grandExcl * 0.25);
-  const grandIncl = grandExcl + moms;
-  const noteRow = noteItem ? `<tr><td colspan="3" style="padding:6px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${noteItem.name}</td></tr>` : '';
-  const subHdr = label => `<tr><td colspan="3" style="padding:6px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;background:#f7f7fb;">${label}</td></tr>`;
-  const subTotal = (label, amount, bg, color) => `<tr style="background:${bg};"><td colspan="2" style="padding:9px 10px;font-weight:700;font-size:13px;color:${color};">${label}</td><td style="padding:9px 10px;font-weight:700;font-size:13px;text-align:right;color:${color};">${fmtN(amount)} kr</td></tr>`;
-  let html = `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;font-family:Arial,sans-serif;"><tr style="background:#f7f7fb;"><th style="padding:8px 10px;color:#888;font-size:11px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt / Tjänst</th><th style="padding:8px 10px;color:#888;font-size:11px;text-align:center;font-weight:600;text-transform:uppercase;width:50px;">Antal</th><th style="padding:8px 10px;color:#888;font-size:11px;text-align:right;font-weight:600;text-transform:uppercase;width:90px;">Pris exkl.</th></tr>`;
-  if (prodItems.length > 0) { html += subHdr('Utrustning') + prodItems.map(mkRow).join('') + noteRow + subTotal('Utrustning exkl. moms', prodTotal, '#ddd6f5', '#1e1850'); }
-  if (svcItems.length > 0)  { html += subHdr('Tilläggstjänster') + svcItems.map(mkRow).join('') + subTotal('Tjänster exkl. moms' + (showFakturaavgift ? '' : ' (estimat)'), svcTotal, '#fff8ec', '#92400e'); }
-  if (feeItem)               { html += subHdr('Fakturaavgift') + mkRow(feeItem); }
-  html += `<tr style="background:#f0f0f0;"><td colspan="2" style="padding:7px 10px;color:#555;font-size:12px;">Moms 25%</td><td style="padding:7px 10px;text-align:right;color:#555;font-size:12px;">${fmtN(moms)} kr</td></tr><tr style="background:#1e1850;"><td colspan="2" style="padding:12px 10px;color:#fff;font-weight:700;font-size:15px;">TOTALT inkl. moms</td><td style="padding:12px 10px;text-align:right;color:#c4b5f4;font-weight:700;font-size:15px;">${fmtN(grandIncl)} kr</td></tr>`;
-  if (svcItems.length > 0 && !showFakturaavgift) { html += `<tr><td colspan="3" style="padding:6px 10px;color:#b45309;font-size:11px;">⚠ Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</td></tr>`; }
-  html += '</table>';
-  return html;
-}
-
-
-const RESEND_API = 'https://api.resend.com/emails';
-const FROM       = 'Scenkonsult Norden <noreply@scenkonsult.se>';
-const LOGO_URL   = 'https://scenkonsult.se/logo-white.png';
-
-function mailWrapper(bodyHtml) {
-  return `<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
-<tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-<tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
-  <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="130" style="display:block;margin:0 auto 10px;height:auto;" />
-  <p style="margin:0;color:rgba(255,255,255,0.65);font-size:13px;">Ljud &middot; Ljus &middot; Scen &middot; DJ &mdash; Stockholm sedan 1986</p>
-</td></tr>
-<tr><td style="background:#ffffff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">${bodyHtml}</td></tr>
-<tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:18px 32px;text-align:center;">
-  <p style="margin:0;color:rgba(255,255,255,0.5);font-size:12px;">Scenkonsult Norden &middot; Grimstagatan 164, 162 58 V&auml;llingby &middot; 072-448 10 00</p>
-</td></tr>
-</table></td></tr></table></body></html>`;
-}
+const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
 
 async function sendConfirmationEmail(cart) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -78,7 +26,7 @@ async function sendConfirmationEmail(cart) {
   const dateStr     = cart.event_date ? `<p style="color:#555;font-size:14px;margin:8px 0;">📅 Eventdatum: <strong>${cart.event_date}</strong></p>` : '';
   const locationStr = cart.event_location ? `<p style="color:#555;font-size:14px;margin:8px 0;">📍 Plats: <strong>${cart.event_location}</strong></p>` : '';
 
-  const html = mailWrapper(`
+  const html = htmlWrapper(`
     <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
       <span style="font-size:2rem;">✅</span>
       <div>
@@ -101,7 +49,7 @@ async function sendConfirmationEmail(cart) {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from:     FROM,
+      from:     MAIL_FROM,
       to:       [cart.customer_email],
       reply_to: 'info@scenkonsult.se',
       subject:  `Orderbekräftelse — ${cart.id}`,
@@ -184,7 +132,7 @@ exports.handler = async (event) => {
 
       // Statusändring
       if (body.status !== undefined) {
-        const ALLOWED = ['open', 'waiting', 'confirmed', 'cancelled', 'fakturerad', 'betald'];
+        const ALLOWED = ['new', 'waiting', 'confirmed', 'cancelled', 'fakturerad', 'betald'];
         if (!ALLOWED.includes(body.status)) return err('Ogiltig status', 400);
 
         const oldStatus = cart.status;
@@ -253,7 +201,7 @@ exports.handler = async (event) => {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${apiKey4confirm}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            from: FROM, to: ['info@scenkonsult.se'],
+            from: MAIL_FROM, to: ['info@scenkonsult.se'],
             reply_to: cart.customer_email || 'info@scenkonsult.se',
             subject: `✅ Order bekräftad av kund — ${cart.customer_name||''} (${cart.id})`,
             html: confirmNotifHtml,

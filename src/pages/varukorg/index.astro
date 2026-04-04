@@ -215,10 +215,6 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Spara som PDF
       </button>
-      <button id="btnBoka" class="cart-btn accent disabled-btn" aria-disabled="true" disabled>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
-        Boka detta nu
-      </button>
       <button id="btnClear" class="cart-btn ghost">Töm varukorg</button>
     </div>
     <p class="villkor-hint hidden" id="villkorHint">Vänligen godkänn hyresvillkoren och fyll i namn, e-post och telefon för att fortsätta.</p>
@@ -844,11 +840,9 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     const ok = villkorOk && nameOk && emailOk && phoneOk;
 
     const btnEmail = document.getElementById('btnEmail');
-    const btnBoka  = document.getElementById('btnBoka');
     const hint     = document.getElementById('villkorHint');
 
     if (btnEmail) { btnEmail.disabled = !ok; }
-    if (btnBoka)  { btnBoka.disabled = !ok; btnBoka.classList.toggle('disabled-btn', !ok); }
     if (hint) hint.classList.toggle('hidden', ok);
   }
 
@@ -1091,9 +1085,8 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   }
 
   // ── EMAIL ─────────────────────────────────────────────────
-  async function submitOffert(triggerBtn, intent) {
+  async function submitOffert(triggerBtn) {
     const { cart, submitItems, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
-    const isBokning = intent === 'boka';
 
     const prodLines = cart.map(i => `- ${i.name} × ${i.qty}  →  ${(i.price*i.qty).toLocaleString('sv')} kr`).join('\n');
     const custInfo = [
@@ -1108,8 +1101,6 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     ].filter(Boolean).join('\n');
 
     const inledning = isBokning
-      ? `Hej Scenkonsult!\n\n⭐ ÖNSKAR BOKA — Kunden vill boka följande utrustning:\n`
-      : `Hej Scenkonsult!\n\nOffertförfrågan — Kunden önskar prisförslag på:\n`;
 
     const msgBody =
       inledning + `\n${prodLines}`
@@ -1127,15 +1118,13 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
     // Lås även den andra knappen
     const btnEmail = document.getElementById('btnEmail');
-    const btnBoka  = document.getElementById('btnBoka');
     if (btnEmail) btnEmail.disabled = true;
-    if (btnBoka)  btnBoka.disabled = true;
 
     try {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart: submitItems, body: msgBody, intent, sendCopy: true, cart_id: getCartId(), selfPickup: !document.getElementById('chkLeverans')?.checked }),
+        body: JSON.stringify({ customer, cart: submitItems, sendCopy: true, cart_id: getCartId(), selfPickup: !document.getElementById('chkLeverans')?.checked }),
       });
 
       const result = await resp.json();
@@ -1149,19 +1138,16 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
         triggerBtn.disabled = false;
         triggerBtn.innerHTML = origHtml;
         if (btnEmail) btnEmail.disabled = false;
-        if (btnBoka)  btnBoka.disabled = false;
       }
     } catch (err) {
       alert('Nätverksfel — försök igen eller ring 072-448 10 00.');
       triggerBtn.disabled = false;
       triggerBtn.innerHTML = origHtml;
       if (btnEmail) btnEmail.disabled = false;
-      if (btnBoka)  btnBoka.disabled = false;
     }
   }
 
-  document.getElementById('btnEmail')?.addEventListener('click', function() { submitOffert(this, 'offert'); });
-  document.getElementById('btnBoka')?.addEventListener('click', function() { submitOffert(this, 'boka'); });
+  document.getElementById('btnEmail')?.addEventListener('click', function() { submitOffert(this); });
 
   // ── PDF / PRINT ───────────────────────────────────────────
   document.getElementById('btnSave')?.addEventListener('click', () => {

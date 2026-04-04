@@ -46,6 +46,11 @@ exports.handler = async (event) => {
       return err('Varukorgen har gått ut', 410);
     }
 
+    // Ny förfrågan — kunden har ingen orderlänk ännu, admin har inte skickat offert
+    if (cart.status === 'new') {
+      return err('Offerten är inte klar ännu — vi hör av oss inom kort.', 403);
+    }
+
     // Uppdatera last_read_customer
     await db.update('carts', { last_read_admin: null }, 'cart_token', token);
     await db.update('carts', { last_read_customer: new Date().toISOString() }, 'cart_token', token);
