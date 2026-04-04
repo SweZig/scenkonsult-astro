@@ -2204,13 +2204,19 @@ const QUOTE_CATALOG = {
   ]},
 };
 
-$('new-quote-btn').addEventListener('click', () => openQuoteModal(null));
+$('new-quote-btn').addEventListener('click', () => {
+  currentCart = null;  // VIKTIGT: nollställ så befintlig order inte skrivs över
+  openQuoteModal(null);
+});
 $('quote-close').addEventListener('click', closeQuoteModal);
 $('quote-overlay').addEventListener('click', e => { if (e.target === $('quote-overlay')) closeQuoteModal(); });
 
 let quoteItems = []; // { id, name, price, qty }
 
+let _quoteIsNewOrder = false; // true = ny order (ej knuten till befintlig cart)
+
 function openQuoteModal(prefill) {
+  _quoteIsNewOrder = (prefill === null); // null = ny manuell order
   quoteItems = [];
   $('qc-name').value     = prefill?.customer_name || '';
   $('qc-email').value    = prefill?.customer_email || '';
@@ -2422,7 +2428,7 @@ async function sendQuote() {
   btn.disabled = true; btn.textContent = '⏳ Skickar…';
 
   const payload = {
-    existing_cart_id: currentCart?.id || null,
+    existing_cart_id: (!_quoteIsNewOrder && currentCart?.id) ? currentCart.id : null,
     customer: {
       name, email,
       phone:    $('qc-phone').value.trim()   || null,
