@@ -427,10 +427,21 @@ const ORDER_CATALOG = (() => {
 
 function _lookupOrderProduct(item) {
   const id = item.id || '';
-  return ORDER_CATALOG[id]
-      || ORDER_CATALOG['scen-' + id]
-      || ORDER_CATALOG[id.replace(/^(scen-|dj-utr-)/,'')]
-      || {};
+  // Direkt träff (nya ordrar med korrekta slugar)
+  if (ORDER_CATALOG[id]) return ORDER_CATALOG[id];
+  // Bakåtkompatibilitet: scen-paket sparades utan "scen-" prefix i gamla admin
+  if (ORDER_CATALOG['scen-' + id]) return ORDER_CATALOG['scen-' + id];
+  // Strip prefix (dj-utr-slug → slug)
+  const stripped = id.replace(/^(scen-|dj-utr-)/,'');
+  if (ORDER_CATALOG[stripped]) return ORDER_CATALOG[stripped];
+  // Gamla bild-tillbehör med trailing dash och -m suffix
+  const normalized = id
+    .replace(/-$/,'')
+    .replace(/-(\d+)-m$/,'-$1m')
+    .replace(/-4-port-?$/,'-4port')
+    .replace(/-(\d+)-?$/,'-$1')
+    .replace(/-clicker-$/,'-clicker');
+  return ORDER_CATALOG[normalized] || {};
 }
 
 function _getOrderImg(item) {
