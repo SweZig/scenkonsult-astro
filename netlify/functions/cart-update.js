@@ -6,6 +6,7 @@
 
 'use strict';
 const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
+const RESEND_API = 'https://api.resend.com/emails';
 
 async function sendConfirmationEmail(cart) {
   const apiKey = process.env.RESEND_API_KEY;
