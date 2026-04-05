@@ -51,9 +51,11 @@ exports.handler = async (event) => {
       return err('Offerten är inte klar ännu — vi hör av oss inom kort.', 403);
     }
 
-    // Uppdatera last_read_customer
-    await db.update('carts', { last_read_admin: null }, 'cart_token', token);
-    await db.update('carts', { last_read_customer: new Date().toISOString() }, 'cart_token', token);
+    // Uppdatera last_read_customer (icke-blockerande för att undvika krasch om kolumn saknas)
+    const readNow = new Date().toISOString();
+    db.update('carts', { last_read_customer: readNow }, 'cart_token', token).catch(e =>
+      console.warn('last_read_customer update failed:', e.message)
+    );
 
     // Hämta meddelanden (kund ser bara sin sida)
     const { data: messages } = await db.from('messages')
