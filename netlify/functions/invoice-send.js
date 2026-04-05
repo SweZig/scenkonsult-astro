@@ -251,23 +251,23 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     let vy = 68;
     const villkor = [
       ['1. Hyresperiod',
-       'Normal hyresperiod är 22 timmar — hämtning kl 13:00 dagen för evenemanget och återlämning kl 11:00 påföljande dag. Längre hyresperioder kan arrangeras mot tillägg och ska bekräftas skriftligen. Utrustning som inte återlämnas i tid debiteras en extra hyresdag per påbörjat dygn.'],
+       'Normal hyresperiod är 22 timmar — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Längre hyresperioder mot tillägg. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
       ['2. Bokning och betalning',
-       'Bokning är bindande och bekräftas skriftligen via e-post. Betalning sker via faktura, Swish eller kort. Bokningar inom 72 timmar kräver förskottsbetalning. Vid fakturabetalning tillkommer en fakturaavgift. Vid utebliven betalning debiteras dröjsmålsränta enligt räntelagen (referensränta + 8 %).'],
+       'Bokning är bindande, bekräftas skriftligen. Bokningar inom 72 timmar kräver förskottsbetalning. Vid fakturabetalning tillkommer en fakturaavgift. Dröjsmålsränta debiteras vid sen betalning (referensränta + 8 %).'],
       ['3. Avbokning och ändring',
-       'Avbokning mer än 14 dagar före: Kostnadsfritt. Avbokning 3–14 dagar före: 50 % av ordervärdet debiteras. Avbokning 0–3 dagar före: Fullt pris debiteras. Byte av datum eller utrustning är kostnadsfritt om utrustningen är tillgänglig — oavsett hur nära evenemanget ändringen sker. Avbokning och ändringar ska alltid göras skriftligen. För DJ-bokningar gäller separata regler: mer än 30 dagar: kostnadsfritt; 14–30 dagar: 50 % av DJ-arvodet; 0–14 dagar: fullt pris.'],
-      ['4. Ansvar för utrustningen',
-       'Hyresgästen ansvarar för utrustningen från det att den hämtas eller levereras till dess att den är återlämnad och godkänd. Utrustningen får endast användas för avsett ändamål — vidareuthyrning är inte tillåten. Uppstår skada, stöld eller förlust är hyresgästen ersättningsskyldig. Normalt slitage bekostas av Scenkonsult Norden.'],
+       'Mer än 7 dagar före: Kostnadsfritt. 3–7 dagar: 50 % återbetalas. Färre än 3 dagar: Ingen återbetalning. Byte av datum/utrustning är kostnadsfritt om tillgängligt. DJ-bokningar: mer än 60 dagar gratis; 30–60 dagar 50 %; färre än 30 dagar fullt pris. Avbokning ska göras skriftligen.'],
+      ['4. Ansvar och försäkring',
+       'Hyrestagaren ansvarar för utrustningen från hämtning till godkänd återlämning. Vidareuthyrning är inte tillåten. Scenkonsult Norden har ingen försäkring som täcker skada eller stöld under hyresperioden — hyrestagaren är skyldig att ha giltig allriskförsäkring eller företagsförsäkring för utrustningen. Utan giltigt försäkringsskydd är hyrestagaren betalningsskyldig för hela återanskaffningsvärdet.'],
       ['5. Leverans och hämtning',
-       'Utrustningen kan hämtas på vår depå eller levereras mot tillägg. Leveranspris beräknas per körning tur och retur. Hyresgästen ansvarar för att någon behörig är på plats. Om leverans inte kan genomföras p.g.a. hyresgästens agerande kan extra körningspris debiteras.'],
+       'Utrustningen kan hämtas på vår depå eller levereras mot tillägg (pris per körning tur & retur). Hyrestagaren ansvarar för att behörig person finns på plats. Extra körningspris kan debiteras om leverans omöjliggörs av hyrestagaren.'],
       ['6. Montering och teknik',
-       'Enklare utrustning levereras för självmontering. Scener från 20 m² kräver professionell montering av vår personal. LED-skärmar och komplex ljusutrustning kräver tekniker. Monteringstjänst debiteras per påbörjad 15-minutersperiod à 600 kr exkl. moms.'],
+       'Enklare utrustning levereras för självmontering. Scenpaket Large och uppåt kräver alltid professionell montering och demontering av vår personal, prissatt separat. LED-skärmar och komplex ljusutrustning kräver tekniker (offerteras separat). Monteringstjänst debiteras per påbörjad 15-minutersperiod à 150 kr exkl. moms (600 kr/tim).'],
       ['7. Fel och reklamation',
-       'Fel vid hämtning/leverans ska anmälas omedelbart — senast innan evenemanget startar. Scenkonsult Norden åtar sig att avhjälpa felet, erbjuda ersättningsutrustning eller återbetala aktuell del av hyran. Reklamation efter återlämning utan anmärkning godtas normalt inte.'],
+       'Fel vid hämtning/leverans anmäls omedelbart — senast innan evenemanget startar. Scenkonsult Norden avhjälper felet, erbjuder ersättningsutrustning eller återbetalar aktuell del. Reklamation efter återlämning utan anmärkning godtas normalt inte.'],
       ['8. Force majeure',
-       'Scenkonsult Norden är fri från ansvar för förseningar eller hinder p.g.a. omständigheter utanför vår kontroll, t.ex. extrema väderförhållanden, trafikolycka, strejk eller myndighetsbeslut. Om leverans inte kan genomföras återbetalas erlagd hyra i sin helhet.'],
+       'Scenkonsult Norden är fri från ansvar vid hinder utanför vår kontroll (extremväder, trafikolycka, strejk, myndighetsbeslut). Vid omöjlig leverans återbetalas erlagd hyra i sin helhet.'],
       ['9. Tvister',
-       'Eventuella tvister löses i första hand genom dialog. Om parterna inte kan komma överens avgörs tvisten i Stockholms tingsrätt med tillämpning av svensk lag. Konsumenter har alltid rätt att vända sig till Allmänna reklamationsnämnden (ARN).'],
+       'Tvister löses i första hand genom dialog. I annat fall avgörs de i Stockholms tingsrätt med tillämpning av svensk lag. Konsumenter har alltid rätt att vända sig till ARN.'],
     ];
 
     villkor.forEach(([title, text]) => {
