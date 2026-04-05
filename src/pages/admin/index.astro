@@ -367,7 +367,14 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .cal-event:hover { background: var(--brand-purple); }
     .cal-event.s-confirmed { border-left-color: var(--green); }
     .cal-event.s-waiting   { border-left-color: var(--amber); }
+    .cal-event.s-new       { border-left-color: var(--brand-lav); }
     .cal-event.s-cancelled { border-left-color: var(--red); opacity: 0.4; }
+    .cal-event-time { color: rgba(255,255,255,0.45); font-size: 0.62rem; margin-right: 3px; }
+    /* Period-markering: highlight för returdag */
+    .cal-event.is-return { background: rgba(196,181,244,0.12); border-left-color: rgba(196,181,244,0.4); border-left-width: 2px; border-style: dashed; }
+    .cal-event.is-return.s-confirmed { border-left-color: rgba(74,222,128,0.4); }
+    .cal-event.is-return.s-waiting   { border-left-color: rgba(251,191,36,0.4); }
+    .cal-day.has-period { background: rgba(196,181,244,0.04) !important; }
 
     /* ── BUTTONS ───────────────────────────────────────── */
     .btn-action {
@@ -2570,17 +2577,52 @@ function renderCalendar() {
     const date = new Date(calYear, calMonth, dayOffset);
     const isOther = dayOffset < 1 || dayOffset > lastDay.getDate();
     const isToday = !isOther && date.toDateString() === today.toDateString();
-
     const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-    const dayCarts = carts.filter(c => c.event_date === dateStr && c.status !== 'cancelled');
 
+    // Utlämningsdagar (event_date) för denna dag
+    const pickupCarts = carts.filter(c => c.event_date === dateStr && c.status !== 'cancelled');
+    // Returdagar (return_date) — separata markeringar
+    const returnCarts = carts.filter(c => {
+      const ret = c.return_date || c.event_date;
+      return ret === dateStr && c.event_date !== dateStr && c.status !== 'cancelled';
+    });
+    // Perioden pågår — dagar MELLAN event_date och return_date
+    const inPeriodCarts = carts.filter(c => {
+      if (!c.event_date || c.status === 'cancelled') return false;
+      const ret = c.return_date || c.event_date;
+      return dateStr > c.event_date && dateStr < ret;
+    });
+
+    const hasPeriod = inPeriodCarts.length > 0;
     const cell = document.createElement('div');
-    cell.className = `cal-day${isOther ? ' other-month' : ''}${isToday ? ' today' : ''}`;
+    cell.className = `cal-day${isOther ? ' other-month' : ''}${isToday ? ' today' : ''}${hasPeriod ? ' has-period' : ''}`;
+
+    // Pågående period — diskret bakgrundslinje
+    const periodLines = inPeriodCarts.map(c =>
+      `<div style="height:3px;border-radius:2px;margin:1px 0;background:${
+        c.status==='confirmed'?'rgba(74,222,128,0.35)':
+        c.status==='waiting'?'rgba(251,191,36,0.35)':'rgba(196,181,244,0.2)'
+      }" title="${c.customer_name||c.id}"></div>`
+    ).join('');
+
+    // Utlämning — med tid 13:00
+    const pickupHTML = pickupCarts.map(c => {
+      const dlTime = c.delivery_time || '13:00';
+      return `<div class="cal-event s-${c.status}" data-id="${c.id}">
+        <span class="cal-event-time">${dlTime}</span>${STATUS_LABELS[c.status]?.icon||''} ${c.customer_name||c.id}
+      </div>`;
+    }).join('');
+
+    // Retur — med tid 11:00, streckad kant
+    const returnHTML = returnCarts.map(c => {
+      const rtTime = c.return_time || '11:00';
+      return `<div class="cal-event is-return s-${c.status}" data-id="${c.id}">
+        <span class="cal-event-time">${rtTime}↩</span>${c.customer_name||c.id}
+      </div>`;
+    }).join('');
+
     cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>
-      ${dayCarts.map(c => `
-        <div class="cal-event s-${c.status}" data-id="${c.id}">
-          ${STATUS_LABELS[c.status]?.icon} ${c.customer_name || c.id}
-        </div>`).join('')}`;
+      ${periodLines}${pickupHTML}${returnHTML}`;
 
     cell.querySelectorAll('.cal-event').forEach(el => {
       el.addEventListener('click', e => { e.stopPropagation(); openDetail(el.dataset.id); });
