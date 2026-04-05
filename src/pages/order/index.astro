@@ -563,7 +563,7 @@ function renderOrder(c) {
     banner.style.borderRadius = '12px 12px 0 0';
     ctaEl.style.display = '';
     ctaEl.innerHTML = renderConfirmBox(c);
-  } else if (c.status === 'proposal' || c.status === 'open' || c.status === 'new') {
+  } else if (c.status === 'proposal' || c.status === 'open' || c.status === 'new' /* 'proposal'/'open' = legacy-alias pre-2026-04-05, nu alltid 'new' */) {
     // Vi håller på att se över förfrågan
     banner.style.borderRadius = '12px 12px 0 0';
     ctaEl.style.display = '';
