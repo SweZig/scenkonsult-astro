@@ -1,0 +1,284 @@
+---
+// /admin/sven/ — Sven Analytics
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sven Analytics — Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+    .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
+    .topbar a:hover { color: #c4b5f4; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+    .stat-card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 1rem 1.25rem; }
+    .stat-val  { font-size: 2rem; font-weight: 800; color: #c4b5f4; line-height: 1; margin-bottom: 0.2rem; }
+    .stat-lbl  { font-size: 0.75rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.05em; }
+    .section   { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+    .sec-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(196,181,244,0.6); margin-bottom: 1rem; }
+    .chart-wrap { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+    .bar { background: linear-gradient(180deg, #c4b5f4, #7c3aed); border-radius: 3px 3px 0 0; width: 100%; transition: opacity 0.15s; min-height: 2px; }
+    .bar:hover { opacity: 0.75; }
+    .bar-lbl { font-size: 0.6rem; color: rgba(255,255,255,0.3); margin-top: 4px; white-space: nowrap; }
+    .bar-val  { font-size: 0.65rem; color: rgba(196,181,244,0.7); margin-bottom: 2px; }
+    .q-table { width: 100%; border-collapse: collapse; }
+    .q-table th { font-size: 0.72rem; color: rgba(196,181,244,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; padding: 0 0.75rem 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .q-table td { padding: 0.6rem 0.75rem; font-size: 0.83rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; }
+    .q-table tr:last-child td { border-bottom: none; }
+    .q-table tr:hover td { background: rgba(196,181,244,0.04); }
+    .tag { display: inline-block; font-size: 0.68rem; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
+    .tag-co { background: rgba(59,130,246,0.15); color: #93c5fd; }
+    .tag-pr { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+    .tag-or { background: rgba(245,158,11,0.15); color: #fcd34d; }
+    .tag-un { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
+    .page-tag { font-size: 0.7rem; color: rgba(255,255,255,0.3); font-family: monospace; }
+    .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 0.78rem; padding: 4px 12px; cursor: pointer; transition: all 0.15s; }
+    .filter-btn.active { background: rgba(196,181,244,0.15); border-color: #c4b5f4; color: #c4b5f4; }
+    .filter-btn:hover { border-color: rgba(196,181,244,0.4); color: rgba(196,181,244,0.8); }
+    .reply-preview { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 3px; font-style: italic; }
+    #auth-screen { position: fixed; inset: 0; background: #0c0a24; display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; text-align: center; }
+    .auth-box h2 { color: #c4b5f4; margin-bottom: 1.25rem; }
+    .auth-input { width: 100%; background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 8px; padding: 0.6rem 0.875rem; color: #f0eeff; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .auth-btn { width: 100%; background: #c4b5f4; color: #0c0a24; font-weight: 700; border: none; border-radius: 8px; padding: 0.65rem; cursor: pointer; font-size: 0.9rem; }
+    .auth-err { color: #f87171; font-size: 0.8rem; margin-top: 0.5rem; min-height: 20px; }
+    .empty { padding: 2rem; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.85rem; }
+    .loading { padding: 2rem; text-align: center; color: rgba(196,181,244,0.5); }
+    .pagination { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.75rem; align-items: center; }
+    .pg-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: rgba(255,255,255,0.6); font-size: 0.8rem; padding: 4px 10px; cursor: pointer; }
+    .pg-btn:disabled { opacity: 0.3; cursor: default; }
+    .pg-info { font-size: 0.78rem; color: rgba(255,255,255,0.35); }
+  </style>
+</head>
+<body>
+
+<!-- Auth-skärm -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>🤖 Sven Analytics</h2>
+    <input type="password" class="auth-input" id="pw-input" placeholder="Adminlösenord" autocomplete="current-password">
+    <button class="auth-btn" id="pw-btn">Logga in</button>
+    <div class="auth-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="topbar">
+    <a href="/admin/">← Admin</a>
+    <h1>🤖 Sven Analytics</h1>
+  </div>
+  <div class="wrap">
+
+    <!-- Stat-kort -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="stat-val" id="s-today">–</div><div class="stat-lbl">Idag</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-week">–</div><div class="stat-lbl">Senaste 7 dagar</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-month">–</div><div class="stat-lbl">Senaste 30 dagar</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-avg">–</div><div class="stat-lbl">Snitt/dag (30 d)</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-rating">–</div><div class="stat-lbl">Snittbetyg ★</div></div>
+    </div>
+
+    <!-- Dagligt diagram -->
+    <div class="section">
+      <div class="sec-title">Meddelanden per dag — senaste 30 dagar</div>
+      <div class="chart-wrap" id="daily-chart"><div class="loading">Laddar…</div></div>
+    </div>
+
+    <!-- Frågtabell -->
+    <div class="section">
+      <div class="sec-title">Inkommande frågor</div>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="real" onclick="setFilter('real')">Specifika frågor</button>
+        <button class="filter-btn" data-filter="all" onclick="setFilter('all')">Alla meddelanden</button>
+        <button class="filter-btn" data-filter="chips" onclick="setFilter('chips')">Chips/knappar</button>
+        <select id="type-filter" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.1);border-radius:20px;color:rgba(255,255,255,0.6);font-size:0.78rem;padding:4px 10px;cursor:pointer" onchange="loadLogs()">
+          <option value="">Alla kundtyper</option>
+          <option value="company">Företag</option>
+          <option value="private">Privatperson</option>
+          <option value="org">Förening/org</option>
+          <option value="unknown">Okänd</option>
+        </select>
+      </div>
+      <div id="q-loading" class="loading" style="display:none">Laddar…</div>
+      <table class="q-table" id="q-table">
+        <thead><tr>
+          <th style="width:130px">Tid</th>
+          <th>Fråga</th>
+          <th style="width:90px">Kundtyp</th>
+          <th style="width:120px">Sida</th>
+        </tr></thead>
+        <tbody id="q-tbody"><tr><td colspan="4" class="empty">Laddar…</td></tr></tbody>
+      </table>
+      <div class="pagination">
+        <button class="pg-btn" id="pg-prev" onclick="changePage(-1)">←</button>
+        <span class="pg-info" id="pg-info"></span>
+        <button class="pg-btn" id="pg-next" onclick="changePage(1)">→</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const ADMIN_KEY = 'sk_admin_token';
+let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
+
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+document.getElementById('pw-btn').onclick = async () => {
+  const pw = document.getElementById('pw-input').value;
+  if (!pw) return;
+  const hash = await sha256hex(pw);
+  const res = await fetch('/.netlify/functions/admin-auth', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: hash }),
+  }).catch(() => null);
+  const ok = res && (await res.json().catch(() => ({}))).ok;
+  if (ok) {
+    adminToken = hash;
+    sessionStorage.setItem(ADMIN_KEY, hash);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('pw-err').textContent = 'Fel lösenord';
+  }
+};
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtTime(ts) {
+  if (!ts) return '–';
+  const d = new Date(ts);
+  return d.toLocaleDateString('sv-SE',{month:'short',day:'numeric'}) + ' ' +
+         d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('sv-SE',{month:'short',day:'numeric'});
+}
+function typeTag(t) {
+  if (t==='company') return '<span class="tag tag-co">Företag</span>';
+  if (t==='private') return '<span class="tag tag-pr">Privat</span>';
+  if (t==='org')     return '<span class="tag tag-or">Förening</span>';
+  return '<span class="tag tag-un">Okänd</span>';
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let allLogs = [];
+let filter = 'real';
+let page = 0;
+const PAGE_SIZE = 30;
+
+// ── Fetch ─────────────────────────────────────────────────────────────────────
+async function api(fn, body) {
+  const res = await fetch(`/.netlify/functions/${fn}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+    body: JSON.stringify(body),
+  });
+  return res.json().catch(() => ({}));
+}
+
+async function loadStats() {
+  const data = await api('sven-stats', {});
+  if (!data) return;
+  document.getElementById('s-today').textContent  = data.today  ?? '0';
+  document.getElementById('s-week').textContent   = data.week   ?? '0';
+  document.getElementById('s-month').textContent  = data.month  ?? '0';
+  document.getElementById('s-avg').textContent    = data.avg    ?? '0';
+  document.getElementById('s-rating').textContent = data.rating ? data.rating.toFixed(1) : '–';
+  renderChart(data.daily || []);
+}
+
+function renderChart(daily) {
+  const wrap = document.getElementById('daily-chart');
+  if (!daily.length) { wrap.innerHTML = '<div class="empty">Ingen data ännu</div>'; return; }
+  const max = Math.max(...daily.map(d => d.count), 1);
+  wrap.innerHTML = daily.map(d => `
+    <div class="bar-col" title="${d.date}: ${d.count} meddelanden">
+      <div class="bar-val">${d.count || ''}</div>
+      <div class="bar" style="height:${Math.max(2, Math.round((d.count/max)*100))}px"></div>
+      <div class="bar-lbl">${d.date.slice(5)}</div>
+    </div>`).join('');
+}
+
+async function loadLogs() {
+  document.getElementById('q-loading').style.display = 'block';
+  document.getElementById('q-table').style.display = 'none';
+  const customerType = document.getElementById('type-filter').value;
+  const data = await api('sven-stats', { getLogs: true, customerType });
+  allLogs = data.logs || [];
+  page = 0;
+  document.getElementById('q-loading').style.display = 'none';
+  document.getElementById('q-table').style.display = 'table';
+  renderTable();
+}
+
+function setFilter(f) {
+  filter = f;
+  page = 0;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderTable();
+}
+
+function filteredLogs() {
+  if (filter === 'real')  return allLogs.filter(l => !l.is_chip);
+  if (filter === 'chips') return allLogs.filter(l => l.is_chip);
+  return allLogs;
+}
+
+function renderTable() {
+  const logs = filteredLogs();
+  const start = page * PAGE_SIZE;
+  const slice = logs.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('q-tbody');
+
+  if (logs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Inga meddelanden ännu</td></tr>';
+    document.getElementById('pg-info').textContent = '';
+    return;
+  }
+
+  tbody.innerHTML = slice.map(l => `
+    <tr>
+      <td style="color:rgba(255,255,255,0.4);font-size:0.78rem;white-space:nowrap">${fmtTime(l.created_at)}</td>
+      <td>
+        <div>${l.message || '–'}</div>
+        ${l.reply_preview ? `<div class="reply-preview">↳ ${l.reply_preview.replace(/</g,'&lt;').substring(0,120)}…</div>` : ''}
+      </td>
+      <td>${typeTag(l.customer_type)}</td>
+      <td><span class="page-tag">${(l.page_url||'–').replace('/vara-tjanster','').replace('/for/','/')}</span></td>
+    </tr>`).join('');
+
+  const total = logs.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
+  document.getElementById('pg-info').textContent = `${start+1}–${Math.min(start+PAGE_SIZE,total)} av ${total}`;
+  document.getElementById('pg-prev').disabled = page === 0;
+  document.getElementById('pg-next').disabled = page >= pages - 1;
+}
+
+function changePage(dir) { page += dir; renderTable(); }
+
+async function init() {
+  await Promise.all([loadStats(), loadLogs()]);
+}
+
+// Auto-login om token finns
+if (adminToken) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  init();
+}
+</script>
+</body>
+</html>

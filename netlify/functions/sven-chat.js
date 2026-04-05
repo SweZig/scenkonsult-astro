@@ -1,5 +1,36 @@
 import { CART_ID_LISTA, PRODUKTER_OCH_PRISER } from './_products-generated.js';
 
+// ── Supabase-loggning ──────────────────────────────────────────────────────
+async function logToSupabase(data) {
+  const sbUrl = process.env.SUPABASE_URL;
+  const sbKey = process.env.SUPABASE_SERVICE_KEY;
+  if (!sbUrl || !sbKey) return;
+  try {
+    await fetch(`${sbUrl}/rest/v1/sven_logs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        sbKey,
+        'Authorization': 'Bearer ' + sbKey,
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (e) {
+    console.warn('SVEN_DB_LOG_FAIL:', e.message);
+  }
+}
+
+// Chip-detektion: korta förinställda svar filtreras bort
+function isChip(msg) {
+  if (!msg || msg.length > 40) return false;
+  const chips = ['ja','nej','ok','tack','visa priser','läs mer','kontakta','boka',
+    'ljud','ljus','scen','bild','dj','portable','event','music','live',
+    'färdiga paket','effekter','rök','stativ','projektor','offert','nästa'];
+  const low = msg.toLowerCase().trim();
+  return chips.some(c => low === c || low.startsWith(c + ' ') || low === c + '!');
+}
+
 function buildSystemPromptBase() {
   return `Du är Sven — intendenten på Scenkonsult Norden. Du har arbetat inom eventbranschen i över 30 år och vet allt om scen, ljud, ljus och DJ-utrustning. Egentligen ville du bli artist och stå på scen själv, men det blev aldrig riktigt av. Numera jobbar du bakom kulisserna som intendent. Du är lite bitter över det, men försöker dölja det med professionellt lugn och torr humor.
 
@@ -189,7 +220,7 @@ export default async (req) => {
     });
   }
 
-  const { messages, action, stars, sessionId, messageCount, customerType } = body;
+  const { messages, action, stars, sessionId, messageCount, customerType, pageUrl } = body;
 
   // ── BETYGSÄTTNING ──────────────────────────────────────
   if (action === "rate" && stars >= 1 && stars <= 5) {
@@ -247,11 +278,18 @@ export default async (req) => {
       reply = rawReply.replace(/\nCHIPS:\[.*?\]\s*$/s, "").trim();
     }
 
-    logEvent({
-      type: "message", sessionId, customerType,
-      messageCount: trimmed.length,
-      userMessage: lastUser.substring(0, 300),
-      replyPreview: reply.substring(0, 200),
+    // Logga till console + Supabase
+    const msgText = lastUser.substring(0, 500);
+    logEvent({ type: "message", sessionId, customerType, messageCount: trimmed.length,
+      userMessage: msgText, replyPreview: reply.substring(0, 200) });
+    logToSupabase({
+      session_id:    sessionId || null,
+      customer_type: customerType || null,
+      message:       msgText,
+      reply_preview: reply.substring(0, 300),
+      is_chip:       isChip(msgText),
+      page_url:      pageUrl || null,
+      message_idx:   trimmed.length,
     });
 
     return new Response(JSON.stringify({ reply, chips }), {

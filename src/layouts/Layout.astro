@@ -1616,7 +1616,7 @@ const localBusinessSchema = {
           const res = await fetch("/api/sven-chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: history, sessionId, customerType }),
+            body: JSON.stringify({ messages: history, sessionId, customerType, pageUrl: window.location.pathname }),
           });
           removeTyping();
           if (!res.ok) throw new Error("HTTP " + res.status);
