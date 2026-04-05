@@ -7,7 +7,10 @@
 const { supabase, isAdmin, ok, err, preflight, logAudit } = require('./_lib');
 
 const ELKS_URL  = 'https://api.46elks.com/a1/SMS';
-const FROM_NAME = 'Scenkonsult'; // Max 11 tecken, alfanumeriskt
+// Avsändare: sätt ELKS_FROM i Netlify env-vars.
+// Använd ett telefonnummer du äger hos 46elks (t.ex. +46...)
+// OBS: Alfanumeriska namn (t.ex. "Scenkonsult") kräver förregistrering hos 46elks.
+const FROM_NAME = process.env.ELKS_FROM || 'Scenkonsult';
 
 async function sendSms(to, message) {
   const user = process.env.ELKS_API_USER;
@@ -36,9 +39,15 @@ async function sendSms(to, message) {
   const rawText = await res.text();
   let data = {};
   try { data = JSON.parse(rawText); } catch (_) {
-    // 46elks returnerade icke-JSON (t.ex. HTML vid autentiseringsfel)
     console.error('46ELKS_NON_JSON:', res.status, rawText.slice(0, 200));
     throw new Error(`46elks fel ${res.status}: ${rawText.slice(0, 100)}`);
+  }
+  if (res.status === 403) {
+    throw new Error(
+      `46elks nekade (403): Avsändarnamnet "${FROM_NAME}" kräver förregistrering. ` +
+      `Sätt ELKS_FROM i Netlify till ditt 46elks-telefonnummer (t.ex. +46701234567), ` +
+      `eller registrera avsändarnamnet på api.46elks.com.`
+    );
   }
   if (!res.ok || data.status === 'error') {
     throw new Error(data.message || `46elks fel: ${res.status}`);
