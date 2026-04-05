@@ -199,7 +199,7 @@ const QUOTE_CAT = {};
 const frakt = readJson('frakt.json');
 
 QUOTE_CAT['Scen'] = { products: scenes.products.filter(p=>p.price).map(p=>({id:'scen-'+p.id,name:p.name,price:p.price})) };
-QUOTE_CAT['Scen tillbehör'] = { products: (scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||'scen-acc',name:p.name,price:p.price})) };
+QUOTE_CAT['Scen tillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.slug||p.artno||'scen-acc',name:p.name,price:p.price})) };
 
 QUOTE_CAT['Ljud'] = { sub: {} };
 ['event','live','music','portable'].forEach(sec => {
@@ -227,7 +227,7 @@ QUOTE_CAT['Tjänster'] = { products: [
   {id:frakt.leverans.skrymmande.id+'-e',name:'Leverans — Bil med släp (enkel)',price:frakt.leverans.skrymmande.enkelresa},
   {id:frakt.leverans.lastbil.id,    name:'Leverans — Lastbil (t&r)',         price:frakt.leverans.lastbil.pris},
   {id:frakt.leverans.lastbil.id+'-e',  name:'Leverans — Lastbil (enkel)',    price:frakt.leverans.lastbil.enkelresa},
-  {id:'montering-tim', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
+  {id:'montering', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
   {id:'fakturaavgift-49', name:'Fakturaavgift', price:49},
   {id:'fakturaavgift-29', name:'Fakturaavgift (reducerad)', price:29},
 ]};

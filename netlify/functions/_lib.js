@@ -213,9 +213,11 @@ async function sendEmail(apiKey, payload) {
 
 function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   const SVC_CATS  = ['Tjänster', 'Tillägg'];
-  const SVC_IDS   = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik']);
+  const SVC_IDS   = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','montering-tim','rigg-teknik']);
+  const ID_ALIAS  = {'SK-SCN-ACC-0001':'scentrapp-40cm','SK-SCN-ACC-0002':'scentrapp-60cm','SK-SCN-ACC-0003':'scenkjol-4m','SK-SCN-ACC-0004':'backdrop-3-5x2-5','montering-tim':'montering'};
+  const resolveId = i => ID_ALIAS[i.id] ? {...i, id: ID_ALIAS[i.id]} : i;
   const isSvc     = i => i.type === 'service' || SVC_CATS.includes(i.category) || SVC_IDS.has(i.id);
-  const allReal   = (cart || []).filter(i => !i._note && i.name);
+  const allReal   = (cart || []).filter(i => !i._note && i.name).map(resolveId);
   const prodItems = allReal.filter(i => !isSvc(i) && !(i.id && i.id.startsWith('fakturaavgift')));
   const svcItems  = allReal.filter(i => isSvc(i) && !(i.id && i.id.startsWith('fakturaavgift')));
   const feeItem   = showFakturaavgift ? allReal.find(i => i.id && i.id.startsWith('fakturaavgift')) : null;

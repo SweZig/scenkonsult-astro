@@ -413,9 +413,18 @@ const fmtTime = d  => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short
 // Produktbild-karta: id → sökväg
 
 // ORDER_CATALOG exponeras via window._SK_ORDER_CATALOG (define:vars + window assignment)
+// Alias-tabell: gamla/felaktiga ID:n → korrekt slug
+const _ID_ALIASES = {
+  'SK-SCN-ACC-0001': 'scentrapp-40cm',
+  'SK-SCN-ACC-0002': 'scentrapp-60cm',
+  'SK-SCN-ACC-0003': 'scenkjol-4m',
+  'SK-SCN-ACC-0004': 'backdrop-3-5x2-5',
+  'montering-tim':   'montering',
+};
 function _lookupOrderProduct(item) {
   const cat = window._SK_ORDER_CATALOG || {};
-  const id = item.id || '';
+  const rawId = item.id || '';
+  const id = _ID_ALIASES[rawId] || rawId;
   if (cat[id]) return cat[id];
   if (cat['scen-' + id]) return cat['scen-' + id];
   const stripped = id.replace(/^(scen-|dj-utr-)/,'');
