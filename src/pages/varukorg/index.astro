@@ -81,6 +81,30 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         <span class="service-price" id="leveransPrice">– kr</span>
       </label>
 
+      <!-- Admin: leverans-override — synlig bara i sk-admin-läge -->
+      <div class="sk-admin-only" id="admin-lev-override" style="margin:0.5rem 0 0.25rem;padding:0.75rem;background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.2);border-radius:8px;">
+        <div style="font-size:0.75rem;font-weight:700;color:#c4b5f4;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">⚙ Admin — Leveranstyp</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+          <select id="adminLevType" style="background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;cursor:pointer;color-scheme:dark;">
+            <option value="auto">Automatisk (bulky-regel)</option>
+            <option value="standard">Vanlig bil</option>
+            <option value="skrymmande">Bil med släpvagn</option>
+            <option value="lastbil">Lätt/tung lastbil</option>
+            <option value="bakgavel">Lastbil med bakgavellift</option>
+          </select>
+          <select id="adminLevResa" style="background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;cursor:pointer;color-scheme:dark;">
+            <option value="tur-retur">Tur & retur</option>
+            <option value="enkel">Enkelresa</option>
+          </select>
+          <span id="adminLevPreview" style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-left:0.25rem;"></span>
+        </div>
+        <div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+          <input id="adminNoteInput" type="text" placeholder="Intern anteckning på order (visas ej för kund)"
+            style="flex:1;min-width:180px;background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.6rem;font-size:0.82rem;color-scheme:dark;"
+          />
+        </div>
+      </div>
+
       <!-- Hämtningsinfo — visas när leverans EJ är vald -->
       <div id="pickupNotice" class="pickup-notice">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -129,6 +153,21 @@ const volPricingJSON = JSON.stringify(volPricingMap);
           </div>
         </label>
       ))}
+    </div>
+
+    <!-- Admin: Lägg till produkt manuellt — synlig bara i sk-admin-läge -->
+    <div class="sk-admin-only" id="admin-add-product" style="margin-bottom:1rem;padding:0.75rem;background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.2);border-radius:8px;">
+      <div style="font-size:0.75rem;font-weight:700;color:#c4b5f4;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">⚙ Admin — Lägg till artikel</div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <input id="adminSearchInput" type="text" placeholder="Sök artikelnr eller namn…"
+          style="flex:1;min-width:180px;background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.6rem;font-size:0.82rem;color-scheme:dark;"
+          autocomplete="off"
+        />
+        <input id="adminQtyInput" type="number" min="1" value="1"
+          style="width:64px;background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;text-align:center;color-scheme:dark;"
+        />
+      </div>
+      <div id="adminSearchResults" style="margin-top:0.4rem;max-height:220px;overflow-y:auto;display:none;background:#12103a;border:1px solid rgba(196,181,244,0.2);border-radius:6px;"></div>
     </div>
 
     <!-- SUMMERING -->
@@ -789,19 +828,28 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     return cart.some(i => i.bulky === true);
   }
   function calcLev(cart) {
-    const hasBulky = cartHasBulky(cart);
-    if (hasBulky) {
-      return {
-        price: FRAKT.leverans.skrymmande.pris,
-        label: FRAKT.leverans.skrymmande.label,
-        note: FRAKT.leverans.skrymmande.note,
-      };
+    // Admin-override: kolla dropdown
+    const adminType = document.getElementById('adminLevType')?.value || 'auto';
+    const adminResa = document.getElementById('adminLevResa')?.value || 'tur-retur';
+    const enkelresa = adminResa === 'enkel';
+
+    let key = null;
+    if (adminType !== 'auto') {
+      key = adminType; // 'standard','skrymmande','lastbil','bakgavel'
+    } else {
+      key = cartHasBulky(cart) ? 'skrymmande' : 'standard';
     }
-    return {
-      price: FRAKT.leverans.standard.pris,
-      label: FRAKT.leverans.standard.label,
-      note: FRAKT.leverans.standard.note,
-    };
+
+    const lev = FRAKT.leverans[key] || FRAKT.leverans.standard;
+    const price = enkelresa
+      ? (lev.enkelresa || Math.round(lev.pris / 2))
+      : lev.pris;
+
+    // Uppdatera preview i admin-panelen
+    const preview = document.getElementById('adminLevPreview');
+    if (preview) preview.textContent = price.toLocaleString('sv-SE') + ' kr';
+
+    return { price, label: lev.label, note: lev.note };
   }
 
   // Montering: 600 kr/tim, min 15 min, baserat på monteringMin per produkt × qty
@@ -1020,7 +1068,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   document.getElementById('chkMontering')?.addEventListener('change', updateSummary);
   // Admin leverans-override: uppdatera pris live vid val
   document.getElementById('adminLevType')?.addEventListener('change', updateSummary);
-  document.getElementById('adminLevResor')?.addEventListener('change', updateSummary);
+  document.getElementById('adminLevResa')?.addEventListener('change', updateSummary);
   document.querySelectorAll('.chk-tillagg').forEach(chk => {
     chk.addEventListener('change', function() {
       const w = document.getElementById('qty-wrap-'+this.dataset.id);
@@ -1228,6 +1276,100 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     } catch (e) { /* tyst fel — fortsätt med tom varukorg */ }
   }
 
+
+  // ── ADMIN: Sök och lägg till produkt ────────────────────────────────────
+  (function() {
+    const searchInput = document.getElementById('adminSearchInput');
+    const qtyInput    = document.getElementById('adminQtyInput');
+    const resultsEl   = document.getElementById('adminSearchResults');
+    if (!searchInput || !resultsEl) return;
+
+    // Bygg platt produktlista från QUOTE_CATALOG (injiceras i Layout)
+    function buildAdminCatalog() {
+      const cat = typeof window.__ADMIN_QUOTE_CATALOG__ !== 'undefined'
+        ? window.__ADMIN_QUOTE_CATALOG__
+        : (typeof window._SK_QUOTE_CATALOG !== 'undefined' ? window._SK_QUOTE_CATALOG : null);
+      if (!cat) return [];
+      const list = [];
+      for (const [catName, section] of Object.entries(cat)) {
+        const prods = section.products || [];
+        const subs  = section.sub || {};
+        [...prods, ...Object.values(subs).flat()].forEach(p => {
+          if (p && p.id && p.name) list.push({ ...p, catName });
+        });
+      }
+      return list;
+    }
+
+    let catalog = [];
+    // Fördröjd initiering tills QUOTE_CATALOG finns
+    function ensureCatalog() {
+      if (!catalog.length) catalog = buildAdminCatalog();
+      return catalog;
+    }
+
+    function renderResults(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) { resultsEl.style.display = 'none'; return; }
+      const list = ensureCatalog();
+      const hits = list.filter(p =>
+        p.id.toLowerCase().includes(q) ||
+        p.name.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').includes(q) ||
+        p.name.toLowerCase().includes(q)
+      ).slice(0, 12);
+
+      if (!hits.length) {
+        resultsEl.innerHTML = '<div style="padding:0.6rem 0.75rem;font-size:0.82rem;color:rgba(255,255,255,0.3)">Inga träffar</div>';
+        resultsEl.style.display = 'block';
+        return;
+      }
+      resultsEl.innerHTML = hits.map(p => `
+        <div data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.price||0}" data-image="${p.image||''}"
+          style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.75rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.82rem;"
+          onmouseover="this.style.background='rgba(196,181,244,0.08)'"
+          onmouseout="this.style.background=''"
+        >
+          <div>
+            <span style="color:rgba(255,255,255,0.4);font-size:0.72rem;font-family:monospace;margin-right:6px">${p.id}</span>
+            <span style="color:#fff">${p.name}</span>
+          </div>
+          <span style="color:#c4b5f4;white-space:nowrap;margin-left:8px">${(p.price||0).toLocaleString('sv-SE')} kr</span>
+        </div>`).join('');
+      resultsEl.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', () => renderResults(searchInput.value));
+
+    resultsEl.addEventListener('click', (e) => {
+      const row = e.target.closest('[data-id]');
+      if (!row) return;
+      const qty = parseInt(qtyInput?.value || '1', 10) || 1;
+      const item = {
+        id:       row.dataset.id,
+        artno:    row.dataset.id,
+        name:     row.dataset.name,
+        price:    parseInt(row.dataset.price, 10) || 0,
+        category: 'Admin',
+        image:    row.dataset.image || '',
+        qty,
+      };
+      skCart.add(item);
+      renderCart();
+      updateSummary();
+      updateNavBadge();
+      // Stäng sökning och rensa
+      resultsEl.style.display = 'none';
+      searchInput.value = '';
+      qtyInput.value = '1';
+    });
+
+    // Stäng vid klick utanför
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#admin-add-product')) {
+        resultsEl.style.display = 'none';
+      }
+    });
+  })();
   // ── INIT ─────────────────────────────────────────────────
   loadCartFromUrl().then(() => {
     renderCart();
