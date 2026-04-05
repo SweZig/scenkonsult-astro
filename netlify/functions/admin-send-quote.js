@@ -52,7 +52,11 @@ exports.handler = async (event) => {
     }
   }
 
-  const realItems = (items || []).filter(i => !i._note && i.name);
+  const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+  const realItems = (items || []).filter(i => !i._note && i.name).map(i => ({
+    ...i,
+    category: i.category || (SVC_IDS.has(i.id) ? 'Tjänster' : ''),
+  }));
   const allItems  = [...realItems];
   if (note?.trim()) {
     allItems.push({ _note: true, id: '_note', name: note.trim(), price: 0, qty: 1 });

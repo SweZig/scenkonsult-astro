@@ -96,7 +96,11 @@ exports.handler = async (event) => {
 
     if (body.items !== undefined) {
       if (!Array.isArray(body.items)) return err('items måste vara en array', 400);
-      updates.items = body.items;
+      const SVC_IDS_UPDATE = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+      updates.items = body.items.map(i => ({
+        ...i,
+        category: i.category || (SVC_IDS_UPDATE.has(i.id) ? 'Tjänster' : ''),
+      }));
       // Beräkna totalt om kund uppdaterar (admin anger explicit)
       if (!admin) {
         updates.total_excl = body.items.reduce((sum, i) => sum + ((i.price || 0) * (i.qty || 1)), 0) * 100;
