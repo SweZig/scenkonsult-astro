@@ -4,6 +4,7 @@ import CategoryHero from '../../../components/CategoryHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import bildData from '../../../data/bild.json';
+import ljudData from '../../../data/ljud.json';
 ---
 <Layout
   title="Hyr Projektor & Storbildsskärm Stockholm – LED-vägg & Trailerscen | Scenkonsult"
@@ -54,7 +55,7 @@ import bildData from '../../../data/bild.json';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {bildData.tillbehor.map(t => (
-        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.desc} category="Projektor tillbehör" artno={t.artno} />
+        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.desc} category="Projektor tillbehör" artno={t.artno} slug={t.slug} />
       ))}
     </div>
   </section>
@@ -63,21 +64,8 @@ import bildData from '../../../data/bild.json';
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {[
-        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",             excl:20  },
-        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m 1-fas",      excl:48  },
-        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",       excl:80  },
-        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag 10 m IP44",         excl:100 },
-        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag 25 m IP44",         excl:159 },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",       excl:236 },
-        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas", excl:320 },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",       excl:396 },
-        { img:"/images/ljud/pp_ljud_tillbehor_elverk-small.png", name:"Elgenerator 2 200 W", excl:799 },
-        { img:"/images/ljud/pp_ljud_elverk-kipor.png",  name:"Elgenerator 7 700 W",         excl:1799 },
-        { img:"/images/ljus/pp_ljus_ackrylatbensin_1L.png", name:"Ackrylatbensin 1 l", excl:59,  desc:"Aspen 4" },
-        { img:"/images/ljus/pp_ljus_ackrylatbensin_5L.png", name:"Ackrylatbensin 5 l", excl:239, desc:"Aspen 4" },
-      ].map(t => (
-        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" />
+      {(ljudData.tillbehor_el || []).filter(t => t.slug && t.price).map(t => (
+        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.description} category="El-tillbehör" artno={t.artno} slug={t.slug} />
       ))}
     </div>
   </section>
