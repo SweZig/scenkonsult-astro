@@ -421,7 +421,8 @@
       try { data = JSON.parse(text); } catch(e) {
         throw new Error('Ogiltigt svar från servern: ' + text.slice(0, 100));
       }
-      if (!res.ok || !data.ok) throw new Error(data.error || 'Kunde inte ladda order (status ' + res.status + ')');
+      if (!res.ok || (!data.cart && !data.error)) throw new Error(data.error || 'Kunde inte ladda order (status ' + res.status + ')');
+      if (data.error) throw new Error(data.error);
 
       const cart = data.cart;
       if (!cart) throw new Error('Cart saknas i svaret: ' + JSON.stringify(Object.keys(data)));

@@ -821,7 +821,7 @@ async function confirmOrder() {
       })
     });
     const data = await res.json();
-    if (res.ok && data.ok) {
+    if (res.ok && !data.error) {
       // Update UI — show signed state
       const ctaEl = document.getElementById('statusCta');
       ctaEl.innerHTML = `

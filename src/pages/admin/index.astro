@@ -1931,7 +1931,7 @@ async function invCreateAndSend() {
       method: 'POST',
       body: JSON.stringify({ cart_id: currentCart.id })
     });
-    if (ok && data.ok) {
+    if (ok && !data.error) {
       currentCart.status = 'fakturerad';
       currentCart.invoice_sent_at = new Date().toISOString();
       currentCart.invoice_number = data.invoice_number;
@@ -2036,7 +2036,7 @@ async function invSendEmail() {
       method: 'POST',
       body: JSON.stringify({ cart_id: currentCart.id })
     });
-    if (ok && data.ok) {
+    if (ok && !data.error) {
       currentCart.status = 'fakturerad';
       currentCart.invoice_sent_at = new Date().toISOString();
       currentCart.invoice_number = data.invoice_number;
@@ -2082,7 +2082,7 @@ async function invResend() {
       method: 'POST',
       body: JSON.stringify({ cart_id: currentCart.id, resend: true })
     });
-    if (ok && data.ok) {
+    if (ok && !data.error) {
       toast('Faktura ' + invNum + ' skickad om! 📧');
     } else {
       toast(data?.error || 'Kunde inte skicka faktura', 'error');
