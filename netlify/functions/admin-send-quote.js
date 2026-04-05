@@ -23,7 +23,7 @@ exports.handler = async (event) => {
   try { data = JSON.parse(event.body); }
   catch { return err('Ogiltig data', 400); }
 
-  const { customer, items, note, existing_cart_id } = data;
+  const { customer, items, note, existing_cart_id, pdf_attachment } = data;
 
   if (!customer?.name || !customer?.email)
     return err('Namn och e-post krävs', 400);
@@ -130,14 +130,22 @@ exports.handler = async (event) => {
     });
     await sleep(600);
 
-    await sendEmail(apiKey, {
+    const customerMailPayload = {
       from:     MAIL_FROM,
       to:       [customer.email],
       reply_to: 'info@scenkonsult.se',
       subject:  'Din offert från Scenkonsult Norden',
       html:     htmlWrapper(htmlBody),
       text:     plainText,
-    });
+    };
+    if (pdf_attachment?.content && pdf_attachment?.filename) {
+      customerMailPayload.attachments = [{
+        filename: pdf_attachment.filename,
+        content:  pdf_attachment.content,
+      }];
+      console.log('ADMIN_QUOTE: bifogad PDF:', pdf_attachment.filename);
+    }
+    await sendEmail(apiKey, customerMailPayload);
 
     console.log('ADMIN_QUOTE_SENT:', cartId, 'to', customer.email);
     return {

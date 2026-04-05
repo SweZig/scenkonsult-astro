@@ -601,9 +601,20 @@ import quoteCatalogData from '../../data/quote-catalog.json';
 
       <div id="quote-error" style="display:none;margin-top:0.75rem;padding:0.75rem;background:var(--red-bg);border-radius:8px;color:var(--red);font-size:0.85rem"></div>
     </div>
-    <div class="modal-foot">
-      <button class="btn-action" onclick="closeQuoteModal()">Avbryt</button>
-      <button class="btn-action btn-success" id="quote-send-btn" onclick="sendQuote()">✉ Skicka offert</button>
+    <div class="modal-foot" style="flex-direction:column;align-items:stretch;gap:0.75rem">
+      <!-- PDF-bilaga -->
+      <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.12);border-radius:8px">
+        <label for="quote-pdf-input" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.82rem;color:rgba(255,255,255,0.6);flex:1">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span id="quote-pdf-label">Bifoga PDF (valfritt — t.ex. skiss)</span>
+        </label>
+        <input type="file" id="quote-pdf-input" accept="application/pdf" style="display:none" onchange="quotePdfSelected(this)">
+        <button id="quote-pdf-clear" style="display:none;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:0.8rem;padding:2px 6px" onclick="quotePdfClear()">✕</button>
+      </div>
+      <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+        <button class="btn-action" onclick="closeQuoteModal()">Avbryt</button>
+        <button class="btn-action btn-success" id="quote-send-btn" onclick="sendQuote()">✉ Skicka offert</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2498,6 +2509,38 @@ function quoteDelIdx(idx) {
   quoteRenderTable();
 }
 
+// ── PDF-BIFOGNING ─────────────────────────────────────────────
+let _quotePdfData = null; // base64-sträng
+let _quotePdfName = null;
+
+function quotePdfSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    toast('PDF är för stor (max 5 MB)', 'error');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    // Hämta ren base64 utan data:...-prefix
+    _quotePdfData = e.target.result.split(',')[1];
+    _quotePdfName = file.name;
+    $('quote-pdf-label').textContent = `📎 ${file.name} (${Math.round(file.size/1024)} KB)`;
+    $('quote-pdf-label').style.color = '#c4b5f4';
+    $('quote-pdf-clear').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function quotePdfClear() {
+  _quotePdfData = null; _quotePdfName = null;
+  $('quote-pdf-input').value = '';
+  $('quote-pdf-label').textContent = 'Bifoga PDF (valfritt — t.ex. skiss)';
+  $('quote-pdf-label').style.color = '';
+  $('quote-pdf-clear').style.display = 'none';
+}
+
 async function sendQuote() {
   const name  = $('qc-name').value.trim();
   const email = $('qc-email').value.trim();
@@ -2526,12 +2569,14 @@ async function sendQuote() {
     },
     items: quoteItems,
     note: $('qc-note').value.trim() || null,
+    pdf_attachment: _quotePdfData ? { content: _quotePdfData, filename: _quotePdfName } : null,
   };
 
   try {
     const { ok: success, data } = await api('admin-send-quote', { method: 'POST', body: JSON.stringify(payload) });
     if (success) {
       closeQuoteModal();
+      quotePdfClear();
       toast(`Offert skickad till ${email}! 🎉`);
       // Sätt status → waiting så kunden ser bekräftelseknappen på /order/
       if (currentCart?.id && currentCart.status === 'new') {
