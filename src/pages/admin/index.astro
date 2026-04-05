@@ -920,6 +920,12 @@ function renderTab(tab) {
 
   // Bind status change
   if (tab === 'info') {
+    // Auto-fyll datum-till om det är tomt och datum-från finns
+    const fromEl = document.getElementById('edit-date');
+    const toEl   = document.getElementById('edit-return-date');
+    if (fromEl?.value && toEl && !toEl.value) {
+      adminAutoReturnDate(fromEl.value);
+    }
     $('status-select')?.addEventListener('change', async e => {
       const newStatus = e.target.value;
       if (!confirm(`Ändra status till "${STATUS_LABELS[newStatus]?.label}"?`)) {
