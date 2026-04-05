@@ -336,7 +336,7 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); }
   catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltigt JSON' }) }; }
 
-  const { cart_id } = body;
+  const { cart_id, resend } = body;
   if (!cart_id) return { statusCode: 400, headers, body: JSON.stringify({ error: 'cart_id krävs' }) };
 
   const apiKey = process.env.RESEND_API_KEY;
@@ -382,17 +382,18 @@ exports.handler = async (event) => {
     await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail);
 
     const now = new Date().toISOString();
-    // Uppdatera invoice-fält (undviker ENUM-cast problem genom att separera status)
     await db.update('carts', { invoice_number: invoiceNumber, invoice_sent_at: now }, 'id', cart_id);
-    // Status separat via raw PATCH
-    const supaUrl = process.env.SUPABASE_URL;
-    const supaKey = process.env.SUPABASE_SERVICE_KEY;
-    await fetch(`${supaUrl}/rest/v1/carts?id=eq.${encodeURIComponent(cart_id)}`, {
-      method: 'PATCH',
-      headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ status: 'fakturerad' })
-    });
-    await logAudit(db, cart_id, 'admin', 'invoice_sent', { invoice_number: invoiceNumber, to: cart.customer_email });
+    // Status → fakturerad bara vid första utskick (inte vid omsändning)
+    if (!resend) {
+      const supaUrl = process.env.SUPABASE_URL;
+      const supaKey = process.env.SUPABASE_SERVICE_KEY;
+      await fetch(`${supaUrl}/rest/v1/carts?id=eq.${encodeURIComponent(cart_id)}`, {
+        method: 'PATCH',
+        headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ status: 'fakturerad' })
+      });
+    }
+    await logAudit(db, cart_id, 'admin', resend ? 'invoice_resent' : 'invoice_sent', { invoice_number: invoiceNumber, to: cart.customer_email });
 
     console.log('INVOICE_SENT:', JSON.stringify({ cart_id, invoice_number: invoiceNumber }));
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true, invoice_number: invoiceNumber }) };

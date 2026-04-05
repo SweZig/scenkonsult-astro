@@ -903,7 +903,7 @@ function renderTab(tab) {
   const body = $('panel-body');
   if (tab === 'info')     body.innerHTML = renderInfoTab();
   if (tab === 'products') body.innerHTML = renderProductsTab();
-  if (tab === 'faktura')  body.innerHTML = renderFakturaTab();
+  if (tab === 'faktura')  { body.innerHTML = renderFakturaTab(); invLoadPreviewNumber(); }
   // Force browser to respect dark styling on form elements
   requestAnimationFrame(() => {
     document.querySelectorAll('.status-select, .admin-note-area, .prod-input, .chat-textarea').forEach(el => {
@@ -1420,27 +1420,15 @@ function renderProductsTab() {
       </tr></thead>
       <tbody id="prod-tbody">${rows}</tbody>
     </table>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
-      <div>
-        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:rgba(196,181,244,0.5);margin-bottom:4px">Lägg till produkt</div>
-        <select id="prod-add-select" onchange="prodAddFromCatalog(this,false)"
-          style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed var(--border-lav);border-radius:8px">
-          ${buildProductCatalogOptions()}
-        </select>
-        <button onclick="prodAddFreeRow(false)" style="width:100%;margin-top:5px;font-size:0.75rem;padding:4px 6px;background:transparent;border:1px dashed rgba(255,255,255,0.1);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
-          + Fri produktrad
-        </button>
-      </div>
-      <div>
-        <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:rgba(255,255,255,0.25);margin-bottom:4px">Lägg till tjänst</div>
-        <select id="svc-add-select" onchange="prodAddFromCatalog(this,true)"
-          style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed rgba(255,255,255,0.15);border-radius:8px">
-          ${buildServiceCatalogOptions()}
-        </select>
-        <button onclick="prodAddFreeRow(true)" style="width:100%;margin-top:5px;font-size:0.75rem;padding:4px 6px;background:transparent;border:1px dashed rgba(255,255,255,0.1);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
-          + Fri tjänstrad
-        </button>
-      </div>
+    <div style="margin-top:10px">
+      <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:rgba(196,181,244,0.5);margin-bottom:4px">Lägg till produkt</div>
+      <select id="prod-add-select" onchange="prodAddFromCatalog(this,false)"
+        style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed var(--border-lav);border-radius:8px">
+        ${buildProductCatalogOptions()}
+      </select>
+      <button onclick="prodAddFreeRow(false)" style="width:100%;margin-top:5px;font-size:0.75rem;padding:4px 6px;background:transparent;border:1px dashed rgba(255,255,255,0.1);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
+        + Fri produktrad
+      </button>
     </div>
 
 
@@ -1697,6 +1685,7 @@ function renderFakturaTab() {
   return `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <span style="font-size:1rem;font-weight:700;color:var(--brand-lav)">${invNum}</span>
+      ${invNum === '— (ej skapad)' ? `<span id="inv-preview-num" style="font-size:0.75rem;color:var(--text-faint)">beräknar nästa nummer…</span>` : ''}
       ${isPaid ? '<span class="s-betald" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">💚 Betald</span>' :
         isSent ? '<span class="s-fakturerad" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">🧾 Skickad</span>' :
         '<span class="s-waiting" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">⏳ Ej skickad</span>'}
@@ -1751,7 +1740,9 @@ function renderFakturaTab() {
 
     <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn-action" onclick="invSaveFields()" style="font-size:0.8rem">💾 Spara uppgifter</button>
-      <button class="btn-action btn-success" onclick="invCreateAndSend()" style="font-size:0.8rem" ${isSent||isPaid?'disabled':''}>🧾 Skapa &amp; skicka faktura</button>
+      ${!isSent && !isPaid
+        ? `<button class="btn-action btn-success" onclick="invCreateAndSend()" style="font-size:0.8rem">🧾 Skapa &amp; skicka faktura</button>`
+        : `<button class="btn-action" onclick="invResend()" style="font-size:0.8rem;border-color:var(--brand-lav);color:var(--brand-lav)">📤 Skicka om faktura ${invNum !== '— (ej skapad)' ? invNum : ''}</button>`}
       ${!isPaid && isSent ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
     </div>
 
@@ -2023,6 +2014,46 @@ async function invMarkPaid() {
     if (currentCart) { renderTab('faktura'); renderPanelFooter(); }
   } else toast('Fel vid markering', 'error');
 }
+
+async function invResend() {
+  const invNum = currentCart.invoice_number;
+  if (!invNum) { toast('Ingen faktura skapad än', 'error'); return; }
+  if (!confirm(`Skicka om faktura ${invNum} till ${currentCart.customer_email}?`)) return;
+  await invSaveFields();
+  const btn = document.querySelector('[onclick="invResend()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Skickar…'; }
+  try {
+    const { ok, data } = await api('invoice-send', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: currentCart.id, resend: true })
+    });
+    if (ok && data.ok) {
+      toast('Faktura ' + invNum + ' skickad om! 📧');
+    } else {
+      toast(data?.error || 'Kunde inte skicka faktura', 'error');
+    }
+  } catch(e) { toast('Nätverksfel', 'error'); }
+  renderTab('faktura');
+}
+
+// Visa preview-fakturanummer när Faktura-fliken öppnas och faktura ej skapad
+async function invLoadPreviewNumber() {
+  const el = document.getElementById('inv-preview-num');
+  if (!el) return;
+  try {
+    const { ok, data } = await api('admin-carts', { method: 'POST', body: JSON.stringify({ action: 'list' }) });
+    if (!ok) return;
+    let maxNum = 2000;
+    (data.carts||[]).forEach(c => {
+      if (c.invoice_number?.startsWith('K')) {
+        const n = parseInt(c.invoice_number.slice(1));
+        if (n > maxNum) maxNum = n;
+      }
+    });
+    el.textContent = '→ tilldelas ' + 'K' + (maxNum + 1);
+  } catch(e) { if (el) el.textContent = ''; }
+}
+
 
 function renderPanelFooter() {
   const c = currentCart;
@@ -2470,6 +2501,8 @@ window.prodAddFreeRow      = prodAddFreeRow;
 window.prodUpdateSvc       = prodUpdateSvc;
 window.prodSaveAndSendOffer= prodSaveAndSendOffer;
 window.invMarkPaid         = invMarkPaid;
+window.invResend           = invResend;
+window.invLoadPreviewNumber= invLoadPreviewNumber;
 window.invSendEmail        = invSendEmail;
 window.invSaveFields       = invSaveFields;
 window.invUpdateDueDate    = invUpdateDueDate;
