@@ -108,6 +108,28 @@ exports.handler = async (event) => {
       }
     }
 
+    // ── Snabb-action: markera alla kundmeddelanden som lästa ─────────────────
+    if (admin && body.action === 'mark_admin_read') {
+      const now = new Date().toISOString();
+      const supaUrl = process.env.SUPABASE_URL;
+      const supaKey = process.env.SUPABASE_SERVICE_KEY;
+      await fetch(
+        `${supaUrl}/rest/v1/messages?cart_id=eq.${cart.id}&sender=eq.customer&read_at=is.null`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: supaKey,
+            Authorization: `Bearer ${supaKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({ read_at: now }),
+        }
+      );
+      await db.update('carts', { last_read_admin: now }, 'id', cart.id);
+      return ok({ ok: true, marked_read: true });
+    }
+
     if (admin) {
       if (body.notes_admin      !== undefined) updates.notes_admin      = body.notes_admin;
       if (body.event_date       !== undefined) updates.event_date       = body.event_date || null;

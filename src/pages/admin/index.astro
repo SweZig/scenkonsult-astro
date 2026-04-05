@@ -815,6 +815,25 @@ function renderKanban() {
   };
 }
 
+// ── MARKERA KUNDMEDDELANDEN SOM LÄSTA ─────────────────────────
+async function markAdminRead(cartId) {
+  if (!cartId) return;
+  await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: cartId, action: 'mark_admin_read' })
+  });
+  // Uppdatera lokal kopia och badge direkt
+  if (currentCart && currentCart.id === cartId) {
+    const now = new Date().toISOString();
+    currentMessages.forEach(m => { if (m.sender === 'customer' && !m.read_at) m.read_at = now; });
+    const chatBadge = $('chat-unread-badge');
+    if (chatBadge) chatBadge.style.display = 'none';
+    // Uppdatera kanban-kortet utan full reload
+    const card = document.querySelector(`[data-cart-id="${cartId}"] .unread-pill`);
+    if (card) card.remove();
+  }
+}
+
 function cartCardHTML(c) {
   const total = c.total_excl ? fmt(Math.round(c.total_excl/100)) + ' kr' : '–';
   const unread = c.unread_count > 0
@@ -826,7 +845,7 @@ function cartCardHTML(c) {
     ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`
     : '';
   return `
-    <div class="cart-card" data-id="${c.id}">
+    <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
         <div class="cart-card-name" style="margin:0">${c.customer_name || 'Okänd kund'}</div>
         ${intentBadge}
@@ -872,6 +891,10 @@ async function openDetail(cartId) {
   currentMessages = data.messages || [];
   currentAudit    = data.audit_log || [];
 
+  // Markera alla olästa kundmeddelanden som lästa när admin öppnar kortet
+  const hasUnread = currentMessages.some(m => m.sender === 'customer' && !m.read_at);
+  if (hasUnread) markAdminRead(currentCart.id);
+
   $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
   // Add quick-action links to header
   const existingQuick = document.getElementById('panel-quick');
@@ -893,6 +916,7 @@ function renderPanelTabs() {
     tab.classList.toggle('active', tab.dataset.tab === activeTab);
     tab.onclick = () => {
       activeTab = tab.dataset.tab;
+      if (activeTab === 'chat') markAdminRead(currentCart?.id);
       renderPanelTabs();
       renderTab(activeTab);
     };
