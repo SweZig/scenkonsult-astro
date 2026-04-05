@@ -1300,7 +1300,7 @@ function buildProductCatalogOptions() {
     if (data.products) {
       html += `<optgroup label="${cat}">`;
       data.products.forEach(p => {
-        const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:cat}).replace(/"/g,'&quot;');
+        const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:cat,type:p.type||'product'}).replace(/"/g,'&quot;');
         html += `<option value="${v}">${p.name} — ${fmt(p.price)} kr</option>`;
       });
       html += '</optgroup>';
@@ -1308,7 +1308,7 @@ function buildProductCatalogOptions() {
       Object.entries(data.sub).forEach(([sub, prods]) => {
         html += `<optgroup label="${cat} — ${sub}">`;
         prods.forEach(p => {
-          const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:`${cat} — ${sub}`}).replace(/"/g,'&quot;');
+          const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:`${cat} — ${sub}`,type:p.type||'product'}).replace(/"/g,'&quot;');
           html += `<option value="${v}">${p.name} — ${fmt(p.price)} kr</option>`;
         });
         html += '</optgroup>';
@@ -1325,7 +1325,7 @@ function buildServiceCatalogOptions() {
     if (data.products) {
       html += `<optgroup label="${cat}">`;
       data.products.forEach(p => {
-        const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:'Tjänster'}).replace(/"/g,'&quot;');
+        const v = JSON.stringify({id:p.id,name:p.name,price:p.price,category:'Tjänster',type:'service'}).replace(/"/g,'&quot;');
         html += `<option value="${v}">${p.name} — ${fmt(p.price)} kr</option>`;
       });
       html += '</optgroup>';
