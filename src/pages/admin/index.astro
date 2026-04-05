@@ -818,19 +818,36 @@ function renderKanban() {
 // ── MARKERA KUNDMEDDELANDEN SOM LÄSTA ─────────────────────────
 async function markAdminRead(cartId) {
   if (!cartId) return;
-  await api('cart-update', {
+  const { ok: success } = await api('cart-update', {
     method: 'POST',
     body: JSON.stringify({ cart_id: cartId, action: 'mark_admin_read' })
   });
-  // Uppdatera lokal kopia och badge direkt
+  if (!success) return; // Tyst fel — ignorera
+  // Uppdatera lokal kopia och badges omedelbart
   if (currentCart && currentCart.id === cartId) {
     const now = new Date().toISOString();
     currentMessages.forEach(m => { if (m.sender === 'customer' && !m.read_at) m.read_at = now; });
+    // Dölj chat-badge i panel-fliken
     const chatBadge = $('chat-unread-badge');
     if (chatBadge) chatBadge.style.display = 'none';
-    // Uppdatera kanban-kortet utan full reload
-    const card = document.querySelector(`[data-cart-id="${cartId}"] .unread-pill`);
-    if (card) card.remove();
+    // Ta bort oläst-pill från kanban-kortet
+    const pill = document.querySelector(`[data-cart-id="${cartId}"] .unread-pill`);
+    if (pill) pill.remove();
+    // Uppdatera global unread-badge
+    const globalBadge = $('global-unread');
+    if (globalBadge) {
+      const currentCount = parseInt(globalBadge.textContent) || 0;
+      const unreadInCart = currentMessages.filter(m => m.sender === 'customer' && !m.read_at).length;
+      const newCount = Math.max(0, currentCount - unreadInCart);
+      if (newCount === 0) {
+        globalBadge.style.display = 'none';
+      } else {
+        globalBadge.textContent = `${newCount} nya`;
+      }
+    }
+    // Synka lokal cart-data
+    const cartInList = carts.find(c => c.id === cartId);
+    if (cartInList) cartInList.unread_count = 0;
   }
 }
 

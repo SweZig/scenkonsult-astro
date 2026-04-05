@@ -113,7 +113,8 @@ exports.handler = async (event) => {
       const now = new Date().toISOString();
       const supaUrl = process.env.SUPABASE_URL;
       const supaKey = process.env.SUPABASE_SERVICE_KEY;
-      await fetch(
+      // Markera kundmeddelanden som lästa
+      const patchRes = await fetch(
         `${supaUrl}/rest/v1/messages?cart_id=eq.${cart.id}&sender=eq.customer&read_at=is.null`,
         {
           method: 'PATCH',
@@ -126,7 +127,13 @@ exports.handler = async (event) => {
           body: JSON.stringify({ read_at: now }),
         }
       );
-      await db.update('carts', { last_read_admin: now }, 'id', cart.id);
+      if (!patchRes.ok) {
+        console.error('MARK_READ_PATCH_ERR:', patchRes.status, await patchRes.text());
+      }
+      // Uppdatera last_read_admin — icke-blockerande, kolumnen kanske saknas
+      db.update('carts', { last_read_admin: now }, 'id', cart.id).catch(e =>
+        console.warn('last_read_admin uppdatering misslyckades (kolumn kanske saknas):', e.message)
+      );
       return ok({ ok: true, marked_read: true });
     }
 
