@@ -392,6 +392,9 @@ import orderCatalog from '../../data/order-catalog-flat.json';
 </div>
 
 <script define:vars={{ ORDER_CATALOG: orderCatalog }}>
+// Exponera på window direkt — gör ORDER_CATALOG tillgänglig globalt
+// oberoende av IIFE-scope och async timing
+window._SK_ORDER_CATALOG = ORDER_CATALOG;
 const STATUS = {
   new:         { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
   open:        { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
@@ -409,25 +412,21 @@ const fmtTime = d  => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short
 
 // Produktbild-karta: id → sökväg
 
-// ORDER_CATALOG injiceras via define:vars från order-catalog-flat.json (byggd av generate-quote-catalog.py)
-
+// ORDER_CATALOG exponeras via window._SK_ORDER_CATALOG (define:vars + window assignment)
 function _lookupOrderProduct(item) {
+  const cat = window._SK_ORDER_CATALOG || {};
   const id = item.id || '';
-  // Direkt träff (nya ordrar med korrekta slugar)
-  if (ORDER_CATALOG[id]) return ORDER_CATALOG[id];
-  // Bakåtkompatibilitet: scen-paket sparades utan "scen-" prefix i gamla admin
-  if (ORDER_CATALOG['scen-' + id]) return ORDER_CATALOG['scen-' + id];
-  // Strip prefix (dj-utr-slug → slug)
+  if (cat[id]) return cat[id];
+  if (cat['scen-' + id]) return cat['scen-' + id];
   const stripped = id.replace(/^(scen-|dj-utr-)/,'');
-  if (ORDER_CATALOG[stripped]) return ORDER_CATALOG[stripped];
-  // Gamla bild-tillbehör med trailing dash och -m suffix
+  if (cat[stripped]) return cat[stripped];
   const normalized = id
     .replace(/-$/,'')
     .replace(/-(\d+)-m$/,'-$1m')
     .replace(/-4-port-?$/,'-4port')
     .replace(/-(\d+)-?$/,'-$1')
     .replace(/-clicker-$/,'-clicker');
-  return ORDER_CATALOG[normalized] || {};
+  return cat[normalized] || {};
 }
 
 function _getOrderType(item) {
