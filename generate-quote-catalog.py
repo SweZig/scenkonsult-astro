@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 """
 Genererar src/data/quote-catalog.json och src/data/order-catalog-flat.json
-från källfilerna. Kör: python3 generate-quote-catalog.py
-
-Varje produkt får ett type-fält: "product" eller "service".
-Detta fält följer med in i Supabase via items-arrayen och används
-för att avgöra visning utan fragil kategori-strängmatchning.
+Primärnyckel: artno (t.ex. SK-SCN-0002) — stabilt, mänskligt läsbart
+Fallback: slug för bakåtkompatibilitet med äldre ordrar
 """
 import json, os
 
@@ -20,95 +17,102 @@ dj     = load('dj.json')
 frakt  = load('frakt.json')
 
 def prod(p, cat=None, item_type='product'):
-    out = {
-        'id':    p.get('slug') or p.get('id', ''),
+    # artno är primärnyckel; slug/id som fallback
+    artno = p.get('artno','').strip()
+    slug  = p.get('slug') or p.get('id','')
+    return {
+        'id':    artno or slug,   # artno om det finns, annars slug
+        'artno': artno,
+        'slug':  slug,
         'name':  p['name'],
         'price': p['price'],
-        'artno': p.get('artno', ''),
-        'image': p.get('image', ''),
+        'image': p.get('image',''),
         'desc':  p.get('description') or p.get('desc') or '',
-        'type':  p.get('type', item_type),  # hämta från källan om satt, annars default
+        'type':  p.get('type', item_type),
     }
-    if cat:
-        out['category'] = cat
-    return out
 
 catalog = {}
 
-# ── Scen (products) ───────────────────────────────────────────────
+# ── Scen ─────────────────────────────────────────────────────────────────────
 catalog['Scen'] = {'products': [prod(p) for p in scenes.get('products', [])]}
 catalog['Scen tillbehör'] = {'products': [prod(p) for p in scenes.get('tillbehor', [])]}
 
-# ── Ljud (products) ───────────────────────────────────────────────
+# ── Ljud ─────────────────────────────────────────────────────────────────────
 catalog['Ljud'] = {'sub': {
-    'Portable':   [prod(p) for p in ljud.get('portable', {}).get('products', [])],
-    'Event':      [prod(p) for p in ljud.get('event',    {}).get('products', [])],
-    'Music':      [prod(p) for p in ljud.get('music',    {}).get('products', [])],
-    'Live':       [prod(p) for p in ljud.get('live',     {}).get('products', [])],
-    'Mixers':     [prod(p) for p in ljud.get('mixers', [])],
-    'Mikrofoner': [prod(p) for p in ljud.get('tillbehor_mikrofon', [])
-                   if p.get('slug') or p.get('id')],
-    'El & kabel': [prod(p) for p in ljud.get('tillbehor_el', [])
-                   if p.get('slug') or p.get('id')],
+    'Portable':   [prod(p) for p in ljud.get('portable',{}).get('products',[])],
+    'Event':      [prod(p) for p in ljud.get('event',{}).get('products',[])],
+    'Music':      [prod(p) for p in ljud.get('music',{}).get('products',[])],
+    'Live':       [prod(p) for p in ljud.get('live',{}).get('products',[])],
+    'Mixers':     [prod(p) for p in ljud.get('mixers',[])],
+    'Mikrofoner': [prod(p) for p in ljud.get('tillbehor_mikrofon',[]) if p.get('artno') or p.get('slug')],
+    'El & kabel': [prod(p) for p in ljud.get('tillbehor_el',[]) if p.get('artno') or p.get('slug')],
 }}
 
-# ── Ljus (products) ───────────────────────────────────────────────
+# ── Ljus ─────────────────────────────────────────────────────────────────────
 catalog['Ljus'] = {'sub': {
-    'Färdiga paket': [prod(p) for p in ljus.get('paket',    {}).get('products', [])],
-    'Lösa effekter': [prod(p) for p in ljus.get('effekter', {}).get('products', [])],
-    'Rök & pyro':    [prod(p) for p in ljus.get('rok',      {}).get('products', [])],
-    'Stativ & tross':[prod(p) for p in ljus.get('stativ',   {}).get('products', [])],
+    'Färdiga paket': [prod(p) for p in ljus.get('paket',{}).get('products',[])],
+    'Lösa effekter': [prod(p) for p in ljus.get('effekter',{}).get('products',[])],
+    'Rök & pyro':    [prod(p) for p in ljus.get('rok',{}).get('products',[])],
+    'Stativ & tross':[prod(p) for p in ljus.get('stativ',{}).get('products',[])],
 }}
 
-# ── Bild (products) ───────────────────────────────────────────────
-catalog['Projektor & skärm']  = {'products': [prod(p) for p in bild.get('products', [])]}
-catalog['Projektor tillbehör'] = {'products': [
-    prod(p) for p in bild.get('tillbehor', []) if p.get('slug')
-]}
+# ── Bild ─────────────────────────────────────────────────────────────────────
+catalog['Projektor & skärm']   = {'products': [prod(p) for p in bild.get('products',[])]}
+catalog['Projektor tillbehör'] = {'products': [prod(p) for p in bild.get('tillbehor',[]) if p.get('artno') or p.get('slug')]}
 
-# ── DJ (products) ─────────────────────────────────────────────────
-catalog['DJ-utrustning'] = {'products': [prod(p) for p in dj.get('equipment', [])]}
+# ── DJ ────────────────────────────────────────────────────────────────────────
+eq = dj.get('equipment',{})
+if isinstance(eq, dict): eq = list(eq.values())
+catalog['DJ-utrustning'] = {'products': [prod(p) for p in eq]}
 
-# ── Tillägg (services) ────────────────────────────────────────────
+# ── Tillägg (tjänster) ────────────────────────────────────────────────────────
+def svc(id_, name, price, desc=''):
+    return {'id': id_, 'artno': id_, 'slug': id_, 'name': name, 'price': price,
+            'image': '', 'desc': desc, 'type': 'service'}
+
 lev  = frakt['leverans']
 mon  = frakt['montering']
-till = frakt.get('tillagg', [])
+catalog['Tillägg'] = {'products': [
+    svc(lev['standard'].get('artno','lev-standard'),      lev['standard']['label'],   lev['standard']['pris']),
+    svc(lev['skrymmande'].get('artno','lev-skrymmande'),  lev['skrymmande']['label'], lev['skrymmande']['pris']),
+    svc(lev['lastbil'].get('artno','lev-lastbil'),        lev['lastbil']['label'],    lev['lastbil']['pris']),
+    svc(lev.get('bakgavel',{}).get('artno','lev-bakgavel'), lev.get('bakgavel',{}).get('label','Lastbil med bakgavellift (t&r)'), lev.get('bakgavel',{}).get('pris',2998)),
+    svc('montering', f"{mon['label']} (per tim)", mon['prisPerTimme'], mon.get('note','')),
+    svc('fakturaavgift-49', 'Fakturaavgift', 49),
+]}
+catalog['Egen rad'] = {'products': [
+    {'id':'custom','artno':'','slug':'custom','name':'Ange benämning och pris →','price':0,'image':'','desc':'','type':'product','custom':True}
+]}
 
-def svc(id_, name, price, desc=''):
-    return {'id': id_, 'name': name, 'price': price, 'artno': '', 'image': '', 'desc': desc, 'type': 'service'}
-
-tillagg = [
-    svc(lev['standard']['id'],   lev['standard']['label'],   lev['standard']['pris']),
-    svc(lev['skrymmande']['id'], lev['skrymmande']['label'], lev['skrymmande']['pris']),
-    svc(lev['lastbil']['id'],    lev['lastbil']['label'],    lev['lastbil']['pris']),
-    svc(lev['bakgavel']['id'],   lev['bakgavel']['label'],   lev['bakgavel']['pris']),
-    svc('montering', f"{mon['label']} (per tim)", mon['prisPerTimme'], mon.get('note', '')),
-]
-for t in till:
-    tillagg.append(svc(t['id'], t['label'] + (' (per tim)' if t.get('enhet') == '/tim' else ''), t['pris'], t.get('description', '')))
-tillagg.append(svc('fakturaavgift-49', 'Fakturaavgift', 49))
-
-catalog['Tillägg'] = {'products': tillagg}
-catalog['Egen rad'] = {'products': [{'id': 'custom', 'name': 'Ange benämning och pris →', 'price': 0,
-                                      'artno': '', 'image': '', 'desc': '', 'type': 'product', 'custom': True}]}
-
-# ── Spara quote-catalog.json ──────────────────────────────────────
+# ── Spara quote-catalog.json ──────────────────────────────────────────────────
 out_path = os.path.join(BASE, 'src/data/quote-catalog.json')
 with open(out_path, 'w', encoding='utf-8') as f:
     json.dump(catalog, f, ensure_ascii=False, indent=2)
 
-# ── Bygg flat order-catalog (id → {desc, image, artno, catName, type}) ──
+# ── Bygg flat order-catalog ───────────────────────────────────────────────────
+# Indexeras på artno PRIMÄRT, slug som alias
 order_catalog = {}
+
 def add_flat(prods, cat_name):
     for p in (prods or []):
-        if not p.get('id'): continue
-        order_catalog[p['id']] = {
-            'desc':    p.get('desc', ''),
-            'image':   p.get('image', ''),
-            'artno':   p.get('artno', ''),
+        artno = (p.get('artno') or '').strip()
+        slug  = p.get('slug','')
+        if not artno and not slug: continue
+        entry = {
+            'desc':    p.get('desc',''),
+            'image':   p.get('image',''),
+            'artno':   artno,
+            'slug':    slug,
+            'name':    p.get('name',''),
             'catName': cat_name,
-            'type':    p.get('type', 'product'),
+            'type':    p.get('type','product'),
         }
+        # Primärnyckel: artno
+        if artno:
+            order_catalog[artno] = entry
+        # Alias: slug → artno
+        if slug and slug != artno:
+            order_catalog[slug] = entry
 
 for cn, d in catalog.items():
     if 'products' in d:
@@ -121,17 +125,18 @@ flat_path = os.path.join(BASE, 'src/data/order-catalog-flat.json')
 with open(flat_path, 'w', encoding='utf-8') as f:
     json.dump(order_catalog, f, ensure_ascii=False, indent=2)
 
-# Räkna och verifiera
+# Statistik
 total = sum(
-    len(v.get('products', [])) + sum(len(s) for s in v.get('sub', {}).values())
+    len(v.get('products',[])) + sum(len(s) for s in v.get('sub',{}).values())
     for v in catalog.values()
 )
-svc_count = sum(1 for v in order_catalog.values() if v.get('type') == 'service')
-prod_count = sum(1 for v in order_catalog.values() if v.get('type') == 'product')
-print(f"✅ quote-catalog.json — {total} poster")
-print(f"✅ order-catalog-flat.json — {prod_count} produkter + {svc_count} tjänster")
+artno_keys = [k for k in order_catalog if k.startswith('SK-') or k.startswith('lev-') or k.startswith('montering') or k.startswith('faktura')]
+slug_aliases = [k for k in order_catalog if not (k.startswith('SK-') or k.startswith('lev-') or k.startswith('montering') or k.startswith('faktura'))]
+
+print(f"✅ quote-catalog.json: {total} poster")
+print(f"✅ order-catalog-flat.json: {len(artno_keys)} artno-nycklar + {len(slug_aliases)} slug-alias")
 
 # Stickprov
-for check_id in ['montering', 'lev-standard', 'scen-small', 'scentrapp-40cm']:
-    entry = order_catalog.get(check_id, {})
-    print(f"   {check_id}: type={entry.get('type','?')} image={'✓' if entry.get('image') else '–'}")
+for check in ['SK-LJD-MIK-0016','SK-SCN-0002','SK-BLD-ACC-0003','tradlos-handmikrofon','scen-small-plus']:
+    entry = order_catalog.get(check,{})
+    print(f"   {check}: image={'✓' if entry.get('image') else '–'} type={entry.get('type','?')} artno={entry.get('artno','?')}")

@@ -34,7 +34,7 @@ import ljudData from '../../../data/ljud.json';
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {bildData.products.map(p => (
         <ProductCard
-          id={p.slug}
+          id={p.artno}
           artno={p.artno}
           name={p.name}
           price={p.price}
@@ -55,7 +55,7 @@ import ljudData from '../../../data/ljud.json';
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {bildData.tillbehor.map(t => (
-        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.desc} category="Projektor tillbehör" artno={t.artno} slug={t.slug} />
+        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.desc} category="Projektor tillbehör" artno={t.artno} slug={t.slug}  />
       ))}
     </div>
   </section>
@@ -65,7 +65,7 @@ import ljudData from '../../../data/ljud.json';
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(ljudData.tillbehor_el || []).filter(t => t.slug && t.price).map(t => (
-        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.description} category="El-tillbehör" artno={t.artno} slug={t.slug} />
+        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.description} category="El-tillbehör" artno={t.artno} slug={t.slug}  />
       ))}
     </div>
   </section>

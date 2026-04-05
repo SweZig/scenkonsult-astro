@@ -161,7 +161,7 @@ const extraFaq = [
                 <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
                 <span class="text-gray-400 text-xs">{p.priceNote ?? '/dygn'}</span>
               </div>
-              <CartButton id={`ljud-${p.id ?? p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" iconOnly={true} />
+              <CartButton id={p.artno || p.id || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" iconOnly={true} />
             </div>
           </div>
         </article>

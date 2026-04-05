@@ -64,7 +64,7 @@ const pageSchema = {
       {scenData.products.map(p => (
         <div id={p.id}>
           <ProductCard
-            id={`scen-${p.id}`}
+            id={p.artno || `scen-${p.id}`}
             artno={p.artno}
             name={p.name}
             price={p.price}

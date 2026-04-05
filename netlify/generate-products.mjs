@@ -193,13 +193,13 @@ const PRODUKTER_OCH_PRISER = sects.join('\n');
 
 // ── QUOTE_CATALOG (för admin-panelens produktväljare) ─────────────────────────
 function qp(p) {
-  return { id: p.slug || ('scen-' + p.id) || '', name: p.name, price: p.price || 0 };
+  return { id: p.artno || p.slug || p.id || '', artno: p.artno||'', name: p.name, price: p.price || 0 };
 }
 const QUOTE_CAT = {};
 const frakt = readJson('frakt.json');
 
-QUOTE_CAT['Scen'] = { products: scenes.products.filter(p=>p.price).map(p=>({id:'scen-'+p.id,name:p.name,price:p.price})) };
-QUOTE_CAT['Scen tillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.slug||p.artno||'scen-acc',name:p.name,price:p.price})) };
+QUOTE_CAT['Scen'] = { products: scenes.products.filter(p=>p.price).map(p=>({id:p.artno||('scen-'+p.id),artno:p.artno||'',name:p.name,price:p.price})) };
+QUOTE_CAT['Scen tillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug||'scen-acc',artno:p.artno||'',name:p.name,price:p.price})) };
 
 QUOTE_CAT['Ljud'] = { sub: {} };
 ['event','live','music','portable'].forEach(sec => {

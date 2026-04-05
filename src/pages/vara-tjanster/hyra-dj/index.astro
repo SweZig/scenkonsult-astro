@@ -211,7 +211,7 @@ import dj from '../../../data/dj.json';
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {dj.equipment.map(p => (
         <MediaCard
-          id={`dj-utr-${p.slug}`}
+          id={p.artno || `dj-utr-${p.slug}`}
           title={p.name}
           images={[p.image]}
           priceExcl={p.price}

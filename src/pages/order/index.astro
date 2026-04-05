@@ -413,65 +413,48 @@ const fmtTime = d  => d ? new Date(d).toLocaleString('sv-SE', { dateStyle:'short
 // Produktbild-karta: id → sökväg
 
 // ORDER_CATALOG exponeras via window._SK_ORDER_CATALOG (define:vars + window assignment)
-// Alias-tabell: gamla/felaktiga ID:n → korrekt slug
+// Indexeras på artno (SK-SCN-0002) primärt, med slug-alias för bakåtkompatibilitet
+// Kända legacy-alias för gamla ordrar
 const _ID_ALIASES = {
-  'SK-SCN-ACC-0001': 'scentrapp-40cm',
-  'SK-SCN-ACC-0002': 'scentrapp-60cm',
-  'SK-SCN-ACC-0003': 'scenkjol-4m',
-  'SK-SCN-ACC-0004': 'backdrop-3-5x2-5',
+  // Gamla artno-som-slug från before migreringen
+  'SK-SCN-ACC-0001': 'SK-SCN-ACC-0001',  // redan artno, men alias för säkerhets skull
   'montering-tim':   'montering',
 };
-// Bygg omvänd namnkarta: normaliserat namn → slug (för acc-IDs från ElTillbehorCard)
-let _NAME_TO_SLUG = null;
-function _getNameMap() {
-  if (_NAME_TO_SLUG) return _NAME_TO_SLUG;
-  _NAME_TO_SLUG = {};
-  const cat = window._SK_ORDER_CATALOG || {};
-  for (const [slug, entry] of Object.entries(cat)) {
-    // Normalisera: ta bort parenteser, specialtecken → bindestreck
-    const norm = (entry.name||'').toLowerCase()
-      .replace(/[åä]/g,'a').replace(/ö/g,'o')
-      .replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
-    _NAME_TO_SLUG[norm] = slug;
-  }
-  return _NAME_TO_SLUG;
-}
 function _lookupOrderProduct(item) {
   const cat = window._SK_ORDER_CATALOG || {};
   const rawId = item.id || '';
-  // 1. Alias-tabell (artnos, gamla IDs)
+  // 1. Direktmatchning (artno eller slug-alias)
+  if (cat[rawId]) return cat[rawId];
+  // 2. Legacy-alias
   const aliasId = _ID_ALIASES[rawId];
   if (aliasId && cat[aliasId]) return cat[aliasId];
-  // 2. Direkt träff
-  if (cat[rawId]) return cat[rawId];
-  // 3. scen-prefix
-  if (cat['scen-' + rawId]) return cat['scen-' + rawId];
-  // 4. Strip kända prefix (scen-, dj-utr-, ljud-)
-  const stripped = rawId.replace(/^(scen-|dj-utr-|ljud-)/,'');
+  // 3. Gamla prefix (bakåtkompatibilitet)
+  const stripped = rawId.replace(/^(scen-|dj-utr-|ljud-|ljus-|acc-)/,'');
   if (cat[stripped]) return cat[stripped];
-  // 5. acc- prefix: skapad av ElTillbehorCard/ProductCard från namn
-  //    Konvertera acc-ID → normaliserat namn → slå upp i namnkartan
-  if (rawId.startsWith('acc-') || !cat[rawId]) {
-    const nameNorm = rawId.replace(/^acc-/,'').replace(/-+$/,'');
-    const slug = _getNameMap()[nameNorm];
-    if (slug && cat[slug]) return cat[slug];
-    // Prova också med item.name direkt
-    if (item.name) {
-      const itemNorm = item.name.toLowerCase()
+  // 4. Namnbaserad sökning som sista fallback
+  if (item.name) {
+    const nameNorm = item.name.toLowerCase()
+      .replace(/[åä]/g,'a').replace(/ö/g,'o')
+      .replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
+    const nameMap = window._SK_ORDER_CATALOG_NAME_MAP;
+    if (nameMap && nameMap[nameNorm]) return cat[nameMap[nameNorm]] || {};
+  }
+  return {};
+}
+// Bygg namnkarta en gång
+window._SK_ORDER_CATALOG_NAME_MAP = null;
+function _ensureNameMap() {
+  if (window._SK_ORDER_CATALOG_NAME_MAP) return;
+  const m = {};
+  for (const [key, entry] of Object.entries(window._SK_ORDER_CATALOG || {})) {
+    if (entry.name) {
+      const norm = entry.name.toLowerCase()
         .replace(/[åä]/g,'a').replace(/ö/g,'o')
         .replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
-      const slugByName = _getNameMap()[itemNorm];
-      if (slugByName && cat[slugByName]) return cat[slugByName];
+      if (!m[norm]) m[norm] = key;
     }
   }
-  // 6. Regex-normalisering för gamla trailing-dash IDs
-  const normalized = rawId
-    .replace(/-$/,'')
-    .replace(/-(\d+)-m$/,'-$1m')
-    .replace(/-4-port-?$/,'-4port')
-    .replace(/-(\d+)-?$/,'-$1')
-    .replace(/-clicker-$/,'-clicker');
-  return cat[normalized] || {};
+  window._SK_ORDER_CATALOG_NAME_MAP = m;
 }
 
 function _getOrderType(item) {
@@ -901,6 +884,7 @@ document.getElementById('chatInput').addEventListener('keydown', e => {
 // Exponera funktioner som anropas via onclick i dynamisk HTML
 window.confirmOrder = confirmOrder;
 
+_ensureNameMap();
 loadOrder();
 </script>
 
