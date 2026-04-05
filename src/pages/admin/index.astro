@@ -1734,18 +1734,42 @@ async function sendMessage() {
 function renderLogTab() {
   const logs = currentAudit;
   if (logs.length === 0) return '<div class="empty-col" style="padding:3rem">Ingen logg ännu.</div>';
-  return `
-    <div class="section-label">Händelselogg (senaste 50)</div>
-    <div style="display:flex;flex-direction:column;gap:0.5rem">
-      ${logs.map(l => `
-        <div style="background:var(--bg);border-radius:8px;padding:0.75rem;display:flex;gap:1rem;align-items:flex-start">
-          <div style="font-size:0.75rem;color:var(--text-faint);white-space:nowrap;min-width:130px">${fmtTime(l.created_at)}</div>
-          <div>
-            <div style="font-size:0.85rem;font-weight:600">${l.event_type}</div>
-            <div style="font-size:0.78rem;color:var(--text-muted)">${l.actor} ${l.payload && Object.keys(l.payload).length ? '· ' + JSON.stringify(l.payload) : ''}</div>
-          </div>
-        </div>`).join('')}
-    </div>`;
+
+  const EVENT_LABELS = {
+    'offer_opened_first': { icon: '👁️', label: 'Kunden öppnade offerten (första gången)', color: 'var(--brand-lav)', highlight: true },
+    'offer_opened':       { icon: '👁',  label: 'Kunden öppnade offerten igen', color: 'rgba(196,181,244,0.6)' },
+    'messages_read':      { icon: '✓✓', label: 'Kunden läste meddelanden', color: 'var(--text-muted)' },
+    'message_sent':       { icon: '💬', label: 'Meddelande skickat', color: 'var(--text-muted)' },
+    'status_change':      { icon: '🔄', label: 'Status ändrad', color: 'var(--amber)' },
+    'pickup_signed':      { icon: '✍️', label: 'Utlämning kvitterad', color: 'var(--green)' },
+    'pickup_email_sent':  { icon: '📧', label: 'Utlämningslänk skickad via mail', color: 'var(--text-muted)' },
+    'sms_sent':           { icon: '💬', label: 'SMS skickat', color: 'var(--text-muted)' },
+    'invoice_created':    { icon: '🧾', label: 'Faktura skapad', color: 'var(--amber)' },
+    'invoice_sent':       { icon: '📤', label: 'Faktura skickad', color: 'var(--amber)' },
+    'invoice_resent':     { icon: '📤', label: 'Faktura skickad om', color: 'var(--amber)' },
+    'invoice_paid':       { icon: '💚', label: 'Faktura markerad betald', color: 'var(--green)' },
+    'order_confirmed':    { icon: '✅', label: 'Order bekräftad av kund', color: 'var(--green)' },
+    'items_updated':      { icon: '📦', label: 'Produkter uppdaterade', color: 'var(--text-muted)' },
+  };
+
+  let html = '<div class="section-label">Händelselogg (senaste 50)</div><div style="display:flex;flex-direction:column;gap:0.4rem">';
+  logs.forEach(function(l) {
+    const ev = EVENT_LABELS[l.event_type] || { icon: '·', label: l.event_type, color: 'var(--text-faint)', highlight: false };
+    const actorLabel = l.actor === 'customer' ? 'Kund' : l.actor === 'admin' ? 'Admin' : 'System';
+    const payloadStr = l.payload && Object.keys(l.payload).length
+      ? Object.entries(l.payload).map(function(e){ return e[0] + ': ' + e[1]; }).join(' · ')
+      : '';
+    const border = ev.highlight ? ';border:1px solid rgba(196,181,244,0.2)' : '';
+    const bg = ev.highlight ? 'rgba(196,181,244,0.06)' : 'var(--bg)';
+    html += '<div style="background:' + bg + ';border-radius:8px;padding:0.65rem 0.75rem;display:flex;gap:0.75rem;align-items:flex-start' + border + '">';
+    html += '<span style="font-size:1rem;line-height:1.4">' + ev.icon + '</span>';
+    html += '<div style="flex:1">';
+    html += '<div style="font-size:0.85rem;font-weight:600;color:' + ev.color + '">' + ev.label + '</div>';
+    html += '<div style="font-size:0.75rem;color:var(--text-faint);margin-top:1px">' + fmtTime(l.created_at) + ' · ' + actorLabel + (payloadStr ? ' · ' + payloadStr : '') + '</div>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
 }
 
 function renderFakturaTab() {

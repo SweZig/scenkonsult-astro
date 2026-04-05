@@ -54,11 +54,16 @@ exports.handler = async (event) => {
       return err('Offerten är inte klar ännu — vi hör av oss inom kort.', 403);
     }
 
-    // Uppdatera last_read_customer (icke-blockerande för att undvika krasch om kolumn saknas)
+    // Uppdatera last_read_customer och logga att kunden läst offerten
     const readNow = new Date().toISOString();
+    const isFirstRead = !cart.last_read_customer;
     db.update('carts', { last_read_customer: readNow }, 'cart_token', token).catch(e =>
       console.warn('last_read_customer update failed:', e.message)
     );
+    // Logga alltid i audit_log när kunden öppnar sin offert
+    logAudit(db, cart.id, 'customer', isFirstRead ? 'offer_opened_first' : 'offer_opened', {
+      status: cart.status,
+    }).catch(() => {});
 
     // Hämta meddelanden (kund ser bara sin sida)
     const { data: messages } = await db.from('messages')
