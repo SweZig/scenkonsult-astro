@@ -53,9 +53,7 @@ exports.handler = async (event) => {
     };
     if (id_photo_data) updates.pickup_id_photo = id_photo_data;
 
-    const { error: upErr } = await db
-      .from('carts').update(updates).eq('id', cart_id);
-    if (upErr) throw new Error(upErr.message);
+    await db.update('carts', updates, 'id', cart_id);
 
     await logAudit(db, cart_id, 'customer', 'pickup_signed', {
       ip,

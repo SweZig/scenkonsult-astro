@@ -1339,6 +1339,15 @@ function renderInfoTab() {
       <div class="info-field"><div class="info-field-label">Skapad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.created_at)}</div></div>
       <div class="info-field"><div class="info-field-label">Uppdaterad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.updated_at)}</div></div>
       <div class="info-field"><div class="info-field-label">Kund senast aktiv</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.last_read_customer)}</div></div>
+      ${c.pickup_signed_at ? `
+      <div class="info-field" style="margin-top:0.5rem;padding:0.75rem;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;">
+        <div class="info-field-label" style="color:var(--green)">✅ Utlämning kvitterad</div>
+        <div class="info-field-value" style="font-size:0.8rem;margin-bottom:0.75rem">${fmtTime(c.pickup_signed_at)} · IP: ${c.pickup_sign_ip||'–'}</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:60px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:pointer" onclick="adminShowPickup(currentCart)" title="Klicka för fullständig kvittens">` : ''}
+          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:60px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:pointer" onclick="adminShowPickup(currentCart)" title="Legitimation">` : '<span style="font-size:0.75rem;color:rgba(255,255,255,0.3)">Inget leg-foto</span>'}
+        </div>
+      </div>` : ''}
       <div class="info-field"><div class="info-field-label">Utgår</div><div class="info-field-value" style="font-size:0.8rem;color:${c.expires_at ? 'var(--amber)' : 'var(--green)'}">${c.expires_at ? fmtDate(c.expires_at) : '♾ Bekräftad'}</div></div>
     </div>
 
