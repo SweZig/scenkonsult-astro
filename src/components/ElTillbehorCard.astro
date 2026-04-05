@@ -12,8 +12,8 @@ interface Props {
   modal?: boolean;
   specs?: string[];
 }
-const { img, name, excl, desc, category = 'Tillbehör', artno, modal = false, specs } = Astro.props;
-const cartId = `acc-${name.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').replace(/[^a-z0-9]+/g, '-')}`;
+const { img, name, excl, desc, category = 'Tillbehör', artno, slug, modal = false, specs } = Astro.props;
+const cartId = slug || artno || `acc-${name.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').replace(/[^a-z0-9]+/g, '-')}`;
 
 const productJson = modal ? JSON.stringify({
   name,
