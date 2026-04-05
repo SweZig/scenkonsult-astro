@@ -35,11 +35,14 @@ exports.handler = async (event) => {
     if (!token) return err('Token krävs', 400);
 
     const { data: cart, error } = await db.from('carts')
-      .select('id, status, items, customer_name, customer_company, customer_email, customer_phone, customer_type, event_date, return_date, event_location, delivery_time, return_time, total_excl, expires_at, confirmed_at, last_read_customer, created_at, updated_at, pickup_signed_at, pickup_signature, pickup_id_photo, pickup_sign_ip, sms_sent_at')
+      .select('id, status, items, customer_name, customer_email, customer_phone, event_date, return_date, event_location, total_excl, expires_at, confirmed_at, last_read_customer, created_at, updated_at, pickup_signed_at, pickup_signature, pickup_id_photo, pickup_sign_ip, sms_sent_at, cart_token')
       .eq('cart_token', token)
       .single();
 
-    if (error || !cart) return err('Varukorg hittades ej eller har gått ut', 404);
+    if (error || !cart) {
+      console.error('CART_GET_CUSTOMER_ERR:', error?.message || error, '| token_len:', token?.length);
+      return err('Varukorg hittades ej eller har gått ut', 404);
+    }
 
     // Kolla TTL för icke-bekräftade varukorgar
     if (cart.expires_at && new Date(cart.expires_at) < new Date()) {
