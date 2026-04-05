@@ -546,13 +546,16 @@ function renderOrder(c) {
 
   // Event info visas nu inne i productTableWrap (order-times-row)
 
-  // Products — separera produkter och tjänster, visa samlad total inkl. moms
+  // Separera produkter och tjänster
+  // Primär: item.type ('product'/'service') — sätts av katalogen sedan 2026-04-05
+  // Fallback: category-sträng för bakåtkompatibilitet med äldre ordrar
   const SVC_CATS_ORDER = ['Tjänster', 'Tillägg'];
+  const isService = i => i.type === 'service' || SVC_CATS_ORDER.includes(i.category);
   const items     = c.items || [];
   const realItems = items.filter(i => !i._note);
   const noteItem  = items.find(i => i._note);
-  const prodItems = realItems.filter(i => !SVC_CATS_ORDER.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
-  const svcItems  = realItems.filter(i => SVC_CATS_ORDER.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
+  const prodItems = realItems.filter(i => !isService(i) && !(i.id && i.id.startsWith('fakturaavgift')));
+  const svcItems  = realItems.filter(i => isService(i) && !(i.id && i.id.startsWith('fakturaavgift')));
   const feeItem   = realItems.find(i => i.id && i.id.startsWith('fakturaavgift'));
 
   const prodTotal = prodItems.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);

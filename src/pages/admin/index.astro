@@ -1356,14 +1356,15 @@ function renderProductsTab() {
   const total = items.reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
 
   const SVC_CATS_DISPLAY = ['Tjänster', 'Tillägg'];
-  const firstSvcIdx = items.findIndex(i => SVC_CATS_DISPLAY.includes(i.category));
+  const isSvcItem = i => i.type === 'service' || SVC_CATS_DISPLAY.includes(i.category);
+  const firstSvcIdx = items.findIndex(i => isSvcItem(i));
 
   const rows = items.map((item, idx) => {
     const qty = item.qty || item.quantity || 1;
     const price = item.price || 0;
     const sub = qty * price;
     const {icon, color} = catIcon(item.category);
-    const isSvc = SVC_CATS_DISPLAY.includes(item.category);
+    const isSvc = isSvcItem(item);
     // Separator-rad före första tjänst
     const separator = (idx === firstSvcIdx && firstSvcIdx > 0)
       ? `<tr><td colspan="5" style="padding:4px 0 2px"><div style="border-top:1px dashed rgba(196,181,244,0.25);margin:2px 0"></div><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.4);padding:2px 4px">Tjänster</div></td></tr>`
@@ -1510,7 +1511,7 @@ function prodAddFromCatalog(sel, isService) {
     const p = JSON.parse(sel.value.replace(/&quot;/g,'"'));
     const items = prodGetItems();
     const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
-    const newItem = { id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'' };
+    const newItem = { id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'', type: p.type||'product' };
     if (isService || svcStart === -1) {
       items.push(newItem); // tjänster alltid sist, eller om inga tjänster finns
     } else {
@@ -2255,7 +2256,7 @@ function quotePickerAdd() {
   const existing = quoteItems.find(i => i.id === id && !i.custom);
   if (existing) { existing.qty++; }
   else {
-    const newItem = { id, name, price, qty: 1, category: isSvc ? 'Tjänster' : '' };
+    const newItem = { id, name, price, qty: 1, category: isSvc ? 'Tjänster' : '', type: isSvc ? 'service' : 'product' };
     if (isSvc) {
       quoteItems.push(newItem); // tjänster alltid sist
     } else {
