@@ -847,6 +847,17 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   }
 
   document.getElementById('chkVillkor')?.addEventListener('change', checkCanProceed);
+
+  // Auto-fyll återlämningsdatum (dagen efter) när utlämningsdatum väljs
+  document.getElementById('f-date-from')?.addEventListener('change', function() {
+    const toEl = document.getElementById('f-date-to');
+    if (this.value && (!toEl.value || toEl.value <= this.value)) {
+      const d = new Date(this.value);
+      d.setDate(d.getDate() + 1);
+      toEl.value = d.toISOString().slice(0, 10);
+    }
+    checkCanProceed();
+  });
   ['f-name','f-email','f-phone'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', checkCanProceed);
   });

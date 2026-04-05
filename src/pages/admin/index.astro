@@ -534,7 +534,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       </div>
       <div class="form-row">
         <div><label class="form-label">Telefon</label><input class="form-input" id="qc-phone" placeholder="070 000 00 00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        <div><label class="form-label">Datum, från *</label><input class="form-input" type="date" id="qc-date" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div><label class="form-label">Datum, från *</label><input class="form-input" type="date" id="qc-date" onchange="qcAutoReturnDate(this.value)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
       </div>
       <div class="form-row">
         <div><label class="form-label">Datum, till</label><input class="form-input" type="date" id="qc-date-to" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
@@ -975,6 +975,7 @@ function renderTab(tab) {
         customer_email:   $('edit-email')?.value.trim()    || null,
         customer_phone:   $('edit-phone')?.value.trim()    || null,
         event_date:       $('edit-date')?.value            || null,
+        return_date:      $('edit-return-date')?.value     || null,
         event_location:   $('edit-location')?.value.trim() || null,
         customer_type:    document.querySelector('input[name="ctype"]:checked')?.value || 'b2c',
         customer_address: $('edit-address')?.value.trim()  || null,
@@ -1032,6 +1033,7 @@ function renderTab(tab) {
 }
 
 // ── PRODUKTREDIGERING ─────────────────────────────────────────
+const SVC_IDS_ALL = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
 function prodGetItems() {
   // Read current values from DOM inputs
   const rows = document.querySelectorAll('#prod-tbody .prod-row');
@@ -1039,7 +1041,11 @@ function prodGetItems() {
     const get = field => row.querySelector(`[data-field="${field}"]`)?.value?.trim() || '';
     const qty = parseInt(get('qty')) || 1;
     const price = parseFloat(get('price')) || 0;
-    return { id: get('id'), name: get('name'), category: get('category'), qty, price };
+    const id = get('id');
+    const rawCat = get('category');
+    // Normalisera: kända tjänste-ID:n ska alltid ha category 'Tjänster'
+    const category = rawCat || (SVC_IDS_ALL.has(id) ? 'Tjänster' : '');
+    return { id, name: get('name'), category, qty, price };
   }).filter(i => i.name); // skip empty rows
 }
 
@@ -1196,8 +1202,12 @@ function renderInfoTab() {
         <input class="info-edit-input" id="edit-phone" value="${(c.customer_phone||'').replace(/"/g,'&quot;')}" placeholder="Telefon" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
-        <div class="info-field-label">Eventdatum</div>
-        <input class="info-edit-input" id="edit-date" type="date" value="${c.event_date||''}" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <div class="info-field-label">Eventdatum (utlämning)</div>
+        <input class="info-edit-input" id="edit-date" type="date" value="${c.event_date||''}" onchange="adminAutoReturnDate(this.value)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">Återlämningsdatum</div>
+        <input class="info-edit-input" id="edit-return-date" type="date" value="${c.return_date||''}" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field" style="grid-column:1/-1">
         <div class="info-field-label">Eventplats / Leveransadress</div>
@@ -1793,6 +1803,27 @@ async function invSetNextNumber() {
     if(status) { status.style.color='var(--red)'; status.textContent = '⚠ Nätverksfel'; }
   }
 }
+function qcAutoReturnDate(fromVal) {
+  const toEl = document.getElementById('qc-date-to');
+  if (!toEl || !fromVal) return;
+  if (!toEl.value || toEl.value <= fromVal) {
+    const d = new Date(fromVal);
+    d.setDate(d.getDate() + 1);
+    toEl.value = d.toISOString().slice(0, 10);
+  }
+}
+function adminAutoReturnDate(fromVal) {
+  const toEl = document.getElementById('edit-return-date');
+  if (!toEl || !fromVal) return;
+  if (!toEl.value || toEl.value <= fromVal) {
+    const d = new Date(fromVal);
+    d.setDate(d.getDate() + 1);
+    toEl.value = d.toISOString().slice(0, 10);
+  }
+}
+window.adminAutoReturnDate = adminAutoReturnDate;
+window.qcAutoReturnDate = qcAutoReturnDate;
+
 window.invSetNextNumber = invSetNextNumber;
 
 function invUpdateDueDate() {
@@ -2116,9 +2147,11 @@ function openQuoteModal(prefill) {
   $('quote-send-btn').textContent = '✉ Skicka offert';
 
   // Pre-fill items from existing cart
+  const SVC_IDS_PREFILL = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
   if (prefill?.items?.length) {
     prefill.items.filter(i => !i._note).forEach(i => {
-      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1, category: i.category||'' });
+      const cat = i.category || (SVC_IDS_PREFILL.has(i.id) ? 'Tjänster' : '');
+      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1, category: cat });
     });
     const note = prefill.items.find(i => i._note);
     if (note) $('qc-note').value = note.name;
