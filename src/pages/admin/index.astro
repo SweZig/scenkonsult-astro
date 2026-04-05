@@ -599,11 +599,8 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       <div class="section-label" style="margin-top:1rem">Anmärkning (synlig för kunden)</div>
       <textarea class="form-input" id="qc-note" rows="3" placeholder="Leveransinfo, villkor, övrigt..." style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;resize:vertical;min-height:70px"></textarea>
 
-      <div id="quote-error" style="display:none;margin-top:0.75rem;padding:0.75rem;background:var(--red-bg);border-radius:8px;color:var(--red);font-size:0.85rem"></div>
-    </div>
-    <div class="modal-foot" style="flex-direction:column;align-items:stretch;gap:0.75rem">
       <!-- PDF-bilaga -->
-      <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.12);border-radius:8px">
+      <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;margin-top:0.75rem;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.12);border-radius:8px">
         <label for="quote-pdf-input" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.82rem;color:rgba(255,255,255,0.6);flex:1">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           <span id="quote-pdf-label">Bifoga PDF (valfritt — t.ex. skiss)</span>
@@ -611,10 +608,12 @@ import quoteCatalogData from '../../data/quote-catalog.json';
         <input type="file" id="quote-pdf-input" accept="application/pdf" style="display:none" onchange="quotePdfSelected(this)">
         <button id="quote-pdf-clear" style="display:none;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:0.8rem;padding:2px 6px" onclick="quotePdfClear()">✕</button>
       </div>
-      <div style="display:flex;gap:0.5rem;justify-content:flex-end">
-        <button class="btn-action" onclick="closeQuoteModal()">Avbryt</button>
-        <button class="btn-action btn-success" id="quote-send-btn" onclick="sendQuote()">✉ Skicka offert</button>
-      </div>
+
+      <div id="quote-error" style="display:none;margin-top:0.75rem;padding:0.75rem;background:var(--red-bg);border-radius:8px;color:var(--red);font-size:0.85rem"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-action" onclick="closeQuoteModal()">Avbryt</button>
+      <button class="btn-action btn-success" id="quote-send-btn" onclick="sendQuote()">✉ Skicka offert</button>
     </div>
   </div>
 </div>
