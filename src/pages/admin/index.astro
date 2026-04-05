@@ -1049,9 +1049,11 @@ function prodGetItems() {
     const price = parseFloat(get('price')) || 0;
     const id = get('id');
     const rawCat = get('category');
-    // Normalisera: kända tjänste-ID:n ska alltid ha category 'Tjänster'
+    const rawType = get('type') || '';
+    // Normalisera: kända tjänste-ID:n ska alltid ha type 'service'
+    const type = rawType || (SVC_IDS_ALL.has(id) ? 'service' : 'product');
     const category = rawCat || (SVC_IDS_ALL.has(id) ? 'Tjänster' : '');
-    return { id, name: get('name'), category, qty, price };
+    return { id, name: get('name'), category, type, qty, price };
   }).filter(i => i.name); // skip empty rows
 }
 
@@ -1384,6 +1386,7 @@ function renderProductsTab() {
             <input class="prod-input prod-name" value="${(item.name||'').replace(/"/g,'&quot;')}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
             <input type="hidden" data-field="category" data-idx="${idx}" value="${(item.category||'').replace(/"/g,'&quot;')}">
             <input type="hidden" data-field="id" data-idx="${idx}" value="${(item.id||'').replace(/"/g,'&quot;')}">
+            <input type="hidden" data-field="type" data-idx="${idx}" value="${item.type||'product'}">
             <div id="po-${idx}" style="display:none">${popoutContent}</div>
           </div>
         </div>
