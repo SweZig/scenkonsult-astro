@@ -151,28 +151,39 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     }
 
     // ── Produkttabell ──
-    const colW = [W - 40 - 70 - 70, 40, 70, 70];
-    const cols = [50, 50 + colW[0], 50 + colW[0] + colW[1], 50 + colW[0] + colW[1] + colW[2]];
+    // Kolumner: Artikelnr | Produkt / Tjänst | Antal | À-pris | Delsumma
+    const ARTNO_W = 72;
+    const colW = [ARTNO_W, W - ARTNO_W - 40 - 70 - 70, 40, 70, 70];
+    const cols = [
+      50,
+      50 + colW[0],
+      50 + colW[0] + colW[1],
+      50 + colW[0] + colW[1] + colW[2],
+      50 + colW[0] + colW[1] + colW[2] + colW[3],
+    ];
 
     // Header
     doc.rect(50, tableY, W, 20).fill('#f4f4f7');
     doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY);
-    ['Produkt / Tjänst', 'Antal', 'À-pris', 'Delsumma'].forEach((h, i) => {
-      const align = i === 0 ? 'left' : 'right';
+    ['Artikelnr', 'Produkt / Tjänst', 'Antal', 'À-pris', 'Delsumma'].forEach((h, i) => {
+      const align = i <= 1 ? 'left' : 'right';
       doc.text(h, cols[i] + 4, tableY + 6, { width: colW[i] - 8, align });
     });
 
     // Rows
     let ry = tableY + 20;
     items.forEach((item, idx) => {
-      const qty = item.qty || 1;
-      const sum = (item.price || 0) * qty;
+      const qty  = item.qty || 1;
+      const sum  = (item.price || 0) * qty;
+      const artno = item.artno || item.id || '';
       if (idx % 2 === 1) doc.rect(50, ry, W, 18).fill('#fafafa');
+      doc.fontSize(8).font('Helvetica').fillColor(GRAY);
+      doc.text(artno, cols[0] + 4, ry + 5, { width: colW[0] - 8, align: 'left' });
       doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
-      doc.text(item.name || '—', cols[0] + 4, ry + 4, { width: colW[0] - 8, align: 'left' });
-      doc.text(String(qty), cols[1] + 4, ry + 4, { width: colW[1] - 8, align: 'right' });
-      doc.text(fmtKr(item.price), cols[2] + 4, ry + 4, { width: colW[2] - 8, align: 'right' });
-      doc.text(fmtKr(sum), cols[3] + 4, ry + 4, { width: colW[3] - 8, align: 'right' });
+      doc.text(item.name || '—', cols[1] + 4, ry + 4, { width: colW[1] - 8, align: 'left' });
+      doc.text(String(qty),       cols[2] + 4, ry + 4, { width: colW[2] - 8, align: 'right' });
+      doc.text(fmtKr(item.price), cols[3] + 4, ry + 4, { width: colW[3] - 8, align: 'right' });
+      doc.text(fmtKr(sum),        cols[4] + 4, ry + 4, { width: colW[4] - 8, align: 'right' });
       ry += 18;
     });
 
@@ -226,6 +237,59 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     doc.fontSize(8).font('Helvetica').fillColor(GRAY)
        .text('Tack för ditt förtroende! Frågor? Ring 072-448 10 00 eller maila info@scenkonsult.se',
              50, ry + 8, { width: W, align: 'center' });
+
+    // ── Sida 2: Hyresvillkor §1–§9 ─────────────────────────────────────────────
+    doc.addPage();
+
+    // Header sida 2
+    doc.rect(0, 0, 595, 50).fill(NAVY);
+    doc.fillColor('#ffffff').fontSize(13).font('Helvetica-Bold')
+       .text('Allmänna hyresvillkor', 50, 16);
+    doc.fillColor('rgba(255,255,255,0.55)').fontSize(8).font('Helvetica')
+       .text('Scenkonsult Norden / Sigvardsson Consulting Group AB  ·  Gäller från 2025-01-01', 50, 34);
+
+    let vy = 68;
+    const villkor = [
+      ['1. Hyresperiod',
+       'Normal hyresperiod är 22 timmar — hämtning kl 13:00 dagen för evenemanget och återlämning kl 11:00 påföljande dag. Längre hyresperioder kan arrangeras mot tillägg och ska bekräftas skriftligen. Utrustning som inte återlämnas i tid debiteras en extra hyresdag per påbörjat dygn.'],
+      ['2. Bokning och betalning',
+       'Bokning är bindande och bekräftas skriftligen via e-post. Betalning sker via faktura, Swish eller kort. Bokningar inom 72 timmar kräver förskottsbetalning. Vid fakturabetalning tillkommer en fakturaavgift. Vid utebliven betalning debiteras dröjsmålsränta enligt räntelagen (referensränta + 8 %).'],
+      ['3. Avbokning och ändring',
+       'Avbokning mer än 14 dagar före: Kostnadsfritt. Avbokning 3–14 dagar före: 50 % av ordervärdet debiteras. Avbokning 0–3 dagar före: Fullt pris debiteras. Byte av datum eller utrustning är kostnadsfritt om utrustningen är tillgänglig — oavsett hur nära evenemanget ändringen sker. Avbokning och ändringar ska alltid göras skriftligen. För DJ-bokningar gäller separata regler: mer än 30 dagar: kostnadsfritt; 14–30 dagar: 50 % av DJ-arvodet; 0–14 dagar: fullt pris.'],
+      ['4. Ansvar för utrustningen',
+       'Hyresgästen ansvarar för utrustningen från det att den hämtas eller levereras till dess att den är återlämnad och godkänd. Utrustningen får endast användas för avsett ändamål — vidareuthyrning är inte tillåten. Uppstår skada, stöld eller förlust är hyresgästen ersättningsskyldig. Normalt slitage bekostas av Scenkonsult Norden.'],
+      ['5. Leverans och hämtning',
+       'Utrustningen kan hämtas på vår depå eller levereras mot tillägg. Leveranspris beräknas per körning tur och retur. Hyresgästen ansvarar för att någon behörig är på plats. Om leverans inte kan genomföras p.g.a. hyresgästens agerande kan extra körningspris debiteras.'],
+      ['6. Montering och teknik',
+       'Enklare utrustning levereras för självmontering. Scener från 20 m² kräver professionell montering av vår personal. LED-skärmar och komplex ljusutrustning kräver tekniker. Monteringstjänst debiteras per påbörjad 15-minutersperiod à 600 kr exkl. moms.'],
+      ['7. Fel och reklamation',
+       'Fel vid hämtning/leverans ska anmälas omedelbart — senast innan evenemanget startar. Scenkonsult Norden åtar sig att avhjälpa felet, erbjuda ersättningsutrustning eller återbetala aktuell del av hyran. Reklamation efter återlämning utan anmärkning godtas normalt inte.'],
+      ['8. Force majeure',
+       'Scenkonsult Norden är fri från ansvar för förseningar eller hinder p.g.a. omständigheter utanför vår kontroll, t.ex. extrema väderförhållanden, trafikolycka, strejk eller myndighetsbeslut. Om leverans inte kan genomföras återbetalas erlagd hyra i sin helhet.'],
+      ['9. Tvister',
+       'Eventuella tvister löses i första hand genom dialog. Om parterna inte kan komma överens avgörs tvisten i Stockholms tingsrätt med tillämpning av svensk lag. Konsumenter har alltid rätt att vända sig till Allmänna reklamationsnämnden (ARN).'],
+    ];
+
+    villkor.forEach(([title, text]) => {
+      // Rubrik
+      doc.rect(50, vy, W, 16).fill('#f0eeff');
+      doc.fontSize(9).font('Helvetica-Bold').fillColor(NAVY)
+         .text(title, 54, vy + 4, { width: W - 8 });
+      vy += 18;
+      // Brödtext
+      doc.fontSize(8).font('Helvetica').fillColor('#333333')
+         .text(text, 54, vy, { width: W - 8, lineGap: 1.5 });
+      const textHeight = doc.heightOfString(text, { width: W - 8, lineGap: 1.5 });
+      vy += textHeight + 8;
+    });
+
+    // Footer sida 2
+    doc.moveTo(50, 800).lineTo(545, 800).lineWidth(0.5).stroke('#c4b5f4');
+    doc.fontSize(7.5).font('Helvetica').fillColor(GRAY)
+       .text(
+         'Scenkonsult Norden (Sigvardsson Consulting Group AB)  ·  Org.nr 559068-4931  ·  Vinsta Skolgränd 4, 162 70 Vällingby  ·  info@scenkonsult.se',
+         50, 806, { width: W, align: 'center' }
+       );
 
     doc.end();
   });
