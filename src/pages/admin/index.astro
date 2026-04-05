@@ -2605,11 +2605,12 @@ function renderCalendar() {
       }" title="${c.customer_name||c.id}"></div>`
     ).join('');
 
-    // Utlämning — med tid 13:00
+    // Utlämning — med tid 13:00 och totalpris
     const pickupHTML = pickupCarts.map(c => {
-      const dlTime = c.delivery_time || '13:00';
+      const dlTime  = c.delivery_time || '13:00';
+      const totalKr = c.total_excl ? Math.round(c.total_excl/100).toLocaleString('sv-SE')+' kr' : '';
       return `<div class="cal-event s-${c.status}" data-id="${c.id}">
-        <span class="cal-event-time">${dlTime}</span>${STATUS_LABELS[c.status]?.icon||''} ${c.customer_name||c.id}
+        <span class="cal-event-time">${dlTime}</span>${STATUS_LABELS[c.status]?.icon||''} ${c.customer_name||c.id}${totalKr ? `<span style="float:right;color:rgba(196,181,244,0.7);font-size:0.6rem;margin-left:3px">${totalKr}</span>` : ''}
       </div>`;
     }).join('');
 
