@@ -616,17 +616,53 @@ function renderOrder(c) {
     montering:      { svg: '<svg width="36" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>', bg: '#5b21b6' },
     teknik:         { svg: '<svg width="36" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>', bg: '#6d28d9' },
     faktura:        { svg: '<svg width="36" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', bg: '#4c1d95' },
+    dj:             { svg: '<svg width="36" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', bg: '#991b1b' },
+    dj_utr:         { svg: '<svg width="36" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M7 21h10M12 17v4"/><circle cx="8" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg>', bg: '#b91c1c' },
+    media:          { svg: '<svg width="36" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', bg: '#c2410c' },
     default:        { svg: '<svg width="36" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>', bg: '#3730a3' },
   };
 
-  const svcIcon = id => {
-    const s = (id||'').toLowerCase();
+  // Produktkategori → emoji (för prod-rader utan bild)
+  const PROD_CAT_EMOJI = {
+    'SK-SCN':     { e:'🎭', bg:'#4c1d95' },
+    'SK-LJD-EL':  { e:'🔌', bg:'#1e3a8a' },
+    'SK-LJD-MIK': { e:'🎤', bg:'#1e40af' },
+    'SK-LJD-MIX': { e:'🎚️', bg:'#1e40af' },
+    'SK-LJD':     { e:'🔊', bg:'#1d4ed8' },
+    'SK-LJS-DMX': { e:'🕹️', bg:'#78350f' },
+    'SK-LJS-ROK': { e:'💨', bg:'#92400e' },
+    'SK-LJS-EFF': { e:'✨', bg:'#78350f' },
+    'SK-LJS-STV': { e:'🏗️', bg:'#78350f' },
+    'SK-LJS':     { e:'💡', bg:'#92400e' },
+    'SK-BLD':     { e:'🖥️', bg:'#064e3b' },
+    'SK-DJ':      { e:'🎧', bg:'#7f1d1d' },
+  };
+
+  function _prodEmoji(item) {
+    const artno = item.artno || item.id || '';
+    for (const [pfx, ico] of Object.entries(PROD_CAT_EMOJI)) {
+      if (artno.startsWith(pfx)) return ico;
+    }
+    const cat = (item.category||'').toLowerCase();
+    if (cat.includes('scen'))    return PROD_CAT_EMOJI['SK-SCN'];
+    if (cat.includes('ljud'))    return PROD_CAT_EMOJI['SK-LJD'];
+    if (cat.includes('ljus'))    return PROD_CAT_EMOJI['SK-LJS'];
+    if (cat.includes('bild'))    return PROD_CAT_EMOJI['SK-BLD'];
+    if (cat.includes('dj'))      return PROD_CAT_EMOJI['SK-DJ'];
+    return { e:'📦', bg:'#1e293b' };
+  }
+
+  const svcIcon = (id, name) => {
+    const s = ((id||'')+(name||'')).toLowerCase();
     if (s.includes('lastbil') || s.includes('bakgavel')) return SVC_ICONS.lev_lastbil;
     if (s.includes('skrymmande') || s.includes('slap'))  return SVC_ICONS.lev_skrymmande;
     if (s.includes('lev') || s.includes('transport'))    return SVC_ICONS.lev_standard;
     if (s.includes('monter') || s.includes('rigg'))      return SVC_ICONS.montering;
     if (s.includes('teknik') || s.includes('engineer'))  return SVC_ICONS.teknik;
     if (s.includes('faktura'))                           return SVC_ICONS.faktura;
+    if (s.includes('media') || s.includes('rörlig'))     return SVC_ICONS.media;
+    if (s.includes('dj') && (s.includes('bord') || s.includes('controller') || s.includes('system'))) return SVC_ICONS.dj_utr;
+    if (s.includes('dj'))                                return SVC_ICONS.dj;
     return SVC_ICONS.default;
   };
 
@@ -645,7 +681,7 @@ function renderOrder(c) {
     window._orderItems[key] = i;
     const imgEl = imgSrc
       ? `<div class="row-img${hasInfo?' row-img-clickable':''}"><img src="${imgSrc}" alt="" loading="lazy" onerror="this.style.display='none'"></div>`
-      : `<div class="row-img">📦</div>`;
+      : (() => { const pe=_prodEmoji(i); return `<div class="row-img" style="background:${pe.bg};font-size:1.5rem;display:flex;align-items:center;justify-content:center">${pe.e}</div>`; })();
     const infoHint = hasInfo ? ` <span class="row-info-hint">ℹ</span>` : '';
     const clickProps = hasInfo ? `onclick="openOrderProductModal(window._orderItems['${key}'])" title="Klicka för mer info"` : '';
     return `<div class="order-cart-row${hasInfo?' order-cart-row-clickable':''}" ${clickProps}>

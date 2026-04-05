@@ -801,6 +801,44 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     return PROD_CATALOG[item.id]?.image || PROD_CATALOG[item.id?.replace(/^(scen-|dj-utr-)/,'')]?.image || '';
   }
 
+  // Ikoner per artikelnummerprefix — används som fallback när ingen bild finns
+  const CAT_ICONS = {
+    'SK-SCN':     { emoji:'🎭', color:'#8B5CF6', label:'Scen' },
+    'SK-LJD-EL':  { emoji:'🔌', color:'#60A5FA', label:'El & kabel' },
+    'SK-LJD-MIK': { emoji:'🎤', color:'#60A5FA', label:'Mikrofon' },
+    'SK-LJD-MIX': { emoji:'🎚️', color:'#60A5FA', label:'Mixer' },
+    'SK-LJD':     { emoji:'🔊', color:'#3B82F6', label:'Ljud' },
+    'SK-LJS-DMX': { emoji:'🕹️', color:'#F59E0B', label:'DMX-styrning' },
+    'SK-LJS-ROK': { emoji:'💨', color:'#F59E0B', label:'Rök & pyro' },
+    'SK-LJS-PAK': { emoji:'💡', color:'#F59E0B', label:'Ljuspaket' },
+    'SK-LJS-EFF': { emoji:'✨', color:'#F59E0B', label:'Effekt' },
+    'SK-LJS-STV': { emoji:'🏗️', color:'#F59E0B', label:'Stativ & tross' },
+    'SK-LJS':     { emoji:'💡', color:'#F59E0B', label:'Ljus' },
+    'SK-BLD':     { emoji:'🖥️', color:'#10B981', label:'Bild' },
+    'SK-DJ-001':  { emoji:'🎧', color:'#EF4444', label:'DJ-utrustning' },
+    'SK-DJ':      { emoji:'🎵', color:'#EF4444', label:'DJ-tjänst' },
+    'SK-LEV':     { emoji:'🚚', color:'#F97316', label:'Leverans' },
+    'SK-TJN':     { emoji:'⚙️', color:'#F97316', label:'Tillägg' },
+  };
+
+  function _getCatIcon(item) {
+    const artno = item.artno || item.id || '';
+    // Matcha längst prefix först
+    for (const [prefix, ico] of Object.entries(CAT_ICONS)) {
+      if (artno.startsWith(prefix)) return ico;
+    }
+    // Fallback på kategori
+    const cat = (item.category || '').toLowerCase();
+    if (cat.includes('scen'))    return CAT_ICONS['SK-SCN'];
+    if (cat.includes('ljud'))    return CAT_ICONS['SK-LJD'];
+    if (cat.includes('ljus'))    return CAT_ICONS['SK-LJS'];
+    if (cat.includes('bild'))    return CAT_ICONS['SK-BLD'];
+    if (cat.includes('dj'))      return CAT_ICONS['SK-DJ'];
+    if (cat.includes('leverans') || cat.includes('transport')) return CAT_ICONS['SK-LEV'];
+    if (cat.includes('tillägg') || cat.includes('tjänst'))     return CAT_ICONS['SK-TJN'];
+    return { emoji:'📦', color:'rgba(255,255,255,0.3)', label:'' };
+  }
+
     // ── PRODUKT-MODAL (globalt via Layout.astro sk-modal) ─────
   function openProductModal(item) {
     if (!window.skModalOpen) return;
@@ -933,7 +971,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
           <div class="cart-product">
             ${imgSrc
               ? `<img class="cart-thumb" src="${imgSrc}" alt="${item.name}" loading="lazy" width="72" height="60" onerror="this.style.display='none'">`
-              : `<div class="cart-thumb-ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>`
+              : (() => { const ico=_getCatIcon(item); return `<div class="cart-thumb-ph" style="background:${ico.color}18;border:1px solid ${ico.color}33"><span style="font-size:1.5rem;line-height:1">${ico.emoji}</span></div>`; })()
             }
             <div class="cart-product-text">
               <div class="cart-pname">${item.name}</div>
