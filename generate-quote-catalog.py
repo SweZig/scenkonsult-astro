@@ -77,8 +77,8 @@ catalog['Tillägg'] = {'products': [
     svc(lev['skrymmande'].get('artno','lev-skrymmande'),  lev['skrymmande']['label'], lev['skrymmande']['pris']),
     svc(lev['lastbil'].get('artno','lev-lastbil'),        lev['lastbil']['label'],    lev['lastbil']['pris']),
     svc(lev.get('bakgavel',{}).get('artno','lev-bakgavel'), lev.get('bakgavel',{}).get('label','Lastbil med bakgavellift (t&r)'), lev.get('bakgavel',{}).get('pris',2998)),
-    svc('montering', f"{mon['label']} (per tim)", mon['prisPerTimme'], mon.get('note','')),
-    svc('fakturaavgift-49', 'Fakturaavgift', 49),
+    svc(mon.get('artno','SK-TJN-0001'), f"{mon['label']} (per tim)", mon['prisPerTimme'], mon.get('note','')),
+    svc('SK-TJN-0003', 'Fakturaavgift', 49),
 ]}
 catalog['Egen rad'] = {'products': [
     {'id':'custom','artno':'','slug':'custom','name':'Ange benämning och pris →','price':0,'image':'','desc':'','type':'product','custom':True}

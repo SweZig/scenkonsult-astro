@@ -44,17 +44,17 @@ const cartLines = [];
 
 // Scen
 scenes.products.forEach(p => {
-  if (p.id && p.price) cartLines.push(cartLine(p.name, `scen-${p.id}`, p.price));
+  if (p.id && p.price) cartLines.push(cartLine(p.name, p.artno || `scen-${p.id}`, p.price));
 });
 
 // Ljud: event, live, music, portable, mixers
 ['event','live','music','portable'].forEach(sec => {
   (ljud[sec]?.products || []).forEach(p => {
-    if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+    if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
   });
 });
 (ljud.mixers || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 
 // Ljud mikrofon tillbehör (bara om slug finns)
@@ -62,34 +62,34 @@ const miks = Array.isArray(ljud.tillbehor_mikrofon)
   ? ljud.tillbehor_mikrofon
   : (ljud.tillbehor_mikrofon?.products || []);
 miks.forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 
 // Ljus: paket, effekter, rok products + rok tillbehor
 (ljus.paket?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 (ljus.effekter?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 (ljus.rok?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 (ljus.rok?.tillbehor || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 
 // DJ utrustning
 Object.values(dj.equipment || {}).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 
 // Bild
 (bild.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 (bild.tillbehor || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
 
 const CART_ID_LISTA = cartLines.join('\n');
@@ -221,14 +221,14 @@ QUOTE_CAT['DJ'] = { products: Object.values(dj.equipment||{}).filter(p=>p.slug&&
 QUOTE_CAT['Bild'] = { products: [...(bild.products||[]),...(bild.tillbehor||[])].filter(p=>p.slug&&p.price).map(qp) };
 
 QUOTE_CAT['Tjänster'] = { products: [
-  {id:frakt.leverans.standard.id,   name:'Leverans — Vanlig bil (t&r)',      price:frakt.leverans.standard.pris},
+  {id:frakt.leverans.standard.artno||frakt.leverans.standard.id, name:'Leverans — Vanlig bil (t&r)',      price:frakt.leverans.standard.pris},
   {id:frakt.leverans.standard.id+'-e', name:'Leverans — Vanlig bil (enkel)', price:frakt.leverans.standard.enkelresa},
-  {id:frakt.leverans.skrymmande.id, name:'Leverans — Bil med släp (t&r)',    price:frakt.leverans.skrymmande.pris},
+  {id:frakt.leverans.skrymmande.artno||frakt.leverans.skrymmande.id, name:'Leverans — Bil med släp (t&r)',    price:frakt.leverans.skrymmande.pris},
   {id:frakt.leverans.skrymmande.id+'-e',name:'Leverans — Bil med släp (enkel)',price:frakt.leverans.skrymmande.enkelresa},
-  {id:frakt.leverans.lastbil.id,    name:'Leverans — Lastbil (t&r)',         price:frakt.leverans.lastbil.pris},
+  {id:frakt.leverans.lastbil.artno||frakt.leverans.lastbil.id, name:'Leverans — Lastbil (t&r)',         price:frakt.leverans.lastbil.pris},
   {id:frakt.leverans.lastbil.id+'-e',  name:'Leverans — Lastbil (enkel)',    price:frakt.leverans.lastbil.enkelresa},
-  {id:'montering', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
-  {id:'fakturaavgift-49', name:'Fakturaavgift', price:49},
+  {id:frakt.montering.artno||'SK-TJN-0001', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
+  {id:'SK-TJN-0003', name:'Fakturaavgift', price:49},
   {id:'fakturaavgift-29', name:'Fakturaavgift (reducerad)', price:29},
 ]};
 
