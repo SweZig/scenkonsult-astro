@@ -4,7 +4,6 @@ import CategoryHero from '../../../components/CategoryHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import bildData from '../../../data/bild.json';
-import ljudData from '../../../data/ljud.json';
 ---
 <Layout
   title="Hyr Projektor & Storbildsskärm Stockholm – LED-vägg & Trailerscen | Scenkonsult"
@@ -60,15 +59,7 @@ import ljudData from '../../../data/ljud.json';
     </div>
   </section>
 
-  <!-- EL-TILLBEHÖR -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
-    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {(ljudData.tillbehor_el || []).filter(t => t.slug && t.price).map(t => (
-        <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.description} category="El-tillbehör" artno={t.artno} slug={t.slug}  />
-      ))}
-    </div>
-  </section>
+
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex flex-wrap gap-4">
     <a href="/vara-tjanster/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">← Tillbaka till tjänster</a>

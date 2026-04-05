@@ -2128,24 +2128,23 @@ async function adminSendSms(c) {
 
 async function adminSendPickupLink(c) {
   const url = `https://scenkonsult.se/sign/?cart=${c.id}&token=${c.cart_token}`;
-  const name = (c.customer_name||'').split(' ')[0];
-  const msg = `Hej ${name}! Kvittera din utrustning från Scenkonsult här: ${url}`;
 
   // Kopiera länk alltid
   navigator.clipboard.writeText(url).catch(()=>{});
 
-  if (c.customer_phone) {
-    if (confirm(`Skicka utlämningslänk via SMS till ${c.customer_phone}?`)) {
-      const { ok, data } = await api('sms-send', {
+  if (c.customer_email) {
+    if (confirm(`Skicka utlämningslänk via e-post till ${c.customer_email}?`)) {
+      const { ok: sent, data } = await api('pickup-email', {
         method: 'POST',
-        body: JSON.stringify({ cart_id: c.id, message: msg })
+        body: JSON.stringify({ cart_id: c.id })
       });
-      if (ok) toast('Utlämningslänk skickad via SMS ✓');
-      else toast(data?.error || 'SMS-fel', 'error');
+      if (sent) toast(`Utlämningslänk skickad till ${c.customer_email} ✓`);
+      else toast(data?.error || 'E-postfel', 'error');
       return;
     }
   }
-  toast('Utlämningslänk kopierad till urklipp!');
+  // Inget mail — länk kopierad
+  toast('Utlämningslänk kopierad till urklipp! (Kunden saknar e-post)');
 }
 
 function adminShowPickup(c) {
