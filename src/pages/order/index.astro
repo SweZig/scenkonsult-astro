@@ -430,9 +430,16 @@ function _lookupOrderProduct(item) {
   return ORDER_CATALOG[normalized] || {};
 }
 
+function _getOrderType(item) {
+  // Katalogen är sanningskällan — item.type är bara hint för framtida ordrar
+  const info = _lookupOrderProduct(item);
+  return info.type || item.type || 'product';
+}
+
 function _getOrderImg(item) {
-  if (item.image) return item.image;
-  return _lookupOrderProduct(item).image || null;
+  // Katalogen är sanningskällan för bild
+  const info = _lookupOrderProduct(item);
+  return info.image || item.image || null;
 }
 
 function openOrderProductModal(item) {
@@ -546,11 +553,9 @@ function renderOrder(c) {
 
   // Event info visas nu inne i productTableWrap (order-times-row)
 
-  // Separera produkter och tjänster
-  // Primär: item.type ('product'/'service') — sätts av katalogen sedan 2026-04-05
-  // Fallback: category-sträng för bakåtkompatibilitet med äldre ordrar
+  // Separera produkter och tjänster via katalogen (sanningskällan)
   const SVC_CATS_ORDER = ['Tjänster', 'Tillägg'];
-  const isService = i => i.type === 'service' || SVC_CATS_ORDER.includes(i.category);
+  const isService = i => _getOrderType(i) === 'service' || SVC_CATS_ORDER.includes(i.category);
   const items     = c.items || [];
   const realItems = items.filter(i => !i._note);
   const noteItem  = items.find(i => i._note);
