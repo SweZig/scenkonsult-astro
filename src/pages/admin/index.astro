@@ -2079,6 +2079,61 @@ async function invLoadPreviewNumber() {
 }
 
 
+// ── SMS & UTLÄMNING ───────────────────────────────────────────
+async function adminSendSms(c) {
+  const phone = c.customer_phone || '';
+  const defMsg = c.cart_token
+    ? `Hej ${(c.customer_name||'').split(' ')[0]}! Offert klar från Scenkonsult: https://scenkonsult.se/order/?cart=${c.id}&token=${c.cart_token}`
+    : `Hej! Hör av dig till Scenkonsult Norden på 072-448 10 00.`;
+  const msg = prompt(`SMS till ${phone}:`, defMsg);
+  if (!msg) return;
+  const { ok, data } = await api('sms-send', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: c.id, message: msg })
+  });
+  if (ok) toast('SMS skickat! ✓');
+  else toast(data?.error || 'SMS-fel', 'error');
+}
+
+async function adminSendPickupLink(c) {
+  const url = `https://scenkonsult.se/sign/?cart=${c.id}&token=${c.cart_token}`;
+  const name = (c.customer_name||'').split(' ')[0];
+  const msg = `Hej ${name}! Kvittera din utrustning från Scenkonsult här: ${url}`;
+
+  // Kopiera länk alltid
+  navigator.clipboard.writeText(url).catch(()=>{});
+
+  if (c.customer_phone) {
+    if (confirm(`Skicka utlämningslänk via SMS till ${c.customer_phone}?`)) {
+      const { ok, data } = await api('sms-send', {
+        method: 'POST',
+        body: JSON.stringify({ cart_id: c.id, message: msg })
+      });
+      if (ok) toast('Utlämningslänk skickad via SMS ✓');
+      else toast(data?.error || 'SMS-fel', 'error');
+      return;
+    }
+  }
+  toast('Utlämningslänk kopierad till urklipp!');
+}
+
+function adminShowPickup(c) {
+  if (!c.pickup_signature) { toast('Ingen kvittens sparad', 'error'); return; }
+  const w = window.open('', '_blank', 'width=480,height=640');
+  const photoHtml = c.pickup_id_photo
+    ? `<img src="${c.pickup_id_photo}" style="width:100%;border-radius:8px;margin-top:1rem">`
+    : '<p style="color:#888;font-size:0.8rem">Inget legitimationsfoto</p>';
+  w.document.write(`<!DOCTYPE html><html><head><title>Kvittens ${c.id}</title>
+    <meta charset="UTF-8"><style>body{background:#0c0a24;color:#fff;font-family:Arial;padding:1.5rem;}</style></head>
+    <body>
+    <h2 style="font-size:1.1rem;margin-bottom:0.25rem">Utlämningskvittens</h2>
+    <p style="color:#888;font-size:0.8rem;margin-bottom:1rem">${c.id} · ${c.customer_name} · ${new Date(c.pickup_signed_at).toLocaleString('sv-SE')}</p>
+    <img src="${c.pickup_signature}" style="width:100%;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:#fff">
+    <p style="color:#666;font-size:0.75rem;margin-top:0.5rem">IP: ${c.pickup_sign_ip || '–'}</p>
+    ${photoHtml}
+    </body></html>`);
+}
+
 function renderPanelFooter() {
   const c = currentCart;
   const footer = $('panel-footer');
@@ -2121,6 +2176,21 @@ function renderPanelFooter() {
       navigator.clipboard.writeText(url);
       toast('Kundlänk kopierad!');
     });
+  }
+
+  // SMS-knapp om telefonnummer finns
+  if (c.customer_phone) {
+    makeBtn('💬 Skicka SMS', '', () => adminSendSms(c));
+  }
+
+  // Utlämningslänk (betald eller confirmed)
+  if (['confirmed','fakturerad','betald'].includes(c.status) && c.cart_token) {
+    const icon = c.pickup_signed_at ? '✅ Kvitterad' : '📦 Skicka utlämningslänk';
+    if (!c.pickup_signed_at) {
+      makeBtn(icon, 'btn-success', () => adminSendPickupLink(c));
+    } else {
+      makeBtn('📋 Visa kvittens', '', () => adminShowPickup(c));
+    }
   }
 }
 

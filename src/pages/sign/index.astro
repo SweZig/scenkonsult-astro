@@ -1,0 +1,495 @@
+---
+// src/pages/sign/index.astro
+// Utlämningskvittens — kund signerar och fotar legitimation
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kvittens — Scenkonsult Norden</title>
+  <meta name="robots" content="noindex">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #0c0a24;
+      color: #fff;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 3rem;
+    }
+    .logo-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .logo-bar img { height: 36px; }
+    .logo-bar span {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .sub {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 1.5rem;
+    }
+    .order-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.75);
+    }
+    .order-box strong { color: #fff; }
+    .order-box .ref {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+      font-family: monospace;
+      margin-top: 0.5rem;
+    }
+    /* Section labels */
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(196,181,244,0.8);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Signature canvas */
+    .sig-wrap {
+      position: relative;
+      border: 2px solid rgba(196,181,244,0.3);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      touch-action: none;
+    }
+    .sig-wrap canvas {
+      display: block;
+      width: 100%;
+      cursor: crosshair;
+    }
+    .sig-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.85rem;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .sig-placeholder svg { opacity: 0.3; }
+    .sig-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.5rem;
+    }
+    .btn-clear {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    /* ID photo */
+    .photo-section { margin-bottom: 1.75rem; }
+    .photo-label {
+      background: rgba(255,255,255,0.04);
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 1.25rem;
+      cursor: pointer;
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.875rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .photo-label:active { background: rgba(255,255,255,0.06); }
+    .photo-label svg { opacity: 0.5; }
+    .photo-preview {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(196,181,244,0.3);
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .photo-check {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #4ade80;
+      margin-top: 0.5rem;
+    }
+    #photo-input { display: none; }
+
+    /* Note */
+    .optional-note {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.3);
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Submit */
+    #submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: #c4b5f4;
+      color: #0c0a24;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    #submit-btn:disabled { opacity: 0.45; cursor: default; }
+    #submit-btn:not(:disabled):active { opacity: 0.8; }
+
+    /* States */
+    #loading-state, #success-state, #error-state { display: none; }
+    .success-card {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .success-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
+    .success-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .success-sub { font-size: 0.875rem; color: rgba(255,255,255,0.5); }
+    .error-card {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      color: #fca5a5;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(196,181,244,0.2);
+      border-top-color: #c4b5f4;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 2rem auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Logo -->
+  <div class="logo-bar">
+    <img src="/logo-white.png" alt="Scenkonsult Norden" onerror="this.style.display='none'">
+    <span>Utlämningskvittens</span>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading-state">
+    <div class="spinner"></div>
+    <p style="text-align:center;color:rgba(255,255,255,0.4);font-size:0.85rem">Laddar order…</p>
+  </div>
+
+  <!-- Error -->
+  <div id="error-state">
+    <div class="error-card" id="error-msg">Något gick fel.</div>
+    <a href="/" style="color:#c4b5f4;font-size:0.875rem">← Tillbaka</a>
+  </div>
+
+  <!-- Success -->
+  <div id="success-state">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Utrustning kvitterad!</div>
+      <div class="success-sub" id="success-ref">Tack för ditt förtroende.</div>
+    </div>
+  </div>
+
+  <!-- Main form -->
+  <div id="main-state" style="display:none">
+    <h1>Kvittera utrustning</h1>
+    <p class="sub" id="order-sub">Signera nedan för att bekräfta att du hämtat utrustningen.</p>
+
+    <div class="order-box" id="order-box">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Signature -->
+    <div class="section-label">Din signatur</div>
+    <div class="sig-wrap" id="sig-wrap">
+      <canvas id="sig-canvas" height="180"></canvas>
+      <div class="sig-placeholder" id="sig-placeholder">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 21c1.5 0 3-1.5 6-3l9-9a2.121 2.121 0 0 0-3-3l-9 9c-1.5 3-3 4.5-3 6z"/>
+        </svg>
+        Signera här med fingret
+      </div>
+    </div>
+    <div class="sig-actions">
+      <button class="btn-clear" id="clear-btn">✕ Rensa</button>
+    </div>
+
+    <!-- ID photo -->
+    <div class="photo-section">
+      <div class="section-label">Legitimation <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.35)">(frivilligt men rekommenderat)</span></div>
+      <label class="photo-label" for="photo-input" id="photo-label">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          <circle cx="12" cy="13" r="3"/>
+        </svg>
+        Ta foto på körkort eller ID-kort
+      </label>
+      <input type="file" id="photo-input" accept="image/*" capture="environment">
+      <img id="photo-preview" class="photo-preview" alt="Legitimation">
+      <div class="photo-check" id="photo-check">
+        <span>✓</span> Foto tillagt
+      </div>
+    </div>
+
+    <p class="optional-note">
+      Signaturen och eventuellt foto sparas på orderkortet som bevis att utrustningen hämtats.
+    </p>
+
+    <button id="submit-btn" disabled>Signera och kvittera →</button>
+  </div>
+
+</div>
+
+<script>
+  // ── URL-parametrar ────────────────────────────────────────────
+  const params    = new URLSearchParams(location.search);
+  const cartId    = params.get('cart');
+  const cartToken = params.get('token');
+
+  // ── State ─────────────────────────────────────────────────────
+  let hasSig     = false;
+  let photoData  = null; // base64 JPEG
+
+  // ── Canvas signature pad ──────────────────────────────────────
+  const canvas    = document.getElementById('sig-canvas');
+  const ctx       = canvas.getContext('2d');
+  const sigWrap   = document.getElementById('sig-wrap');
+  const placeholder = document.getElementById('sig-placeholder');
+
+  function initCanvas() {
+    const w = sigWrap.offsetWidth;
+    canvas.width  = w;
+    canvas.height = 180;
+    ctx.strokeStyle = '#c4b5f4';
+    ctx.lineWidth   = 2.5;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+  }
+  initCanvas();
+  window.addEventListener('resize', initCanvas);
+
+  let drawing = false, lastX = 0, lastY = 0;
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return [src.clientX - r.left, src.clientY - r.top];
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    [lastX, lastY] = getPos(e);
+    placeholder.style.opacity = '0';
+  }
+  function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const [x, y] = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    [lastX, lastY] = [x, y];
+    hasSig = true;
+    updateSubmit();
+  }
+  function stopDraw() { drawing = false; }
+
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove',  draw,      { passive: false });
+  canvas.addEventListener('touchend',   stopDraw);
+  canvas.addEventListener('mousedown',  startDraw);
+  canvas.addEventListener('mousemove',  draw);
+  canvas.addEventListener('mouseup',    stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasSig = false;
+    placeholder.style.opacity = '1';
+    updateSubmit();
+  });
+
+  // ── Camera / photo ────────────────────────────────────────────
+  document.getElementById('photo-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Komprimera foto till max ~200KB
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    await new Promise(r => img.onload = r);
+
+    const cvs = document.createElement('canvas');
+    const MAX_DIM = 1200;
+    let w = img.width, h = img.height;
+    if (w > MAX_DIM || h > MAX_DIM) {
+      if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+      else        { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+    }
+    cvs.width = w; cvs.height = h;
+    cvs.getContext('2d').drawImage(img, 0, 0, w, h);
+    photoData = cvs.toDataURL('image/jpeg', 0.7);
+
+    const preview = document.getElementById('photo-preview');
+    preview.src = photoData;
+    preview.style.display = 'block';
+    document.getElementById('photo-check').style.display = 'flex';
+    document.getElementById('photo-label').innerHTML = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span style="color:#4ade80;font-size:0.85rem">Foto tillagt — tryck för att byta</span>`;
+  });
+
+  // ── Submit enable/disable ────────────────────────────────────
+  function updateSubmit() {
+    document.getElementById('submit-btn').disabled = !hasSig;
+  }
+
+  // ── Load order ────────────────────────────────────────────────
+  function show(id) {
+    ['loading-state','error-state','success-state','main-state'].forEach(s => {
+      document.getElementById(s).style.display = s === id ? 'block' : 'none';
+    });
+  }
+
+  async function loadOrder() {
+    if (!cartId || !cartToken) {
+      show('error-state');
+      document.getElementById('error-msg').textContent = 'Ogiltig länk. Kontrollera att du öppnat rätt länk.';
+      return;
+    }
+    show('loading-state');
+
+    try {
+      const res  = await fetch('/.netlify/functions/cart-get', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ cart_id: cartId, token: cartToken }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Kunde inte ladda order');
+
+      const cart = data.cart;
+
+      // Redan kvitterad?
+      if (cart.pickup_signed_at) {
+        show('success-state');
+        const d = new Date(cart.pickup_signed_at).toLocaleString('sv-SE');
+        document.getElementById('success-ref').textContent =
+          `Utrustningen kvitterades redan ${d}. Ordernr: ${cart.id}`;
+        return;
+      }
+
+      // Visa orderbox
+      const items  = (cart.items || []).filter(i => !i._note && i.name);
+      const prodRows = items.slice(0,5).map(i =>
+        `<div style="display:flex;justify-content:space-between"><span>${i.name}</span><span style="color:rgba(255,255,255,0.4)">×${i.qty||1}</span></div>`
+      ).join('');
+      const more = items.length > 5 ? `<div style="color:rgba(255,255,255,0.35);font-size:0.8rem">+${items.length-5} till…</div>` : '';
+
+      document.getElementById('order-box').innerHTML = `
+        <strong>${cart.customer_name || 'Kund'}</strong> hämtar
+        ${cart.event_date ? `till eventet <strong>${new Date(cart.event_date).toLocaleDateString('sv-SE')}</strong>` : 'utrustning'}.<br>
+        ${cart.event_location ? `<span style="color:rgba(255,255,255,0.45)">${cart.event_location}</span><br>` : ''}
+        <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06)">${prodRows}${more}</div>
+        <div class="ref">${cart.id}</div>`;
+
+      document.getElementById('order-sub').textContent =
+        `Hej ${(cart.customer_name||'').split(' ')[0] || 'du'}! Signera nedan för att bekräfta att du tagit emot utrustningen.`;
+
+      show('main-state');
+    } catch (e) {
+      show('error-state');
+      document.getElementById('error-msg').textContent = e.message;
+    }
+  }
+
+  // ── Submit ────────────────────────────────────────────────────
+  document.getElementById('submit-btn').addEventListener('click', async () => {
+    if (!hasSig) return;
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Sparar…';
+
+    try {
+      const sigData = canvas.toDataURL('image/png');
+
+      const res = await fetch('/.netlify/functions/sign-submit', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          cart_id:        cartId,
+          token:          cartToken,
+          signature_data: sigData,
+          id_photo_data:  photoData || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || `Fel ${res.status}`);
+
+      show('success-state');
+      document.getElementById('success-ref').textContent =
+        `Ordernr ${cartId} är kvitterat. Ha ett bra event!`;
+    } catch (e) {
+      show('error-state');
+      document.getElementById('error-msg').textContent = e.message;
+    }
+  });
+
+  // Start
+  loadOrder();
+</script>
+</body>
+</html>
