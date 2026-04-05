@@ -54,6 +54,7 @@ catalog['Ljus'] = {'sub': {
     'Lösa effekter': [prod(p) for p in ljus.get('effekter',{}).get('products',[])],
     'Rök & pyro':    [prod(p) for p in ljus.get('rok',{}).get('products',[])],
     'Stativ & tross':[prod(p) for p in ljus.get('stativ',{}).get('products',[])],
+    'DMX-styrning':  [prod(p) for p in ljus.get('dmx',{}).get('products',[])],
 }}
 
 # ── Bild ─────────────────────────────────────────────────────────────────────
@@ -61,9 +62,13 @@ catalog['Projektor & skärm']   = {'products': [prod(p) for p in bild.get('produ
 catalog['Projektor tillbehör'] = {'products': [prod(p) for p in bild.get('tillbehor',[]) if p.get('artno') or p.get('slug')]}
 
 # ── DJ ────────────────────────────────────────────────────────────────────────
-eq = dj.get('equipment',{})
+eq = dj.get('equipment', [])
 if isinstance(eq, dict): eq = list(eq.values())
-catalog['DJ-utrustning'] = {'products': [prod(p) for p in eq]}
+dj_utr = [p for p in eq if p.get('type') != 'service']
+dj_svc = [p for p in eq if p.get('type') == 'service']
+catalog['DJ'] = {'products': [prod(p) for p in dj_utr]}
+if dj_svc:
+    catalog['DJ-tjänster'] = {'products': [prod(p) for p in dj_svc]}
 
 # ── Tillägg (tjänster) ────────────────────────────────────────────────────────
 def svc(id_, name, price, desc=''):
