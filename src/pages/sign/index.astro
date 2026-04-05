@@ -412,11 +412,7 @@
     show('loading-state');
 
     try {
-      const res  = await fetch('/.netlify/functions/cart-get', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ cart_id: cartId, token: cartToken }),
-      });
+      const res  = await fetch(`/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`);
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || 'Kunde inte ladda order');
 
