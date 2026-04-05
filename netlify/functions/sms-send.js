@@ -53,9 +53,12 @@ exports.handler = async (event) => {
 
   let body;
   try {
-    body = JSON.parse(event.body || '{}');
+    let raw = event.body || '{}';
+    if (event.isBase64Encoded && raw) raw = Buffer.from(raw, 'base64').toString('utf-8');
+    body = JSON.parse(raw);
   } catch (e) {
-    return err('Ogiltig JSON', 400);
+    console.error('SMS_PARSE_ERROR:', e.message, '| b64:', event.isBase64Encoded, '| raw:', (event.body||'').slice(0,50));
+    return err('Ogiltig JSON: ' + e.message, 400);
   }
 
   const { cart_id, message, to: overrideTo } = body;
