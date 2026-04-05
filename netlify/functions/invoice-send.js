@@ -152,7 +152,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
 
     // ── Produkttabell ──
     // Kolumner: Artikelnr | Produkt / Tjänst | Antal | À-pris | Delsumma
-    const ARTNO_W = 72;
+    const ARTNO_W = 95;
     const colW = [ARTNO_W, W - ARTNO_W - 40 - 70 - 70, 40, 70, 70];
     const cols = [
       50,
@@ -231,8 +231,8 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
        .text('Org.nr: 559068-4931', 300, payY + 24)
        .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, payY + 36);
 
-    // Footer — direkt under betalningsinfo, inte längst ned på sidan
-    ry = payY + 58;
+    // Footer — direkt under betalningsinfo + QR-kod
+    ry = payY + (swishQrBuffer ? 148 : 60);
     doc.moveTo(50, ry).lineTo(50 + W, ry).lineWidth(0.5).stroke('#e0e0e8');
     doc.fontSize(8).font('Helvetica').fillColor(GRAY)
        .text('Tack för ditt förtroende! Frågor? Ring 072-448 10 00 eller maila info@scenkonsult.se',
@@ -271,6 +271,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     ];
 
     villkor.forEach(([title, text]) => {
+      if (vy > 748) return; // Hoppa om vi riskerar att krocka med footer
       // Rubrik
       doc.rect(50, vy, W, 16).fill('#f0eeff');
       doc.fontSize(9).font('Helvetica-Bold').fillColor(NAVY)
@@ -283,12 +284,12 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
       vy += textHeight + 8;
     });
 
-    // Footer sida 2
-    doc.moveTo(50, 800).lineTo(545, 800).lineWidth(0.5).stroke('#c4b5f4');
+    // Footer sida 2 — inom A4 usable area (margin:50 → max y ≈ 791)
+    doc.moveTo(50, 762).lineTo(545, 762).lineWidth(0.5).stroke('#c4b5f4');
     doc.fontSize(7.5).font('Helvetica').fillColor(GRAY)
        .text(
          'Scenkonsult Norden (Sigvardsson Consulting Group AB)  ·  Org.nr 559068-4931  ·  Vinsta Skolgränd 4, 162 70 Vällingby  ·  info@scenkonsult.se',
-         50, 806, { width: W, align: 'center' }
+         50, 770, { width: W, align: 'center' }
        );
 
     doc.end();
