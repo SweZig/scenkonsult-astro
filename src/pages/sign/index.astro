@@ -412,11 +412,19 @@
     show('loading-state');
 
     try {
-      const res  = await fetch(`/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`);
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || 'Kunde inte ladda order');
+      const url = `/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`;
+      console.log('[sign] fetching:', url);
+      const res  = await fetch(url);
+      const text = await res.text();
+      console.log('[sign] status:', res.status, 'body:', text.slice(0, 300));
+      let data;
+      try { data = JSON.parse(text); } catch(e) {
+        throw new Error('Ogiltigt svar från servern: ' + text.slice(0, 100));
+      }
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Kunde inte ladda order (status ' + res.status + ')');
 
       const cart = data.cart;
+      if (!cart) throw new Error('Cart saknas i svaret: ' + JSON.stringify(Object.keys(data)));
 
       // Redan kvitterad?
       if (cart.pickup_signed_at) {
