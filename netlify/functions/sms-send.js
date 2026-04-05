@@ -36,6 +36,7 @@ async function sendSms(to, message) {
     body: body.toString(),
   });
 
+  console.log(`46ELKS_REQUEST: from=${FROM_NAME} to=${phone} msgLen=${message.length}`);
   const rawText = await res.text();
   let data = {};
   try { data = JSON.parse(rawText); } catch (_) {
@@ -43,11 +44,8 @@ async function sendSms(to, message) {
     throw new Error(`46elks fel ${res.status}: ${rawText.slice(0, 100)}`);
   }
   if (res.status === 403) {
-    throw new Error(
-      `46elks nekade (403): Avsändarnamnet "${FROM_NAME}" kräver förregistrering. ` +
-      `Sätt ELKS_FROM i Netlify till ditt 46elks-telefonnummer (t.ex. +46701234567), ` +
-      `eller registrera avsändarnamnet på api.46elks.com.`
-    );
+    console.error('46ELKS_403_BODY:', rawText);
+    throw new Error(`46elks 403 Forbidden. Svar: ${rawText.slice(0,200)}. FROM="${FROM_NAME}"`);
   }
   if (!res.ok || data.status === 'error') {
     throw new Error(data.message || `46elks fel: ${res.status}`);
@@ -84,7 +82,7 @@ exports.handler = async (event) => {
     if (!phone) return err('Inget telefonnummer på kunden — ange "to" manuellt', 400);
 
     const smsResult = await sendSms(phone, message);
-    console.log('SMS_OK:', JSON.stringify({ to: phone, elksId: smsResult.id, status: smsResult.status }));
+    console.log('SMS_OK:', JSON.stringify({ to: phone, from: FROM_NAME, elksId: smsResult.id, status: smsResult.status }));
 
     // Logga och uppdatera sms_sent_at
     await db.update('carts', { sms_sent_at: new Date().toISOString() }, 'id', cart_id);
