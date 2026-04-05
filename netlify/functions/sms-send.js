@@ -33,7 +33,13 @@ async function sendSms(to, message) {
     body: body.toString(),
   });
 
-  const data = await res.json();
+  const rawText = await res.text();
+  let data = {};
+  try { data = JSON.parse(rawText); } catch (_) {
+    // 46elks returnerade icke-JSON (t.ex. HTML vid autentiseringsfel)
+    console.error('46ELKS_NON_JSON:', res.status, rawText.slice(0, 200));
+    throw new Error(`46elks fel ${res.status}: ${rawText.slice(0, 100)}`);
+  }
   if (!res.ok || data.status === 'error') {
     throw new Error(data.message || `46elks fel: ${res.status}`);
   }
@@ -65,7 +71,8 @@ exports.handler = async (event) => {
     const phone = overrideTo || cart.customer_phone;
     if (!phone) return err('Inget telefonnummer på kunden — ange "to" manuellt', 400);
 
-    await sendSms(phone, message);
+    const smsResult = await sendSms(phone, message);
+    console.log('SMS_OK:', JSON.stringify({ to: phone, elksId: smsResult.id, status: smsResult.status }));
 
     // Logga och uppdatera sms_sent_at
     await db.update('carts', { sms_sent_at: new Date().toISOString() }, 'id', cart_id);
@@ -73,7 +80,8 @@ exports.handler = async (event) => {
 
     return ok({ sent: true, to: phone });
   } catch (e) {
-    console.error('SMS_SEND_ERROR:', e.message);
+    console.error('SMS_SEND_ERROR:', e.message, '| phone:', body?.to || '(från cart)');
+    // Returnera det faktiska felet, inte generiskt "Serverfel"
     return err(e.message || 'Serverfel', 500);
   }
 };
