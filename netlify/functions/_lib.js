@@ -213,9 +213,11 @@ async function sendEmail(apiKey, payload) {
 
 function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   const SVC_CATS  = ['Tjänster', 'Tillägg'];
+  const SVC_IDS   = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik']);
+  const isSvc     = i => i.type === 'service' || SVC_CATS.includes(i.category) || SVC_IDS.has(i.id);
   const allReal   = (cart || []).filter(i => !i._note && i.name);
-  const prodItems = allReal.filter(i => !SVC_CATS.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
-  const svcItems  = allReal.filter(i => SVC_CATS.includes(i.category) && !(i.id && i.id.startsWith('fakturaavgift')));
+  const prodItems = allReal.filter(i => !isSvc(i) && !(i.id && i.id.startsWith('fakturaavgift')));
+  const svcItems  = allReal.filter(i => isSvc(i) && !(i.id && i.id.startsWith('fakturaavgift')));
   const feeItem   = showFakturaavgift ? allReal.find(i => i.id && i.id.startsWith('fakturaavgift')) : null;
   const noteItem  = (cart || []).find(i => i._note);
   const qty  = i => i.quantity || i.qty || 1;
