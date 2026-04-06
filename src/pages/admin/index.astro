@@ -2324,8 +2324,10 @@ $('new-quote-btn').addEventListener('click', () => {
   currentCart = null;  // VIKTIGT: nollställ så befintlig order inte skrivs över
   openQuoteModal(null);
 });
-$('quote-close').addEventListener('click', closeQuoteModal);
-$('quote-overlay').addEventListener('click', e => { if (e.target === $('quote-overlay')) closeQuoteModal(); });
+$('quote-close').addEventListener('click', () => {
+  if (confirm('Stäng offertfönstret? Osparade uppgifter försvinner.')) closeQuoteModal();
+});
+// Click outside stänger INTE modalen — för att inte förlora ifyllda uppgifter av misstag
 
 let quoteItems = []; // { id, name, price, qty }
 
@@ -2626,7 +2628,15 @@ async function sendQuote() {
 // ── PANEL CLOSE ───────────────────────────────────────────────
 $('panel-close').addEventListener('click', closePanel);
 $('detail-overlay').addEventListener('click', closePanel);
-document.addEventListener('keydown', e => e.key === 'Escape' && closePanel());
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const qo = $('quote-overlay');
+  if (qo && qo.style.display !== 'none') {
+    if (confirm('Stäng offertfönstret? Osparade uppgifter försvinner.')) closeQuoteModal();
+    return;
+  }
+  closePanel();
+});
 
 function closePanel() {
   $('detail-overlay').classList.remove('open');
