@@ -517,7 +517,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
   gap:1rem;
   padding:1.25rem 1.2rem;
 }
-.field-group { display:flex; flex-direction:column; gap:0.4rem; }
+.field-group { display:flex; flex-direction:column; gap:0.4rem; min-width:0; overflow:hidden; }
 .field-full { grid-column: 1 / -1; }
 .field-label {
   font-family:'Space Grotesk',sans-serif;
@@ -547,11 +547,18 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 .field-input:focus-visible { outline:2px solid rgba(196,181,244,0.4); outline-offset:2px; }
 .field-textarea { resize:vertical; min-height:100px; }
 
-/* Date + Time inputs — mörkt läge + synlig ikon */
+/* Date + Time inputs — mörkt läge + synlig ikon + iOS width-fix */
 input[type="date"].field-input,
 input[type="time"].field-input {
   color-scheme: dark;
   -webkit-text-fill-color: rgba(255,255,255,0.85) !important;
+  /* iOS Safari ignorerar width:100% utan dessa: */
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100% !important;
+  min-width: 0;
+  max-width: 100%;
 }
 input[type="date"].field-input::-webkit-calendar-picker-indicator,
 input[type="time"].field-input::-webkit-calendar-picker-indicator {
