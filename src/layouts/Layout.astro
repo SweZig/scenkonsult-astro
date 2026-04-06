@@ -2247,13 +2247,14 @@ const localBusinessSchema = {
   <style is:global>
     /* Sitewide admin mode — synlighetsklasser */
     .sk-admin-only  { display: none !important; }
-    body.sk-admin .sk-admin-only { display: revert !important; }
+    body.sk-admin .sk-admin-only { display: block !important; }
 
     /* Pulse-animation på badge */
     #sk-admin-badge {
       animation: none;
     }
     body.sk-admin #sk-admin-badge {
+      display: flex !important;
       animation: sk-admin-pulse 3s ease-in-out infinite;
     }
     @keyframes sk-admin-pulse {
