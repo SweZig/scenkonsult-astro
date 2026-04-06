@@ -583,6 +583,11 @@ import quoteCatalogData from '../../data/quote-catalog.json';
         <button class="btn-action btn-success" onclick="quotePickerAdd()" style="height:34px;padding:0 0.75rem;font-size:0.82rem;white-space:nowrap">＋ Lägg till</button>
       </div>
 
+      <!-- Fritext-rad-knapp -->
+      <div style="margin-bottom:0.6rem">
+        <button class="btn-action" onclick="quoteAddCustomRow()" style="font-size:0.78rem;padding:0.3rem 0.75rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);background:rgba(196,181,244,0.06)">✏ Lägg till fritext-rad</button>
+      </div>
+
       <!-- Produkttabell -->
       <table class="quote-prod-table" id="quote-prod-table">
         <thead><tr>
@@ -2430,6 +2435,15 @@ function quotePopulateProducts(prods) {
     }).join('');
 }
 
+function quoteAddCustomRow() {
+  quoteItems.push({ id: 'custom-' + Date.now(), name: '', price: 0, qty: 1, custom: true });
+  quoteRenderTable();
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.quote-custom-name');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }, 50);
+}
+
 function quotePickerAdd() {
   const prodSel = $('qp-prod');
   const opt = prodSel.options[prodSel.selectedIndex];
@@ -2761,6 +2775,7 @@ window.sendMessage     = sendMessage;
 window.confirmOrder    = confirmOrder;
 window.cancelOrder     = cancelOrder;
 window.notifyCustomer  = sendCustomerNotice;
+window.quoteAddCustomRow = quoteAddCustomRow;
 window.quotePickerCat  = quotePickerCat;
 window.quotePickerSub  = quotePickerSub;
 window.quotePickerAdd  = quotePickerAdd;
