@@ -1522,6 +1522,7 @@ function renderProductsTab() {
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn-action" onclick="prodSave()" style="flex:1">💾 Spara</button>
       <button class="btn-action" onclick="prodSaveAndSendOffer()" style="flex:1;border-color:var(--brand-lav);color:var(--brand-lav)">📤 Spara & skicka offert</button>
+      <button class="btn-action" onclick="prodDownloadOrderPdf()" style="flex:1;border-color:rgba(196,181,244,0.45);color:rgba(196,181,244,0.8);font-size:0.78rem">📄 Spara som PDF (Order)</button>
     </div>
     <div style="margin-top:6px">
       <div class="section-label" style="margin-top:0">Anmärkningar till kund</div>
@@ -1848,6 +1849,7 @@ function renderFakturaTab() {
         ? `<button class="btn-action btn-success" onclick="invCreateAndSend()" style="font-size:0.8rem">🧾 Skapa &amp; skicka faktura</button>`
         : `<button class="btn-action" onclick="invResend()" style="font-size:0.8rem;border-color:var(--brand-lav);color:var(--brand-lav)">📤 Skicka om faktura ${invNum !== '— (ej skapad)' ? invNum : ''}</button>`}
       ${!isPaid && isSent ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
+      <button class="btn-action" onclick="invDownloadPdf()" style="font-size:0.78rem;border-color:rgba(196,181,244,0.45);color:rgba(196,181,244,0.8)">📄 Spara som PDF</button>
     </div>
 
     <details style="margin-top:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
@@ -2752,6 +2754,59 @@ function startRefreshTimer() {
 checkAuth();
 
 // Exponera funktioner som används i onclick-attribut i dynamisk innerHTML
+// ── PDF-NEDLADDNING ──────────────────────────────────────────────────────────
+// Hjälpfunktion: hämtar PDF-blob från invoice-pdf-download och triggar nedladdning
+async function _triggerPdfDownload(mode) {
+  if (!currentCart) { toast('Ingen order vald', 'error'); return; }
+  const btn = document.querySelector(`[onclick="${mode === 'order' ? 'prodDownloadOrderPdf' : 'invDownloadPdf'}()"]`);
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Genererar PDF…'; }
+  try {
+    const { ok, data } = await api('invoice-pdf-download', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: currentCart.id, mode }),
+    });
+    if (!ok || data.error) {
+      toast(data?.error || 'Fel vid PDF-generering', 'error');
+      return;
+    }
+    // Konvertera base64 → Blob → <a download>
+    const binary = atob(data.pdf_b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = data.filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+
+    if (mode === 'faktura' && data.invoice_number) {
+      currentCart.invoice_number = data.invoice_number;
+      toast(`PDF sparad: ${data.filename} (${data.invoice_number})`);
+    } else {
+      toast(`PDF sparad: ${data.filename}`);
+    }
+  } catch (e) {
+    toast('Nätverksfel: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origText; }
+  }
+}
+
+async function prodDownloadOrderPdf() {
+  await _triggerPdfDownload('order');
+}
+
+async function invDownloadPdf() {
+  await _triggerPdfDownload('faktura');
+}
+
+window.prodDownloadOrderPdf = prodDownloadOrderPdf;
+window.invDownloadPdf       = invDownloadPdf;
+
 window.prodQty         = prodQty;
 window.prodDelete      = prodDelete;
 window.prodAddRow      = prodAddRow;
