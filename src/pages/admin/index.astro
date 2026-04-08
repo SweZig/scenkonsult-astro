@@ -1435,7 +1435,7 @@ function renderProductsTab() {
   const noteItem = allItems.find(i => i._note);
   // Visa ALLA items i en flat tabell — produkter och tjänster ihop
   const items = allItems.filter(i => !i._note);
-  const total = items.reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
+  const total = items.filter(i => i.name).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
 
   const SVC_CATS_DISPLAY = ['Tjänster', 'Tillägg'];
   const isSvcItem = i => i.type === 'service' || SVC_CATS_DISPLAY.includes(i.category);
@@ -1661,7 +1661,7 @@ function prodRowHTML(i, idx) {
 }
 
 function prodTotals() {
-  const total = (currentCart.items||[]).filter(i => !i._note).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
+  const total = (currentCart.items||[]).filter(i => !i._note && i.name).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
   return `<tr class="total-row"><td colspan="3">Totalt (exkl. moms)</td>
     <td style="text-align:right">${fmt(total)} kr</td><td></td></tr>
   <tr><td colspan="3" style="color:var(--text-faint);font-size:0.8rem">Inkl. 25% moms</td>
@@ -1781,7 +1781,7 @@ function renderLogTab() {
 
 function renderFakturaTab() {
   const c = currentCart;
-  const items = (c.items||[]).filter(i=>!i._note);
+  const items = (c.items||[]).filter(i=>!i._note && i.name);
   const total = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
   const invNum = c.invoice_number || '— (ej skapad)';
   const isPaid = !!c.invoice_paid_at;
