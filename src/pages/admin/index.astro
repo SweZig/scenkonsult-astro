@@ -542,11 +542,14 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       </div>
       <div class="form-row">
         <div><label class="form-label">Telefon</label><input class="form-input" id="qc-phone" placeholder="070 000 00 00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        <div><label class="form-label">Datum, från *</label><input class="form-input" type="date" id="qc-date" onchange="qcAutoReturnDate(this.value)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div><label class="form-label">CC-kopia <span style="font-size:0.72rem;color:rgba(196,181,244,0.55);font-weight:400">(kopia på alla mail)</span></label><input class="form-input" type="email" id="qc-cc" placeholder="cc@foretag.se" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
       </div>
       <div class="form-row">
+        <div><label class="form-label">Datum, från *</label><input class="form-input" type="date" id="qc-date" onchange="qcAutoReturnDate(this.value)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
         <div><label class="form-label">Datum, till</label><input class="form-input" type="date" id="qc-date-to" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      </div>
+      <div class="form-row">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;grid-column:1/-1">
           <div><label class="form-label">Utlämning</label><input class="form-input" type="time" id="qc-time-from" value="13:00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
           <div><label class="form-label">Återlämning</label><input class="form-input" type="time" id="qc-time-to" value="11:00" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
         </div>
@@ -2355,6 +2358,7 @@ function openQuoteModal(prefill) {
   $('qc-name').value     = prefill?.customer_name || '';
   $('qc-email').value    = prefill?.customer_email || '';
   $('qc-phone').value    = prefill?.customer_phone || '';
+  if ($('qc-cc')) $('qc-cc').value = prefill?.cc_email || '';
   $('qc-date').value     = prefill?.event_date || '';
   if ($('qc-date-to'))   $('qc-date-to').value   = prefill?.return_date   || '';
   if ($('qc-time-from')) $('qc-time-from').value = prefill?.delivery_time || '13:00';
@@ -2610,6 +2614,7 @@ async function sendQuote() {
     customer: {
       name, email,
       phone:    $('qc-phone').value.trim()   || null,
+      cc_email: $('qc-cc')?.value.trim()     || null,
       date:          $('qc-date').value           || null,
       return_date:   $('qc-date-to')?.value         || null,
       delivery_time: $('qc-time-from')?.value        || '13:00',
