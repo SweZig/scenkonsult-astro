@@ -332,7 +332,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
       from: FROM, to: [invoiceToEmail],
-      ...(cart.cc_email ? { cc: [cart.cc_email] } : {}),
+      ...(ccList.length ? { cc: ccList } : {}),
       reply_to: 'info@scenkonsult.se',
       subject:  `Faktura ${invoiceNumber} — Scenkonsult Norden`,
       html, text: plain,
@@ -414,7 +414,13 @@ exports.handler = async (event) => {
     if (error || !cart) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Order hittades inte' }) };
     if (!cart.customer_email) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Kunden saknar e-postadress' }) };
 
-    // Bestäm fakturaadress: alternativ mail om toggle är aktiv och adressen är ifylld
+  // Bygg CC-lista:
+  // - Om alternativ fakturamail är aktiv → lägg customer_email som CC (får kopia)
+  // - Om cc_email är satt → lägg alltid till
+  const ccList = [
+    ...(cart.use_invoice_email && cart.invoice_email && cart.customer_email ? [cart.customer_email] : []),
+    ...(cart.cc_email ? [cart.cc_email] : []),
+  ];
     const invoiceToEmail = (cart.use_invoice_email && cart.invoice_email)
       ? cart.invoice_email
       : cart.customer_email;
