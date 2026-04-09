@@ -1130,7 +1130,7 @@ function prodGetItems() {
     const type = rawType || (SVC_IDS_ALL.has(id) ? 'service' : 'product');
     const category = rawCat || (SVC_IDS_ALL.has(id) ? 'Tjänster' : '');
     return { id, name: get('name'), category, type, qty, price };
-  }).filter(i => i.name); // skip empty rows
+  }).filter(i => i.name?.trim()); // skip empty/whitespace rows
 }
 
 function prodUpdateSum(idx) {
@@ -1148,6 +1148,13 @@ function prodUpdateSum(idx) {
     <td style="text-align:right">${fmt(total)} kr</td><td></td></tr>
   <tr><td colspan="3" style="color:var(--text-faint);font-size:0.8rem">Inkl. 25% moms</td>
     <td style="text-align:right;color:var(--text-muted);font-size:0.85rem">${fmt(Math.round(total*1.25))} kr</td><td></td></tr>`;
+  // Synka summary-div:en under tabellen
+  const se = document.getElementById('prod-summary-excl');
+  const sv = document.getElementById('prod-summary-vat');
+  const si = document.getElementById('prod-summary-incl');
+  if (se) se.textContent = fmt(total) + ' kr';
+  if (sv) sv.textContent = fmt(Math.round(total*0.25)) + ' kr';
+  if (si) si.textContent = fmt(Math.round(total*1.25)) + ' kr';
 }
 
 // Wire up live sum update on input change
@@ -1447,7 +1454,7 @@ function renderProductsTab() {
   const noteItem = allItems.find(i => i._note);
   // Visa ALLA items i en flat tabell — produkter och tjänster ihop
   const items = allItems.filter(i => !i._note);
-  const total = items.filter(i => i.name).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
+  const total = items.filter(i => i.name?.trim()).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
 
   const SVC_CATS_DISPLAY = ['Tjänster', 'Tillägg'];
   const isSvcItem = i => i.type === 'service' || SVC_CATS_DISPLAY.includes(i.category);
@@ -1525,10 +1532,10 @@ function renderProductsTab() {
 
 
 
-    <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:10px">
-      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Produkter exkl. moms</span><span>${fmt(total)} kr</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Moms 25%</span><span>${fmt(Math.round(total*0.25))} kr</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;color:var(--brand-lav)"><span>Inkl. moms</span><span>${fmt(Math.round(total*1.25))} kr</span></div>
+    <div id="prod-summary" style="border-top:1px solid var(--border);margin-top:14px;padding-top:10px">
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Produkter exkl. moms</span><span id="prod-summary-excl">${fmt(total)} kr</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Moms 25%</span><span id="prod-summary-vat">${fmt(Math.round(total*0.25))} kr</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;color:var(--brand-lav)"><span>Inkl. moms</span><span id="prod-summary-incl">${fmt(Math.round(total*1.25))} kr</span></div>
     </div>
 
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
@@ -1673,7 +1680,7 @@ function prodRowHTML(i, idx) {
 }
 
 function prodTotals() {
-  const total = (currentCart.items||[]).filter(i => !i._note && i.name).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
+  const total = (currentCart.items||[]).filter(i => !i._note && i.name?.trim()).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
   return `<tr class="total-row"><td colspan="3">Totalt (exkl. moms)</td>
     <td style="text-align:right">${fmt(total)} kr</td><td></td></tr>
   <tr><td colspan="3" style="color:var(--text-faint);font-size:0.8rem">Inkl. 25% moms</td>
@@ -1793,7 +1800,7 @@ function renderLogTab() {
 
 function renderFakturaTab() {
   const c = currentCart;
-  const items = (c.items||[]).filter(i=>!i._note && i.name);
+  const items = (c.items||[]).filter(i=>!i._note && i.name?.trim());
   const total = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
   const invNum = c.invoice_number || '— (ej skapad)';
   const isPaid = !!c.invoice_paid_at;
@@ -1978,7 +1985,7 @@ async function invCreateAndSend() {
   }
 
   // Visa bekräftelsedialog med fakturanummer
-  const items = (currentCart.items||[]).filter(i=>!i._note&&i.name);
+  const items = (currentCart.items||[]).filter(i=>!i._note&&i.name?.trim());
   const total = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
   const totalIncl = Math.round(total * 1.25);
 
