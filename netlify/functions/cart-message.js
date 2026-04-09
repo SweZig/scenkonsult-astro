@@ -28,9 +28,10 @@ function mailWrapper(bodyHtml) {
 </table></td></tr></table></body></html>`;
 }
 
-async function sendMail(to, subject, html, text, replyTo) {
+async function sendMail(to, subject, html, text, replyTo, cc) {
   const body = { from: FROM, to, subject, html, text };
   if (replyTo) body.reply_to = replyTo;
+  if (cc) body.cc = Array.isArray(cc) ? cc : [cc];
   const res = await fetch(RESEND_API, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
@@ -138,7 +139,8 @@ exports.handler = async (event) => {
         `Svar från Scenkonsult — ${cart.id}`,
         html,
         `Svar från Scenkonsult: ${msgText}\n\nÖppna varukorgen: ${cartUrl || 'kontakta oss'}`,
-        ADMIN_MAIL
+        ADMIN_MAIL,
+        cart.cc_email || null
       );
     }
 

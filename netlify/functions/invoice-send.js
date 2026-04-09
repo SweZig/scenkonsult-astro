@@ -332,6 +332,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
       from: FROM, to: [invoiceToEmail],
+      ...(cart.cc_email ? { cc: [cart.cc_email] } : {}),
       reply_to: 'info@scenkonsult.se',
       subject:  `Faktura ${invoiceNumber} — Scenkonsult Norden`,
       html, text: plain,

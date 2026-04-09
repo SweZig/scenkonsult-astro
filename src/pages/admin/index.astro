@@ -1063,6 +1063,7 @@ function renderTab(tab) {
         return_time:      $('edit-return-time')?.value     || '11:00',
         invoice_email:    $('edit-invoice-email')?.value.trim() || null,
         use_invoice_email: $('use-invoice-email')?.checked ? true : false,
+        cc_email:         $('edit-cc-email')?.value.trim()     || null,
       };
       const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
       if (ok) {
@@ -1081,6 +1082,7 @@ function renderTab(tab) {
           return_time:      updates.return_time,
           invoice_email:    updates.invoice_email,
           use_invoice_email: updates.use_invoice_email,
+          cc_email:         updates.cc_email,
         });
         $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
         toast('Kunduppgifter sparade!');
@@ -1279,6 +1281,13 @@ function renderInfoTab() {
       <div class="info-field">
         <div class="info-field-label">Telefon</div>
         <input class="info-edit-input" id="edit-phone" value="${(c.customer_phone||'').replace(/"/g,'&quot;')}" placeholder="Telefon" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label" style="display:flex;align-items:center;gap:5px">
+          CC-kopia
+          <span style="font-size:0.72rem;color:rgba(196,181,244,0.55);font-weight:400">(läggs på kopia i all kundkommunikation)</span>
+        </div>
+        <input class="info-edit-input" id="edit-cc-email" type="email" value="${(c.cc_email||'').replace(/"/g,'&quot;')}" placeholder="cc@foretag.se" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
         <div class="info-field-label">Eventdatum (utlämning)</div>
