@@ -85,6 +85,7 @@ exports.handler = async (event) => {
       customer_type:    customer.company  ? 'b2b' : 'b2c',
       total_excl:       totalExcl * 100,
       cart_token:       cartToken,
+      cc_email:         customer.cc_email || null,
       expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
     });
     await logAudit(db, cartId, 'admin', 'quote_sent', { to: customer.email });
@@ -133,6 +134,7 @@ exports.handler = async (event) => {
     const customerMailPayload = {
       from:     MAIL_FROM,
       to:       [customer.email],
+      ...(customer.cc_email ? { cc: [customer.cc_email] } : {}),
       reply_to: 'info@scenkonsult.se',
       subject:  'Din offert från Scenkonsult Norden',
       html:     htmlWrapper(htmlBody),

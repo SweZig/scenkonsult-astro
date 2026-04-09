@@ -52,6 +52,7 @@ async function sendConfirmationEmail(cart) {
     body: JSON.stringify({
       from:     MAIL_FROM,
       to:       [cart.customer_email],
+      ...(cart.cc_email ? { cc: [cart.cc_email] } : {}),
       reply_to: 'info@scenkonsult.se',
       subject:  `Orderbekräftelse — ${cart.id}`,
       html,
@@ -163,6 +164,7 @@ exports.handler = async (event) => {
 
       if (body.invoice_email        !== undefined) updates.invoice_email        = body.invoice_email     || null;
       if (body.use_invoice_email    !== undefined) updates.use_invoice_email    = !!body.use_invoice_email;
+      if (body.cc_email             !== undefined) updates.cc_email             = body.cc_email          || null;
       if (body.customer_company     !== undefined) updates.customer_company     = body.customer_company  || null;
 
       // Statusändring
