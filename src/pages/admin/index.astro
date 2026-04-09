@@ -479,7 +479,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     </div>
     <div class="topbar-right">
       <span class="unread-badge" id="global-unread">0 nya</span>
-      <button class="btn-sm" id="new-quote-btn" style="border-color:var(--brand-lav);color:var(--brand-lav)">✉ Ny manuell order</button>
+      <button class="btn-sm" id="new-quote-btn" style="border-color:var(--brand-lav);color:var(--brand-lav)">✉ Ny manuell offert</button>
       <button class="btn-sm" id="refresh-btn">↻ Uppdatera</button>
       <a href="https://scenkonsult.se" target="_blank" class="btn-sm" style="text-decoration:none;">↗ Sajten</a>
       <a href="/admin/sven/" class="btn-sm" style="text-decoration:none;border-color:rgba(196,181,244,0.4);color:#c4b5f4">🤖 Sven</a>
@@ -2523,7 +2523,11 @@ function quoteRenderTable() {
            style="width:100%;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid rgba(196,181,244,0.3);padding:0.2rem 0.5rem;">`
       : `<span style="font-size:0.82rem">${item.name}</span>`;
     return `
-    <tr data-qidx="${idx}">
+    <tr data-qidx="${idx}" draggable="true"
+        ondragstart="quoteDragStart(event,${idx})" ondragover="quoteDragOver(event)"
+        ondrop="quoteDrop(event,${idx})" ondragend="quoteDragEnd(event)"
+        style="cursor:default">
+      <td style="width:22px;padding:0 4px 0 0;cursor:grab;color:rgba(196,181,244,0.4);font-size:1rem;text-align:center;user-select:none" title="Drag för att ändra ordning">⠿</td>
       <td>${nameCell}</td>
       <td style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px">
@@ -2571,6 +2575,43 @@ function quoteDelIdx(idx) {
   quoteItems.splice(idx, 1);
   quoteRenderTable();
 }
+
+// ── Drag-and-drop för quote-tabellen ─────────────────────────
+let _quoteDragSrc = null;
+
+function quoteDragStart(e, idx) {
+  _quoteDragSrc = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.currentTarget.style.opacity = '0.4';
+}
+
+function quoteDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('#quote-prod-tbody tr').forEach(r => r.style.borderTop = '');
+  e.currentTarget.style.borderTop = '2px solid var(--brand-lav)';
+}
+
+function quoteDrop(e, dropIdx) {
+  e.preventDefault();
+  if (_quoteDragSrc === null || _quoteDragSrc === dropIdx) return;
+  const dragged = quoteItems[_quoteDragSrc];
+  quoteItems.splice(_quoteDragSrc, 1);
+  const newPos = _quoteDragSrc < dropIdx ? dropIdx - 1 : dropIdx;
+  quoteItems.splice(newPos, 0, dragged);
+  quoteRenderTable();
+}
+
+function quoteDragEnd(e) {
+  _quoteDragSrc = null;
+  e.currentTarget.style.opacity = '';
+  document.querySelectorAll('#quote-prod-tbody tr').forEach(r => r.style.borderTop = '');
+}
+
+window.quoteDragStart = quoteDragStart;
+window.quoteDragOver  = quoteDragOver;
+window.quoteDrop      = quoteDrop;
+window.quoteDragEnd   = quoteDragEnd;
 
 // ── PDF-BIFOGNING ─────────────────────────────────────────────
 let _quotePdfData = null; // base64-sträng
@@ -2639,6 +2680,7 @@ async function sendQuote() {
   try {
     const { ok: success, data } = await api('admin-send-quote', { method: 'POST', body: JSON.stringify(payload) });
     if (success) {
+      const sentNote = $('qc-note').value.trim();
       closeQuoteModal();
       quotePdfClear();
       toast(`Offert skickad till ${email}! 🎉`);
@@ -2650,7 +2692,12 @@ async function sendQuote() {
         });
         currentCart.status = 'waiting';
       }
-      loadCarts();
+      await loadCarts();
+      // Synka noten till prod-note om panelen är öppen
+      if (sentNote && currentCart) {
+        const noteEl = $('prod-note');
+        if (noteEl) noteEl.value = sentNote;
+      }
     } else {
       errEl.textContent = data?.error || 'Kunde inte skicka offert.';
       errEl.style.display = 'block';
