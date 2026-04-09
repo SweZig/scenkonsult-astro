@@ -297,7 +297,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
 }
 
 // ── Skicka via Resend ─────────────────────────────────────────────────────────
-async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail) {
+async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail, ccList) {
   const items     = (cart.items||[]).filter(i=>!i._note && i.name);
   const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
   const totalIncl = Math.round(totalExcl * 1.25);
@@ -451,7 +451,7 @@ exports.handler = async (event) => {
     }
 
     const pdfBuffer = await generatePdfBuffer({ ...cart, invoice_number: invoiceNumber }, invoiceNumber, logoBuffer, swishQrBuffer);
-    await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail);
+    await sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail, ccList);
 
     const now = new Date().toISOString();
     await db.update('carts', { invoice_number: invoiceNumber, invoice_sent_at: now }, 'id', cart_id);
