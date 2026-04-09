@@ -13,7 +13,7 @@ exports.handler = async (event) => {
   const ip = event.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
   if (rateLimit(ip, 30)) return err('För många förfrågningar', 429);
 
-  const { token, id } = event.queryStringParameters || {};
+  const { token, id, preview } = event.queryStringParameters || {};
 
   const db = supabase();
 
@@ -55,15 +55,17 @@ exports.handler = async (event) => {
     }
 
     // Uppdatera last_read_customer och logga att kunden läst offerten
-    const readNow = new Date().toISOString();
-    const isFirstRead = !cart.last_read_customer;
-    db.update('carts', { last_read_customer: readNow }, 'cart_token', token).catch(e =>
-      console.warn('last_read_customer update failed:', e.message)
-    );
-    // Logga alltid i audit_log när kunden öppnar sin offert
-    logAudit(db, cart.id, 'customer', isFirstRead ? 'offer_opened_first' : 'offer_opened', {
-      status: cart.status,
-    }).catch(() => {});
+    // preview=1 innebär att admin förhandsgranskar — logga inte
+    if (preview !== '1') {
+      const readNow = new Date().toISOString();
+      const isFirstRead = !cart.last_read_customer;
+      db.update('carts', { last_read_customer: readNow }, 'cart_token', token).catch(e =>
+        console.warn('last_read_customer update failed:', e.message)
+      );
+      logAudit(db, cart.id, 'customer', isFirstRead ? 'offer_opened_first' : 'offer_opened', {
+        status: cart.status,
+      }).catch(() => {});
+    }
 
     // Hämta meddelanden (kund ser bara sin sida)
     const { data: messages } = await db.from('messages')
