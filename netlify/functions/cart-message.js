@@ -8,7 +8,7 @@
 const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
 
 const RESEND_API = 'https://api.resend.com/emails';
-const FROM       = 'Scenkonsult Norden <noreply@scenkonsult.se>';
+const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
 const ADMIN_MAIL = 'info@scenkonsult.se';
 const LOGO_URL   = 'https://scenkonsult.se/logo-white.png';
 

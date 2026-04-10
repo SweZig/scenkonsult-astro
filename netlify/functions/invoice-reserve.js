@@ -58,7 +58,7 @@ exports.handler = async (event) => {
         invoice_number: reservedInvoiceNumber,
         items: [],
         customer_name: '[Reserverat fakturanummer]',
-        customer_email: 'noreply@scenkonsult.se',
+        customer_email: 'hej@scenkonsult.se',
         notes_admin: `Manuellt reserverat ${new Date().toISOString().slice(0,10)} — hoppar till K${num}`,
         expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
       })

@@ -6,7 +6,7 @@
 const { supabase, isAdmin, ok, err, preflight, logAudit } = require('./_lib');
 
 const RESEND_API = 'https://api.resend.com/emails';
-const FROM       = 'Scenkonsult Norden <noreply@scenkonsult.se>';
+const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
 const LOGO_URL   = 'https://scenkonsult.se/logo-white.png';
 
 exports.handler = async (event) => {

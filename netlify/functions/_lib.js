@@ -180,7 +180,7 @@ function rateLimit(ip, maxPerMin = 10) {
 
 
 // ── Mail-helpers (delade av alla mail-funktioner) ─────────────
-const MAIL_FROM     = 'Scenkonsult Norden <noreply@scenkonsult.se>';
+const MAIL_FROM     = 'Scenkonsult Norden <hej@scenkonsult.se>';
 const MAIL_LOGO_URL = 'https://scenkonsult.se/logo-white.png';
 const RESEND_API    = 'https://api.resend.com/emails';
 
