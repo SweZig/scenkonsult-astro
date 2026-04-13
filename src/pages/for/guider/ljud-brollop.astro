@@ -3,11 +3,15 @@ import Layout from '../../../layouts/Layout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 
-const evSmall  = ljudData.event.products[0];
-const evMedium = ljudData.event.products[1];
-const portMed  = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
-const shureHS  = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
-const tradlos  = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
+const evSmall    = ljudData.event.products[0];   // SK-LJD-EVE-0001
+const evMedium   = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0002');
+const portMed    = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
+const musicSmall = ljudData.music.products[0];   // SK-LJD-MUS-0001
+const liveSmall  = ljudData.live.products[0];    // SK-LJD-LIV-0001
+const liveMedium = (ljudData.live.products as any[]).find((p:any) => p.artno === 'SK-LJD-LIV-0002');
+const shureHS    = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
+const shureMygga = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
+const tradlos    = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -75,11 +79,11 @@ const faqSchema = {
           </tr></thead>
           <tbody>
             {[
-              ["20–50", "Inomhus", "Portable Medium (kolumn)", "799 kr"],
-              ["50–100", "Inomhus", "Event Small", "799 kr"],
-              ["80–150", "Inomhus med dans", "Event Medium (med sub)", "1 199 kr"],
-              ["50–100", "Utomhus", "Event Medium eller Music Small", "1 199–999 kr"],
-              ["100–200", "Utomhus", "Music Medium eller Live Small", "1 499–1 199 kr"],
+              ["20–50", "Inomhus", "Portable Medium (kolumn)", `${portMed.price} kr`],
+              ["50–100", "Inomhus", "Event Small", `${evSmall.price} kr`],
+              ["80–150", "Inomhus med dans", "Event Medium (med sub)", `${evMedium.price} kr`],
+              ["50–100", "Utomhus", "Event Medium", `${evMedium.price} kr`],
+              ["100–200", "Utomhus", "Music Small eller Live Medium", `${musicSmall.price}–${liveMedium.price} kr`],
             ].map(([g,l,r,p], i) => (
               <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
                 <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{g}</td>
@@ -98,9 +102,9 @@ const faqSchema = {
       <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1rem;">Mikrofon till bröllop — tre alternativ</h2>
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem;">
         {[
-          { typ: "Trådlöst headset", passar: "Toastmaster, celebrant, musiker", pris: "749 kr/dygn", pros: "Händerna fria, sitter stabilt, professionellt" },
-          { typ: "Trådlös handmikrofon", passar: "Talare, sångare", pris: "400 kr/dygn", pros: "Enkel att använda, ingen installation" },
-          { typ: "Trådlös myggmikrofon", passar: "Präst/officiant, konferencier", pris: "699 kr/dygn", pros: "Knappt synlig, kräver inga händer" },
+          { typ: "Trådlöst headset", passar: "Toastmaster, celebrant, musiker", pris: `${shureHS.price} kr/dygn`, pros: "Händerna fria, sitter stabilt, professionellt" },
+          { typ: "Trådlös handmikrofon", passar: "Talare, sångare", pris: `${tradlos.price} kr/dygn`, pros: "Enkel att använda, ingen installation" },
+          { typ: "Trådlös myggmikrofon", passar: "Präst/officiant, konferencier", pris: `${shureMygga.price} kr/dygn`, pros: "Knappt synlig, kräver inga händer" },
         ].map(m => (
           <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.25rem;">
             <div style="color:white; font-weight:700; font-family:'Space Grotesk',sans-serif; margin-bottom:0.4rem;">{m.typ}</div>

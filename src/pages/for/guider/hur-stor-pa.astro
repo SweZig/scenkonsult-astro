@@ -1,22 +1,33 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import ljudData from '../../../data/ljud.json';
+
+// Prisuppslag från JSON — uppdateras automatiskt vid prisändring
+const _allProds = [
+  ...ljudData.event.products,
+  ...(ljudData.portable.products as any[]),
+  ...ljudData.music.products,
+  ...ljudData.live.products,
+];
+const p = (artno: string): number => (_allProds as any[]).find(x => x.artno === artno)?.price ?? 0;
+
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Hur stor PA-anläggning behöver jag? Guide 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/hur-stor-pa/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Hur stor PA behöver jag för 100 gäster?","acceptedAnswer":{"@type":"Answer","text":"For 100 gäster inomhus med dans: Music Small (999 kr/dygn exkl moms). Enbart tal: Event Small (799 kr). Utomhus: Music Medium (1 499 kr)."}},{"@type":"Question","name":"Vad är skillnaden på Portable, Event, Music och Live?","acceptedAnswer":{"@type":"Answer","text":"Portable = kompakt plug-and-play under 50 gäster. Event = konferens/tal. Music = dans/DJ med sub. Live = liveband med monitor-utgångar."}},{"@type":"Question","name":"Behöver jag subbasen?","acceptedAnswer":{"@type":"Answer","text":"Till dans och DJ: ja. Music-paketen inkluderar subwoofer. Till tal räcker Event-serien."}},{"@type":"Question","name":"Hur mycket effekt behövs utomhus?","acceptedAnswer":{"@type":"Answer","text":"Välj alltid ett steg upp jämfört med inomhus-rekommendationen. Utomhus saknas reflektioner från väggar och tak."}}]}]};
 const inomhus = [
-  {g:"10–50", typ:"Tal, mingel", paket:"Portable Small", pris:599, sub:"Nej", link:"/vara-tjanster/hyra-ljud/portable/"},
-  {g:"20–80", typ:"Fest, ej dans", paket:"Portable Medium", pris:799, sub:"Nej", link:"/vara-tjanster/hyra-ljud/portable/"},
-  {g:"50–100", typ:"Konferens, föreläsning", paket:"Event Small", pris:799, sub:"Nej", link:"/vara-tjanster/hyra-ljud/event/"},
-  {g:"50–100", typ:"Fest, dans, DJ", paket:"Music Small", pris:999, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
-  {g:"100–200", typ:"Event/konferens", paket:"Event Medium", pris:1599, sub:"Nej", link:"/vara-tjanster/hyra-ljud/event/"},
-  {g:"100–200", typ:"Dansfest, liveband", paket:"Music Medium", pris:1499, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
-  {g:"200–500", typ:"Stor fest, konsert", paket:"Music Large", pris:1899, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
-  {g:"500+", typ:"Festival, stor konsert", paket:"Live/Music XL", pris:2299, sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
+  {g:"10–50", typ:"Tal, mingel", paket:"Portable Small", pris:p("SK-LJD-POR-0001"), sub:"Nej", link:"/vara-tjanster/hyra-ljud/portable/"},
+  {g:"20–80", typ:"Fest, ej dans", paket:"Portable Medium", pris:p("SK-LJD-POR-0003"), sub:"Nej", link:"/vara-tjanster/hyra-ljud/portable/"},
+  {g:"50–100", typ:"Konferens, föreläsning", paket:"Event Small", pris:p("SK-LJD-EVE-0001"), sub:"Nej", link:"/vara-tjanster/hyra-ljud/event/"},
+  {g:"50–100", typ:"Fest, dans, DJ", paket:"Music Small", pris:p("SK-LJD-MUS-0001"), sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
+  {g:"100–200", typ:"Event/konferens", paket:"Event Medium", pris:p("SK-LJD-EVE-0002"), sub:"Nej", link:"/vara-tjanster/hyra-ljud/event/"},
+  {g:"100–200", typ:"Dansfest, liveband", paket:"Music Medium", pris:p("SK-LJD-MUS-0003"), sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
+  {g:"200–500", typ:"Stor fest, konsert", paket:"Music Large", pris:p("SK-LJD-MUS-0004"), sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
+  {g:"500+", typ:"Festival, stor konsert", paket:"Live/Music XL", pris:p("SK-LJD-MUS-0005"), sub:"Ingår", link:"/vara-tjanster/hyra-ljud/music/"},
 ];
 const utomhus = [
-  {g:"10–50", paket:"Portable Large", pris:1199, k:"Minsta alternativ utomhus"},
-  {g:"50–100", paket:"Event Medium", pris:1599, k:"Tal och mingel utomhus"},
-  {g:"50–150", paket:"Music Small+", pris:1299, k:"Dans utomhus – rekommenderat minimum"},
-  {g:"150–300", paket:"Music Large", pris:1899, k:"Bra täckning utomhus"},
-  {g:"300+", paket:"Live/Music XL+", pris:2999, k:"Kontakta oss för anpassning"},
+  {g:"10–50", paket:"Portable Large", pris:p("SK-LJD-POR-0006"), k:"Minsta alternativ utomhus"},
+  {g:"50–100", paket:"Event Medium", pris:p("SK-LJD-EVE-0002"), k:"Tal och mingel utomhus"},
+  {g:"50–150", paket:"Music Small+", pris:p("SK-LJD-MUS-0002"), k:"Dans utomhus – rekommenderat minimum"},
+  {g:"150–300", paket:"Music Large", pris:p("SK-LJD-MUS-0004"), k:"Bra täckning utomhus"},
+  {g:"300+", paket:"Live/Music XL+", pris:p("SK-LJD-MUS-0006"), k:"Kontakta oss för anpassning"},
 ];
 ---
 <Layout title="Hur Stor PA-anläggning Behöver Jag? Guide 2025 | Scenkonsult" description="Rätt PA-system för ditt event. Tabeller inomhus/utomhus, gästantal, eventtyp. Priser fr 599 kr/dygn — Scenkonsult sedan 1986." schemaExtra={schema}>
@@ -33,9 +44,9 @@ const utomhus = [
       <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:1.75rem;margin-bottom:3rem;">
         <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.75rem;">Snabbsvar</p>
         <ul style="margin:0;padding:0 0 0 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
-          <li><strong style="color:white;">Under 50 gäster, tal:</strong> <a href="/vara-tjanster/hyra-ljud/portable/" style="color:#c4b5f4;">Portable Small</a> — <span data-exkl="599">599</span> kr/dygn</li>
-          <li><strong style="color:white;">50–100 gäster med dans:</strong> <a href="/vara-tjanster/hyra-ljud/music/" style="color:#c4b5f4;">Music Small</a> — <span data-exkl="999">999</span> kr/dygn</li>
-          <li><strong style="color:white;">100–200 gäster, dans:</strong> <a href="/vara-tjanster/hyra-ljud/music/" style="color:#c4b5f4;">Music Medium</a> — <span data-exkl="1499">1499</span> kr/dygn</li>
+          <li><strong style="color:white;">Under 50 gäster, tal:</strong> <a href="/vara-tjanster/hyra-ljud/portable/" style="color:#c4b5f4;">Portable Small</a> — <span class="sk-price-excl" data-exkl={p("SK-LJD-POR-0001")}>{p("SK-LJD-POR-0001")}</span> kr/dygn</li>
+          <li><strong style="color:white;">50–100 gäster med dans:</strong> <a href="/vara-tjanster/hyra-ljud/music/" style="color:#c4b5f4;">Music Small</a> — <span class="sk-price-excl" data-exkl={p("SK-LJD-MUS-0001")}>{p("SK-LJD-MUS-0001")}</span> kr/dygn</li>
+          <li><strong style="color:white;">100–200 gäster, dans:</strong> <a href="/vara-tjanster/hyra-ljud/music/" style="color:#c4b5f4;">Music Medium</a> — <span class="sk-price-excl" data-exkl={p("SK-LJD-MUS-0003")}>{p("SK-LJD-MUS-0003")}</span> kr/dygn</li>
           <li><strong style="color:white;">Utomhus:</strong> Välj alltid ett steg upp i paketserie</li>
         </ul>
       </div>
@@ -80,7 +91,7 @@ const utomhus = [
       </div>
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">3 vanliga misstag</h2>
       <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:2.5rem;">
-        {[{nr:"01",t:"Event-paketet till dans",d:"Event-serien saknar subwoofer och klippar bassen vid höga volymer. Välj Music-serien när det ska danssas."},{nr:"02",t:"Underdimensionera utomhus",d:"Välj alltid ett paket upp. Utomhus försvinner reflektionerna och ljudet tappar volym och bas."},{nr:"03",t:"Glömma mikrofoner",d:"PA-paketen inkluderar högtalare. Lägg till handmikrofon (80 kr) och mixerbord (fr 159 kr) om du behöver prata."}].map(m=>(
+        {[{nr:"01",t:"Event-paketet till dans",d:"Event-serien saknar subwoofer och klippar bassen vid höga volymer. Välj Music-serien när det ska danssas."},{nr:"02",t:"Underdimensionera utomhus",d:"Välj alltid ett paket upp. Utomhus försvinner reflektionerna och ljudet tappar volym och bas."},{nr:"03",t:"Glömma mikrofoner",d:"PA-paketen inkluderar högtalare. Lägg till handmikrofon och mixerbord om du behöver prata."}].map(m=>(
           <div style="background:#1e1850;border-radius:10px;padding:1.25rem 1.5rem;display:flex;gap:1.25rem;">
             <span style="font-family:'DM Serif Display',serif;font-size:1.75rem;color:rgba(196,181,244,0.25);line-height:1;flex-shrink:0;">{m.nr}</span>
             <div><h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;color:white;margin:0 0 0.4rem;">{m.t}</h3><p style="color:rgba(255,255,255,0.55);font-size:0.88rem;line-height:1.65;margin:0;">{m.d}</p></div>

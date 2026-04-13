@@ -1,29 +1,48 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import ljudData from '../../../data/ljud.json';
+import ljusData from '../../../data/ljus.json';
+import sceneData from '../../../data/scenes.json';
+import djData from '../../../data/dj.json';
+import fraktData from '../../../data/frakt.json';
+
+// Prisuppslag — alltid synkat med JSON
+const _lp = [...ljudData.event.products, ...(ljudData.portable.products as any[]), ...ljudData.music.products, ...ljudData.live.products, ...(ljudData.mixers?.products ?? []), ...(ljudData.tillbehor_mikrofon as any[])];
+const _jp = (ljusData.paket.products as any[]);
+const _je = (ljusData.effekter.products as any[]);
+const _jr = (ljusData.rok.products as any[]);
+const _sp = (sceneData.products as any[]);
+const _dp = (djData.products ?? []) as any[];
+
+const lp = (artno: string) => _lp.find(x => x.artno === artno)?.price ?? 0;
+const jp = (artno: string) => [..._jp,..._je,..._jr].find((x:any) => x.artno === artno)?.price ?? 0;
+const sp = (artno: string) => _sp.find(x => x.artno === artno)?.price ?? 0;
+const dp = (artno: string) => _dp.find((x:any) => x.artno === artno)?.price ?? 0;
+
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Vad kostar det att hyra scen, ljud och ljus? Prisguide 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/vad-kostar-det/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar det att hyra ett PA-system?","acceptedAnswer":{"@type":"Answer","text":"Portable Small (10–50 pers) kostar 599 kr/dygn exkl moms. Music Small (50–100 pers, dans) 999 kr. Music Large (200–500 pers) 1 899 kr. Priser exkl moms."}},{"@type":"Question","name":"Vad kostar hyra av scen?","acceptedAnswer":{"@type":"Answer","text":"Scenpaket Small (4 m²) kostar 599 kr/dygn exkl moms. Medium+ (12 m²) 1 799 kr. Large+ med scentak (24 m²) 11 999 kr. Alla priser exkl moms."}},{"@type":"Question","name":"Är det billigare att hämta själv?","acceptedAnswer":{"@type":"Answer","text":"Ja, avhämtning är alltid gratis. Leverans tillkommer och kostar beroende på mängd och adress."}}]}]};
 const paket = [
   {title:"Liten fest, ~50 gäster",rows:[
-    {kat:"Ljud",prod:"Portable Medium",p:799,l:"/vara-tjanster/hyra-ljud/portable/"},
-    {kat:"Ljus",prod:"Ljuspaket Small",p:399,l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Ljud",prod:"Portable Medium",p:lp("SK-LJD-POR-0003"),l:"/vara-tjanster/hyra-ljud/portable/"},
+    {kat:"Ljus",prod:"Ljuspaket Small",p:jp("SK-LJS-PAK-0001"),l:"/vara-tjanster/hyra-ljus/"},
   ],total:1198,note:"Hämta själv = 0 kr transport"},
   {title:"Bröllop, ~100 gäster",rows:[
-    {kat:"Ljud",prod:"Music Small",p:999,l:"/vara-tjanster/hyra-ljud/music/"},
-    {kat:"Scen",prod:"Scenpaket Small+ (6 m²)",p:899,l:"/vara-tjanster/hyra-scen/"},
+    {kat:"Ljud",prod:"Music Small",p:lp("SK-LJD-MUS-0001"),l:"/vara-tjanster/hyra-ljud/music/"},
+    {kat:"Scen",prod:"Scenpaket Small+ (6 m²)",p:sp("SK-SCN-0002"),l:"/vara-tjanster/hyra-scen/"},
     {kat:"Scen",prod:"Scentrapp 60 cm",p:349,l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus",prod:"Ljuspaket Medium",p:1199,l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Ljus",prod:"Ljuspaket Medium",p:jp("SK-LJS-PAK-0003"),l:"/vara-tjanster/hyra-ljus/"},
   ],total:3446,note:"Transport och montering tillkommer"},
   {title:"Företagsfest, ~200 gäster",rows:[
-    {kat:"Ljud",prod:"Music Large",p:1899,l:"/vara-tjanster/hyra-ljud/music/"},
+    {kat:"Ljud",prod:"Music Large",p:lp("SK-LJD-MUS-0004"),l:"/vara-tjanster/hyra-ljud/music/"},
     {kat:"Mixer",prod:"Mixerbord 12+4 kanaler",p:399,l:"/vara-tjanster/hyra-ljud/event/"},
-    {kat:"Scen",prod:"Scenpaket Medium++ (16 m²)",p:2399,l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus",prod:"Ljuspaket Medium++",p:1499,l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Scen",prod:"Scenpaket Medium++ (16 m²)",p:sp("SK-SCN-0007"),l:"/vara-tjanster/hyra-scen/"},
+    {kat:"Ljus",prod:"Ljuspaket Medium++",p:jp("SK-LJS-PAK-0003"),l:"/vara-tjanster/hyra-ljus/"},
     {kat:"DJ",prod:"Denon Prime 4+",p:1499,l:"/vara-tjanster/hyra-dj/"},
   ],total:7695,note:"Transport och montering tillkommer"},
   {title:"Festival, ~500 gäster utomhus",rows:[
-    {kat:"Ljud",prod:"Live/Music XL+",p:2999,l:"/vara-tjanster/hyra-ljud/music/"},
-    {kat:"Scen",prod:"Scenpaket Large+ inkl. scentak",p:11999,l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus",prod:"Ljuspaket Medium++",p:1499,l:"/vara-tjanster/hyra-ljus/"},
-    {kat:"Rök",prod:"Rökmaskin 1500W",p:349,l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Ljud",prod:"Live/Music XL+",p:lp("SK-LJD-MUS-0006"),l:"/vara-tjanster/hyra-ljud/music/"},
+    {kat:"Scen",prod:"Scenpaket Large+ inkl. scentak",p:sp("SK-SCN-0010"),l:"/vara-tjanster/hyra-scen/"},
+    {kat:"Ljus",prod:"Ljuspaket Medium++",p:jp("SK-LJS-PAK-0003"),l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Rök",prod:"Rökmaskin 1500W",p:jp("SK-LJS-ROK-0001"),l:"/vara-tjanster/hyra-ljus/"},
   ],total:16846,note:"Kontakta oss för festivalpris"},
 ];
 const sparTips = [

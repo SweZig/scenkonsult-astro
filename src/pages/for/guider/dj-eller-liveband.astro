@@ -1,16 +1,25 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import djData from '../../../data/dj.json';
+import ljudData from '../../../data/ljud.json';
+import sceneData from '../../../data/scenes.json';
+
+const _dp = (djData.equipment as any[]);
+const dp = (artno: string) => _dp.find((x:any) => x.artno === artno)?.price ?? 0;
+const lp = (artno: string) => [...ljudData.event.products,...ljudData.music.products,...ljudData.live.products,...(ljudData.portable.products as any[])].find(x => x.artno === artno)?.price ?? 0;
+const sp = (artno: string) => (sceneData.products as any[]).find(x => x.artno === artno)?.price ?? 0;
+// DJ-service priser från JSON
+const djSvc = (djData.djService as any).priceTable;
+
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"DJ eller liveband? Ärlig jämförelse 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/dj-eller-liveband/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar en DJ till bröllop?","acceptedAnswer":{"@type":"Answer","text":"Via Scenkonsult kostar en junior DJ 1 999 kr (2 tim) upp till 3 199 kr (4 tim) exkl moms. Senior DJ 2 399–3 999 kr exkl moms. DJ-hårdvara ingår."}},{"@type":"Question","name":"Vad kostar det att hyra DJ-utrustning?","acceptedAnswer":{"@type":"Answer","text":"Numark Mixstream Pro+ kostar 799 kr/dygn. Denon Prime GO+ 999 kr/dygn. Denon Prime 4+ 1 499 kr/dygn. Rane System One 1 999 kr/dygn. Alla priser exkl moms."}},{"@type":"Question","name":"Kan man kombinera DJ och liveband?","acceptedAnswer":{"@type":"Answer","text":"Ja — liveband under cocktail/middag, DJ på dansgolvet. Det kräver scen (fr Scenpaket Medium+ 1 799 kr/dygn) och PA som funkar för båda (Music-serien fr 999 kr/dygn)."}}]}]};
 const djUtrustning = [
-  {n:"Numark Mixstream Pro+",p:799,d:"Standalone, WiFi-streaming inbyggt. Spotify, Tidal, SoundCloud. Inga kablar till laptop.",link:"/vara-tjanster/hyra-dj/"},
-  {n:"Denon Prime GO+",p:999,d:"Kompakt 2-deck standalone. Batteri + WiFi. Perfekt för mindre event.",link:"/vara-tjanster/hyra-dj/"},
-  {n:"Denon Prime 4+",p:1499,d:"4-deck standalone. Stor skärm, inbyggt ljudkort. Professionell setup utan laptop.",link:"/vara-tjanster/hyra-dj/"},
-  {n:"Rane System One",p:1999,d:"Professionellt Serato-system. Valt av toppnamn. Magistralt ljud och byggkvalitet.",link:"/vara-tjanster/hyra-dj/"},
+  {n:"Numark Mixstream Pro+",p:dp("SK-DJ-0001"),d:"Standalone, WiFi-streaming inbyggt. Spotify, Tidal, SoundCloud. Inga kablar till laptop.",link:"/vara-tjanster/hyra-dj/"},
+  {n:"Denon Prime GO+",p:dp("SK-DJ-0002"),d:"Kompakt 2-deck standalone. Batteri + WiFi. Perfekt för mindre event.",link:"/vara-tjanster/hyra-dj/"},
+  {n:"Denon Prime 4+",p:dp("SK-DJ-0003"),d:"4-deck standalone. Stor skärm, inbyggt ljudkort. Professionell setup utan laptop.",link:"/vara-tjanster/hyra-dj/"},
+  {n:"Rane System One",p:dp("SK-DJ-0004"),d:"Professionellt Serato-system. Valt av toppnamn. Magistralt ljud och byggkvalitet.",link:"/vara-tjanster/hyra-dj/"},
 ];
 const djService = [
-  {tid:"2 tim",junior:1999,juniorInkl:2499,senior:2399,seniorInkl:2999},
-  {tid:"3 tim",junior:2599,juniorInkl:3249,senior:3199,seniorInkl:3999},
-  {tid:"4 tim",junior:3199,juniorInkl:3999,senior:3999,seniorInkl:4999},
+  ...(djData.djService as any).priceTable.map((r:any) => ({tid:r.hours,junior:r.junior,juniorInkl:r.juniorInkl,senior:r.senior,seniorInkl:r.seniorInkl})),
 ];
 ---
 <Layout title="DJ eller Liveband? Ärlig Jämförelse 2025 | Scenkonsult" description="DJ vs liveband — pris, stämning, logistik och teknikkrav. Konkreta priser från Scenkonsults sortiment. Uthyrare sedan 1986." schemaExtra={schema}>

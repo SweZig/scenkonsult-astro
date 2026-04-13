@@ -1,23 +1,30 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import ljusData from '../../../data/ljus.json';
+
+const _jp = (ljusData.paket.products as any[]);
+const _je = (ljusData.effekter.products as any[]);
+const _jr = (ljusData.rok.products as any[]);
+const jp = (artno: string) => [..._jp,..._je,..._jr].find((x:any) => x.artno === artno)?.price ?? 0;
+
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Ljussättning för event — guide till bättre stämning 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/ljussattning-tips/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar det att hyra ljus till ett event?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Small (10–30 pers) kostar 399 kr/dygn exkl moms. Medium (40–80 pers) 1 199 kr/dygn. Enstaka LED PAR-armaturer kostar fr 79 kr/dygn. Rökmaskin 349–449 kr/dygn."}},{"@type":"Question","name":"Behöver jag rökmaskin till lasern?","acceptedAnswer":{"@type":"Answer","text":"Ja. En laser utan rök eller haze är knappt synlig. Rökmaskin 1500W kostar 349 kr/dygn."}},{"@type":"Question","name":"Vilket ljuspaket passar 100 gäster?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Medium (40–80 pers, 1 199 kr/dygn) eller Medium+ (40–100 pers, 1 299 kr/dygn). Komplettera med enstaka LED PAR-armaturer (fr 79 kr/st) för väggfärg."}}]}]};
 const paket = [
-  {n:"Ljuspaket, Small",p:399,pers:"10–30 pers.",d:"T-bar med 4× PAR RGBW på stativ. Synkar till musik. Plug and play."},
-  {n:"Ljuspaket, Small+",p:599,pers:"20–40 pers.",d:"Trosstorn med moving head 100W COB. Roterar 540°, DMX/musikstyrning."},
-  {n:"Ljuspaket, Small++",p:799,pers:"20–60 pers.",d:"4 effekttyper på 2 stativ: PAR, roterande armatur, strobe/UV och laser."},
-  {n:"Ljuspaket, Medium",p:1199,pers:"40–80 pers.",d:"Komplett diskoljus med moving heads och PAR-bank. Bra bas för dansgolv."},
-  {n:"Ljuspaket, Medium+",p:1299,pers:"40–100 pers.",d:"Utökat medium med extra moving head-täckning."},
-  {n:"Ljuspaket, Medium++",p:1499,pers:"50–120 pers.",d:"Maxpaketet för medelstora event. Full täckning, inga blinda fläckar."},
+  {n:"Ljuspaket, Small",p:jp("SK-LJS-PAK-0001"),pers:"10–30 pers.",d:"T-bar med 4× PAR RGBW på stativ. Synkar till musik. Plug and play."},
+  {n:"Ljuspaket, Small+",p:jp("SK-LJS-PAK-0002"),pers:"20–40 pers.",d:"Trosstorn med moving head 100W COB. Roterar 540°, DMX/musikstyrning."},
+  {n:"Ljuspaket, Small++",p:jp("SK-LJS-PAK-0003"),pers:"20–60 pers.",d:"4 effekttyper på 2 stativ: PAR, roterande armatur, strobe/UV och laser."},
+  {n:"Ljuspaket, Medium",p:jp("SK-LJS-PAK-0004"),pers:"40–80 pers.",d:"Komplett diskoljus med moving heads och PAR-bank. Bra bas för dansgolv."},
+  {n:"Ljuspaket, Medium+",p:jp("SK-LJS-PAK-0005"),pers:"40–100 pers.",d:"Utökat medium med extra moving head-täckning."},
+  {n:"Ljuspaket, Medium++",p:jp("SK-LJS-PAK-0006"),pers:"50–120 pers.",d:"Maxpaketet för medelstora event. Full täckning, inga blinda fläckar."},
 ];
 const effekter = [
-  {n:"LED PAR (14×8W RGBW)",p:79,d:"Väggfärg / uplight"},
-  {n:"LED PAR (9×10W RGBW)",p:99,d:"Starkare variant"},
-  {n:"LED PAR UV",p:119,d:"UV-ljus / black light"},
-  {n:"LED PAR XL (60×2W RGBW)",p:149,d:"Bred wash-täckning"},
-  {n:"LED-armatur, uppladdningsbar",p:199,d:"Trådlös, batteri"},
+  {n:"LED PAR (14×8W RGBW)",p:jp("SK-LJS-EFF-0001"),d:"Väggfärg / uplight"},
+  {n:"LED PAR (9×10W RGBW)",p:jp("SK-LJS-EFF-0002"),d:"Starkare variant"},
+  {n:"LED PAR UV",p:jp("SK-LJS-EFF-0003"),d:"UV-ljus / black light"},
+  {n:"LED PAR XL (60×2W RGBW)",p:jp("SK-LJS-EFF-0004"),d:"Bred wash-täckning"},
+  {n:"LED-armatur, uppladdningsbar",p:jp("SK-LJS-EFF-0005"),d:"Trådlös, batteri"},
 ];
 const rok = [
-  {n:"Rökmaskin (1500W)",p:349},{n:"Rökmaskin (650W)",p:449},{n:"Kallgnistmaskin",p:499},{n:"Konfettiavfyrare",p:499}
+  {n:"Rökmaskin (1500W)",p:jp("SK-LJS-ROK-0001")},{n:"Rökmaskin (650W)",p:jp("SK-LJS-ROK-0002")},{n:"Kallgnistmaskin",p:jp("SK-LJS-ROK-0003")},{n:"Konfettiavfyrare",p:jp("SK-LJS-ROK-0004")}
 ];
 ---
 <Layout title="Ljussättning för Event — Guide & Priser 2025 | Scenkonsult" description="Typer av ljus, dramaturgi och vanliga misstag. Priser på ljuspaket fr 399 kr/dygn — matchade mot vårt sortiment. Scenkonsult sedan 1986." schemaExtra={schema}>
@@ -69,7 +76,7 @@ const rok = [
       </div>
       <div style="background:#1e1850;border:1px solid rgba(255,100,100,0.2);border-radius:12px;padding:1.5rem;margin-bottom:3rem;">
         <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;color:#fbbf24;margin:0 0 0.75rem;">⚡ Kom ihåg: laser utan rök syns knappt</h3>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;line-height:1.65;margin:0;">Small++ och Medium-paketen inkluderar laser. För maximal effekt behöver du rökmaskin (fr <span data-exkl="349">349</span> kr/dygn) — annars är ljusstrålarna knappt synliga i luften.</p>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;line-height:1.65;margin:0;">Small++ och Medium-paketen inkluderar laser. För maximal effekt behöver du rökmaskin (fr <span data-exkl={jp("SK-LJS-ROK-0001")}>{jp("SK-LJS-ROK-0001")}</span> kr/dygn) — annars är ljusstrålarna knappt synliga i luften.</p>
       </div>
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Ljus-dramaturgi under kvällen</h2>
       <div style="display:flex;flex-direction:column;gap:0;margin-bottom:2.5rem;">
@@ -85,7 +92,7 @@ const rok = [
       </div>
       <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Se alla ljuspriser</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ljuspaket fr <span data-exkl="399">399</span> kr/dygn. Enstaka armaturer fr <span data-exkl="79">79</span> kr. Leverans i hela Storstockholm.</p>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ljuspaket fr <span data-exkl={jp("SK-LJS-PAK-0001")}>{jp("SK-LJS-PAK-0001")}</span> kr/dygn. Enstaka armaturer fr <span data-exkl="79">79</span> kr. Leverans i hela Storstockholm.</p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
           <a href="/vara-tjanster/hyra-ljus/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se ljuspaket</a>
           <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>

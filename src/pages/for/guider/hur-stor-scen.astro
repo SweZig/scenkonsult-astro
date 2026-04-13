@@ -1,19 +1,23 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import sceneData from '../../../data/scenes.json';
+
+const sp = (artno: string): number => (sceneData.products as any[]).find(x => x.artno === artno)?.price ?? 0;
+
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Hur stor scen behöver jag? Guide med tabell 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/hur-stor-scen/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Hur stor scen till bröllop?","acceptedAnswer":{"@type":"Answer","text":"Till bröllop med trubadur eller DJ: Scenpaket Small (4 m², 599 kr/dygn). Med band 3–4 musiker: Scenpaket Medium+ (12 m², 1 799 kr/dygn)."}},{"@type":"Question","name":"Hur många kvadratmeter per person på scenen?","acceptedAnswer":{"@type":"Answer","text":"Räkna 2–4 m² per person. DJ solo: 4 m² (Scenpaket Small). Band 4 musiker: 12 m² (Scenpaket Medium+). Fullband med backline: 16–20 m²."}},{"@type":"Question","name":"Behövs scentak utomhus?","acceptedAnswer":{"@type":"Answer","text":"Ja, alltid. Vi erbjuder Scenpaket Medium+ inkl. scentak (3 799 kr/dygn) och Scenpaket Large+ inkl. scentak (11 999 kr/dygn)."}},{"@type":"Question","name":"Vilken scenhöjd passar?","acceptedAnswer":{"@type":"Answer","text":"40 cm: liten fest under 80 gäster. 60 cm: standard för de flesta event 50–300 gäster. 80–100 cm: stora publiker och festivaler."}}]}]};
 const scenprodukter = [
-  {storlek:"4 m²",paket:"Scenpaket Small",pris:599,for:"DJ solo, trubadur",gaster:"20–100",notat:"Minsta praktiska scen"},
-  {storlek:"6 m²",paket:"Scenpaket Small+",pris:899,for:"DJ + utrustning, tal",gaster:"50–200",notat:"Populärast bröllop"},
-  {storlek:"8 m²",paket:"Scenpaket Small++",pris:1199,for:"Duo, liten trio",gaster:"50–250",notat:"Bra för 2-mannasband"},
-  {storlek:"10 m²",paket:"Scenpaket Medium",pris:1499,for:"Trio, DJ-setup",gaster:"100–300",notat:"Minsta för band"},
-  {storlek:"12 m²",paket:"Scenpaket Medium+",pris:1799,for:"Kvartett, 4-mannasband",gaster:"200–500",notat:"Standard liten festival"},
-  {storlek:"12 m² + tak",paket:"Scenpaket Medium+ inkl. scentak",pris:3799,for:"Utomhusevent band",gaster:"200–500",notat:"Väderskyddat utomhus"},
-  {storlek:"16 m²",paket:"Scenpaket Medium++",pris:2399,for:"Fullband 5 pers",gaster:"300–600",notat:"Inkl. plats för backline"},
-  {storlek:"20 m²",paket:"Scenpaket Large",pris:2999,for:"Stort band, show",gaster:"500–1000",notat:"Festival medium"},
-  {storlek:"24 m²",paket:"Scenpaket Large+",pris:3599,for:"Proffsband",gaster:"500–1000",notat:""},
-  {storlek:"24 m² + tak",paket:"Scenpaket Large+ inkl. scentak",pris:11999,for:"Stor utomhusfestival",gaster:"1000+",notat:"Professionell utomhusrig"},
-  {storlek:"36 m²",paket:"Scenpaket XL",pris:5399,for:"Stor show, artist",gaster:"1000+",notat:""},
-  {storlek:"48 m²",paket:"Scenpaket XL+",pris:7199,for:"Konsert, stor festival",gaster:"2000+",notat:"Maxstorlek"},
+  {storlek:"4 m²",paket:"Scenpaket Small",pris:sp("SK-SCN-0001"),for:"DJ solo, trubadur",gaster:"20–100",notat:"Minsta praktiska scen"},
+  {storlek:"6 m²",paket:"Scenpaket Small+",pris:sp("SK-SCN-0002"),for:"DJ + utrustning, tal",gaster:"50–200",notat:"Populärast bröllop"},
+  {storlek:"8 m²",paket:"Scenpaket Small++",pris:sp("SK-SCN-0003"),for:"Duo, liten trio",gaster:"50–250",notat:"Bra för 2-mannasband"},
+  {storlek:"10 m²",paket:"Scenpaket Medium",pris:sp("SK-SCN-0004"),for:"Trio, DJ-setup",gaster:"100–300",notat:"Minsta för band"},
+  {storlek:"12 m²",paket:"Scenpaket Medium+",pris:sp("SK-SCN-0005"),for:"Kvartett, 4-mannasband",gaster:"200–500",notat:"Standard liten festival"},
+  {storlek:"12 m² + tak",paket:"Scenpaket Medium+ inkl. scentak",pris:sp("SK-SCN-0006"),for:"Utomhusevent band",gaster:"200–500",notat:"Väderskyddat utomhus"},
+  {storlek:"16 m²",paket:"Scenpaket Medium++",pris:sp("SK-SCN-0007"),for:"Fullband 5 pers",gaster:"300–600",notat:"Inkl. plats för backline"},
+  {storlek:"20 m²",paket:"Scenpaket Large",pris:sp("SK-SCN-0008"),for:"Stort band, show",gaster:"500–1000",notat:"Festival medium"},
+  {storlek:"24 m²",paket:"Scenpaket Large+",pris:sp("SK-SCN-0009"),for:"Proffsband",gaster:"500–1000",notat:""},
+  {storlek:"24 m² + tak",paket:"Scenpaket Large+ inkl. scentak",pris:sp("SK-SCN-0010"),for:"Stor utomhusfestival",gaster:"1000+",notat:"Professionell utomhusrig"},
+  {storlek:"36 m²",paket:"Scenpaket XL",pris:sp("SK-SCN-0011"),for:"Stor show, artist",gaster:"1000+",notat:""},
+  {storlek:"48 m²",paket:"Scenpaket XL+",pris:sp("SK-SCN-0012"),for:"Konsert, stor festival",gaster:"2000+",notat:"Maxstorlek"},
 ];
 const tillbehor = [
   {n:"Scentrapp (40 cm)",p:279},{n:"Scentrapp (60 cm)",p:349},{n:"Scenkjol (per 4 m)",p:79},{n:"Backdrop 3,5×2,5 m",p:799}
@@ -33,9 +37,9 @@ const tillbehor = [
       <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:1.75rem;margin-bottom:3rem;">
         <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.75rem;">Snabbsvar</p>
         <ul style="margin:0;padding:0 0 0 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
-          <li><strong style="color:white;">DJ eller trubadur:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Small</a> (4 m²) — <span data-exkl="599">599</span> kr/dygn</li>
-          <li><strong style="color:white;">Band 3–4 musiker:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Medium+</a> (12 m²) — <span data-exkl="1799">1799</span> kr/dygn</li>
-          <li><strong style="color:white;">Utomhus med tak:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Medium+ inkl. scentak</a> — <span data-exkl="3799">3799</span> kr/dygn</li>
+          <li><strong style="color:white;">DJ eller trubadur:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Small</a> (4 m²) — <span data-exkl={sp("SK-SCN-0001")}>{sp("SK-SCN-0001")}</span> kr/dygn</li>
+          <li><strong style="color:white;">Band 3–4 musiker:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Medium+</a> (12 m²) — <span data-exkl={sp("SK-SCN-0005")}>{sp("SK-SCN-0005")}</span> kr/dygn</li>
+          <li><strong style="color:white;">Utomhus med tak:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Medium+ inkl. scentak</a> — <span data-exkl={sp("SK-SCN-0006")}>{sp("SK-SCN-0006")}</span> kr/dygn</li>
           <li><strong style="color:white;">Tumregel:</strong> 2–4 m² per person på scenen</li>
         </ul>
       </div>
@@ -68,7 +72,7 @@ const tillbehor = [
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Utomhus: scentak ingår i två paket</h2>
       <p>För utomhus-event erbjuder vi två paket med scentak inkluderat — detta skyddar artister och utrustning och ger ett professionellt utseende. Scentak som fristående tillägg bokas separat via offertförfrågan.</p>
       <div class="g2c" style="margin-bottom:2.5rem;">
-        {[{p:"Scenpaket Medium+ inkl. scentak",s:"12 m²",pris:3799},{p:"Scenpaket Large+ inkl. scentak",s:"24 m²",pris:11999}].map(r=>(
+        {[{p:"Scenpaket Medium+ inkl. scentak",s:"12 m²",pris:sp("SK-SCN-0006")},{p:"Scenpaket Large+ inkl. scentak",s:"24 m²",pris:sp("SK-SCN-0010")}].map(r=>(
           <div style="background:#1e1850;border-radius:12px;padding:1.25rem;">
             <div style="color:rgba(255,255,255,0.4);font-size:0.75rem;margin-bottom:0.3rem;">{r.s}</div>
             <div style="color:white;font-weight:600;font-size:0.9rem;margin-bottom:0.5rem;">{r.p}</div>
