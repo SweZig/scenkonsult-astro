@@ -1,0 +1,163 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import bildData from '../../../data/bild.json';
+
+const prods = bildData.products as any[];
+const acc   = bildData.tillbehor as any[];
+const bp = (artno: string) => [...prods,...acc].find(p => p.artno === artno)?.price ?? 0;
+
+const projXGA  = prods.find(p => p.artno === 'SK-BLD-0001');
+const projFHD  = prods.find(p => p.artno === 'SK-BLD-0002');
+const skarm65  = prods.find(p => p.artno === 'SK-BLD-0003');
+const skarm75  = prods.find(p => p.artno === 'SK-BLD-0004');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar det att hyra en projektor?", "acceptedAnswer": { "@type": "Answer", "text": `En XGA-projektor kostar ${bp('SK-BLD-0001')} kr/dygn och en Full HD-projektor ${bp('SK-BLD-0002')} kr/dygn. Projektorduk (100\") tillkommer med ${bp('SK-BLD-ACC-0002')} kr/dygn. Leverans i hela Storstockholm.` } },
+    { "@type": "Question", "name": "Projektor eller skärm — vilket ska man välja?", "acceptedAnswer": { "@type": "Answer", "text": `En projektor ger flexibel bildstorlek (60–300\") och passar stora rum och mörka lokaler. En 65\"-skärm (${bp('SK-BLD-0003')} kr/dygn) är skarpare i dagljus och passar konferensrum och mindre presentationer. Tumregel: projektor för 50+ åskådare, skärm för 10–30 åskådare.` } },
+    { "@type": "Question", "name": "Hur stor duk behöver man?", "acceptedAnswer": { "@type": "Answer", "text": "Tumregel: duken ska vara minst lika bred som halva avståndet till den längst bort sittande åskådaren. Vår 100\"-duk (250 cm bred) fungerar bra upp till 10–12 meters tittavstånd. Vi kan råda om rätt storlek för er lokal." } },
+    { "@type": "Question", "name": "Fungerar projektorn i ett ljust rum?", "acceptedAnswer": { "@type": "Answer", "text": "Vår FHD-projektor (3200 ANSI lumen) klarar normala kontorsljusnivåer. I starkt solljus eller mycket ljusa rum rekommenderar vi en skärm istället — skärmar fungerar alltid oavsett ljusförhållanden." } },
+    { "@type": "Question", "name": "Kan man ansluta laptop och HDMI?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra projektorer och skärmar har HDMI-ingång. Vi hyr även ut HDMI-kablar (5 m och 10 m) och HDMI-splitter om ni behöver köra samma bild till flera skärmar." } }
+  ]
+};
+---
+<Layout
+  title="Hyra Projektor Stockholm — Pris & Guide 2026 | Scenkonsult"
+  description="Vad kostar det att hyra projektor i Stockholm? XGA från 299 kr/dygn, Full HD från 399 kr/dygn. Guide till projektor vs skärm, dukar och HDMI. Leverans i Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Hyra projektor — pris</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Prisguide</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Hyra projektor i Stockholm — vad kostar det?</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Komplett guide till projektor- och skärmuthyrning 2026 — priser, projektor vs skärm och vad som tillkommer.</p>
+    </header>
+
+    <!-- Pristabell -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Priser — snabböversikt</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Produkt","Passar till","Pris/dygn"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { name:"Projektor XGA",           pass:"Presentationer, enklare bilder",      artno:"SK-BLD-0001" },
+              { name:"Projektor Full HD",        pass:"Konferens, events, filmsvisning",     artno:"SK-BLD-0002" },
+              { name:"65\" Skärm (4K UHD)",      pass:"Konferensrum, 10–30 pers.",           artno:"SK-BLD-0003" },
+              { name:"75\" Skärm (4K UHD)",      pass:"Större konferensrum, 20–50 pers.",    artno:"SK-BLD-0004" },
+              { name:"Projektorduk 100\"",        pass:"Till projektor (inkl. stativ)",       artno:"SK-BLD-ACC-0002" },
+              { name:"Projektorbord",            pass:"Bord för projektor",                  artno:"SK-BLD-ACC-0001" },
+              { name:"HDMI-kabel 5 m",           pass:"Laptop-anslutning",                  artno:"SK-BLD-ACC-0004" },
+              { name:"HDMI-splitter (4-port)",   pass:"Kör bild till flera skärmar",         artno:"SK-BLD-ACC-0006" },
+            ].map(({ name, pass, artno }, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{name}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);font-size:0.85rem;">{pass}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">{bp(artno)}</span>
+                  <span class="sk-price-incl hidden">{Math.round(bp(artno)*1.25)}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Projektor vs skärm -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Projektor eller skärm?</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem;">
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.75rem;">📽️ Projektor</h3>
+          {[
+            ["✓","Flexibel bildstorlek (60–300\")"],
+            ["✓","Billigare för stor bild"],
+            ["✓","Lätt att transportera"],
+            ["–","Behöver mörkt eller halvmörkt rum"],
+            ["–","Kräver duk och fritt utrymme framåt"],
+          ].map(([icon,text]) => (
+            <div style={`display:flex;gap:0.5rem;padding:0.3rem 0;font-size:0.87rem;color:${icon==='✓'?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.35)'}`}>
+              <span style={`color:${icon==='✓'?'#86efac':'rgba(255,255,255,0.3)'};flex-shrink:0;`}>{icon}</span>{text}
+            </div>
+          ))}
+          <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.08);">
+            <span style="color:rgba(255,255,255,0.4);font-size:0.8rem;">Passar:</span>
+            <span style="color:rgba(255,255,255,0.7);font-size:0.8rem;"> 50+ åskådare, mörka lokaler, festivaler</span>
+          </div>
+        </div>
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem;">
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.75rem;">🖥️ Skärm</h3>
+          {[
+            ["✓","Skarp bild i alla ljusförhållanden"],
+            ["✓","Enkel uppkoppling"],
+            ["✓","Plug-and-play"],
+            ["–","Fast bildstorlek (65\" eller 75\")"],
+            ["–","Dyrare per bildyta"],
+          ].map(([icon,text]) => (
+            <div style={`display:flex;gap:0.5rem;padding:0.3rem 0;font-size:0.87rem;color:${icon==='✓'?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.35)'}`}>
+              <span style={`color:${icon==='✓'?'#86efac':'rgba(255,255,255,0.3)'};flex-shrink:0;`}>{icon}</span>{text}
+            </div>
+          ))}
+          <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.08);">
+            <span style="color:rgba(255,255,255,0.4);font-size:0.8rem;">Passar:</span>
+            <span style="color:rgba(255,255,255,0.7);font-size:0.8rem;"> 10–50 åskådare, konferensrum, dagljus</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Välj utrustning</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={projXGA.artno} name={projXGA.name} price={projXGA.price} priceNote="/dygn" image={projXGA.image} alt={projXGA.name} description={projXGA.description} specs={projXGA.includes ?? []} category="Projektor" />
+        <ProductCard artno={projFHD.artno} name={projFHD.name} price={projFHD.price} priceNote="/dygn" image={projFHD.image} alt={projFHD.name} description={projFHD.description} specs={projFHD.includes ?? []} category="Projektor" />
+        <ProductCard artno={skarm65.artno} name={skarm65.name} price={skarm65.price} priceNote="/dygn" image={skarm65.image} alt={skarm65.name} description={skarm65.description} specs={skarm65.includes ?? []} category="Skärm" />
+        <ProductCard artno={skarm75.artno} name={skarm75.name} price={skarm75.price} priceNote="/dygn" image={skarm75.image} alt={skarm75.name} description={skarm75.description} specs={skarm75.includes ?? []} category="Skärm" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Allt inom projektor & skärm →</a>
+        <a href="/vara-tjanster/konferens-av/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Konferens AV →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Osäker på projektor eller skärm?</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Berätta om lokalen och antalet åskådare — vi rekommenderar rätt lösning utan kostnad.</p>
+      <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se hela utbudet</a>
+    </div>
+
+  </article>
+</Layout>

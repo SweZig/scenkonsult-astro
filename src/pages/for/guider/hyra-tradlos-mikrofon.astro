@@ -1,0 +1,173 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+
+const mik = (ljudData.tillbehor_mikrofon as any[]);
+const mp = (artno: string) => mik.find(p => p.artno === artno)?.price ?? 0;
+
+const tradlosHand  = mik.find(p => p.artno === 'SK-LJD-MIK-0016');
+const tradlosHS    = mik.find(p => p.artno === 'SK-LJD-MIK-0017');
+const shureHand    = mik.find(p => p.artno === 'SK-LJD-MIK-0021');
+const shureMygga   = mik.find(p => p.artno === 'SK-LJD-MIK-0022');
+const shureHeadset = mik.find(p => p.artno === 'SK-LJD-MIK-0023');
+const shure2mik    = mik.find(p => p.artno === 'SK-LJD-MIK-0026');
+const shure2hs     = mik.find(p => p.artno === 'SK-LJD-MIK-0028');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar det att hyra en trådlös mikrofon?", "acceptedAnswer": { "@type": "Answer", "text": `En enkel trådlös handmikrofon kostar ${mp('SK-LJD-MIK-0016')} kr/dygn. Shure SLXD-system med handmikrofon kostar ${mp('SK-LJD-MIK-0021')} kr/dygn. Vill du ha headset (hands-free) kostar det ${mp('SK-LJD-MIK-0023')} kr/dygn.` } },
+    { "@type": "Question", "name": "Vilken trådlös mikrofon passar till tal och konferens?", "acceptedAnswer": { "@type": "Answer", "text": "Till konferens och föreläsning rekommenderar vi Shure SLXD med headset eller myggmikrofon — händerna är fria och mikrofonen sitter stabilt nära munnen. Handmikrofon passar när talare vill hålla i något eller när flera personer delar samma mikrofon." } },
+    { "@type": "Question", "name": "Kan man hyra trådlös mikrofon till bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `Absolut — det är ett av de vanligaste användningsområdena. Headset till prästen/officianten (${mp('SK-LJD-MIK-0023')} kr) och handmikrofon till toastmastern (${mp('SK-LJD-MIK-0016')} kr) är standardkombinationen. Vi hyr ut paket med 2 mikrofoner för bröllop.` } },
+    { "@type": "Question", "name": "Hur långt räcker en trådlös mikrofons räckvidd?", "acceptedAnswer": { "@type": "Answer", "text": "Våra Shure SLXD-system har upp till 100 meters räckvidd i fri sikt. Inomhus med väggar och elektronik räknar vi med 30–50 meter i praktiken — mer än tillräckligt för de flesta evenemang." } },
+    { "@type": "Question", "name": "Behöver man ett mixerbord för att använda trådlös mikrofon?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — alla våra PA-system och Portable-paket har XLR-ingångar och inbyggd mixer. Du kopplar mottagaren direkt till PA:t. Har du ett större event med flera mikrofoner rekommenderar vi ett dedikerat mixerbord." } }
+  ]
+};
+---
+<Layout
+  title="Hyra Trådlös Mikrofon Stockholm — Priser & Guide 2026 | Scenkonsult"
+  description="Hyr trådlös mikrofon i Stockholm. Handmikrofon från 400 kr/dygn, Shure SLXD-system från 699 kr. Headset, myggmikrofon och 2-mikset. Leverans i Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Hyra trådlös mikrofon</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide & Priser</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Hyra trådlös mikrofon — guide till rätt val</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Handmikrofon, headset eller myggmikrofon? Den här guiden visar skillnaderna, när du väljer vad — och vad det kostar.</p>
+    </header>
+
+    <!-- Tre typer -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Tre typer — vilket passar dig?</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {[
+          { typ:"Handmikrofon", icon:"🎤", passar:"Toastmaster, sångare, paneldeltagare som vill hålla i något", fordel:"Enkel att överlämna mellan talare. Alla vet hur man håller en handmikrofon.", nackdel:"Upptar en hand.", pris:mp('SK-LJD-MIK-0016'), artno:'SK-LJD-MIK-0016' },
+          { typ:"Headset", icon:"🎧", passar:"Föreläsare, DJ, officiant vid vigsel, konferencier", fordel:"Händerna fria. Sitter stabilt oavsett hur du rör dig.", nackdel:"Kräver lite montering.", pris:mp('SK-LJD-MIK-0023'), artno:'SK-LJD-MIK-0023' },
+          { typ:"Myggmikrofon (lavelier)", icon:"📎", passar:"Präst/officiant, föredragshållare, TV-stil", fordel:"Knappt synlig. Perfekt för formella sammanhang.", nackdel:"Känsligare för prassling.", pris:mp('SK-LJD-MIK-0022'), artno:'SK-LJD-MIK-0022' },
+        ].map(t => (
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem;display:grid;grid-template-columns:2.5rem 1fr;gap:0.75rem;">
+            <div style="font-size:1.75rem;line-height:1;">{t.icon}</div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.4rem;">
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0;">{t.typ}</h3>
+                <span style="color:#c4b5f4;font-weight:700;font-size:0.9rem;white-space:nowrap;">
+                  <span class="sk-price-excl">{t.pris}</span>
+                  <span class="sk-price-incl hidden">{Math.round(t.pris*1.25)}</span> kr/dygn
+                </span>
+              </div>
+              <p style="color:rgba(255,255,255,0.45);font-size:0.82rem;margin:0 0 0.5rem;">Passar: {t.passar}</p>
+              <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                <span style="color:#86efac;font-size:0.82rem;">✓ {t.fordel}</span>
+                <span style="color:rgba(255,255,255,0.3);font-size:0.82rem;">– {t.nackdel}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Pristabell -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Alla trådlösa mikrofoner — priser</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Modell","Typ","Passar till","Pris/dygn"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { name:"Trådlös handmikrofon",          typ:"Handmikrofon",   pass:"Fest, bröllop, tal",              artno:"SK-LJD-MIK-0016" },
+              { name:"Trådlöst headset",               typ:"Headset",        pass:"Föreläsning, konferens",          artno:"SK-LJD-MIK-0017" },
+              { name:"Shure SLXD — handmikrofon",      typ:"Handmikrofon",   pass:"Professionellt tal, sång",        artno:"SK-LJD-MIK-0021" },
+              { name:"Shure SLXD — myggmikrofon",      typ:"Myggmikrofon",   pass:"Vigsel, föredrag, TV-stil",       artno:"SK-LJD-MIK-0022" },
+              { name:"Shure SLXD — headset",           typ:"Headset",        pass:"Alla scener, händer fria",        artno:"SK-LJD-MIK-0023" },
+              { name:"Shure SLXD — lågprofil headset", typ:"Headset",        pass:"Diskret, nästan osynligt",        artno:"SK-LJD-MIK-0024" },
+              { name:"Shure SLXD — 2 handmikrofoner",  typ:"2-pack",         pass:"Panel, duett, bröllopstal",       artno:"SK-LJD-MIK-0026" },
+              { name:"Shure SLXD — 2 headset",         typ:"2-pack",         pass:"Duo-föreläsning, konferens",      artno:"SK-LJD-MIK-0028" },
+            ].map(({ name, typ, pass, artno }, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;font-size:0.85rem;">{name}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.45);font-size:0.82rem;white-space:nowrap;">{typ}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.55);font-size:0.82rem;">{pass}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">{mp(artno)}</span>
+                  <span class="sk-price-incl hidden">{Math.round(mp(artno)*1.25)}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tips -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">3 tips för bästa resultat</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {[
+          { nr:"01", tip:"Välj Shure SLXD för viktiga sammanhang", desc:"Till bröllop, konferens och föreläsningar är Shure SLXD-serien vår starkaste rekommendation. Digitalt system med stabilt signal och minimal latens." },
+          { nr:"02", tip:"Boka 2-pack när ni är fler talare", desc:"Att överlämna en handmikrofon fungerar — men ett 2-pack med headset till varje talare ger ett betydligt mer professionellt intryck." },
+          { nr:"03", tip:"Testa soundchecka INNAN gästerna anländer", desc:"Koppla in mottagaren, gå en runda i lokalen och kontrollera att signalen är stabil. 10 minuters förberedelse sparar dig från problem under evenemanget." },
+        ].map(t => (
+          <div style="background:#1e1850;border-radius:12px;padding:1.25rem 1.5rem;display:flex;gap:1.25rem;align-items:flex-start;">
+            <span style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:rgba(196,181,244,0.25);flex-shrink:0;line-height:1;">{t.nr}</span>
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:white;margin:0 0 0.35rem;">{t.tip}</h3>
+              <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.6;margin:0;">{t.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populära val</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price} priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name} description={tradlosHand.description ?? tradlosHand.desc ?? ''} specs={tradlosHand.specs ?? []} category="Mikrofon" />
+        <ProductCard artno={shureHeadset.artno} name={shureHeadset.name} price={shureHeadset.price} priceNote="/dygn" image={shureHeadset.image} alt={shureHeadset.name} description={shureHeadset.description ?? shureHeadset.desc ?? ''} specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon" />
+        <ProductCard artno={shureMygga.artno} name={shureMygga.name} price={shureMygga.price} priceNote="/dygn" image={shureMygga.image} alt={shureMygga.name} description={shureMygga.description ?? shureMygga.desc ?? ''} specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon" />
+        <ProductCard artno={shure2hs.artno} name={shure2hs.name} price={shure2hs.price} priceNote="/dygn" image={shure2hs.image} alt={shure2hs.name} description={shure2hs.description ?? shure2hs.desc ?? ''} specs={shure2hs.specs ?? shure2hs.includes ?? []} category="Mikrofon" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Allt ljud & mikrofoner →</a>
+        <a href="/vara-tjanster/konferens-av/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Konferens AV →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Osäker på vilket system du behöver?</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ring oss — vi hjälper dig välja rätt mikrofon för ditt event. 072-448 10 00, mån–fre 09–17.</p>
+      <a href="/kontakt/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Begär offert</a>
+    </div>
+
+  </article>
+</Layout>

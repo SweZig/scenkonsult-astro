@@ -1,0 +1,152 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+import ljusData from '../../../data/ljus.json';
+
+const lp = (artno: string) => [
+  ...ljudData.event.products,
+  ...ljudData.music.products,
+  ...(ljudData.portable.products as any[]),
+  ...(ljudData.tillbehor_mikrofon as any[]),
+].find(p => p.artno === artno)?.price ?? 0;
+
+const evSmall   = ljudData.event.products[0];
+const evMedium  = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0002');
+const evMediumP = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0004');
+const musSmall  = ljudData.music.products[0];
+const musMedium = (ljudData.music.products as any[]).find(p => p.artno === 'SK-LJD-MUS-0003');
+const shureHS   = (ljudData.tillbehor_mikrofon as any[]).find(p => p.artno === 'SK-LJD-MIK-0023');
+const shureMygga= (ljudData.tillbehor_mikrofon as any[]).find(p => p.artno === 'SK-LJD-MIK-0022');
+const ljusPaket = ljusData.paket.products[1]; // Small+
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vilket PA-system passar till företagsfest?", "acceptedAnswer": { "@type": "Answer", "text": `Till 50–100 gäster rekommenderar vi Event Small (${lp('SK-LJD-EVE-0001')} kr/dygn) för konferens och tal, eller Music Small (${lp('SK-LJD-MUS-0001')} kr/dygn) om det ska danssas. För 100–200 gäster: Event Medium (${lp('SK-LJD-EVE-0002')} kr) eller Music Medium (${lp('SK-LJD-MUS-0003')} kr).` } },
+    { "@type": "Question", "name": "Behöver man tekniker på en företagsfest?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — våra standardpaket är byggda för enkel självinstallation. Vi går igenom allt vid avhämtning. Vill ni ha tekniker på plats erbjuder vi det som tillägg (lämpligt vid presentationer, paneldiskussioner eller livespelning)." } },
+    { "@type": "Question", "name": "Vad kostar ljud till en företagsfest med 100 gäster?", "acceptedAnswer": { "@type": "Answer", "text": `PA-system för 100 gäster kostar 799–1 199 kr/dygn beroende på om det ska danssas. Lägg till trådlösa mikrofoner (400–699 kr/st) och eventuell leverans. Totalt ca 1 500–3 000 kr för ett komplett ljudupplägg.` } },
+    { "@type": "Question", "name": "Hur skiljer sig Event-serien från Music-serien?", "acceptedAnswer": { "@type": "Answer", "text": "Event-serien är optimerad för tal, konferens och bakgrundsmusik — klarare mellantoner, lättare system. Music-serien inkluderar subwoofer och är optimerad för dans och DJ. Ska det danssas på festen välj Music. Är det mestadels tal och mingel välj Event." } },
+    { "@type": "Question", "name": "Kan man kombinera ljud och ljus i ett paket?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi hyr gärna ut ljud och ljus tillsammans. Välj ett PA-paket + ett ljuspaket, lägg till i varukorgen och skicka en offertförfrågan. Vi optimerar leveransen och kan ge rabatt vid kombinationsbeställning." } }
+  ]
+};
+---
+<Layout
+  title="Ljud till Företagsfest Stockholm — Guide & Priser 2026 | Scenkonsult"
+  description="Vilket PA-system passar till er företagsfest? Guide till ljud för 50–500 gäster. Event-serie för tal, Music-serie för dans. Priser från 799 kr/dygn."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Ljud till företagsfest</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Ljud till företagsfest — välj rätt system</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Ska det vara tal och mingel eller dansgolv? Svaret avgör vilket PA-system du ska välja. Den här guiden gör valet enkelt.</p>
+    </header>
+
+    <!-- Nyckelval -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Nyckelval: tal eller dans?</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+        <div style="background:#1e1850;border:2px solid rgba(196,181,244,0.3);border-radius:14px;padding:1.5rem;">
+          <div style="font-size:1.5rem;margin-bottom:0.5rem;">🎙️</div>
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.5rem;">Tal & konferens</h3>
+          <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.6;margin:0 0 0.75rem;">Presentationer, award-ceremoni, kickoff med föreläsare, mingel med bakgrundsmusik.</p>
+          <div style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;">→ Event-serien</div>
+        </div>
+        <div style="background:#1e1850;border:2px solid rgba(196,181,244,0.3);border-radius:14px;padding:1.5rem;">
+          <div style="font-size:1.5rem;margin-bottom:0.5rem;">🎉</div>
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.5rem;">Fest & dans</h3>
+          <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.6;margin:0 0 0.75rem;">DJ, liveband, dansgolv — behöver basstryck och volym för att få folk att dansa.</p>
+          <div style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;">→ Music-serien</div>
+        </div>
+      </div>
+      <div style="background:#111030;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:1.1rem 1.25rem;">
+        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0;">💡 <strong style="color:white;">Blandprogram?</strong> Välj Music-serien — den klarar både tal och dans. Event-serien saknar sub och klipper basen vid höga volymer.</p>
+      </div>
+    </section>
+
+    <!-- Storleksguide -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Välj storlek efter gästantal</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Gäster","Program","Rekommendation","Pris/dygn"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { g:"30–80",   prog:"Tal, mingel",         rek:"Event Small",   artno:"SK-LJD-EVE-0001" },
+              { g:"50–120",  prog:"Tal + lite dans",     rek:"Event Medium",  artno:"SK-LJD-EVE-0002" },
+              { g:"50–100",  prog:"Fest, DJ, dans",      rek:"Music Small",   artno:"SK-LJD-MUS-0001" },
+              { g:"100–200", prog:"Kickoff m. föreläsare",rek:"Event Medium+",artno:"SK-LJD-EVE-0004" },
+              { g:"100–200", prog:"Stor fest, DJ",        rek:"Music Medium",  artno:"SK-LJD-MUS-0003" },
+              { g:"200–500", prog:"Galakväll, stor fest", rek:"Music Large",   artno:"SK-LJD-MUS-0004" },
+            ].map(({ g, prog, rek, artno }, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{g}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);font-size:0.85rem;">{prog}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.85);">{rek}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">{lp(artno)}</span>
+                  <span class="sk-price-incl hidden">{Math.round(lp(artno)*1.25)}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till företagsfest</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+        <ProductCard artno={evMedium.artno} name={evMedium.name} price={evMedium.price} priceNote="/dygn" image={evMedium.image} alt={evMedium.name} description={evMedium.description} persons={evMedium.persons} specs={evMedium.includes} category="Ljud" />
+        <ProductCard artno={musMedium.artno} name={musMedium.name} price={musMedium.price} priceNote="/dygn" image={musMedium.image} alt={musMedium.name} description={musMedium.description} persons={musMedium.persons} specs={musMedium.includes} category="Ljud" />
+        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc ?? ''} specs={shureHS.specs ?? shureHS.includes ?? []} category="Mikrofon" />
+        <ProductCard artno={ljusPaket.artno} name={ljusPaket.name} price={ljusPaket.price} priceNote="/dygn" image={ljusPaket.image} alt={ljusPaket.name} description={ljusPaket.description} specs={ljusPaket.includes ?? []} category="Ljus" />
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljud/event/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Event-serien →</a>
+        <a href="/vara-tjanster/hyra-ljud/music/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Music-serien →</a>
+        <a href="/vara-tjanster/konferens-av/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Konferens AV →</a>
+        <a href="/for/foretagsfest/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Företagsfest →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Berätta om ert event</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Vi dimensionerar rätt system för er lokal, ert gästantal och ert program.</p>
+      <a href="/for/foretagsfest/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Begär offert</a>
+    </div>
+
+  </article>
+</Layout>
