@@ -1,0 +1,371 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import CategoryHero from '../../../components/CategoryHero.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import CartButton from '../../../components/CartButton.astro';
+import bildData from '../../../data/bild.json';
+import ljudData from '../../../data/ljud.json';
+
+// Trådlösa mikrofoner relevanta för konferens
+const konferensMikrofoner = [
+  'SK-LJD-MIK-0022', // Shure SLXD myggmikrofon
+  'SK-LJD-MIK-0023', // Shure SLXD headset
+  'SK-LJD-MIK-0024', // Shure SLXD lågprofil headset
+  'SK-LJD-MIK-0016', // Trådlös handmikrofon
+  'SK-LJD-MIK-0017', // Trådlöst headset
+  'SK-LJD-MIK-0030', // 8-kanals set
+];
+const mikrofoner = (ljudData.tillbehor_mikrofon as any[]).filter(p => konferensMikrofoner.includes(p.artno));
+
+// Presentationsteknik
+const presentationsProdukter = bildData.products.filter(p =>
+  ['SK-BLD-0001','SK-BLD-0002'].includes(p.artno)
+);
+const presentationsTillbehor = bildData.tillbehor.filter(p =>
+  ['SK-BLD-ACC-0002','SK-BLD-ACC-0001','SK-BLD-ACC-0009','SK-BLD-ACC-0004'].includes(p.artno)
+);
+
+// Kolumnhögtalare för konferens
+const kolumnPA = (ljudData.portable.products as any[]).filter(p =>
+  ['SK-LJD-POR-0003','SK-LJD-POR-0004','SK-LJD-POR-0006'].includes(p.artno)
+);
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Vad ingår i AV-utrustning för konferens?",
+      "acceptedAnswer": { "@type": "Answer", "text": "För en komplett konferenssetup behöver ni vanligtvis: (1) Ljudförstärkning — kolumnhögtalare eller PA-system, (2) Mikrofoner — trådlöst headset eller myggmikrofon för talare, (3) Presentationsteknik — projektor med duk eller storbildsskärm, (4) Tillbehör — HDMI-kablar, klicker och kablar. Vi erbjuder allt som ett paket eller separat." }
+    },
+    {
+      "@type": "Question",
+      "name": "Vilken mikrofon passar bäst för konferens och föreläsning?",
+      "acceptedAnswer": { "@type": "Answer", "text": "För en talare som rör sig fritt är trådlöst headset eller myggmikrofon bäst — händerna är fria och mikrofonen sitter nära munnen. Shure SLXD ger professionell, krypterad ljud med 100 m räckvidd. För paneldiskussioner med flera talare rekommenderar vi trådlöst 8-kanals set." }
+    },
+    {
+      "@type": "Question",
+      "name": "Projektor eller storbildsskärm — vad ska jag välja?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Projektor passar lokaler med mörkläggning och större avstånd — ger stor bild billigt. Storbildsskärm (65–75 tum) passar ljusa lokaler och fungerar utmärkt som alternativ till whiteboard. En skärm kräver inget mörker och ger skarpare bild på nära håll. Under 50 pers: projektor räcker. 50+ pers i ljus lokal: skärm eller kombination." }
+    },
+    {
+      "@type": "Question",
+      "name": "Kan jag hyra AV-utrustning för bara en dag?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla priser är per dygn och du kan hyra från ett dygn. Transport och eventuell montering tillkommer och offerteras separat baserat på er adress och setup." }
+    },
+    {
+      "@type": "Question",
+      "name": "Levererar ni och ställer upp utrustningen?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja, vi levererar och hämtar i hela Storstockholm. Vi erbjuder även montering och teknisk support under evenemanget. Transport och montering offerteras separat — kontakta oss med er adress och datum." }
+    }
+  ]
+};
+---
+<Layout
+  title="Hyra AV-utrustning Konferens Stockholm — Mikrofon, Projektor & Ljud | Scenkonsult"
+  description="Hyr AV-utrustning för konferens i Stockholm. Trådlösa mikrofoner, projektorer, storbildsskärmar och PA-system. Komplett setup från 399 kr/dygn. Leverans i hela Storstockholm."
+  schemaExtra={faqSchema}
+>
+
+  <CategoryHero
+    h1="AV-utrustning för Konferens"
+    h1Accent="Stockholm"
+    intro="Hyr komplett AV-utrustning för konferens och företagsevent i Stockholm. Trådlösa mikrofoner, projektor, storbildsskärm och diskreta PA-system — allt från ett ställe. Leverans och montering i hela Storstockholm."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Konferens AV" }
+    ]}
+    badges={[
+      "Trådlösa mikrofoner",
+      "Projektor & storbildsskärm",
+      "Diskret PA-ljud",
+      "Leverans & montering",
+      "Sedan 1986",
+    ]}
+    priceFrom={299}
+  />
+
+  <!-- Vad behöver du? -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {[
+        { icon: "🎤", title: "Mikrofon & ljud", text: "Trådlösa mikrofoner och diskreta kolumnhögtalare — talaren hörs tydligt utan att utrustningen syns", anchor: "#mikrofoner" },
+        { icon: "📽️", title: "Presentationsteknik", text: "Projektor med duk eller storbildsskärm — presentationer och video utan problem", anchor: "#projektor" },
+        { icon: "📦", title: "Komplett paket", text: "Berätta om ert event — vi sätter ihop rätt kombination och levererar klart", anchor: "#kontakt" },
+      ].map(u => (
+        <a href={u.anchor} class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-6 transition-all group text-center">
+          <div class="text-4xl mb-3">{u.icon}</div>
+          <h3 class="font-bold text-white mb-2 group-hover:text-brand-orange transition-colors">{u.title}</h3>
+          <p class="text-gray-400 text-sm">{u.text}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Trådlösa mikrofoner -->
+  <section id="mikrofoner" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Trådlösa mikrofoner</h2>
+      <p class="text-gray-400 mt-1">Professionella Shure SLXD-system med AES-256-kryptering och upp till 100 m räckvidd — industristandard för konferens och föreläsning.</p>
+    </div>
+
+    <!-- Shure SLXD primär -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-6">
+      {mikrofoner.filter(p => p.artno.startsWith('SK-LJD-MIK-002')).map((p: any) => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col"
+          itemscope itemtype="https://schema.org/Product">
+          <meta itemprop="name" content={p.name} />
+          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : ''} />
+          <meta itemprop="brand" content="Shure" />
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={p.image} alt={p.name} width="512" height="427" loading="lazy"
+              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="p-4 flex flex-col flex-1">
+            <div class="inline-block bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs px-2 py-0.5 rounded mb-2 self-start">Shure SLXD</div>
+            <h3 class="font-bold text-white text-sm mb-2 leading-tight">{p.name}</h3>
+            <p class="text-gray-400 text-xs mb-3 flex-1">{p.description}</p>
+            <ul class="space-y-1 mb-3">
+              {(p.specs || p.includes || []).slice(0,3).map((s: string) => (
+                <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{s}</li>
+              ))}
+            </ul>
+            <div class="flex items-center justify-between border-t border-white/10 pt-3"
+              itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+              <meta itemprop="priceCurrency" content="SEK" />
+              <meta itemprop="price" content={String(p.price)} />
+              <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div>
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price.toLocaleString('sv-SE')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
+                <span class="text-gray-400 text-xs">/dygn</span>
+              </div>
+              <CartButton id={p.artno} name={p.name} price={p.price} category="Konferens" size="md" iconOnly={true} />
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <!-- Budget-mikrofoner + 8-kanals -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {mikrofoner.filter(p => !p.artno.startsWith('SK-LJD-MIK-002')).map((p: any) => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col"
+          itemscope itemtype="https://schema.org/Product">
+          <meta itemprop="name" content={p.name} />
+          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : ''} />
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={p.image} alt={p.name} width="512" height="427" loading="lazy"
+              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="p-4 flex flex-col flex-1">
+            <h3 class="font-bold text-white text-sm mb-2 leading-tight">{p.name}</h3>
+            <p class="text-gray-400 text-xs mb-3 flex-1">{p.description ?? p.desc}</p>
+            <ul class="space-y-1 mb-3">
+              {(p.specs || p.includes || []).slice(0,3).map((s: string) => (
+                <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{s}</li>
+              ))}
+            </ul>
+            <div class="flex items-center justify-between border-t border-white/10 pt-3"
+              itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+              <meta itemprop="priceCurrency" content="SEK" />
+              <meta itemprop="price" content={String(p.price)} />
+              <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div>
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price.toLocaleString('sv-SE')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
+                <span class="text-gray-400 text-xs">/dygn</span>
+              </div>
+              <CartButton id={p.artno} name={p.name} price={p.price} category="Konferens" size="md" iconOnly={true} />
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Presentationsteknik -->
+  <section id="projektor" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Presentationsteknik</h2>
+      <p class="text-gray-400 mt-1">Projektor med duk eller storbildsskärm — välj efter lokal och antal åhörare.</p>
+    </div>
+
+    <!-- Projektorer -->
+    <h3 class="text-lg font-semibold text-white mb-4">Projektorer</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+      {presentationsProdukter.map(p => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote ?? '/dygn'}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          specs={p.includes}
+          category="Projektor"
+        />
+      ))}
+    </div>
+
+    <!-- Storbildsskärmar -->
+    <h3 class="text-lg font-semibold text-white mb-4">Storbildsskärmar</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
+      {bildData.products.filter(p => ['SK-BLD-0003','SK-BLD-0004'].includes(p.artno)).map(p => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote ?? '/dygn'}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          specs={p.includes}
+          category="Skärm"
+        />
+      ))}
+    </div>
+
+    <!-- Tillbehör -->
+    <h3 class="text-lg font-semibold text-white mb-4">Presentationstillbehör</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {presentationsTillbehor.map((p: any) => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 transition-all group flex flex-col"
+          itemscope itemtype="https://schema.org/Product">
+          <meta itemprop="name" content={p.name} />
+          <div class="bg-brand-dark rounded-lg overflow-hidden mb-3" style="aspect-ratio:1024/853">
+            <img src={p.image} alt={p.name} width="256" height="214" loading="lazy"
+              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <h3 class="font-semibold text-white text-xs mb-auto">{p.name}</h3>
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-white/10"
+            itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+            <meta itemprop="priceCurrency" content="SEK" />
+            <meta itemprop="price" content={String(p.price)} />
+            <div>
+              <span class="sk-price-excl text-brand-orange font-bold text-sm">{p.price} kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-bold text-sm">{Math.round(p.price*1.25)} kr</span>
+            </div>
+            <CartButton id={p.artno} name={p.name} price={p.price} category="Projektor" size="sm" iconOnly={true} />
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- PA-ljud för konferens -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="flex flex-col sm:flex-row sm:items-end gap-3 mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-white">PA-ljud för konferens</h2>
+        <p class="text-gray-400 mt-1">Diskreta kolumnhögtalare — smal design utan stativ, jämn ljudspridning och minimalt eko. Perfekt för konferenslokaler.</p>
+      </div>
+      <a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/" class="sm:ml-auto text-brand-orange hover:text-brand-orange-light text-sm font-semibold shrink-0 transition-colors">
+        Se hela kolumnsortimentet →
+      </a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {kolumnPA.map((p: any) => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          persons={p.persons}
+          specs={p.includes}
+          category="Portabelt ljud"
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Typisk konferenssetup -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-6">Typisk konferenssetup</h2>
+      <div class="space-y-5">
+        {[
+          {
+            title: "Liten konferens / föreläsning",
+            persons: "Upp till 40 pers.",
+            items: ["Portable Medium (kolumnhögtalare)", "1× Shure SLXD myggmikrofon", "Projektor FHD + projektorduk 100\"", "USB Klicker"],
+            price: "ca 1 160 kr/dygn"
+          },
+          {
+            title: "Medelstort konferensevent",
+            persons: "40–100 pers.",
+            items: ["Portable Medium+ (kolumnhögtalare)", "2× Shure SLXD headset", "65\" Storbildsskärm", "HDMI-kabel"],
+            price: "ca 4 200 kr/dygn"
+          },
+          {
+            title: "Stor konferens / kickoff",
+            persons: "100–200 pers.",
+            items: ["Portable Large (kolumnhögtalare)", "Trådlöst mikrofonset 8 kanaler", "Projektor FHD + 75\" Skärm", "Projektorbord + klicker"],
+            price: "ca 6 800 kr/dygn"
+          }
+        ].map(setup => (
+          <div class="border border-white/10 rounded-xl p-5">
+            <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="font-bold text-white">{setup.title}</h3>
+                  <span class="bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs px-2 py-0.5 rounded">{setup.persons}</span>
+                </div>
+                <ul class="space-y-1">
+                  {setup.items.map(item => (
+                    <li class="text-gray-400 text-sm flex gap-2"><span class="text-green-400 shrink-0">✓</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-gray-400 text-xs">Från</div>
+                <div class="text-brand-orange font-bold">{setup.price}</div>
+                <div class="text-gray-400 text-xs">exkl. transport</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p class="text-gray-400 text-xs mt-4">* Priser är riktpriser för utrustning. Transport och eventuell montering tillkommer och offerteras separat.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6">Vanliga frågor</h2>
+    <div class="space-y-4">
+      {faqSchema.mainEntity.map((f: any) => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl p-5 group">
+          <summary class="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
+            {f.name}
+            <span class="text-brand-orange text-lg ml-4 shrink-0 group-open:rotate-45 transition-transform">+</span>
+          </summary>
+          <p class="text-gray-400 mt-3 text-sm leading-relaxed">{f.acceptedAnswer.text}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="kontakt" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 text-center">
+    <div class="bg-brand-navy border border-brand-orange/20 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-3">Få ett komplett offert för ert event</h2>
+      <p class="text-gray-400 mb-6">Berätta om er konferens — antal deltagare, lokal och datum — så sätter vi ihop rätt setup och ger er ett samlat pris inklusive leverans.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-bold px-8 py-3 rounded-xl transition-colors">
+          Begär offert
+        </a>
+        <a href="/varukorg/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white font-bold px-8 py-3 rounded-xl transition-colors">
+          Lägg i varukorgen
+        </a>
+      </div>
+    </div>
+  </section>
+
+</Layout>
