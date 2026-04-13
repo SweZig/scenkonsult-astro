@@ -79,17 +79,22 @@ const faqSchema = {
           </tr></thead>
           <tbody>
             {[
-              ["20–50", "Inomhus", "Portable Medium (kolumn)", `${portMed.price} kr`],
-              ["50–100", "Inomhus", "Event Small", `${evSmall.price} kr`],
-              ["80–150", "Inomhus med dans", "Event Medium (med sub)", `${evMedium.price} kr`],
-              ["50–100", "Utomhus", "Event Medium", `${evMedium.price} kr`],
-              ["100–200", "Utomhus", "Music Small eller Live Medium", `${musicSmall.price}–${liveMedium.price} kr`],
-            ].map(([g,l,r,p], i) => (
+              { g:"20–50",   l:"Inomhus",        r:"Portable Medium (kolumn)",          p:portMed.price,  range:false },
+              { g:"50–100",  l:"Inomhus",        r:"Event Small",                       p:evSmall.price,  range:false },
+              { g:"80–150",  l:"Inomhus m. dans",r:"Event Medium (med sub)",            p:evMedium.price, range:false },
+              { g:"50–100",  l:"Utomhus",        r:"Event Medium",                      p:evMedium.price, range:false },
+              { g:"100–200", l:"Utomhus",        r:"Music Small el. Live Medium",       p:musicSmall.price, p2:liveMedium.price, range:true },
+            ].map(({ g, l, r, p, p2, range }, i) => (
               <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
                 <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{g}</td>
                 <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);">{l}</td>
                 <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.8);">{r}</td>
-                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;"><span data-exkl={p.replace(' kr','')}>{p}</span></td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  {range
+                    ? <><span class="sk-price-excl">{p}–{p2}</span><span class="sk-price-incl hidden">{Math.round(p*1.25)}–{Math.round((p2??0)*1.25)}</span></>
+                    : <><span class="sk-price-excl">{p}</span><span class="sk-price-incl hidden">{Math.round(p*1.25)}</span></>
+                  } kr
+                </td>
               </tr>
             ))}
           </tbody>
@@ -102,14 +107,14 @@ const faqSchema = {
       <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1rem;">Mikrofon till bröllop — tre alternativ</h2>
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem;">
         {[
-          { typ: "Trådlöst headset", passar: "Toastmaster, celebrant, musiker", pris: `${shureHS.price} kr/dygn`, pros: "Händerna fria, sitter stabilt, professionellt" },
-          { typ: "Trådlös handmikrofon", passar: "Talare, sångare", pris: `${tradlos.price} kr/dygn`, pros: "Enkel att använda, ingen installation" },
-          { typ: "Trådlös myggmikrofon", passar: "Präst/officiant, konferencier", pris: `${shureMygga.price} kr/dygn`, pros: "Knappt synlig, kräver inga händer" },
+          { typ: "Trådlöst headset", passar: "Toastmaster, celebrant, musiker", pExcl: shureHS.price, pros: "Händerna fria, sitter stabilt, professionellt" },
+          { typ: "Trådlös handmikrofon", passar: "Talare, sångare", pExcl: tradlos.price, pros: "Enkel att använda, ingen installation" },
+          { typ: "Trådlös myggmikrofon", passar: "Präst/officiant, konferencier", pExcl: shureMygga.price, pros: "Knappt synlig, kräver inga händer" },
         ].map(m => (
           <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.25rem;">
             <div style="color:white; font-weight:700; font-family:'Space Grotesk',sans-serif; margin-bottom:0.4rem;">{m.typ}</div>
             <div style="color:rgba(255,255,255,0.45); font-size:0.82rem; margin-bottom:0.5rem;">Passar: {m.passar}</div>
-            <div style="color:#c4b5f4; font-size:0.85rem; font-weight:600; margin-bottom:0.5rem;">{m.pris}</div>
+            <div style="color:#c4b5f4; font-size:0.85rem; font-weight:600; margin-bottom:0.5rem;"><span class="sk-price-excl">{m.pExcl}</span><span class="sk-price-incl hidden">{Math.round(m.pExcl*1.25)}</span> kr/dygn</div>
             <div style="color:rgba(255,255,255,0.55); font-size:0.82rem;">✓ {m.pros}</div>
           </div>
         ))}
