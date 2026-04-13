@@ -1,0 +1,234 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import CategoryHero from '../../../../components/CategoryHero.astro';
+import ProductCard from '../../../../components/ProductCard.astro';
+import CartButton from '../../../../components/CartButton.astro';
+import ljudData from '../../../../data/ljud.json';
+
+// Plocka ut kolumnhögtalare från portable-serien
+const allPortable = ljudData.portable.products;
+const columnSpeakers = allPortable.filter(p =>
+  p.description?.toLowerCase().includes('kolumn') ||
+  p.name?.toLowerCase().includes('medium') ||
+  p.name?.toLowerCase().includes('large')
+);
+
+// Singel-kolumner
+const singelKolumner = columnSpeakers.filter(p => !p.name.includes('Duo'));
+// Duo-kolumner
+const duoKolumner = columnSpeakers.filter(p => p.name.includes('Duo'));
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Vad är en kolumnhögtalare och vad passar den till?",
+      "acceptedAnswer": { "@type": "Answer", "text": "En kolumnhögtalare är ett smalt, kompakt PA-system med en basenhet och en kolumn med flera diskanthögtalare staplade ovanpå varandra. Den ger bred, jämn ljudspridning utan stativ och passar perfekt till konferenser, bröllop, företagsevent och lokaler där utseendet spelar roll. Kolumnhögtalare är det diskreta alternativet till traditionella PA-system på stativ." }
+    },
+    {
+      "@type": "Question",
+      "name": "Vad är skillnaden mot en vanlig PA-högtalare?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Traditionella PA-system placeras på stativ och syns tydligt i lokalen. Kolumnhögtalare är smalare, snyggare och mer diskreta — perfekta när ljudet ska finnas där utan att ta plats visuellt. De ger också jämnare ljudspridning horisontellt, vilket minskar eko och rundgång i hårdare lokaler." }
+    },
+    {
+      "@type": "Question",
+      "name": "Vad kostar det att hyra kolumnhögtalare i Stockholm?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kolumnhögtalare hyrs från 799 kr/dygn (singel) för upp till 80 personer. Duo-system (2 kolumner) kostar 1 499–2 299 kr/dygn och täcker upp till 200 personer. Transport tillkommer." }
+    },
+    {
+      "@type": "Question",
+      "name": "Har ni kolumnhögtalare som liknar Bose L1?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi hyr ut Alto TS108C, Alto TS112C och LD Systems Maui 28 G2. Dessa är professionella alternativ i samma kategori som Bose L1 med liknande egenskaper: smal kolumndesign, bred horisontell spridning och inbyggd mixer. Vi har medvetet valt dessa modeller framför Bose baserat på pris, hållbarhet och servicemöjligheter." }
+    },
+    {
+      "@type": "Question",
+      "name": "Kan man köra kolumnhögtalare utan tekniker?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra kolumnsystem har inbyggd mixer med Bluetooth och är konstruerade för enkel hantering. Anslut telefon eller dator via Bluetooth eller kabel, sätt volymen och ni är igång. Vi ger alltid en genomgång vid leverans." }
+    }
+  ]
+};
+---
+<Layout
+  title="Hyr Kolumnhögtalare Stockholm — Diskret & Elegant PA från 799 kr | Scenkonsult"
+  description="Hyr kolumnhögtalare i Stockholm från 799 kr/dygn. Alto och LD Systems — smal, diskret design för konferens, bröllop och event. Stockholms största utbud. Leverans i hela Storstockholm."
+  schemaExtra={faqSchema}
+>
+
+  <CategoryHero
+    h1="Hyra Kolumnhögtalare"
+    h1Accent="Stockholm"
+    intro="Hyr kolumnhögtalare i Stockholm — smal, diskret design som låter bra utan att synas. Perfekt för konferens, bröllop och event där utseendet spelar roll. Alto och LD Systems från 799 kr/dygn."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
+      { label: "Portabelt ljud", href: "/vara-tjanster/hyra-ljud/portable/" },
+      { label: "Kolumnhögtalare" }
+    ]}
+    badges={[
+      "Stockholms största utbud",
+      "Alto & LD Systems",
+      "Från 799 kr/dygn",
+      "Bluetooth & inbyggd mixer",
+      "Leverans i Storstockholm",
+    ]}
+    priceFrom={799}
+  />
+
+  <!-- Vad är kolumnhögtalare -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
+      <h2 class="text-xl font-bold text-white mb-3">Vad är en kolumnhögtalare?</h2>
+      <p class="text-gray-400 leading-relaxed mb-4">
+        En kolumnhögtalare är ett kompakt PA-system med en <strong class="text-white">smal kolumn</strong> med flera diskanthögtalare och en separat basenhet — allt i ett snyggt, diskret paket utan stativ. Jämn, bred ljudspridning med minimalt eko gör den perfekt för <strong class="text-white">konferenser, bröllop, företagsevent och lokaler</strong> där utseendet spelar roll lika mycket som ljudet.
+      </p>
+      <p class="text-gray-400 leading-relaxed">
+        Kolumnhögtalare är kända från varumärket Bose L1 — vi hyr ut <strong class="text-white">Alto TS108C, Alto TS112C och LD Systems Maui 28 G2</strong>, professionella alternativ med samma diskreta design och liknande prestanda.
+      </p>
+    </div>
+  </section>
+
+  <!-- Jämförelse PA vs Kolumn -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <h2 class="text-2xl font-bold text-white mb-6">Kolumnhögtalare vs traditionellt PA-system</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-brand-navy border border-brand-orange/30 rounded-2xl p-6">
+        <h3 class="font-bold text-brand-orange text-lg mb-4">✓ Kolumnhögtalare passar när...</h3>
+        <ul class="space-y-2 text-gray-400 text-sm">
+          {[
+            "Utseendet och diskretionen spelar roll",
+            "Lokalen är hård med eko-problem",
+            "Ni vill undvika synliga stativ",
+            "Konferenser med talaramplifiering",
+            "Bröllop, mingel och företagsfest",
+            "Enkel installation utan tekniker"
+          ].map(i => <li class="flex gap-2"><span class="text-green-400 shrink-0">✓</span>{i}</li>)}
+        </ul>
+      </div>
+      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+        <h3 class="font-bold text-white text-lg mb-4">→ Traditionellt PA passar bättre när...</h3>
+        <ul class="space-y-2 text-gray-400 text-sm">
+          {[
+            "Ni behöver maximalt antal decibel",
+            "Utomhus med stort avstånd till publiken",
+            "Liveband med trummor och gitarr",
+            "Fler än 200 personer",
+            "Ni behöver separata subwoofers",
+            "Festival eller stor scenproduktion"
+          ].map(i => <li class="flex gap-2"><span class="text-brand-orange shrink-0">→</span>{i}</li>)}
+        </ul>
+      </div>
+    </div>
+    <p class="text-gray-400 text-sm mt-4 text-center">Osäker på vad som passar? <a href="/kontakt/" class="text-brand-orange hover:underline">Kontakta oss</a> eller se <a href="/vara-tjanster/hyra-ljud/pa-anlaggning/" class="text-brand-orange hover:underline">alla PA-anläggningar →</a></p>
+  </section>
+
+  <!-- Singel kolumner -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Kolumnhögtalare — singel</h2>
+      <p class="text-gray-400 mt-1">En kolumn med basenhet. Täcker en riktning perfekt — idealisk för talaramplifiering och ensidig publik.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {singelKolumner.map(p => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          persons={p.persons}
+          specs={p.includes}
+          category="Portabelt ljud"
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Duo kolumner -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Kolumnhögtalare — duo (2 kolumner)</h2>
+      <p class="text-gray-400 mt-1">Två kolumner för stereo och bredare täckning. Perfekt för dansgolv, bröllop och event med publik på båda sidor.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {duoKolumner.map(p => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          persons={p.persons}
+          specs={p.includes}
+          category="Portabelt ljud"
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Välj rätt storlek -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-6">Välj rätt kolumnhögtalare</h2>
+      <div class="space-y-4">
+        {[
+          { persons: "Upp till 80 pers.", rec: "Portable Medium (singel)", price: "799 kr/dygn", use: "Tal, konferens, mingel, liten fest" },
+          { persons: "60–100 pers.", rec: "Portable Medium+ (singel)", price: "999 kr/dygn", use: "Bröllop, företagsfest, föreläsning" },
+          { persons: "80–120 pers.", rec: "Portable Large (singel)", price: "1 199 kr/dygn", use: "Konferens, utomhusevent, stor lokal" },
+          { persons: "60–100 pers.", rec: "Portable Medium Duo", price: "1 499 kr/dygn", use: "Bröllop med stereo, dansgolv, fest" },
+          { persons: "100–200 pers.", rec: "Portable Medium+ Duo", price: "1 899 kr/dygn", use: "Stor konferens, bröllop, kickoff" },
+          { persons: "120–200 pers.", rec: "Portable Large Duo", price: "2 299 kr/dygn", use: "Stor fest, utomhus, festivalmingel" },
+        ].map(row => (
+          <div class="flex items-start gap-4 border-b border-white/5 pb-4 last:border-0 last:pb-0">
+            <div class="bg-brand-orange/10 border border-brand-orange/20 rounded-lg px-3 py-2 shrink-0 text-center min-w-[100px]">
+              <span class="text-brand-orange font-bold text-xs">{row.persons}</span>
+            </div>
+            <div class="flex-1">
+              <div class="text-white font-semibold text-sm">{row.rec}</div>
+              <div class="text-gray-400 text-xs mt-0.5">{row.use}</div>
+            </div>
+            <div class="text-gray-400 text-xs shrink-0 text-right">{row.price}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6">Vanliga frågor om kolumnhögtalare</h2>
+    <div class="space-y-4">
+      {faqSchema.mainEntity.map((f: any) => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl p-5 group">
+          <summary class="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
+            {f.name}
+            <span class="text-brand-orange text-lg ml-4 shrink-0 group-open:rotate-45 transition-transform">+</span>
+          </summary>
+          <p class="text-gray-400 mt-3 text-sm leading-relaxed">{f.acceptedAnswer.text}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 text-center">
+    <div class="bg-brand-navy border border-brand-orange/20 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-3">Osäker på vilken kolumnhögtalare du behöver?</h2>
+      <p class="text-gray-400 mb-6">Berätta om din lokal och antal gäster — vi rekommenderar rätt system. Vi har hyrt ut kolumnhögtalare i Stockholm sedan 1986.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-bold px-8 py-3 rounded-xl transition-colors">
+          Kontakta oss
+        </a>
+        <a href="/vara-tjanster/hyra-ljud/portable/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white font-bold px-8 py-3 rounded-xl transition-colors">
+          Se allt portabelt ljud
+        </a>
+      </div>
+    </div>
+  </section>
+
+</Layout>
