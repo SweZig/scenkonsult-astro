@@ -1,0 +1,161 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljusData from '../../../data/ljus.json';
+
+const eff = ljusData.effekter.products as any[];
+const ep = (artno: string) => eff.find(p => p.artno === artno)?.price ?? 0;
+
+const ledPar     = eff.find(p => p.artno === 'SK-LJS-EFF-0001');
+const ledParMed  = eff.find(p => p.artno === 'SK-LJS-EFF-0002');
+const ledParXL   = eff.find(p => p.artno === 'SK-LJS-EFF-0004');
+const ledBatteri = eff.find(p => p.artno === 'SK-LJS-EFF-0005');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar det att hyra uplights?", "acceptedAnswer": { "@type": "Answer", "text": `En LED PAR uplight kostar från ${ep('SK-LJS-EFF-0001')} kr/st/dygn. Vi hyr ut per styck — köp precis så många du behöver för lokalen. 8 uplights längs väggarna räcker för de flesta festvåningar (50–80 gäster).` } },
+    { "@type": "Question", "name": "Hur många uplights behöver man?", "acceptedAnswer": { "@type": "Answer", "text": "Räkna en uplight var 2–3 meter längs väggarna. En typisk festvåning på 150–200 m² behöver 8–12 uplights för täckande wallwash-effekt. Vill du bara lyfta fram specifika väggar eller dekorationer räcker 4–6 st." } },
+    { "@type": "Question", "name": "Kan man använda uplights utomhus?", "acceptedAnswer": { "@type": "Answer", "text": `Ja — våra batteridrivna uppladdningsbara armaturer (${ep('SK-LJS-EFF-0005')} kr/st) kräver inga kablar och passar perfekt utomhus. Kabelanslutna LED PAR fungerar också utomhus men kräver tillgång till 230V.` } },
+    { "@type": "Question", "name": "Vilka färger kan man välja?", "acceptedAnswer": { "@type": "Answer", "text": "Alla våra LED PAR-armaturer är RGBW — full färgmixning med röd, grön, blå och vit. Du kan välja exakt vilken nyans du vill ha via fjärrkontroll eller DMX. Populärast på bröllop: varm vit, ros och lavendel. På företagsfest: matcha företagets färger." } },
+    { "@type": "Question", "name": "Behöver man tekniker för att använda uplights?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — våra LED PAR-armaturer har inbyggda musiksynkroniserade automatprogram och fjärrkontroll. Inga tekniker behövs. Plug in, välj färg med fjärrkontrollen och du är klar. 5–10 minuter att sätta upp." } }
+  ]
+};
+---
+<Layout
+  title="Hyra Uplights Stockholm — LED PAR & Wallwash | Scenkonsult"
+  description="Hyr uplights och LED PAR-armaturer i Stockholm. Skapa stämningsfull wallwash-belysning från 79 kr/st/dygn. Batteridrivna och kabelanslutna. Leverans i Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Hyra uplights</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:2rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide & Priser</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Hyra uplights — LED wallwash för ditt event</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Uplights förvandlar en vanlig lokal till något minnesvärt på under 10 minuter. Här är allt du behöver veta — hur många, vilken typ och vad det kostar.</p>
+    </header>
+
+    <!-- Hero-bild -->
+    <div style="margin-bottom:2.5rem;border-radius:16px;overflow:hidden;aspect-ratio:16/9;max-height:420px;">
+      <img src="/images/event/uplight_bardisk.webp" alt="LED uplighting i orange — bardisk upplyst med wallwash-effekt" style="width:100%;height:100%;object-fit:cover;" loading="eager" />
+    </div>
+    <p style="color:rgba(255,255,255,0.3);font-size:0.78rem;text-align:center;margin-top:-2rem;margin-bottom:2.5rem;">LED uplighting i verklig miljö — effekten skapas med enkla armaturer från <span class="sk-price-excl">{ep('SK-LJS-EFF-0001')}</span><span class="sk-price-incl hidden">{Math.round(ep('SK-LJS-EFF-0001')*1.25)}</span> kr/st/dygn.</p>
+
+    <!-- Vad är uplights -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">Vad är uplights?</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Uplights (wallwash) är LED PAR-armaturer som placeras på golvet och lyser uppåt mot väggar och pelare. Effekten är enkel men dramatisk — lokalen fylls med färgat ljus och stämningen förändras på sekunder.</p>
+      <p style="color:rgba(255,255,255,0.6);font-size:0.97rem;line-height:1.8;margin:0;">Det är det mest kostnadseffektiva sättet att skapa stämning på ett event — inga tekniker behövs och det tar 5–10 minuter att sätta upp.</p>
+    </section>
+
+    <!-- Referensbild 2 -->
+    <div style="margin-bottom:2.5rem;border-radius:16px;overflow:hidden;aspect-ratio:16/9;max-height:380px;">
+      <img src="/images/event/kundevent_solna_naringsliv.webp" alt="Konferens med orange uplight — Solna Näringsliv" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+    </div>
+    <p style="color:rgba(255,255,255,0.3);font-size:0.78rem;text-align:center;margin-top:-2rem;margin-bottom:2.5rem;">Konferens med orange wallwash — Solna Näringsliv. Levererat av Scenkonsult.</p>
+
+    <!-- Hur många -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Hur många uplights behöver du?</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Lokal","Väggyta","Antal uplights","Pris/dygn"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { lokal:"Liten festvåning / konferensrum", yta:"50–80 m²",  antal:"4–6 st",   pris: 4 * ep('SK-LJS-EFF-0001') },
+              { lokal:"Medelstor festvåning",             yta:"100–150 m²", antal:"6–8 st",  pris: 6 * ep('SK-LJS-EFF-0001') },
+              { lokal:"Stor festvåning / festlokal",      yta:"150–250 m²", antal:"8–12 st", pris: 8 * ep('SK-LJS-EFF-0001') },
+              { lokal:"Stor hall / industrilokal",        yta:"250 m²+",    antal:"12–20 st",pris:12 * ep('SK-LJS-EFF-0001') },
+            ].map(({ lokal, yta, antal, pris }, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;font-size:0.88rem;">{lokal}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);">{yta}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.8);">{antal}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">från {pris}</span>
+                  <span class="sk-price-incl hidden">från {Math.round(pris*1.25)}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style="color:rgba(255,255,255,0.3);font-size:0.78rem;margin-top:0.5rem;">Baserat på LED PAR 14×8W RGBW à <span class="sk-price-excl">{ep('SK-LJS-EFF-0001')}</span><span class="sk-price-incl hidden">{Math.round(ep('SK-LJS-EFF-0001')*1.25)}</span> kr/st.</p>
+    </section>
+
+    <!-- Kabel vs batteri -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Kabelansluten eller batteri?</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem;">
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.5rem;">🔌 Kabelansluten</h3>
+          <div style="color:#c4b5f4;font-weight:700;margin-bottom:0.75rem;">
+            från <span class="sk-price-excl">{ep('SK-LJS-EFF-0001')}</span><span class="sk-price-incl hidden">{Math.round(ep('SK-LJS-EFF-0001')*1.25)}</span> kr/st
+          </div>
+          {["Starkare ljus","Obegränsad speltid","Kräver 230V uttag nära","Passar inomhus med eluttag"].map((t,i) => (
+            <div style={`color:rgba(255,255,255,${i<2?'0.7':'0.4'});font-size:0.86rem;padding:0.25rem 0;`}>{i<2?'✓':'–'} {t}</div>
+          ))}
+        </div>
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem;">
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.5rem;">🔋 Batteri</h3>
+          <div style="color:#c4b5f4;font-weight:700;margin-bottom:0.75rem;">
+            <span class="sk-price-excl">{ep('SK-LJS-EFF-0005')}</span><span class="sk-price-incl hidden">{Math.round(ep('SK-LJS-EFF-0005')*1.25)}</span> kr/st
+          </div>
+          {["Inga kablar — placera varsomhelst","Perfekt utomhus","Begränsad batteritid (4–8 h)","Något svagare ljus"].map((t,i) => (
+            <div style={`color:rgba(255,255,255,${i<2?'0.7':'0.4'});font-size:0.86rem;padding:0.25rem 0;`}>{i<2?'✓':'–'} {t}</div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Uplights att hyra</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={ledPar.artno} name={ledPar.name} price={ledPar.price} priceNote="/st/dygn" image={ledPar.image} alt={ledPar.name} description={ledPar.description ?? ''} specs={ledPar.includes ?? []} category="Uplights" />
+        <ProductCard artno={ledParMed.artno} name={ledParMed.name} price={ledParMed.price} priceNote="/st/dygn" image={ledParMed.image} alt={ledParMed.name} description={ledParMed.description ?? ''} specs={ledParMed.includes ?? []} category="Uplights" />
+        <ProductCard artno={ledParXL.artno} name={ledParXL.name} price={ledParXL.price} priceNote="/st/dygn" image={ledParXL.image} alt={ledParXL.name} description={ledParXL.description ?? ''} specs={ledParXL.includes ?? []} category="Uplights" />
+        <ProductCard artno={ledBatteri.artno} name={ledBatteri.name} price={ledBatteri.price} priceNote="/st/dygn" image={ledBatteri.image} alt={ledBatteri.name} description={ledBatteri.description ?? ''} specs={ledBatteri.includes ?? []} category="Uplights" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljus/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Allt ljus & effekter →</a>
+        <a href="/for/guider/ljussattning-tips/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Guide: Ljussättning →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Lägg till uplights i din beställning</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Välj antal, lägg i varukorgen och skicka offertförfrågan — vi hör av oss inom 2 timmar.</p>
+      <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se alla ljuseffekter</a>
+    </div>
+
+  </article>
+</Layout>

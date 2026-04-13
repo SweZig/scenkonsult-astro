@@ -1,0 +1,127 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljusData from '../../../data/ljus.json';
+
+const rok = ljusData.rok.products as any[];
+const rp = (artno: string) => rok.find(p => p.artno === artno)?.price ?? 0;
+
+const rok1500  = rok.find(p => p.artno === 'SK-LJS-ROK-0001');
+const rok650   = rok.find(p => p.artno === 'SK-LJS-ROK-0002');
+const kallgnist= rok.find(p => p.artno === 'SK-LJS-ROK-0003');
+const konfetti = rok.find(p => p.artno === 'SK-LJS-ROK-0004');
+const hazer    = rok.find(p => p.artno === 'SK-LJS-ROK-0005');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar det att hyra en rökmaskin?", "acceptedAnswer": { "@type": "Answer", "text": `En Rökmaskin 1500W kostar ${rp('SK-LJS-ROK-0001')} kr/dygn. Kompaktare Rökmaskin 650W kostar ${rp('SK-LJS-ROK-0002')} kr/dygn. Rök­vätska ingår alltid vid uthyrning.` } },
+    { "@type": "Question", "name": "Utlöser rökmaskin brandlarmet?", "acceptedAnswer": { "@type": "Answer", "text": "Moderna rökmaskiner med standardrök­vätska utlöser normalt inte brandlarm. Det beror på lokal och typ av detektor — stäm alltid av med lokalen i förväg. Hazer (tunn dimma) är säkrare i känsliga lokaler." } },
+    { "@type": "Question", "name": "Vad är skillnaden på rökmaskin och hazer?", "acceptedAnswer": { "@type": "Answer", "text": "En rökmaskin skjuter ut tjocka rökpuffar som ger tydliga ljusstrålar från laser och moving heads. En hazer skapar en tunn, jämn dimma i lokalen — mer 'atmosfärisk' känsla, bättre för belysnings-diffusion. Hazer är vanligare i känsliga lokaler." } },
+    { "@type": "Question", "name": "Vad är en kallgnistmaskin?", "acceptedAnswer": { "@type": "Answer", "text": `En kallgnistmaskin producerar kalla gnistor (~50°C) utan öppen låga — du kan hålla handen i gnistsvansen utan att bränna dig. Den klassas inte som pyroteknisk effekt och kräver inget tillstånd. Populär vid bröllop och galakväll. Kostar ${rp('SK-LJS-ROK-0003')} kr/dygn.` } },
+    { "@type": "Question", "name": "Behövs det tillstånd för rökmaskin?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — standardrökmaskin och hazer kräver inget tillstånd. Kallgnistmaskin kräver inget tillstånd. Pyrotekniska effekter och fire machine kräver tillstånd och utbildad personal. Stäm alltid av med lokalen om rökmaskiner är tillåtna." } }
+  ]
+};
+---
+<Layout
+  title="Hyra Rökmaskin Stockholm — Priser & Guide 2026 | Scenkonsult"
+  description="Hyr rökmaskin, hazer eller kallgnistmaskin i Stockholm. Rökmaskin 1500W från 349 kr/dygn. Rök­vätska ingår. Leverans i hela Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Hyra rökmaskin</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide & Priser</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Hyra rökmaskin i Stockholm — guide 2026</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Rök och dimma förvandlar ljuseffekter från okej till spektakulärt. Utan rök är laserstrålar nästan osynliga. Här är allt du behöver veta.</p>
+    </header>
+
+    <!-- Varför rök -->
+    <section style="margin-bottom:3rem;">
+      <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.2);border-radius:14px;padding:1.5rem;display:flex;gap:1rem;align-items:flex-start;">
+        <span style="font-size:1.5rem;flex-shrink:0;">💡</span>
+        <div>
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.4rem;">Laser utan rök = knappt synlig</h3>
+          <p style="color:rgba(255,255,255,0.6);font-size:0.92rem;line-height:1.65;margin:0;">En laser eller moving head skapar sin effekt i luften — inte på väggen. Utan partiklar i luften att reflektera mot försvinner 80% av effekten. Hyr alltid rökmaskin när du hyr laser.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Produktöversikt -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Alla rök- och specialeffekter</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {[
+          { name:"Rökmaskin (1500W)",   icon:"💨", artno:"SK-LJS-ROK-0001", desc:"Kraftig rök, täcker stora ytor snabbt. Standard för disco, fest och moving heads.",          req:"Inget tillstånd. Kolla med lokalen." },
+          { name:"Rökmaskin (650W)",    icon:"💨", artno:"SK-LJS-ROK-0002", desc:"Kompaktare — bra för mindre lokaler och när man vill ha mer kontroll över rökvolymen.",     req:"Inget tillstånd." },
+          { name:"Hazer HZ-1500 Pro",   icon:"🌫️", artno:"SK-LJS-ROK-0005", desc:"Tunn, jämn dimma. Mer atmosfärisk känsla, bättre diffusion. Säkrare i känsliga lokaler.", req:"Inget tillstånd. Bäst för konserter." },
+          { name:"Kallgnistmaskin",      icon:"✨", artno:"SK-LJS-ROK-0003", desc:"Kalla gnistor (~50°C) — ingen eld, inget tillstånd. Perfekt för bröllop och galakväll.",   req:"Inget tillstånd krävs." },
+          { name:"Konfettiavfyrare",     icon:"🎊", artno:"SK-LJS-ROK-0004", desc:"Skjuter ut konfetti i ett moln. Populärt för entrér, award-moments och finalen.",          req:"Kolla med lokalen om tillåtet." },
+        ].map(p => (
+          <div style="display:grid;grid-template-columns:2rem 1fr auto;gap:0.75rem;align-items:start;background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem;">
+            <span style="font-size:1.4rem;">{p.icon}</span>
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.3rem;font-size:0.95rem;">{p.name}</h3>
+              <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin:0 0 0.3rem;">{p.desc}</p>
+              <span style="color:rgba(134,239,172,0.8);font-size:0.78rem;">✓ {p.req}</span>
+            </div>
+            <div style="text-align:right;white-space:nowrap;">
+              <span style="color:#c4b5f4;font-weight:700;">
+                <span class="sk-price-excl">{rp(p.artno)}</span>
+                <span class="sk-price-incl hidden">{Math.round(rp(p.artno)*1.25)}</span> kr
+              </span>
+              <div style="color:rgba(255,255,255,0.3);font-size:0.75rem;">/dygn</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Lägg i varukorgen</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={rok1500.artno} name={rok1500.name} price={rok1500.price} priceNote="/dygn" image={rok1500.image} alt={rok1500.name} description={rok1500.description ?? ''} specs={rok1500.includes ?? []} category="Rök & pyro" />
+        <ProductCard artno={rok650.artno} name={rok650.name} price={rok650.price} priceNote="/dygn" image={rok650.image} alt={rok650.name} description={rok650.description ?? ''} specs={rok650.includes ?? []} category="Rök & pyro" />
+        <ProductCard artno={kallgnist.artno} name={kallgnist.name} price={kallgnist.price} priceNote="/dygn" image={kallgnist.image} alt={kallgnist.name} description={kallgnist.description ?? ''} specs={kallgnist.includes ?? []} category="Rök & pyro" />
+        <ProductCard artno={hazer.artno} name={hazer.name} price={hazer.price} priceNote="/dygn" image={hazer.image} alt={hazer.name} description={hazer.description ?? ''} specs={hazer.includes ?? []} category="Rök & pyro" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljus/rok-pyro/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla rök & pyro-effekter →</a>
+        <a href="/vara-tjanster/hyra-ljus/moving-heads/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Moving heads →</a>
+        <a href="/for/guider/ljussattning-tips/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Ljussättningsguide →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Kombinera med ljuseffekter</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Rök + laser + moving heads = maxtryck. Lägg till allt i varukorgen och skicka en offertförfrågan.</p>
+      <a href="/vara-tjanster/hyra-ljus/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se alla ljuseffekter</a>
+    </div>
+
+  </article>
+</Layout>

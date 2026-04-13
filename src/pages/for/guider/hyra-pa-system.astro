@@ -1,0 +1,159 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+
+const allProds = [
+  ...ljudData.event.products,
+  ...(ljudData.portable.products as any[]),
+  ...ljudData.music.products,
+  ...ljudData.live.products,
+];
+const lp = (artno: string) => allProds.find(p => p.artno === artno)?.price ?? 0;
+
+const portSmall  = (ljudData.portable.products as any[]).find(p => p.artno === 'SK-LJD-POR-0001');
+const portMedium = (ljudData.portable.products as any[]).find(p => p.artno === 'SK-LJD-POR-0003');
+const evSmall    = ljudData.event.products[0];
+const evMedium   = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0002');
+const musSmall   = ljudData.music.products[0];
+const musMedium  = (ljudData.music.products as any[]).find(p => p.artno === 'SK-LJD-MUS-0003');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar det att hyra ett PA-system?", "acceptedAnswer": { "@type": "Answer", "text": `Ett PA-system för 20–50 gäster kostar från ${lp('SK-LJD-POR-0001')} kr/dygn. För 50–100 gäster: ${lp('SK-LJD-EVE-0001')}–${lp('SK-LJD-MUS-0001')} kr/dygn. För 100–200 gäster: ${lp('SK-LJD-EVE-0002')}–${lp('SK-LJD-MUS-0003')} kr/dygn. Alla priser exkl. moms.` } },
+    { "@type": "Question", "name": "Vad är skillnaden på Portable, Event, Music och Live?", "acceptedAnswer": { "@type": "Answer", "text": "Portable = kompakta plug-and-play-system för upp till 50 gäster. Event = optimerade för tal och konferens, lättare mellantoner. Music = inkluderar subwoofer, gjorda för dans och DJ. Live = monitor-utgångar för musiker på scen. Välj Music om det ska dansas." } },
+    { "@type": "Question", "name": "Behöver man subwoofer?", "acceptedAnswer": { "@type": "Answer", "text": "Till dans och DJ: ja, alltid. Music-paketen inkluderar subwoofer. Till tal, konferens och bakgrundsmusik räcker Event-serien utan sub. Vill du ha lite mer bas på en fest men utan djungeldisco välj Music Small." } },
+    { "@type": "Question", "name": "Kan man installera ett PA-system själv?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra Portable, Event och Music-paket är byggda för självinstallation. Vi går igenom kopplingar och inställningar vid avhämtning. Behöver du hjälp på plats erbjuder vi tekniker som tillägg." } },
+    { "@type": "Question", "name": "Hur mycket watt behöver man?", "acceptedAnswer": { "@type": "Answer", "text": "Watt-talet är missvisande — vad som avgör räckvidden är antalet högtalare, deras placering och lokalens akustik. Tumregel: välj paket efter gästantal, inte watt. Vår storleksguide tar dig rätt." } }
+  ]
+};
+---
+<Layout
+  title="Hyra PA-system Stockholm — Guide & Priser 2026 | Scenkonsult"
+  description="Hyr PA-system i Stockholm. Portable från 599 kr, Event från 799 kr, Music med subwoofer från 999 kr/dygn. Guide till rätt PA för ditt event. Leverans i Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Hyra PA-system</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide & Priser</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Hyra PA-system i Stockholm — komplett guide 2026</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Fyra serier, dussintals storlekar, ett syfte — rätt ljud till ditt event. Här är allt du behöver veta för att välja rätt PA-system.</p>
+    </header>
+
+    <!-- De fyra serierna -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Fyra serier — en för varje behov</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {[
+          { serie:"Portable", icon:"🎒", for:"Fester, utomhus, studentflak — upp till 50 gäster", detalj:"Bluetooth + AUX, kompakta och lätta att flytta. Inga tekniker behövs.", fran:lp('SK-LJD-POR-0001'), link:"/vara-tjanster/hyra-ljud/portable/", color:"rgba(134,239,172,0.15)" },
+          { serie:"Event",    icon:"🎙️", for:"Tal, konferens, presentationer — 30–200 gäster",     detalj:"Klart tal och bakgrundsmusik. Ingen subwoofer — inte gjord för dans.",        fran:lp('SK-LJD-EVE-0001'), link:"/vara-tjanster/hyra-ljud/event/",    color:"rgba(196,181,244,0.1)" },
+          { serie:"Music",    icon:"🎉", for:"Fest, DJ, dans — 50–500 gäster",                      detalj:"Subwoofer ingår alltid. Gjord för basstryck och höga volymer på dansgolvet.", fran:lp('SK-LJD-MUS-0001'), link:"/vara-tjanster/hyra-ljud/music/",    color:"rgba(251,191,36,0.08)" },
+          { serie:"Live",     icon:"🎸", for:"Liveband och artister — 50–500 gäster",               detalj:"Monitor-utgångar och extra mixer-ingångar för band. Sub ingår.",              fran:lp('SK-LJD-LIV-0001'), link:"/vara-tjanster/hyra-ljud/live/",     color:"rgba(249,115,22,0.08)" },
+        ].map(s => (
+          <a href={s.link} style={`display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;background:${s.color};border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.25rem 1.5rem;text-decoration:none;transition:border-color 0.2s;`}
+             onmouseenter="this.style.borderColor='rgba(196,181,244,0.35)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)'">
+            <span style="font-size:1.75rem;">{s.icon}</span>
+            <div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin-bottom:0.2rem;">{s.serie}-serien</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:0.85rem;">{s.for}</div>
+              <div style="color:rgba(255,255,255,0.35);font-size:0.8rem;margin-top:0.2rem;">{s.detalj}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="color:#c4b5f4;font-weight:700;white-space:nowrap;">
+                från <span class="sk-price-excl">{s.fran}</span><span class="sk-price-incl hidden">{Math.round(s.fran*1.25)}</span> kr
+              </div>
+              <div style="color:rgba(255,255,255,0.3);font-size:0.78rem;">per dygn</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Storlekstabell -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Välj storlek efter gästantal</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Gäster","Program","Rekommendation","Pris/dygn"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { g:"10–30",   prog:"Tal, bakgrundsmusik",    rek:"Portable Small",   artno:"SK-LJD-POR-0001" },
+              { g:"20–50",   prog:"Fest, utomhus, flak",    rek:"Portable Medium",  artno:"SK-LJD-POR-0003" },
+              { g:"30–100",  prog:"Konferens, presentation",rek:"Event Small",      artno:"SK-LJD-EVE-0001" },
+              { g:"50–100",  prog:"Fest med dans",          rek:"Music Small",      artno:"SK-LJD-MUS-0001" },
+              { g:"100–200", prog:"Kickoff, föreläsning",   rek:"Event Medium",     artno:"SK-LJD-EVE-0002" },
+              { g:"100–200", prog:"DJ-fest, dansgolv",      rek:"Music Medium",     artno:"SK-LJD-MUS-0003" },
+              { g:"200–500", prog:"Galakväll, konsert",     rek:"Music Large",      artno:"SK-LJD-MUS-0004" },
+              { g:"500+",    prog:"Festival, stor scen",    rek:"Live/Music XL",    artno:"SK-LJD-MUS-0005" },
+            ].map(({ g, prog, rek, artno }, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{g}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);font-size:0.85rem;">{prog}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.85);">{rek}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">{lp(artno)}</span>
+                  <span class="sk-price-incl hidden">{Math.round(lp(artno)*1.25)}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4">
+        <a href="/for/guider/hur-stor-pa/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Djupare storleksguide →</a>
+      </div>
+    </section>
+
+    <!-- Populära val -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populära val</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={portMedium.artno} name={portMedium.name} price={portMedium.price} priceNote="/dygn" image={portMedium.image} alt={portMedium.name} description={portMedium.description} persons={portMedium.persons} specs={portMedium.includes} category="Portabelt ljud" />
+        <ProductCard artno={evSmall.artno} name={evSmall.name} price={evSmall.price} priceNote="/dygn" image={evSmall.image} alt={evSmall.name} description={evSmall.description} persons={evSmall.persons} specs={evSmall.includes} category="Ljud" />
+        <ProductCard artno={musSmall.artno} name={musSmall.name} price={musSmall.price} priceNote="/dygn" image={musSmall.image} alt={musSmall.name} description={musSmall.description} persons={musSmall.persons} specs={musSmall.includes} category="Ljud" />
+        <ProductCard artno={musMedium.artno} name={musMedium.name} price={musMedium.price} priceNote="/dygn" image={musMedium.image} alt={musMedium.name} description={musMedium.description} persons={musMedium.persons} specs={musMedium.includes} category="Ljud" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla PA-system →</a>
+        <a href="/vara-tjanster/hyra-ljud/pa-anlaggning/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">PA-anläggning guide →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Osäker på vilket system du behöver?</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ring 072-448 10 00 eller begär offert — vi dimensionerar rätt utan kostnad.</p>
+      <a href="/varukorg/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Börja bygga ditt paket</a>
+    </div>
+
+  </article>
+</Layout>
