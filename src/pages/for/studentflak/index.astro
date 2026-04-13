@@ -1,6 +1,13 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+
+const portSmallPlus = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0002');
+const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
+const portSmallDuo = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0005');
+const tradlosHand = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
 
 const faq = [
   {
@@ -164,6 +171,42 @@ const pageSchema = {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Produkter för studentflak -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Populärt till studentflak</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Lägg till i varukorgen direkt</h2>
+      <p style="color:rgba(255,255,255,0.5); font-size:0.95rem; margin:0 0 2.5rem;">Kompakta och kraftfulla system — enkla att montera på flaket, svåra att stoppa.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <ProductCard
+          artno={portSmallPlus.artno} name={portSmallPlus.name} price={portSmallPlus.price}
+          priceNote="/dygn" image={portSmallPlus.image} alt={portSmallPlus.name}
+          description={portSmallPlus.description} persons={portSmallPlus.persons}
+          specs={portSmallPlus.includes} category="Portabelt ljud" />
+        <ProductCard
+          artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
+          priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
+          description={portMedium.description} persons={portMedium.persons}
+          specs={portMedium.includes} category="Portabelt ljud" />
+        <ProductCard
+          artno={portSmallDuo.artno} name={portSmallDuo.name} price={portSmallDuo.price}
+          priceNote="/dygn" image={portSmallDuo.image} alt={portSmallDuo.name}
+          description={portSmallDuo.description ?? ''}
+          specs={portSmallDuo.includes ?? []} category="Portabelt ljud" />
+        <ProductCard
+          artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price}
+          priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name}
+          description={tradlosHand.description ?? tradlosHand.desc}
+          specs={tradlosHand.specs ?? []} category="Mikrofon" />
+      </div>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljud/portable/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Se alla portabla system →</a>
+        <a href="/vara-tjanster/hyra-ljud/pa-anlaggning/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">PA-anläggning guide →</a>
       </div>
     </div>
   </section>

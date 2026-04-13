@@ -1,6 +1,17 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+import ljusData from '../../../data/ljus.json';
+import sceneData from '../../../data/scenes.json';
+
+const liveMedium = (ljudData.live.products as any[]).find((p:any) => p.artno === 'SK-LJD-LIV-0002') ?? ljudData.live.products[1];
+const liveSmall = ljudData.live.products[0];
+const mhBeam = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0014');
+const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0011');
+const scenMedium = sceneData.products[2] ?? sceneData.products[1];
+const rokmaskin = (ljusData.rok.products as any[])[0];
 
 const faq = [
   {
@@ -135,6 +146,55 @@ const pageSchema = {
         <a href="/bokningssida/" style="display:inline-block; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:0.9rem 2.5rem; border-radius:4px;">
           Begär offert för er festival
         </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Produkter för festival -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Populärt till festival & utomhus</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Lägg till i varukorgen direkt</h2>
+      <p style="color:rgba(255,255,255,0.5); font-size:0.95rem; margin:0 0 2.5rem;">Kraft och pålitlighet för utomhusarrangemang — välj ett steg upp jämfört med inomhus.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+        <ProductCard
+          artno={liveSmall.artno} name={liveSmall.name} price={liveSmall.price}
+          priceNote="/dygn" image={liveSmall.image} alt={liveSmall.name}
+          description={liveSmall.description} persons={liveSmall.persons}
+          specs={liveSmall.includes} category="Ljud" />
+        <ProductCard
+          artno={liveMedium.artno} name={liveMedium.name} price={liveMedium.price}
+          priceNote="/dygn" image={liveMedium.image} alt={liveMedium.name}
+          description={liveMedium.description} persons={liveMedium.persons}
+          specs={liveMedium.includes} category="Ljud" />
+        <ProductCard
+          artno={scenMedium.artno} name={scenMedium.name} price={scenMedium.price}
+          priceNote="/dygn" image={scenMedium.image} alt={scenMedium.name}
+          description={scenMedium.description ?? ''}
+          specs={scenMedium.includes ?? []} category="Scen" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <ProductCard
+          artno={mhWash.artno} name={mhWash.name} price={mhWash.price}
+          priceNote="/st/dygn" image={mhWash.image} alt={mhWash.name}
+          description={mhWash.description}
+          specs={mhWash.includes ?? []} category="Ljuseffekter" />
+        <ProductCard
+          artno={mhBeam.artno} name={mhBeam.name} price={mhBeam.price}
+          priceNote="/st/dygn" image={mhBeam.image} alt={mhBeam.name}
+          description={mhBeam.description}
+          specs={mhBeam.includes ?? []} category="Ljuseffekter" />
+        {rokmaskin && <ProductCard
+          artno={rokmaskin.artno} name={rokmaskin.name} price={rokmaskin.price}
+          priceNote="/dygn" image={rokmaskin.image} alt={rokmaskin.name}
+          description={rokmaskin.description ?? ''}
+          specs={rokmaskin.includes ?? []} category="Rök & pyro" />}
+      </div>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljud/live/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Live PA-system →</a>
+        <a href="/vara-tjanster/hyra-ljus/moving-heads/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Moving heads →</a>
+        <a href="/vara-tjanster/hyra-scen/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Scener →</a>
       </div>
     </div>
   </section>

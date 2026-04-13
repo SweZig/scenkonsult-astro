@@ -1,6 +1,16 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+import ljusData from '../../../data/ljus.json';
+
+const evSmall = ljudData.event.products[0];
+const evMedium = ljudData.event.products[1];
+const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
+const shureMygga = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
+const ljusPaket = ljusData.paket.products[1];
+const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0010');
 
 const faq = [
   {
@@ -181,6 +191,53 @@ const kunder = [
           </a>
           <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="📞 " data-label="072-448 10 00" href="#tel" style="display:block; text-align:center; color:rgba(255,255,255,0.4); font-family:'Space Grotesk',sans-serif; font-size:0.85rem; text-decoration:none;"><noscript>📞 072-448 10 00</noscript></a>
         </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Produkter för företagsfest -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Populärt till företagsfest</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Lägg till i varukorgen direkt</h2>
+      <p style="color:rgba(255,255,255,0.5); font-size:0.95rem; margin:0 0 2.5rem;">Professionell utrustning för kickoff, personalfest och konferensmiddag.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+        <ProductCard
+          artno={evMedium.artno} name={evMedium.name} price={evMedium.price}
+          priceNote="/dygn" image={evMedium.image} alt={evMedium.name}
+          description={evMedium.description} persons={evMedium.persons}
+          specs={evMedium.includes} category="Ljud" />
+        <ProductCard
+          artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
+          priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
+          description={portMedium.description} persons={portMedium.persons}
+          specs={portMedium.includes} category="Ljud" />
+        <ProductCard
+          artno={shureMygga.artno} name={shureMygga.name} price={shureMygga.price}
+          priceNote="/dygn" image={shureMygga.image} alt={shureMygga.name}
+          description={shureMygga.description ?? shureMygga.desc}
+          specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard
+          artno={ljusPaket.artno} name={ljusPaket.name} price={ljusPaket.price}
+          priceNote="/dygn" image={ljusPaket.image} alt={ljusPaket.name}
+          description={ljusPaket.description}
+          specs={ljusPaket.includes ?? []} category="Ljus" />
+        <ProductCard
+          artno={mhWash.artno} name={mhWash.name} price={mhWash.price}
+          priceNote="/st/dygn" image={mhWash.image} alt={mhWash.name}
+          description={mhWash.description}
+          specs={mhWash.includes ?? []} category="Ljuseffekter" />
+      </div>
+      <!-- Konferens-länk -->
+      <div class="mt-8 bg-brand-navy border border-brand-orange/20 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div class="flex-1">
+          <div class="text-brand-orange text-sm font-semibold mb-1">Planerar ni en konferens eller kickoff?</div>
+          <div class="text-white font-bold">Se vår kompletta AV-sida för konferens — mikrofoner, projektor och PA samlat</div>
+        </div>
+        <a href="/vara-tjanster/konferens-av/" class="shrink-0 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-bold text-sm px-6 py-3 rounded-xl transition-colors">Konferens AV →</a>
       </div>
     </div>
   </section>

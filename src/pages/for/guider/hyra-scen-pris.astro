@@ -1,0 +1,138 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import sceneData from '../../../data/scenes.json';
+
+const scener = sceneData.products.slice(0, 4);
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar det att hyra en scen i Stockholm?", "acceptedAnswer": { "@type": "Answer", "text": "Scenpaket Small (2×2 m) kostar från 599 kr/dygn. Scenpaket Medium (4×3 m) kostar ca 1 499 kr/dygn. Stora scener för festivaler och konserter (6×4 m+) kostar 3 000–8 000 kr/dygn. Transport och montering tillkommer." } },
+    { "@type": "Question", "name": "Hur stor scen behöver jag?", "acceptedAnswer": { "@type": "Answer", "text": "DJ eller trubadur: 2×2 m (Small) räcker. Liveband med 3–4 musiker: 4×3 m (Medium). Band med 5+ musiker eller showproduktion: 6×4 m eller större. Som tumregel: minst 2 m² per musiker." } },
+    { "@type": "Question", "name": "Ingår montering i scenhyran?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — montering och demontering är alltid en separat kostnad som offerteras baserat på scenstorlek och plats. Vi monterar i hela Storstockholm. Räkna med 1 000–3 000 kr för montering av ett standardscenpaket." } },
+    { "@type": "Question", "name": "Kan man hyra scen utomhus?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, alla våra scener är byggda för utomhusbruk. Vid risk för regn eller vind rekommenderar vi ett scensläde (tak) som tillägg. Kontakta oss för rådgivning baserat på er plats och väderprognos." } },
+    { "@type": "Question", "name": "Hur tidigt måste jag boka scen?", "acceptedAnswer": { "@type": "Answer", "text": "För events under maj–september (högsäsong) rekommenderar vi 4–8 veckor i förväg. Utanför säsong går ofta kortare varsel. Kontakta oss direkt för att kontrollera tillgänglighet." } }
+  ]
+};
+---
+<Layout
+  title="Hyra Scen Stockholm — Pris & Guide 2026 | Scenkonsult"
+  description="Vad kostar det att hyra scen i Stockholm? Scenpaket från 599 kr/dygn. Guide till rätt scenstorlek för DJ, liveband och festival. Leverans och montering i Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Hyra scen — pris</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Prisguide</p>
+      <h1 style="font-family:'DM Serif Display',serif; font-size:clamp(2rem,5vw,3.2rem); color:white; line-height:1.15; margin:0 0 1.25rem;">Hyra scen i Stockholm — vad kostar det?</h1>
+      <p style="color:rgba(255,255,255,0.6); font-size:1.05rem; line-height:1.8;">Komplett prisguide för scenuthyrning i Stockholm 2026 — från liten podium för DJ till stor festivalscen. Vi reder ut storlekar, priser och vad som tillkommer.</p>
+    </header>
+
+    <!-- Prisöversikt -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1.25rem;">Priser — snabböversikt</h2>
+      <div style="overflow-x:auto; margin-bottom:1rem;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Scenpaket","Storlek","Passar till","Pris/dygn"].map(h => <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {[
+              ["Small","2×2 m = 4 m²","DJ, trubadur, talarpodium","599 kr"],
+              ["Small+","3×2 m = 6 m²","DJ + VJ, duo","899 kr"],
+              ["Small++","3×3 m = 9 m²","Trio, litet liveband","1 199 kr"],
+              ["Medium","4×3 m = 12 m²","Band 3–5 pers","1 499 kr"],
+              ["Medium+","5×4 m = 20 m²","Band 4–6 pers + backline","2 499 kr"],
+              ["Large","6×5 m = 30 m²","Stort band, show","4 999 kr"],
+            ].map(([n,s,p,pr], i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{n}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);white-space:nowrap;">{s}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);">{p}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;"><span data-exkl={pr.replace(' kr','')}>{pr}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style="color:rgba(255,255,255,0.3); font-size:0.8rem;">Priser exkl. moms. Transport och montering tillkommer och offerteras separat.</p>
+    </section>
+
+    <!-- Vad tillkommer -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1rem;">Vad tillkommer utöver scenhyran?</h2>
+      <div style="display:flex; flex-direction:column; gap:0.75rem;">
+        {[
+          { post: "Transport (leverans + hämtning)", pris: "1 118–2 998 kr", not: "Beroende på fordon och avstånd" },
+          { post: "Montering & demontering", pris: "Offert", not: "Baserat på scenstorlek och plats" },
+          { post: "Scenskirt (klädselmatta)", pris: "Ingår i de flesta paket", not: "Döljer undersidan av scenen" },
+          { post: "Scensläde (tak)", pris: "Offert", not: "Vid utomhusbruk med väderskydd" },
+          { post: "Extra scenelement", pris: "Styckepris", not: "Bygg exakt den storlek du behöver" },
+        ].map(r => (
+          <div style="display:flex; align-items:flex-start; gap:1rem; padding:0.85rem 1rem; background:#1e1850; border-radius:10px;">
+            <div style="flex:1; color:white; font-size:0.9rem; font-weight:600;">{r.post}</div>
+            <div style="text-align:right; flex-shrink:0;">
+              <div style="color:#c4b5f4; font-weight:700; font-size:0.88rem;">{r.pris}</div>
+              <div style="color:rgba(255,255,255,0.35); font-size:0.78rem;">{r.not}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1.25rem;">Välj scenpaket</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {scener.map(p => (
+          <ProductCard
+            artno={p.artno} name={p.name} price={p.price}
+            priceNote="/dygn" image={p.image} alt={p.name}
+            description={p.description ?? ''}
+            specs={p.includes ?? []} category="Scen" />
+        ))}
+      </div>
+      <div class="mt-5">
+        <a href="/vara-tjanster/hyra-scen/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Se alla scenpaket →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1.5rem;">Vanliga frågor om scenhyra</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex; justify-content:space-between; align-items:center; padding:1.25rem 0; cursor:pointer; list-style:none; color:white; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.97rem; gap:1rem;">
+              {f.name}
+              <span style="color:#c4b5f4; font-size:1.25rem; flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.95rem; line-height:1.75; margin:0 0 1.25rem; padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24); border:1px solid rgba(196,181,244,0.2); border-radius:16px; padding:2rem; text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif; font-size:1.5rem; color:white; margin:0 0 0.5rem;">Få ett komplett offert</h2>
+      <p style="color:rgba(255,255,255,0.55); font-size:0.95rem; margin:0 0 1.5rem;">Berätta om ditt event — vi räknar ihop scen, transport och montering i ett samlat pris.</p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a href="/vara-tjanster/hyra-scen/" style="background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.08em; text-decoration:none; padding:0.85rem 2rem; border-radius:8px;">Se alla scenpaket</a>
+        <a href="/kontakt/" style="border:1px solid rgba(196,181,244,0.4); color:rgba(255,255,255,0.7); font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.85rem; text-decoration:none; padding:0.85rem 2rem; border-radius:8px;">Begär offert</a>
+      </div>
+    </div>
+
+  </article>
+</Layout>

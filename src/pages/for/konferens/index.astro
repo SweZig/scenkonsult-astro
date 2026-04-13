@@ -1,6 +1,16 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import bildData from '../../../data/bild.json';
+import ljudData from '../../../data/ljud.json';
+
+const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
+const portMedPlus = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0004');
+const shureHeadset = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
+const shureMygga = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
+const projektor = bildData.products.find((p:any) => p.artno === 'SK-BLD-0002');
+const skarm65 = bildData.products.find((p:any) => p.artno === 'SK-BLD-0003');
 
 const faq = [
   {
@@ -165,6 +175,57 @@ const pageSchema = {
             Begär offert
           </a>
         </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Konferens AV-länk prominent -->
+  <section style="background:#111030; padding: clamp(2rem,4vw,3rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <a href="/vara-tjanster/konferens-av/" style="display:flex; align-items:center; justify-content:space-between; background:#1e1850; border:1px solid rgba(196,181,244,0.3); border-radius:16px; padding:1.5rem 2rem; text-decoration:none; gap:1rem; flex-wrap:wrap;">
+        <div>
+          <div style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.4rem;">Komplett AV för konferens</div>
+          <div style="color:white; font-family:'DM Serif Display',serif; font-size:1.3rem;">Mikrofoner, projektor och PA — allt samlat på ett ställe</div>
+        </div>
+        <span style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; white-space:nowrap;">Se hela utbudet →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Produkter för konferens -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Populärt till konferens</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Lägg till i varukorgen direkt</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+        <ProductCard
+          artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
+          priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
+          description={portMedium.description} persons={portMedium.persons}
+          specs={portMedium.includes} category="Ljud" />
+        <ProductCard
+          artno={shureHeadset.artno} name={shureHeadset.name} price={shureHeadset.price}
+          priceNote="/dygn" image={shureHeadset.image} alt={shureHeadset.name}
+          description={shureHeadset.description ?? shureHeadset.desc}
+          specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon" />
+        <ProductCard
+          artno={shureMygga.artno} name={shureMygga.name} price={shureMygga.price}
+          priceNote="/dygn" image={shureMygga.image} alt={shureMygga.name}
+          description={shureMygga.description ?? shureMygga.desc}
+          specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard
+          artno={projektor.artno} name={projektor.name} price={projektor.price}
+          priceNote="/dygn" image={projektor.image} alt={projektor.name}
+          description={projektor.description}
+          specs={projektor.includes ?? []} category="Projektor" />
+        <ProductCard
+          artno={skarm65.artno} name={skarm65.name} price={skarm65.price}
+          priceNote="/dygn" image={skarm65.image} alt={skarm65.name}
+          description={skarm65.description}
+          specs={skarm65.includes ?? []} category="Skärm" />
       </div>
     </div>
   </section>

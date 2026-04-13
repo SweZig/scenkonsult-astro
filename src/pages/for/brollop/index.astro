@@ -1,6 +1,19 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import CategoryHero from '../../../components/CategoryHero.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+import ljusData from '../../../data/ljus.json';
+import sceneData from '../../../data/scenes.json';
+
+const evSmall = ljudData.event.products[0];
+const evMedium = ljudData.event.products[1];
+const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
+const shureHeadset = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
+const tradlosHand = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
+const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0011');
+const ljusPaketSmall = ljusData.paket.products[0];
+const scenSmall = sceneData.products[0];
 
 const faq = [
   {
@@ -195,6 +208,60 @@ const pageSchema = {
         <a href="/bokningssida/" style="display:block; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:1rem 2rem; border-radius:4px; text-align:center; transition:background 0.2s;" onmouseenter="this.style.background='#e2dcfb'" onmouseleave="this.style.background='#c4b5f4'">
           Begär offert — svar inom 2 timmar
         </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Rekommenderade produkter -->
+  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Populärt till bröllop</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Lägg till i varukorgen direkt</h2>
+      <p style="color:rgba(255,255,255,0.5); font-size:0.95rem; margin:0 0 2.5rem;">Bläddra bland de mest populära produkterna för bröllop — lägg till det du vill ha och skicka en offertförfrågan.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <ProductCard
+          artno={evSmall.artno} name={evSmall.name} price={evSmall.price}
+          priceNote="/dygn" image={evSmall.image} alt={evSmall.name}
+          description={evSmall.description} persons={evSmall.persons}
+          specs={evSmall.includes} category="Ljud" />
+        <ProductCard
+          artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
+          priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
+          description={portMedium.description} persons={portMedium.persons}
+          specs={portMedium.includes} category="Ljud" />
+        <ProductCard
+          artno={shureHeadset.artno} name={shureHeadset.name} price={shureHeadset.price}
+          priceNote="/dygn" image={shureHeadset.image} alt={shureHeadset.name}
+          description={shureHeadset.description ?? shureHeadset.desc}
+          specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon" />
+        <ProductCard
+          artno={mhWash.artno} name={mhWash.name} price={mhWash.price}
+          priceNote="/st/dygn" image={mhWash.image} alt={mhWash.name}
+          description={mhWash.description}
+          specs={mhWash.includes ?? []} category="Ljuseffekter" />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <ProductCard
+          artno={ljusPaketSmall.artno} name={ljusPaketSmall.name} price={ljusPaketSmall.price}
+          priceNote="/dygn" image={ljusPaketSmall.image} alt={ljusPaketSmall.name}
+          description={ljusPaketSmall.description}
+          specs={ljusPaketSmall.includes ?? []} category="Ljus" />
+        <ProductCard
+          artno={scenSmall.artno} name={scenSmall.name} price={scenSmall.price}
+          priceNote="/dygn" image={scenSmall.image} alt={scenSmall.name}
+          description={scenSmall.description ?? ''}
+          specs={scenSmall.includes ?? []} category="Scen" />
+        <ProductCard
+          artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price}
+          priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name}
+          description={tradlosHand.description ?? tradlosHand.desc}
+          specs={tradlosHand.specs ?? []} category="Mikrofon" />
+      </div>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Se alla ljudpaket →</a>
+        <a href="/vara-tjanster/hyra-ljus/moving-heads/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Moving heads →</a>
+        <a href="/vara-tjanster/hyra-scen/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla scener →</a>
       </div>
     </div>
   </section>
