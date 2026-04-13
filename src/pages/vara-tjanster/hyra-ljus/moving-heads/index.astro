@@ -1,0 +1,246 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import CategoryHero from '../../../../components/CategoryHero.astro';
+import MediaCard from '../../../../components/MediaCard.astro';
+import CartButton from '../../../../components/CartButton.astro';
+import ljusData from '../../../../data/ljus.json';
+
+const WP = '/videos';
+
+type Effekt = typeof ljusData.effekter.products[0] & { group?: string; tag?: string; video?: string; volumePricing?: {minQty:number,unitPrice:number}[] };
+const allEffekter = ljusData.effekter.products as unknown as Effekt[];
+
+function volRows(artno: string) {
+  const p = allEffekter.find(x => x.artno === artno);
+  const tiers = p?.volumePricing;
+  if (!tiers?.length) return [];
+  return [{ label: 'Volympriser', rows: tiers.map(t => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
+}
+
+function toCard(p: Effekt) {
+  return {
+    id: p.slug,
+    title: p.name,
+    artno: p.artno,
+    img: p.image,
+    excl: p.price,
+    videos: p.video ? [`${WP}/${p.video}`] : [],
+    rows: volRows(p.artno),
+    bullets: p.includes ?? [],
+    tag: p.tag,
+    description: p.description,
+  };
+}
+
+const washHeads  = allEffekter.filter(p => p.group === 'moving-head' && p.tag?.includes('Wash')).map(toCard);
+const beamHeads  = allEffekter.filter(p => p.group === 'moving-head' && p.tag?.includes('Beam')).map(toCard);
+const barHeads   = allEffekter.filter(p => p.group === 'moving-head' && p.tag?.includes('Bar')).map(toCard);
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Vad kostar det att hyra moving heads i Stockholm?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Moving heads hyrs från 299 kr/st/dygn. Vi erbjuder volympriser — 2 st från 250 kr/st och 4 st från 225 kr/st. Kontakta oss för paketpris på större uppsättningar." }
+    },
+    {
+      "@type": "Question",
+      "name": "Vad är skillnaden mellan Moving Head Wash och Beam/Spot?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Wash-huvuden ger brett, mjukt ljus som tvättar en scen eller vägg i färg — perfekt för fest och event. Beam/Spot-huvuden ger smal, skarp stråle med gobos och prismaeffekter — perfekt för konsert och show." }
+    },
+    {
+      "@type": "Question",
+      "name": "Behöver jag DMX-controller för att hyra moving heads?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Nej — alla våra moving heads kan köras i standalone-läge (auto/sound-to-light) utan controller. Vill du ha full DMX-kontroll erbjuder vi även controller och riggning som tilläggstjänst." }
+    },
+    {
+      "@type": "Question",
+      "name": "Levererar ni moving heads i Stockholm?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja, vi levererar och hämtar i hela Storstockholm. Transport tillkommer. Kontakta oss för pris och tidsbokning." }
+    }
+  ]
+};
+---
+<Layout
+  title="Hyr Moving Heads Stockholm — Stockholms Största Utbud | Scenkonsult"
+  description="Hyr moving heads i Stockholm från 299 kr/st/dygn. Wash, Beam/Spot och LED Bar. Stockholms största utbud — 9 modeller. Volympriser. Leverans i hela Storstockholm."
+  schemaExtra={faqSchema}
+>
+
+  <CategoryHero
+    h1="Hyra Moving Heads"
+    h1Accent="Stockholm"
+    intro="Stockholms största utbud av moving heads för uthyrning. Wash, Beam/Spot och LED Bar — från 299 kr/st/dygn. Volympriser vid fler enheter. Vi levererar och hämtar i hela Storstockholm."
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/" },
+      { label: "Ljuseffekter", href: "/vara-tjanster/hyra-ljus/ljuseffekter/" },
+      { label: "Moving Heads" }
+    ]}
+    badges={[
+      "9 modeller i lager",
+      "Wash & Beam/Spot",
+      "Från 299 kr/st/dygn",
+      "Volympriser",
+      "Leverans i Storstockholm",
+    ]}
+    priceFrom={299}
+  />
+
+  <!-- USP-rad -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {[
+        { icon: "🎯", title: "9 modeller", text: "Stockholms bredaste sortiment av moving heads för uthyrning" },
+        { icon: "💡", title: "Wash & Beam/Spot", text: "Mjukt färgljus eller skarpa strålar — välj rätt huvud för ditt event" },
+        { icon: "📦", title: "Volympriser", text: "2 st från 250 kr/st · 4 st från 225 kr/st" },
+        { icon: "🚚", title: "Leverans & hämtning", text: "Vi kör ut och hämtar i hela Storstockholm" },
+      ].map(u => (
+        <div class="bg-brand-navy border border-white/10 rounded-xl p-4 text-center">
+          <div class="text-3xl mb-2">{u.icon}</div>
+          <div class="font-bold text-white text-sm mb-1">{u.title}</div>
+          <div class="text-gray-400 text-xs">{u.text}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Moving Head Wash -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Moving Head Wash</h2>
+      <p class="text-gray-400 mt-1">Brett, mjukt ljus som tvättar scen och vägg i valfri färg. Perfekt för fest, bröllop, konferens och event.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {washHeads.map(p => (
+        <MediaCard
+          title={p.title}
+          images={[p.img]}
+          videos={p.videos ?? []}
+          priceExcl={p.excl}
+          rows={p.rows}
+          bullets={p.bullets}
+          artno={p.artno}
+          category="Moving Heads"
+          tag={p.tag}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Moving Head Beam/Spot -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Moving Head Beam & Spot</h2>
+      <p class="text-gray-400 mt-1">Smal, kraftfull stråle med gobos, prismaeffekter och färgskivor. Skapar professionell scenkänsla på konserter och shower.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {beamHeads.map(p => (
+        <MediaCard
+          title={p.title}
+          images={[p.img]}
+          videos={p.videos ?? []}
+          priceExcl={p.excl}
+          rows={p.rows}
+          bullets={p.bullets}
+          artno={p.artno}
+          category="Moving Heads"
+          tag={p.tag}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Moving LED Bar -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white">Moving LED Bar</h2>
+      <p class="text-gray-400 mt-1">Rörlig LED-ribba och multi-huvud bar för bred täckning. Kombinerar wash och rörelse i ett kompakt format.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {barHeads.map(p => (
+        <MediaCard
+          title={p.title}
+          images={[p.img]}
+          videos={p.videos ?? []}
+          priceExcl={p.excl}
+          rows={p.rows}
+          bullets={p.bullets}
+          artno={p.artno}
+          category="Moving Heads"
+          tag={p.tag}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Köpguide -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-6">Vilken moving head passar ditt event?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          {
+            title: "Fest & Bröllop",
+            icon: "🎉",
+            rec: "Moving Head Wash",
+            why: "Mjukt, färgglatt ljus som skapar stämning. Kombinera 2–4 wash-huvuden för full effekt på dansgolv eller scen.",
+            from: "299 kr/st"
+          },
+          {
+            title: "Konserter & Show",
+            icon: "🎸",
+            rec: "Beam/Spot + Wash",
+            why: "Kombinera skarpa beam-strålar med wash-huvuden för professionell scenkänsla. Standard för liveband och artister.",
+            from: "299 kr/st"
+          },
+          {
+            title: "Konferens & Företagsevent",
+            icon: "🏢",
+            rec: "Moving Head Wash",
+            why: "Logotypfärger och scenbelysning. Wash-huvuden är tystgående och enkla att köra i standalone-läge.",
+            from: "299 kr/st"
+          }
+        ].map(g => (
+          <div class="border border-white/10 rounded-xl p-5">
+            <div class="text-2xl mb-2">{g.icon}</div>
+            <h3 class="font-bold text-white mb-1">{g.title}</h3>
+            <div class="text-brand-orange text-sm font-semibold mb-2">Rekommendation: {g.rec}</div>
+            <p class="text-gray-400 text-sm mb-3">{g.why}</p>
+            <div class="text-gray-400 text-xs">Från {g.from}/dygn</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6">Vanliga frågor om moving heads</h2>
+    <div class="space-y-4">
+      {faqSchema.mainEntity.map((f: any) => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl p-5 group">
+          <summary class="font-semibold text-white cursor-pointer list-none flex justify-between items-center">
+            {f.name}
+            <span class="text-brand-orange text-lg ml-4 shrink-0 group-open:rotate-45 transition-transform">+</span>
+          </summary>
+          <p class="text-gray-400 mt-3 text-sm leading-relaxed">{f.acceptedAnswer.text}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 text-center">
+    <div class="bg-brand-navy border border-brand-orange/20 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-3">Osäker på vilka moving heads du behöver?</h2>
+      <p class="text-gray-400 mb-6">Kontakta oss så hjälper vi dig välja rätt modell och antal för ditt event. Vi har hyrt ut moving heads i Stockholm sedan 1986.</p>
+      <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-bold px-8 py-3 rounded-xl transition-colors">
+        Kontakta oss för rådgivning
+      </a>
+    </div>
+  </section>
+
+</Layout>
