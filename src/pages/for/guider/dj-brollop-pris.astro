@@ -1,0 +1,176 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import djData from '../../../data/dj.json';
+import ljudData from '../../../data/ljud.json';
+
+const eq = djData.equipment as any[];
+const svcTable = (djData.djService as any).priceTable as any[];
+const dp = (artno: string) => eq.find(p => p.artno === artno)?.price ?? 0;
+
+// Ljudpaket för bröllop
+const evSmall  = ljudData.event.products[0];
+const evMedium = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0002');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar en DJ till bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `En Junior DJ från Scenkonsult kostar ${svcTable[0].junior} kr (2 tim) upp till ${svcTable[2].junior} kr (4 tim) exkl. moms. Senior DJ kostar ${svcTable[0].senior}–${svcTable[2].senior} kr. DJ-hårdvara ingår alltid. Ljud, scen och transport tillkommer.` } },
+    { "@type": "Question", "name": "Hur länge behöver DJ:n spela på bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "De flesta bröllopsfester bokar 3–4 timmar DJ. Räkna med att dansgolvet öppnar 21–22 och stänger vid midnatt. Vill du ha DJ under hela kvällen (inklusive bakgrundsmusik under middagen) boka gärna 5–6 timmar." } },
+    { "@type": "Question", "name": "Kan vi hyra DJ-utrustning utan DJ?", "acceptedAnswer": { "@type": "Answer", "text": `Ja — vi hyr ut DJ-utrustning separat om ni har en DJ ni litar på. Numark Mixstream Pro+ kostar ${dp('SK-DJ-0001')} kr/dygn. Denon Prime 4+ kostar ${dp('SK-DJ-0003')} kr/dygn. Alla controllers är standalone och behöver ingen laptop.` } },
+    { "@type": "Question", "name": "Vad är skillnaden på Junior och Senior DJ?", "acceptedAnswer": { "@type": "Answer", "text": "Junior DJ har erfarenhet från bröllop och privatfester och levererar hög kvalitet till ett lägre pris. Senior DJ har djupare erfarenhet, bredare repertoar och är van vid krävande situationer. Båda alternativen är professionella — skillnaden är framförallt erfarenhet och flexibilitet." } },
+    { "@type": "Question", "name": "Behöver vi ordna ljud och scen till DJ:n?", "acceptedAnswer": { "@type": "Answer", "text": "DJ-hårdvara ingår i priset, men ljud och scen hyrs separat. Ett PA-system för 80–150 gäster kostar från 799–1 199 kr/dygn. En liten scen (2×2 m) för DJ-bordet kostar från 599 kr/dygn. Vi hjälper er sätta ihop ett komplett paket." } }
+  ]
+};
+---
+<Layout
+  title="DJ till Bröllop Stockholm — Pris & Guide 2026 | Scenkonsult"
+  description="Vad kostar en DJ till bröllop? Guide till DJ-pris, speltid och utrustning. Junior DJ från 1 999 kr, Senior DJ från 2 399 kr. Stockholm sedan 1986."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">DJ till bröllop — pris</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Prisguide</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">DJ till bröllop — vad kostar det?</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Komplett prisguide för DJ-bokning till bröllop 2026 — vad ingår, hur länge behöver DJ:n spela och vad tillkommer.</p>
+    </header>
+
+    <!-- Pristabell -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">DJ-priser — snabböversikt</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Speltid</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Junior DJ (exkl.)</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Junior DJ (inkl.)</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Senior DJ (exkl.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {svcTable.map((r, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{r.hours}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">{r.junior}</span>
+                  <span class="sk-price-incl hidden">{r.juniorInkl}</span> kr
+                </td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);white-space:nowrap;">{r.juniorInkl} kr</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.7);white-space:nowrap;">
+                  <span class="sk-price-excl">{r.senior}</span>
+                  <span class="sk-price-incl hidden">{r.seniorInkl}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style="color:rgba(255,255,255,0.3);font-size:0.8rem;margin-top:0.5rem;">DJ-hårdvara ingår alltid. Ljud, scen och transport tillkommer.</p>
+    </section>
+
+    <!-- Vad ingår -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">Vad ingår i DJ-priset?</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div style="background:#1e1850;border:1px solid rgba(86,230,110,0.2);border-radius:12px;padding:1.25rem;">
+          <h3 style="color:#86efac;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.75rem;">✓ Ingår alltid</h3>
+          {["DJ-hårdvara (controller + laptop om nödvändigt)","Förberedelse och låtanpassning","Kontakt inför evenemanget","Teknisk genomgång på plats"].map(i => (
+            <div style="color:rgba(255,255,255,0.65);font-size:0.88rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">{i}</div>
+          ))}
+        </div>
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem;">
+          <h3 style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.75rem;">+ Tillkommer</h3>
+          {["PA-system och ljud","Scen/DJ-bord","Transport till platsen","Ljussättning"].map(i => (
+            <div style="color:rgba(255,255,255,0.45);font-size:0.88rem;padding:0.3rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">{i}</div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- DJ eller hyra utrustning -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">Hyr DJ eller DJ-utrustning?</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;line-height:1.75;margin:0 0 1.5rem;">Har ni en vän eller bekant som är DJ? Hyr utrustningen separat — alla våra controllers är standalone och kräver ingen laptop.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard
+          artno={eq[0].artno} name={eq[0].name} price={eq[0].price}
+          priceNote="/dygn" image={eq[0].image} alt={eq[0].name}
+          description={eq[0].description ?? eq[0].desc ?? ''}
+          specs={eq[0].includes ?? eq[0].specs ?? []} category="DJ" />
+        <ProductCard
+          artno={eq[2].artno} name={eq[2].name} price={eq[2].price}
+          priceNote="/dygn" image={eq[2].image} alt={eq[2].name}
+          description={eq[2].description ?? eq[2].desc ?? ''}
+          specs={eq[2].includes ?? eq[2].specs ?? []} category="DJ" />
+      </div>
+      <div class="mt-5">
+        <a href="/vara-tjanster/hyra-dj/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Se hela DJ-sortimentet →</a>
+      </div>
+    </section>
+
+    <!-- Komplett setup -->
+    <section style="margin-bottom:3rem;">
+      <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:1.75rem;">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.35rem;color:white;margin:0 0 1rem;">Typisk DJ-setup för bröllop (80–120 gäster)</h2>
+        {[
+          ["Junior DJ, 4 tim", `${svcTable[2].junior} kr`],
+          ["PA-system (Event Medium)", `${evMedium?.price ?? 1199} kr`],
+          ["Scenpaket Small (DJ-bord)", "599 kr"],
+          ["Leverans & hämtning", "Offert"],
+        ].map(([l, v]) => (
+          <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+            <span style="color:rgba(255,255,255,0.5);font-size:0.88rem;">{l}</span>
+            <span style="color:white;font-weight:600;font-size:0.88rem;">{v}</span>
+          </div>
+        ))}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(196,181,244,0.2);">
+          <span style="color:rgba(255,255,255,0.5);font-size:0.85rem;">Utrustning från ca</span>
+          <span style="font-family:'DM Serif Display',serif;font-size:1.75rem;color:#c4b5f4;">
+            <span class="sk-price-excl">{svcTable[2].junior + (evMedium?.price ?? 1199) + 599}</span>
+            <span class="sk-price-incl hidden">{Math.round((svcTable[2].junior + (evMedium?.price ?? 1199) + 599) * 1.25)}</span> kr
+          </span>
+        </div>
+        <p style="color:rgba(255,255,255,0.3);font-size:0.75rem;margin:0.25rem 0 0;">Exkl. transport och montering.</p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor om DJ till bröllop</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}
+              <span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Boka DJ till ert bröllop</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Berätta om er dag — vi hjälper er välja rätt DJ och paket för evenemanget.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <a href="/vara-tjanster/hyra-dj/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;">Se våra DJs</a>
+        <a href="/kontakt/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.85rem;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;">Begär offert</a>
+      </div>
+    </div>
+
+  </article>
+</Layout>

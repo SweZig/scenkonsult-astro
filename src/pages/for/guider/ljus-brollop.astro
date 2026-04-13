@@ -1,0 +1,169 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljusData from '../../../data/ljus.json';
+
+const paket = ljusData.paket.products;
+const effekter = ljusData.effekter.products as any[];
+const rok = ljusData.rok.products as any[];
+
+const jp = (artno: string) => [...paket,...effekter,...rok].find((p:any) => p.artno === artno)?.price ?? 0;
+
+const pakSmall   = paket[0];  // SK-LJS-PAK-0001
+const pakSmallP  = paket[1];  // SK-LJS-PAK-0002
+const pakSmallPP = paket[2];  // SK-LJS-PAK-0003
+const pakMedium  = paket[3];  // SK-LJS-PAK-0004
+const mhWash     = effekter.find(p => p.artno === 'SK-LJS-EFF-0010');
+const ledPar     = effekter.find(p => p.artno === 'SK-LJS-EFF-0001');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kostar det att hyra ljus till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `Ljuspaket Small kostar ${jp('SK-LJS-PAK-0001')} kr/dygn och räcker för 10–30 gäster. För bröllop med 50–120 gäster rekommenderar vi Ljuspaket Small+ eller Small++ (${jp('SK-LJS-PAK-0002')}–${jp('SK-LJS-PAK-0003')} kr/dygn). Vill du ha moving heads och laser ingår det i Medium-paketet (${jp('SK-LJS-PAK-0004')} kr/dygn).` } },
+    { "@type": "Question", "name": "Vilken ljussättning passar bäst till bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "Under middagen: varma uplights längs väggarna skapar stämning utan att blända. Under dansgolvet: moving heads och discoljus ger rörelse och färg. Kombinationen av stämningsljus + dansljus är det vanligaste valet för bröllop med 50–150 gäster." } },
+    { "@type": "Question", "name": "Behöver man en ljustekniker till bröllopet?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — alla våra ljuspaket kör i automatiskt läge (musik-synkat eller förinställda program) utan tekniker. Vill du ha mer kontroll eller scenljus till levande musik rekommenderar vi tekniker som tillägg." } },
+    { "@type": "Question", "name": "Kan man kombinera ljuspaket med moving heads?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — du kan antingen välja ett ljuspaket som inkluderar moving heads (Small++ och uppåt) eller hyra enstaka moving heads separat och kombinera med ett baspaket. Enstaka Moving Head Wash kostar från 299 kr/st/dygn." } },
+    { "@type": "Question", "name": "Hur tidigt måste man boka ljus till bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "Bröllopssäsongen (maj–september) är vår mest bokade period. Vi rekommenderar att boka 4–8 veckor i förväg. Kontakta oss tidigt för att säkra rätt utrustning till er dag." } }
+  ]
+};
+---
+<Layout
+  title="Ljus till Bröllop Stockholm — Guide & Priser 2026 | Scenkonsult"
+  description="Vilken ljussättning passar till bröllopet? Guide till uplights, moving heads och stämningsljus. Ljuspaket från 399 kr/dygn. Leverans i hela Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Ljus till bröllop</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Ljus till bröllop — vad behöver man?</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Rätt ljussättning förvandlar en vanlig festlokal till något minnesvärt. Den här guiden visar vad som passar för vigsel, middag och dansgolv — med konkreta priser.</p>
+    </header>
+
+    <!-- Tre faser -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Ljus för bröllopets tre faser</h2>
+      {[
+        { fas:"1. Vigseln", icon:"💍", rec:"Diskreta uplights i varm vit eller guld", why:"Sätter stämning utan att dra uppmärksamheten från ceremonin. LED PAR i varm vit längs väggar och vid altaret ger en mjuk glöd.", prod:"LED PAR (14×8W RGBW)", pris:`${jp('SK-LJS-EFF-0001')} kr/st` },
+        { fas:"2. Middagen", icon:"🥂", rec:"Färgade uplights + bordsljus", why:"Välj bröllopsparets favoritfärg i lokalens uplights. Kombinera med levande ljus på borden för maximal stämning.", prod:"Ljuspaket, Small", pris:`${jp('SK-LJS-PAK-0001')} kr` },
+        { fas:"3. Dansgolvet", icon:"🎉", rec:"Moving heads + discoljus + laser", why:"Nu ska det hända saker. Moving heads med rörelse och färg, stroboskop och laser skapar dansstämning på nolltid.", prod:"Ljuspaket, Small++", pris:`${jp('SK-LJS-PAK-0003')} kr` },
+      ].map(f => (
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem;margin-bottom:1rem;display:flex;gap:1rem;">
+          <div style="font-size:1.75rem;flex-shrink:0;">{f.icon}</div>
+          <div>
+            <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.4rem;">{f.fas}</h3>
+            <p style="color:rgba(255,255,255,0.35);font-size:0.8rem;margin:0 0 0.3rem;font-style:italic;">Rekommendation: {f.rec}</p>
+            <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;line-height:1.6;margin:0 0 0.75rem;">{f.why}</p>
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+              <span style="color:#c4b5f4;font-size:0.82rem;font-family:'Space Grotesk',sans-serif;">✓ {f.prod}</span>
+              <span style="color:rgba(255,255,255,0.35);font-size:0.82rem;">Från <span class="sk-price-excl">{f.pris}</span><span class="sk-price-incl hidden">{f.pris.replace(/\d+/, (n:string) => String(Math.round(Number(n)*1.25)))}</span>/dygn</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </section>
+
+    <!-- Storleksguide -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Välj rätt ljuspaket</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Gäster","Paket","Innehåller","Pris/dygn"].map(h => <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {[
+              { g:"10–30", paket:"Ljuspaket, Small",    innehall:"4× LED PAR + stativ",                             artno:"SK-LJS-PAK-0001" },
+              { g:"20–60", paket:"Ljuspaket, Small+",   innehall:"Moving head + PAR-bank",                          artno:"SK-LJS-PAK-0002" },
+              { g:"20–80", paket:"Ljuspaket, Small++",  innehall:"PAR + moving head + strobe + laser",               artno:"SK-LJS-PAK-0003" },
+              { g:"40–120",paket:"Ljuspaket, Medium",   innehall:"Komplett discoljus med moving heads",              artno:"SK-LJS-PAK-0004" },
+              { g:"40–150",paket:"Ljuspaket, Medium+",  innehall:"Utökat medium + extra moving heads",               artno:"SK-LJS-PAK-0005" },
+              { g:"50–200",paket:"Ljuspaket, Medium++", innehall:"Maxpaket — full täckning",                         artno:"SK-LJS-PAK-0006" },
+            ].map(({ g, paket, innehall, artno }, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{g}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.8);">{paket}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.5);font-size:0.82rem;">{innehall}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">{jp(artno)}</span>
+                  <span class="sk-price-incl hidden">{Math.round(jp(artno)*1.25)}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Pro-tips -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">4 tips för perfekt bröllopslysning</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {[
+          { nr:"01", tip:"Matcha färgen mot dekorationen", desc:"Välj uplights i samma ton som bordsdukarna. Varm vit, ros-guld och lavendel är populärast på bröllop. Moving heads kan byta färg under kvällen." },
+          { nr:"02", tip:"Starta mjukt — avsluta hårt", desc:"Under middagen: låg intensitet och varma färger. När dansgolvet öppnar: öka intensiteten och aktivera moving heads. Kontrasten förstärker båda delarna." },
+          { nr:"03", tip:"Uplights längs väggarna", desc:"4–8 LED PAR-spottar placerade längs väggarna ger mer stämning än ett enda ljuspaket mitt på golvet. Det är ett billigt sätt att förvandla lokalen." },
+          { nr:"04", tip:"Laser kräver rök", desc:"En laser utan rök eller haze är knappt synlig. Hyr alltid rökmaskin när du hyr laser — annars försvinner effekten." },
+        ].map(t => (
+          <div style="background:#1e1850;border-radius:12px;padding:1.25rem 1.5rem;display:flex;gap:1.25rem;align-items:flex-start;">
+            <span style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:rgba(196,181,244,0.25);flex-shrink:0;line-height:1;">{t.nr}</span>
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:white;margin:0 0 0.4rem;">{t.tip}</h3>
+              <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.6;margin:0;">{t.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till bröllop</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={pakSmallP.artno} name={pakSmallP.name} price={pakSmallP.price} priceNote="/dygn" image={pakSmallP.image} alt={pakSmallP.name} description={pakSmallP.description} specs={pakSmallP.includes ?? []} category="Ljus" />
+        <ProductCard artno={pakSmallPP.artno} name={pakSmallPP.name} price={pakSmallPP.price} priceNote="/dygn" image={pakSmallPP.image} alt={pakSmallPP.name} description={pakSmallPP.description} specs={pakSmallPP.includes ?? []} category="Ljus" />
+        <ProductCard artno={pakMedium.artno} name={pakMedium.name} price={pakMedium.price} priceNote="/dygn" image={pakMedium.image} alt={pakMedium.name} description={pakMedium.description} specs={pakMedium.includes ?? []} category="Ljus" />
+        <ProductCard artno={mhWash.artno} name={mhWash.name} price={mhWash.price} priceNote="/st/dygn" image={mhWash.image} alt={mhWash.name} description={mhWash.description} specs={mhWash.includes ?? []} category="Ljuseffekter" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljus/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Se alla ljuspaket →</a>
+        <a href="/vara-tjanster/hyra-ljus/moving-heads/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Moving heads →</a>
+        <a href="/for/brollop/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Komplett bröllopsteknik →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}
+              <span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Osäker på vad ni behöver?</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ring oss — vi hjälper er välja rätt ljussättning för lokalen och antalet gäster.</p>
+      <a href="/for/brollop/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Begär offert till bröllopet</a>
+    </div>
+
+  </article>
+</Layout>

@@ -1,0 +1,206 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+
+const port = (ljudData.portable.products as any[]);
+const mik  = (ljudData.tillbehor_mikrofon as any[]);
+const lp   = (artno: string) => [...port,...mik].find(p => p.artno === artno)?.price ?? 0;
+
+const porSmall    = port.find(p => p.artno === 'SK-LJD-POR-0001');
+const porSmallP   = port.find(p => p.artno === 'SK-LJD-POR-0002');
+const porMedium   = port.find(p => p.artno === 'SK-LJD-POR-0003');
+const porSmallDuo = port.find(p => p.artno === 'SK-LJD-POR-0005');
+const tradlos     = mik.find(p => p.artno === 'SK-LJD-MIK-0016');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vilket ljudsystem passar till studentflak?", "acceptedAnswer": { "@type": "Answer", "text": `För ett flak med 20–40 studenter rekommenderar vi Portable Medium (${lp('SK-LJD-POR-0003')} kr/dygn) eller Portable Small Duo (${lp('SK-LJD-POR-0005')} kr/dygn). Viktigast är att systemet är kompakt, enkelt att rigga och har Bluetooth.` } },
+    { "@type": "Question", "name": "Hur fixar man strömmen på ett studentflak?", "acceptedAnswer": { "@type": "Answer", "text": "Anslut till fordonets 230V-uttag med dragkabel (vanligen på lastbilsflak). Saknas 230V-uttag behöver ni ett inverter-elverk. Kontrollera effektbehov — ett Portable Medium drar ca 400W." } },
+    { "@type": "Question", "name": "Kan man spela Spotify på ett studentflak?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra Portable-system har Bluetooth och AUX-ingång. Koppla in mobilen och spela direkt från Spotify. Tips: ha alltid AUX-kabel som backup om Bluetooth droppar." } },
+    { "@type": "Question", "name": "Behöver man tillstånd för studentflak?", "acceptedAnswer": { "@type": "Answer", "text": "Det varierar per kommun. I Stockholm krävs vanligen tillstånd från polisen för musiktillstånd på allmän plats. Kontakta Polisen eller kommunen i god tid. Anordnarens ansvar att ordna tillstånd." } },
+    { "@type": "Question", "name": "Hur tidigt måste man boka till studentflaket?", "acceptedAnswer": { "@type": "Answer", "text": "Studentperioden (maj–juni) är vår mest bokade tid på året. Boka 4–8 veckor i förväg för att säkra utrustningen. Ring oss — vi kan ofta lösa kort varsel om utrustningen är ledig." } }
+  ]
+};
+---
+<Layout
+  title="Studentflak Checklista 2026 — Ljud, Teknik & Tips | Scenkonsult"
+  description="Komplett checklista för studentflaket. Vilket ljud behöver man? Hur fixar man strömmen? Priser och tips från Scenkonsult — uthyrare sedan 1986."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Studentflak checklista</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Checklista</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Studentflak 2026 — den kompletta checklistan</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Allt ni behöver tänka på för ett lyckat flak — ljud, ström, tillstånd och praktiska tips från oss som hyr ut teknik till hundratals flak varje år.</p>
+    </header>
+
+    <!-- Checklistan -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Checklistan — kryssa av allt</h2>
+
+      {[
+        {
+          kategori: "🔊 Ljud & teknik",
+          must: true,
+          items: [
+            { text: "PA-system med subbasen (minst 2× 12\" aktiv + 1 sub)", viktigt: true },
+            { text: "Trådlös handmikrofon för tal och sång", viktigt: true },
+            { text: "Bluetooth + AUX-ingång — spela från mobil", viktigt: true },
+            { text: "Högtalarstativ — placera på rätt höjd mot folket", viktigt: false },
+            { text: "Extra sub om ni vill ha rejält basstryck", viktigt: false },
+          ]
+        },
+        {
+          kategori: "⚡ Ström & kablage",
+          must: true,
+          items: [
+            { text: "230V-uttag på fordonet (eller eget elverk)", viktigt: true },
+            { text: "Dragkabel 25–50 m (om uttaget sitter långt bort)", viktigt: true },
+            { text: "Grenuttag/kopplingsdosa med jordat uttag", viktigt: false },
+            { text: "Kolla effektbehov — Portable Medium drar ca 400W", viktigt: false },
+          ]
+        },
+        {
+          kategori: "📋 Tillstånd & praktiskt",
+          must: true,
+          items: [
+            { text: "Musiktillstånd från polisen (vid körning på allmän väg)", viktigt: true },
+            { text: "Kolla med kommunen om lokala regler", viktigt: true },
+            { text: "STIM-tillstånd om ni spelar upphovsrättsskyddad musik", viktigt: false },
+            { text: "Försäkring för utrustningen (ingår i er ansvarsförsäkring?)", viktigt: false },
+          ]
+        },
+        {
+          kategori: "🎵 Musik & underhållning",
+          must: false,
+          items: [
+            { text: "Studentlåtlista klar — tematisk eller generationsövergripande", viktigt: false },
+            { text: "Backup-spellista på två enheter (Bluetooth kan droppa)", viktigt: true },
+            { text: "AUX-kabel som backup till Bluetooth", viktigt: true },
+            { text: "Utsedd 'DJ' som har kontroll på musiken", viktigt: false },
+          ]
+        },
+      ].map(block => (
+        <div style="margin-bottom:2rem;">
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;color:#c4b5f4;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.75rem;">{block.kategori}</h3>
+          {block.items.map(item => (
+            <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+              <span style={`font-size:0.8rem;margin-top:0.15rem;flex-shrink:0;color:${item.viktigt ? '#86efac' : 'rgba(255,255,255,0.25)'}`}>
+                {item.viktigt ? '✓' : '○'}
+              </span>
+              <span style={`font-size:0.9rem;color:${item.viktigt ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.45)'}`}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+      <p style="color:rgba(255,255,255,0.3);font-size:0.8rem;margin-top:0.5rem;">✓ = Kritiskt &nbsp;&nbsp; ○ = Bra att ha</p>
+    </section>
+
+    <!-- Storleksguide ljud -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Vilket ljudsystem passar ert flak?</h2>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Antal studenter","System","Bluetooth","Pris/dygn"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { antal:"10–20", system:"Portable Small",    bt:"✓", artno:"SK-LJD-POR-0001" },
+              { antal:"15–30", system:"Portable Small+",   bt:"✓", artno:"SK-LJD-POR-0002" },
+              { antal:"20–40", system:"Portable Medium",   bt:"✓", artno:"SK-LJD-POR-0003" },
+              { antal:"30–50", system:"Portable Small Duo",bt:"✓", artno:"SK-LJD-POR-0005" },
+            ].map(({ antal, system, bt, artno }, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{antal}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.8);">{system}</td>
+                <td style="padding:0.75rem 0.5rem;color:#86efac;">{bt}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;white-space:nowrap;">
+                  <span class="sk-price-excl">{lp(artno)}</span>
+                  <span class="sk-price-incl hidden">{Math.round(lp(artno)*1.25)}</span> kr
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tips -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">5 tips för ett bra flakljud</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {[
+          { nr:"01", tip:"Rikta högtalarna inåt mot folket", desc:"Inte utåt mot omgivningen. Ljudet ska träffa personerna på flaket — inte åka iväg." },
+          { nr:"02", tip:"Koppla AUX direkt — inte bara Bluetooth", desc:"Bluetooth är smidigt men kan droppa vid acceleration eller trängsel. Ha alltid AUX som backup." },
+          { nr:"03", tip:"Hyr trådlös mikrofon", desc:"En mikrofon med sladd på ett rullande fordon är ett snubbelrisk. Trådlöst ger rörelsefrihet och säkerhet." },
+          { nr:"04", tip:"Kontrollera ström INNAN ni lämnar depån", desc:"Testa att allt fungerar och att ni har tillräcklig effekt. Det är svårt att felsöka när flaket rullar." },
+          { nr:"05", tip:"Boka tidigt — maj–juni tar slut snabbt", desc:"Vi hyr ut till hundratals flak varje studentperiod. Populära helger i maj och juni bokas upp veckor i förväg." },
+        ].map(t => (
+          <div style="background:#1e1850;border-radius:12px;padding:1.25rem 1.5rem;display:flex;gap:1.25rem;align-items:flex-start;">
+            <span style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:rgba(196,181,244,0.25);flex-shrink:0;line-height:1;">{t.nr}</span>
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:700;color:white;margin:0 0 0.35rem;">{t.tip}</h3>
+              <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.6;margin:0;">{t.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till studentflak</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={porSmallP.artno} name={porSmallP.name} price={porSmallP.price} priceNote="/dygn" image={porSmallP.image} alt={porSmallP.name} description={porSmallP.description} persons={porSmallP.persons} specs={porSmallP.includes} category="Portabelt ljud" />
+        <ProductCard artno={porMedium.artno} name={porMedium.name} price={porMedium.price} priceNote="/dygn" image={porMedium.image} alt={porMedium.name} description={porMedium.description} persons={porMedium.persons} specs={porMedium.includes} category="Portabelt ljud" />
+        <ProductCard artno={porSmallDuo.artno} name={porSmallDuo.name} price={porSmallDuo.price} priceNote="/dygn" image={porSmallDuo.image} alt={porSmallDuo.name} description={porSmallDuo.description ?? ''} specs={porSmallDuo.includes ?? []} category="Portabelt ljud" />
+        <ProductCard artno={tradlos.artno} name={tradlos.name} price={tradlos.price} priceNote="/dygn" image={tradlos.image} alt={tradlos.name} description={tradlos.description ?? tradlos.desc} specs={tradlos.specs ?? []} category="Mikrofon" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljud/portable/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla portabla system →</a>
+        <a href="/for/studentflak/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Studentflak — mer info →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor om studentflak</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}
+              <span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Boka till ert flak</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 0.5rem;">Hyr fredag, lämna tillbaka måndag — betala bara ett dygn (förutsatt tillgänglighet).</p>
+      <p style="color:rgba(255,255,255,0.35);font-size:0.82rem;margin:0 0 1.5rem;">Ring 072-448 10 00, mån–fre 09–17.</p>
+      <a href="/for/studentflak/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se studentflak-paketen</a>
+    </div>
+
+  </article>
+</Layout>
