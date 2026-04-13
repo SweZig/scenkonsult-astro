@@ -1,5 +1,9 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import djData from '../../../data/dj.json';
+
+const _dp = (djData.equipment as any[]);
+const dp = (artno: string) => _dp.find((x:any) => x.artno === artno)?.price ?? 0;
 
 const schema = {
   "@context": "https://schema.org",
