@@ -1,0 +1,212 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljudData from '../../../data/ljud.json';
+import bildData from '../../../data/bild.json';
+
+const mik  = (ljudData.tillbehor_mikrofon as any[]);
+const port = (ljudData.portable.products as any[]);
+const bild = bildData.products as any[];
+
+const mp = (artno: string) => mik.find(p => p.artno === artno)?.price ?? 0;
+const lp = (artno: string) => port.find(p => p.artno === artno)?.price ?? 0;
+const bp = (artno: string) => bild.find(p => p.artno === artno)?.price ?? 0;
+
+const portMed   = port.find(p => p.artno === 'SK-LJD-POR-0003');
+const portMedP  = port.find(p => p.artno === 'SK-LJD-POR-0004');
+const shureHS   = mik.find(p => p.artno === 'SK-LJD-MIK-0023');
+const shureMygga= mik.find(p => p.artno === 'SK-LJD-MIK-0022');
+const shure2HS  = mik.find(p => p.artno === 'SK-LJD-MIK-0028');
+const projektor = bild.find(p => p.artno === 'SK-BLD-0002');
+const skarm65   = bild.find(p => p.artno === 'SK-BLD-0003');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vilken teknik behöver man till en konferens?", "acceptedAnswer": { "@type": "Answer", "text": `Grundpaketet för de flesta konferenser: PA-system (${lp('SK-LJD-POR-0003')} kr/dygn), trådlöst headset (${mp('SK-LJD-MIK-0023')} kr/dygn) och projektor eller skärm för presentationer (från ${bp('SK-BLD-0001')} kr/dygn). Lägg till extra mikrofoner vid panelsamtal.` } },
+    { "@type": "Question", "name": "Behöver man tekniker på konferensen?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — vår utrustning är byggd för enkel självinstallation och vi går igenom allt vid avhämtning. Vill ni ha tekniker på plats (rekommenderat vid hybrid-sändning eller komplexare AV-upplägg) erbjuder vi det som tillägg." } },
+    { "@type": "Question", "name": "Hur långt i förväg ska man boka AV-utrustning till konferens?", "acceptedAnswer": { "@type": "Answer", "text": "För vanliga konferenser räcker 1–2 veckors framförhållning. Under högsäsong (september–november och mars–maj) rekommenderar vi 3–4 veckor. Kontakta oss gärna tidigt för att säkra rätt utrustning." } },
+    { "@type": "Question", "name": "Kan man hyra AV-utrustning till hybridmöten?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi har utrustning för hybridkonferenser: PA-system, kamera-in på skärm, mikrofoner med god upptagning för deltagare både i rum och online. Kontakta oss för rådgivning om specifikt upplägg." } }
+  ]
+};
+---
+<Layout
+  title="Konferens AV Checklista 2026 — Teknik, Priser & Tips | Scenkonsult"
+  description="Komplett checklista för konferens-AV. Vilken teknik behöver ni? Priser på PA, mikrofoner och projektor. Leverans i hela Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-500">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Konferens AV checklista</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:3rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Checklista</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Konferens AV — komplett checklista 2026</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Planerar ni en konferens, kickoff eller föreläsning? Den här checklistan tar dig igenom all teknik du behöver — från ljud och mikrofoner till projektor och bildskärmar.</p>
+    </header>
+
+    <!-- Referensbild -->
+    <div style="margin-bottom:2.5rem;border-radius:16px;overflow:hidden;aspect-ratio:16/9;max-height:400px;">
+      <img src="/images/event/kundevent_abg_konferens.webp" alt="Konferens med LED-skärmar och uplighting — professionellt AV-upplägg" style="width:100%;height:100%;object-fit:cover;" loading="eager" />
+    </div>
+
+    <!-- Checklistan -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Checklista — kryssa av</h2>
+
+      {[
+        {
+          kat: "🔊 Ljud & PA",
+          items: [
+            { text: "PA-system dimensionerat för rummet och antalet deltagare", must: true },
+            { text: "Kolumnhögtalare eller standard PA beroende på rumsform", must: true },
+            { text: "Mixerbord om fler än 2 mikrofoner används", must: false },
+            { text: "Monitorer om presentatören behöver höra sig själv", must: false },
+          ]
+        },
+        {
+          kat: "🎤 Mikrofoner",
+          items: [
+            { text: "Headset eller myggmikrofon till huvudtalaren (händerna fria)", must: true },
+            { text: "Extra handmikrofon för publikfrågor", must: false },
+            { text: "2-mikset om det är panelsamtal (2 talare simultant)", must: false },
+            { text: "Trådlöst system — alltid bättre än kabel på scen", must: true },
+          ]
+        },
+        {
+          kat: "📽️ Bild & presentation",
+          items: [
+            { text: "Projektor eller skärm för presentationsbilder", must: true },
+            { text: "HDMI-kabel från laptop till projektor/skärm", must: true },
+            { text: "Extra HDMI-adapter (USB-C, Mini DisplayPort)", must: false },
+            { text: "Extra skärm/monitor för spegelbild om lokalen är stor", must: false },
+            { text: "Klicker/presenter för att byta slides trådlöst", must: false },
+          ]
+        },
+        {
+          kat: "🌐 Hybrid & streaming",
+          items: [
+            { text: "Stabil internetanslutning (inte enbart WiFi vid hybrid)", must: false },
+            { text: "Kamera som fångar scenen (vid hybrid/streaming)", must: false },
+            { text: "Externt ljudkort om datorn ska ta emot ljud från PA", must: false },
+            { text: "Testa Zoom/Teams-integrationen dagen innan", must: false },
+          ]
+        },
+        {
+          kat: "⚡ Praktiskt",
+          items: [
+            { text: "Kontrollera antal tillgängliga eluttag i lokalen", must: true },
+            { text: "Förlängningskablar och grenuttag", must: true },
+            { text: "Boka teknikerhjälp om AV-upplägget är komplext", must: false },
+            { text: "Soundcheck 30–45 min innan deltagarna anländer", must: true },
+          ]
+        },
+      ].map(block => (
+        <div style="margin-bottom:2rem;">
+          <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;color:#c4b5f4;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.75rem;">{block.kat}</h3>
+          {block.items.map(item => (
+            <div style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+              <span style={`font-size:0.8rem;margin-top:0.15rem;flex-shrink:0;color:${item.must ? '#86efac' : 'rgba(255,255,255,0.25)'}`}>
+                {item.must ? '✓' : '○'}
+              </span>
+              <span style={`font-size:0.9rem;color:${item.must ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.45)'}`}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+      <p style="color:rgba(255,255,255,0.3);font-size:0.8rem;margin-top:0.5rem;">✓ = Kritiskt &nbsp;&nbsp; ○ = Bra att ha</p>
+    </section>
+
+    <!-- Storleksguide -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Rekommenderat upplägg efter storlek</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {[
+          {
+            storlek: "Litet konferensrum (10–30 pers.)",
+            ljud: `PA-system Portable Medium (${lp('SK-LJD-POR-0003')} kr)`,
+            mik: `1× Shure SLXD headset (${mp('SK-LJD-MIK-0023')} kr)`,
+            bild: `65\" skärm eller projektor FHD (från ${bp('SK-BLD-0002')} kr)`,
+          },
+          {
+            storlek: "Medelstort konferensrum (30–80 pers.)",
+            ljud: `PA-system Event Small eller Portable Medium+ (${lp('SK-LJD-POR-0004')} kr)`,
+            mik: `2× Shure SLXD headset (${mp('SK-LJD-MIK-0028')} kr)`,
+            bild: `Projektor FHD + duk (${bp('SK-BLD-0002') + 400} kr)`,
+          },
+          {
+            storlek: "Stor föreläsningssal (80–200 pers.)",
+            ljud: "PA-system Event Medium eller Music Small",
+            mik: `1× headset + 1× myggmikrofon + 1× handmikrofon för frågor`,
+            bild: "Projektor FHD + stor duk eller 2× 65\" skärmar",
+          },
+        ].map((r, i) => (
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem 1.5rem;">
+            <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0 0 0.75rem;font-size:0.95rem;">{r.storlek}</h3>
+            <div style="display:flex;flex-direction:column;gap:0.3rem;">
+              <div style="font-size:0.86rem;color:rgba(255,255,255,0.6);">🔊 {r.ljud}</div>
+              <div style="font-size:0.86rem;color:rgba(255,255,255,0.6);">🎤 {r.mik}</div>
+              <div style="font-size:0.86rem;color:rgba(255,255,255,0.6);">📽️ {r.bild}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Produktkort -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till konferens</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={portMed.artno} name={portMed.name} price={portMed.price} priceNote="/dygn" image={portMed.image} alt={portMed.name} description={portMed.description} persons={portMed.persons} specs={portMed.includes} category="Ljud" />
+        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc ?? ''} specs={shureHS.specs ?? shureHS.includes ?? []} category="Mikrofon" />
+        <ProductCard artno={shure2HS.artno} name={shure2HS.name} price={shure2HS.price} priceNote="/dygn" image={shure2HS.image} alt={shure2HS.name} description={shure2HS.description ?? shure2HS.desc ?? ''} specs={shure2HS.specs ?? shure2HS.includes ?? []} category="Mikrofon" />
+        <ProductCard artno={projektor.artno} name={projektor.name} price={projektor.price} priceNote="/dygn" image={projektor.image} alt={projektor.name} description={projektor.description} specs={projektor.includes ?? []} category="Projektor" />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/konferens-av/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Konferens AV — komplett →</a>
+        <a href="/for/konferens/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Konferens & föreläsning →</a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Berätta om er konferens</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Vi sätter ihop rätt paket för er lokal, ert antal deltagare och ert program.</p>
+      <a href="/vara-tjanster/konferens-av/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se konferens AV-paket</a>
+    </div>
+
+  </article>
+
+  <!-- Relaterade guider -->
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <p style="color:rgba(255,255,255,0.35);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+      <a href="/for/guider/hyra-tradlos-mikrofon/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;">Hyra trådlös mikrofon →</a>
+      <a href="/for/guider/hyra-pa-system/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;">Hyra PA-system →</a>
+      <a href="/for/guider/hyra-projektor-pris/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;">Hyra projektor — pris →</a>
+      <a href="/for/guider/ljud-foretagsfest/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;">Ljud till företagsfest →</a>
+    </div>
+  </div>
+
+</Layout>

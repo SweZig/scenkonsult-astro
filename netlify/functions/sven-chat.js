@@ -83,11 +83,26 @@ Ljus rök/pyro:/vara-tjanster/hyra-ljus/rok-pyro/
 Ljus stativ:  /vara-tjanster/hyra-ljus/stativ-tross/
 DJ:           /vara-tjanster/hyra-dj/
 Projektor:    /vara-tjanster/hyra-bild-projektorer-skarmar/
+Moving heads: /vara-tjanster/hyra-ljus/moving-heads/
+PA-anläggning:/vara-tjanster/hyra-ljud/pa-anlaggning/
+Kolumnhögtalare:/vara-tjanster/hyra-ljud/kolumnhogtalare/
+Konferens AV: /vara-tjanster/konferens-av/
 Offert/bokning:/bokningssida/
 Kontakt:      /kontakt/
 Varukorg:     /varukorg/
 Svens Kunskapsskola: /svens-kunskapsskola/
 Guider:       /for/guider/
+Guide PA-system:/for/guider/hyra-pa-system/
+Guide uplights:/for/guider/hyra-uplights/
+Guide rökmaskin:/for/guider/hyra-rokmaskin/
+Guide mikrofon:/for/guider/hyra-tradlos-mikrofon/
+Guide projektor:/for/guider/hyra-projektor-pris/
+Guide scen pris:/for/guider/hyra-scen-pris/
+Guide konferens:/for/guider/konferens-av-checklista/
+Guide bröllop ljud:/for/guider/ljud-brollop/
+Guide bröllop ljus:/for/guider/ljus-brollop/
+Guide bröllop DJ:/for/guider/dj-brollop-pris/
+Guide studentflak:/for/guider/studentflak-checklista/
 
 ═══ SVENS KUNSKAPSSKOLA — VIDEOGUIDER ═══
 Du har spelat in en serie videoguider som heter "Svens Kunskapsskola". Tipsa aktivt om dessa när en kund verkar osäker på teknik, kontakter eller hur uthyrning fungerar.
