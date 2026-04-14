@@ -65,7 +65,7 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
   />
 
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {[..._ljudData.music.products, ..._ljudData.live.products.filter((p: any) => ['SK-LJD-LIV-0004','SK-LJD-LIV-0005','SK-LJD-LIV-0006','SK-LJD-LIV-0007','SK-LJD-LIV-0008','SK-LJD-LIV-0009'].includes(p.artno))].map((p: any) => (
         <ProductCard
           artno={p.artno}
@@ -88,7 +88,7 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
     <p class="text-gray-400 mb-8 text-sm">Koppla in mikrofoner och musikspelare. Mixerbord hyrs separat och ansluts till högtalarpaket.</p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {_ljudData.mixers.map((p: any) => (
         <ProductCard
           artno={p.artno}
@@ -181,7 +181,7 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Tekniker & tjänster</h2>
     <p class="text-gray-400 text-sm mb-6">Behöver du en professionell tekniker på plats? Vi hyr ut scenengineers som hanterar ljud, ljus och bild under hela eventet.</p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {_ljudData.services?.map((svc: any) => (
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
           <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
