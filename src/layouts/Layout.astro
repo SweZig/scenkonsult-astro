@@ -368,7 +368,17 @@ const localBusinessSchema = {
             <a href="/for/konferens/">🎤 Konferens & föreläsning</a>
             <a href="/for/festival/">🎸 Festival & utomhus</a>
             <a href="/for/studentflak/">🎓 Studentflak</a>
-            <a href="/for/guider/" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.07);">📖 Guider & tips</a>
+          </div>
+          <div class="nav-dd-col nav-dd-col-guides">
+            <span class="nav-dd-heading">Guider</span>
+            <a href="/for/guider/hur-stor-pa/">🔊 Hur stor PA-anläggning?</a>
+            <a href="/for/guider/hur-stor-scen/">🎪 Hur stor scen behöver du?</a>
+            <a href="/for/guider/vad-kostar-det/">💰 Vad kostar uthyrning?</a>
+            <a href="/for/guider/checklista-event/">✅ Checklista för event</a>
+            <a href="/for/guider/dj-brollop-pris/">💍 DJ till bröllop — pris</a>
+            <a href="/for/guider/ljud-brollop/">🎵 Ljud till bröllop</a>
+            <a href="/for/guider/hyra-scen-pris/">🎪 Hyra scen — pris</a>
+            <a href="/for/guider/" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.07);color:rgba(196,181,244,0.7)!important;">📖 Alla guider →</a>
           </div>
         </div>
       </li>
@@ -537,7 +547,7 @@ const localBusinessSchema = {
       if (arrow) arrow.style.transform = sub?.classList.contains('open') ? 'rotate(180deg)' : '';
     });
 
-    // Desktop dropdown med stängningsfördröjning
+    // Desktop dropdown — stängs INTE om muspekaren är inne i menyn
     const ddParent = document.querySelector('.nav-dropdown') as HTMLElement;
     const ddMenu = document.querySelector('.nav-dropdown-menu') as HTMLElement;
     let closeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -546,7 +556,12 @@ const localBusinessSchema = {
       ddMenu?.classList.add('dd-open');
     };
     const closeDD = () => {
-      closeTimer = setTimeout(() => ddMenu?.classList.remove('dd-open'), 2500);
+      closeTimer = setTimeout(() => {
+        // Stäng bara om musen faktiskt är utanför båda elementen
+        if (!ddParent?.matches(':hover') && !ddMenu?.matches(':hover')) {
+          ddMenu?.classList.remove('dd-open');
+        }
+      }, 2500);
     };
     ddParent?.addEventListener('mouseenter', openDD);
     ddParent?.addEventListener('mouseleave', closeDD);
