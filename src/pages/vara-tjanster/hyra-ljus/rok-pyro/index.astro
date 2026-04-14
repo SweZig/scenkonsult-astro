@@ -49,81 +49,23 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-      <MediaCard
-        title="Rökmaskin, 1500W"
-        images={["/images/ljus/pp_ljus_effekt23.png"]}
-        videos={["/videos/1200W_Fog_Machine_6LEDs_Remote.mp4"]}
-        priceExcl={349}
-        priceSuffix="/st/dygn fr"
-        id="rokmaskin-1500"
-        artno="SK-LJS-ROK-0001"
-        category="Rök & pyro"
-        bullets={["6×3W LED RGB inbyggd","Dimeffekt: 85 m³/min","Strömförbrukning: 1 500 W","Mått: 397×302×191 mm, Vikt: 5 kg","1 L rökvätska ingår"]}
-        rows={volRowsRok('SK-LJS-ROK-0001')}
-      />
-
-      <MediaCard
-        title="Rökmaskin, 650W"
-        images={["/images/ljus/pp_ljus_effekt24.png"]}
-        videos={["/videos/adj_fog_fury_jett-04.mp4"]}
-        priceExcl={449}
-        priceSuffix="/st/dygn fr"
-        id="rokmaskin-650"
-        artno="SK-LJS-ROK-0002"
-        category="Rök & pyro"
-        bullets={["12×3W LED RGB inbyggd","Dimeffekt: 125 m³/min","Strömförbrukning: 650 W","Vikt: 10 kg","1 L rökvätska ingår"]}
-        rows={volRowsRok('SK-LJS-ROK-0002')}
-      />
-
-      <MediaCard
-        title="Hazer HZ-1500 Pro"
-        images={["/images/ljus/pp_ljus_rok3.png"]}
-        videos={["/videos/hazer-hz1500.mp4"]}
-        priceExcl={649}
-        priceSuffix="/st/dygn fr"
-        id="hazer-hz1500"
-        artno="SK-LJS-ROK-0005"
-        category="Rök & pyro"
-        bullets={["Finfördelat dis – synliggör ljusstrålar","DMX 512-styrning","Touring flightcase","Stabil kontinuerlig output","Inkl 1 l rökvätska"]}
-        rows={volRowsRok('SK-LJS-ROK-0005')}
-      />
-
-      <MediaCard
-        title="Kallgnistmaskin"
-        images={["/images/ljus/pp_ljus_effekt25.png"]}
-        videos={["/videos/Cold_Spark_Machine.mp4"]}
-        priceExcl={499}
-        priceSuffix="/st/dygn fr"
-        id="kallgnistmaskin"
-        artno="SK-LJS-ROK-0003"
-        category="Rök & pyro"
-        bullets={["Cold Spark – säkra gnisteffekter","Effekt: 700 W, förvärmningstid ~4 min","DMX 512, Vikt: 8 kg"]}
-        rows={[...volRowsRok('SK-LJS-ROK-0003'), {label:"Granulat (drivmedel)", rows:["100 g (~3 min) – 299 kr","200 g (~6 min) – 479 kr"]}]}
-      />
-
-      <MediaCard
-        title="Konfettiavfyrare"
-        images={["/images/ljus/pp_ljus_confettimaskin.png"]}
-        priceExcl={499}
-        priceSuffix="/dygn"
-        id="konfettiavfyrare"
-        artno="SK-LJS-ROK-0004"
-        category="Rök & pyro"
-        bullets={["Utskjutningsvinkel steglöst justerbar","DMX 512 Standard","Strömförbrukning: 100 W","Inkl ett konfettirör"]}
-      />
-
-      <MediaCard
-        title="Fire machine"
-        images={["/images/ljus/pp_ljus_firemachine.png"]}
-        videos={["/videos/fire_machine.mp4"]}
-        priceExcl={699}
-        priceSuffix="/st/dygn fr"
-        id="fire-machine"
-        artno="SK-LJS-ROK-0006"
-        category="Rök & pyro"
-        bullets={["Eldflamma 2–2,5 m höjd","DMX 512-styrning","Trådlös fjärrkontroll inkl.","Elektronisk tändning","Vikt: 8 kg"]}
-        rows={[...volRowsRok('SK-LJS-ROK-0006'), {label:"Drivmedel", rows:["Fire machine oil 400 ml – 79 kr"]}]}
-      />
+      {ljusData.rok.products.map((p: any) => (
+        <MediaCard
+          title={p.name}
+          images={[p.image]}
+          videos={p.video ? [p.video] : []}
+          priceExcl={p.price}
+          priceSuffix={p.priceNote ?? '/st/dygn'}
+          artno={p.artno}
+          category="Rök & pyro"
+          bullets={p.includes ?? []}
+          rows={[
+            ...volRowsRok(p.artno),
+            ...(p.extraRows ?? [])
+          ]}
+          manualUrl={p.manualUrl}
+        />
+      ))}
 
       <!-- Inforuta: Ansvarsfull användning -->
       <div class="col-span-full mt-2 mb-4 flex gap-3 items-start bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-gray-400">
