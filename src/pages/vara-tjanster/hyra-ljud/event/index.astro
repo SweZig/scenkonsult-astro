@@ -67,33 +67,24 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
   <!-- PAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ProductCard artno="SK-LJD-EVE-0001" name="Event, Small" price={799} persons="Upp till 100 personer"
-        image="/images/ljud/pp_ljud_event_small.png"
-        description="Passar för tal, sång och bakgrundsmusik för grupper upp till 100 personer. Två kompakta Alto 10″ fullrange högtalarenheter på stativ. Kopplas in i vanliga eluttag. Montering 10–15 min."
-        specs={["10″/1,4″ aktiva element","2 000 W peak / 1 000 W RMS","Max 130 dB","48–20 000 Hz","Samlad vikt: 25 kg"]} />
-      <ProductCard artno="SK-LJD-EVE-0003" name="Event, Medium" price={1199} persons="Upp till 180 personer"
-        image="/images/ljud/pp_ljud-event_medium.png"
-        description="Två Alto 12″ fullrange högtalarenheter på stativ. Kraftfullare bas och räckvidd än 10″-systemet. Montering 10–15 min."
-        specs={["12″/1,4″ aktiva element","2 500 W peak / 1 250 W RMS","Max 130 dB","48–20 000 Hz","Samlad vikt: 34 kg"]} />
-      <ProductCard artno="SK-LJD-EVE-0002" name="Event, Small+" price={1599} persons="Upp till 240 personer"
-        image="/images/ljud/pp_ljud_event_small_.png"
-        description="Fyra Alto 10″ fullrange högtalarenheter för upp till 240 personer. Bredare ljudbild med fyra enheter. Montering 20–25 min."
-        specs={["10″/1,4″ aktiva element","2 000 W peak / 1 000 W RMS","Max 130 dB","48–20 000 Hz","Samlad vikt: 54 kg"]} />
-      <ProductCard artno="SK-LJD-EVE-0005" name="Event, Large" price={1599} persons="Upp till 280 personer"
-        image="/images/ljud/pp_ljud_event_large2.png"
-        description="Två Alto 15″ fullrange högtalarenheter på stativ för upp till 280 personer. Kraftfullt och tydligt ljud. Montering 10–15 min."
-        specs={["15″/1,4″ aktiva element","2 500 W peak / 1 250 W RMS","Max 130 dB","48–20 000 Hz","Samlad vikt: 39 kg"]} />
-      <ProductCard artno="SK-LJD-EVE-0004" name="Event, Medium+" price={2399} persons="Upp till 380 personer"
-        image="/images/ljud/pp_ljud_event_medium-.png"
-        description="Fyra Alto 12″ fullrange högtalarenheter för upp till 380 personer. Montering 20–25 min."
-        specs={["12″/1,4″ aktiva element","2 500 W peak / 1 250 W RMS","Max 130 dB","62–20 000 Hz","Samlad vikt: 62 kg"]} />
-      <ProductCard artno="SK-LJD-EVE-0006" name="Event, Large+" price={3199} persons="Upp till 560 personer"
-        image="/images/ljud/pp_ljud_event_large_.png"
-        description="Fyra Alto 15″ fullrange högtalarenheter för upp till 560 personer. Montering 20–25 min."
-        specs={["15″/1,4″ aktiva element","2 500 W peak / 1 250 W RMS","Max 130 dB","48–20 000 Hz","Samlad vikt: 78 kg"]} />
+      {_ljudData.event.products.map((p: any) => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          persons={p.persons}
+          specs={p.specs ?? []}
+          category="Ljud event"
+          monteringMin={p.monteringMin}
+          manualUrl={p.manualUrl}
+        />
+      ))}
     </div>
   </section>
-
   <!-- MIXERBORD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
