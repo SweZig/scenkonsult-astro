@@ -168,6 +168,38 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
     </div>
   </section>
 
+  <!-- TEKNIKER & TJÄNSTER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Tekniker & tjänster</h2>
+    <p class="text-gray-400 text-sm mb-6">Behöver du hjälp på plats? Vi erbjuder tekniker och scenengineers som hanterar ljud, ljus och AV under hela eventet.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {_ljudData.services?.map((svc: any) => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={svc.image} alt={svc.alt ?? svc.name} width="800" height="665" loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="p-5 flex flex-col flex-1">
+            <h3 class="font-bold text-white text-lg mb-2">{svc.name}</h3>
+            <p class="text-gray-400 text-sm mb-3 flex-1">{svc.description}</p>
+            <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+              {svc.includes?.map((item: string) => (
+                <li class="flex gap-1.5"><span class="text-green-400">▸</span>{item}</li>
+              ))}
+            </ul>
+            <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-3 gap-3">
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{svc.price.toLocaleString('sv')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(svc.price * 1.25).toLocaleString('sv')} kr</span>
+                <span class="text-gray-400 text-xs">{svc.priceNote ?? '/tim'}</span>
+              </div>
+              <CartButton id={svc.artno} name={svc.name} price={svc.price} category="Tjänster" artno={svc.artno} image={svc.image} size="md" iconOnly={true} />
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex flex-wrap gap-4">
     <a href="/vara-tjanster/hyra-ljud/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">← Tillbaka till hyra ljud</a>
     <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Boka nu</a>
