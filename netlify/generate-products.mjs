@@ -83,6 +83,10 @@ miks.forEach(p => {
 Object.values(dj.equipment || {}).forEach(p => {
   if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
+// DJ paket
+(dj.packages || []).forEach(p => {
+  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
+});
 
 // Bild
 (bild.products || []).forEach(p => {
@@ -180,6 +184,10 @@ sects.push('DJ-UTRUSTNING → /vara-tjanster/hyra-dj/');
 Object.values(dj.equipment || {}).forEach(p => {
   if (p.price) sects.push(prodLine(p.name, p.price, '/dygn'));
 });
+sects.push('DJ-PAKET (inkl. ljud & ljus) → /vara-tjanster/hyra-dj/');
+(dj.packages || []).forEach(p => {
+  sects.push(prodLine(p.name + ' (' + p.tagline + ')', p.price, ' exkl. moms'));
+});
 sects.push('');
 
 // PROJEKTOR & SKÄRM
@@ -217,7 +225,10 @@ QUOTE_CAT['Ljus'].sub['Rök & pyro']   = (ljus.rok?.products||[]).filter(p=>p.sl
 QUOTE_CAT['Ljus'].sub['Rök tillbehör']= (ljus.rok?.tillbehor||[]).filter(p=>p.slug&&p.price).map(qp);
 QUOTE_CAT['Ljus'].sub['Stativ & tross']= (ljus.stativ?.products||[]).filter(p=>p.slug&&p.price).map(qp);
 
-QUOTE_CAT['DJ'] = { products: Object.values(dj.equipment||{}).filter(p=>p.slug&&p.price).map(qp) };
+QUOTE_CAT['DJ'] = { products: [
+  ...Object.values(dj.equipment||{}).filter(p=>p.slug&&p.price).map(qp),
+  ...(dj.packages||[]).filter(p=>p.artno&&p.price).map(p => ({ artno: p.artno, name: p.name, price: p.price, category: 'DJ-paket' }))
+]};
 QUOTE_CAT['Bild'] = { products: [...(bild.products||[]),...(bild.tillbehor||[])].filter(p=>p.slug&&p.price).map(qp) };
 
 QUOTE_CAT['Tjänster'] = { products: [
