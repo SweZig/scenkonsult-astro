@@ -9,9 +9,9 @@ const portMed    = (ljudData.portable.products as any[]).find((p:any) => p.artno
 const musicSmall = ljudData.music.products[0];   // SK-LJD-MUS-0001
 const liveSmall  = ljudData.live.products[0];    // SK-LJD-LIV-0001
 const liveMedium = (ljudData.live.products as any[]).find((p:any) => p.artno === 'SK-LJD-LIV-0002');
-const shureHS    = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
-const shureMygga = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
-const tradlos    = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
+const shureHS    = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
+const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
+const tradlos    = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
 
 const faqSchema = {
   "@context": "https://schema.org",

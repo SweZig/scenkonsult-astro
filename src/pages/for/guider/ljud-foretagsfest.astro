@@ -8,7 +8,7 @@ const lp = (artno: string) => [
   ...ljudData.event.products,
   ...ljudData.music.products,
   ...(ljudData.portable.products as any[]),
-  ...(ljudData.tillbehor_mikrofon as any[]),
+  ...([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]),
 ].find(p => p.artno === artno)?.price ?? 0;
 
 const evSmall   = ljudData.event.products[0];
@@ -16,8 +16,8 @@ const evMedium  = (ljudData.event.products as any[]).find(p => p.artno === 'SK-L
 const evMediumP = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0004');
 const musSmall  = ljudData.music.products[0];
 const musMedium = (ljudData.music.products as any[]).find(p => p.artno === 'SK-LJD-MUS-0003');
-const shureHS   = (ljudData.tillbehor_mikrofon as any[]).find(p => p.artno === 'SK-LJD-MIK-0023');
-const shureMygga= (ljudData.tillbehor_mikrofon as any[]).find(p => p.artno === 'SK-LJD-MIK-0022');
+const shureHS   = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find(p => p.artno === 'SK-LJD-MIK-0023');
+const shureMygga= ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find(p => p.artno === 'SK-LJD-MIK-0022');
 const ljusPaket = ljusData.paket.products[1]; // Small+
 
 const faqSchema = {

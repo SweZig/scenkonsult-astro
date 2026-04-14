@@ -7,7 +7,7 @@ import ljudData from '../../../data/ljud.json';
 const portSmallPlus = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0002');
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
 const portSmallDuo = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0005');
-const tradlosHand = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
+const tradlosHand = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
 
 const faq = [
   {

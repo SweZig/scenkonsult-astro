@@ -8,7 +8,7 @@ import ljusData from '../../../data/ljus.json';
 const evSmall = ljudData.event.products[0];
 const evMedium = ljudData.event.products[1];
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
-const shureMygga = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
+const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
 const ljusPaket = ljusData.paket.products[1];
 const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0010');
 

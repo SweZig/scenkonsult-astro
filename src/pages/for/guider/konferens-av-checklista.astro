@@ -4,7 +4,7 @@ import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import bildData from '../../../data/bild.json';
 
-const mik  = (ljudData.tillbehor_mikrofon as any[]);
+const mik  = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]);
 const port = (ljudData.portable.products as any[]);
 const bild = bildData.products as any[];
 

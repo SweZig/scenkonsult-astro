@@ -3,7 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 
-const mik = (ljudData.tillbehor_mikrofon as any[]);
+const mik = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]);
 const mp = (artno: string) => mik.find(p => p.artno === artno)?.price ?? 0;
 
 const tradlosHand  = mik.find(p => p.artno === 'SK-LJD-MIK-0016');

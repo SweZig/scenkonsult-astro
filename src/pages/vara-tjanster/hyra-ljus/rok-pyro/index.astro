@@ -84,14 +84,8 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-      {[
-        { img:"/images/ljus/pp_ljus_styrning02.png",  name:"Styrenhet 192 kan.",     excl:99,   artno:"SK-LJS-DMX-0001", desc:"12 scanners×16 kan, 240 sekvenser, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_botex_sdc16.png", name:"Botex SDC-16",           excl:199,  artno:"SK-LJS-DMX-0002", desc:"16 kanalfaders + masterfader, startkanal via display" },
-        { img:"/images/ljus/pp_ljus_styrning03.png",  name:"Styrenhet 512 kan.",     excl:299,  artno:"SK-LJS-DMX-0003", desc:"48 enheter, 4 600 scener, 96 banker, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_styrning04.png",  name:"PC-mjukvara DMX",        excl:799,  artno:"SK-LJS-DMX-0004", desc:"512 kan, dra/släpp programmering, BPM-analys, SSL2" },
-        { img:"/images/ljus/pp_ljus_styrning-m6.png", name:"Martin M6 Ljusstyrning", excl:2499, artno:"SK-LJS-DMX-0005", desc:"Dubbla 15,4\" touchskärmar, 44 playbacks, 4× FastBlend RGB" },
-      ].map(p => (
-        <ElTillbehorCard img={p.img} name={p.name} excl={p.excl} desc={p.desc} category="DMX-styrning" artno={p.artno} modal={true} specs={[p.desc]} />
+      {(ljusData.dmx?.tillbehor?.filter((p:any) => parseInt(p.artno.slice(-4)) <= 5) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={true} specs={p.specs ?? [p.desc ?? '']} />
       ))}
     </div>
   </section>

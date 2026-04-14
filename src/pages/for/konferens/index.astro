@@ -7,8 +7,8 @@ import ljudData from '../../../data/ljud.json';
 
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
 const portMedPlus = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0004');
-const shureHeadset = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
-const shureMygga = (ljudData.tillbehor_mikrofon as any[]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
+const shureHeadset = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
+const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
 const projektor = bildData.products.find((p:any) => p.artno === 'SK-BLD-0002');
 const skarm65 = bildData.products.find((p:any) => p.artno === 'SK-BLD-0003');
 

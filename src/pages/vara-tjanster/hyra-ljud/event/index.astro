@@ -37,7 +37,7 @@ const _artnoAliases: Record<string,string> = {
   'Elgenerator, 2200W': 'SK-LJD-EL-0010',
 };
 const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntries(
-  [...(_ljudData.tillbehor_mikrofon||[]), ...(_ljudData.tillbehor_el||[]), ...(_ljudData.mixers||[])]
+  [...(_ljudData.mikrofoner||[]), ...(_ljudData.tillbehor_mikrofon||[]), ...(_ljudData.tillbehor_ljud||[]), ...(_ljudData.tillbehor_el||[]), ...(_ljudData.mixers||[])]
     .filter((p:any) => p.artno)
     .map((p:any) => [p.name, p.artno])
 )};
@@ -108,10 +108,30 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
   </section>
 
   <!-- MIKROFONER -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner &amp; tillbehör</h2>
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {(_ljudData.mikrofoner ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? p.description ?? ''} category="Mikrofon" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.desc ? [p.desc] : [])} />
+      ))}
+    </div>
+  </section>
+
+  <!-- TILLBEHÖR TILL MIKROFONER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör till mikrofoner</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_ljudData.tillbehor_mikrofon?.filter((p:any) => !p.artno?.startsWith('SK-LJD-UPG')) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? p.description ?? ''} category="Mikrofon tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.desc ? [p.desc] : [])} />
+      ))}
+    </div>
+  </section>
+
+  <!-- ÖVRIGA TILLBEHÖR LJUD -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Övriga tillbehör</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {(_ljudData.tillbehor_ljud ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? p.description ?? ''} category="Ljud tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.desc ? [p.desc] : [])} />
       ))}
     </div>
