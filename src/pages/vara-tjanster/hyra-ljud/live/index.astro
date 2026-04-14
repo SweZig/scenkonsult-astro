@@ -143,9 +143,6 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
       {(_ljudData.tillbehor_el ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? p.description ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
-      {(_ljusData.rok?.tillbehor?.slice(0,2) ?? []).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
-      ))}
     </div>
   </section>
 
