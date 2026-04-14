@@ -776,11 +776,15 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     add(_ljusJson.effekter?.products,'Ljuseffekter',           '/vara-tjanster/hyra-ljus/ljuseffekter/');
     add(_ljusJson.rok?.products,     'Ljus — Rök & pyro',     '/vara-tjanster/hyra-ljus/rok-pyro/');
     add(_ljusJson.stativ?.products,  'Ljus — Stativ & tross', '/vara-tjanster/hyra-ljus/stativ-tross/');
-    // DJ — cart lagrar "dj-utr-" + slug
+    // DJ — cart lagrar "dj-utr-" + slug (hårdvara) eller artno direkt (tjänster)
     for (const p of (_djJson.equipment ?? [])) {
-      if (!p.slug) continue;
-      const cartId = 'dj-utr-' + p.slug;
-      cat[cartId] = { desc: p.description || '', cat: 'DJ-utrustning', link: '/vara-tjanster/hyra-dj/', includes: p.includes || [], artno: p.artno || '', image: p.image || '', videos: p.video ? ['/videos/' + p.video] : [], volPricing: p.volumePricing || [] };
+      const entry = { desc: p.description || '', cat: p.artno?.startsWith('SK-DJ-0') && parseInt(p.artno.slice(-4)) >= 9 ? 'DJ-tjänst' : 'DJ-utrustning', link: '/vara-tjanster/hyra-dj/', includes: p.includes || [], artno: p.artno || '', image: p.image || '', videos: p.video ? ['/videos/' + p.video] : [], volPricing: p.volumePricing || [] };
+      if (p.slug) cat['dj-utr-' + p.slug] = entry;
+      if (p.artno) cat[p.artno] = entry;
+    }
+    // DJ-paket
+    for (const p of (_djJson.packages ?? [])) {
+      cat[p.artno] = { desc: p.includes?.join(', ') || '', cat: 'DJ-paket', link: '/vara-tjanster/hyra-dj/', includes: p.includes || [], artno: p.artno || '', image: p.image || '' };
     }
     // Bild
     add(_bildJson.products,  'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
@@ -811,7 +815,8 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
   function _getImg(item) {
     if (item.image) return item.image;
-    return PROD_CATALOG[item.id]?.image || PROD_CATALOG[item.id?.replace(/^(scen-|dj-utr-)/,'')]?.image || '';
+    const info = PROD_CATALOG_BY_ARTNO[item.artno] || PROD_CATALOG[item.id] || PROD_CATALOG[item.id?.replace(/^(scen-|dj-utr-)/,'')];
+    return info?.image || '';
   }
 
   // Ikoner per artikelnummerprefix — används som fallback när ingen bild finns
@@ -829,6 +834,17 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     'SK-LJS':     { emoji:'💡', color:'#F59E0B', label:'Ljus' },
     'SK-BLD':     { emoji:'🖥️', color:'#10B981', label:'Bild' },
     'SK-DJ-001':  { emoji:'🎧', color:'#EF4444', label:'DJ-utrustning' },
+    'SK-DJ-PAK':  { emoji:'🎶', color:'#EF4444', label:'DJ-paket' },
+    'SK-DJ-001':  { emoji:'🎧', color:'#EF4444', label:'DJ-utrustning' },
+    'SK-DJ-0009': { emoji:'🎵', color:'#C084FC', label:'Junior DJ' },
+    'SK-DJ-0010': { emoji:'🎵', color:'#C084FC', label:'Junior DJ' },
+    'SK-DJ-0011': { emoji:'🎵', color:'#C084FC', label:'Junior DJ' },
+    'SK-DJ-0012': { emoji:'🎧', color:'#A855F7', label:'Senior DJ' },
+    'SK-DJ-0013': { emoji:'🎧', color:'#A855F7', label:'Senior DJ' },
+    'SK-DJ-0014': { emoji:'🎧', color:'#A855F7', label:'Senior DJ' },
+    'SK-DJ-0015': { emoji:'👑', color:'#F59E0B', label:'PRO DJ' },
+    'SK-DJ-0016': { emoji:'👑', color:'#F59E0B', label:'PRO DJ' },
+    'SK-DJ-0017': { emoji:'👑', color:'#F59E0B', label:'PRO DJ' },
     'SK-DJ':      { emoji:'🎵', color:'#EF4444', label:'DJ-tjänst' },
     'SK-LEV':     { emoji:'🚚', color:'#F97316', label:'Leverans' },
     'SK-TJN':     { emoji:'⚙️', color:'#F97316', label:'Tillägg' },
