@@ -789,6 +789,27 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     // Bild
     add(_bildJson.products,  'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
     add(_bildJson.tillbehor, 'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
+    // Frakt & tjänster — leverans, montering, tillägg, fakturaavgift
+    const _addService = (id, artno, label, desc, price) => {
+      const entry = { desc, cat: 'Tjänster', link: '/', includes: [], artno: artno || '', image: '', price: price || 0 };
+      cat[id] = entry;
+      if (artno) cat[artno] = entry;
+    };
+    const _lev = fraktData.leverans;
+    _addService(_lev.standard.id,           _lev.standard.artno,           _lev.standard.label,           '', _lev.standard.pris);
+    _addService(_lev.skrymmande.id,         _lev.skrymmande.artno,         _lev.skrymmande.label,         '', _lev.skrymmande.pris);
+    _addService(_lev.lastbil.id,            _lev.lastbil.artno,            _lev.lastbil.label,            '', _lev.lastbil.pris);
+    _addService(_lev.bakgavel.id,           _lev.bakgavel.artno,           _lev.bakgavel.label,           '', _lev.bakgavel.pris);
+    _addService(_lev.standard.enkel.id,     _lev.standard.enkel.artno,     _lev.standard.enkel.label,     '', _lev.standard.enkel.pris);
+    _addService(_lev.skrymmande.enkel.id,   _lev.skrymmande.enkel.artno,   _lev.skrymmande.enkel.label,   '', _lev.skrymmande.enkel.pris);
+    _addService(_lev.lastbil.enkel.id,      _lev.lastbil.enkel.artno,      _lev.lastbil.enkel.label,      '', _lev.lastbil.enkel.pris);
+    _addService('montering', fraktData.montering.artno, fraktData.montering.label, fraktData.montering.description, fraktData.montering.prisPerTimme);
+    for (const t of (fraktData.tillagg ?? [])) {
+      _addService(t.id, t.artno, t.label, t.description || '', t.pris);
+    }
+    for (const f of (fraktData.fakturaavgift?.options ?? [])) {
+      _addService(f.id, f.artno, f.label, fraktData.fakturaavgift.description || '', f.pris);
+    }
     return cat;
   }
   const PROD_CATALOG = _buildCatalog();

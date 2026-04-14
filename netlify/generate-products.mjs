@@ -233,14 +233,14 @@ QUOTE_CAT['Bild'] = { products: [...(bild.products||[]),...(bild.tillbehor||[])]
 
 QUOTE_CAT['Tjänster'] = { products: [
   {id:frakt.leverans.standard.artno||frakt.leverans.standard.id, name:'Leverans — Vanlig bil (t&r)',      price:frakt.leverans.standard.pris},
-  {id:frakt.leverans.standard.id+'-e', name:'Leverans — Vanlig bil (enkel)', price:frakt.leverans.standard.enkelresa},
+  {id:frakt.leverans.standard.enkel.id,    name:frakt.leverans.standard.enkel.label,    price:frakt.leverans.standard.enkel.pris},
   {id:frakt.leverans.skrymmande.artno||frakt.leverans.skrymmande.id, name:'Leverans — Bil med släp (t&r)',    price:frakt.leverans.skrymmande.pris},
-  {id:frakt.leverans.skrymmande.id+'-e',name:'Leverans — Bil med släp (enkel)',price:frakt.leverans.skrymmande.enkelresa},
+  {id:frakt.leverans.skrymmande.enkel.id,  name:frakt.leverans.skrymmande.enkel.label,  price:frakt.leverans.skrymmande.enkel.pris},
   {id:frakt.leverans.lastbil.artno||frakt.leverans.lastbil.id, name:'Leverans — Lastbil (t&r)',         price:frakt.leverans.lastbil.pris},
-  {id:frakt.leverans.lastbil.id+'-e',  name:'Leverans — Lastbil (enkel)',    price:frakt.leverans.lastbil.enkelresa},
+  {id:frakt.leverans.lastbil.enkel.id,     name:frakt.leverans.lastbil.enkel.label,     price:frakt.leverans.lastbil.enkel.pris},
   {id:frakt.montering.artno||'SK-TJN-0001', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
-  {id:'SK-TJN-0003', name:'Fakturaavgift', price:49},
-  {id:'fakturaavgift-29', name:'Fakturaavgift (reducerad)', price:29},
+  ...(frakt.tillagg||[]).map(t => ({id:t.artno||t.id, name:t.label, price:t.pris})),
+  ...(frakt.fakturaavgift?.options||[]).map(f => ({id:f.artno||f.id, name:f.label, price:f.pris})),
 ]};
 
 const QUOTE_CATALOG_JS = JSON.stringify(QUOTE_CAT);
