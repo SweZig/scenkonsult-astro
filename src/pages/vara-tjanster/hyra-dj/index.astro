@@ -20,15 +20,15 @@ import dj from '../../../data/dj.json';
       { label: "Hyr DJ" }
     ]}
     badges={[
-      "6 professionella DJs",
+      "10+ professionella DJs",
       "Alla genrer",
       "70-tal till idag"
     ]}
-    priceFrom={799}
-    priceSuffix="/dygn"
+    priceFrom={1999}
+    priceSuffix="/2 tim"
   />
 
-  <!-- USP-rad med moms-toggle — under hero, ovanför innehåll -->
+  <!-- USP-rad -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-6">
     <div class="flex flex-wrap gap-3 text-xs text-gray-300">
       <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
@@ -43,10 +43,15 @@ import dj from '../../../data/dj.json';
         <span class="sk-price-incl hidden font-semibold text-brand-orange">2 499 kr</span>
         /2 tim
       </span>
+      <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
+        📦 Komplett DJ-paket från
+        <span class="sk-price-excl font-semibold text-brand-orange">4 797 kr</span>
+        <span class="sk-price-incl hidden font-semibold text-brand-orange">5 996 kr</span>
+      </span>
     </div>
   </div>
 
-  <!-- HYR PROFESSIONELL DJ: bild + prisbord -->
+  <!-- HYR PROFESSIONELL DJ -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
@@ -67,11 +72,11 @@ import dj from '../../../data/dj.json';
         </div>
       </div>
 
-      <!-- HÖGER: Info-text + prisbord -->
+      <!-- HÖGER: Prisbord -->
       <div>
         <h2 class="text-2xl font-bold text-white mb-2">HYR PROFESSIONELL DJ</h2>
         <p class="text-gray-300 text-sm mb-5">
-          Vi har 6 professionella DJs med mångårig erfarenhet från nattklubbar, bröllop, studentfester
+          Vi har ett 10-tal professionella DJs med mångårig erfarenhet från nattklubbar, bröllop, studentfester
           och företagsevent. Vi spelar 70/80/90/00/10/20-tals musik i alla genre – Disco, R&amp;B, Dance,
           House, Rock, Schlager, Hip-Hop, Soul, Italo Disco, Euro, EDM m.m.
           Vi utformar kvällen efter önskemål i samråd med kunden.
@@ -81,7 +86,6 @@ import dj from '../../../data/dj.json';
           <br />¹Digital utrustning kräver fungerande internetanslutning.
         </p>
 
-        <!-- PRISBORD med CartButton per rad -->
         <div class="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-white/10">
           <table class="w-full text-sm">
             <thead>
@@ -96,7 +100,6 @@ import dj from '../../../data/dj.json';
               {dj.djService.priceTable.map((row, i) => (
                 <tr class={`border-b border-white/5 ${i % 2 === 0 ? '' : 'bg-white/5'}`}>
                   <td class="px-3 py-3 text-gray-300 text-xs font-medium whitespace-nowrap">{row.hours}</td>
-                  <!-- Junior -->
                   <td class="px-2 py-3">
                     <div class="flex flex-col items-center gap-1.5">
                       <div class="leading-none text-center">
@@ -110,7 +113,6 @@ import dj from '../../../data/dj.json';
                       <CartButton id={`dj-junior-${row.hours.replace(' ','')}`} name={`DJ Junior – ${row.hours}`} price={row.junior} category="DJ-tjänst" size="sm" iconOnly={true} />
                     </div>
                   </td>
-                  <!-- Senior -->
                   <td class="px-2 py-3">
                     <div class="flex flex-col items-center gap-1.5">
                       <div class="leading-none text-center">
@@ -124,7 +126,6 @@ import dj from '../../../data/dj.json';
                       <CartButton id={`dj-senior-${row.hours.replace(' ','')}`} name={`DJ Senior – ${row.hours}`} price={row.senior} category="DJ-tjänst" size="sm" iconOnly={true} />
                     </div>
                   </td>
-                  <!-- PRO -->
                   <td class="px-2 py-3 text-center">
                     <div class="text-white font-bold text-sm italic mb-1">Offert</div>
                     <a href="/kontakt/" class="text-brand-orange text-[10px] hover:underline">Kontakta oss</a>
@@ -142,7 +143,48 @@ import dj from '../../../data/dj.json';
     </div>
   </section>
 
-  <!-- KARUSELL: VÅRA DJs — panorama-bilder 2560×654 -->
+  <!-- DJ-PAKET -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white mb-2">Kompletta DJ-paket</h2>
+      <p class="text-gray-400 text-sm">DJ + ljud + ljus i ett paket. Resa tillkommer, transport tillkommer på XL.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {dj.packages.map((pkg, i) => (
+        <div class={`bg-brand-navy border rounded-2xl p-5 flex flex-col hover:border-brand-orange/50 transition-colors ${i === 1 ? 'border-brand-orange/60 relative' : 'border-white/10'}`}>
+          {i === 1 && (
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-orange text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
+              Populärast
+            </div>
+          )}
+          <div class="mb-3">
+            <div class="text-brand-orange/80 text-xs font-semibold uppercase tracking-wide mb-1">{pkg.tagline}</div>
+            <h3 class="text-white font-bold text-base">{pkg.name}</h3>
+            <div class="text-gray-400 text-xs mt-1">{pkg.hours} speltid</div>
+          </div>
+          <ul class="space-y-1.5 mb-4 flex-1">
+            {pkg.includes.map(item => (
+              <li class="flex gap-2 text-xs text-gray-300">
+                <span class="text-green-400 shrink-0">✓</span>{item}
+              </li>
+            ))}
+          </ul>
+          <div class="border-t border-white/10 pt-3 mt-auto">
+            <div class="mb-3">
+              <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{pkg.price.toLocaleString('sv')} kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{pkg.priceInkl.toLocaleString('sv')} kr</span>
+              <span class="text-gray-400 text-xs ml-1 sk-price-excl">exkl. moms</span>
+              <span class="text-gray-400 text-xs ml-1 sk-price-incl hidden">inkl. moms</span>
+            </div>
+            <div class="text-gray-500 text-[10px] italic mb-3">{pkg.note}</div>
+            <CartButton id={pkg.artno} name={pkg.name} price={pkg.price} category="DJ-paket" size="md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- KARUSELL: VÅRA DJs -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <h2 class="text-xl font-bold text-white mb-4">BOKA ETT URVAL AV VÅRA DJs</h2>
     <div class="relative">
@@ -166,6 +208,50 @@ import dj from '../../../data/dj.json';
           class="w-2 h-2 rounded-full bg-white/20 hover:bg-brand-orange transition-colors" aria-label={`Bild ${i+1}`}></button>
       ))}
     </div>
+
+    <!-- Är du DJ? CTA -->
+    <div class="mt-6 bg-brand-navy/50 border border-white/10 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <p class="text-white text-sm font-semibold">Är du erfaren DJ och vill listas hos oss?</p>
+        <p class="text-gray-400 text-xs mt-0.5">Vi utökar kontinuerligt vår DJ-databas — hör av dig om du har erfarenhet av event, bröllop eller företagsgig.</p>
+      </div>
+      <a href="/kontakt/" class="shrink-0 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap">
+        Kontakta oss →
+      </a>
+    </div>
+  </section>
+
+  <!-- TEMATISERING -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <h2 class="text-2xl font-bold text-white mb-2">DJ till ditt event</h2>
+    <p class="text-gray-400 text-sm mb-8">Vi anpassar musik och upplägg efter just ert event.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {dj.themes.map(theme => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 hover:border-brand-orange/40 transition-colors flex flex-col">
+          <div class="text-3xl mb-3">{theme.icon}</div>
+          <h3 class="text-white font-bold text-lg mb-2">{theme.title}</h3>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">{theme.description}</p>
+          <ul class="space-y-1.5 mb-5 flex-1">
+            {theme.bullets.map(b => (
+              <li class="flex gap-2 text-xs text-gray-300">
+                <span class="text-brand-orange/80 shrink-0">▸</span>{b}
+              </li>
+            ))}
+          </ul>
+          <a href="/kontakt/" class="text-brand-orange text-xs font-semibold hover:underline mt-auto">
+            {theme.cta} →
+          </a>
+        </div>
+      ))}
+    </div>
+    <!-- Student - neutral note -->
+    <div class="mt-5 bg-white/5 border border-white/10 rounded-xl px-5 py-3 flex gap-3 items-start">
+      <span class="text-xl shrink-0">🎓</span>
+      <p class="text-gray-400 text-sm">
+        <span class="text-gray-300 font-semibold">Studentflak & studentfest</span> — vi kan lösa DJ till studentfiranden och kan spela utomhus.
+        <a href="/kontakt/" class="text-brand-orange hover:underline ml-1">Kontakta oss för mer info →</a>
+      </p>
+    </div>
   </section>
 
   <!-- RECENSIONER -->
@@ -188,9 +274,10 @@ import dj from '../../../data/dj.json';
     </div>
   </section>
 
-  <!-- DECENNIER -->
+  <!-- DECENNIER + SPECIALGENRER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <h2 class="text-2xl font-bold text-white mb-6">Musik per decennium</h2>
+    <h2 class="text-2xl font-bold text-white mb-2">Musik per decennium & genre</h2>
+    <p class="text-gray-400 text-sm mb-6">Vi spelar hela spannet — från klassiska decennier till specialgenrer som Italo Disco, Schlager och Dansband.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {dj.decades.map((d) => (
         <div class="bg-brand-navy border border-white/10 rounded-2xl p-5 hover:border-brand-orange/40 transition-colors border-l-2 border-l-brand-orange/60">
@@ -207,9 +294,10 @@ import dj from '../../../data/dj.json';
 
   <!-- HYR DJ-UTRUSTNING -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <h2 class="text-2xl font-bold text-white mb-6">Hyr DJ-utrustning</h2>
+    <h2 class="text-2xl font-bold text-white mb-2">Hyr DJ-utrustning</h2>
+    <p class="text-gray-400 text-sm mb-6">Hyr controllers, DJ-bord och tillbehör — perfekt om du vill mixa själv.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {dj.equipment.map(p => (
+      {dj.equipment.filter(p => ['SK-DJ-0001','SK-DJ-0002','SK-DJ-0003','SK-DJ-0004','SK-DJ-0005','SK-DJ-0006'].includes(p.artno)).map(p => (
         <MediaCard
           id={p.artno || `dj-utr-${p.slug}`}
           title={p.name}
@@ -241,7 +329,6 @@ import dj from '../../../data/dj.json';
       ))}
     </div>
   </section>
-
 
   <!-- Guider & resurser -->
   <section style="background:#0c0a24;border-top:1px solid rgba(255,255,255,0.06);padding:2.5rem clamp(1rem,5vw,5rem);">
