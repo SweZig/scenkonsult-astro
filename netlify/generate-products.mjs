@@ -88,6 +88,11 @@ Object.values(dj.equipment || {}).forEach(p => {
   if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
 });
 
+// Ljud — tekniker/tjänster
+(ljud.services || []).forEach(p => {
+  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
+});
+
 // Bild
 (bild.products || []).forEach(p => {
   if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
@@ -190,6 +195,18 @@ sects.push('DJ-PAKET (inkl. ljud & ljus) → /vara-tjanster/hyra-dj/');
 });
 sects.push('');
 
+// TEKNIKER & TJÄNSTER
+if (ljud.services?.length) {
+  sects.push('TEKNIKER/TJÄNSTER LJUD → /vara-tjanster/hyra-ljud/live/');
+  ljud.services.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
+  sects.push('');
+}
+if (bild.services?.length) {
+  sects.push('TEKNIKER/TJÄNSTER BILD → /vara-tjanster/hyra-bild-projektorer-skarmar/');
+  bild.services.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
+  sects.push('');
+}
+
 // PROJEKTOR & SKÄRM
 sects.push('PROJEKTOR & SKÄRM → /vara-tjanster/hyra-bild-projektorer-skarmar/');
 (bild.products || []).forEach(p => {
@@ -204,7 +221,7 @@ function qp(p) {
   return { id: p.artno || p.slug || p.id || '', artno: p.artno||'', name: p.name, price: p.price || 0 };
 }
 const QUOTE_CAT = {};
-const frakt = readJson('frakt.json');
+const frakt = readJson('tjanster.json');
 
 QUOTE_CAT['Scen'] = { products: scenes.products.filter(p=>p.price).map(p=>({id:p.artno||('scen-'+p.id),artno:p.artno||'',name:p.name,price:p.price})) };
 QUOTE_CAT['Scen tillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug||'scen-acc',artno:p.artno||'',name:p.name,price:p.price})) };
@@ -229,7 +246,13 @@ QUOTE_CAT['DJ'] = { products: [
   ...Object.values(dj.equipment||{}).filter(p=>p.slug&&p.price).map(qp),
   ...(dj.packages||[]).filter(p=>p.artno&&p.price).map(p => ({ artno: p.artno, name: p.name, price: p.price, category: 'DJ-paket' }))
 ]};
-QUOTE_CAT['Bild'] = { products: [...(bild.products||[]),...(bild.tillbehor||[])].filter(p=>p.slug&&p.price).map(qp) };
+QUOTE_CAT['Bild'] = { products: [
+  ...[...(bild.products||[]),...(bild.tillbehor||[])].filter(p=>p.slug&&p.price).map(qp),
+  ...(bild.services||[]).filter(p=>p.artno&&p.price).map(p=>({artno:p.artno,name:p.name,price:p.price,category:'Tjänster'}))
+]};
+if (ljud.services?.length) {
+  QUOTE_CAT['Ljud'].sub['Tekniker'] = ljud.services.filter(p=>p.artno&&p.price).map(p=>({artno:p.artno,name:p.name,price:p.price,category:'Tjänster'}));
+}
 
 QUOTE_CAT['Tjänster'] = { products: [
   {id:frakt.leverans.standard.artno||frakt.leverans.standard.id, name:'Leverans — Vanlig bil (t&r)',      price:frakt.leverans.standard.pris},

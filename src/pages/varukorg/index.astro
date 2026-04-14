@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import frakt from '../../data/frakt.json';
+import frakt from '../../data/tjanster.json';
 import ljusData from '../../data/ljus.json';
 
 // Bygg volympriskarta: { slug: [{minQty, unitPrice}] } — styrd av JSON, ej hårdkodad
@@ -126,7 +126,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         <span class="service-price" id="monteringPrice">– kr</span>
       </label>
 
-      <!-- Extra tillägg från frakt.json -->
+      <!-- Extra tillägg från tjanster.json -->
       {frakt.tillagg.map(t => (
         <label class="service-row" data-tillagg-id={t.id}>
           <input type="checkbox" class="sr-only chk-tillagg"
@@ -647,7 +647,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
 <script>
   // Vanligt Astro-script — Vite bundlar som ES-modul, körs deferred efter DOM är redo
-  import fraktData from '../../data/frakt.json';
+  import fraktData from '../../data/tjanster.json';
   import _ljusJson from '../../data/ljus.json';
   const FRAKT = fraktData;
   const fmt = (n) => n.toLocaleString('sv') + ' kr';
@@ -786,9 +786,13 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     for (const p of (_djJson.packages ?? [])) {
       cat[p.artno] = { desc: p.includes?.join(', ') || '', cat: 'DJ-paket', link: '/vara-tjanster/hyra-dj/', includes: p.includes || [], artno: p.artno || '', image: p.image || '' };
     }
+    // Ljud — tekniker
+    add(_ljudJson.services, 'Tjänster', '/vara-tjanster/hyra-ljud/live/');
     // Bild
     add(_bildJson.products,  'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
     add(_bildJson.tillbehor, 'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
+    // Bild — tekniker
+    add(_bildJson.services, 'Tjänster', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
     // Frakt & tjänster — leverans, montering, tillägg, fakturaavgift
     const _addService = (id, artno, label, desc, price) => {
       const entry = { desc, cat: 'Tjänster', link: '/', includes: [], artno: artno || '', image: '', price: price || 0 };

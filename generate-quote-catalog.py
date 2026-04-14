@@ -14,7 +14,7 @@ ljud   = load('ljud.json')
 ljus   = load('ljus.json')
 bild   = load('bild.json')
 dj     = load('dj.json')
-frakt  = load('frakt.json')
+frakt  = load('tjanster.json')
 
 def prod(p, cat=None, item_type='product'):
     # artno är primärnyckel; slug/id som fallback
