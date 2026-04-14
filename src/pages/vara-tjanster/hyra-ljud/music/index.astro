@@ -66,49 +66,24 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
 
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ProductCard artno="SK-LJD-MUS-0001" name="Music, Small" price={999} persons="20–80 personer"
-        image="/images/ljud/pp_ljud_music_small.png"
-        description="DJ/trubadur för 20–80 personer. Två 10″ fullrange och en 12″ sub-bas. Bra bas och tryck."
-        specs={["10″/1,4″ + 12″ sub","2 000 W peak / 1 000 W RMS","Max 130 dB","36–20 000 Hz","Samlad vikt: 65 kg"]} />
-      <ProductCard artno="SK-LJD-MUS-0002" name="Music, Small+" price={1299} persons="40–100 personer"
-        image="/images/ljud/pp_ljud_music_small-.png"
-        description="DJ/trubadur för 40–100 personer. Två 10″ fullrange och två 12″ sub-basar."
-        specs={["10″/1,4″ + 2×12″ sub","2 000 W peak","Max 130 dB","36–20 000 Hz","Samlad vikt: 90 kg"]} />
-      <ProductCard artno="SK-LJD-MUS-0003" name="Music, Medium" price={1499} persons="60–120 personer"
-        image="/images/ljud/pp_ljud_music_medium.png"
-        description="DJ för 60–120 personer. Två 12″ fullrange och två 12″ sub-basar."
-        specs={["12″/1,4″ + 2×12″ sub","2 000 W peak","Max 130 dB","36–20 000 Hz","Samlad vikt: 95 kg"]} />
-      <ProductCard artno="SK-LJD-MUS-0004" name="Music, Large" price={1899} persons="120–250 personer"
-        image="/images/ljud/pp_ljud_music_large.png"
-        description="DJ för 120–250 personer. Två 12″ fullrange och två 15″ sub-basar."
-        specs={["12″/1,4″ + 2×15″ sub","2 000 W peak","Max 132 dB","29–20 000 Hz","Samlad vikt: 115 kg"]} />
-      <ProductCard id="live-xl" artno="SK-LJD-LIV-0004" name="Live/Music, XL" price={2299} persons="180–350 personer"
-        image="/images/ljud/pp_ljud_music_xl.png"
-        description="DJ för 180–350 personer. Två 15″ fullrange och två 18″ sub-basar."
-        specs={["15″/1,4″ + 18″ sub","8 000 W peak / 2 000 W RMS","Max 132 dB","29–20 000 Hz","Samlad vikt: 120 kg"]} />
-      <ProductCard id="live-xl-plus" artno="SK-LJD-LIV-0005" name="Live/Music, XL+" price={2999} persons="250–600 personer"
-        image="/images/ljud/pp_ljud_music_xl-.png"
-        description="DJ för 250–600 personer. 15″ fullrange, 15″ och 18″ sub."
-        specs={["15″/1,4″ + 15″/18″ sub","8 000 W peak","Max 132 dB","Samlad vikt: 200 kg"]} />
-      <ProductCard id="live-xxl" artno="SK-LJD-LIV-0006" name="Live/Music, XXL" price={4999} persons="500–1 500 personer"
-        image="/images/ljud/pp_ljud_music_xxl.png"
-        description="DJ för 500–1 500 personer. Fyra 15″ fullrange och fyra 18″ sub-basar."
-        specs={["4×15″/1,4″ + 4×18″ sub","10 000 W peak","Max 132 dB","Samlad vikt: 320 kg"]} />
-      <ProductCard id="live-concert" artno="SK-LJD-LIV-0007" name="Live/Music, Concert" price={6999} persons="500–1 500 personer"
-        image="/images/ljud/pp_ljud_music_concert.png"
-        description="Konsert. Två 12″ fullrange och fyra 18″ sub-basar. Varje stack 2,3 m hög."
-        specs={["2×12″/1,4″ + 4×18″ sub","10 800 W peak","Max 135 dB","Samlad vikt: 360 kg"]} />
-      <ProductCard id="line-array-small" artno="SK-LJD-LIV-0008" name="Line Array, Small" price={14999} persons="1 500–2 500 personer"
-        image="/images/ljud/pp_ljud_music_linearray1.png"
-        description="RCF line array-system för stora konserter och utomhusevent. 8× RCF HDL 6-A fullrange + 2× RCF Sub 8003-AS MK3. Pris från beroende på konfiguration och montering."
-        specs={["8×6″ fullrange line array","2×18″ sub-basar","Max 138 dB SPL","Räckvidd upp till 80 m","Kräver lyfttorn eller rigg"]} />
-      <ProductCard id="line-array-medium" artno="SK-LJD-LIV-0009" name="Line Array, Medium" price={19999} persons="2 000–3 000 personer"
-        image="/images/ljud/pp_ljud_music_linearray2.png"
-        description="RCF line array-system för stora konserter och festivaler. 10× RCF HDL 6-A fullrange + 4× RCF Sub 8003-AS MK3. Pris från beroende på konfiguration och montering."
-        specs={["10×6″ fullrange line array","4×18″ sub-basar","Max 140 dB SPL","Räckvidd upp till 100 m","Kräver lyfttorn eller rigg"]} />
+      {[..._ljudData.music.products, ..._ljudData.live.products.filter((p: any) => ['SK-LJD-LIV-0004','SK-LJD-LIV-0005','SK-LJD-LIV-0006','SK-LJD-LIV-0007','SK-LJD-LIV-0008','SK-LJD-LIV-0009'].includes(p.artno))].map((p: any) => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          persons={p.persons}
+          specs={p.specs ?? []}
+          category="Ljud musik/dans"
+          monteringMin={p.monteringMin}
+          manualUrl={p.manualUrl}
+        />
+      ))}
     </div>
   </section>
-
   <!-- MIXERBORD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
