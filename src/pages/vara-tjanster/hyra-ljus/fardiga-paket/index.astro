@@ -180,14 +180,8 @@ const paket = [
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {[
-        { img:"/images/ljus/pp_ljus_styrning02.png",  name:"Styrenhet 192 kan.",       artno:"SK-LJS-DMX-0001", excl:99,   desc:"12 scanners×16 kan, 240 sekvenser, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_botex_sdc16.png", name:"Botex SDC-16",             artno:"SK-LJS-DMX-0002", excl:199,  desc:"16 kanalfaders + masterfader, startkanal via display" },
-        { img:"/images/ljus/pp_ljus_styrning03.png",  name:"Styrenhet 512 kan.",       artno:"SK-LJS-DMX-0003", excl:299,  desc:"48 enheter, 4 600 scener, 96 banker, musikstyrning" },
-        { img:"/images/ljus/pp_ljus_styrning04.png",  name:"PC-mjukvara DMX",          artno:"SK-LJS-DMX-0004", excl:799,  desc:"512 kan, dra/släpp programmering, BPM-analys, SSL2" },
-        { img:"/images/ljus/pp_ljus_styrning-m6.png", name:"Martin M6 Ljusstyrning",   artno:"SK-LJS-DMX-0005", excl:2499, desc:"Dubbla 15,4″ touchskärmar, 44 playbacks, 4× FastBlend RGB" },
-      ].map(p => (
-        <ElTillbehorCard img={p.img} name={p.name} excl={p.excl} desc={p.desc} category="DMX-styrning" artno={p.artno} modal={true} specs={[p.desc]} />
+      {(ljusData.dmx?.tillbehor ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? []} />
       ))}
     </div>
   </section>

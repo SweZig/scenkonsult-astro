@@ -5,6 +5,7 @@ import ProductCard from '../../../../components/ProductCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import _ljudData from '../../../../data/ljud.json';
+import _ljusData from '../../../../data/ljus.json';
 const _artnoAliases: Record<string,string> = {
   'XLR Multikabel 15 m, 6 kan.':          'SK-LJD-MIK-0014',
   'XLR Multikabel 25 m, 8 kan.':          'SK-LJD-MIK-0015',
@@ -179,37 +180,8 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner &amp; tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {[
-        { id:"SK-LJD-MIK-0001", name:"Högtalarstativ Gravity",        desc:"Max last 30 kg, vikt 3,7 kg",  price:40,  img:"/images/ljud/pp_ljud_stativ-gravity.png" },
-        { id:"SK-LJD-MIK-0003", name:"Högtalarstativ K&M",             desc:"Max last 30 kg, vikt 3,7 kg",  price:50,  img:"/images/ljud/pp_ljud_stativ-km.png" },
-        { id:"SK-LJD-MIK-0005", name:"Högtalarstativ Gravity Premium",  desc:"Max last 50 kg, vikt 6,4 kg",  price:60,  img:"/images/ljud/pp_ljud_stativ-gravity-premium.png" },
-        { id:"SK-LJD-MIK-0010", name:"Högtalarstativ Gravity med vev",  desc:"Max last 50 kg, vikt 9,1 kg",  price:120, img:"/images/ljud/pp_ljud_stativ-gravity-vev.png" },
-        { id:"SK-LJD-MIK-0004", name:"Mikrofonstativ",              desc:"Justerbar höjd",                   price:60,   img:"/images/ljud/pp_ljud_tillbehor06.png" },
-        { id:"SK-LJD-MIK-0002", name:"XLR-kablar",                  desc:"1–15 m, fr 40 kr",                 price:40,   img:"/images/ljud/pp_ljud_tillbehor07.png" },
-        { id:"SK-LJD-MIK-0007", name:"Bluetooth-mottagare",         desc:"Koppla in extra enhet trådlöst",   price:100,   img:"/images/ljud/pp_ljud_tillbehor04.png" },
-        { id:"SK-LJD-MIK-0011", name:"Bluetooth-mottagare pro",      desc:"Längre räckvidd",                  price:140,   img:"/images/ljud/pp_ljud_tillbehor_BT-pro.png" },
-        { id:"SK-LJD-MIK-0009", name:"Instrumentmikrofon",          desc:"För trumma, blås, gitarr",          price:64,   img:"/images/ljud/pp_ljud_mik02.png" },
-        { id:"SK-LJD-MIK-0006", name:"Handmikrofon",                desc:"Inkl 6 m XLR-kabel",               price:80,   img:"/images/ljud/pp_ljud_mik01.png" },
-        { id:"SK-LJD-MIK-0016", name:"Trådlös handmikrofon",        desc:"Ca 30 m räckvidd",                 price:400,  img:"/images/ljud/pp_ljud_mik05.png" , specs:['UHF trådlös, ca 30 m räckvidd', 'Mottagarenhet ingår', 'Kräver AA-batteri', 'Plug & play']},
-        { id:"SK-LJD-MIK-0017", name:"Trådlöst headset",            desc:"Ca 30 m räckvidd",                 price:480,  img:"/images/ljud/pp_ljud_mik06.png" , specs:['UHF trådlös, ca 30 m räckvidd', 'Bodypack + headset ingår', 'Kräver AA-batteri']},
-        { id:"SK-LJD-MIK-0021", name:"Shure SLXD – trådlöst system, 1 mik",          desc:"Digitalt, AES-256, 1× SM58-kapsel, ca 100 m",       price:699,  img:"/images/ljud/pp_ljud_mik09.png" , specs:['Digitalt AES-256 krypterat', 'SM58-kapsel (vokal)', 'Räckvidd ca 100 m', 'Auto-scan frekvens', 'Rack-monterbar mottagare']},
-        { id:"SK-LJD-MIK-0022", name:"Shure SLXD – trådlöst system, 1 myggmikrofon", desc:"Digitalt, AES-256, 1× bodypack + myggmik, ca 100 m", price:699,  img:"/images/ljud/pp_ljud_mik13.png" , specs:['Digitalt AES-256 krypterat', 'Bodypack + myggmikrofon', 'Räckvidd ca 100 m', 'Auto-scan frekvens', 'Rack-monterbar mottagare']},
-        { id:"SK-LJD-MIK-0023", name:"Shure SLXD – trådlöst system, 1 headset",      desc:"Digitalt, AES-256, 1× bodypack + headset, ca 100 m", price:749,  img:"/images/ljud/pp_ljud_mik12.png" , specs:['Digitalt AES-256 krypterat', 'Bodypack + headset', 'Räckvidd ca 100 m', 'Auto-scan frekvens', 'Rack-monterbar mottagare']},
-        { id:"SK-LJD-MIK-0024", name:"Shure SLXD – trådlöst system, 1 lågprofil headset", desc:"Digitalt, AES-256, 1× bodypack + öronhängande headset, ca 100 m", price:799, img:"/images/ljud/pp_ljud_mik14.png" , specs:['Digitalt AES-256 krypterat', 'Bodypack + öronhängande headset', 'Räckvidd ca 100 m', 'Diskret lågprofil-design']},
-        { id:"SK-LJD-MIK-0025", name:"Effektrack med matrix & feedback-suppressor",   desc:"5-zon ART-matrix + Klark Teknik DP1000",            price:1036, img:"/images/ljud/pp_ljud_effektrack.png" , specs:['5-zon ART-matrix', 'Klark Teknik DP1000 feedback-suppressor', 'Förhindrar rundgång', 'Rack-monterat 19\"']},
-        { id:"SK-LJD-MIK-0021", name:"Shure SLXD – trådlöst system, 2 mik",          desc:"Digitalt, AES-256, 2× SM58, ca 100 m",              price:1299, img:"/images/ljud/pp_ljud_mik-shure-slxd4d.png" , specs:['Digitalt AES-256 krypterat', '2× SM58 handhållna mikrofoner', 'Dual-channel mottagare', 'Räckvidd ca 100 m']},
-        { id:"SK-LJD-MIK-0021", name:"Shure SLXD – trådlöst system, 2 myggmikrofon", desc:"Digitalt, AES-256, 2× bodypack + myggmik, ca 100 m", price:1299, img:"/images/ljud/pp_ljud_mik10.png" , specs:['Digitalt AES-256 krypterat', '2× bodypack + myggmikrofon', 'Dual-channel mottagare', 'Räckvidd ca 100 m']},
-        { id:"SK-LJD-MIK-0028", name:"Shure SLXD – trådlöst system, 2 headset",      desc:"Digitalt, AES-256, 2× bodypack + headset, ca 100 m", price:1399, img:"/images/ljud/pp_ljud_mik08.png" , specs:['Digitalt AES-256 krypterat', '2× bodypack + headset', 'Dual-channel mottagare', 'Räckvidd ca 100 m']},
-        { id:"SK-LJD-MIK-0029", name:"Shure SLXD – trådlöst system, 2 lågprofil headset", desc:"Digitalt, AES-256, 2× bodypack + öronhängande headset, ca 100 m", price:1499, img:"/images/ljud/pp_ljud_mik11.png" , specs:['Digitalt AES-256 krypterat', '2× bodypack + lågprofil headset', 'Dual-channel mottagare', 'Räckvidd ca 100 m']},
-        { id:"SK-LJD-MIK-0030", name:"Trådlöst mikrofonset 8 kan.", desc:"4 hand + 4 headset, antennsplitter", price:3999, img:"/images/ljud/pp_ljud_tillbehor20.png" , specs:['4× handmikrofon + 4× headset', 'Antennsplitter ingår', '823–832 MHz band', 'Räckvidd upp till 50 m', '8 oberoende kanaler']},
-      
-      
-      
-      
-      
-      
-      ].map(item => (
-        <ElTillbehorCard img={item.img} name={item.name} excl={item.price} desc={item.desc} category="Ljud tillbehör" artno={artnoByName[item.name]} modal={item.price >= 400} specs={item.specs ?? (item.desc ? [item.desc] : [])} />
+      {(_ljudData.tillbehor_mikrofon?.filter((p:any) => !p.artno?.startsWith('SK-LJD-UPG')) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? p.description ?? ''} category="Ljud tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.desc ? [p.desc] : [])} />
       ))}
     </div>
   </section>
@@ -218,21 +190,11 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {[
-        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",             excl:20,  desc:"Jordat, 3–5 uttag, 16A" },
-        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m",            excl:48,  desc:"1-fas, 16A, IP44" },
-        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",       excl:80,  desc:"Kabelramp, 2 kanaler" },
-        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag på rulle 10 m",     excl:100, desc:"4 uttag, 16A, IP44" },
-        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag på rulle 25 m",     excl:159, desc:"4 uttag, 16A, IP44" },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",       excl:236, desc:"3-fas, 16A, IP44" },
-        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas", excl:320, desc:"32A 3-fas till 1-fas" },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",       excl:396, desc:"3-fas, 32A, IP44" },
-        { img:"/images/ljud/pp_ljud_tillbehor_elverk-small.png", name:"Elgenerator 2 200 W",       excl:799, desc:"1 900 W kontinuerlig, bensin 4-takt" },
-        { img:"/images/ljud/pp_ljud_elverk-kipor.png", name:"Elgenerator 6 000 W",       excl:1799, desc:"6 000 W kontinuerlig, bensin 95 oktan (E10). Kipor IG6000." },
-        { img:"/images/ljus/pp_ljus_ackrylatbensin_1L.png", name:"Ackrylatbensin 1 l", excl:59,  desc:"Aspen 4 · 4-taktsmotorer" },
-        { img:"/images/ljus/pp_ljus_ackrylatbensin_5L.png", name:"Ackrylatbensin 5 l", excl:239, desc:"Aspen 4 · 4-taktsmotorer" },
-      ].map(t => (
-        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" artno={artnoByName[t.name]} />
+      {(_ljudData.tillbehor_el ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? p.description ?? ''} category="El-tillbehör" artno={p.artno} />
+      ))}
+      {(_ljusData.rok?.tillbehor?.slice(0,2) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
     </div>
   </section>

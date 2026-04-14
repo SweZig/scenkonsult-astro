@@ -110,24 +110,8 @@ const movingHeads = allEffekter.filter(p => p.group === 'moving-head').map(toCar
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {[
-        { img:"/images/ljus/pp_ljus_styrning02.png",  name:"Styrenhet 192 kan.",    artno:"SK-LJS-DMX-0001", excl:99,
-          desc:"Enkel DMX-kontroll för upp till 12 scannrar × 16 kanaler",
-          specs:["192 DMX-kanaler","12 scannrar × 16 kanaler","240 sekvenser i 30 banker","Musikstyrning via inbyggd mikrofon","Standalone – ingen dator krävs"] },
-        { img:"/images/ljus/pp_ljus_botex_sdc16.png", name:"Botex SDC-16",          artno:"SK-LJS-DMX-0002", excl:199,
-          desc:"16 individuella kanalfaders för direkt manuell styrning",
-          specs:["192 DMX-kanaler","16 individuella faders + masterfader","Startkanal ställs via display","Parallellstyrning av 16 enheter","Rack-monterbar"] },
-        { img:"/images/ljus/pp_ljus_styrning03.png",  name:"Styrenhet 512 kan.",    artno:"SK-LJS-DMX-0003", excl:299,
-          desc:"Professionell 512-kanalers DMX-kontroller för medelstora produktioner",
-          specs:["512 DMX-kanaler","Styr upp till 48 enheter","4 600 scener i 96 banker","Mjukpatch alla 512 kanaler","Musikstyrning via inbyggd mikrofon","LCD-display"] },
-        { img:"/images/ljus/pp_ljus_styrning04.png",  name:"PC-mjukvara + gränssnitt", artno:"SK-LJS-DMX-0004", excl:799,
-          desc:"Professionell DMX-programvara med USB-gränssnitt, 512 kanaler",
-          specs:["512 DMX-kanaler via USB","Dra-och-släpp programmering","Ljud-till-ljus med BPM-analys","Live-dimning och scen-uppspelning","Stöder Moving Heads, dimmer, LED","Inkl. Sunlite Suite 2 licens"] },
-        { img:"/images/ljus/pp_ljus_styrning-m6.png", name:"Martin M6 Ljusstyrning", artno:"SK-LJS-DMX-0005", excl:2499,
-          desc:"Professionell konsol för avancerade produktioner – dubbla touchskärmar",
-          specs:["Dubbla 15,4\" touchskärmar","44 playbacks med timing","4× FastBlend RGB-faders","12× FastDial rotary encoders","4× FastTrack linjära encoders","Kompakt rackmonterad design","Stöder Martin, Robe, Chauvet m.fl."] },
-      ].map(p => (
-        <ElTillbehorCard img={p.img} name={p.name} excl={p.excl} desc={p.desc} category="DMX-styrning" artno={p.artno} modal={true} specs={p.specs} />
+      {(ljusData.dmx?.tillbehor ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? []} />
       ))}
     </div>
   </section>

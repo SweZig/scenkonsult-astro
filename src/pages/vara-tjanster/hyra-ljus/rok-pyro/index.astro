@@ -118,16 +118,11 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">Tillbehör – Fästen &amp; DMX</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {[
-        { img:"/images/ljus/pp_ljus_half_coupler.png",  name:"Half Coupler 35/50 mm",        artno:"SK-LJS-STV-0010", excl:20  },
-        { img:"/images/ljus/pp_ljus_super_clamp.png",   name:"Super Clamp 50 mm",            artno:"SK-LJS-STV-0011", excl:32  },
-        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 1–5 m",              artno:"SK-LJS-DMX-0006", excl:20  },
-        { img:"/images/ljus/pp_ljus_kablar.png",        name:"DMX-kabel 10–15 m",            artno:"SK-LJS-DMX-0007", excl:40  },
-        { img:"/images/ljus/pp_ljus_tradlos01.png",     name:"DMX Trådlös startkit (1+2)",   artno:"SK-LJS-DMX-0008", excl:159 },
-        { img:"/images/ljus/pp_ljus_tradlos02.png",     name:"DMX Trådlös extra sändare",    artno:"SK-LJS-DMX-0009", excl:80  },
-        { img:"/images/ljus/pp_ljus_tradlos03.png",     name:"DMX Trådlös extra mottagare",  artno:"SK-LJS-DMX-0010", excl:80  },
-      ].map(t => (
-        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} category="DMX-tillbehör" artno={t.artno} />
+      {(ljusData.stativ?.tillbehor?.slice(0,2) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} category="DMX-tillbehör" artno={p.artno} />
+      ))}
+      {(ljusData.dmx?.tillbehor?.filter((p:any) => parseInt(p.artno.slice(-4)) >= 6) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} category="DMX-tillbehör" artno={p.artno} />
       ))}
     </div>
   </section>
@@ -136,24 +131,11 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {[
-        { img:"/images/ljus/pp_ljus_powercon.png",      name:"PowerCon 0,5–1,5 m",          artno:"SK-LJS-EL-0001", excl:20   },
-        { img:"/images/ljus/pp_ljus_iec_kabel.png",     name:"IEC C13/C14 0,5–1,5 m",       artno:"SK-LJS-EL-0002", excl:20   },
-        { img:"/images/ljus/pp_el_grenuttag_sm.png",    name:"Grenuttag 1,5 m",              artno:"SK-LJS-EL-0003", excl:20   },
-        { img:"/images/ljus/pp_el_forlangning.png",     name:"Förlängning 10 m 1-fas",       artno:"SK-LJS-EL-0004", excl:48   },
-        { img:"/images/ljus/pp_ljus_powercon2.png",     name:"PowerCon 5–10 m",              artno:"SK-LJS-EL-0005", excl:80   },
-        { img:"/images/ljus/pp_el_overloppsskydd.png",  name:"Överkörningsskydd 1 m",        artno:"SK-LJS-EL-0006", excl:80   },
-        { img:"/images/ljus/pp_el_grenuttag_lg.png",    name:"Grenuttag 10 m IP44",          artno:"SK-LJS-EL-0007", excl:100  },
-        { img:"/images/ljus/pp_el_grenuttag_25m.png",   name:"Grenuttag 25 m IP44",          artno:"SK-LJS-EL-0008", excl:159  },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 16A",        artno:"SK-LJS-EL-0009", excl:236  },
-        { img:"/images/ljus/pp_el_omvandlare.png",      name:"Strömomvandlare 3-fas→1-fas",  artno:"SK-LJS-EL-0010", excl:320  },
-        { img:"/images/ljus/pp_el_forlangning_20m.png", name:"Förlängning 3-fas 32A",        artno:"SK-LJS-EL-0011", excl:396  },
-        { img:"/images/ljud/pp_ljud_tillbehor_elverk-small.png", name:"Elgenerator 2 200 W", artno:"SK-LJS-EL-0012", excl:799  },
-        { img:"/images/ljud/pp_ljud_elverk-kipor.png",  name:"Elgenerator 6 000 W",          artno:"SK-LJS-EL-0013", excl:1799 },
-        { img:"/images/ljus/pp_ljus_ackrylatbensin_1L.png", name:"Ackrylatbensin 1 l",       artno:"SK-LJS-ROK-ACC-0001", excl:59, desc:"Aspen 4 · 4-taktsmotorer" },
-        { img:"/images/ljus/pp_ljus_ackrylatbensin_5L.png", name:"Ackrylatbensin 5 l",       artno:"SK-LJS-ROK-ACC-0002", excl:239, desc:"Aspen 4 · 4-taktsmotorer" },
-      ].map(t => (
-        <ElTillbehorCard img={t.img} name={t.name} excl={t.excl} desc={t.desc} category="El-tillbehör" artno={t.artno} />
+      {(ljusData.el ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
+      ))}
+      {(ljusData.rok?.tillbehor?.slice(0,2) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
     </div>
   </section>
