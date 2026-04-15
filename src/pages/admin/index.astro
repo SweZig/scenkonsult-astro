@@ -189,23 +189,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     }
     .cc-row2 { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; display: flex; gap: 8px; }
 
-    /* Expanderad del — dold, visas vid hover */
-    .cc-expand {
-      max-height: 0; overflow: hidden;
-      transition: max-height 0.22s ease, opacity 0.18s ease;
-      opacity: 0;
-    }
-    .cc-compact:hover .cc-expand {
-      max-height: 120px; opacity: 1;
-    }
-    .cc-expand-inner {
-      padding-top: 7px; margin-top: 6px;
-      border-top: 1px solid var(--border);
-      display: flex; flex-direction: column; gap: 3px;
-    }
-    .cc-detail-row { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
-    .cc-detail-val { color: var(--text); font-weight: 600; }
-    .cc-urgency-bar { height: 2px; border-radius: 1px; margin-top: 6px; background: var(--cc-urgency, var(--border)); }
+    .cc-urgency-bar { height: 2px; border-radius: 1px; margin-top: 4px; background: var(--cc-urgency, var(--border)); }
 
     /* Sort-knappar i waiting-header */
     .waiting-sort { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
@@ -221,6 +205,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .badge-ev-red   { background: rgba(239,68,68,0.15);   color: #f87171; }
     .badge-ev-amber { background: rgba(251,191,36,0.15);  color: #fbbf24; }
     .badge-ev-green { background: rgba(74,222,128,0.12);  color: #4ade80; }
+    .badge-ev-gray  { background: rgba(255,255,255,0.08);   color: rgba(255,255,255,0.4); }
 
     /* Urgency-färger */
     .urg-red    { --cc-urgency: var(--red); }
@@ -559,6 +544,12 @@ import quoteCatalogData from '../../data/quote-catalog.json';
         <input class="filter-input" id="filter-search" placeholder="🔍 Sök kund..." style="width:180px" />
         <input class="filter-input" type="date" id="filter-from" title="Event från" />
         <input class="filter-input" type="date" id="filter-to"   title="Event till" />
+        <div id="kanban-view-toggle" style="display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0">
+          <button onclick="setKanbanView('compact')" id="kv-compact"
+            style="padding:4px 10px;font-size:0.72rem;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:var(--brand-lav);color:#0c0a24;transition:background 0.1s">Kompakt</button>
+          <button onclick="setKanbanView('standard')" id="kv-standard"
+            style="padding:4px 10px;font-size:0.72rem;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:transparent;color:var(--text-muted);transition:background 0.1s">Standard</button>
+        </div>
       </div>
     </div>
     <div class="kanban-board" id="kanban-board">
@@ -913,6 +904,7 @@ function urgencyScore(c) {
 }
 
 function urgencyClass(c) {
+  if (c.status !== 'waiting' && c.status !== 'new') return 'urg-gray';
   const s = urgencyScore(c);
   if (s >= 40) return 'urg-red';
   if (s >= 15) return 'urg-amber';
@@ -924,8 +916,9 @@ function waitingEvBadge(c) {
   if (!c.event_date) return '';
   const today = new Date(); today.setHours(0,0,0,0);
   const diff = Math.round((new Date(c.event_date + 'T00:00:00') - today) / 86400000);
-  const cls = diff <= 7 ? 'badge-ev-red' : diff <= 14 ? 'badge-ev-amber' : 'badge-ev-green';
-  return `<span class="cc-ev-badge ${cls}">${diff >= 0 ? '+' : ''}${diff}d</span>`;
+  const cls = diff < 0 ? 'badge-ev-gray' : diff <= 7 ? 'badge-ev-red' : diff <= 14 ? 'badge-ev-amber' : 'badge-ev-green';
+  const sign = diff > 0 ? '+' : '';
+  return `<span class="cc-ev-badge ${cls}">${sign}${diff}d</span>`;
 }
 
 function sortWaiting(arr) {
@@ -965,14 +958,7 @@ function cartCardCompact(c) {
         <span>${evTxt}${loc ? ' ' + loc : ''}</span>
         <span>${sentTxt}</span>
       </div>
-      <div class="cc-expand">
-        <div class="cc-expand-inner">
-          <div class="cc-detail-row"><span>E-post</span><span class="cc-detail-val">${c.customer_email || '–'}</span></div>
-          <div class="cc-detail-row"><span>Summa</span><span class="cc-detail-val">${total}</span></div>
-          ${c.event_location ? `<div class="cc-detail-row"><span>Plats</span><span class="cc-detail-val">${c.event_location}</span></div>` : ''}
-        </div>
-        <div class="cc-urgency-bar"></div>
-      </div>
+      <div class="cc-urgency-bar"></div>
     </div>`;
 }
 
@@ -1019,10 +1005,20 @@ function renderKanban() {
         <div class="kanban-cards">
           ${colCarts.length === 0
             ? '<div class="empty-col">Tom</div>'
-            : colCarts.map(c => cartCardHTML(c)).join('')}
+            : colCarts.map(c => _kanbanView === 'compact' ? cartCardCompact(c) : cartCardHTML(c)).join('')}
         </div>
       </div>`;
   }).join('');
+
+  // Uppdatera toggle-knappar
+  const kvc = document.getElementById('kv-compact');
+  const kvs = document.getElementById('kv-standard');
+  if (kvc && kvs) {
+    kvc.style.background = _kanbanView === 'compact' ? 'var(--brand-lav)' : 'transparent';
+    kvc.style.color      = _kanbanView === 'compact' ? '#0c0a24'          : 'var(--text-muted)';
+    kvs.style.background = _kanbanView === 'standard' ? 'var(--brand-lav)' : 'transparent';
+    kvs.style.color      = _kanbanView === 'standard' ? '#0c0a24'          : 'var(--text-muted)';
+  }
 
   // Event delegation — survives re-renders
   board.onclick = e => {
@@ -2627,6 +2623,7 @@ const REMINDER_LS_KEY = 'sk_admin_reminders'; // { [cartId]: 'snoozed' | 'sent' 
 let _reminderQueue = [];  // carts som väntar på popup
 let _reminderActive = null; // den cart som visas just nu
 let _waitingSort = 'urgency'; // 'urgency' | 'event' | 'sent'
+let _kanbanView = localStorage.getItem('sk_kanban_view') || 'compact'; // 'compact' | 'standard'
 
 function getReminderState() {
   try { return JSON.parse(localStorage.getItem(REMINDER_LS_KEY) || '{}'); } catch { return {}; }
@@ -2713,6 +2710,13 @@ async function reminderAction(action) {
 }
 
 window.reminderAction = reminderAction;
+
+function setKanbanView(mode) {
+  _kanbanView = mode;
+  localStorage.setItem('sk_kanban_view', mode);
+  renderKanban();
+}
+window.setKanbanView = setKanbanView;
 
 function setWaitingSort(key) {
   _waitingSort = key;
