@@ -144,6 +144,9 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? p.description ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
     </div>
+      {(_ljusData.rok?.tillbehor?.filter((p:any) => ['SK-LJS-ROK-ACC-0001','SK-LJS-ROK-ACC-0002'].includes(p.artno)) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
+      ))}
   </section>
 
   <!-- TEKNIKER & TJÄNSTER -->
