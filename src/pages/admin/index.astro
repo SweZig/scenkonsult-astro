@@ -1502,6 +1502,7 @@ function prodPickCat() {
     subWrap.style.display = 'none';
     prodPopulateItems(entry.products);
     itemWrap.style.display = 'flex';
+    itemWrap.style.alignItems = 'center';
   }
 }
 
@@ -1512,7 +1513,8 @@ function prodPickSub() {
   if (!cat || !sub) { itemWrap.style.display = 'none'; return; }
   const prods = QUOTE_CATALOG[cat]?.sub?.[sub] || [];
   prodPopulateItems(prods);
-  itemWrap.style.display = prods.length ? 'flex' : 'none';
+  if (prods.length) { itemWrap.style.display = 'flex'; itemWrap.style.alignItems = 'center'; }
+  else { itemWrap.style.display = 'none'; }
 }
 
 function prodPopulateItems(prods) {
@@ -1633,7 +1635,7 @@ function renderProductsTab() {
           <option value="">— välj underkategori —</option>
         </select>
       </div>
-      <div id="prod-item-wrap" style="display:none;margin-top:5px;display:flex;gap:5px">
+      <div id="prod-item-wrap" style="display:none;margin-top:5px;gap:5px">
         <select id="prod-item-sel"
           style="flex:1;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:8px">
           <option value="">— välj produkt —</option>
@@ -1881,6 +1883,7 @@ function renderLogTab() {
     'offer_opened':       { icon: '👁',  label: 'Kunden öppnade offerten igen', color: 'rgba(196,181,244,0.6)' },
     'messages_read':      { icon: '✓✓', label: 'Kunden läste meddelanden', color: 'var(--text-muted)' },
     'message_sent':       { icon: '💬', label: 'Meddelande skickat', color: 'var(--text-muted)' },
+    'reminder_sent':      { icon: '⏰', label: 'Påminnelse skickad till kund', color: 'var(--amber)', highlight: true },
     'status_change':      { icon: '🔄', label: 'Status ändrad', color: 'var(--amber)' },
     'pickup_signed':      { icon: '✍️', label: 'Utlämning kvitterad', color: 'var(--green)' },
     'pickup_email_sent':  { icon: '📧', label: 'Utlämningslänk skickad via mail', color: 'var(--text-muted)' },
@@ -1898,7 +1901,9 @@ function renderLogTab() {
     const ev = EVENT_LABELS[l.event_type] || { icon: '·', label: l.event_type, color: 'var(--text-faint)', highlight: false };
     const actorLabel = l.actor === 'customer' ? 'Kund' : l.actor === 'admin' ? 'Admin' : 'System';
     const payloadStr = l.payload && Object.keys(l.payload).length
-      ? Object.entries(l.payload).map(function(e){ return e[0] + ': ' + e[1]; }).join(' · ')
+      ? (l.payload.preview
+          ? `"${l.payload.preview}"`
+          : Object.entries(l.payload).filter(function(e){ return e[0] !== 'preview'; }).map(function(e){ return e[0] + ': ' + e[1]; }).join(' · '))
       : '';
     const border = ev.highlight ? ';border:1px solid rgba(196,181,244,0.2)' : '';
     const bg = ev.highlight ? 'rgba(196,181,244,0.06)' : 'var(--bg)';
@@ -2498,10 +2503,10 @@ async function reminderAction(action) {
     const defaultMsg = 'Hej! Vi vill bara påminna om offerten vi skickade – hör gärna av dig om du har frågor eller vill boka. 😊';
     const { ok } = await api('cart-message', {
       method: 'POST',
-      body: JSON.stringify({ cart_id: cartId, body: defaultMsg })
+      body: JSON.stringify({ cart_id: cartId, body: defaultMsg, event_type: 'reminder_sent' })
     });
     if (ok) {
-      toast('Påminnelse skickad! 📩');
+      toast('Påminnelse skickad! 📩 Syns i Chatt-fliken.');
       state[cartId] = 'sent';
     } else {
       toast('Kunde inte skicka påminnelse', 'error');

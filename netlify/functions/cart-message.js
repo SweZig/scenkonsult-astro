@@ -101,7 +101,10 @@ exports.handler = async (event) => {
     await db.rpc('extend_cart_ttl', { cart_id: cart.id });
 
     // Audit
-    await logAudit(db, cart.id, sender, 'message_sent', { length: msgText.length });
+    const auditType = (admin && body.event_type) ? body.event_type : 'message_sent';
+    const auditPayload = { length: msgText.length };
+    if (auditType === 'reminder_sent') auditPayload.preview = msgText.slice(0, 120);
+    await logAudit(db, cart.id, sender, auditType, auditPayload);
 
     // ── Notiser ───────────────────────────────────────────────
     const cartUrl = cart.cart_token
