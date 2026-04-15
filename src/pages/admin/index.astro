@@ -164,6 +164,70 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     }
     .empty-col { color: var(--text-faint); font-size: 0.85rem; text-align: center; padding: 2rem 1rem; }
 
+    /* ── Kompakta waiting-kort med hover-expand ───────────── */
+    .cc-compact {
+      background: var(--bg);
+      border-left: 3px solid var(--cc-urgency, var(--border));
+      border-bottom: 1px solid var(--border);
+      border-top: none; border-right: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: background 0.12s, padding 0.18s ease;
+      position: relative; overflow: hidden;
+    }
+    .cc-compact:first-child { border-radius: 8px 8px 0 0; }
+    .cc-compact:last-child  { border-bottom: none; border-radius: 0 0 8px 8px; }
+    .cc-compact:only-child  { border-radius: 8px; }
+    .cc-compact:hover       { background: var(--surface2); }
+
+    /* Kompakt-rad (alltid synlig) */
+    .cc-row1 { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .cc-name { font-weight: 700; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+    .cc-ev-badge {
+      font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 99px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .cc-row2 { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; display: flex; gap: 8px; }
+
+    /* Expanderad del — dold, visas vid hover */
+    .cc-expand {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.22s ease, opacity 0.18s ease;
+      opacity: 0;
+    }
+    .cc-compact:hover .cc-expand {
+      max-height: 120px; opacity: 1;
+    }
+    .cc-expand-inner {
+      padding-top: 7px; margin-top: 6px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .cc-detail-row { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
+    .cc-detail-val { color: var(--text); font-weight: 600; }
+    .cc-urgency-bar { height: 2px; border-radius: 1px; margin-top: 6px; background: var(--cc-urgency, var(--border)); }
+
+    /* Sort-knappar i waiting-header */
+    .waiting-sort { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+    .wsort-btn {
+      font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 99px;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      cursor: pointer; font-family: inherit; transition: background 0.1s;
+    }
+    .wsort-btn.active { background: rgba(196,181,244,0.15); border-color: var(--brand-lav); color: var(--brand-lav); }
+    .wsort-btn:hover:not(.active) { background: var(--surface2); }
+
+    /* Event-proximity badges */
+    .badge-ev-red   { background: rgba(239,68,68,0.15);   color: #f87171; }
+    .badge-ev-amber { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+    .badge-ev-green { background: rgba(74,222,128,0.12);  color: #4ade80; }
+
+    /* Urgency-färger */
+    .urg-red    { --cc-urgency: var(--red); }
+    .urg-amber  { --cc-urgency: var(--amber); }
+    .urg-green  { --cc-urgency: var(--green); }
+    .urg-gray   { --cc-urgency: var(--border); }
+
     /* Status colors */
     .s-new       { color: var(--amber); }
     .s-waiting   { color: var(--amber); }
@@ -836,6 +900,82 @@ function getFilteredCarts() {
   $(id).addEventListener('input', renderKanban);
 });
 
+function urgencyScore(c) {
+  const now = Date.now();
+  const sentAge  = (now - new Date(c.updated_at || c.created_at).getTime()) / 86400000; // dagar sedan skickad
+  const toEvent  = c.event_date
+    ? (new Date(c.event_date + 'T00:00:00').getTime() - now) / 86400000
+    : 999;
+  // Hög poäng = mer brådskande
+  const eventScore = toEvent < 7 ? 50 : toEvent < 14 ? 20 : toEvent < 30 ? 5 : 0;
+  const sentScore  = sentAge  > 7 ? 40 : sentAge  > 3  ? 15 : sentAge > 1 ? 5 : 0;
+  return eventScore + sentScore;
+}
+
+function urgencyClass(c) {
+  const s = urgencyScore(c);
+  if (s >= 40) return 'urg-red';
+  if (s >= 15) return 'urg-amber';
+  if (s >= 5)  return 'urg-green';
+  return 'urg-gray';
+}
+
+function waitingEvBadge(c) {
+  if (!c.event_date) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((new Date(c.event_date + 'T00:00:00') - today) / 86400000);
+  const cls = diff <= 7 ? 'badge-ev-red' : diff <= 14 ? 'badge-ev-amber' : 'badge-ev-green';
+  return `<span class="cc-ev-badge ${cls}">${diff >= 0 ? '+' : ''}${diff}d</span>`;
+}
+
+function sortWaiting(arr) {
+  const a = [...arr];
+  if (_waitingSort === 'event') {
+    a.sort((x,y) => {
+      if (!x.event_date && !y.event_date) return 0;
+      if (!x.event_date) return 1; if (!y.event_date) return -1;
+      return x.event_date < y.event_date ? -1 : 1;
+    });
+  } else if (_waitingSort === 'sent') {
+    a.sort((x,y) => new Date(x.updated_at||x.created_at) - new Date(y.updated_at||y.created_at));
+  } else {
+    a.sort((x,y) => urgencyScore(y) - urgencyScore(x));
+  }
+  return a;
+}
+
+function cartCardCompact(c) {
+  const now = Date.now();
+  const sentDays = Math.floor((now - new Date(c.updated_at || c.created_at).getTime()) / 86400000);
+  const total    = c.total_excl ? fmt(Math.round(c.total_excl/100)) + ' kr' : '–';
+  const uCls     = urgencyClass(c);
+  const evBadge  = waitingEvBadge(c);
+  const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
+  const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
+  const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
+  const loc      = c.event_location ? `· ${c.event_location}` : '';
+  return `
+    <div class="cc-compact ${uCls}" data-id="${c.id}" data-cart-id="${c.id}">
+      <div class="cc-row1">
+        <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
+        ${evBadge}
+        ${unread}
+      </div>
+      <div class="cc-row2">
+        <span>${evTxt}${loc ? ' ' + loc : ''}</span>
+        <span>${sentTxt}</span>
+      </div>
+      <div class="cc-expand">
+        <div class="cc-expand-inner">
+          <div class="cc-detail-row"><span>E-post</span><span class="cc-detail-val">${c.customer_email || '–'}</span></div>
+          <div class="cc-detail-row"><span>Summa</span><span class="cc-detail-val">${total}</span></div>
+          ${c.event_location ? `<div class="cc-detail-row"><span>Plats</span><span class="cc-detail-val">${c.event_location}</span></div>` : ''}
+        </div>
+        <div class="cc-urgency-bar"></div>
+      </div>
+    </div>`;
+}
+
 function renderKanban() {
   // Filtrera bort reservationsrader
   carts = carts.filter(c => !c.id?.startsWith('SK-RESERVE-') && c.customer_name !== '[Reserverat fakturanummer]');
@@ -844,7 +984,32 @@ function renderKanban() {
   const board = $('kanban-board');
   board.innerHTML = cols.map(status => {
     const s = STATUS_LABELS[status];
-    const colCarts = filtered.filter(c => c.status === status);
+    let colCarts = filtered.filter(c => c.status === status);
+
+    if (status === 'waiting') {
+      colCarts = sortWaiting(colCarts);
+      const sortBtns = ['urgency','event','sent']
+        .map(k => {
+          const lbl = {urgency:'Bråds mest', event:'Eventdatum', sent:'Äldst'}[k];
+          return `<button class="wsort-btn${_waitingSort===k?' active':''}" onclick="setWaitingSort('${k}')">${lbl}</button>`;
+        }).join('');
+      return `
+        <div class="kanban-col">
+          <div class="kanban-col-header" style="flex-direction:column;align-items:flex-start;gap:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+              <div class="col-title ${s.cls}">${s.icon} ${s.label}</div>
+              <div class="col-count">${colCarts.length}</div>
+            </div>
+            <div class="waiting-sort">${sortBtns}</div>
+          </div>
+          <div class="kanban-cards">
+            ${colCarts.length === 0
+              ? '<div class="empty-col">Tom</div>'
+              : colCarts.map(c => cartCardCompact(c)).join('')}
+          </div>
+        </div>`;
+    }
+
     return `
       <div class="kanban-col">
         <div class="kanban-col-header">
@@ -861,7 +1026,7 @@ function renderKanban() {
 
   // Event delegation — survives re-renders
   board.onclick = e => {
-    const card = e.target.closest('.cart-card');
+    const card = e.target.closest('.cart-card, .cc-compact');
     if (card) openDetail(card.dataset.id);
   };
 }
@@ -2461,6 +2626,7 @@ const REMINDER_HOURS = 48;
 const REMINDER_LS_KEY = 'sk_admin_reminders'; // { [cartId]: 'snoozed' | 'sent' | <iso-dismissed-ts> }
 let _reminderQueue = [];  // carts som väntar på popup
 let _reminderActive = null; // den cart som visas just nu
+let _waitingSort = 'urgency'; // 'urgency' | 'event' | 'sent'
 
 function getReminderState() {
   try { return JSON.parse(localStorage.getItem(REMINDER_LS_KEY) || '{}'); } catch { return {}; }
@@ -2547,6 +2713,12 @@ async function reminderAction(action) {
 }
 
 window.reminderAction = reminderAction;
+
+function setWaitingSort(key) {
+  _waitingSort = key;
+  renderKanban();
+}
+window.setWaitingSort = setWaitingSort;
 
 async function sendCustomerNotice() {
   const msg = prompt('Meddelande till kund (skickas via e-post):');
