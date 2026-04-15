@@ -1015,7 +1015,19 @@ function renderPanelTabs() {
 function renderTab(tab) {
   const body = $('panel-body');
   if (tab === 'info')     body.innerHTML = renderInfoTab();
-  if (tab === 'products') body.innerHTML = renderProductsTab();
+  if (tab === 'products') {
+    body.innerHTML = renderProductsTab();
+    // Populera kategori-dropdown dynamiskt (undviker timing-problem med QUOTE_CATALOG)
+    const catSel = document.getElementById('prod-cat-sel');
+    if (catSel) {
+      const catalog = window.__ADMIN_QUOTE_CATALOG__ || {};
+      catSel.innerHTML = '<option value="">\u2014 välj kategori —</option>' +
+        Object.keys(catalog)
+          .filter(k => k !== 'Tillägg' && k !== 'Eigen rad')
+          .map(k => `<option value="${k}">${k}</option>`)
+          .join('');
+    }
+  }
   if (tab === 'faktura')  { body.innerHTML = renderFakturaTab(); invLoadPreviewNumber(); }
   // Force browser to respect dark styling on form elements
   requestAnimationFrame(() => {
@@ -2477,13 +2489,22 @@ function checkReminderQueue() {
 }
 
 function showNextReminder() {
-  if (_reminderQueue.length === 0) { closeReminderPopup(); return; }
-  _reminderActive = _reminderQueue.shift();
+  // Filtrera bort carts som redan hanterats (race condition-skydd)
+  const currentState = getReminderState();
+  while (_reminderQueue.length > 0) {
+    const candidate = _reminderQueue.shift();
+    const s = currentState[candidate.id];
+    if (s === 'snoozed' || s === 'sent') continue; // redan hanterad
+    if (s && (Date.now() - new Date(s).getTime()) < 24 * 3600 * 1000) continue; // nyligen dismissad
+    _reminderActive = candidate;
+    break;
+  }
+  if (!_reminderActive) { closeReminderPopup(); return; }
   const c = _reminderActive;
   const hours = Math.round((Date.now() - new Date(c.updated_at || c.created_at).getTime()) / 3600000);
   const dateStr = c.event_date ? ` (event: ${fmtDate(c.event_date)})` : '';
   document.getElementById('reminder-msg').innerHTML =
-    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.<br>Vill du skicka en påminnelse?`;
+    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.<br>Vill du skäa en påminnelse?`;
   const overlay = document.getElementById('reminder-overlay');
   overlay.style.display = 'flex';
 }
