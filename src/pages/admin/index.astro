@@ -1023,7 +1023,7 @@ function renderTab(tab) {
       const catalog = window.__ADMIN_QUOTE_CATALOG__ || {};
       catSel.innerHTML = '<option value="">\u2014 välj kategori —</option>' +
         Object.keys(catalog)
-          .filter(k => k !== 'Tillägg' && k !== 'Eigen rad')
+          .filter(k => !['Tillägg','Eigen rad','DJ-tjänster'].includes(k))
           .map(k => `<option value="${k}">${k}</option>`)
           .join('');
     }
@@ -1444,7 +1444,7 @@ function renderInfoTab() {
   `;
 }
 
-const SVC_CATALOG_KEYS = ['Tillägg'];
+const SVC_CATALOG_KEYS = ['Tjänster', 'Tillägg'];
 
 function buildProductCatalogOptions() {
   let html = '<option value="">+ Välj produkt att lägga till</option>';
