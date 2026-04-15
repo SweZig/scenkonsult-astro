@@ -991,7 +991,7 @@ function renderKanban() {
           <div class="kanban-cards">
             ${colCarts.length === 0
               ? '<div class="empty-col">Tom</div>'
-              : colCarts.map(c => cartCardCompact(c)).join('')}
+              : colCarts.map(c => _kanbanView === 'compact' ? cartCardCompact(c) : cartCardHTML(c)).join('')}
           </div>
         </div>`;
     }
