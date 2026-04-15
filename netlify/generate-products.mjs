@@ -217,54 +217,73 @@ sects.push('');
 const PRODUKTER_OCH_PRISER = sects.join('\n');
 
 // ── QUOTE_CATALOG (för admin-panelens produktväljare) ─────────────────────────
+// Struktur: Scen | Scentillbehör | Ljud | Ljudtillbehör | Ljus | Ljustillbehör | DJ | Bild | Tjänster
 function qp(p) {
   return { id: p.artno || p.slug || p.id || '', artno: p.artno||'', name: p.name, price: p.price || 0 };
 }
 const QUOTE_CAT = {};
 const frakt = readJson('tjanster.json');
 
-QUOTE_CAT['Scen'] = { products: scenes.products.filter(p=>p.price).map(p=>({id:p.artno||('scen-'+p.id),artno:p.artno||'',name:p.name,price:p.price})) };
-QUOTE_CAT['Scen tillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug||'scen-acc',artno:p.artno||'',name:p.name,price:p.price})) };
+// Scen
+QUOTE_CAT['Scen']          = { products: scenes.products.filter(p=>p.price).map(p=>({id:p.artno||('scen-'+p.id),artno:p.artno||'',name:p.name,price:p.price})) };
+QUOTE_CAT['Scentillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug||'scen-acc',artno:p.artno||'',name:p.name,price:p.price})) };
 
-QUOTE_CAT['Ljud'] = { sub: {} };
-['event','live','music','portable'].forEach(sec => {
-  const lbl = {event:'Event',live:'Live',music:'Music',portable:'Portable'}[sec];
-  QUOTE_CAT['Ljud'].sub[lbl] = (ljud[sec]?.products||[]).filter(p=>p.slug&&p.price).map(qp);
-});
-QUOTE_CAT['Ljud'].sub['Mixers'] = (ljud.mixers||[]).filter(p=>p.slug&&p.price).map(qp);
-const miksQ = miks.filter(p=>p.slug&&p.price).map(qp);
-if (miksQ.length) QUOTE_CAT['Ljud'].sub['Mikrofoner'] = miksQ;
+// Ljud (paket + mixers)
+QUOTE_CAT['Ljud'] = { sub: {
+  'Portable': (ljud.portable?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Event':    (ljud.event?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Music':    (ljud.music?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Live':     (ljud.live?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Mixers':   (ljud.mixers||[]).filter(p=>p.slug&&p.price).map(qp),
+}};
 
-QUOTE_CAT['Ljus'] = { sub: {} };
-QUOTE_CAT['Ljus'].sub['Färdiga paket'] = (ljus.paket?.products||[]).filter(p=>p.slug&&p.price).map(qp);
-QUOTE_CAT['Ljus'].sub['Effekter']      = (ljus.effekter?.products||[]).filter(p=>p.slug&&p.price).map(qp);
-QUOTE_CAT['Ljus'].sub['Rök & pyro']   = (ljus.rok?.products||[]).filter(p=>p.slug&&p.price).map(qp);
-QUOTE_CAT['Ljus'].sub['Rök tillbehör']= (ljus.rok?.tillbehor||[]).filter(p=>p.slug&&p.price).map(qp);
-QUOTE_CAT['Ljus'].sub['Stativ & tross']= (ljus.stativ?.products||[]).filter(p=>p.slug&&p.price).map(qp);
+// Ljudtillbehör (mikrofoner + kabel/tillbehör + el)
+QUOTE_CAT['Ljudtillbehör'] = { sub: {
+  'Mikrofoner':        (ljud.mikrofoner||[]).filter(p=>p.artno||p.slug).map(qp),
+  'Kabel & tillbehör': (ljud.tillbehor_mikrofon||[]).filter(p=>p.artno||p.slug).map(qp),
+  'Övriga tillbehör':  (ljud.tillbehor_ljud||[]).filter(p=>p.artno||p.slug).map(qp),
+  'El-tillbehör':      (ljud.tillbehor_el||[]).filter(p=>p.artno||p.slug).map(qp),
+}};
 
+// Ljus (paket + effekter)
+QUOTE_CAT['Ljus'] = { sub: {
+  'Färdiga paket':  (ljus.paket?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Lösa effekter':  (ljus.effekter?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Rök & pyro':     (ljus.rok?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Stativ & tross': (ljus.stativ?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+}};
+
+// Ljustillbehör (dmx + stativ-tillbehör + rök-förbrukning + el)
+QUOTE_CAT['Ljustillbehör'] = { sub: {
+  'DMX-styrning':    (ljus.dmx?.tillbehor||[]).filter(p=>p.artno||p.slug).map(qp),
+  'Stativ & fästen': (ljus.stativ?.tillbehor||[]).filter(p=>p.artno||p.slug).map(qp),
+  'Rök förbrukning': (ljus.rok?.tillbehor||[]).filter(p=>p.artno||p.slug).map(qp),
+  'El-tillbehör':    (ljus.el||[]).filter(p=>p.artno||p.slug).map(qp),
+}};
+
+// DJ
 QUOTE_CAT['DJ'] = { products: [
   ...Object.values(dj.equipment||{}).filter(p=>p.slug&&p.price).map(qp),
-  ...(dj.packages||[]).filter(p=>p.artno&&p.price).map(p => ({ artno: p.artno, name: p.name, price: p.price, category: 'DJ-paket' }))
+  ...(dj.packages||[]).filter(p=>p.artno&&p.price).map(p=>({artno:p.artno,name:p.name,price:p.price}))
 ]};
-QUOTE_CAT['Bild'] = { products: [
-  ...[...(bild.products||[]),...(bild.tillbehor||[])].filter(p=>p.slug&&p.price).map(qp),
-  ...(bild.services||[]).filter(p=>p.artno&&p.price).map(p=>({artno:p.artno,name:p.name,price:p.price,category:'Tjänster'}))
-]};
-if (ljud.services?.length) {
-  QUOTE_CAT['Ljud'].sub['Tekniker'] = ljud.services.filter(p=>p.artno&&p.price).map(p=>({artno:p.artno,name:p.name,price:p.price,category:'Tjänster'}));
-}
 
+// Bild
+QUOTE_CAT['Bild'] = { sub: {
+  'Projektorer & skärmar': (bild.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Tillbehör':             (bild.tillbehor||[]).filter(p=>p.slug&&p.price).map(qp),
+}};
+
+// Tjänster
 QUOTE_CAT['Tjänster'] = { products: [
-  {id:frakt.leverans.standard.artno||frakt.leverans.standard.id, name:'Leverans — Vanlig bil (t&r)',      price:frakt.leverans.standard.pris},
-  {id:frakt.leverans.standard.enkel.id,    name:frakt.leverans.standard.enkel.label,    price:frakt.leverans.standard.enkel.pris},
-  {id:frakt.leverans.skrymmande.artno||frakt.leverans.skrymmande.id, name:'Leverans — Bil med släp (t&r)',    price:frakt.leverans.skrymmande.pris},
-  {id:frakt.leverans.skrymmande.enkel.id,  name:frakt.leverans.skrymmande.enkel.label,  price:frakt.leverans.skrymmande.enkel.pris},
-  {id:frakt.leverans.lastbil.artno||frakt.leverans.lastbil.id, name:'Leverans — Lastbil (t&r)',         price:frakt.leverans.lastbil.pris},
-  {id:frakt.leverans.lastbil.enkel.id,     name:frakt.leverans.lastbil.enkel.label,     price:frakt.leverans.lastbil.enkel.pris},
+  {id:frakt.leverans.standard.artno||frakt.leverans.standard.id,       name:'Leverans — Vanlig bil (t&r)',    price:frakt.leverans.standard.pris},
+  {id:frakt.leverans.skrymmande.artno||frakt.leverans.skrymmande.id,   name:'Leverans — Bil med släp (t&r)', price:frakt.leverans.skrymmande.pris},
+  {id:frakt.leverans.lastbil.artno||frakt.leverans.lastbil.id,         name:'Leverans — Lastbil (t&r)',      price:frakt.leverans.lastbil.pris},
   {id:frakt.montering.artno||'SK-TJN-0001', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
-  ...(frakt.tillagg||[]).map(t => ({id:t.artno||t.id, name:t.label, price:t.pris})),
-  ...(frakt.fakturaavgift?.options||[]).map(f => ({id:f.artno||f.id, name:f.label, price:f.pris})),
+  ...(frakt.fakturaavgift?.options||[]).map(f=>({id:f.artno||f.id,name:f.label,price:f.pris})),
 ]};
+// Alias för bakåtkompatibilitet med äldre ordrar
+QUOTE_CAT['Tillägg'] = QUOTE_CAT['Tjänster'];
+QUOTE_CAT['Eigen rad'] = { products: [{id:'custom',artno:'',name:'Ange benämning och pris →',price:0,type:'product',custom:true}] };
 
 const QUOTE_CATALOG_JS = JSON.stringify(QUOTE_CAT);
 const qcCount = Object.values(QUOTE_CAT).reduce((n,v)=>n+(v.products?.length||0)+Object.values(v.sub||{}).reduce((m,a)=>m+a.length,0),0);
@@ -281,7 +300,7 @@ export const QUOTE_CATALOG = ${QUOTE_CATALOG_JS};
 `;
 
 fs.writeFileSync(OUT, output, 'utf8');
-fs.writeFileSync(OUT_JSON, JSON.stringify(QUOTE_CAT, null, 2), 'utf8');
+// OBS: quote-catalog.json skrivs av generate-quote-catalog.py — inte här
 
 const cartCount = cartLines.length;
 const prodCount = sects.filter(l => l.startsWith('-')).length;
