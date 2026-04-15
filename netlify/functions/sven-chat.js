@@ -4,18 +4,22 @@ import { CART_ID_LISTA, PRODUKTER_OCH_PRISER } from './_products-generated.js';
 async function logToSupabase(data) {
   const sbUrl = process.env.SUPABASE_URL;
   const sbKey = process.env.SUPABASE_SERVICE_KEY;
-  if (!sbUrl || !sbKey) return;
+  if (!sbUrl || !sbKey) { console.warn('SVEN_LOG: Supabase env saknas'); return; }
   try {
-    await fetch(`${sbUrl}/rest/v1/sven_logs`, {
+    const res = await fetch(`${sbUrl}/rest/v1/sven_logs`, {
       method: 'POST',
       headers: {
         'Content-Type':  'application/json',
         'apikey':        sbKey,
         'Authorization': 'Bearer ' + sbKey,
-        'Prefer':        'return=minimal',
+        'Prefer':        'return=representation',
       },
       body: JSON.stringify(data),
     });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn('SVEN_DB_LOG_FAIL:', res.status, txt);
+    }
   } catch (e) {
     console.warn('SVEN_DB_LOG_FAIL:', e.message);
   }
@@ -297,7 +301,7 @@ export default async (req) => {
     const msgText = lastUser.substring(0, 500);
     logEvent({ type: "message", sessionId, customerType, messageCount: trimmed.length,
       userMessage: msgText, replyPreview: reply.substring(0, 200) });
-    logToSupabase({
+    await logToSupabase({
       session_id:    sessionId || null,
       customer_type: customerType || null,
       message:       msgText,

@@ -183,7 +183,7 @@ const PAGE_SIZE = 30;
 // ── Fetch ─────────────────────────────────────────────────────────────────────
 async function api(fn, body) {
   const res = await fetch(`/.netlify/functions/${fn}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken },
     body: JSON.stringify(body),
   });
   return res.json().catch(() => ({}));
