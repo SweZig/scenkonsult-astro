@@ -91,7 +91,21 @@ const forbr = ljusData.rok.tillbehor.filter(t =>
   </section>
 
   <!-- ③ FÖRBRUKNINGSARTIKLAR: Rökvätska & Granulat -->
-  
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Förbrukningsartiklar</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {forbr.map(t => (
+        <ElTillbehorCard
+          img={t.image}
+          name={t.name}
+          excl={t.price}
+          desc={t.desc}
+          category="Förbrukningsartiklar"
+          artno={t.artno}
+        />
+      ))}
+    </div>
+  </section>
 
   <!-- ⑤ EL-TILLBEHÖR + Ackrylatbensin sist -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
