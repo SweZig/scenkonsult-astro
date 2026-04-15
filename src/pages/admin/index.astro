@@ -630,6 +630,22 @@ import quoteCatalogData from '../../data/quote-catalog.json';
 
 <!-- ── DETAIL PANEL ─────────────────────────────────────────── -->
 <div id="detail-overlay"></div>
+
+<!-- 48h Påminnelse-popup -->
+<div id="reminder-overlay" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(12,10,36,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center">
+  <div style="background:#1a1740;border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:1.5rem;max-width:400px;width:calc(100% - 2rem);box-shadow:0 20px 60px rgba(0,0,0,0.6)">
+    <div style="font-size:1.5rem;margin-bottom:0.5rem">⏰</div>
+    <div style="font-weight:700;font-size:1rem;color:#f0eeff;margin-bottom:0.4rem">Offert utan svar</div>
+    <div id="reminder-msg" style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-bottom:1.2rem;line-height:1.5"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="reminderAction('yes')" style="flex:1;padding:10px;background:var(--brand-lav,#c4b5f4);color:#0c0a24;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✉ Ja, skicka påminnelse</button>
+      <button onclick="reminderAction('no')" style="flex:1;padding:10px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);font-size:0.85rem;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-family:inherit">Nej, inte nu</button>
+    </div>
+    <div style="margin-top:8px;text-align:center">
+      <button onclick="reminderAction('snooze')" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.75rem;cursor:pointer;font-family:inherit">Påminn mig inte om denna offert igen</button>
+    </div>
+  </div>
+</div>
 <div id="detail-panel">
   <div class="panel-header">
     <div class="panel-title" id="panel-title">Varukorg</div>
@@ -800,6 +816,7 @@ async function loadCarts() {
   }
   renderKanban();
   if ($('view-calendar').classList.contains('active')) renderCalendar();
+  checkReminderQueue();
 }
 
 // ── KANBAN ────────────────────────────────────────────────────
@@ -895,12 +912,33 @@ function cartCardHTML(c) {
   const intentBadge = showBadge
     ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`
     : '';
+
+  // Dagar-kvar-flagga för bekräftade/fakturerade ordrar med eventdatum
+  let daysFlag = '';
+  if (['confirmed','fakturerad','betald'].includes(c.status) && c.event_date) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const evDate = new Date(c.event_date + 'T00:00:00');
+    const diff = Math.round((evDate - today) / 86400000);
+    if (diff >= 0) {
+      // Kommande event — gul→röd beroende på nearness
+      const urgent = diff <= 3;
+      const warn   = diff <= 7;
+      const bg    = urgent ? 'rgba(239,68,68,0.85)' : warn ? 'rgba(251,191,36,0.85)' : 'rgba(74,222,128,0.75)';
+      const col   = urgent || warn ? '#0c0a24' : '#0c0a24';
+      daysFlag = `<span style="position:absolute;top:8px;right:8px;background:${bg};color:${col};font-size:0.62rem;font-weight:800;padding:2px 6px;border-radius:99px;font-family:'Space Grotesk',sans-serif;letter-spacing:0.03em">-${diff}d</span>`;
+    } else {
+      // Eventet har passerat
+      daysFlag = `<span style="position:absolute;top:8px;right:8px;background:rgba(156,163,175,0.5);color:#fff;font-size:0.62rem;font-weight:800;padding:2px 6px;border-radius:99px;font-family:'Space Grotesk',sans-serif">+${Math.abs(diff)}d</span>`;
+    }
+  }
+
   return `
-    <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}">
+    <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
         <div class="cart-card-name" style="margin:0">${c.customer_name || 'Okänd kund'}</div>
         ${intentBadge}
       </div>
+      ${daysFlag}
       <div class="cart-card-sub">${c.customer_email || ''}</div>
       <div class="cart-card-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
@@ -1440,6 +1478,67 @@ function buildServiceCatalogOptions() {
 // Legacy alias
 function buildCatalogOptions() { return buildProductCatalogOptions(); }
 
+// ── Produkter-fliken: kategori → produkt picker ──────────────────────────────
+function buildProdCatOptions() {
+  return Object.keys(QUOTE_CATALOG)
+    .filter(k => k !== 'Tillägg' && k !== 'Egen rad')
+    .map(k => `<option value="${k}">${k}</option>`)
+    .join('');
+}
+
+function prodPickCat() {
+  const cat = document.getElementById('prod-cat-sel')?.value;
+  const entry = QUOTE_CATALOG[cat];
+  const subWrap = document.getElementById('prod-sub-wrap');
+  const itemWrap = document.getElementById('prod-item-wrap');
+  if (!entry) { subWrap.style.display = 'none'; itemWrap.style.display = 'none'; return; }
+  if (entry.sub) {
+    const subSel = document.getElementById('prod-sub-sel');
+    subSel.innerHTML = '<option value="">— välj underkategori —</option>' +
+      Object.keys(entry.sub).map(k => `<option value="${k}">${k}</option>`).join('');
+    subWrap.style.display = '';
+    itemWrap.style.display = 'none';
+  } else if (entry.products) {
+    subWrap.style.display = 'none';
+    prodPopulateItems(entry.products);
+    itemWrap.style.display = 'flex';
+  }
+}
+
+function prodPickSub() {
+  const cat = document.getElementById('prod-cat-sel')?.value;
+  const sub = document.getElementById('prod-sub-sel')?.value;
+  const itemWrap = document.getElementById('prod-item-wrap');
+  if (!cat || !sub) { itemWrap.style.display = 'none'; return; }
+  const prods = QUOTE_CATALOG[cat]?.sub?.[sub] || [];
+  prodPopulateItems(prods);
+  itemWrap.style.display = prods.length ? 'flex' : 'none';
+}
+
+function prodPopulateItems(prods) {
+  const sel = document.getElementById('prod-item-sel');
+  sel.innerHTML = '<option value="">— välj produkt —</option>' +
+    prods.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name.replace(/"/g,'&quot;')}">${p.name} — ${fmt(p.price)} kr</option>`).join('');
+}
+
+function prodPickerAdd() {
+  const sel = document.getElementById('prod-item-sel');
+  const opt = sel?.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  const cat = document.getElementById('prod-cat-sel')?.value || '';
+  const p = { id: opt.value, name: opt.dataset.name || opt.textContent.split(' — ')[0], price: parseInt(opt.dataset.price) || 0, qty: 1, category: cat };
+  const items = prodGetItems();
+  const existing = items.find(i => i.id === p.id && !i.custom);
+  if (existing) { existing.qty++; }
+  else {
+    const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
+    items.splice(svcStart === -1 ? items.length : svcStart, 0, p);
+  }
+  currentCart.items = items;
+  renderTab('products');
+  sel.selectedIndex = 0;
+}
+
 function catIcon(category) {
   const c = (category||'').toLowerCase();
   if (c.includes('scen'))    return { icon: '🎪', color: 'var(--blue)' };
@@ -1523,10 +1622,24 @@ function renderProductsTab() {
     </table>
     <div style="margin-top:10px">
       <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:rgba(196,181,244,0.5);margin-bottom:4px">Lägg till produkt</div>
-      <select id="prod-add-select" onchange="prodAddFromCatalog(this,false)"
+      <select id="prod-cat-sel" onchange="prodPickCat()"
         style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed var(--border-lav);border-radius:8px">
-        ${buildProductCatalogOptions()}
+        <option value="">— välj kategori —</option>
+        ${buildProdCatOptions()}
       </select>
+      <div id="prod-sub-wrap" style="display:none;margin-top:5px">
+        <select id="prod-sub-sel" onchange="prodPickSub()"
+          style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:8px">
+          <option value="">— välj underkategori —</option>
+        </select>
+      </div>
+      <div id="prod-item-wrap" style="display:none;margin-top:5px;display:flex;gap:5px">
+        <select id="prod-item-sel"
+          style="flex:1;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:8px">
+          <option value="">— välj produkt —</option>
+        </select>
+        <button onclick="prodPickerAdd()" style="font-size:0.8rem;padding:6px 10px;background:var(--brand-lav);color:#0c0a24;font-weight:700;border:none;border-radius:8px;cursor:pointer;white-space:nowrap">+ Lägg till</button>
+      </div>
       <button onclick="prodAddFreeRow(false)" style="width:100%;margin-top:5px;font-size:0.75rem;padding:4px 6px;background:transparent;border:1px dashed rgba(255,255,255,0.1);border-radius:6px;color:var(--text-faint);cursor:pointer;text-align:left">
         + Fri produktrad
       </button>
@@ -2326,6 +2439,89 @@ async function cancelOrder() {
   } else toast('Fel vid avbrytning', 'error');
 }
 
+// ── 48h PÅMINNELSE-SYSTEM ──────────────────────────────────────
+const REMINDER_HOURS = 48;
+const REMINDER_LS_KEY = 'sk_admin_reminders'; // { [cartId]: 'snoozed' | 'sent' | <iso-dismissed-ts> }
+let _reminderQueue = [];  // carts som väntar på popup
+let _reminderActive = null; // den cart som visas just nu
+
+function getReminderState() {
+  try { return JSON.parse(localStorage.getItem(REMINDER_LS_KEY) || '{}'); } catch { return {}; }
+}
+function setReminderState(s) { localStorage.setItem(REMINDER_LS_KEY, JSON.stringify(s)); }
+
+function checkReminderQueue() {
+  const now = Date.now();
+  const state = getReminderState();
+  const threshold = REMINDER_HOURS * 3600 * 1000;
+
+  _reminderQueue = carts.filter(c => {
+    if (c.status !== 'waiting') return false;
+    const cartState = state[c.id];
+    if (cartState === 'snoozed' || cartState === 'sent') return false;
+    // Dismissad < 24h sedan → hoppa över
+    if (cartState && (now - new Date(cartState).getTime()) < 24 * 3600 * 1000) return false;
+    // Offerten måste ha stått som waiting i minst 48h (proxy: updated_at)
+    const age = now - new Date(c.updated_at || c.created_at).getTime();
+    return age >= threshold;
+  });
+
+  if (_reminderQueue.length > 0 && !document.getElementById('reminder-overlay').style.display.includes('flex')) {
+    showNextReminder();
+  }
+}
+
+function showNextReminder() {
+  if (_reminderQueue.length === 0) { closeReminderPopup(); return; }
+  _reminderActive = _reminderQueue.shift();
+  const c = _reminderActive;
+  const hours = Math.round((Date.now() - new Date(c.updated_at || c.created_at).getTime()) / 3600000);
+  const dateStr = c.event_date ? ` (event: ${fmtDate(c.event_date)})` : '';
+  document.getElementById('reminder-msg').innerHTML =
+    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.<br>Vill du skicka en påminnelse?`;
+  const overlay = document.getElementById('reminder-overlay');
+  overlay.style.display = 'flex';
+}
+
+function closeReminderPopup() {
+  document.getElementById('reminder-overlay').style.display = 'none';
+  _reminderActive = null;
+}
+
+async function reminderAction(action) {
+  if (!_reminderActive) return closeReminderPopup();
+  const cartId = _reminderActive.id;
+  const state = getReminderState();
+
+  if (action === 'yes') {
+    // Skicka påminnelse via cart-message (samma som admin-notis)
+    const defaultMsg = 'Hej! Vi vill bara påminna om offerten vi skickade – hör gärna av dig om du har frågor eller vill boka. 😊';
+    const { ok } = await api('cart-message', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: cartId, body: defaultMsg })
+    });
+    if (ok) {
+      toast('Påminnelse skickad! 📩');
+      state[cartId] = 'sent';
+    } else {
+      toast('Kunde inte skicka påminnelse', 'error');
+    }
+  } else if (action === 'no') {
+    // Påminn igen imorgon
+    state[cartId] = new Date().toISOString();
+  } else if (action === 'snooze') {
+    // Visa aldrig igen för denna offert
+    state[cartId] = 'snoozed';
+  }
+
+  setReminderState(state);
+  closeReminderPopup();
+  // Visa nästa i kön om det finns fler
+  if (_reminderQueue.length > 0) setTimeout(showNextReminder, 400);
+}
+
+window.reminderAction = reminderAction;
+
 async function sendCustomerNotice() {
   const msg = prompt('Meddelande till kund (skickas via e-post):');
   if (!msg?.trim()) return;
@@ -2885,6 +3081,9 @@ window.renderTab           = renderTab;
 window.prodTogglePopout    = prodTogglePopout;
 window.prodAddFromCatalog  = prodAddFromCatalog;
 window.prodAddFreeRow      = prodAddFreeRow;
+window.prodPickCat         = prodPickCat;
+window.prodPickSub         = prodPickSub;
+window.prodPickerAdd       = prodPickerAdd;
 window.prodUpdateSvc       = prodUpdateSvc;
 window.prodSaveAndSendOffer= prodSaveAndSendOffer;
 window.invMarkPaid         = invMarkPaid;
