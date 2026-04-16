@@ -1,0 +1,584 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ledData from '../../../data/led-paneler.json';
+
+const paneler = ledData.paneler;
+const faq = ledData.faq;
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faq.map(f => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+---
+<Layout
+  title="LED-vägg kalkylator — räkna ut storlek, pixlar & pris | Scenkonsult"
+  description="Räkna ut exakt storlek, upplösning, effekt och pris på din LED-vägg. Lägg direkt i varukorgen. Fri offert — Scenkonsult sedan 1986."
+  schemaExtra={faqSchema}
+>
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
+    <div style="max-width:920px;margin:0 auto;">
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
+        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.4);">
+          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
+          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
+          <li style="color:white;">LED-vägg kalkylator</li>
+        </ol>
+      </nav>
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Verktyg · Av Scenkonsult Norden</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">LED-vägg kalkylator</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Räkna ut exakt storlek, pixelupplösning, effektbehov och pris på din LED-vägg. Välj panelmodell, ange önskad storlek — så får du komplett specifikation och kan lägga i varukorgen direkt.</p>
+    </div>
+  </div>
+
+  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1180px;margin:0 auto;">
+
+      <!-- KALKYLATOR-CARD -->
+      <div id="led-calc" style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:16px;padding:clamp(1.25rem,3vw,2.25rem);margin-bottom:3rem;">
+
+        <!-- Input-grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;margin-bottom:1.75rem;">
+
+          <!-- Panel-väljare -->
+          <div>
+            <label for="led-panel" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Panelmodell</label>
+            <select id="led-panel" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;">
+              {paneler.map((p, i) => (
+                <option
+                  value={p.artno}
+                  selected={i === 1}
+                  data-pw={p.panel_w_mm}
+                  data-ph={p.panel_h_mm}
+                  data-pxw={p.pixels_w}
+                  data-pxh={p.pixels_h}
+                  data-pitch={p.pixel_pitch_mm}
+                  data-kg={p.weight_kg}
+                  data-ptyp={p.power_typ_w}
+                  data-pmax={p.power_max_w}
+                  data-price={p.price_per_day_excl}
+                  data-indoor={p.indoor_outdoor}
+                  data-image={p.image}
+                  data-name={p.name}
+                >{p.name} — {p.price_per_day_excl} kr/dygn</option>
+              ))}
+            </select>
+          </div>
+
+          <!-- Input-läge -->
+          <div>
+            <label style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Ange storlek som</label>
+            <div id="led-mode-tabs" role="tablist" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.35rem;background:#221f50;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.25rem;">
+              <button type="button" role="tab" aria-selected="true" data-mode="meter" class="led-mode-btn active" style="padding:0.55rem 0.5rem;font-size:0.78rem;font-family:'Space Grotesk',sans-serif;font-weight:600;color:#f0eeff;background:#c4b5f4;color:#0c0a24;border:none;border-radius:6px;cursor:pointer;">B × H</button>
+              <button type="button" role="tab" aria-selected="false" data-mode="diagonal" class="led-mode-btn" style="padding:0.55rem 0.5rem;font-size:0.78rem;font-family:'Space Grotesk',sans-serif;font-weight:600;color:#f0eeff;background:transparent;border:none;border-radius:6px;cursor:pointer;">Diagonal</button>
+              <button type="button" role="tab" aria-selected="false" data-mode="panels" class="led-mode-btn" style="padding:0.55rem 0.5rem;font-size:0.78rem;font-family:'Space Grotesk',sans-serif;font-weight:600;color:#f0eeff;background:transparent;border:none;border-radius:6px;cursor:pointer;">Antal paneler</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input-blocks per mode -->
+        <div id="led-inputs" style="margin-bottom:1.75rem;">
+
+          <!-- Mode: meter -->
+          <div data-input="meter" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+            <div>
+              <label for="led-w-m" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Önskad bredd (meter)</label>
+              <input id="led-w-m" type="number" step="0.1" min="0.5" max="30" value="4.0" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
+            </div>
+            <div>
+              <label for="led-h-m" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Önskad höjd (meter)</label>
+              <input id="led-h-m" type="number" step="0.1" min="0.5" max="15" value="2.5" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
+            </div>
+          </div>
+
+          <!-- Mode: diagonal -->
+          <div data-input="diagonal" style="display:none;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+            <div>
+              <label for="led-diag" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Diagonal (tum)</label>
+              <input id="led-diag" type="number" step="10" min="60" max="800" value="180" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
+            </div>
+            <div>
+              <label for="led-ratio" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Aspect ratio</label>
+              <select id="led-ratio" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;">
+                <option value="16:9" selected>16:9 (widescreen)</option>
+                <option value="21:9">21:9 (ultrawide/cinema)</option>
+                <option value="4:3">4:3 (traditionell)</option>
+                <option value="1:1">1:1 (kvadrat)</option>
+                <option value="2:1">2:1 (scenbakgrund)</option>
+                <option value="3:1">3:1 (bred scenbakgrund)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Mode: panels -->
+          <div data-input="panels" style="display:none;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+            <div>
+              <label for="led-cols" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Antal paneler bredd</label>
+              <input id="led-cols" type="number" step="1" min="1" max="60" value="8" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
+            </div>
+            <div>
+              <label for="led-rows" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Antal paneler höjd</label>
+              <input id="led-rows" type="number" step="1" min="1" max="30" value="5" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Extras -->
+        <div style="display:flex;flex-wrap:wrap;gap:1.25rem;margin-bottom:1.75rem;padding:1rem 1.25rem;background:rgba(12,10,36,0.4);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
+          <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
+            <input id="led-incl-rigg" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
+            <span>Inkludera rigg/ground support</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
+            <input id="led-incl-montering" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
+            <span>Inkludera tekniker (8 tim)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
+            <input id="led-incl-processor" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
+            <span>Inkludera LED-processor</span>
+          </label>
+        </div>
+
+        <!-- Resultat-grid -->
+        <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(260px,1fr);gap:1.5rem;align-items:start;" id="led-result-grid">
+
+          <!-- Visuell preview -->
+          <div>
+            <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 0.6rem;">Preview — skalenlig</p>
+            <div style="background:#0c0a24;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;display:flex;align-items:center;justify-content:center;min-height:220px;">
+              <svg id="led-preview" viewBox="0 0 400 300" style="width:100%;height:auto;max-height:300px;display:block;" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+            <p id="led-preview-caption" style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin:0.5rem 0 0;text-align:center;"></p>
+          </div>
+
+          <!-- Specifikation -->
+          <div>
+            <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 0.6rem;">Specifikation</p>
+            <div id="led-specs" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem 1.15rem;display:flex;flex-direction:column;gap:0.55rem;font-size:0.88rem;"></div>
+
+            <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:1.25rem 0 0.6rem;">Pris per dygn</p>
+            <div style="background:#0c0a24;border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:1rem 1.15rem;">
+              <div id="led-price-rows" style="display:flex;flex-direction:column;gap:0.4rem;font-size:0.85rem;color:rgba(255,255,255,0.7);"></div>
+              <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:0.75rem;padding-top:0.75rem;display:flex;justify-content:space-between;align-items:baseline;">
+                <span style="color:white;font-weight:600;">Totalt</span>
+                <div style="text-align:right;">
+                  <span class="sk-price-excl" id="led-total-excl" style="color:#c4b5f4;font-size:1.45rem;font-weight:800;">0</span>
+                  <span class="sk-price-incl hidden" id="led-total-incl" style="color:#c4b5f4;font-size:1.45rem;font-weight:800;">0</span>
+                  <span style="color:rgba(255,255,255,0.5);font-size:0.8rem;"> kr/dygn</span>
+                </div>
+              </div>
+            </div>
+
+            <button id="led-add-cart" type="button" style="margin-top:1rem;width:100%;padding:0.85rem 1rem;background:#c4b5f4;color:#0c0a24;border:none;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.95rem;cursor:pointer;transition:background 0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              Lägg konfigurationen i varukorgen
+            </button>
+            <p id="led-cart-feedback" style="color:#c4b5f4;font-size:0.82rem;text-align:center;margin:0.6rem 0 0;min-height:1.1em;"></p>
+          </div>
+        </div>
+
+        <!-- Varningar -->
+        <div id="led-warnings" style="margin-top:1.25rem;display:none;"></div>
+      </div>
+
+      <!-- FAQ -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:2rem 0 1.25rem;">Vanliga frågor om LED-väggar</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:3rem;">
+        {faq.map(f => (
+          <details style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem 1.25rem;">
+            <summary style="color:white;font-weight:600;cursor:pointer;list-style:none;font-size:0.95rem;">{f.q}</summary>
+            <p style="color:rgba(255,255,255,0.65);margin:0.75rem 0 0;font-size:0.92rem;line-height:1.7;">{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div style="background:linear-gradient(135deg,#1e1850 0%,#2a2470 100%);border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:clamp(1.5rem,3vw,2.25rem);text-align:center;">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.3rem,2.5vw,1.7rem);color:white;margin:0 0 0.75rem;">Behöver du hjälp att välja?</h2>
+        <p style="color:rgba(255,255,255,0.65);margin:0 0 1.25rem;font-size:0.95rem;line-height:1.7;">Kalkylatorn ger dig en solid startpunkt — men vi hjälper gärna till att dimensionera rätt paneltyp, rigg och tekniker för just ditt event.</p>
+        <a href="/kontakt/" style="display:inline-block;background:#c4b5f4;color:#0c0a24;padding:0.85rem 1.75rem;border-radius:10px;text-decoration:none;font-weight:700;font-family:'Space Grotesk',sans-serif;">Kontakta oss för offert →</a>
+      </div>
+
+    </div>
+  </article>
+
+  <script is:inline define:vars={{ ledData }}>
+    (function() {
+      'use strict';
+
+      const PANELS = ledData.paneler;
+      const TILL = ledData.tillbehor;
+
+      const $ = (id) => document.getElementById(id);
+      const panelSel = $('led-panel');
+      const modeTabsContainer = $('led-mode-tabs');
+      const inputsRoot = $('led-inputs');
+      const specsEl = $('led-specs');
+      const priceRowsEl = $('led-price-rows');
+      const totalExcl = $('led-total-excl');
+      const totalIncl = $('led-total-incl');
+      const preview = $('led-preview');
+      const previewCaption = $('led-preview-caption');
+      const warningsEl = $('led-warnings');
+      const addBtn = $('led-add-cart');
+      const feedbackEl = $('led-cart-feedback');
+
+      const wM = $('led-w-m');
+      const hM = $('led-h-m');
+      const diag = $('led-diag');
+      const ratio = $('led-ratio');
+      const cols = $('led-cols');
+      const rows = $('led-rows');
+
+      const inclRigg = $('led-incl-rigg');
+      const inclMontering = $('led-incl-montering');
+      const inclProcessor = $('led-incl-processor');
+
+      let mode = 'meter';
+      let lastCalc = null;
+
+      function getPanel() {
+        const opt = panelSel.options[panelSel.selectedIndex];
+        return {
+          artno: opt.value,
+          name: opt.dataset.name,
+          pw: +opt.dataset.pw,
+          ph: +opt.dataset.ph,
+          pxw: +opt.dataset.pxw,
+          pxh: +opt.dataset.pxh,
+          pitch: +opt.dataset.pitch,
+          kg: +opt.dataset.kg,
+          ptyp: +opt.dataset.ptyp,
+          pmax: +opt.dataset.pmax,
+          price: +opt.dataset.price,
+          indoor: opt.dataset.indoor,
+          image: opt.dataset.image,
+        };
+      }
+
+      function aspectRatio(s) {
+        const [a, b] = s.split(':').map(Number);
+        return a / b;
+      }
+
+      function calcPanels() {
+        const p = getPanel();
+        let targetW, targetH;
+
+        if (mode === 'meter') {
+          targetW = (+wM.value || 0) * 1000;
+          targetH = (+hM.value || 0) * 1000;
+        } else if (mode === 'diagonal') {
+          const dMm = (+diag.value || 0) * 25.4;
+          const ar = aspectRatio(ratio.value);
+          const h = dMm / Math.sqrt(ar * ar + 1);
+          const w = h * ar;
+          targetW = w;
+          targetH = h;
+        } else {
+          const c = Math.max(1, +cols.value || 1);
+          const r = Math.max(1, +rows.value || 1);
+          return { panel: p, cols: c, rows: r, actualW: c * p.pw, actualH: r * p.ph };
+        }
+
+        const c = Math.max(1, Math.round(targetW / p.pw));
+        const r = Math.max(1, Math.round(targetH / p.ph));
+        return { panel: p, cols: c, rows: r, actualW: c * p.pw, actualH: r * p.ph, targetW, targetH };
+      }
+
+      function fmtMm(v) {
+        const m = v / 1000;
+        return m >= 1 ? m.toFixed(2).replace(/\.?0+$/, '') + ' m' : Math.round(v) + ' mm';
+      }
+
+      function fmtKr(v) {
+        return new Intl.NumberFormat('sv-SE').format(Math.round(v)) + ' kr';
+      }
+
+      function pickProcessor(totalPixels) {
+        if (totalPixels <= TILL.processor_small.max_pixels) return TILL.processor_small;
+        return TILL.processor_large;
+      }
+
+      function specRow(label, value, strong) {
+        return `<div style="display:flex;justify-content:space-between;gap:0.75rem;">
+          <span style="color:rgba(255,255,255,0.55);">${label}</span>
+          <span style="color:${strong ? 'white' : 'rgba(255,255,255,0.85)'};font-weight:${strong ? 600 : 500};text-align:right;">${value}</span>
+        </div>`;
+      }
+
+      function priceRow(label, value, sub) {
+        return `<div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:baseline;">
+          <span>${label}${sub ? `<span style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin-left:0.4rem;">${sub}</span>` : ''}</span>
+          <span style="color:rgba(255,255,255,0.9);font-weight:500;white-space:nowrap;">${value}</span>
+        </div>`;
+      }
+
+      function render() {
+        const r = calcPanels();
+        const p = r.panel;
+        const totalPanels = r.cols * r.rows;
+        const totalKg = totalPanels * p.kg;
+        const totalTypW = totalPanels * p.ptyp;
+        const totalMaxW = totalPanels * p.pmax;
+        const pixelsW = r.cols * p.pxw;
+        const pixelsH = r.rows * p.pxh;
+        const totalPixels = pixelsW * pixelsH;
+        const diagonalMm = Math.sqrt(r.actualW * r.actualW + r.actualH * r.actualH);
+        const diagonalIn = diagonalMm / 25.4;
+        const circuits16A = Math.ceil(totalMaxW / 3500);
+        const minViewingM = p.pitch;
+        const recViewingM = p.pitch * 2;
+
+        // Spec-block
+        specsEl.innerHTML = [
+          specRow('Panelmodell', p.name, true),
+          specRow('Antal paneler', `${r.cols} × ${r.rows} = ${totalPanels} st`, true),
+          specRow('Faktisk storlek', `${fmtMm(r.actualW)} × ${fmtMm(r.actualH)}`, true),
+          specRow('Diagonal', `${Math.round(diagonalIn)}″ (${fmtMm(diagonalMm)})`),
+          specRow('Upplösning', `${pixelsW} × ${pixelsH} px`, true),
+          specRow('Total pixlar', `${(totalPixels / 1e6).toFixed(2).replace(/\.?0+$/, '')} MP`),
+          specRow('Vikt', `${totalKg.toFixed(1)} kg`),
+          specRow('Effekt typisk', `${(totalTypW / 1000).toFixed(2)} kW`),
+          specRow('Effekt max', `${(totalMaxW / 1000).toFixed(2)} kW`),
+          specRow('16A-kretsar', `${circuits16A} st`),
+          specRow('Min visningsavstånd', `~${minViewingM.toFixed(1)} m`),
+          specRow('Rekommenderat avstånd', `från ~${recViewingM.toFixed(1)} m`),
+        ].join('');
+
+        // Priser
+        const priceLines = [];
+        const panelCost = totalPanels * p.price;
+        priceLines.push({ label: `${p.name}`, value: panelCost, sub: `${totalPanels} × ${fmtKr(p.price)}`, key: 'panels' });
+
+        let processorObj = null;
+        if (inclProcessor.checked) {
+          processorObj = pickProcessor(totalPixels);
+          priceLines.push({ label: processorObj.name, value: processorObj.price_per_day_excl, sub: '', key: 'processor' });
+        }
+
+        let monteringCost = 0;
+        if (inclMontering.checked) {
+          monteringCost = TILL.montering.price_per_hour_excl * 8;
+          priceLines.push({ label: TILL.montering.name, value: monteringCost, sub: '8 tim', key: 'montering' });
+        }
+
+        const riggIncluded = inclRigg.checked;
+        if (riggIncluded) {
+          priceLines.push({ label: TILL.rigg.name, value: null, sub: 'offereras separat', key: 'rigg' });
+        }
+
+        priceRowsEl.innerHTML = priceLines.map(l =>
+          priceRow(l.label, l.value === null ? '<em style="color:rgba(255,255,255,0.5);">separat</em>' : fmtKr(l.value), l.sub)
+        ).join('');
+
+        const totalExclVal = panelCost + (processorObj ? processorObj.price_per_day_excl : 0) + monteringCost;
+        totalExcl.textContent = fmtKr(totalExclVal);
+        totalExcl.setAttribute('data-exkl', String(totalExclVal));
+        totalIncl.textContent = fmtKr(totalExclVal * 1.25);
+
+        // Om applyVat finns globalt, kör den så incl/excl-toggle uppdateras konsekvent
+        if (typeof window.applyVat === 'function') {
+          try { window.applyVat(); } catch(e) {}
+        }
+
+        // Preview-SVG
+        renderPreview(r.cols, r.rows, r.actualW, r.actualH);
+        previewCaption.textContent = `${r.cols} × ${r.rows} paneler · ${fmtMm(r.actualW)} × ${fmtMm(r.actualH)}`;
+
+        // Varningar
+        const warnings = [];
+        if (mode === 'meter' && r.targetW) {
+          const diffW = Math.abs(r.actualW - r.targetW);
+          const diffH = Math.abs(r.actualH - r.targetH);
+          if (diffW > 10 || diffH > 10) {
+            warnings.push(`Faktisk storlek avviker från önskad — paneler måste vara hela enheter. Justeringen blev ${Math.round(r.actualW - r.targetW)} mm bredd och ${Math.round(r.actualH - r.targetH)} mm höjd.`);
+          }
+        }
+        if (totalPanels > 400) {
+          warnings.push('Mycket stor vägg (>400 paneler) — rekommenderar att ni kontaktar oss för dimensionering av rigg, ström och processor.');
+        }
+        if (p.indoor === 'indoor' && mode === 'meter' && (+wM.value > 6 || +hM.value > 4)) {
+          warnings.push('Stor indoor-vägg — överväg outdoor-paneler om eventet är utomhus eller i starkt dagsljus.');
+        }
+        if (warnings.length) {
+          warningsEl.style.display = 'block';
+          warningsEl.innerHTML = warnings.map(w =>
+            `<div style="background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.25);border-radius:8px;padding:0.75rem 1rem;margin-top:0.5rem;color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.55;">
+              <strong style="color:#c4b5f4;">OBS:</strong> ${w}
+            </div>`
+          ).join('');
+        } else {
+          warningsEl.style.display = 'none';
+          warningsEl.innerHTML = '';
+        }
+
+        // Spara senaste kalkylation för varukorgs-åtgärder
+        lastCalc = {
+          panel: p,
+          cols: r.cols,
+          rows: r.rows,
+          totalPanels,
+          actualW: r.actualW,
+          actualH: r.actualH,
+          pixelsW,
+          pixelsH,
+          processor: processorObj,
+          monteringHours: inclMontering.checked ? 8 : 0,
+          riggIncluded,
+          totalExclVal,
+        };
+      }
+
+      function renderPreview(c, r, mmW, mmH) {
+        const vbW = 400;
+        const vbH = 300;
+        const pad = 20;
+        const availW = vbW - pad * 2;
+        const availH = vbH - pad * 2;
+        const scale = Math.min(availW / mmW, availH / mmH);
+        const drawW = mmW * scale;
+        const drawH = mmH * scale;
+        const offX = (vbW - drawW) / 2;
+        const offY = (vbH - drawH) / 2;
+
+        let rects = '';
+        const panelW = drawW / c;
+        const panelH = drawH / r;
+        for (let i = 0; i < c; i++) {
+          for (let j = 0; j < r; j++) {
+            rects += `<rect x="${offX + i * panelW}" y="${offY + j * panelH}" width="${panelW}" height="${panelH}" fill="#221f50" stroke="#c4b5f4" stroke-width="0.8" stroke-opacity="0.4"/>`;
+          }
+        }
+
+        const outerBorder = `<rect x="${offX}" y="${offY}" width="${drawW}" height="${drawH}" fill="none" stroke="#c4b5f4" stroke-width="2"/>`;
+
+        // Skala-etikett under
+        const scaleLabel = `<text x="${vbW / 2}" y="${vbH - 4}" text-anchor="middle" font-family="'Space Grotesk',sans-serif" font-size="10" fill="rgba(255,255,255,0.4)">${(mmW / 1000).toFixed(2).replace(/\.?0+$/, '')} m × ${(mmH / 1000).toFixed(2).replace(/\.?0+$/, '')} m</text>`;
+
+        preview.innerHTML = rects + outerBorder + scaleLabel;
+      }
+
+      // Mode-tab-byte
+      modeTabsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.led-mode-btn');
+        if (!btn) return;
+        mode = btn.dataset.mode;
+        modeTabsContainer.querySelectorAll('.led-mode-btn').forEach(b => {
+          const active = b === btn;
+          b.setAttribute('aria-selected', active ? 'true' : 'false');
+          b.classList.toggle('active', active);
+          b.style.background = active ? '#c4b5f4' : 'transparent';
+          b.style.color = active ? '#0c0a24' : '#f0eeff';
+        });
+        inputsRoot.querySelectorAll('[data-input]').forEach(el => {
+          el.style.display = el.dataset.input === mode ? 'grid' : 'none';
+        });
+        render();
+      });
+
+      // Input-förändringar
+      [panelSel, wM, hM, diag, ratio, cols, rows, inclRigg, inclMontering, inclProcessor].forEach(el => {
+        el.addEventListener('input', render);
+        el.addEventListener('change', render);
+      });
+
+      // Lägg i varukorg
+      addBtn.addEventListener('click', () => {
+        if (!lastCalc || !window.skCart || typeof window.skCart.add !== 'function') {
+          feedbackEl.textContent = 'Kunde inte lägga i varukorgen — ladda om sidan och försök igen.';
+          feedbackEl.style.color = '#ff9b9b';
+          return;
+        }
+
+        const c = lastCalc;
+        const panelDesc = `${c.cols}×${c.rows} = ${c.totalPanels} st · ${(c.actualW / 1000).toFixed(2).replace(/\.?0+$/, '')}×${(c.actualH / 1000).toFixed(2).replace(/\.?0+$/, '')} m · ${c.pixelsW}×${c.pixelsH} px`;
+
+        // Panel-rad (qty = antal paneler)
+        window.skCart.add({
+          id: c.panel.artno + '__' + c.cols + 'x' + c.rows,
+          artno: c.panel.artno,
+          name: c.panel.name + ' — ' + panelDesc,
+          price: c.panel.price,
+          priceNote: '/dygn',
+          category: 'LED-vägg',
+          image: c.panel.image,
+          bulky: true,
+          qty: c.totalPanels,
+        });
+
+        // Processor
+        if (c.processor) {
+          window.skCart.add({
+            id: c.processor.artno,
+            artno: c.processor.artno,
+            name: c.processor.name,
+            price: c.processor.price_per_day_excl,
+            priceNote: '/dygn',
+            category: 'LED-vägg',
+            bulky: false,
+            qty: 1,
+          });
+        }
+
+        // Tekniker (som timmar — kan justeras i varukorgen)
+        if (c.monteringHours > 0) {
+          window.skCart.add({
+            id: TILL.montering.artno,
+            artno: TILL.montering.artno,
+            name: TILL.montering.name + ' (LED-vägg, ' + c.monteringHours + ' tim)',
+            price: TILL.montering.price_per_hour_excl,
+            priceNote: '/tim',
+            category: 'Tjänster',
+            bulky: false,
+            qty: c.monteringHours,
+          });
+        }
+
+        // Rigg — läggs som offerteras-separat-rad, pris 0
+        if (c.riggIncluded) {
+          window.skCart.add({
+            id: TILL.rigg.artno,
+            artno: TILL.rigg.artno,
+            name: TILL.rigg.name + ' (offereras separat)',
+            price: 0,
+            priceNote: '',
+            category: 'LED-vägg',
+            bulky: true,
+            qty: 1,
+          });
+        }
+
+        feedbackEl.textContent = '✓ Lagt i varukorgen — öppna varukorgen för att gå vidare till offert.';
+        feedbackEl.style.color = '#8fd694';
+
+        // Dölj feedback efter 5 sek
+        setTimeout(() => { feedbackEl.textContent = ''; }, 5000);
+      });
+
+      // Initial render
+      render();
+    })();
+  </script>
+
+  <style is:global>
+    .led-mode-btn.active {
+      background: #c4b5f4 !important;
+      color: #0c0a24 !important;
+    }
+    #led-calc details summary::-webkit-details-marker { display: none; }
+    #led-calc details[open] summary { color: #c4b5f4; }
+    @media (max-width: 640px) {
+      #led-result-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+</Layout>
