@@ -625,29 +625,56 @@ const faqSchema = {
         const wallHm = (wallMmH / 1000).toFixed(2).replace(/\.?0+$/, '');
         parts.push(`<text x="${measureX - 5}" y="${wallTopY + sWallH / 2 + 3}" text-anchor="end" font-family="'Space Grotesk',sans-serif" font-size="8" fill="rgba(196,181,244,0.9)">${wallHm} m</text>`);
 
-        // Person — stiliserad siluett, 1.80 m
-        // Proportioner: huvud = 1/7 av totalhöjd, bål = 3/7, ben = 3/7
+        // Person — stiliserad siluett, 1,80 m. Realistiska proportioner:
+        //   - Huvud (kronan till haka): ~23 cm = pH * 0.127
+        //   - Axelbredd: ~46 cm = pH * 0.256
+        //   - Höftbredd: ~38 cm = pH * 0.211
+        //   - Benlängd (från höft till mark): ~90 cm = pH * 0.5
+        //   - Midja-höjd från marken: ~108 cm = pH * 0.6
+        // Alla mått skalas med samma `scale` som resten av scenen.
         const pH = sPersonH;
-        const pHeadR = pH / 14;
+        const headH = pH * 0.127;              // huvudhöjd i SVG-enheter
+        const headR = headH / 2;                // huvudradie
+        const shoulderW = pH * 0.256;
+        const hipW = pH * 0.211;
+        const shoulderToHipH = pH * 0.273;      // ~49 cm
+        const legH = pH * 0.5;                  // ~90 cm
+        const neckH = pH * 0.04;
         const pHeadCx = personX;
-        const pHeadCy = personTopY + pHeadR;
-        const pBodyTopY = pHeadCy + pHeadR;
-        const pBodyBottomY = personTopY + pH * 0.55;
-        const pLegBottomY = aboveStageFloorY;
-        const pBodyW = pH * 0.16;
+        const pHeadCy = personTopY + headR;
+        const pShoulderY = personTopY + headH + neckH;
+        const pHipY = pShoulderY + shoulderToHipH;
+        const pFootY = aboveStageFloorY;
 
         // Huvud
-        parts.push(`<circle cx="${pHeadCx}" cy="${pHeadCy}" r="${pHeadR}" fill="rgba(255,255,255,0.85)"/>`);
-        // Bål (rundad rektangel)
-        parts.push(`<path d="M ${pHeadCx - pBodyW / 2} ${pBodyTopY} Q ${pHeadCx} ${pBodyTopY - pBodyW * 0.2} ${pHeadCx + pBodyW / 2} ${pBodyTopY} L ${pHeadCx + pBodyW / 2} ${pBodyBottomY} L ${pHeadCx - pBodyW / 2} ${pBodyBottomY} Z" fill="rgba(255,255,255,0.85)"/>`);
-        // Ben (två rektanglar med liten delning)
-        const legW = pBodyW * 0.38;
-        const legGap = pBodyW * 0.08;
-        parts.push(`<rect x="${pHeadCx - legW - legGap / 2}" y="${pBodyBottomY}" width="${legW}" height="${pLegBottomY - pBodyBottomY}" fill="rgba(255,255,255,0.85)"/>`);
-        parts.push(`<rect x="${pHeadCx + legGap / 2}" y="${pBodyBottomY}" width="${legW}" height="${pLegBottomY - pBodyBottomY}" fill="rgba(255,255,255,0.85)"/>`);
+        parts.push(`<circle cx="${pHeadCx}" cy="${pHeadCy}" r="${headR}" fill="rgba(255,255,255,0.9)"/>`);
+
+        // Hals + bål (axlar bredare än höft, rundade axlar)
+        const sL = pHeadCx - shoulderW / 2;
+        const sR = pHeadCx + shoulderW / 2;
+        const hL = pHeadCx - hipW / 2;
+        const hR = pHeadCx + hipW / 2;
+        const neckL = pHeadCx - headR * 0.35;
+        const neckR = pHeadCx + headR * 0.35;
+        const shoulderCurve = shoulderW * 0.15;  // hur rundade axlarna är
+        parts.push(`<path d="M ${neckL} ${pShoulderY - neckH}
+          L ${neckL} ${pShoulderY}
+          Q ${sL - shoulderCurve * 0.3} ${pShoulderY + shoulderCurve * 0.2} ${sL} ${pShoulderY + shoulderCurve}
+          L ${hL} ${pHipY}
+          L ${hR} ${pHipY}
+          L ${sR} ${pShoulderY + shoulderCurve}
+          Q ${sR + shoulderCurve * 0.3} ${pShoulderY + shoulderCurve * 0.2} ${neckR} ${pShoulderY}
+          L ${neckR} ${pShoulderY - neckH}
+          Z" fill="rgba(255,255,255,0.9)"/>`);
+
+        // Ben — två smala rektanglar med liten delning i mitten
+        const legEach = hipW * 0.44;
+        const legGap = hipW * 0.12;
+        parts.push(`<rect x="${pHeadCx - legEach - legGap / 2}" y="${pHipY}" width="${legEach}" height="${pFootY - pHipY}" fill="rgba(255,255,255,0.9)" rx="${legEach * 0.15}"/>`);
+        parts.push(`<rect x="${pHeadCx + legGap / 2}" y="${pHipY}" width="${legEach}" height="${pFootY - pHipY}" fill="rgba(255,255,255,0.9)" rx="${legEach * 0.15}"/>`);
 
         // Måttband vid person
-        const pMx = personX + pBodyW * 0.7 + 6;
+        const pMx = personX + shoulderW / 2 + 6;
         parts.push(`<line x1="${pMx}" y1="${personTopY}" x2="${pMx}" y2="${aboveStageFloorY}" stroke="rgba(255,255,255,0.6)" stroke-width="0.6"/>`);
         parts.push(`<line x1="${pMx - 3}" y1="${personTopY}" x2="${pMx + 3}" y2="${personTopY}" stroke="rgba(255,255,255,0.6)" stroke-width="0.6"/>`);
         parts.push(`<line x1="${pMx - 3}" y1="${aboveStageFloorY}" x2="${pMx + 3}" y2="${aboveStageFloorY}" stroke="rgba(255,255,255,0.6)" stroke-width="0.6"/>`);
