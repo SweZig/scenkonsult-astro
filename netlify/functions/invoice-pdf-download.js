@@ -252,7 +252,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
         ['1. Hyresperiod',
          'Normal hyresperiod är 22 timmar — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Längre hyresperioder mot tillägg. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
         ['2. Bokning och betalning',
-         'Bokning är bindande, bekräftas skriftligen. Bokningar inom 72 timmar kräver förskottsbetalning. Vid fakturabetalning tillkommer en fakturaavgift. Dröjsmålsränta debiteras vid sen betalning (referensränta + 8 %).'],
+         'Bokning är bindande, bekräftas skriftligen. Bokningar inom 72 timmar kräver förskottsbetalning. En bokningsavgift om 49 kr (exkl. moms) tillkommer för att täcka betalnings- och administrativa kostnader. Dröjsmålsränta debiteras vid sen betalning (referensränta + 8 %).'],
         ['3. Avbokning och ändring',
          'Mer än 7 dagar före: Kostnadsfritt. 3–7 dagar: 50 % återbetalas. Färre än 3 dagar: Ingen återbetalning. Byte av datum/utrustning är kostnadsfritt om tillgängligt. DJ-bokningar: mer än 60 dagar gratis; 30–60 dagar 50 %; färre än 30 dagar fullt pris. Avbokning ska göras skriftligen.'],
         ['4. Ansvar och försäkring',

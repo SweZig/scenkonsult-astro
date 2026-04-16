@@ -176,7 +176,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
       <div class="summ-row" id="rowLeverans" style="display:none"><span>Leverans</span><span id="summLeverans">–</span></div>
       <div class="summ-row" id="rowMontering" style="display:none"><span>Montering & demontering</span><span id="summMontering">–</span></div>
       <div id="rowsTillagg"></div>
-      <div class="summ-row muted"><span>Fakturaavgift</span><span>49 kr</span></div>
+      <div class="summ-row muted"><span>Bokningsavgift</span><span>49 kr</span></div>
       <div class="summ-row muted"><span>Moms 25%</span><span id="cartVat">–</span></div>
       <div class="summ-row total"><span>Totalt (inkl. moms)</span><span id="cartTotal">–</span></div>
       <p class="summ-note">* Priser avser hyra per dygn (22 h). Slutlig faktura bekräftas vid bokning.</p>
@@ -1274,7 +1274,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
       const qty  = chk.dataset.qty === 'true' ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent||1) : 1;
       submitItems.push({ id: chk.dataset.id, name: chk.dataset.label, price: pris, qty, category: 'Tillägg' });
     });
-    submitItems.push({ id: 'fakturaavgift-49', name: 'Fakturaavgift', price: 49, qty: 1, category: 'Tjänster' });
+    submitItems.push({ id: 'fakturaavgift-49', name: 'Bokningsavgift', price: 49, qty: 1, category: 'Tjänster' });
 
     // cart = originalvarukorgen (enbart produkter, påverkar INTE localStorage)
     return { cart, submitItems, subtotal, extras, extraLines, vat, total: subtotal + extras + 49 + vat, customer };

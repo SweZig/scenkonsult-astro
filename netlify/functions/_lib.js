@@ -243,7 +243,7 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   </tr>`;
   if (prodItems.length) { html += subHdr('Utrustning') + prodItems.map(mkRow).join('') + noteRow; }
   if (svcItems.length)  { html += subHdr('Tilläggstjänster') + svcItems.map(mkRow).join(''); }
-  if (feeItem)           { html += subHdr('Fakturaavgift') + mkRow(feeItem); }
+  if (feeItem)           { html += subHdr('Bokningsavgift') + mkRow(feeItem); }
   html += `<tr style="background:#f7f7fb;">
     <td colspan="2" style="padding:8px 10px;color:#555;font-size:12px;border-top:1px solid #e0e0e8;">Summa exkl. moms</td>
     <td style="padding:8px 10px;text-align:right;color:#444;font-size:12px;border-top:1px solid #e0e0e8;">${fmtN(grandExcl)} kr</td>
