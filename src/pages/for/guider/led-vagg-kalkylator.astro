@@ -148,9 +148,26 @@ const faqSchema = {
 
           <!-- Visuell preview -->
           <div>
-            <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 0.6rem;">Preview — skalenlig</p>
-            <div style="background:#0c0a24;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;display:flex;align-items:center;justify-content:center;min-height:220px;">
-              <svg id="led-preview" viewBox="0 0 400 300" style="width:100%;height:auto;max-height:300px;display:block;" xmlns="http://www.w3.org/2000/svg"></svg>
+            <!-- Main-tabs: visuell vs teknisk -->
+            <div id="led-view-tabs" role="tablist" style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;background:#221f50;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.25rem;margin-bottom:0.75rem;">
+              <button type="button" role="tab" aria-selected="true" data-view="visual" class="led-view-btn active" style="padding:0.5rem 0.5rem;font-size:0.75rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:#c4b5f4;color:#0c0a24;border:none;border-radius:6px;cursor:pointer;">Visuell vy</button>
+              <button type="button" role="tab" aria-selected="false" data-view="technical" class="led-view-btn" style="padding:0.5rem 0.5rem;font-size:0.75rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:transparent;color:#f0eeff;border:none;border-radius:6px;cursor:pointer;">Teknisk (pixel-grid)</button>
+            </div>
+
+            <!-- Toggles för visuella vyn (scen/golv, publik) -->
+            <div id="led-visual-opts" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.75);">
+              <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+                <input id="led-opt-stage" type="checkbox" checked style="width:15px;height:15px;accent-color:#c4b5f4;cursor:pointer;" />
+                <span>Scen</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+                <input id="led-opt-audience" type="checkbox" style="width:15px;height:15px;accent-color:#c4b5f4;cursor:pointer;" />
+                <span>Publik framför</span>
+              </label>
+            </div>
+
+            <div style="background:#0c0a24;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;display:flex;align-items:center;justify-content:center;min-height:240px;">
+              <svg id="led-preview" viewBox="0 0 400 300" style="width:100%;height:auto;max-height:320px;display:block;" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
             </div>
             <p id="led-preview-caption" style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin:0.5rem 0 0;text-align:center;"></p>
           </div>
@@ -242,7 +259,15 @@ const faqSchema = {
       const inclProcessor = $('led-incl-processor');
 
       let mode = 'meter';
+      let view = 'visual';        // 'visual' | 'technical'
+      let showStage = true;
+      let showAudience = false;
       let lastCalc = null;
+
+      const viewTabs = $('led-view-tabs');
+      const visualOpts = $('led-visual-opts');
+      const optStage = $('led-opt-stage');
+      const optAudience = $('led-opt-audience');
 
       function getPanel() {
         const opt = panelSel.options[panelSel.selectedIndex];
@@ -389,9 +414,15 @@ const faqSchema = {
           try { window.applyVat(); } catch(e) {}
         }
 
-        // Preview-SVG
-        renderPreview(r.cols, r.rows, r.actualW, r.actualH);
-        previewCaption.textContent = `${r.cols} × ${r.rows} paneler · ${fmtMm(r.actualW)} × ${fmtMm(r.actualH)}`;
+        // Preview-SVG — teknisk eller visuell baserat på view-state
+        if (view === 'technical') {
+          renderPreview(r.cols, r.rows, r.actualW, r.actualH);
+          previewCaption.textContent = `${r.cols} × ${r.rows} paneler · ${fmtMm(r.actualW)} × ${fmtMm(r.actualH)}`;
+        } else {
+          renderVisualPreview(r.actualW, r.actualH, showStage, showAudience);
+          const scaleHint = showStage ? 'scen 1 m hög · person 1,80 m' : 'person 1,80 m för skala';
+          previewCaption.textContent = `${fmtMm(r.actualW)} × ${fmtMm(r.actualH)} · ${scaleHint}`;
+        }
 
         // Varningar
         const warnings = [];
@@ -466,6 +497,173 @@ const faqSchema = {
         preview.innerHTML = rects + outerBorder + scaleLabel;
       }
 
+      // Visuell preview: scen + LED-vägg + person (180 cm), valfritt publik
+      function renderVisualPreview(wallMmW, wallMmH, withStage, withAudience) {
+        // Verklig-till-SVG-skala beräknas så att scen + vägg + person får plats.
+        // Världsenhet: mm. SVG viewBox: 400 × 300.
+        const vbW = 400;
+        const vbH = 300;
+        const padTop = 15;
+        const padSide = 25;
+        const padBottomBase = 20;
+        const audienceHeightMm = withAudience ? 1700 : 0;  // publik tar plats framför
+        const audiencePadMm = withAudience ? 200 : 0;       // luft mellan publik och scen
+        const stageHeightMm = withStage ? 1000 : 0;         // 1 m hög scen
+        const personHeightMm = 1800;                        // referensperson
+
+        // Total verklig höjd som ska få plats (mm): publik (om på) → scen → vägg (+ person står PÅ scenen bredvid väggen)
+        // Person-höjd kan vara högre än vägg om väggen är låg, så jag tar max(väggH, personH) ovanför scenen.
+        const topContentMm = Math.max(wallMmH, personHeightMm);
+        const worldH = audienceHeightMm + audiencePadMm + stageHeightMm + topContentMm;
+
+        // Bredd: vägg + utrymme för person bredvid (ca 0.8 m) + marginaler
+        const personSlotMm = 800;
+        const worldW = wallMmW + personSlotMm + 400;  // 400 mm total luft
+
+        // Skala så att världen får plats i SVG-ytan
+        const availW = vbW - padSide * 2;
+        const availH = vbH - padTop - padBottomBase;
+        const scale = Math.min(availW / worldW, availH / worldH);
+
+        // Skalade mått
+        const sWallW = wallMmW * scale;
+        const sWallH = wallMmH * scale;
+        const sStageH = stageHeightMm * scale;
+        const sPersonH = personHeightMm * scale;
+        const sAudH = audienceHeightMm * scale;
+        const sAudPad = audiencePadMm * scale;
+        const sPersonSlot = personSlotMm * scale;
+
+        // Total ritad höjd & centrering
+        const drawnH = sAudH + sAudPad + sStageH + Math.max(sWallH, sPersonH);
+        const drawnW = sWallW + sPersonSlot + 80 * scale;
+        const worldOriginX = (vbW - drawnW) / 2;
+        const groundY = padTop + (availH - drawnH) / 2 + drawnH;  // nederkant på scenens golv
+
+        // Y-koordinater (SVG Y växer neråt)
+        const audienceTopY = groundY - sAudH;
+        const audienceBottomY = groundY;
+        const stageTopY = groundY - sAudH - sAudPad - sStageH;
+        const stageBottomY = stageTopY + sStageH;
+        const aboveStageFloorY = stageTopY;  // där person och vägg står
+        const wallTopY = aboveStageFloorY - sWallH;
+        const personTopY = aboveStageFloorY - sPersonH;
+
+        // X-koordinater: vägg till vänster, person bredvid till höger
+        const wallLeftX = worldOriginX + 40 * scale;
+        const wallRightX = wallLeftX + sWallW;
+        const personX = wallRightX + (sPersonSlot * 0.5);
+
+        const parts = [];
+
+        // Bakgrundsglöd från LED-väggen (subtil lavendel-aura)
+        const glowR = Math.max(sWallW, sWallH) * 0.9;
+        parts.push(`<defs>
+          <radialGradient id="ledGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#c4b5f4" stop-opacity="0.18"/>
+            <stop offset="70%" stop-color="#c4b5f4" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#c4b5f4" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="ledScreen" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a2470"/>
+            <stop offset="100%" stop-color="#1a1540"/>
+          </linearGradient>
+          <linearGradient id="stageGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a2470"/>
+            <stop offset="100%" stop-color="#151040"/>
+          </linearGradient>
+        </defs>`);
+
+        // Glow bakom väggen
+        const wallCx = wallLeftX + sWallW / 2;
+        const wallCy = wallTopY + sWallH / 2;
+        parts.push(`<ellipse cx="${wallCx}" cy="${wallCy}" rx="${glowR}" ry="${glowR * 0.7}" fill="url(#ledGlow)"/>`);
+
+        // Scen (trapetsoid för lite perspektiv) — bara om toggle
+        if (withStage) {
+          const stageInset = Math.min(sStageH * 0.4, 15);  // lite perspektiv
+          parts.push(`<polygon points="${worldOriginX + stageInset},${stageTopY} ${worldOriginX + drawnW - stageInset},${stageTopY} ${worldOriginX + drawnW},${stageBottomY} ${worldOriginX},${stageBottomY}" fill="url(#stageGrad)" stroke="rgba(196,181,244,0.3)" stroke-width="0.8"/>`);
+          // Scenkant-linje ovanpå
+          parts.push(`<line x1="${worldOriginX + stageInset}" y1="${stageTopY}" x2="${worldOriginX + drawnW - stageInset}" y2="${stageTopY}" stroke="#c4b5f4" stroke-width="0.8" stroke-opacity="0.5"/>`);
+        } else {
+          // Platt golv istället — tunn linje
+          parts.push(`<line x1="${worldOriginX}" y1="${groundY}" x2="${worldOriginX + drawnW}" y2="${groundY}" stroke="rgba(196,181,244,0.25)" stroke-width="1"/>`);
+        }
+
+        // Publik — enkla huvud-siluetter
+        if (withAudience) {
+          const audienceCount = 9;
+          const audienceAreaW = drawnW;
+          const headR = Math.min(sAudH * 0.18, 6);
+          for (let i = 0; i < audienceCount; i++) {
+            const ax = worldOriginX + (audienceAreaW / (audienceCount + 1)) * (i + 1);
+            const depthJitter = (i % 3) * (sAudH * 0.12);
+            const ay = audienceBottomY - sAudH * 0.55 + depthJitter;
+            // Huvud
+            parts.push(`<circle cx="${ax}" cy="${ay}" r="${headR}" fill="rgba(255,255,255,0.35)"/>`);
+            // Axlar/kropp
+            parts.push(`<path d="M ${ax - headR * 1.3} ${audienceBottomY} Q ${ax} ${ay + headR * 1.3} ${ax + headR * 1.3} ${audienceBottomY} Z" fill="rgba(255,255,255,0.22)"/>`);
+          }
+        }
+
+        // LED-vägg — ram + skärmyta + subtil innehåll
+        parts.push(`<rect x="${wallLeftX}" y="${wallTopY}" width="${sWallW}" height="${sWallH}" fill="url(#ledScreen)" stroke="#c4b5f4" stroke-width="1.5"/>`);
+
+        // "Innehåll" i skärmen — abstrakta diagonaler för att antyda bild
+        const clipId = 'ledClip' + Date.now();
+        parts.push(`<defs><clipPath id="${clipId}"><rect x="${wallLeftX}" y="${wallTopY}" width="${sWallW}" height="${sWallH}"/></clipPath></defs>`);
+        parts.push(`<g clip-path="url(#${clipId})" opacity="0.5">
+          <circle cx="${wallLeftX + sWallW * 0.35}" cy="${wallTopY + sWallH * 0.4}" r="${Math.min(sWallW, sWallH) * 0.25}" fill="#c4b5f4" opacity="0.25"/>
+          <circle cx="${wallLeftX + sWallW * 0.7}" cy="${wallTopY + sWallH * 0.6}" r="${Math.min(sWallW, sWallH) * 0.18}" fill="#e2dcfb" opacity="0.18"/>
+        </g>`);
+
+        // Måttband vid väggen — höjdangivelse
+        const measureX = wallLeftX - 8;
+        parts.push(`<line x1="${measureX}" y1="${wallTopY}" x2="${measureX}" y2="${aboveStageFloorY}" stroke="#c4b5f4" stroke-width="0.6" stroke-opacity="0.6"/>`);
+        parts.push(`<line x1="${measureX - 3}" y1="${wallTopY}" x2="${measureX + 3}" y2="${wallTopY}" stroke="#c4b5f4" stroke-width="0.6" stroke-opacity="0.6"/>`);
+        parts.push(`<line x1="${measureX - 3}" y1="${aboveStageFloorY}" x2="${measureX + 3}" y2="${aboveStageFloorY}" stroke="#c4b5f4" stroke-width="0.6" stroke-opacity="0.6"/>`);
+        const wallHm = (wallMmH / 1000).toFixed(2).replace(/\.?0+$/, '');
+        parts.push(`<text x="${measureX - 5}" y="${wallTopY + sWallH / 2 + 3}" text-anchor="end" font-family="'Space Grotesk',sans-serif" font-size="8" fill="rgba(196,181,244,0.9)">${wallHm} m</text>`);
+
+        // Person — stiliserad siluett, 1.80 m
+        // Proportioner: huvud = 1/7 av totalhöjd, bål = 3/7, ben = 3/7
+        const pH = sPersonH;
+        const pHeadR = pH / 14;
+        const pHeadCx = personX;
+        const pHeadCy = personTopY + pHeadR;
+        const pBodyTopY = pHeadCy + pHeadR;
+        const pBodyBottomY = personTopY + pH * 0.55;
+        const pLegBottomY = aboveStageFloorY;
+        const pBodyW = pH * 0.16;
+
+        // Huvud
+        parts.push(`<circle cx="${pHeadCx}" cy="${pHeadCy}" r="${pHeadR}" fill="rgba(255,255,255,0.85)"/>`);
+        // Bål (rundad rektangel)
+        parts.push(`<path d="M ${pHeadCx - pBodyW / 2} ${pBodyTopY} Q ${pHeadCx} ${pBodyTopY - pBodyW * 0.2} ${pHeadCx + pBodyW / 2} ${pBodyTopY} L ${pHeadCx + pBodyW / 2} ${pBodyBottomY} L ${pHeadCx - pBodyW / 2} ${pBodyBottomY} Z" fill="rgba(255,255,255,0.85)"/>`);
+        // Ben (två rektanglar med liten delning)
+        const legW = pBodyW * 0.38;
+        const legGap = pBodyW * 0.08;
+        parts.push(`<rect x="${pHeadCx - legW - legGap / 2}" y="${pBodyBottomY}" width="${legW}" height="${pLegBottomY - pBodyBottomY}" fill="rgba(255,255,255,0.85)"/>`);
+        parts.push(`<rect x="${pHeadCx + legGap / 2}" y="${pBodyBottomY}" width="${legW}" height="${pLegBottomY - pBodyBottomY}" fill="rgba(255,255,255,0.85)"/>`);
+
+        // Måttband vid person
+        const pMx = personX + pBodyW * 0.7 + 6;
+        parts.push(`<line x1="${pMx}" y1="${personTopY}" x2="${pMx}" y2="${aboveStageFloorY}" stroke="rgba(255,255,255,0.6)" stroke-width="0.6"/>`);
+        parts.push(`<line x1="${pMx - 3}" y1="${personTopY}" x2="${pMx + 3}" y2="${personTopY}" stroke="rgba(255,255,255,0.6)" stroke-width="0.6"/>`);
+        parts.push(`<line x1="${pMx - 3}" y1="${aboveStageFloorY}" x2="${pMx + 3}" y2="${aboveStageFloorY}" stroke="rgba(255,255,255,0.6)" stroke-width="0.6"/>`);
+        parts.push(`<text x="${pMx + 5}" y="${personTopY + sPersonH / 2 + 3}" text-anchor="start" font-family="'Space Grotesk',sans-serif" font-size="8" fill="rgba(255,255,255,0.75)">1,80 m</text>`);
+
+        // Breddmått under väggen
+        const wMy = groundY + 8;
+        parts.push(`<line x1="${wallLeftX}" y1="${wMy}" x2="${wallRightX}" y2="${wMy}" stroke="rgba(196,181,244,0.5)" stroke-width="0.6"/>`);
+        parts.push(`<line x1="${wallLeftX}" y1="${wMy - 3}" x2="${wallLeftX}" y2="${wMy + 3}" stroke="rgba(196,181,244,0.5)" stroke-width="0.6"/>`);
+        parts.push(`<line x1="${wallRightX}" y1="${wMy - 3}" x2="${wallRightX}" y2="${wMy + 3}" stroke="rgba(196,181,244,0.5)" stroke-width="0.6"/>`);
+        const wallWm = (wallMmW / 1000).toFixed(2).replace(/\.?0+$/, '');
+        parts.push(`<text x="${(wallLeftX + wallRightX) / 2}" y="${wMy + 10}" text-anchor="middle" font-family="'Space Grotesk',sans-serif" font-size="8" fill="rgba(196,181,244,0.9)">${wallWm} m</text>`);
+
+        preview.innerHTML = parts.join('');
+      }
+
       // Mode-tab-byte
       modeTabsContainer.addEventListener('click', (e) => {
         const btn = e.target.closest('.led-mode-btn');
@@ -483,6 +681,26 @@ const faqSchema = {
         });
         render();
       });
+
+      // View-tab-byte (visual <-> technical)
+      viewTabs.addEventListener('click', (e) => {
+        const btn = e.target.closest('.led-view-btn');
+        if (!btn) return;
+        view = btn.dataset.view;
+        viewTabs.querySelectorAll('.led-view-btn').forEach(b => {
+          const active = b === btn;
+          b.setAttribute('aria-selected', active ? 'true' : 'false');
+          b.classList.toggle('active', active);
+          b.style.background = active ? '#c4b5f4' : 'transparent';
+          b.style.color = active ? '#0c0a24' : '#f0eeff';
+        });
+        visualOpts.style.display = view === 'visual' ? 'flex' : 'none';
+        render();
+      });
+
+      // Visuella toggles
+      optStage.addEventListener('change', () => { showStage = optStage.checked; render(); });
+      optAudience.addEventListener('change', () => { showAudience = optAudience.checked; render(); });
 
       // Input-förändringar
       [panelSel, wM, hM, diag, ratio, cols, rows, inclRigg, inclMontering, inclProcessor].forEach(el => {
@@ -569,7 +787,8 @@ const faqSchema = {
   </script>
 
   <style is:global>
-    .led-mode-btn.active {
+    .led-mode-btn.active,
+    .led-view-btn.active {
       background: #c4b5f4 !important;
       color: #0c0a24 !important;
     }
