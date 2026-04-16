@@ -21,8 +21,19 @@ function volRowsRok(artno: string) {
 const forbr = ljusData.rok.tillbehor.filter(t =>
   !t.slug?.startsWith('ackrylatbensin')
 );
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": ljusData.rok.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyr Rökmaskin & Kallgnistmaskin Stockholm – Granulat & Rökvätska | Scenkonsult"
   description="Hyr rökmaskin, kallgnistmaskin, hazer och konfettiavfyrare i Stockholm. Rökmaskin fr 349 kr/dygn. Rökvätska, granulat och ackrylatbensin. Leverans i hela Storstockholm."
 >

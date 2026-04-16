@@ -41,8 +41,19 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
     .filter((p:any) => p.artno)
     .map((p:any) => [p.name, p.artno])
 )};
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": _ljudData.music.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyra Musikljud Stockholm – DJ-system med Sub-basar | Scenkonsult"
   description="Hyr musikljud och DJ-system i Stockholm från 999 kr/dygn. Kraftfulla sub-basar och fullrange för dansgolv med 20–1 500 gäster. Leverans i hela Storstockholm."
 >

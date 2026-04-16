@@ -4,8 +4,19 @@ import CategoryHero from '../../../components/CategoryHero.astro';
 import CartButton from '../../../components/CartButton.astro';
 import MediaCard from '../../../components/MediaCard.astro';
 import dj from '../../../data/dj.json';
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": dj.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title={dj.metaTitle}
   description={dj.metaDescription}
 >

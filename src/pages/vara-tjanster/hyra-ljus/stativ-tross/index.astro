@@ -5,8 +5,19 @@ import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import ljusData from '../../../../data/ljus.json';
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": ljusData.stativ.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyr Ljusstativ & Trosstorn Stockholm – T-bar, Tross & Traverser | Scenkonsult"
   description="Hyr ljusstativ med T-bar, vevstativ, trosstorn och trossryggar i Stockholm. Stativ fr 40 kr/dygn, trossbåge fr 1500 kr/dygn. Leverans i hela Storstockholm."
 >

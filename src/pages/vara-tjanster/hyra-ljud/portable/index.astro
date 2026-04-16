@@ -46,8 +46,19 @@ const _upgPrices: Record<string,number> = Object.fromEntries(
     .filter((p:any) => p.artno?.startsWith('SK-LJD-UPG'))
     .map((p:any) => [p.artno, p.price])
 );
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": _ljudData.portable.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyra Portabelt Ljud Stockholm – Batteridrivet PA-system | Scenkonsult"
   description="Hyr portabelt batteridrivet ljud i Stockholm från 599 kr/dygn. Kompakta kolumnsystem perfekta för utomhus, studentflak och event utan strömkälla. Leverans i hela Storstockholm."
 >

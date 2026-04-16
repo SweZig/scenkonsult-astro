@@ -131,8 +131,19 @@ const paket = [
     bullets: ['8 armaturer – varmvitt eller färgat ljus på stativ','56×4W LED WW/RGB per armatur','DMX-styrenhet inkluderad','Montering: 20–30 min, vikt: 40 kg'],
   },
 ];
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": ljusData.paket.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyra Färdiga Ljuspaket Stockholm – Small till XL+ | Scenkonsult"
   description="Hyr färdiga ljuspaket i Stockholm från 399 kr/dygn. Small till XL+ – 12 paket för 10–250 personer. LED PAR, Moving Heads, Strobe, Laser. Leverans Storstockholm."
 >

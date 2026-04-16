@@ -38,7 +38,20 @@ const pageSchema = {
 <Layout
   title={scenData.metaTitle}
   description={scenData.metaDescription}
-  schemaExtra={pageSchema}
+  schemaExtra={{
+    "@context": "https://schema.org",
+    "@graph": [
+      pageSchema,
+      {
+        "@type": "FAQPage",
+        "mainEntity": scenData.faq.map((f: {q:string,a:string}) => ({
+          "@type": "Question",
+          "name": f.q,
+          "acceptedAnswer": { "@type": "Answer", "text": f.a }
+        }))
+      }
+    ]
+  }}
 >
 
   <CategoryHero

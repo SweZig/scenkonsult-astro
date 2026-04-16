@@ -5,8 +5,19 @@ import ProductCard from '../../../components/ProductCard.astro';
 import CartButton from '../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import bildData from '../../../data/bild.json';
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": bildData.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyr Projektor & Storbildsskärm Stockholm – LED-vägg & Trailerscen | Scenkonsult"
   description="Hyr projektor, storbildsskärm, LED-vägg och trailerscen för event och konferenser i Stockholm. Projektor fr 299 kr/dygn. Leverans i hela Storstockholm."
 >

@@ -41,8 +41,19 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
     .filter((p:any) => p.artno)
     .map((p:any) => [p.name, p.artno])
 )};
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": _ljudData.event.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyra PA-system för Event & Konferens Stockholm | Scenkonsult"
   description="Hyr PA-system för konferenser, galor och presentationer i Stockholm från 799 kr/dygn. Plug & play med fullrange högtalarenheter på stativ – ingen tekniker krävs. Leverans i hela Storstockholm."
 >

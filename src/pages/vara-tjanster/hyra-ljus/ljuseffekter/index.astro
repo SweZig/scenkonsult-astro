@@ -39,8 +39,19 @@ function toCard(p: Effekt) {
 const ledPar      = allEffekter.filter(p => p.group === 'led-par').map(toCard);
 const specialEffekter = allEffekter.filter(p => p.group === 'special').map(toCard);
 const movingHeads = allEffekter.filter(p => p.group === 'moving-head').map(toCard);
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": ljusData.effekter.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyr Lösa Ljuseffekter Stockholm – LED PAR, Moving Heads & Laser | Scenkonsult"
   description="Hyr lösa ljuseffekter i Stockholm från 79 kr/dygn. LED PAR, Moving Head, Scanner, Strobe, Laser, LED Bar. Volympriser. Leverans i hela Storstockholm."
 >

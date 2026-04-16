@@ -41,8 +41,19 @@ const artnoByName: Record<string,string> = {..._artnoAliases, ...Object.fromEntr
     .filter((p:any) => p.artno)
     .map((p:any) => [p.name, p.artno])
 )};
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": _ljudData.live.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
 ---
 <Layout
+  schemaExtra={faqSchema}
   title="Hyra Liveljud Stockholm – PA-system för Konsert & Trubadur | Scenkonsult"
   description="Hyr liveljud för konserter, trubadurer och liveband i Stockholm från 599 kr/dygn. Sub-basar och fullrange paket för 20–1 500 personer. Leverans i hela Storstockholm."
 >
