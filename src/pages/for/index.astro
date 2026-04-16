@@ -59,9 +59,25 @@ const schema = {
     }
   }))
 };
+const forSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kan man hyra för ett event i Stockholm?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Scenkonsult hyr ut scen (4–48 m²), PA-system (20–1 500 pers.), ljuspaket, projektorer, LED-skärmar och professionella DJs. Vi levererar och monterar i hela Storstockholm." } },
+    { "@type": "Question", "name": "Kan ni hjälpa till med ett komplett event-upplägg?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi sätter ihop kompletta paket med scen, ljud, ljus och DJ anpassade för ert event. En kontaktperson, ett avtal. Kontakta oss för offert." } },
+    { "@type": "Question", "name": "Levererar ni utrustning till bröllop, företagsfest och festival?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja. Vi har levererat till hundratals bröllop, företagsevent och festivaler sedan 1986. Vi har specialanpassade paket för varje eventtyp." } },
+    { "@type": "Question", "name": "Vad kostar ett komplett event-paket?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Liten fest (50 pers.): från ca 1 200 kr/dygn. Bröllop (100 pers.): ca 3 500 kr/dygn. Företagsfest (200 pers.): ca 5 000–8 000 kr/dygn. Transport och montering tillkommer." } }
+  ]
+};
+
 ---
 
 <Layout
+  schemaExtra={forSchema}
   title="Hyr Teknik till Ditt Event i Stockholm | Scenkonsult — Alla Tillfällen"
   description="Hyr scen, ljud och ljus anpassat för ditt event. Bröllop, företagsfest, konferens, festival och studentflak. Storstockholm. Sedan 1986."
   schemaExtra={schema}
