@@ -40,6 +40,31 @@ const faqSchema = {
     priceFrom={299}
   />
 
+  <!-- LED-VÄGG CTA-BANNER — leder till konfigurator -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <a href="/vara-tjanster/hyra-bild-led-vagg/" class="led-cta-banner" aria-label="Bygg din egen LED-vägg">
+      <div class="led-cta-bg" aria-hidden="true"></div>
+      <div class="led-cta-images" aria-hidden="true">
+        <img src="/images/bild/pp_bld_led_500x500.png" alt="" loading="lazy" class="led-cab-1" width="180" height="180" />
+        <img src="/images/bild/pp_bld_led_500x1000.png" alt="" loading="lazy" class="led-cab-2" width="120" height="240" />
+      </div>
+      <div class="led-cta-content">
+        <span class="led-cta-tag">Nytt · Bild & video</span>
+        <h2 class="led-cta-title">Hyr LED-vägg — bygg den exakt som du vill</h2>
+        <p class="led-cta-desc">Modulära kabinett för indoor och outdoor. Räkna ut storlek, upplösning, effekt och pris i vår konfigurator.</p>
+        <ul class="led-cta-bullets">
+          <li><strong>Indoor</strong> P1.95 / P2.604 från <strong>290 kr/dygn</strong></li>
+          <li><strong>Outdoor</strong> P3.91 IP65 från <strong>580 kr/dygn</strong></li>
+          <li>Ground support <strong>ingår</strong> — tross-alternativ finns</li>
+        </ul>
+        <span class="led-cta-btn">
+          Bygg din LED-vägg
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+      </div>
+    </a>
+  </section>
+
   <!-- PRODUKTER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -133,4 +158,144 @@ const faqSchema = {
     </div>
   </section>
 
+<style>
+  .led-cta-banner {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 20px;
+    text-decoration: none;
+    color: inherit;
+    background: linear-gradient(135deg, #2a1f6b 0%, #1e1850 50%, #0c0a24 100%);
+    border: 1px solid rgba(196, 181, 244, 0.25);
+    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  .led-cta-banner:hover {
+    border-color: rgba(196, 181, 244, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 48px rgba(196, 181, 244, 0.15);
+  }
+  .led-cta-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 50%, rgba(196, 181, 244, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 30%, rgba(196, 181, 244, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .led-cta-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(196, 181, 244, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(196, 181, 244, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+  .led-cta-images {
+    position: absolute;
+    right: clamp(1.5rem, 4vw, 3.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+    pointer-events: none;
+  }
+  .led-cab-1 {
+    height: clamp(120px, 18vw, 200px);
+    width: auto;
+    filter: drop-shadow(0 8px 24px rgba(196, 181, 244, 0.3));
+    opacity: 0.95;
+  }
+  .led-cab-2 {
+    height: clamp(160px, 24vw, 280px);
+    width: auto;
+    filter: drop-shadow(0 8px 24px rgba(196, 181, 244, 0.3));
+    opacity: 0.95;
+  }
+  @media (max-width: 768px) {
+    .led-cta-images { display: none; }
+  }
+  .led-cta-content {
+    position: relative;
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+    max-width: 65%;
+  }
+  @media (max-width: 768px) {
+    .led-cta-content { max-width: 100%; }
+  }
+  .led-cta-tag {
+    display: inline-block;
+    background: rgba(196, 181, 244, 0.18);
+    color: #c4b5f4;
+    padding: 0.35rem 0.85rem;
+    border-radius: 99px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(196, 181, 244, 0.3);
+    margin-bottom: 1rem;
+  }
+  .led-cta-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+    line-height: 1.15;
+    color: white;
+    margin: 0 0 0.75rem;
+  }
+  .led-cta-desc {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: clamp(0.9rem, 1.6vw, 1rem);
+    line-height: 1.55;
+    margin: 0 0 1.25rem;
+  }
+  .led-cta-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .led-cta-bullets li {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.88rem;
+    padding-left: 1.25rem;
+    position: relative;
+  }
+  .led-cta-bullets li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #c4b5f4;
+    font-weight: 700;
+  }
+  .led-cta-bullets strong {
+    color: white;
+    font-weight: 600;
+  }
+  .led-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #c4b5f4;
+    color: #0c0a24;
+    padding: 0.85rem 1.5rem;
+    border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .led-cta-banner:hover .led-cta-btn {
+    background: #e2dcfb;
+    transform: translateX(4px);
+  }
+</style>
 </Layout>

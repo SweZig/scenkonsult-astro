@@ -45,6 +45,7 @@ const homeSchema = {
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra ljud", "url": "https://scenkonsult.se/vara-tjanster/hyra-ljud/" } },
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra ljus", "url": "https://scenkonsult.se/vara-tjanster/hyra-ljus/" } },
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra projektor och skärm", "url": "https://scenkonsult.se/vara-tjanster/hyra-bild-projektorer-skarmar/" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra LED-vägg", "url": "https://scenkonsult.se/vara-tjanster/hyra-bild-led-vagg/" } },
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra DJ", "url": "https://scenkonsult.se/vara-tjanster/hyra-dj/" } }
         ]
       }
@@ -222,6 +223,20 @@ const homeSchema = {
       </div>
     </a>
 
+    <!-- LED-vägg (NYTT) -->
+    <a href="/vara-tjanster/hyra-bild-led-vagg/" class="svc2-card svc2-card-led">
+      <div class="svc2-img-wrap">
+        <img src="/images/tjanster/plugg_led-vagg.jpg" alt="Hyr LED-vägg Stockholm — bygg din egen storbildsskärm" width="600" height="338" loading="lazy" />
+        <span class="svc2-badge">Nytt</span>
+      </div>
+      <div class="svc2-body">
+        <h3 class="svc2-title">LED-vägg</h3>
+        <p class="svc2-price">från <strong class="sk-price-excl">290 kr</strong><strong class="sk-price-incl hidden">363 kr</strong> <span>/kabinett/dygn</span></p>
+        <p class="svc2-desc">Bygg din egen LED-vägg. Indoor & outdoor. Konfigurator på sidan.</p>
+        <span class="svc2-cta">Bygg din LED-vägg →</span>
+      </div>
+    </a>
+
   </div>
 
   <!-- Bred CTA-banner: Komplett event -->
@@ -282,9 +297,9 @@ const homeSchema = {
   text-decoration: none;
   transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
-  /* Flex sizing: 5 per rad desktop */
-  flex: 0 0 calc(20% - 1rem);
-  min-width: 140px;
+  /* Flex sizing: 3 per rad desktop (3+3 layout) */
+  flex: 0 0 calc(33.333% - 1rem);
+  min-width: 220px;
 }
 @media (max-width: 1200px) { .svc2-card { flex: 0 0 calc(33.333% - 1rem); } }
 @media (max-width: 720px)  { .svc2-card { flex: 0 0 calc(50% - 0.625rem); } }
@@ -293,6 +308,26 @@ const homeSchema = {
   border-color: rgba(196,181,244,0.5);
   transform: translateY(-3px);
   box-shadow: 0 12px 40px rgba(196,181,244,0.08);
+}
+/* "Nytt"-badge */
+.svc2-img-wrap {
+  position: relative;
+}
+.svc2-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: #c4b5f4;
+  color: #0c0a24;
+  padding: 0.25rem 0.7rem;
+  border-radius: 99px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(196, 181, 244, 0.3);
+  z-index: 2;
 }
 
 /* Hub-kort: klickbar inner-länk + sub-nav */
