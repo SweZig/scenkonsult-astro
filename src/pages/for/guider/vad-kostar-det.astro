@@ -7,12 +7,19 @@ import djData from '../../../data/dj.json';
 import fraktData from '../../../data/tjanster.json';
 
 // Prisuppslag — alltid synkat med JSON
-const _lp = [...ljudData.event.products, ...(ljudData.portable.products as any[]), ...ljudData.music.products, ...ljudData.live.products, ...(ljudData.mixers?.products ?? []), ...(ljudData.tillbehor_mikrofon as any[])];
+const _lp = [
+  ...ljudData.event.products,
+  ...(ljudData.portable.products as any[]),
+  ...ljudData.music.products,
+  ...ljudData.live.products,
+  ...((ljudData as any).mixers ?? []),
+  ...(ljudData.tillbehor_mikrofon as any[]),
+];
 const _jp = (ljusData.paket.products as any[]);
 const _je = (ljusData.effekter.products as any[]);
 const _jr = (ljusData.rok.products as any[]);
-const _sp = (sceneData.products as any[]);
-const _dp = (djData.products ?? []) as any[];
+const _sp = [...(sceneData.products as any[]), ...((sceneData as any).accessories ?? [])];
+const _dp = [...(((djData as any).equipment) ?? []), ...(((djData as any).packages) ?? [])];
 
 const lp = (artno: string) => _lp.find(x => x.artno === artno)?.price ?? 0;
 const jp = (artno: string) => [..._jp,..._je,..._jr].find((x:any) => x.artno === artno)?.price ?? 0;
@@ -21,30 +28,30 @@ const dp = (artno: string) => _dp.find((x:any) => x.artno === artno)?.price ?? 0
 
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Vad kostar det att hyra scen, ljud och ljus? Prisguide 2026","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","dateModified":"2026-04-16","url":"https://scenkonsult.se/for/guider/vad-kostar-det/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar det att hyra scen i Stockholm?","acceptedAnswer":{"@type":"Answer","text":"Scenpaket Small (4 m²): 599 kr/dygn. Medium (10 m²): 1 499 kr/dygn. Large (20 m²): 2 999 kr/dygn. XL (36 m²): 5 399 kr/dygn. Priser exkl. moms. Transport tillkommer."}},{"@type":"Question","name":"Vad kostar det att hyra ljud till en fest med 100 gäster?","acceptedAnswer":{"@type":"Answer","text":"Music Small (999 kr/dygn) täcker 20–80 pers. med dans och subwoofer. Music Medium (1 499 kr/dygn) täcker 60–120 pers. Priser exkl. moms och transport."}},{"@type":"Question","name":"Vad kostar det att hyra ljus till ett event?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Small (10–30 pers.): 399 kr/dygn. Ljuspaket Medium (40–80 pers.): 1 199 kr/dygn. Ljuspaket XL (100–250 pers.): 5 999 kr/dygn. Priser exkl. moms."}},{"@type":"Question","name":"Vad kostar leverans av scen och ljud i Stockholm?","acceptedAnswer":{"@type":"Answer","text":"Leverans med vanlig bil kostar 1 118 kr (tur och retur). Bil med släpvagn 1 598 kr. Avhämtning i Vällingby är alltid gratis. Priser exkl. moms."}},{"@type":"Question","name":"Vad kostar ett komplett paket med scen, ljud och ljus?","acceptedAnswer":{"@type":"Answer","text":"Liten fest 50 pers.: ca 1 200 kr/dygn. Bröllop 100 pers.: ca 3 500 kr/dygn. Företagsfest 200 pers.: ca 7 500 kr/dygn. Är det billigare att hämta själv?","acceptedAnswer":{"@type":"Answer","text":"Ja — avhämtning i Vällingby är alltid gratis. Spara leveranskostnaden om ni har lämpligt fordon."}}},{"@type":"Question","name":"Är det billigare att hämta scen och ljud själv?","acceptedAnswer":{"@type":"Answer","text":"Ja — avhämtning i Vällingby är alltid gratis. Spara 1 118 kr om ni har lämpligt fordon. Monteringstjänst kan alltid läggas till separat."}}]}]};
 const paket = [
-  {title:"Liten fest, ~50 gäster",rows:[
-    {kat:"Ljud",prod:"Portable Medium",p:lp("SK-LJD-POR-0003"),l:"/vara-tjanster/hyra-ljud/portable/"},
-    {kat:"Ljus",prod:"Ljuspaket Small",p:jp("SK-LJS-PAK-0001"),l:"/vara-tjanster/hyra-ljus/"},
-  ],total:1198,note:"Hämta själv = 0 kr transport"},
-  {title:"Bröllop, ~100 gäster",rows:[
-    {kat:"Ljud",prod:"Music Small",p:lp("SK-LJD-MUS-0001"),l:"/vara-tjanster/hyra-ljud/music/"},
-    {kat:"Scen",prod:"Scenpaket Small+ (6 m²)",p:sp("SK-SCN-0002"),l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Scen",prod:"Scentrapp 60 cm",p:349,l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus",prod:"Ljuspaket Medium",p:jp("SK-LJS-PAK-0003"),l:"/vara-tjanster/hyra-ljus/"},
-  ],total:3446,note:"Transport och montering tillkommer"},
-  {title:"Företagsfest, ~200 gäster",rows:[
-    {kat:"Ljud",prod:"Music Large",p:lp("SK-LJD-MUS-0004"),l:"/vara-tjanster/hyra-ljud/music/"},
-    {kat:"Mixer",prod:"Mixerbord 12+4 kanaler",p:399,l:"/vara-tjanster/hyra-ljud/event/"},
-    {kat:"Scen",prod:"Scenpaket Medium++ (16 m²)",p:sp("SK-SCN-0007"),l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus",prod:"Ljuspaket Medium++",p:jp("SK-LJS-PAK-0003"),l:"/vara-tjanster/hyra-ljus/"},
-    {kat:"DJ",prod:"Denon Prime 4+",p:1499,l:"/vara-tjanster/hyra-dj/"},
-  ],total:7695,note:"Transport och montering tillkommer"},
-  {title:"Festival, ~500 gäster utomhus",rows:[
-    {kat:"Ljud",prod:"Live/Music XL+",p:lp("SK-LJD-MUS-0006"),l:"/vara-tjanster/hyra-ljud/music/"},
-    {kat:"Scen",prod:"Scenpaket Large+ inkl. scentak",p:sp("SK-SCN-0010"),l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus",prod:"Ljuspaket Medium++",p:jp("SK-LJS-PAK-0003"),l:"/vara-tjanster/hyra-ljus/"},
-    {kat:"Rök",prod:"Rökmaskin 1500W",p:jp("SK-LJS-ROK-0001"),l:"/vara-tjanster/hyra-ljus/"},
-  ],total:16846,note:"Kontakta oss för festivalpris"},
-];
+  {title:"Liten fest, ~50 gäster", rows:[
+    {kat:"Ljud", prod:"Portable Medium",            p:lp("SK-LJD-POR-0003"), l:"/vara-tjanster/hyra-ljud/portable/"},
+    {kat:"Ljus", prod:"Ljuspaket Small",            p:jp("SK-LJS-PAK-0001"), l:"/vara-tjanster/hyra-ljus/"},
+  ], note:"Hämta själv = 0 kr transport"},
+  {title:"Bröllop, ~100 gäster", rows:[
+    {kat:"Ljud", prod:"Music Small",                p:lp("SK-LJD-MUS-0001"), l:"/vara-tjanster/hyra-ljud/music/"},
+    {kat:"Scen", prod:"Scenpaket Small+ (6 m²)",    p:sp("SK-SCN-0002"),     l:"/vara-tjanster/hyra-scen/"},
+    {kat:"Scen", prod:"Scentrapp 60 cm",            p:sp("SK-SCN-ACC-0002"), l:"/vara-tjanster/hyra-scen/"},
+    {kat:"Ljus", prod:"Ljuspaket Medium",           p:jp("SK-LJS-PAK-0004"), l:"/vara-tjanster/hyra-ljus/"},
+  ], note:"Transport och montering tillkommer"},
+  {title:"Företagsfest, ~200 gäster", rows:[
+    {kat:"Ljud",  prod:"Music Large",               p:lp("SK-LJD-MUS-0004"), l:"/vara-tjanster/hyra-ljud/music/"},
+    {kat:"Mixer", prod:"Mixerbord 12+4 kanaler",    p:lp("SK-LJD-MIX-0006"), l:"/vara-tjanster/hyra-ljud/event/"},
+    {kat:"Scen",  prod:"Scenpaket Medium++ (16 m²)",p:sp("SK-SCN-0007"),     l:"/vara-tjanster/hyra-scen/"},
+    {kat:"Ljus",  prod:"Ljuspaket Medium++",        p:jp("SK-LJS-PAK-0006"), l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"DJ",    prod:"Denon Prime 4+",            p:dp("SK-DJ-0003"),      l:"/vara-tjanster/hyra-dj/"},
+  ], note:"Transport och montering tillkommer"},
+  {title:"Festival, ~500 gäster utomhus", rows:[
+    {kat:"Ljud", prod:"Live/Music XL+",             p:lp("SK-LJD-MUS-0006"), l:"/vara-tjanster/hyra-ljud/music/"},
+    {kat:"Scen", prod:"Scenpaket Large+ inkl. scentak", p:sp("SK-SCN-0010"), l:"/vara-tjanster/hyra-scen/"},
+    {kat:"Ljus", prod:"Ljuspaket Medium++",         p:jp("SK-LJS-PAK-0006"), l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Rök",  prod:"Rökmaskin 1500W",            p:jp("SK-LJS-ROK-0001"), l:"/vara-tjanster/hyra-ljus/"},
+  ], note:"Kontakta oss för festivalpris"},
+].map(pak => ({...pak, total: pak.rows.reduce((s, r) => s + (r.p ?? 0), 0)}));
 const sparTips = [
   {t:"Hämta själv",d:"Avhämtning är alltid gratis. Spara leveranskostnaden om ni har lämpligt fordon."},
   {t:"Helg = 1 dygn",d:"Hyr fredag, lämna tillbaka måndag — betala ett dygn om utrustningen inte är bokad."},

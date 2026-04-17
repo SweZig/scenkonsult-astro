@@ -2,11 +2,18 @@
 import Layout from '../../../layouts/Layout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import sceneData from '../../../data/scenes.json';
+import tjData from '../../../data/tjanster.json';
 
 const scener = sceneData.products.slice(0, 4);
 // Lookup-hjälp för tabellen
 const scenByArtno = Object.fromEntries(sceneData.products.map((p:any) => [p.artno, p]));
 const s = (artno: string) => scenByArtno[artno];
+
+// Transport-spann från tjanster.json: vanligt bil → lastbil (tur/retur)
+const fmt = (n: number) => n.toLocaleString('sv-SE');
+const transportFran  = (tjData as any).leverans?.standard?.pris ?? 0;
+const transportTill  = (tjData as any).leverans?.lastbil?.pris ?? 0;
+const transportSpann = `${fmt(transportFran)}–${fmt(transportTill)} kr`;
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -83,7 +90,7 @@ const faqSchema = {
       <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1rem;">Vad tillkommer utöver scenhyran?</h2>
       <div style="display:flex; flex-direction:column; gap:0.75rem;">
         {[
-          { post: "Transport (leverans + hämtning)", pris: "1 118–2 998 kr", not: "Beroende på fordon och avstånd" },
+          { post: "Transport (leverans + hämtning)", pris: transportSpann, not: "Beroende på fordon och avstånd" },
           { post: "Montering & demontering", pris: "Offert", not: "Baserat på scenstorlek och plats" },
           { post: "Scenskirt (klädselmatta)", pris: "Ingår i de flesta paket", not: "Döljer undersidan av scenen" },
           { post: "Scensläde (tak)", pris: "Offert", not: "Vid utomhusbruk med väderskydd" },

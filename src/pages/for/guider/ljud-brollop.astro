@@ -2,16 +2,30 @@
 import Layout from '../../../layouts/Layout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
+import ljusData from '../../../data/ljus.json';
 
 const evSmall    = ljudData.event.products[0];   // SK-LJD-EVE-0001
 const evMedium   = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0002');
 const portMed    = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
 const musicSmall = ljudData.music.products[0];   // SK-LJD-MUS-0001
+const musicMed   = (ljudData.music.products as any[]).find((p:any) => p.artno === 'SK-LJD-MUS-0003');
+const musicXLp   = (ljudData.music.products as any[]).find((p:any) => p.artno === 'SK-LJD-MUS-0006');
 const liveSmall  = ljudData.live.products[0];    // SK-LJD-LIV-0001
 const liveMedium = (ljudData.live.products as any[]).find((p:any) => p.artno === 'SK-LJD-LIV-0002');
+const ljusSmall  = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0001');
+const ljusMed    = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0004');
 const shureHS    = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
 const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
 const tradlos    = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
+
+// Prisspann per bröllopsfas — beräknade från faktiska JSON-paket
+const fmt = (n: number) => n.toLocaleString('sv-SE');
+// Vigsel: Live Small (kolumn) + 1 trådlöst headset
+const prisVigsel  = `ca ${fmt(liveSmall.price + shureHS.price)} kr/dygn`;
+// Middag: Event Small + 1 trådlös mikrofon → Event Medium + 2 trådlösa mikrofoner
+const prisMiddag  = `ca ${fmt(evSmall.price + tradlos.price)}–${fmt(evMedium.price + 2*shureHS.price)} kr/dygn`;
+// Dansgolv: Music Medium + Ljuspaket Small → Music XL+ + Ljuspaket Medium
+const prisDans    = `ca ${fmt(musicMed.price + ljusSmall.price)}–${fmt(musicXLp.price + ljusMed.price)} kr/dygn`;
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -51,9 +65,9 @@ const faqSchema = {
     <section style="margin-bottom:3rem;">
       <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1.5rem;">Bröllopets tre ljudfaser</h2>
       {[
-        { fas: "1. Vigseln", icon: "💍", desc: "Diskret bakgrundsmusik och tydlig förstärkning av prästens/officiantens röst. Kolumnhögtalare är idealiska — de smälter in i miljön och ger jämn spridning utan stativ.", rec: "Kolumnhögtalare + 1 trådlöst headset", pris: "ca 1 500 kr/dygn" },
-        { fas: "2. Middagen", icon: "🥂", desc: "Bakgrundsmusik i behaglig volym + tydliga mikrofoner för toastmaster och tal. Mikrofonen är viktigare än PA-effekten — investera i bra trådlös mikrofon.", rec: "PA-system + 1–2 trådlösa mikrofoner", pris: "ca 1 200–2 000 kr/dygn" },
-        { fas: "3. Dansgolvet", icon: "🎉", desc: "Nu behövs kraft och bas. Välj PA med subwoofer. Lägg till discoljus och moving heads för att kicka igång dansgolvet.", rec: "PA med sub + discoljus", pris: "ca 2 500–5 000 kr/dygn" }
+        { fas: "1. Vigseln", icon: "💍", desc: "Diskret bakgrundsmusik och tydlig förstärkning av prästens/officiantens röst. Kolumnhögtalare är idealiska — de smälter in i miljön och ger jämn spridning utan stativ.", rec: "Kolumnhögtalare + 1 trådlöst headset", pris: prisVigsel },
+        { fas: "2. Middagen", icon: "🥂", desc: "Bakgrundsmusik i behaglig volym + tydliga mikrofoner för toastmaster och tal. Mikrofonen är viktigare än PA-effekten — investera i bra trådlös mikrofon.", rec: "PA-system + 1–2 trådlösa mikrofoner", pris: prisMiddag },
+        { fas: "3. Dansgolvet", icon: "🎉", desc: "Nu behövs kraft och bas. Välj PA med subwoofer. Lägg till discoljus och moving heads för att kicka igång dansgolvet.", rec: "PA med sub + discoljus", pris: prisDans }
       ].map(f => (
         <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:1.5rem; margin-bottom:1rem; display:flex; gap:1rem;">
           <div style="font-size:1.75rem; flex-shrink:0;">{f.icon}</div>

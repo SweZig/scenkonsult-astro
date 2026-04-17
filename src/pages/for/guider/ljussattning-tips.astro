@@ -5,7 +5,8 @@ import ljusData from '../../../data/ljus.json';
 const _jp = (ljusData.paket.products as any[]);
 const _je = (ljusData.effekter.products as any[]);
 const _jr = (ljusData.rok.products as any[]);
-const jp = (artno: string) => [..._jp,..._je,..._jr].find((x:any) => x.artno === artno)?.price ?? 0;
+const _jstv = ((ljusData as any).stativ?.products ?? []) as any[];
+const jp = (artno: string) => [..._jp,..._je,..._jr,..._jstv].find((x:any) => x.artno === artno)?.price ?? 0;
 
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Ljussättning för event — guide till bättre stämning 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/ljussattning-tips/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar det att hyra ljus till ett event?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Small (10–30 pers) kostar 399 kr/dygn exkl moms. Medium (40–80 pers) 1 199 kr/dygn. Enstaka LED PAR-armaturer kostar fr 79 kr/dygn. Rökmaskin 349–449 kr/dygn."}},{"@type":"Question","name":"Behöver jag rökmaskin till lasern?","acceptedAnswer":{"@type":"Answer","text":"Ja. En laser utan rök eller haze är knappt synlig. Rökmaskin 1500W kostar 349 kr/dygn."}},{"@type":"Question","name":"Vilket ljuspaket passar 100 gäster?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Medium (40–80 pers, 1 199 kr/dygn) eller Medium+ (40–100 pers, 1 299 kr/dygn). Komplettera med enstaka LED PAR-armaturer (fr 79 kr/st) för väggfärg."}}]}]};
 const paket = [
@@ -70,7 +71,7 @@ const rok = [
           </div>
         ))}
       </div>
-      <p style="color:rgba(255,255,255,0.3);font-size:0.8rem;margin-bottom:3rem;">Stativ med T-bar ingår i paketen. Separat: stativ fr <span data-exkl="40">40</span> kr, trosstorn fr <span data-exkl="300">300</span> kr.</p>
+      <p style="color:rgba(255,255,255,0.3);font-size:0.8rem;margin-bottom:3rem;">Stativ med T-bar ingår i paketen. Separat: stativ fr <span data-exkl={jp("SK-LJS-STV-0001")}>{jp("SK-LJS-STV-0001")}</span> kr, trosstorn fr <span data-exkl={jp("SK-LJS-STV-0005")}>{jp("SK-LJS-STV-0005")}</span> kr.</p>
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.25rem;">Rök, gnistor och konfetti</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:3rem;">
         {rok.map(r=>(
@@ -98,7 +99,7 @@ const rok = [
       </div>
       <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Se alla ljuspriser</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ljuspaket fr <span data-exkl={jp("SK-LJS-PAK-0001")}>{jp("SK-LJS-PAK-0001")}</span> kr/dygn. Enstaka armaturer fr <span data-exkl="79">79</span> kr. Leverans i hela Storstockholm.</p>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ljuspaket fr <span data-exkl={jp("SK-LJS-PAK-0001")}>{jp("SK-LJS-PAK-0001")}</span> kr/dygn. Enstaka armaturer fr <span data-exkl={jp("SK-LJS-EFF-0001")}>{jp("SK-LJS-EFF-0001")}</span> kr. Leverans i hela Storstockholm.</p>
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
           <a href="/vara-tjanster/hyra-ljus/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se ljuspaket</a>
           <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>

@@ -1,9 +1,17 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import djData from '../../../data/dj.json';
+import konkData from '../../../data/dj-konkurrentdata.json';
 
 const _dp = (djData.equipment as any[]);
 const dp = (artno: string) => _dp.find((x:any) => x.artno === artno)?.price ?? 0;
+
+// Prissträngar byggs från JSON — inga hårdkodade siffror
+const fmtKr = (n: number) => n.toLocaleString('sv-SE');
+const stand_ink = `${fmtKr(konkData.standalone.inkopsprisFranKr)}–${fmtKr(konkData.standalone.inkopsprisTillKr)} kr`;
+const stand_hyr = `${fmtKr(konkData.standalone.hyrprisFranKr)}–${fmtKr(konkData.standalone.hyrprisTillKr)} kr`;
+const pio_ink   = `${fmtKr(konkData.pioneer.inkopsprisFranKr)}–${fmtKr(konkData.pioneer.inkopsprisTillKr)} kr`;
+const rekordbox = `ca ${konkData.pioneer.rekordboxKrPerManad} kr/mån eller ${fmtKr(konkData.pioneer.rekordboxKrPerAr)} kr/år`;
 
 const schema = {
   "@context": "https://schema.org",
@@ -50,8 +58,8 @@ const jamforelse = [
   { faktor: "Behöver laptop",           standalone: "✗ Nej — helt standalone",                                   pioneer: "✓ Ja — för streaming och avancerade features" },
   { faktor: "Antal enheter",            standalone: "1 enhet (allt-i-ett)",                                      pioneer: "2× CDJ + mixer = 3 enheter minimum" },
   { faktor: "USB-förberedelse",         standalone: "Ej nödvändig — streama direkt",                             pioneer: "Krävs — Rekordbox-analys av varje låt" },
-  { faktor: "Inköpspris (full setup)",  standalone: "5 000–8 000 kr",                                            pioneer: "60 000–80 000 kr" },
-  { faktor: "Hyrpris per dygn",         standalone: "799–1 999 kr",                                              pioneer: "Ej i vårt sortiment" },
+  { faktor: "Inköpspris (full setup)",  standalone: stand_ink,                                                   pioneer: pio_ink },
+  { faktor: "Hyrpris per dygn",         standalone: stand_hyr,                                                   pioneer: "Ej i vårt sortiment" },
   { faktor: "Rigg-tid",                 standalone: "10–15 min",                                                  pioneer: "30–60 min" },
   { faktor: "Felkällepunkter",          standalone: "1 (enheten)",                                               pioneer: "3+ (CDJ×2, mixer, laptop, USB)" },
   { faktor: "Skärmstorlek",            standalone: "7–10\" pekskärm (Denon/Rane)",                               pioneer: "9\" CDJ-3000 (ingen touch)" },
@@ -154,7 +162,7 @@ const varaModeller = [
       <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem;">
         {[
           "En bärbar dator kopplad via USB",
-          "Rekordbox+-prenumeration (ca 120 kr/mån eller 1 200 kr/år)",
+          `Rekordbox+-prenumeration (${rekordbox})`,
           "Aktivt WiFi-nätverk och stabil internetuppkoppling via laptopen",
           "Att laptopen inte kraschar, hänger sig eller tappar anslutning",
           "Att USB-kablar sitter i ordentligt under kvällen",

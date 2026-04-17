@@ -3,10 +3,13 @@ import Layout from '../../../layouts/Layout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import djData from '../../../data/dj.json';
 import ljudData from '../../../data/ljud.json';
+import sceneData from '../../../data/scenes.json';
 
 const eq = djData.equipment as any[];
 const svcTable = (djData.djService as any).priceTable as any[];
 const dp = (artno: string) => eq.find(p => p.artno === artno)?.price ?? 0;
+const sp = (artno: string) => (sceneData.products as any[]).find(p => p.artno === artno)?.price ?? 0;
+const scenSmallPris = sp('SK-SCN-0001');  // Scenpaket Small — DJ-bord
 
 // Ljudpaket för bröllop
 const evSmall  = ljudData.event.products[0];
@@ -124,8 +127,8 @@ const faqSchema = {
         <h2 style="font-family:'DM Serif Display',serif;font-size:1.35rem;color:white;margin:0 0 1rem;">Typisk DJ-setup för bröllop (80–120 gäster)</h2>
         {[
           ["Junior DJ, 4 tim", `${svcTable[2].junior} kr`],
-          ["PA-system (Event Medium)", `${evMedium?.price ?? 1199} kr`],
-          ["Scenpaket Small (DJ-bord)", "599 kr"],
+          ["PA-system (Event Medium)", `${evMedium?.price ?? 0} kr`],
+          ["Scenpaket Small (DJ-bord)", `${scenSmallPris} kr`],
           ["Leverans & hämtning", "Offert"],
         ].map(([l, v]) => (
           <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.07);">
@@ -136,8 +139,8 @@ const faqSchema = {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(196,181,244,0.2);">
           <span style="color:rgba(255,255,255,0.5);font-size:0.85rem;">Utrustning från ca</span>
           <span style="font-family:'DM Serif Display',serif;font-size:1.75rem;color:#c4b5f4;">
-            <span class="sk-price-excl">{svcTable[2].junior + (evMedium?.price ?? 1199) + 599}</span>
-            <span class="sk-price-incl hidden">{Math.round((svcTable[2].junior + (evMedium?.price ?? 1199) + 599) * 1.25)}</span> kr
+            <span class="sk-price-excl">{svcTable[2].junior + (evMedium?.price ?? 0) + scenSmallPris}</span>
+            <span class="sk-price-incl hidden">{Math.round((svcTable[2].junior + (evMedium?.price ?? 0) + scenSmallPris) * 1.25)}</span> kr
           </span>
         </div>
         <p style="color:rgba(255,255,255,0.3);font-size:0.75rem;margin:0.25rem 0 0;">Exkl. transport och montering.</p>

@@ -6,8 +6,17 @@ import sceneData from '../../../data/scenes.json';
 
 const _dp = (djData.equipment as any[]);
 const dp = (artno: string) => _dp.find((x:any) => x.artno === artno)?.price ?? 0;
-const lp = (artno: string) => [...ljudData.event.products,...ljudData.music.products,...ljudData.live.products,...(ljudData.portable.products as any[])].find(x => x.artno === artno)?.price ?? 0;
-const sp = (artno: string) => (sceneData.products as any[]).find(x => x.artno === artno)?.price ?? 0;
+const lp = (artno: string) => [
+  ...ljudData.event.products,
+  ...ljudData.music.products,
+  ...ljudData.live.products,
+  ...(ljudData.portable.products as any[]),
+  ...((ljudData as any).mixers ?? []),
+].find(x => x.artno === artno)?.price ?? 0;
+const sp = (artno: string) => [
+  ...(sceneData.products as any[]),
+  ...((sceneData as any).accessories ?? []),
+].find(x => x.artno === artno)?.price ?? 0;
 // DJ-service priser från JSON
 const djSvc = (djData.djService as any).priceTable;
 
@@ -58,7 +67,7 @@ const djService = [
           </div>
         ))}
       </div>
-      <p style="color:rgba(255,255,255,0.35);font-size:0.82rem;margin-bottom:3rem;">DJ-bord: <span data-exkl="80">80</span> kr/dygn. DJ-bord med paneler: <span data-exkl="200">200</span> kr/dygn.</p>
+      <p style="color:rgba(255,255,255,0.35);font-size:0.82rem;margin-bottom:3rem;">DJ-bord: <span data-exkl={dp("SK-DJ-0005")}>{dp("SK-DJ-0005")}</span> kr/dygn. DJ-bord med paneler: <span data-exkl={dp("SK-DJ-0006")}>{dp("SK-DJ-0006")}</span> kr/dygn.</p>
 
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1.25rem;">Hyr professionell DJ — priser</h2>
       <p style="margin-bottom:1.25rem;">DJ-hårdvara ingår i priset. Resa, scen, ljud och ljus tillkommer.</p>
@@ -82,7 +91,16 @@ const djService = [
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Kombination: liveband + DJ</h2>
       <p>Det bästa av två världar: liveband under cocktail/middag, DJ på dansgolvet. Tekniken som behövs:</p>
       <div class="g2c" style="margin-bottom:2.5rem;">
-        {[{t:"Ljud",items:["Music Medium (1 499 kr) — täcker hela lokalen","Mixer 12 kanal (399 kr) — hanterar band + DJ"]},{t:"Scen",items:["Scenpaket Medium+ (1 799 kr) — passar band och DJ","Scentrapp 60 cm (349 kr)"]}].map(k=>(
+        {[
+          {t:"Ljud", items:[
+            `Music Medium (${lp("SK-LJD-MUS-0003")} kr) — täcker hela lokalen`,
+            `Mixer 12 kanal (${lp("SK-LJD-MIX-0006")} kr) — hanterar band + DJ`,
+          ]},
+          {t:"Scen", items:[
+            `Scenpaket Medium+ (${sp("SK-SCN-0005")} kr) — passar band och DJ`,
+            `Scentrapp 60 cm (${sp("SK-SCN-ACC-0002")} kr)`,
+          ]},
+        ].map(k=>(
           <div style="background:#1e1850;border-radius:12px;padding:1.25rem;">
             <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;color:#c4b5f4;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.75rem;">{k.t}</h3>
             {k.items.map(i=><div style="display:flex;gap:0.5rem;padding:0.3rem 0;"><span style="color:#86efac;font-size:0.75rem;flex-shrink:0;">✓</span><span style="color:rgba(255,255,255,0.6);font-size:0.85rem;">{i}</span></div>)}
