@@ -51,7 +51,7 @@ const faqSchema = {
               {paneler.map((p, i) => (
                 <option
                   value={p.artno}
-                  selected={i === 1}
+                  selected={i === 0}
                   data-pw={p.panel_w_mm}
                   data-ph={p.panel_h_mm}
                   data-pxw={p.pixels_w}
@@ -64,6 +64,10 @@ const faqSchema = {
                   data-indoor={p.indoor_outdoor}
                   data-image={p.image}
                   data-name={p.name}
+                  data-brightness={p.brightness_nits}
+                  data-refresh={p.refresh_hz}
+                  data-protection={p.protection_tech}
+                  data-fcap={p.flightcase_capacity}
                 >{p.name} — {p.price_per_day_excl} kr/dygn</option>
               ))}
             </select>
@@ -285,6 +289,10 @@ const faqSchema = {
           price: +opt.dataset.price,
           indoor: opt.dataset.indoor,
           image: opt.dataset.image,
+          brightness: +opt.dataset.brightness,
+          refresh: +opt.dataset.refresh,
+          protection: opt.dataset.protection,
+          fcap: +opt.dataset.fcap,
         };
       }
 
@@ -327,7 +335,11 @@ const faqSchema = {
         return new Intl.NumberFormat('sv-SE').format(Math.round(v)) + ' kr';
       }
 
-      function pickProcessor(totalPixels) {
+      function pickProcessor(totalPixels, indoorOutdoor) {
+        // Outdoor (P3.91) använder alltid VX400 Pro per leverantörens rekommendation.
+        // Indoor (P1.95, P2.604) använder VX1000 Pro pga högre upplösning, men VX400
+        // räcker för mindre indoor-väggar.
+        if (indoorOutdoor === 'outdoor') return TILL.processor_small;
         if (totalPixels <= TILL.processor_small.max_pixels) return TILL.processor_small;
         return TILL.processor_large;
       }
@@ -362,6 +374,9 @@ const faqSchema = {
         const minViewingM = p.pitch;
         const recViewingM = p.pitch * 2;
 
+        // Antal flightcases — avrundas uppåt baserat på panelens kapacitet
+        const flightcases = p.fcap > 0 ? Math.ceil(totalPanels / p.fcap) : 0;
+
         // Spec-block
         specsEl.innerHTML = [
           specRow('Panelmodell', p.name, true),
@@ -374,8 +389,12 @@ const faqSchema = {
           specRow('Effekt typisk', `${(totalTypW / 1000).toFixed(2)} kW`),
           specRow('Effekt max', `${(totalMaxW / 1000).toFixed(2)} kW`),
           specRow('16A-kretsar', `${circuits16A} st`),
+          specRow('Ljusstyrka', `${p.brightness} cd/m²`),
+          specRow('Refresh', `≥ ${p.refresh} Hz`),
+          specRow('Skyddsteknik', p.protection),
           specRow('Min visningsavstånd', `~${minViewingM.toFixed(1)} m`),
           specRow('Rekommenderat avstånd', `från ~${recViewingM.toFixed(1)} m`),
+          specRow('Flightcases', `${flightcases} st (${p.fcap} kab/case)`),
         ].join('');
 
         // Priser
@@ -385,7 +404,7 @@ const faqSchema = {
 
         let processorObj = null;
         if (inclProcessor.checked) {
-          processorObj = pickProcessor(totalPixels);
+          processorObj = pickProcessor(totalPixels, p.indoor);
           priceLines.push({ label: processorObj.name, value: processorObj.price_per_day_excl, sub: '', key: 'processor' });
         }
 
