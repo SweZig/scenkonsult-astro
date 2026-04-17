@@ -58,6 +58,21 @@ const faqSchema = {
         </div>
       </div>
 
+      <!-- Novastar processor info-ruta -->
+      <div style="margin-bottom:1.5rem;background:#1e1850;border:1px solid rgba(196,181,244,0.15);border-radius:14px;padding:1.5rem clamp(1rem,3vw,1.75rem);">
+        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 1rem;">Videoprocessor — ingår i alla väggar</p>
+        <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:clamp(1.25rem,3vw,2rem);align-items:center;" id="led-novastar-grid">
+          <div style="background:#0c0a24;border-radius:10px;padding:1rem;display:flex;align-items:center;justify-content:center;">
+            <img id="led-novastar-img" src="/images/bild/pp_bld_led_vx400pro.png" alt="Novastar VX-processor" style="display:block;width:100%;height:auto;max-height:140px;object-fit:contain;" />
+          </div>
+          <div>
+            <div id="led-novastar-name" style="color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:0.65rem;">Novastar VX400 Pro</div>
+            <div id="led-novastar-specs" style="display:flex;flex-direction:column;gap:0.4rem;font-size:0.82rem;"></div>
+            <p id="led-novastar-desc" style="color:rgba(255,255,255,0.55);font-size:0.78rem;line-height:1.5;margin:0.85rem 0 0;"></p>
+          </div>
+        </div>
+      </div>
+
       <!-- KALKYLATOR-CARD -->
       <div id="led-calc" style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:16px;padding:clamp(1.25rem,3vw,2.25rem);margin-bottom:3rem;">
 
@@ -159,19 +174,24 @@ const faqSchema = {
         </div>
 
         <!-- Extras -->
-        <div style="display:flex;flex-wrap:wrap;gap:1.25rem;margin-bottom:1.75rem;padding:1rem 1.25rem;background:rgba(12,10,36,0.4);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
-          <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
-            <input id="led-incl-rigg" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
-            <span>Inkludera rigg/ground support</span>
-          </label>
-          <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
-            <input id="led-incl-montering" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
-            <span>Inkludera tekniker (8 tim)</span>
-          </label>
-          <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
-            <input id="led-incl-processor" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
-            <span>Inkludera LED-processor</span>
-          </label>
+        <div style="margin-bottom:1.75rem;padding:1rem 1.25rem;background:rgba(12,10,36,0.4);border-radius:10px;border:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:0.85rem;">
+          <div>
+            <span style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.55rem;">Upphängning</span>
+            <div id="led-mount-tabs" role="tablist" style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;background:#221f50;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.25rem;max-width:480px;">
+              <button type="button" role="tab" aria-selected="true" data-mount="ground" class="led-mount-btn active" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:#c4b5f4;color:#0c0a24;border:none;border-radius:6px;cursor:pointer;">Ground support <span style="opacity:0.6;font-size:0.72rem;">· ingår</span></button>
+              <button type="button" role="tab" aria-selected="false" data-mount="tross" class="led-mount-btn" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:transparent;color:#f0eeff;border:none;border-radius:6px;cursor:pointer;">Trosslösning <span style="opacity:0.6;font-size:0.72rem;">· +5 500 kr</span></button>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:1.25rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.06);">
+            <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
+              <input id="led-incl-montering" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
+              <span>Inkludera tekniker (8 tim)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
+              <input id="led-incl-processor" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
+              <span>Inkludera LED-processor</span>
+            </label>
+          </div>
         </div>
 
         <!-- Resultat-grid -->
@@ -285,15 +305,21 @@ const faqSchema = {
       const cols = $('led-cols');
       const rows = $('led-rows');
 
-      const inclRigg = $('led-incl-rigg');
       const inclMontering = $('led-incl-montering');
       const inclProcessor = $('led-incl-processor');
 
       let mode = 'meter';
       let view = 'visual';        // 'visual' | 'technical'
+      let mount = 'ground';       // 'ground' | 'tross'
       let showStage = true;
       let showAudience = false;
       let lastCalc = null;
+
+      const mountTabs = $('led-mount-tabs');
+      const novastarImg = $('led-novastar-img');
+      const novastarName = $('led-novastar-name');
+      const novastarSpecs = $('led-novastar-specs');
+      const novastarDesc = $('led-novastar-desc');
 
       const viewTabs = $('led-view-tabs');
       const visualOpts = $('led-visual-opts');
@@ -472,16 +498,24 @@ const faqSchema = {
           priceLines.push({ label: TILL.montering.name, value: monteringCost, sub: '8 tim', key: 'montering' });
         }
 
-        const riggIncluded = inclRigg.checked;
-        if (riggIncluded) {
-          priceLines.push({ label: TILL.rigg.name, value: null, sub: 'offereras separat', key: 'rigg' });
+        // Upphängning: Ground support ingår alltid (visas som info), tross adderas vid val
+        let trossCost = 0;
+        if (mount === 'ground') {
+          priceLines.push({ label: TILL.rigg.name, value: 0, sub: 'ingår i pris', key: 'mount' });
+        } else {
+          trossCost = TILL.tross.price_per_day_excl;
+          priceLines.push({ label: TILL.tross.name, value: trossCost, sub: '', key: 'mount' });
         }
 
-        priceRowsEl.innerHTML = priceLines.map(l =>
-          priceRow(l.label, l.value === null ? '<em style="color:rgba(255,255,255,0.5);">separat</em>' : fmtKr(l.value), l.sub)
-        ).join('');
+        priceRowsEl.innerHTML = priceLines.map(l => {
+          let valStr;
+          if (l.value === null) valStr = '<em style="color:rgba(255,255,255,0.5);">separat</em>';
+          else if (l.value === 0) valStr = '<span style="color:rgba(143,214,148,0.85);font-style:italic;">ingår</span>';
+          else valStr = fmtKr(l.value);
+          return priceRow(l.label, valStr, l.sub);
+        }).join('');
 
-        const totalExclVal = panelCost + (processorObj ? processorObj.price_per_day_excl : 0) + monteringCost;
+        const totalExclVal = panelCost + (processorObj ? processorObj.price_per_day_excl : 0) + monteringCost + trossCost;
         totalExcl.textContent = fmtKr(totalExclVal);
         totalExcl.setAttribute('data-exkl', String(totalExclVal));
         totalIncl.textContent = fmtKr(totalExclVal * 1.25);
@@ -540,9 +574,13 @@ const faqSchema = {
           pixelsH,
           processor: processorObj,
           monteringHours: inclMontering.checked ? 8 : 0,
-          riggIncluded,
+          mount,
+          trossCost,
           totalExclVal,
         };
+
+        // Uppdatera Novastar-info-rutan baserat på vald processor (eller default)
+        renderNovastar(processorObj || pickProcessor(totalPixels, p.indoor));
       }
 
       function renderPreview(c, r, mmW, mmH) {
@@ -786,6 +824,39 @@ const faqSchema = {
         render();
       });
 
+      // Mount-tabs (ground vs tross)
+      mountTabs.addEventListener('click', (e) => {
+        const btn = e.target.closest('.led-mount-btn');
+        if (!btn) return;
+        mount = btn.dataset.mount;
+        mountTabs.querySelectorAll('.led-mount-btn').forEach(b => {
+          const active = b === btn;
+          b.setAttribute('aria-selected', active ? 'true' : 'false');
+          b.classList.toggle('active', active);
+          b.style.background = active ? '#c4b5f4' : 'transparent';
+          b.style.color = active ? '#0c0a24' : '#f0eeff';
+        });
+        render();
+      });
+
+      // Rendera Novastar-info-rutan
+      function renderNovastar(proc) {
+        if (!proc) return;
+        novastarImg.src = proc.image || '';
+        novastarImg.alt = proc.name || 'Novastar processor';
+        novastarName.textContent = proc.name.replace(' (videoprocessor)', '');
+        const mp = (proc.max_pixels / 1e6).toFixed(1).replace(/\.?0+$/, '');
+        novastarSpecs.innerHTML = [
+          specRow('Loading capacity', `${mp} MP`, true),
+          specRow('Max upplösning', `${proc.max_width_px.toLocaleString('sv-SE')} × ${proc.max_height_px.toLocaleString('sv-SE')} px`),
+          specRow('Ethernet outputs', `${proc.ethernet_outputs} portar`),
+          specRow('OPT outputs', `${proc.opt_outputs} portar`),
+          specRow('Layers', proc.layers),
+          specRow('Presets', `${proc.presets} st`),
+        ].join('');
+        novastarDesc.textContent = proc.description || '';
+      }
+
       // View-tab-byte (visual <-> technical)
       viewTabs.addEventListener('click', (e) => {
         const btn = e.target.closest('.led-view-btn');
@@ -864,14 +935,25 @@ const faqSchema = {
           });
         }
 
-        // Rigg — läggs som offerteras-separat-rad, pris 0
-        if (c.riggIncluded) {
+        // Upphängning: ground (ingår, gratisrad för transparens) eller tross (5500 kr)
+        if (c.mount === 'ground') {
           window.skCart.add({
             id: TILL.rigg.artno,
             artno: TILL.rigg.artno,
-            name: TILL.rigg.name + ' (offereras separat)',
+            name: TILL.rigg.name + ' (ingår)',
             price: 0,
             priceNote: '',
+            category: 'LED-vägg',
+            bulky: true,
+            qty: 1,
+          });
+        } else {
+          window.skCart.add({
+            id: TILL.tross.artno,
+            artno: TILL.tross.artno,
+            name: TILL.tross.name,
+            price: TILL.tross.price_per_day_excl,
+            priceNote: '/dygn',
             category: 'LED-vägg',
             bulky: true,
             qty: 1,
@@ -892,9 +974,15 @@ const faqSchema = {
 
   <style is:global>
     .led-mode-btn.active,
-    .led-view-btn.active {
+    .led-view-btn.active,
+    .led-mount-btn.active {
       background: #c4b5f4 !important;
       color: #0c0a24 !important;
+    }
+    @media (max-width: 640px) {
+      #led-novastar-grid {
+        grid-template-columns: 1fr !important;
+      }
     }
     #led-calc details summary::-webkit-details-marker { display: none; }
     #led-calc details[open] summary { color: #c4b5f4; }
