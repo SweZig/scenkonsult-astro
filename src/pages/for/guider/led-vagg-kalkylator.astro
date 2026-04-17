@@ -899,8 +899,12 @@ const faqSchema = {
         const c = lastCalc;
         const panelDesc = `${c.cols}×${c.rows} = ${c.totalPanels} st · ${(c.actualW / 1000).toFixed(2).replace(/\.?0+$/, '')}×${(c.actualH / 1000).toFixed(2).replace(/\.?0+$/, '')} m · ${c.pixelsW}×${c.pixelsH} px`;
 
-        // Panel-rad (qty = antal paneler) — flaggar requiresBakgavel så varukorgen
-        // automatiskt väljer lätt lastbil m. bakgavellift istället för bil med släp
+        // Panel-rad (qty = antal paneler).
+        // Flaggor till varukorgen:
+        //   requiresBakgavel: true   → välj automatiskt "Lätt lastbil m. bakgavellift" som leverans
+        //   assemblyMinutesTotal: N  → fast monteringstid i minuter, oavsett antal paneler
+        //                              (om kunden valt tekniker — annars 0)
+        const cartAssembly = c.monteringHours > 0 ? c.monteringHours * 60 : 0;
         window.skCart.add({
           id: c.panel.artno + '__' + c.cols + 'x' + c.rows,
           artno: c.panel.artno,
@@ -911,6 +915,7 @@ const faqSchema = {
           image: c.panel.image,
           bulky: true,
           requiresBakgavel: true,
+          assemblyMinutesTotal: cartAssembly,
           qty: c.totalPanels,
         });
 
@@ -928,19 +933,8 @@ const faqSchema = {
           });
         }
 
-        // Tekniker (som timmar — kan justeras i varukorgen)
-        if (c.monteringHours > 0) {
-          window.skCart.add({
-            id: TILL.montering.artno,
-            artno: TILL.montering.artno,
-            name: TILL.montering.name + ' (LED-vägg, ' + c.monteringHours + ' tim)',
-            price: TILL.montering.price_per_hour_excl,
-            priceNote: '/tim',
-            category: 'Tjänster',
-            bulky: false,
-            qty: c.monteringHours,
-          });
-        }
+        // Tekniker hanteras automatiskt av varukorgen via assemblyMinutesTotal-flaggan
+        // på panel-raden ovan. Ingen separat produktrad behövs.
 
         // Upphängning: ground (ingår, gratisrad för transparens) eller tross (5500 kr)
         if (c.mount === 'ground') {

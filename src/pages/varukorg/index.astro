@@ -996,12 +996,16 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
   // Montering: 600 kr/tim, min 15 min, baserat på monteringMin per produkt × qty
   // Demontering = monteringMin × 2 (redan inräknat i totalen)
+  // assemblyMinutesTotal: override — fast totaltid oavsett qty (för LED-vägg etc.)
   function calcMon(cart) {
     const prisPerMin = FRAKT.montering.prisPerTimme / 60;
     const minMin     = FRAKT.montering.minDebiteringMin;
     let totalMin = 0;
     cart.forEach(item => {
-      if (item.monteringMin) {
+      if (item.assemblyMinutesTotal) {
+        // Fast tid oavsett antal — t.ex. LED-vägg = 480 min (8 tim)
+        totalMin += item.assemblyMinutesTotal;
+      } else if (item.monteringMin) {
         // montering + demontering (× 2), × antal
         const minPerItem = item.monteringMin * 2;
         totalMin += Math.max(minMin, minPerItem) * item.qty;
@@ -1015,7 +1019,13 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     const prisPerMin = FRAKT.montering.prisPerTimme / 60;
     const minMin     = FRAKT.montering.minDebiteringMin;
     let totalMin = 0;
-    cart.forEach(item => { if (item.monteringMin) totalMin += Math.max(minMin, item.monteringMin * 2) * item.qty; });
+    cart.forEach(item => {
+      if (item.assemblyMinutesTotal) {
+        totalMin += item.assemblyMinutesTotal;
+      } else if (item.monteringMin) {
+        totalMin += Math.max(minMin, item.monteringMin * 2) * item.qty;
+      }
+    });
     if (totalMin === 0) totalMin = 60;
     const h = Math.floor(totalMin/60), m = totalMin%60;
     return (h ? h+'h ' : '') + (m ? m+'min ' : '') + '× ' + FRAKT.montering.prisPerTimme + ' kr/tim';
@@ -1512,10 +1522,37 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
       }
     });
   })();
+  // Auto-select av leverans + montering om cart har LED-vägg eller andra
+  // produkter som kräver det (flaggor: requiresBakgavel, assemblyMinutesTotal, bulky)
+  function autoSelectServices() {
+    const cart = getCart();
+    if (!cart.length) return;
+
+    // Leverans: auto-bocka om cart har bulky eller requiresBakgavel
+    const needsDelivery = cart.some(i => i.bulky === true || i.requiresBakgavel === true);
+    const chkLev = document.getElementById('chkLeverans');
+    if (needsDelivery && chkLev && !chkLev.checked) {
+      chkLev.checked = true;
+      // Trigga visuell uppdatering (custom checkbox)
+      chkLev.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // Montering: auto-bocka om cart har assemblyMinutesTotal (fast tid)
+    // eller om någon produkt explicit har requiresAssembly: true
+    const needsAssembly = cart.some(i => i.assemblyMinutesTotal || i.requiresAssembly === true);
+    const chkMon = document.getElementById('chkMontering');
+    if (needsAssembly && chkMon && !chkMon.checked) {
+      chkMon.checked = true;
+      chkMon.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
   // ── INIT ─────────────────────────────────────────────────
   loadCartFromUrl().then(() => {
     renderCart();
     updateNavBadge();
+    autoSelectServices();
+    updateSummary();
     checkCanProceed();
   });
 </script>
