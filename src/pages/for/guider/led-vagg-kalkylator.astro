@@ -38,6 +38,14 @@ const faqSchema = {
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:1180px;margin:0 auto;">
 
+      <!-- Kabinettsbild — visar både 500x500 (vänster) och 500x1000 (höger) -->
+      <div style="margin-bottom:1.5rem;background:#0c0a24;border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;">
+        <img src="/images/bild/led-kabinetter.jpg" alt="LED-kabinett 500x500 och 500x1000 mm" style="display:block;width:100%;height:auto;max-height:200px;object-fit:contain;background:#0c0a24;" />
+        <div style="padding:0.6rem 1rem;border-top:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);font-size:0.78rem;text-align:center;">
+          Våra LED-kabinett: 500×500 mm (vänster, indoor P1.95 / P2.604) och 500×1000 mm (höger, outdoor P3.91)
+        </div>
+      </div>
+
       <!-- KALKYLATOR-CARD -->
       <div id="led-calc" style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:16px;padding:clamp(1.25rem,3vw,2.25rem);margin-bottom:3rem;">
 
@@ -68,6 +76,13 @@ const faqSchema = {
                   data-refresh={p.refresh_hz}
                   data-protection={p.protection_tech}
                   data-fcap={p.flightcase_capacity}
+                  data-viewangle={p.view_angle}
+                  data-modsize={p.module_size_mm}
+                  data-modres={p.module_resolution}
+                  data-modqty={p.modules_per_cabinet}
+                  data-ledpkg={p.led_packaging}
+                  data-pxdens={p.pixel_density_per_sqm}
+                  data-scanmode={p.scanning_mode}
                 >{p.name} — {p.price_per_day_excl} kr/dygn</option>
               ))}
             </select>
@@ -293,6 +308,13 @@ const faqSchema = {
           refresh: +opt.dataset.refresh,
           protection: opt.dataset.protection,
           fcap: +opt.dataset.fcap,
+          viewangle: opt.dataset.viewangle,
+          modsize: opt.dataset.modsize,
+          modres: opt.dataset.modres,
+          modqty: +opt.dataset.modqty,
+          ledpkg: opt.dataset.ledpkg,
+          pxdens: +opt.dataset.pxdens,
+          scanmode: opt.dataset.scanmode,
         };
       }
 
@@ -351,6 +373,10 @@ const faqSchema = {
         </div>`;
       }
 
+      function specSection(label) {
+        return `<div style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.06);">${label}</div>`;
+      }
+
       function priceRow(label, value, sub) {
         return `<div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:baseline;">
           <span>${label}${sub ? `<span style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin-left:0.4rem;">${sub}</span>` : ''}</span>
@@ -377,22 +403,33 @@ const faqSchema = {
         // Antal flightcases — avrundas uppåt baserat på panelens kapacitet
         const flightcases = p.fcap > 0 ? Math.ceil(totalPanels / p.fcap) : 0;
 
-        // Spec-block
+        // Spec-block — gruppindelat med subheaders
+        const totalModules = totalPanels * p.modqty;
         specsEl.innerHTML = [
+          specSection('Vägg'),
           specRow('Panelmodell', p.name, true),
-          specRow('Antal paneler', `${r.cols} × ${r.rows} = ${totalPanels} st`, true),
+          specRow('Antal kabinett', `${r.cols} × ${r.rows} = ${totalPanels} st`, true),
+          specRow('Antal moduler', `${totalModules} st (${p.modqty}/kab)`),
           specRow('Faktisk storlek', `${fmtMm(r.actualW)} × ${fmtMm(r.actualH)}`, true),
           specRow('Diagonal', `${Math.round(diagonalIn)}″ (${fmtMm(diagonalMm)})`),
+          specRow('Vikt', `${totalKg.toFixed(1)} kg`),
+          specSection('Bild'),
           specRow('Upplösning', `${pixelsW} × ${pixelsH} px`, true),
           specRow('Total pixlar', `${(totalPixels / 1e6).toFixed(2).replace(/\.?0+$/, '')} MP`),
-          specRow('Vikt', `${totalKg.toFixed(1)} kg`),
+          specRow('Pixeltäthet', `${p.pxdens.toLocaleString('sv-SE')} px/m²`),
+          specRow('Ljusstyrka', `${p.brightness} cd/m²`),
+          specRow('Refresh', `≥ ${p.refresh} Hz`),
+          specRow('Synvinkel', p.viewangle),
+          specSection('Konstruktion'),
+          specRow('Modulstorlek', `${p.modsize} mm`),
+          specRow('LED-paketering', p.ledpkg),
+          specRow('Skyddsteknik', p.protection),
+          specSection('Drift'),
           specRow('Effekt typisk', `${(totalTypW / 1000).toFixed(2)} kW`),
           specRow('Effekt max', `${(totalMaxW / 1000).toFixed(2)} kW`),
           specRow('16A-kretsar', `${circuits16A} st`),
-          specRow('Ljusstyrka', `${p.brightness} cd/m²`),
-          specRow('Refresh', `≥ ${p.refresh} Hz`),
-          specRow('Skyddsteknik', p.protection),
-          specRow('Min visningsavstånd', `~${minViewingM.toFixed(1)} m`),
+          specSection('Avstånd & transport'),
+          specRow('Optimalt visningsavstånd', `≥ ${minViewingM.toFixed(1)} m`),
           specRow('Rekommenderat avstånd', `från ~${recViewingM.toFixed(1)} m`),
           specRow('Flightcases', `${flightcases} st (${p.fcap} kab/case)`),
         ].join('');
