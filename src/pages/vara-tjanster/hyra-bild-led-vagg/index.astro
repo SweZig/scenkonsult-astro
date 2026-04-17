@@ -36,7 +36,7 @@ const faqSchema = {
       <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
         <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Från <span class="sk-price-excl">290 kr</span><span class="sk-price-incl hidden">363 kr</span> / kabinett / dygn</span>
         <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Indoor & outdoor (IP65)</span>
-        <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Ground support ingår</span>
+        <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Ground support 1 500 kr/dygn</span>
         <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Leverans i Storstockholm</span>
       </div>
     </div>
@@ -185,7 +185,7 @@ const faqSchema = {
           <div>
             <span style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.55rem;">Upphängning</span>
             <div id="led-mount-tabs" role="tablist" style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;background:#221f50;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.25rem;max-width:480px;">
-              <button type="button" role="tab" aria-selected="true" data-mount="ground" class="led-mount-btn active" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:#c4b5f4;color:#0c0a24;border:none;border-radius:6px;cursor:pointer;">Ground support <span style="opacity:0.6;font-size:0.72rem;">· ingår</span></button>
+              <button type="button" role="tab" aria-selected="true" data-mount="ground" class="led-mount-btn active" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:#c4b5f4;color:#0c0a24;border:none;border-radius:6px;cursor:pointer;">Ground support <span style="opacity:0.6;font-size:0.72rem;">· 1 500 kr</span></button>
               <button type="button" role="tab" aria-selected="false" data-mount="tross" class="led-mount-btn" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:transparent;color:#f0eeff;border:none;border-radius:6px;cursor:pointer;">Trosslösning <span style="opacity:0.6;font-size:0.72rem;">· +5 500 kr</span></button>
             </div>
           </div>
@@ -499,19 +499,34 @@ const faqSchema = {
           });
         }
 
+        // Dynamisk monteringstid: 6 tim grund + 10 min per panel.
+        // Avrundad uppåt till närmaste halvtimme (för rena timpriser i offerter).
+        let monteringHours = 0;
         let monteringCost = 0;
         if (inclMontering.checked) {
-          monteringCost = TILL.montering.price_per_hour_excl * 8;
-          priceLines.push({ label: TILL.montering.name, value: monteringCost, sub: '8 tim', key: 'montering' });
+          const rawMin = 6 * 60 + 10 * totalPanels;       // grund + 10 min/panel
+          const roundedMin = Math.ceil(rawMin / 30) * 30;  // upp till närmaste halvtimme
+          monteringHours = roundedMin / 60;
+          monteringCost = TILL.montering.price_per_hour_excl * monteringHours;
+          const hoursLabel = Number.isInteger(monteringHours)
+            ? `${monteringHours} tim`
+            : `${monteringHours.toFixed(1).replace('.', ',')} tim`;
+          priceLines.push({
+            label: TILL.montering.name,
+            value: monteringCost,
+            sub: `${hoursLabel} (6 tim + 10 min × ${totalPanels})`,
+            key: 'montering',
+          });
         }
 
-        // Upphängning: Ground support ingår alltid (visas som info), tross adderas vid val
-        let trossCost = 0;
+        // Upphängning: Ground support eller tross — båda kostar nu (1500 / 5500 kr)
+        let mountCost = 0;
         if (mount === 'ground') {
-          priceLines.push({ label: TILL.rigg.name, value: 0, sub: 'ingår i pris', key: 'mount' });
+          mountCost = TILL.rigg.price_per_day_excl;
+          priceLines.push({ label: TILL.rigg.name, value: mountCost, sub: '', key: 'mount' });
         } else {
-          trossCost = TILL.tross.price_per_day_excl;
-          priceLines.push({ label: TILL.tross.name, value: trossCost, sub: '', key: 'mount' });
+          mountCost = TILL.tross.price_per_day_excl;
+          priceLines.push({ label: TILL.tross.name, value: mountCost, sub: '', key: 'mount' });
         }
 
         // Transport — alltid lätt lastbil m. bakgavellift för LED-vägg
@@ -531,7 +546,7 @@ const faqSchema = {
           return priceRow(l.label, valStr, l.sub);
         }).join('');
 
-        const totalExclVal = panelCost + (processorObj ? processorObj.price_per_day_excl : 0) + monteringCost + trossCost + transportCost;
+        const totalExclVal = panelCost + (processorObj ? processorObj.price_per_day_excl : 0) + monteringCost + mountCost + transportCost;
         totalExcl.textContent = fmtKr(totalExclVal);
         totalExcl.setAttribute('data-exkl', String(totalExclVal));
         totalIncl.textContent = fmtKr(totalExclVal * 1.25);
@@ -589,9 +604,9 @@ const faqSchema = {
           pixelsW,
           pixelsH,
           processor: processorObj,
-          monteringHours: inclMontering.checked ? 8 : 0,
+          monteringHours: monteringHours,
           mount,
-          trossCost,
+          mountCost,
           totalExclVal,
         };
 
@@ -947,14 +962,14 @@ const faqSchema = {
         // Tekniker hanteras automatiskt av varukorgen via assemblyMinutesTotal-flaggan
         // på panel-raden ovan. Ingen separat produktrad behövs.
 
-        // Upphängning: ground (ingår, gratisrad för transparens) eller tross (5500 kr)
+        // Upphängning: ground support (1500 kr) eller tross (5500 kr) — alltid en separat rad
         if (c.mount === 'ground') {
           window.skCart.add({
             id: TILL.rigg.artno,
             artno: TILL.rigg.artno,
-            name: TILL.rigg.name + ' (ingår)',
-            price: 0,
-            priceNote: '',
+            name: TILL.rigg.name,
+            price: TILL.rigg.price_per_day_excl,
+            priceNote: '/dygn',
             category: 'LED-vägg',
             bulky: true,
             qty: 1,
