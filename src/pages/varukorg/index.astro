@@ -960,9 +960,12 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     });
   }
 
-  // Leverans: automatisk bil/släpvagn beroende på om varukorgen har skrymmande produkt
+  // Leverans: automatisk bil/släpvagn/bakgavellift beroende på cart-innehåll
   function cartHasBulky(cart) {
     return cart.some(i => i.bulky === true);
+  }
+  function cartRequiresBakgavel(cart) {
+    return cart.some(i => i.requiresBakgavel === true);
   }
   function calcLev(cart) {
     // Admin-override: kolla dropdown
@@ -973,6 +976,8 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     let key = null;
     if (adminType !== 'auto') {
       key = adminType; // 'standard','skrymmande','lastbil','bakgavel'
+    } else if (cartRequiresBakgavel(cart)) {
+      key = 'bakgavel'; // LED-vägg etc. — kräver lätt lastbil m. bakgavellift
     } else {
       key = cartHasBulky(cart) ? 'skrymmande' : 'standard';
     }

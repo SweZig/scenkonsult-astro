@@ -899,7 +899,8 @@ const faqSchema = {
         const c = lastCalc;
         const panelDesc = `${c.cols}×${c.rows} = ${c.totalPanels} st · ${(c.actualW / 1000).toFixed(2).replace(/\.?0+$/, '')}×${(c.actualH / 1000).toFixed(2).replace(/\.?0+$/, '')} m · ${c.pixelsW}×${c.pixelsH} px`;
 
-        // Panel-rad (qty = antal paneler)
+        // Panel-rad (qty = antal paneler) — flaggar requiresBakgavel så varukorgen
+        // automatiskt väljer lätt lastbil m. bakgavellift istället för bil med släp
         window.skCart.add({
           id: c.panel.artno + '__' + c.cols + 'x' + c.rows,
           artno: c.panel.artno,
@@ -909,6 +910,7 @@ const faqSchema = {
           category: 'LED-vägg',
           image: c.panel.image,
           bulky: true,
+          requiresBakgavel: true,
           qty: c.totalPanels,
         });
 
@@ -965,17 +967,8 @@ const faqSchema = {
           });
         }
 
-        // Transport — lätt lastbil m. bakgavellift, obligatoriskt för LED-vägg
-        window.skCart.add({
-          id: TILL.transport.artno,
-          artno: TILL.transport.artno,
-          name: TILL.transport.name,
-          price: TILL.transport.price_per_day_excl,
-          priceNote: '/dygn',
-          category: 'Leverans',
-          bulky: true,
-          qty: 1,
-        });
+        // Transport hanteras automatiskt av varukorgen via requiresBakgavel-flaggan på panel-raden
+        // — ingen separat produktrad behövs här.
 
         feedbackEl.textContent = '✓ Lagt i varukorgen — öppna varukorgen för att gå vidare till offert.';
         feedbackEl.style.color = '#8fd694';

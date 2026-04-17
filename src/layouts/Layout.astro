@@ -685,11 +685,12 @@ const localBusinessSchema = {
     }
     function skAddToCart(item) {
       const cart = skGetCart();
+      const addQty = (typeof item.qty === 'number' && item.qty > 0) ? item.qty : 1;
       const existing = cart.find(i => i.id === item.id);
       if (existing) {
-        existing.qty += 1;
+        existing.qty += addQty;
       } else {
-        cart.push({ ...item, qty: 1 });
+        cart.push({ ...item, qty: addQty });
       }
       skSaveCart(cart);
       skUpdateBadge();
