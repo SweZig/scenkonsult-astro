@@ -1100,6 +1100,7 @@ function cartCardHTML(c) {
         ${intentBadge}
       </div>
       ${daysFlag}
+      ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
       <div class="cart-card-sub">${c.customer_email || ''}</div>
       <div class="cart-card-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
@@ -2637,6 +2638,8 @@ function checkReminderQueue() {
 
   _reminderQueue = carts.filter(c => {
     if (c.status !== 'waiting') return false;
+    // Kund har redan godkänt ordern digitalt — ingen påminnelse behövs
+    if (c.confirmed_at) return false;
     const cartState = state[c.id];
     if (cartState === 'snoozed' || cartState === 'sent') return false;
     // Dismissad < 24h sedan → hoppa över
@@ -2666,8 +2669,11 @@ function showNextReminder() {
   const c = _reminderActive;
   const hours = Math.round((Date.now() - new Date(c.updated_at || c.created_at).getTime()) / 3600000);
   const dateStr = c.event_date ? ` (event: ${fmtDate(c.event_date)})` : '';
+  const companyStr = c.customer_company
+    ? ` <span style="color:rgba(255,255,255,0.55);font-weight:400">(${c.customer_company})</span>`
+    : '';
   document.getElementById('reminder-msg').innerHTML =
-    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.<br>Vill du skäa en påminnelse?`;
+    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${companyStr}${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.<br>Vill du skicka en påminnelse?`;
   const overlay = document.getElementById('reminder-overlay');
   overlay.style.display = 'flex';
 }
