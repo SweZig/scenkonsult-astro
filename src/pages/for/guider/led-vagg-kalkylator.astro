@@ -454,7 +454,16 @@ const faqSchema = {
         let processorObj = null;
         if (inclProcessor.checked) {
           processorObj = pickProcessor(totalPixels, p.indoor);
-          priceLines.push({ label: processorObj.name, value: processorObj.price_per_day_excl, sub: '', key: 'processor' });
+          // Bädda in en liten bild av processorn intill namnet, om bild finns
+          const procImg = processorObj.image
+            ? `<img src="${processorObj.image}" alt="" style="height:18px;width:auto;vertical-align:middle;margin-right:0.4rem;opacity:0.85;" />`
+            : '';
+          priceLines.push({
+            label: `${procImg}${processorObj.name}`,
+            value: processorObj.price_per_day_excl,
+            sub: '',
+            key: 'processor',
+          });
         }
 
         let monteringCost = 0;
