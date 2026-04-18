@@ -14,7 +14,10 @@ function volRows(artno: string) {
   const p = allEffekter.find(x => x.artno === artno);
   const tiers = p?.volumePricing;
   if (!tiers?.length) return [];
-  return [{ label: 'Volympriser', rows: tiers.map(t => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
+  return [{ label: 'Volympriser', rows: tiers.map(t => {
+    const total = t.unitPrice * t.minQty;
+    return `${t.minQty} st – <span data-exkl="${total}">${total.toLocaleString('sv')}</span> kr`;
+  }) }];
 }
 
 function toCard(p: Effekt) {

@@ -654,6 +654,13 @@ const localBusinessSchema = {
     document.getElementById('sk-vat-excl')?.addEventListener('click', () => applyVat('excl'));
     document.getElementById('sk-vat-incl')?.addEventListener('click', () => applyVat('incl'));
 
+    // Expose for dynamically-injected content (e.g. product modal rows with data-exkl spans)
+    (window as any).skApplyVat = () => {
+      let m: 'excl' | 'incl' = 'excl';
+      try { m = (localStorage.getItem('sk-vat') as 'excl' | 'incl') || 'excl'; } catch {}
+      applyVat(m);
+    };
+
     // ─── CART SYSTEM ─────────────────────────────────────────────
     const SK_CART_KEY = 'sk-cart';
     const SK_CART_TTL = 21 * 24 * 60 * 60 * 1000; // 21 dagar
@@ -1375,6 +1382,8 @@ const localBusinessSchema = {
         </div>`).join('');
       el.style.borderTop = '1px solid rgba(255,255,255,.1)';
       el.style.paddingTop = '10px';
+      // Re-apply moms-toggle so any data-exkl spans inside injected rows pick up current state
+      if (window.skApplyVat) window.skApplyVat();
     }
 
     function updatePrices() {

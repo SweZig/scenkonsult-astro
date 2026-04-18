@@ -15,7 +15,10 @@ const _rokVolMap: Record<string, {minQty:number,unitPrice:number}[]> = Object.fr
 function volRowsRok(artno: string) {
   const tiers = _rokVolMap[artno];
   if (!tiers?.length) return [];
-  return [{ label: 'Volympriser', rows: tiers.map((t: any) => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
+  return [{ label: 'Volympriser', rows: tiers.map((t: any) => {
+    const total = t.unitPrice * t.minQty;
+    return `${t.minQty} st – <span data-exkl="${total}">${total.toLocaleString('sv')}</span> kr`;
+  }) }];
 }
 
 const forbr = ljusData.rok.tillbehor.filter(t =>

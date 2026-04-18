@@ -12,12 +12,15 @@ const WP = '/videos';
 type Effekt = typeof ljusData.effekter.products[0] & { group?: string; tag?: string; video?: string; volumePricing?: {minQty:number,unitPrice:number}[] };
 const allEffekter = ljusData.effekter.products as unknown as Effekt[];
 
-// Volymrader från JSON — inga hårdkodade priser
+// Volymrader från JSON — inga hårdkodade priser. data-exkl ger moms-toggle-stöd via global applyVat()
 function volRows(artno: string) {
   const p = allEffekter.find(x => x.artno === artno);
   const tiers = p?.volumePricing;
   if (!tiers?.length) return [];
-  return [{ label: 'Volympriser', rows: tiers.map(t => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
+  return [{ label: 'Volympriser', rows: tiers.map(t => {
+    const total = t.unitPrice * t.minQty;
+    return `${t.minQty} st – <span data-exkl="${total}">${total.toLocaleString('sv')}</span> kr`;
+  }) }];
 }
 
 // Hjälpfunktion för att bygga MediaCard-props från JSON-produkt
