@@ -511,9 +511,7 @@ const homeSchema = {
   <div class="video-layout">
     <div class="video-main">
       <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" class="video-wrap video-link-wrap" style="display:flex;flex:1">
-        <video autoplay muted loop playsinline>
-          <source src="/videos/Promotion_480_4.mp4" type="video/mp4" />
-        </video>
+        <video class="lazy-video" muted loop playsinline preload="none" poster="/images/video-posters/promotion.webp" data-src="/videos/Promotion_480_4.mp4"></video>
         <div class="video-overlay"></div>
         <div class="video-label">
           <span class="video-tag">Ljuseffekter</span>
@@ -524,9 +522,7 @@ const homeSchema = {
     </div>
     <div class="video-side-top">
       <a href="/vara-tjanster/hyra-ljud/music/" class="video-wrap video-link-wrap">
-        <video autoplay muted loop playsinline>
-          <source src="/videos/Alto_new_720p.mp4" type="video/mp4" />
-        </video>
+        <video class="lazy-video" muted loop playsinline preload="none" poster="/images/video-posters/alto.webp" data-src="/videos/Alto_new_720p.mp4"></video>
         <div class="video-overlay"></div>
         <div class="video-label">
           <span class="video-tag">Nyhet</span>
@@ -537,9 +533,7 @@ const homeSchema = {
     </div>
     <div class="video-side-bot">
       <a href="/vara-tjanster/hyra-dj/" class="video-wrap video-link-wrap">
-        <video autoplay muted loop playsinline>
-          <source src="/videos/Denon_commercial.mp4" type="video/mp4" />
-        </video>
+        <video class="lazy-video" muted loop playsinline preload="none" poster="/images/video-posters/denon.webp" data-src="/videos/Denon_commercial.mp4"></video>
         <div class="video-overlay"></div>
         <div class="video-label">
           <span class="video-tag">DJ-utrustning</span>
@@ -550,6 +544,40 @@ const homeSchema = {
     </div>
   </div>
 </section>
+
+<script>
+  /* Lazy autoplay för frontpage-videos:
+     - <video> har poster + preload="none" + data-src men ingen src vid sidladdning
+     - IntersectionObserver fyller i src när videon är ~400px från viewport
+     - Sparar ~53 MB initial nätverksnyttolast (3 videor × ~15-20 MB)
+     - User Experience: poster visas omedelbart, video startar smidigt när användaren scrollar dit */
+  (function() {
+    const videos = document.querySelectorAll('video.lazy-video');
+    if (!videos.length) return;
+    if (!('IntersectionObserver' in window)) {
+      // Fallback för urgamla browsers: ladda direkt
+      videos.forEach(v => {
+        const src = v.getAttribute('data-src');
+        if (src) { v.src = src; v.play().catch(() => {}); }
+      });
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const v = entry.target;
+        const src = v.getAttribute('data-src');
+        if (src && !v.src) {
+          v.src = src;
+          // play() returnerar Promise — fångar AbortError om browsern blockerar
+          v.play().catch(() => {});
+        }
+        io.unobserve(v);
+      });
+    }, { rootMargin: '400px 0px' });
+    videos.forEach(v => io.observe(v));
+  })();
+</script>
 
 <!-- ── VARFÖR OSS ── -->
 <section class="why-section">

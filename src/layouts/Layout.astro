@@ -175,9 +175,14 @@ const localBusinessSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
   <!-- Structured data — page-specific -->
   {schemaExtra && <script type="application/ld+json" set:html={JSON.stringify(schemaExtra)} />}
-  <!-- Preconnect for fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Preload kritiska fonter (latin-subset, fetchpriority high i nyare browsers).
+       Endast de vikter som behövs för above-the-fold-rendering.
+       Övriga vikter (Source Sans 600/700, italic, latin-ext) laddas vid behov via @font-face. -->
+  <link rel="preload" href="/fonts/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/dm-serif-display-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+  {Astro.url.pathname === '/' && (
+    <link rel="preload" href="/images/hero/scen3_hero.webp" as="image" type="image/webp" fetchpriority="high" />
+  )}
 </head>
 <body>
   <!-- Cookie-banner -->
