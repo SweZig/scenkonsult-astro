@@ -1,6 +1,16 @@
 /**
  * Scenkonsult – Fullständig bildnedladdning
  * Täcker ALLA bilder som refereras i de nya sidorna
+ *
+ * ⚠ NOOP SOM DEFAULT (sedan WebP-konverteringen i Batch 2):
+ *   Bildfilerna finns nu commitade i repo som .webp.
+ *   Detta script var bara för initial migrering från WordPress.
+ *   Att köra det igen försöker hämta PNG-original från
+ *   /wp-content/uploads/* — men de URL:erna redirectar nu till /
+ *   (Netlify-redirects), vilket gör att HTML skrivs som .png-filer.
+ *
+ *   Sätt FORCE_REDOWNLOAD_IMAGES=1 för att tvinga nedladdning igen
+ *   (t.ex. om du vill återskapa PNG-original av någon anledning).
  */
 import https from 'https';
 import http from 'http';
@@ -9,6 +19,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+if (!process.env.FORCE_REDOWNLOAD_IMAGES) {
+  console.log('download_all_images.mjs: SKIP (bilder finns commitade i repo som .webp).');
+  console.log('  Sätt FORCE_REDOWNLOAD_IMAGES=1 för att tvinga nedladdning av PNG-original.');
+  process.exit(0);
+}
+
 const BASE = 'https://scenkonsult.se';
 const OUT  = path.join(__dirname, 'public', 'images');
 
