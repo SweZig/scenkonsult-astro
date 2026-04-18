@@ -96,7 +96,23 @@ const homeSchema = {
     </div>
   </div>
   <div class="hero-r">
-    <img src="/images/hero/scen3_hero.webp" alt="Scenproduktion Stockholm" width="960" height="720" fetchpriority="high" />
+    <picture>
+      <source
+        type="image/webp"
+        srcset="/images/hero/scen3_hero-480w.webp 480w, /images/hero/scen3_hero-768w.webp 768w, /images/hero/scen3_hero-1024w.webp 1024w"
+        sizes="(max-width: 768px) 100vw, 50vw"
+      />
+      <img
+        src="/images/hero/scen3_hero-768w.jpg"
+        srcset="/images/hero/scen3_hero-480w.jpg 480w, /images/hero/scen3_hero-768w.jpg 768w, /images/hero/scen3_hero.jpg 1024w"
+        sizes="(max-width: 768px) 100vw, 50vw"
+        alt="Scenproduktion Stockholm"
+        width="960"
+        height="720"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
     <div class="hero-r-tint"></div>
   </div>
 </section>
@@ -145,7 +161,7 @@ const homeSchema = {
     <!-- Scen -->
     <a href="/vara-tjanster/hyra-scen/" class="svc2-card">
       <div class="svc2-img-wrap">
-        <img src="/images/tjanster/plugg_scener.png" alt="Hyra scen Stockholm" width="600" height="338" loading="lazy" />
+        <img src="/images/tjanster/plugg_scener.webp" alt="Hyra scen Stockholm" width="600" height="338" loading="lazy" />
       </div>
       <div class="svc2-body">
         <h3 class="svc2-title">Hyra scen</h3>
@@ -159,7 +175,7 @@ const homeSchema = {
     <div class="svc2-card">
       <a href="/vara-tjanster/hyra-ljud/" class="svc2-card-inner">
         <div class="svc2-img-wrap">
-          <img src="/images/tjanster/plugg_ljud.png" alt="Hyra ljud Stockholm" width="600" height="338" loading="lazy" />
+          <img src="/images/tjanster/plugg_ljud.webp" alt="Hyra ljud Stockholm" width="600" height="338" loading="lazy" />
         </div>
         <div class="svc2-body">
           <h3 class="svc2-title">Hyra ljud</h3>
@@ -180,7 +196,7 @@ const homeSchema = {
     <div class="svc2-card">
       <a href="/vara-tjanster/hyra-ljus/" class="svc2-card-inner">
         <div class="svc2-img-wrap">
-          <img src="/images/tjanster/plugg_ljus.png" alt="Hyra ljus Stockholm" width="600" height="338" loading="lazy" />
+          <img src="/images/tjanster/plugg_ljus.webp" alt="Hyra ljus Stockholm" width="600" height="338" loading="lazy" />
         </div>
         <div class="svc2-body">
           <h3 class="svc2-title">Hyra ljus</h3>
@@ -200,7 +216,7 @@ const homeSchema = {
     <!-- Bild -->
     <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" class="svc2-card">
       <div class="svc2-img-wrap">
-        <img src="/images/tjanster/plugg_bild.png" alt="Hyra projektor och skärm" width="600" height="338" loading="lazy" />
+        <img src="/images/tjanster/plugg_bild.webp" alt="Hyra projektor och skärm" width="600" height="338" loading="lazy" />
       </div>
       <div class="svc2-body">
         <h3 class="svc2-title">Projektor &amp; skärm</h3>
@@ -227,7 +243,7 @@ const homeSchema = {
     <!-- DJ -->
     <a href="/vara-tjanster/hyra-dj/" class="svc2-card">
       <div class="svc2-img-wrap">
-        <img src="/images/tjanster/plugg_dj.png" alt="Hyr DJ eller DJ-utrustning Stockholm" width="600" height="338" loading="lazy" />
+        <img src="/images/tjanster/plugg_dj.webp" alt="Hyr DJ eller DJ-utrustning Stockholm" width="600" height="338" loading="lazy" />
       </div>
       <div class="svc2-body">
         <h3 class="svc2-title">DJ &amp; DJ-utrustning</h3>

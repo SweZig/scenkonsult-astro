@@ -181,7 +181,15 @@ const localBusinessSchema = {
   <link rel="preload" href="/fonts/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/dm-serif-display-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
   {Astro.url.pathname === '/' && (
-    <link rel="preload" href="/images/hero/scen3_hero.webp" as="image" type="image/webp" fetchpriority="high" />
+    <link
+      rel="preload"
+      as="image"
+      type="image/webp"
+      href="/images/hero/scen3_hero-768w.webp"
+      imagesrcset="/images/hero/scen3_hero-480w.webp 480w, /images/hero/scen3_hero-768w.webp 768w, /images/hero/scen3_hero-1024w.webp 1024w"
+      imagesizes="(max-width: 768px) 100vw, 50vw"
+      fetchpriority="high"
+    />
   )}
 </head>
 <body>
@@ -815,7 +823,7 @@ const localBusinessSchema = {
     <!-- Trigger-knapp (teatermaskar) -->
     <button id="sven-toggle" aria-label="Öppna chatten med Sven" title="Chatta med Sven – intendenten">
       <span id="sven-icon-open">
-        <img src="/images/sven-avatar.png" alt="Sven" style="width:100%;height:100%;object-fit:cover;object-position:center 10%;display:block;" />
+        <img src="/images/sven-avatar.webp" alt="Sven" style="width:100%;height:100%;object-fit:cover;object-position:center 10%;display:block;" />
       </span>
       <span id="sven-icon-close" style="display:none">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -832,7 +840,7 @@ const localBusinessSchema = {
       <!-- Header -->
       <div id="sven-header">
         <div id="sven-avatar">
-          <img src="/images/sven-avatar.png" alt="Sven" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;display:block;" />
+          <img src="/images/sven-avatar.webp" alt="Sven" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;display:block;" />
         </div>
         <div id="sven-header-text">
           <strong>Sven heter jag, intendent här på Scenkonsult</strong>
