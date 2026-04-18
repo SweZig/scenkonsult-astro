@@ -33,7 +33,7 @@
     .logo-bar img { height: 36px; }
     .logo-bar span {
       font-size: 0.8rem;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.60);
     }
     h1 {
       font-size: 1.35rem;
@@ -58,7 +58,7 @@
     .order-box strong { color: #fff; }
     .order-box .ref {
       font-size: 0.75rem;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.60);
       font-family: monospace;
       margin-top: 0.5rem;
     }
@@ -95,7 +95,7 @@
       justify-content: center;
       flex-direction: column;
       gap: 6px;
-      color: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.55);
       font-size: 0.85rem;
       pointer-events: none;
       transition: opacity 0.2s;
@@ -156,7 +156,7 @@
     /* Note */
     .optional-note {
       font-size: 0.78rem;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.60);
       text-align: center;
       margin-bottom: 1.5rem;
     }
@@ -219,7 +219,7 @@
   <!-- Loading -->
   <div id="loading-state">
     <div class="spinner"></div>
-    <p style="text-align:center;color:rgba(255,255,255,0.4);font-size:0.85rem">Laddar order…</p>
+    <p style="text-align:center;color:rgba(255,255,255,0.60);font-size:0.85rem">Laddar order…</p>
   </div>
 
   <!-- Error -->
@@ -263,7 +263,7 @@
 
     <!-- ID photo -->
     <div class="photo-section">
-      <div class="section-label">Legitimation <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.35)"></span></div>
+      <div class="section-label">Legitimation <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.60)"></span></div>
       <label class="photo-label" for="photo-input" id="photo-label">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <rect x="2" y="7" width="20" height="14" rx="2"/>
@@ -435,14 +435,14 @@
       // Visa orderbox
       const items  = (cart.items || []).filter(i => !i._note && i.name);
       const prodRows = items.slice(0,5).map(i =>
-        `<div style="display:flex;justify-content:space-between"><span>${i.name}</span><span style="color:rgba(255,255,255,0.4)">×${i.qty||1}</span></div>`
+        `<div style="display:flex;justify-content:space-between"><span>${i.name}</span><span style="color:rgba(255,255,255,0.60)">×${i.qty||1}</span></div>`
       ).join('');
-      const more = items.length > 5 ? `<div style="color:rgba(255,255,255,0.35);font-size:0.8rem">+${items.length-5} till…</div>` : '';
+      const more = items.length > 5 ? `<div style="color:rgba(255,255,255,0.60);font-size:0.8rem">+${items.length-5} till…</div>` : '';
 
       document.getElementById('order-box').innerHTML = `
         <strong>${cart.customer_name || 'Kund'}</strong> hämtar
         ${cart.event_date ? `till eventet <strong>${new Date(cart.event_date).toLocaleDateString('sv-SE')}</strong>` : 'utrustning'}.<br>
-        ${cart.event_location ? `<span style="color:rgba(255,255,255,0.45)">${cart.event_location}</span><br>` : ''}
+        ${cart.event_location ? `<span style="color:rgba(255,255,255,0.60)">${cart.event_location}</span><br>` : ''}
         <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06)">${prodRows}${more}</div>
         <div class="ref">${cart.id}</div>`;
 

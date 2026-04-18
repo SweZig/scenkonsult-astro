@@ -28,7 +28,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
   .loading-box {
     text-align: center;
     padding: 4rem 2rem;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255,255,255,0.60);
   }
   .spinner {
     width: 36px; height: 36px;
@@ -59,7 +59,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.60);
     margin-bottom: 0.5rem;
   }
   .order-title {
@@ -121,7 +121,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     gap: 0.75rem;
   }
   .info-field { }
-  .info-label { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-bottom: 0.2rem; }
+  .info-label { font-size: 0.75rem; color: rgba(255,255,255,0.60); margin-bottom: 0.2rem; }
   .info-value { font-size: 0.95rem; font-weight: 500; color: #f0eeff; }
 
   /* Product table */
@@ -183,7 +183,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     font-style: normal;
   }
   .row-name   { font-weight: 600; font-size: 0.9rem; color: #f0eeff; display: flex; align-items: center; }
-  .row-cat    { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-top:1px; }
+  .row-cat    { font-size: 0.72rem; color: rgba(255,255,255,0.60); margin-top:1px; }
   .row-qty    { text-align: center; color: rgba(255,255,255,0.6); font-size: 0.88rem; }
   .row-price  { text-align: right; color: rgba(255,255,255,0.5); font-size: 0.88rem; }
   .row-total  { text-align: right; color: #c4b5f4; font-weight: 700; font-size: 0.9rem; }
@@ -210,7 +210,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     background: rgba(196,181,244,0.04);
   }
   .order-time-item { display: flex; flex-direction: column; gap: 1px; }
-  .order-time-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing:0.07em; color: rgba(255,255,255,0.35); }
+  .order-time-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing:0.07em; color: rgba(255,255,255,0.60); }
   .order-time-value { font-size: 0.88rem; font-weight: 600; color: #f0eeff; }
 
   /* Totals box */
@@ -232,7 +232,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     border-top: 1px solid rgba(196,181,244,0.2);
     margin-bottom: 0;
   }
-  .totals-note { font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top:0.5rem; font-style:italic; }
+  .totals-note { font-size: 0.75rem; color: rgba(255,255,255,0.60); margin-top:0.5rem; font-style:italic; }
 
   @media (max-width:480px) {
     .order-cart-header { display: none; }
@@ -243,11 +243,11 @@ import orderCatalog from '../../data/order-catalog-flat.json';
 
   /* ── CHATT ─────────────────────────────────────────────── */
   .chat-messages { display: flex; flex-direction: column; gap: 0.875rem; margin-bottom: 1.25rem; }
-  .chat-empty { color: rgba(255,255,255,0.4); font-size: 0.9rem; font-style: italic; padding: 0.5rem 0; }
+  .chat-empty { color: rgba(255,255,255,0.60); font-size: 0.9rem; font-style: italic; padding: 0.5rem 0; }
   .msg-wrap { display: flex; flex-direction: column; }
   .msg-wrap.admin    { align-items: flex-start; }
   .msg-wrap.customer { align-items: flex-end; }
-  .msg-sender-label { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.4); margin-bottom: 0.2rem; padding: 0 0.25rem; }
+  .msg-sender-label { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.60); margin-bottom: 0.2rem; padding: 0 0.25rem; }
   .msg-bubble {
     max-width: 82%;
     padding: 0.7rem 1rem;
@@ -257,7 +257,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
   }
   .msg-wrap.admin    .msg-bubble { background: #221f50; color: #f0eeff; border-bottom-left-radius: 4px; }
   .msg-wrap.customer .msg-bubble { background: #332885; color: #fff; border-bottom-right-radius: 4px; }
-  .msg-meta { font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-top: 0.25rem; padding: 0 0.25rem; }
+  .msg-meta { font-size: 0.7rem; color: rgba(255,255,255,0.60); margin-top: 0.25rem; padding: 0 0.25rem; }
 
   .chat-input-wrap {
     display: flex;
@@ -283,7 +283,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     color-scheme: dark;
   }
   .chat-textarea:focus { outline: none; border-color: rgba(196,181,244,0.4); }
-  .chat-textarea::placeholder { color: rgba(255,255,255,0.25); }
+  .chat-textarea::placeholder { color: rgba(255,255,255,0.55); }
   .chat-send-btn {
     align-self: flex-end;
     background: #c4b5f4;
@@ -723,7 +723,7 @@ function renderOrder(c) {
     html += mkSvcRow(feeItem);
   }
   if (noteItem) {
-    html += `<div style="padding:0.6rem 1.25rem;font-size:0.8rem;color:rgba(255,255,255,0.4);font-style:italic;border-top:1px dashed rgba(255,255,255,0.06)">📝 ${noteItem.name}</div>`;
+    html += `<div style="padding:0.6rem 1.25rem;font-size:0.8rem;color:rgba(255,255,255,0.60);font-style:italic;border-top:1px dashed rgba(255,255,255,0.06)">📝 ${noteItem.name}</div>`;
   }
 
   // Tidpunkter
@@ -826,7 +826,7 @@ function renderConfirmBox(c) {
         style="width:100%;padding:0.875rem;background:#c4b5f4;color:#0c0a24;border:none;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;transition:opacity .2s;font-family:inherit">
         ✅ Bekräfta order
       </button>
-      <p style="color:rgba(255,255,255,0.3);font-size:0.75rem;margin-top:0.75rem;text-align:center">
+      <p style="color:rgba(255,255,255,0.60);font-size:0.75rem;margin-top:0.75rem;text-align:center">
         Din bekräftelse loggas med tidsstämpel och IP-adress som bindande avtal.
       </p>
     </div>`;
@@ -869,7 +869,7 @@ async function confirmOrder() {
               <div style="color:rgba(255,255,255,0.5);font-size:0.8rem">Tack! Vi bekräftar via e-post och ses på eventet.</div>
             </div>
           </div>
-          <div style="font-size:0.8rem;color:rgba(255,255,255,0.3);font-family:monospace">
+          <div style="font-size:0.8rem;color:rgba(255,255,255,0.60);font-family:monospace">
             Ref: ${c.id} · ${new Date().toLocaleString('sv-SE')}
           </div>
         </div>`;

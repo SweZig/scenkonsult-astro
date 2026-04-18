@@ -246,7 +246,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .badge-ev-red   { background: rgba(239,68,68,0.15);   color: #f87171; }
     .badge-ev-amber { background: rgba(251,191,36,0.15);  color: #fbbf24; }
     .badge-ev-green { background: rgba(74,222,128,0.12);  color: #4ade80; }
-    .badge-ev-gray  { background: rgba(255,255,255,0.08);   color: rgba(255,255,255,0.4); }
+    .badge-ev-gray  { background: rgba(255,255,255,0.08);   color: rgba(255,255,255,0.60); }
 
     /* Urgency-färger */
     .urg-red    { --cc-urgency: var(--red); }
@@ -459,7 +459,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .cal-event.s-waiting   { border-left-color: var(--amber); }
     .cal-event.s-new       { border-left-color: var(--brand-lav); }
     .cal-event.s-cancelled { border-left-color: var(--red); opacity: 0.4; }
-    .cal-event-time { color: rgba(255,255,255,0.45); font-size: 0.62rem; margin-right: 3px; }
+    .cal-event-time { color: rgba(255,255,255,0.60); font-size: 0.62rem; margin-right: 3px; }
     /* Period-markering: highlight för returdag */
     .cal-event.is-return { background: rgba(196,181,244,0.12); border-left-color: rgba(196,181,244,0.4); border-left-width: 2px; border-style: dashed; }
     .cal-event.is-return.s-confirmed { border-left-color: rgba(74,222,128,0.4); }
@@ -652,7 +652,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       </div>
       <div class="form-row">
         <div><label class="form-label">Företagsnamn</label><input class="form-input" id="qc-company" placeholder="Företag / organisation" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;" oninput="const v=this.value.trim();document.getElementById('qc-b2b-fields').style.display=v?'block':'none';document.getElementById('qc-b2b-placeholder').style.display=v?'none':''"></div>
-        <div><label class="form-label">Organisationsnummer</label><div id="qc-b2b-fields" style="display:none"><input class="form-input" id="qc-orgnr" placeholder="556xxx-xxxx" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div><div id="qc-b2b-placeholder" style="color:rgba(255,255,255,0.25);font-size:0.8rem;padding:0.4rem 0">Fylls i när företag anges</div></div>
+        <div><label class="form-label">Organisationsnummer</label><div id="qc-b2b-fields" style="display:none"><input class="form-input" id="qc-orgnr" placeholder="556xxx-xxxx" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div><div id="qc-b2b-placeholder" style="color:rgba(255,255,255,0.55);font-size:0.8rem;padding:0.4rem 0">Fylls i när företag anges</div></div>
       </div>
       <div class="form-row full" style="margin-bottom:0">
         <div><label class="form-label">Plats / Adress</label><input class="form-input" id="qc-location" placeholder="Lokal eller adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
@@ -712,7 +712,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
           <span id="quote-pdf-label">Bifoga PDF (valfritt — t.ex. skiss)</span>
         </label>
         <input type="file" id="quote-pdf-input" accept="application/pdf" style="display:none" onchange="quotePdfSelected(this)">
-        <button id="quote-pdf-clear" style="display:none;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:0.8rem;padding:2px 6px" onclick="quotePdfClear()">✕</button>
+        <button id="quote-pdf-clear" style="display:none;background:none;border:none;color:rgba(255,255,255,0.60);cursor:pointer;font-size:0.8rem;padding:2px 6px" onclick="quotePdfClear()">✕</button>
       </div>
 
       <div id="quote-error" style="display:none;margin-top:0.75rem;padding:0.75rem;background:var(--red-bg);border-radius:8px;color:var(--red);font-size:0.85rem"></div>
@@ -738,7 +738,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       <button onclick="reminderAction('no')" style="flex:1;padding:10px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);font-size:0.85rem;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-family:inherit">Nej, inte nu</button>
     </div>
     <div style="margin-top:8px;text-align:center">
-      <button onclick="reminderAction('snooze')" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.75rem;cursor:pointer;font-family:inherit">Påminn mig inte om denna offert igen</button>
+      <button onclick="reminderAction('snooze')" style="background:none;border:none;color:rgba(255,255,255,0.60);font-size:0.75rem;cursor:pointer;font-family:inherit">Påminn mig inte om denna offert igen</button>
     </div>
   </div>
 </div>
@@ -1284,7 +1284,7 @@ function renderTab(tab) {
           statusEl.style.cssText = 'margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;background:rgba(196,181,244,0.15);color:#c4b5f4';
           statusEl.innerHTML = '✓ Faktura skickas till: <strong>' + emailVal + '</strong>';
         } else {
-          statusEl.style.cssText = 'margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45)';
+          statusEl.style.cssText = 'margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.60)';
           statusEl.innerHTML = '→ Faktura skickas till kundens mail: <strong>' + customerEmail + '</strong>';
         }
       }
@@ -1590,7 +1590,7 @@ function renderInfoTab() {
           </label>
         </div>
         <input class="info-edit-input" id="edit-invoice-email" type="email" value="${(c.invoice_email||'').replace(/"/g,'&quot;')}" placeholder="fakturamail@foretag.se" oninput="toggleInvoiceEmailActive(document.getElementById('use-invoice-email')?.checked)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;margin-top:4px">
-        <div id="invoice-email-status" style="margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;${c.invoice_email&&c.use_invoice_email?'background:rgba(196,181,244,0.15);color:#c4b5f4':'background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45)'}">
+        <div id="invoice-email-status" style="margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;${c.invoice_email&&c.use_invoice_email?'background:rgba(196,181,244,0.15);color:#c4b5f4':'background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.60)'}">
           ${c.invoice_email&&c.use_invoice_email
             ? '✓ Faktura skickas till: <strong>'+c.invoice_email+'</strong>'
             : '→ Faktura skickas till kundens mail: <strong>'+(c.customer_email||'saknas')+'</strong>'}
@@ -1635,7 +1635,7 @@ function renderInfoTab() {
         <div class="info-field-value" style="font-size:0.8rem;margin-bottom:0.75rem">${fmtTime(c.pickup_signed_at)} · IP: ${c.pickup_sign_ip||'–'}</div>
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
           ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:60px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:pointer" onclick="adminShowPickup(currentCart)" title="Klicka för fullständig kvittens">` : ''}
-          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:60px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:pointer" onclick="adminShowPickup(currentCart)" title="Legitimation">` : '<span style="font-size:0.75rem;color:rgba(255,255,255,0.3)">Inget leg-foto</span>'}
+          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:60px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:pointer" onclick="adminShowPickup(currentCart)" title="Legitimation">` : '<span style="font-size:0.75rem;color:rgba(255,255,255,0.60)">Inget leg-foto</span>'}
         </div>
       </div>` : ''}
       <div class="info-field"><div class="info-field-label">Utgår</div><div class="info-field-value" style="font-size:0.8rem;color:${c.expires_at ? 'var(--amber)' : 'var(--green)'}">${c.expires_at ? fmtDate(c.expires_at) : '♾ Bekräftad'}</div></div>
@@ -2380,13 +2380,13 @@ function showInvoiceConfirmDialog(invoiceNum, totalIncl) {
           </div>
         </div>
         <div style="margin-bottom:1.25rem">
-          <label style="display:block;font-size:0.78rem;color:rgba(255,255,255,0.45);margin-bottom:4px">Justera fakturanummer (om fel)</label>
+          <label style="display:block;font-size:0.78rem;color:rgba(255,255,255,0.60);margin-bottom:4px">Justera fakturanummer (om fel)</label>
           <div style="display:flex;align-items:center;gap:6px">
             <span style="color:rgba(255,255,255,0.5);font-weight:600">K</span>
             <input id="inv-confirm-num" type="number" value="${invoiceNum.replace('K','')}" min="1"
               style="flex:1;font-size:0.9rem;padding:6px 10px;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(196,181,244,0.3);border-radius:7px;font-family:inherit">
           </div>
-          <p style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:5px">Om du ändrar numret reserveras det föregående automatiskt.</p>
+          <p style="font-size:0.72rem;color:rgba(255,255,255,0.60);margin-top:5px">Om du ändrar numret reserveras det föregående automatiskt.</p>
         </div>
         <div style="display:flex;gap:0.75rem">
           <button id="inv-confirm-cancel" style="flex:1;padding:0.75rem;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;font-size:0.85rem">Avbryt</button>

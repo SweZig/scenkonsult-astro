@@ -990,10 +990,10 @@ const localBusinessSchema = {
       font-size: 12.5px; font-weight: 700;
       margin-bottom: 1px;
     }
-    #sven-header-text span { color: rgba(255,255,255,0.45); font-size: 10.5px; }
+    #sven-header-text span { color: rgba(255,255,255,0.60); font-size: 10.5px; }
     #sven-close-btn {
       background: none; border: none; cursor: pointer;
-      color: rgba(255,255,255,0.35); padding: 2px;
+      color: rgba(255,255,255,0.60); padding: 2px;
       border-radius: 6px; transition: color 0.15s;
       margin-top: 1px;
     }
@@ -1101,7 +1101,7 @@ const localBusinessSchema = {
       transition: border-color 0.15s;
     }
     #sven-input:focus { border-color: rgba(196,181,244,0.5) !important; }
-    #sven-input::placeholder { color: rgba(255,255,255,0.3) !important; }
+    #sven-input::placeholder { color: rgba(255,255,255,0.60) !important; }
     #sven-send {
       width: 38px; height: 38px;
       border-radius: 10px; border: none;
@@ -1121,11 +1121,11 @@ const localBusinessSchema = {
       flex-shrink: 0;
     }
     #sven-rating-row.visible { display: flex; }
-    #sven-rating-label { font-size: 11px; color: rgba(255,255,255,0.3); }
+    #sven-rating-label { font-size: 11px; color: rgba(255,255,255,0.60); }
     #sven-stars { display: flex; gap: 3px; }
     .sven-star {
       background: none; border: none; cursor: pointer;
-      font-size: 20px; color: rgba(255,255,255,0.2);
+      font-size: 20px; color: rgba(255,255,255,0.55);
       padding: 0 1px; transition: color 0.15s, transform 0.1s; line-height: 1;
     }
     .sven-star:hover, .sven-star.active { color: #c4b5f4; }
@@ -1275,14 +1275,14 @@ const localBusinessSchema = {
         <p id="sk-modal-desc" style="font-size:12px;color:rgba(255,255,255,.52);line-height:1.65;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)"></p>
         <div id="sk-modal-rows" style="margin-bottom:12px"></div>
         <div id="sk-modal-specs-wrap" style="margin-bottom:16px;flex:1">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);margin-bottom:8px;font-weight:600">Specifikation</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.60);margin-bottom:8px;font-weight:600">Specifikation</div>
           <ul id="sk-modal-specs" style="list-style:none;display:flex;flex-direction:column;gap:5px"></ul>
         </div>
-        <div style="font-size:10px;color:rgba(255,255,255,.3);padding:8px 10px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:14px;line-height:1.5">Alla priser <span id="sk-modal-vat-note">exkl.</span> moms. Hyrtid 22 h. Leverans i hela Storstockholm.</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.60);padding:8px 10px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:14px;line-height:1.5">Alla priser <span id="sk-modal-vat-note">exkl.</span> moms. Hyrtid 22 h. Leverans i hela Storstockholm.</div>
         <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:16px;margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div>
             <div id="sk-modal-price" style="font-size:26px;font-weight:800;color:#c4b5f4;line-height:1"></div>
-            <div id="sk-modal-pnote" style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px"></div>
+            <div id="sk-modal-pnote" style="font-size:10px;color:rgba(255,255,255,0.60);margin-top:3px"></div>
           </div>
           <button id="sk-modal-cart-btn" onclick="window.skModalAddCart()" style="background:#c4b5f4;color:#0c0a24;border:none;border-radius:8px;padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='#e2dcfb'" onmouseout="this.style.background='#c4b5f4'">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -1368,7 +1368,7 @@ const localBusinessSchema = {
       if (!rows || !rows.length) { el.innerHTML = ''; return; }
       el.innerHTML = rows.map(g => `
         <div style="margin-bottom:10px">
-          ${g.label ? `<div style="font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.28);margin-bottom:5px;font-weight:600">${g.label}</div>` : ''}
+          ${g.label ? `<div style="font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.55);margin-bottom:5px;font-weight:600">${g.label}</div>` : ''}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 10px">
             ${g.rows.map(r => `<div style="font-size:11px;color:rgba(255,255,255,.5)">${r}</div>`).join('')}
           </div>
@@ -1517,7 +1517,7 @@ const localBusinessSchema = {
   <div id="sk-admin-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(12,10,36,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
     <div style="background:#1a1740;border:1px solid rgba(196,181,244,0.35);border-radius:20px;padding:2.5rem;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,0.6);">
       <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:#c4b5f4;margin-bottom:0.25rem;">Scenkonsult Admin</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:0.8rem;color:rgba(255,255,255,0.45);margin-bottom:1.75rem;">Ange adminlösenord för att aktivera adminläget</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:0.8rem;color:rgba(255,255,255,0.60);margin-bottom:1.75rem;">Ange adminlösenord för att aktivera adminläget</div>
       <input id="sk-admin-pw" type="password" placeholder="Lösenord"
         style="width:100%;background:#0c0a24;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:0.8rem 1rem;color:#f0eeff;font-family:'Space Grotesk',sans-serif;font-size:1rem;margin-bottom:0.75rem;outline:none;transition:border-color 0.2s;color-scheme:dark;"
         autocomplete="current-password" />
@@ -1530,7 +1530,7 @@ const localBusinessSchema = {
         Aktivera adminläge
       </button>
       <button id="sk-admin-cancel"
-        style="width:100%;margin-top:0.5rem;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.875rem;cursor:pointer;">
+        style="width:100%;margin-top:0.5rem;background:transparent;color:rgba(255,255,255,0.60);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.875rem;cursor:pointer;">
         Avbryt
       </button>
     </div>
