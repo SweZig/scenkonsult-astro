@@ -1,0 +1,16 @@
+# Scenkonsult — extra HTTP headers utöver netlify.toml
+# Netlify processar _headers OCH netlify.toml-headers; sista vinner per path.
+# Denna fil hanterar regler som inte finns i netlify.toml ännu.
+
+# Self-hostade fonts — deterministiska filnamn, ändras aldrig utan deploy
+# Aggressive cache: 1 år, immutable. Browser laddar aldrig om dessa.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Video-postrar — också statiska, sällan ändrade
+/images/video-posters/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Hero-varianter (fastnamngivna, ändras inte)
+/images/hero/scen3_hero*
+  Cache-Control: public, max-age=31536000, immutable
