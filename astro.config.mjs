@@ -10,4 +10,21 @@ export default defineConfig({
   ],
   // Trailing slash = always → matchar WordPress-URLs exakt
   trailingSlash: 'always',
+  // Aggressivare JS-minify via terser (default är esbuild)
+  // Sparar ~3 KB JS per bundle vs esbuild — fixar PSI "Minifiera JavaScript"-flagga
+  vite: {
+    build: {
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: false,  // behåll console.log för debugging i prod (Sven-loggning etc)
+          passes: 2,
+        },
+        format: {
+          comments: false,
+        },
+      },
+    },
+  },
 });
+

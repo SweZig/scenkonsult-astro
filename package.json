@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "minify-sven": "terser public/sven-widget.src.js --compress passes=2 --mangle --format comments=false --output public/sven-widget.js",
+    "prebuild": "npm run minify-sven"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.2.0",
@@ -17,6 +19,7 @@
     "tailwindcss": "^3.4.14"
   },
   "devDependencies": {
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "terser": "^5.36.0"
   }
 }
