@@ -99,7 +99,7 @@ const faqSchema = {
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
       {(ljusData.dmx?.tillbehor?.filter((p:any) => parseInt(p.artno.slice(-4)) <= 5) ?? []).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={true} specs={p.specs ?? [p.desc ?? '']} />
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={true} specs={p.specs ?? [p.desc ?? '']} manualUrl={p.manualUrl} />
       ))}
     </div>
   </section>

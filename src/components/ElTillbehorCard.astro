@@ -11,8 +11,9 @@ interface Props {
   artno?: string;
   modal?: boolean;
   specs?: string[];
+  manualUrl?: string;
 }
-const { img, name, excl, desc, category = 'Tillbehör', artno, slug, modal = false, specs } = Astro.props;
+const { img, name, excl, desc, category = 'Tillbehör', artno, slug, modal = false, specs, manualUrl } = Astro.props;
 const cartId = slug || artno || `acc-${name.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').replace(/[^a-z0-9]+/g, '-')}`;
 
 const productJson = modal ? JSON.stringify({
@@ -40,12 +41,22 @@ const productJson = modal ? JSON.stringify({
   <p class="text-white text-xs font-semibold leading-tight mb-0.5">{name}</p>
   {artno && <p class="artno-badge" style="margin-bottom:0.25rem">{artno}</p>}
   {desc && <p class="text-gray-400 text-[10px] leading-tight mb-0.5 flex-1">{desc}</p>}
-  <div class="flex items-center justify-between mt-auto pt-2 gap-1 border-t border-white/10">
-    <div class="leading-none">
-      <span class="sk-price-excl text-brand-orange text-sm font-bold">{excl} kr</span>
-      <span class="sk-price-incl hidden text-brand-orange text-sm font-bold">{Math.round(excl*1.25)} kr</span>
-      <span class="text-gray-400 text-[10px]">/dygn</span>
+  <div class="mt-auto pt-2 flex flex-col gap-1.5 border-t border-white/10">
+    <div class="flex items-center justify-between gap-1">
+      <div class="leading-none">
+        <span class="sk-price-excl text-brand-orange text-sm font-bold">{excl} kr</span>
+        <span class="sk-price-incl hidden text-brand-orange text-sm font-bold">{Math.round(excl*1.25)} kr</span>
+        <span class="text-gray-400 text-[10px]">/dygn</span>
+      </div>
+      <CartButton id={cartId} name={name} price={excl} category={category} image={img} size="sm" iconOnly={true} />
     </div>
-    <CartButton id={cartId} name={name} price={excl} category={category} image={img} size="sm" iconOnly={true} />
+    {manualUrl && (
+      <a href={manualUrl} target="_blank" rel="noopener noreferrer"
+         class="inline-flex items-center gap-1 text-[10px] text-gray-500 hover:text-brand-orange transition-colors w-fit"
+         onclick="event.stopPropagation()">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Manual (PDF)
+      </a>
+    )}
   </div>
 </div>

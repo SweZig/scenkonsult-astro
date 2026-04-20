@@ -78,7 +78,7 @@ const faqSchema = {
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="Stativ tillbehör" artno={p.artno} />
       ))}
       {(ljusData.dmx?.tillbehor?.filter((p:any) => parseInt(p.artno.slice(-4)) >= 6) ?? []).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-tillbehör" artno={p.artno} />
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-tillbehör" artno={p.artno} manualUrl={p.manualUrl} />
       ))}
     </div>
   </section>
