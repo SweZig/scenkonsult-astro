@@ -1,0 +1,325 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ljusData from '../../../data/ljus.json';
+
+// Pris-helpers — alla priser från JSON
+const _rok = ljusData.rok.products as any[];
+const _acc = ljusData.rok.tillbehor as any[];
+const rp = (artno: string) => _rok.find(p => p.artno === artno)?.price ?? 0;
+const ap = (artno: string) => _acc.find(p => p.artno === artno)?.price ?? 0;
+const ai = (artno: string) => _acc.find(p => p.artno === artno)?.image ?? '';
+const an = (artno: string) => _acc.find(p => p.artno === artno)?.name ?? '';
+
+// De fyra huvudtyperna med koppling till våra produkter
+const huvudtyper = [
+  {
+    typ: "Standard rökvätska",
+    farg: "#c4b5f4",
+    standtid: "2–15 min",
+    tathet: "Medel–hög",
+    anvandning: "Disco, fest, klubb, teater — den klassiska 'rök i ljusstrålen'",
+    produkter: [
+      { artno: "SK-LJS-ROK-ACC-0005", not: "Mindre event, test" },
+      { artno: "SK-LJS-ROK-ACC-0006", not: "Hel kväll, 2–3 timmar aktiv rökning" },
+      { artno: "SK-LJS-ROK-ACC-0007", not: "Flera kvällar, stora event" },
+    ],
+    beskrivning: "Den vanligaste typen. Skapar synlig dimma som gör ljuskäglor och laserstrålar synliga i luften. Välj densitet efter lokalens storlek — standard funkar till 95 % av alla event."
+  },
+  {
+    typ: "Hazervätska",
+    farg: "#86efac",
+    standtid: "20–60 min",
+    tathet: "Låg, jämn",
+    anvandning: "Ljusstrålar, moving heads, laser — 'atmosfär utan att synas rökigt'",
+    produkter: [
+      { artno: "SK-LJS-ROK-ACC-0008", not: "För vår Hazer HZ-1500 Pro och andra vattenbaserade hazers" },
+    ],
+    beskrivning: "Inte 'utspädd rök' — en kemiskt annan vätska som skapar en jämn, nästan osynlig dis. Syns först när ljuset träffar den. Räcker mångfaldigt längre än rökvätska. Säkrare i känsliga lokaler (utlöser sällan brandlarm)."
+  },
+  {
+    typ: "Heavy — extra tät",
+    farg: "#fbbf24",
+    standtid: "15–40 min",
+    tathet: "Mycket hög, långvarig",
+    anvandning: "Utomhus, stora salar, scenografisk rök över längre tid",
+    produkter: [
+      { artno: "SK-LJS-ROK-ACC-0013", not: "Stairville E-HD — vattenbaserad, tysktillverkad" },
+    ],
+    beskrivning: "Tät vit rök som står kvar länge. Perfekt utomhus där standard snabbt skingras av vinden. Varning: för tät för moving heads — du ser inte strålen genom dimman. Välj standard när du har rörliga ljuseffekter."
+  },
+  {
+    typ: "Fast Fog (CO₂-effekt)",
+    farg: "#67e8f9",
+    standtid: "10–60 sek",
+    tathet: "Extremt hög, kort",
+    anvandning: "Drops i musik, refränger, effektslag — som en liten CO₂-kanon",
+    produkter: [
+      { artno: "SK-LJS-ROK-ACC-0014", not: "Stairville Fast Fog F-F — för effektmoment" },
+    ],
+    beskrivning: "Snabb vit pelare som löses upp på några sekunder. Används till bildmässiga höjdpunkter — drop i låten, crescendo, första dansen. Obs: förbrukas ~2× snabbare än standard eftersom effekten kräver hög densitet på kort tid."
+  }
+];
+
+const valjRatt = [
+  {
+    scenario: "Bröllop 100 gäster, inomhus",
+    rekommendation: "Standard 5 l",
+    artno: "SK-LJS-ROK-ACC-0007",
+    motivering: "Räcker hela kvällen. Tät nog för ljusstrålar, inte så tät att den skymmer moving heads."
+  },
+  {
+    scenario: "Utomhusevent på gräsplan",
+    rekommendation: "Heavy 5 l",
+    artno: "SK-LJS-ROK-ACC-0013",
+    motivering: "Utomhus skingras standard-rök direkt av vind. Heavy står kvar tillräckligt länge för att ge effekt."
+  },
+  {
+    scenario: "DJ-event med laser och moving heads",
+    rekommendation: "Hazer 5 l + Haze-vätska",
+    artno: "SK-LJS-ROK-ACC-0008",
+    motivering: "Moving heads och laser behöver jämn dis som inte skymmer strålarna. Hazer + haze-vätska är enda rätta valet."
+  },
+  {
+    scenario: "Konsert med drops — förstärka höjdpunkter",
+    rekommendation: "Fast Fog 5 l",
+    artno: "SK-LJS-ROK-ACC-0014",
+    motivering: "Korta pelare av rök på exakt rätt taktslag. Löses snabbt så publiken ser scenen tydligt igen inom sekunder."
+  },
+  {
+    scenario: "Teateruppsättning, atmosfärisk rök",
+    rekommendation: "Hazer + Haze-vätska eller Heavy",
+    artno: "SK-LJS-ROK-ACC-0008",
+    motivering: "Långvarig känsla utan drama. Hazer om rök ska vara subtil, Heavy om du vill se dimmans rörelse tydligt."
+  },
+  {
+    scenario: "Halloween / spökhus-effekt",
+    rekommendation: "Heavy",
+    artno: "SK-LJS-ROK-ACC-0013",
+    motivering: "Tät, lågt hängande dimma som stannar kvar i rummet och skapar rätt stämning."
+  }
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Rökvätska — komplett guide till olika typer av fog fluid",
+      "description": "Standard, haze, heavy och fast fog — vad är skillnaderna och vilken ska du välja? Guide med kundfeedback, matchning till rökmaskin och priser.",
+      "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
+      "publisher": { "@type": "Organization", "name": "Scenkonsult Norden", "url": "https://scenkonsult.se" },
+      "datePublished": "2026-04-21",
+      "dateModified": "2026-04-21",
+      "url": "https://scenkonsult.se/for/guider/rokvatska-guide/"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Vilken rökvätska ska jag välja?",
+          "acceptedAnswer": { "@type": "Answer", "text": `Standard rökvätska passar 95 % av alla event — klubb, fest, bröllop. Välj Haze-vätska om du har en hazer eller vill ha långvarig dis utan att det syns rökigt. Välj Heavy för utomhus eller när du vill ha mycket tät rök länge. Välj Fast Fog för CO₂-liknande korta pelare till drops och effektmoment. Standard 5 l kostar ${ap('SK-LJS-ROK-ACC-0007')} kr, Heavy ${ap('SK-LJS-ROK-ACC-0013')} kr, Fast Fog ${ap('SK-LJS-ROK-ACC-0014')} kr.` }
+        },
+        {
+          "@type": "Question",
+          "name": "Kan jag blanda olika rökvätskor i samma maskin?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Tekniskt ja — alla våra vätskor är vattenbaserade och vattenlösliga. Men det rekommenderas inte, särskilt inte mellan standard och Fast Fog eller mellan olika märken. Olika kemi kan fälla ut beläggningar i värmeelementet. Spola alltid maskinen innan vätskebyte." }
+        },
+        {
+          "@type": "Question",
+          "name": "Varför kostar Fast Fog mer och räcker kortare?",
+          "acceptedAnswer": { "@type": "Answer", "text": `Fast Fog har högre koncentration av aktiva ämnen för att skapa den täta men snabbt upplösande pelaren. En 5 l-dunk räcker ungefär hälften så länge som standard vätska, men ger å andra sidan en effekt som vanlig rökvätska inte klarar. Kostnad: ${ap('SK-LJS-ROK-ACC-0014')} kr för 5 l.` }
+        },
+        {
+          "@type": "Question",
+          "name": "Hur mycket rökvätska går åt per kväll?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Beror helt på hur aktivt du kör rökmaskinen. En Rökmaskin 1500W på medel-setting förbrukar ~200 ml/timme. 5 l räcker alltså ~25 timmar aktiv rökning. För en DJ-kväll 4–6 timmar räcker 1 l, för ett bröllop 1 dygn räcker 3 l i de flesta fall. Fast Fog räcker ungefär hälften så länge." }
+        },
+        {
+          "@type": "Question",
+          "name": "Är rökvätska säker att andas in?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra vätskor är testade enligt europeisk farmakopé (Ph. Eur.) eller tyska farmakopén (DAB). De är icke-toxiska och säkra för människor. Ventilation rekommenderas vid lång användning. Personer med astma eller lungbesvär kan få irritation av långvarig exponering, precis som i vanlig damm- eller pollenmiljö." }
+        },
+        {
+          "@type": "Question",
+          "name": "Kan jag köpa rökvätska utan att hyra maskin?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Ja, vi säljer förbrukningsvätska även utan maskinhyra. Du kan också hyra enbart rökvätska som tillägg till en egen maskin. Kontakta oss för priser på större volymer (10 l+)." }
+        }
+      ]
+    }
+  ]
+};
+---
+
+<Layout
+  title="Rökvätska — komplett guide: standard, haze, heavy, CO2 | Scenkonsult"
+  description="Vilken rökvätska ska du välja? Guide till standard, haze, heavy och fast fog/CO2. Matchning mot rökmaskin, pris från 119 kr. Stockholm."
+  schemaExtra={faqSchema}
+>
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px;margin:0 auto;">
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
+        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);">
+          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
+          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
+          <li style="color:white;">Rökvätska-guide</li>
+        </ol>
+      </nav>
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Rökvätska 2026</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,5vw,3.1rem);line-height:1.1;color:white;margin:0 0 1rem;">Rökvätska — den kompletta guiden</h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Standard, haze, heavy eller fast fog? Vätskorna ser likadana ut i dunken men ger helt olika resultat. Här är vad du behöver veta för att välja rätt till ditt event.</p>
+    </div>
+  </div>
+
+  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
+
+      <!-- Intro / kärnargument -->
+      <div style="background:linear-gradient(135deg,rgba(196,181,244,0.12),rgba(196,181,244,0.04));border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:2rem;margin-bottom:3rem;">
+        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 1rem;">Kort sammanfattning</p>
+        <p style="color:white;font-size:1.05rem;line-height:1.7;margin:0 0 1rem;">Välj <strong>Standard</strong> för klubb, fest, DJ-kväll — enkelt val till 95 % av alla event. <strong>Haze</strong> för hazer, teater och DJ-setup med laser/moving heads. <strong>Heavy</strong> för utomhus och när du vill ha mycket rök länge. <strong>Fast Fog</strong> för drops, refränger och effektmoment där pelaren ska försvinna snabbt.</p>
+        <p style="color:rgba(255,255,255,0.7);font-size:0.95rem;line-height:1.7;margin:0;">Rökvätska ingår alltid när du hyr en rökmaskin av oss. Du kan också köpa till extra eller hyra enbart vätskan till din egen maskin.</p>
+      </div>
+
+      <!-- Varför rökvätska spelar roll -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Varför vätskan är lika viktig som maskinen</h2>
+      <p>Många tror att en rökmaskin är en rökmaskin — att det bara handlar om effekt och tryck. Fel. Maskinen är pumpen; <strong style="color:white;">vätskan är det som bestämmer hur röken ser ut och beter sig</strong>.</p>
+      <p>Samma rökmaskin med standardvätska och med Fast Fog i tanken ger två helt olika resultat. Standardvätskan ger långvarig dimma genom hela lokalen. Fast Fog-vätskan ger en snabb vit pelare som försvinner inom 30 sekunder. Samma maskin — olika vätskor — olika effekt.</p>
+      <p>Vårt sortiment täcker de fyra huvudtyperna. Här går vi igenom dem.</p>
+
+      <!-- De fyra huvudtyperna -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.5rem;">De fyra huvudtyperna</h2>
+      <div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem;">
+        {huvudtyper.map(h => (
+          <div style={`background:#1e1850;border-radius:14px;overflow:hidden;border-left:4px solid ${h.farg};`}>
+            <div style="padding:1.4rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.07);">
+              <h3 style={`font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;color:${h.farg};margin:0 0 0.5rem;`}>{h.typ}</h3>
+              <p style="color:rgba(255,255,255,0.65);font-size:0.92rem;line-height:1.65;margin:0 0 1rem;">{h.beskrivning}</p>
+              <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">
+                <div><span style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;font-family:'Space Grotesk',sans-serif;font-weight:700;">Standtid: </span><span style="color:rgba(255,255,255,0.75);font-size:0.88rem;">{h.standtid}</span></div>
+                <div><span style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;font-family:'Space Grotesk',sans-serif;font-weight:700;">Täthet: </span><span style="color:rgba(255,255,255,0.75);font-size:0.88rem;">{h.tathet}</span></div>
+              </div>
+              <div><span style="color:rgba(255,255,255,0.4);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;font-family:'Space Grotesk',sans-serif;font-weight:700;">Använd till: </span><span style="color:rgba(255,255,255,0.75);font-size:0.88rem;">{h.anvandning}</span></div>
+            </div>
+            <div style="padding:1.1rem 1.5rem;">
+              <div style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.7rem;">Våra produkter</div>
+              {h.produkter.map(p => (
+                <div style="display:flex;gap:1rem;padding:0.6rem 0;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <div style="aspect-ratio:1024/853;width:56px;background:#0c0a24;border-radius:6px;overflow:hidden;flex-shrink:0;">
+                    <img src={ai(p.artno)} alt={an(p.artno)} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                  </div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="color:white;font-weight:600;font-size:0.9rem;">{an(p.artno)}</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">{p.not}</div>
+                  </div>
+                  <div style="color:#c4b5f4;font-family:'DM Serif Display',serif;font-size:1.25rem;white-space:nowrap;flex-shrink:0;"><span data-exkl={ap(p.artno)}>{ap(p.artno)}</span> kr</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Välj rätt — scenariotabell -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Välj rätt vätska efter event</h2>
+      <p>Utgå från scenariot, inte produktnamnen. Här är de vanligaste situationerna vi möter och vad vi rekommenderar.</p>
+      <div style="overflow-x:auto;margin-bottom:3rem;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.86rem;">
+          <thead>
+            <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Scenario</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#86efac;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Vi rekommenderar</th>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:rgba(255,255,255,0.6);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Varför</th>
+            </tr>
+          </thead>
+          <tbody>
+            {valjRatt.map((r, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.8rem 0.5rem;color:white;font-weight:600;min-width:160px;font-size:0.88rem;">{r.scenario}</td>
+                <td style="padding:0.8rem 0.5rem;font-size:0.85rem;">
+                  <div style="color:rgba(200,255,200,0.85);font-weight:600;">{r.rekommendation}</div>
+                  <div style="color:rgba(255,255,255,0.45);font-size:0.78rem;margin-top:0.15rem;"><span data-exkl={ap(r.artno)}>{ap(r.artno)}</span> kr / 5 l</div>
+                </td>
+                <td style="padding:0.8rem 0.5rem;color:rgba(255,255,255,0.6);font-size:0.82rem;line-height:1.55;">{r.motivering}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Teknisk info / matchning -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Vätska + maskin = rätt kombo</h2>
+      <p>En rökmaskin är kalibrerad efter vätskan — värmeelement och munstycken förutsätter en viss viskositet. Fel vätska kan ge täppta munstycken, minskad livslängd eller helt fel effekt.</p>
+      <p><strong style="color:white;">Våra rökmaskiner i korthet:</strong></p>
+      <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:2rem;">
+        <div style="background:#1e1850;border-radius:10px;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <div style="color:white;font-weight:600;">Rökmaskin 1500W</div>
+            <div style="color:rgba(255,255,255,0.5);font-size:0.82rem;">Passar standard, heavy och fast fog-vätska · Inbyggt RGB-ljus</div>
+          </div>
+          <div style="color:#c4b5f4;font-family:'DM Serif Display',serif;font-size:1.2rem;white-space:nowrap;"><span data-exkl={rp('SK-LJS-ROK-0001')}>{rp('SK-LJS-ROK-0001')}</span> kr/dygn</div>
+        </div>
+        <div style="background:#1e1850;border-radius:10px;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <div style="color:white;font-weight:600;">Rökmaskin 650W</div>
+            <div style="color:rgba(255,255,255,0.5);font-size:0.82rem;">Kompakt · Passar standard- och haze-vätska · För mindre lokaler</div>
+          </div>
+          <div style="color:#c4b5f4;font-family:'DM Serif Display',serif;font-size:1.2rem;white-space:nowrap;"><span data-exkl={rp('SK-LJS-ROK-0002')}>{rp('SK-LJS-ROK-0002')}</span> kr/dygn</div>
+        </div>
+        <div style="background:#1e1850;border-radius:10px;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <div style="color:white;font-weight:600;">Hazer HZ-1500 Pro</div>
+            <div style="color:rgba(255,255,255,0.5);font-size:0.82rem;">Kräver haze-vätska (ACC-0008) · För DJ, moving heads, laser, teater</div>
+          </div>
+          <div style="color:#c4b5f4;font-family:'DM Serif Display',serif;font-size:1.2rem;white-space:nowrap;"><span data-exkl={rp('SK-LJS-ROK-0005')}>{rp('SK-LJS-ROK-0005')}</span> kr/dygn</div>
+        </div>
+      </div>
+
+      <!-- Vanliga fallgropar -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Vanliga fallgropar att undvika</h2>
+      <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:2.5rem;">
+        <div style="background:rgba(251,191,36,0.08);border-left:3px solid rgba(251,191,36,0.5);border-radius:6px;padding:1rem 1.25rem;">
+          <div style="color:rgba(251,191,36,0.9);font-weight:700;font-size:0.88rem;margin-bottom:0.3rem;">❌ Heavy-vätska + moving heads</div>
+          <div style="color:rgba(255,255,255,0.65);font-size:0.88rem;line-height:1.65;">Så tät att ljusstrålarna försvinner i dimman. Du får bara en färgad suddig blob istället för tydliga rörliga strålar. Välj standard eller haze för moving heads.</div>
+        </div>
+        <div style="background:rgba(251,191,36,0.08);border-left:3px solid rgba(251,191,36,0.5);border-radius:6px;padding:1rem 1.25rem;">
+          <div style="color:rgba(251,191,36,0.9);font-weight:700;font-size:0.88rem;margin-bottom:0.3rem;">❌ Fast Fog hela kvällen</div>
+          <div style="color:rgba(255,255,255,0.65);font-size:0.88rem;line-height:1.65;">Fast Fog försvinner på sekunder. Försöker du fylla lokalen förbrukar du en dunk på en timme. Använd Fast Fog bara till drops och effektmoment, standard till allround.</div>
+        </div>
+        <div style="background:rgba(251,191,36,0.08);border-left:3px solid rgba(251,191,36,0.5);border-radius:6px;padding:1rem 1.25rem;">
+          <div style="color:rgba(251,191,36,0.9);font-weight:700;font-size:0.88rem;margin-bottom:0.3rem;">❌ Standardvätska i hazer</div>
+          <div style="color:rgba(255,255,255,0.65);font-size:0.88rem;line-height:1.65;">Hazers har värmeelement som är kalibrerade för haze-vätskans viskositet. Standardvätska kan ge felaktig atomisering och i värsta fall täppa igen maskinen.</div>
+        </div>
+        <div style="background:rgba(251,191,36,0.08);border-left:3px solid rgba(251,191,36,0.5);border-radius:6px;padding:1rem 1.25rem;">
+          <div style="color:rgba(251,191,36,0.9);font-weight:700;font-size:0.88rem;margin-bottom:0.3rem;">❌ Rökmaskin utomhus i blåsväder</div>
+          <div style="color:rgba(255,255,255,0.65);font-size:0.88rem;line-height:1.65;">Oavsett vätska — om det blåser 5 m/s har ingen rökvätska en chans att hänga kvar. Har du inte kontroll på vindförhållandena, räkna inte med rökeffekter utomhus.</div>
+        </div>
+      </div>
+
+      <!-- Säkerhet -->
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Är det säkert? Ja.</h2>
+      <p>Alla våra vätskor är vattenbaserade och testade enligt europeisk farmakopé (Ph. Eur.) eller tyska farmakopén (DAB). De är icke-toxiska och säkra att andas in vid normal användning.</p>
+      <p>Ventilation rekommenderas vid lång användning (hela kvällen). Personer med astma eller kraftigt allergi kan få irritation av lång exponering — meddela teknikern om detta så kan vi anpassa.</p>
+      <p><strong style="color:white;">Brandlarm:</strong> moderna rökmaskiner med standardvätska utlöser normalt inte brandlarm eftersom partiklarna är för små och luftburna. Men det beror på lokalens detektorer — kolla alltid med lokalen i förväg om du använder kraftig rökeffekt. Hazer-vätska är säkrare än rökmaskin i känsliga lokaler.</p>
+
+      <!-- CTA -->
+      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Hyr rökmaskin — vätska ingår</h2>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Behöver du mer än standard? Vi har heavy, haze och fast fog i sortimentet.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="/vara-tjanster/hyra-ljus/rok-pyro/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se rökmaskiner</a>
+          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
+        </div>
+      </div>
+
+      <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
+        <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+          <a href="/for/guider/hyra-rokmaskin/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hyra rökmaskin →</a>
+          <a href="/for/guider/ljussattning-tips/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Ljussättning tips →</a>
+          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
+        </div>
+      </div>
+    </div>
+  </article>
+</Layout>
