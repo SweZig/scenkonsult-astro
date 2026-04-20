@@ -142,7 +142,7 @@ const productJson = JSON.stringify({
       {typeof price === 'number' ? (
         <>
           <span class="text-brand-orange font-extrabold text-xl shrink-0">
-            <Price amount={price} suffix="/dygn" size="xl" />
+            <Price amount={price} suffix={priceNote} size="xl" />
           </span>
           <CartButton id={cartId} name={name} price={price} priceNote={priceNote} artno={artno ?? ''} category={category} image={image ?? ''} monteringMin={monteringMin} size="md" />
         </>
@@ -153,9 +153,6 @@ const productJson = JSON.stringify({
         </>
       )}
     </div>
-    {priceNote && priceNote !== '/dygn' && (
-      <p class="text-[10px] text-white/35 leading-tight">{priceNote.replace(/^\//, '')}</p>
-    )}
     {manualUrl && (
       <a href={manualUrl} target="_blank" rel="noopener noreferrer"
         class="inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-brand-orange transition-colors mt-1 w-fit">

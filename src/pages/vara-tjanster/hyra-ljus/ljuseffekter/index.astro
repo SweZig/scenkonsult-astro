@@ -142,7 +142,7 @@ const faqSchema = {
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
       {(ljusData.rok?.tillbehor?.filter((p:any) => ['SK-LJS-ROK-ACC-0001','SK-LJS-ROK-ACC-0002'].includes(p.artno)) ?? []).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? \'\'} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? \'/st\'} />
       ))}
     </div>
   </section>
