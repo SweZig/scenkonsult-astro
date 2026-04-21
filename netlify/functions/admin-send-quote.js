@@ -111,6 +111,7 @@ exports.handler = async (event) => {
   const totalIncl = Math.round(totalExcl * 1.25);
   const fmtN      = n => n.toLocaleString('sv-SE');
   const itemsCount = realItems.reduce((s, i) => s + (i.qty || 1), 0);
+  const isB2B     = !!customer.company;
 
   // Kompakt produktlista (namn + antal, inga priser — driver till webben)
   const itemsList = realItems.length
@@ -122,11 +123,19 @@ exports.handler = async (event) => {
        </div>`
     : '';
 
+  // B2B: visa exkl. moms primärt (företag drar av moms)
+  // B2C: visa inkl. moms primärt (privatperson betalar totalen)
+  const primaryAmount = isB2B ? totalExcl : totalIncl;
+  const primaryLabel  = isB2B ? 'Total exkl. moms' : 'Total inkl. moms';
+  const secondaryText = isB2B
+    ? `${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalIncl)} kr inkl. moms`
+    : `${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalExcl)} kr exkl. moms`;
+
   const bigCta = `
     <div style="margin:0 0 24px;padding:24px 20px;background:linear-gradient(135deg,#1e1850 0%,#332885 100%);border-radius:12px;text-align:center;">
-      <p style="margin:0 0 4px;color:rgba(255,255,255,0.65);font-size:12px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Total inkl. moms</p>
-      <p style="margin:0 0 4px;color:#c4b5f4;font-size:34px;font-weight:800;line-height:1;font-family:Arial,sans-serif;">${fmtN(totalIncl)} kr</p>
-      <p style="margin:0 0 18px;color:rgba(255,255,255,0.55);font-size:12px;">${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalExcl)} kr exkl. moms</p>
+      <p style="margin:0 0 4px;color:rgba(255,255,255,0.65);font-size:12px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">${primaryLabel}</p>
+      <p style="margin:0 0 4px;color:#c4b5f4;font-size:34px;font-weight:800;line-height:1;font-family:Arial,sans-serif;">${fmtN(primaryAmount)} kr</p>
+      <p style="margin:0 0 18px;color:rgba(255,255,255,0.55);font-size:12px;">${secondaryText}</p>
       <a href="${cartUrl}" style="display:inline-block;background:#c4b5f4;color:#0c0a24;padding:16px 36px;border-radius:8px;text-decoration:none;font-size:16px;font-weight:800;letter-spacing:0.01em;box-shadow:0 4px 12px rgba(0,0,0,0.25);">Öppna offerten →</a>
       <p style="margin:14px 0 0;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.5;">På offertsidan kan du se hela prisspecifikationen,<br>ställa frågor och bekräfta direkt.</p>
     </div>`;
@@ -155,7 +164,7 @@ exports.handler = async (event) => {
     <p style="margin:18px 0 0;color:#888;font-size:12px;text-align:center;">Länken är personlig och giltig i 21 dagar.</p>
     <p style="margin:14px 0 0;color:#555;font-size:13px;text-align:center;">Frågor? Ring <a href="tel:0724481000" style="color:#1e1850;font-weight:600;">072-448 10 00</a> eller svara på detta mail.</p>`;
 
-  const plainText = `Hej ${customer.name}!\n\nVi har en offert åt dig — totalt ${fmtN(totalIncl)} kr inkl. moms (${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'}).\n\nÖppna och bekräfta din offert här:\n${cartUrl}\n\nPå offertsidan ser du hela prisspecifikationen, kan ställa frågor och bekräfta direkt.\n${note?.trim() ? '\nPersonlig hälsning:\n' + note.trim() + '\n' : ''}${datumStr ? '\n' + datumStr : ''}${platsStr ? '\n' + platsStr : ''}\n\nLänken är personlig och giltig i 21 dagar.\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
+  const plainText = `Hej ${customer.name}!\n\nVi har en offert åt dig — totalt ${fmtN(primaryAmount)} kr ${isB2B ? 'exkl. moms' : 'inkl. moms'} (${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'}).\n\nÖppna och bekräfta din offert här:\n${cartUrl}\n\nPå offertsidan ser du hela prisspecifikationen, kan ställa frågor och bekräfta direkt.\n${note?.trim() ? '\nPersonlig hälsning:\n' + note.trim() + '\n' : ''}${datumStr ? '\n' + datumStr : ''}${platsStr ? '\n' + platsStr : ''}\n\nLänken är personlig och giltig i 21 dagar.\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
 
   try {
     const internalBody = `<p style="color:#888;font-size:13px;margin:0 0 20px;">Skickad till: <strong>${customer.email}</strong></p>${htmlBody}

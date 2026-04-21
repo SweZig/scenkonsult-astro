@@ -973,16 +973,13 @@ function waitingEvBadge(c) {
   return `<span class="cc-ev-badge ${cls}">${sign}${diff}d</span>`;
 }
 
-// Visar om kunden har läst sin offert (visas bara för waiting/confirmed)
+// Visar om kunden har läst sin offert (visas för waiting/confirmed/fakturerad/betald)
+// Semantik: "läst" = last_read_customer är satt (kunden har någon gång öppnat sin offertsida)
 function readBadge(c, { compact = false } = {}) {
   if (!['waiting','confirmed','fakturerad','betald'].includes(c.status)) return '';
   const lastRead = c.last_read_customer ? new Date(c.last_read_customer) : null;
-  // Visa inte "läst" om kunden öppnade FÖRE senaste admin-uppdatering
-  // (då har vi skickat ny info som de inte sett ännu)
-  const updated = new Date(c.updated_at || c.created_at);
-  const isReadAfterUpdate = lastRead && lastRead >= updated;
 
-  if (isReadAfterUpdate) {
+  if (lastRead) {
     const ago = readAgoText(lastRead);
     const title = `Kunden har läst offerten ${ago}`;
     return compact
@@ -2763,11 +2760,9 @@ function showNextReminder() {
     ? ` <span style="color:rgba(255,255,255,0.55);font-weight:400">(${c.customer_company})</span>`
     : '';
 
-  // Lässtatus: visar om kunden har öppnat offerten efter senaste admin-uppdatering
+  // Lässtatus: visar om kunden har öppnat sin offertsida någon gång
   const lastRead = c.last_read_customer ? new Date(c.last_read_customer) : null;
-  const updated  = new Date(c.updated_at || c.created_at);
-  const readAfterUpdate = lastRead && lastRead >= updated;
-  const readLine = readAfterUpdate
+  const readLine = lastRead
     ? `<div style="margin-top:10px;padding:8px 12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.22);border-radius:6px;color:#4ade80;font-size:0.8rem;font-weight:600;">👁 Kunden har läst offerten ${readAgoText(lastRead)}</div>`
     : `<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.22);border-radius:6px;color:#fbbf24;font-size:0.8rem;font-weight:600;">⏳ Kunden har <u>inte</u> öppnat offerten ännu</div>`;
 
