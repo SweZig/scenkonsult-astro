@@ -33,6 +33,38 @@ import Layout from '../../layouts/Layout.astro';
         </div>
       </div>
 
+      <div class="mb-6">
+        <div class="flex items-baseline justify-between mb-2">
+          <label class="block text-sm font-medium text-gray-300">Övergripande omdöme <span class="text-gray-500 font-normal">(valfritt)</span></label>
+          <button type="button" id="fb-rating-clear" class="text-xs text-gray-500 hover:text-brand-orange transition-colors hidden">Rensa</button>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">Hur är din helhetsupplevelse av Scenkonsult?</p>
+        <div
+          id="fb-rating"
+          role="radiogroup"
+          aria-label="Betyg från 1 till 5 stjärnor"
+          class="flex items-center gap-1.5"
+          tabindex="0"
+        >
+          {[1,2,3,4,5].map(n => (
+            <button
+              type="button"
+              role="radio"
+              aria-checked="false"
+              aria-label={`${n} stjärn${n===1?'a':'or'}`}
+              data-value={n}
+              class="fb-star group p-1.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange transition-transform hover:scale-110 cursor-pointer"
+            >
+              <svg viewBox="0 0 24 24" class="fb-star-svg w-8 h-8 sm:w-9 sm:h-9 transition-colors" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2" stroke-linejoin="round">
+                <path d="M12 2.5l2.95 6.4 6.55.95-4.75 4.65 1.12 6.5L12 17.85 6.13 21l1.12-6.5L2.5 9.85l6.55-.95L12 2.5z"/>
+              </svg>
+            </button>
+          ))}
+        </div>
+        <p id="fb-rating-label" class="text-sm mt-2.5 h-5 transition-colors" style="color:rgba(255,255,255,0.55)">Inget betyg valt</p>
+        <input type="hidden" id="fb-rating-value" value="" />
+      </div>
+
       <div class="mb-5">
         <label class="block text-sm font-medium text-gray-300 mb-2" for="fb-text">Beskriv din feedback *</label>
         <textarea id="fb-text" rows="5" placeholder="Skriv gärna så detaljerat du kan — det hjälper oss förstå och agera..." class="w-full rounded-lg px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none resize-none" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.15);color:white"></textarea>
@@ -65,6 +97,95 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 
   <script>
+    // ===== Stjärnrating =====
+    const RATING_LABELS: Record<number, string> = {
+      1: '1 ★ — Inte alls nöjd',
+      2: '2 ★ — Mindre nöjd',
+      3: '3 ★ — OK',
+      4: '4 ★ — Nöjd',
+      5: '5 ★ — Mycket nöjd',
+    };
+    const FILL_ON  = '#c4b5f4';
+    const STROKE_ON = '#c4b5f4';
+    const FILL_OFF = 'rgba(255,255,255,0.12)';
+    const STROKE_OFF = 'rgba(255,255,255,0.25)';
+
+    const ratingGroup = document.getElementById('fb-rating');
+    const ratingValueInput = document.getElementById('fb-rating-value') as HTMLInputElement;
+    const ratingLabel = document.getElementById('fb-rating-label');
+    const ratingClear = document.getElementById('fb-rating-clear');
+    const stars = Array.from(document.querySelectorAll<HTMLButtonElement>('.fb-star'));
+
+    let lockedRating = 0;
+
+    function paint(upTo: number) {
+      stars.forEach((btn, i) => {
+        const svg = btn.querySelector<SVGElement>('.fb-star-svg');
+        if (!svg) return;
+        const on = i < upTo;
+        svg.setAttribute('fill', on ? FILL_ON : FILL_OFF);
+        svg.setAttribute('stroke', on ? STROKE_ON : STROKE_OFF);
+      });
+    }
+
+    function setLabel(value: number) {
+      if (!ratingLabel) return;
+      if (value === 0) {
+        ratingLabel.textContent = 'Inget betyg valt';
+        ratingLabel.style.color = 'rgba(255,255,255,0.55)';
+      } else {
+        ratingLabel.textContent = RATING_LABELS[value];
+        ratingLabel.style.color = '#c4b5f4';
+      }
+    }
+
+    function setRating(value: number) {
+      lockedRating = value;
+      ratingValueInput.value = value > 0 ? String(value) : '';
+      paint(value);
+      setLabel(value);
+      stars.forEach((btn, i) => {
+        btn.setAttribute('aria-checked', i + 1 === value ? 'true' : 'false');
+      });
+      if (ratingClear) ratingClear.classList.toggle('hidden', value === 0);
+    }
+
+    stars.forEach((btn, i) => {
+      const value = i + 1;
+      btn.addEventListener('mouseenter', () => paint(value));
+      btn.addEventListener('focus', () => paint(value));
+      btn.addEventListener('click', () => {
+        // Klick på samma stjärna = rensa
+        setRating(lockedRating === value ? 0 : value);
+      });
+      btn.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const next = Math.min(5, value + 1);
+          stars[next - 1].focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const prev = Math.max(1, value - 1);
+          stars[prev - 1].focus();
+        } else if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          setRating(lockedRating === value ? 0 : value);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          setRating(0);
+        } else if (/^[1-5]$/.test(e.key)) {
+          e.preventDefault();
+          const n = parseInt(e.key, 10);
+          stars[n - 1].focus();
+          setRating(n);
+        }
+      });
+    });
+
+    ratingGroup?.addEventListener('mouseleave', () => paint(lockedRating));
+    ratingClear?.addEventListener('click', () => setRating(0));
+
+    // ===== Submit =====
     document.getElementById('fbSend')?.addEventListener('click', async () => {
       const btn = document.getElementById('fbSend') as HTMLButtonElement;
       const typ  = (document.querySelector('input[name="feedbackType"]:checked') as HTMLInputElement)?.value || '';
@@ -72,6 +193,8 @@ import Layout from '../../layouts/Layout.astro';
       const namn = (document.getElementById('fb-name') as HTMLInputElement)?.value.trim();
       const epost = (document.getElementById('fb-email') as HTMLInputElement)?.value.trim();
       const honeypot = (document.getElementById('fb-website') as HTMLInputElement)?.value;
+      const ratingRaw = (document.getElementById('fb-rating-value') as HTMLInputElement)?.value;
+      const rating = ratingRaw ? parseInt(ratingRaw, 10) : null;
 
       if (!meddelande) { alert('Beskriv din feedback innan du skickar.'); return; }
 
@@ -82,7 +205,7 @@ import Layout from '../../layouts/Layout.astro';
         const resp = await fetch('/.netlify/functions/skicka-feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ typ, meddelande, namn, epost, honeypot, sendCopy: document.getElementById('sendCopyCheck')?.checked || false }),
+          body: JSON.stringify({ typ, meddelande, namn, epost, rating, honeypot, sendCopy: (document.getElementById('sendCopyCheck') as HTMLInputElement)?.checked || false }),
         });
         const result = await resp.json();
         if (resp.ok && result.ok) {

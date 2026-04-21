@@ -58,9 +58,9 @@ exports.handler = async (event) => {
   if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'For manga forfrågningar.' }) };
   RATE_LIMIT[ip].push(now);
 
-  const { typ, meddelande, namn, epost, sendCopy } = data;
+  const { typ, meddelande, namn, epost, rating, sendCopy } = data;
 
-  console.log('FEEDBACK_INCOMING:', JSON.stringify({ namn, epost, sendCopy: !!sendCopy, typ }));
+  console.log('FEEDBACK_INCOMING:', JSON.stringify({ namn, epost, sendCopy: !!sendCopy, typ, rating }));
 
   if (!meddelande) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Meddelande kravs.' }) };
   if (epost && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(epost))
@@ -70,7 +70,17 @@ exports.handler = async (event) => {
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'E-postkonfiguration saknas.' }) };
 
   const displayNamn = namn || 'Anonym';
-  const plainInternal = `Ny feedback — ${typ||'Okand typ'}\n\nFran: ${displayNamn}\nE-post: ${epost||'-'}\n\nMeddelande:\n${meddelande}\n\n---\nScenkonsult Norden | 072-448 10 00`;
+
+  // Validera och rendera betyg
+  const ratingNum = Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null;
+  const RATING_TEXTS = { 1: 'Inte alls nojd', 2: 'Mindre nojd', 3: 'OK', 4: 'Nojd', 5: 'Mycket nojd' };
+  const ratingPlain = ratingNum ? `${ratingNum}/5 stjärnor — ${RATING_TEXTS[ratingNum]}` : 'Inget betyg';
+  const ratingStars = ratingNum ? '★'.repeat(ratingNum) + '☆'.repeat(5 - ratingNum) : '';
+  const ratingHtmlRow = ratingNum
+    ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;width:120px;border-bottom:1px solid #f0f0f5;">Betyg</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><span style="color:#c4b5f4;font-size:18px;letter-spacing:2px;">${ratingStars}</span> <span style="color:#666;font-size:13px;margin-left:6px;">${ratingNum}/5 — ${RATING_TEXTS[ratingNum]}</span></td></tr>`
+    : '';
+
+  const plainInternal = `Ny feedback — ${typ||'Okand typ'}\n\nFran: ${displayNamn}\nE-post: ${epost||'-'}\nBetyg: ${ratingPlain}\n\nMeddelande:\n${meddelande}\n\n---\nScenkonsult Norden | 072-448 10 00`;
 
   const htmlInternal = htmlWrapper('Ny feedback', `
     <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Ny feedback — ${typ||'Okand typ'}</h2>
@@ -78,6 +88,7 @@ exports.handler = async (event) => {
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
       <tr><td style="padding:7px 0;color:#666;font-size:13px;width:120px;border-bottom:1px solid #f0f0f5;">Fran</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${displayNamn}</td></tr>
       ${epost ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">E-post</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="mailto:${epost}" style="color:#4a3faa;">${epost}</a></td></tr>` : ''}
+      ${ratingHtmlRow}
     </table>
     <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;">
       <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Meddelande</p>
@@ -85,11 +96,12 @@ exports.handler = async (event) => {
     </div>`);
 
   try {
-    await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], ...(epost?{reply_to:epost}:{}), subject: `Feedback (${typ||'Okand'}) fran ${displayNamn}`, html: htmlInternal, text: plainInternal });
+    const subjectSuffix = ratingNum ? ` [${ratingNum}★]` : '';
+    await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], ...(epost?{reply_to:epost}:{}), subject: `Feedback (${typ||'Okand'}) fran ${displayNamn}${subjectSuffix}`, html: htmlInternal, text: plainInternal });
     await sleep(600);
 
     try {
-      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Feedback: ${typ||'Okand'} — ${displayNamn}`, html: htmlInternal, text: plainInternal });
+      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Feedback: ${typ||'Okand'} — ${displayNamn}${subjectSuffix}`, html: htmlInternal, text: plainInternal });
     } catch (e) { console.error('TRELLO_COPY_ERROR:', e.message); }
 
     if (sendCopy && epost) {
