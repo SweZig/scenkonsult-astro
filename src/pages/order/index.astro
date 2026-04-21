@@ -233,6 +233,16 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     margin-bottom: 0;
   }
   .totals-note { font-size: 0.75rem; color: rgba(255,255,255,0.60); margin-top:0.5rem; font-style:italic; }
+  .totals-fee-note {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.72);
+    margin-top: 0.75rem;
+    padding: 8px 12px;
+    background: rgba(196,181,244,0.06);
+    border-left: 3px solid rgba(196,181,244,0.45);
+    border-radius: 0 6px 6px 0;
+    line-height: 1.55;
+  }
 
   @media (max-width:480px) {
     .order-cart-header { display: none; }
@@ -372,6 +382,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
       <div class="totals-row" id="totalsExcl"></div>
       <div class="totals-row" id="totalsMoms"></div>
       <div class="totals-row grand" id="totalsGrand"></div>
+      <div class="totals-fee-note" id="totalsFeeNote" style="display:none">Tillkommer: bokningsavgift 49 kr (exkl. moms) — läggs automatiskt på din faktura för att täcka betalnings- och administrativa kostnader.</div>
       <div class="totals-note" id="totalsNote" style="display:none">* Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</div>
     </div>
 
@@ -754,6 +765,11 @@ function renderOrder(c) {
     document.getElementById('totalsGrand').innerHTML = `<span>Totalt inkl. moms</span><span>${fmt(grandIncl)} kr</span>`;
     const noteEl = document.getElementById('totalsNote');
     if (noteEl) noteEl.style.display = svcItems.length > 0 ? '' : 'none';
+
+    // Bokningsavgift-notis: visa bara om korgen INTE redan innehåller en fakturaavgift-rad
+    const feeNoteEl = document.getElementById('totalsFeeNote');
+    if (feeNoteEl) feeNoteEl.style.display = feeItem ? 'none' : '';
+
     totalsEl.style.display = '';
   }
 }

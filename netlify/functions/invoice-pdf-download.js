@@ -4,7 +4,7 @@
 // mode = "faktura" → genererar fullständig faktura (samma som invoice-send men returnerar PDF)
 // Returnerar { ok, pdf_b64, filename }
 
-const { supabase: createSupabase } = require('./_lib');
+const { supabase: createSupabase, logAudit } = require('./_lib');
 const PDFDocument = require('pdfkit');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
@@ -340,6 +340,33 @@ exports.handler = async (event) => {
 
     if (mode === 'faktura') {
       invoiceNumber = await getOrCreateInvoiceNumber(db, cart);
+
+      // ── Auto-lägg bokningsavgift 49 kr om ingen fakturaavgift finns ─────
+      // Regel: har korgen redan fakturaavgift-0/29/49, hoppa över.
+      // Annars lägg till SK-TJN-0003-49 (49 kr bokningsavgift) och uppdatera DB.
+      const existingItems = Array.isArray(cart.items) ? cart.items : [];
+      const hasFakturaavgift = existingItems.some(i =>
+        i && i.id && typeof i.id === 'string' && i.id.startsWith('fakturaavgift')
+      );
+      if (!hasFakturaavgift) {
+        const feeItem = {
+          id:       'fakturaavgift-49',
+          name:     'Bokningsavgift',
+          price:    49,
+          qty:      1,
+          type:     'service',
+          category: 'Tjänster',
+          artno:    'SK-TJN-0003-49',
+        };
+        cart.items = [...existingItems, feeItem];
+        try {
+          await db.update('carts', { items: cart.items }, 'id', cart.id);
+          await logAudit(db, cart.id, 'system', 'invoice_fee_autoadded', { price: 49, source: 'pdf-download' });
+          console.log('INVOICE_FEE_AUTOADDED (pdf-download):', cart.id);
+        } catch (e) {
+          console.error('INVOICE_FEE_AUTOADD_ERROR (pdf-download):', e.message);
+        }
+      }
 
       // Swish QR
       if (QRCode) {
