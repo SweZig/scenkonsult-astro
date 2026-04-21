@@ -155,6 +155,7 @@ exports.handler = async (event) => {
 
   const htmlBody = `
     <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px;">Hej ${customer.name}!</h2>
+    ${customer.company ? `<p style="margin:0 0 16px;padding:10px 14px;background:#f7f7fb;border-radius:6px;color:#555;font-size:14px;"><span style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;display:block;margin-bottom:2px;">Offert till företag</span><strong style="color:#1e1850;">${customer.company}</strong>${customer.orgnr ? ` <span style="color:#888;font-size:12px;">· Org.nr ${customer.orgnr}</span>` : ''}</p>` : ''}
     <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har satt ihop en offert åt dig. Klicka nedan för att se den fullständiga specifikationen — där kan du också ställa frågor, justera och bekräfta direkt.</p>
     ${bigCta}
     ${noteHtml}
@@ -164,7 +165,7 @@ exports.handler = async (event) => {
     <p style="margin:18px 0 0;color:#888;font-size:12px;text-align:center;">Länken är personlig och giltig i 21 dagar.</p>
     <p style="margin:14px 0 0;color:#555;font-size:13px;text-align:center;">Frågor? Ring <a href="tel:0724481000" style="color:#1e1850;font-weight:600;">072-448 10 00</a> eller svara på detta mail.</p>`;
 
-  const plainText = `Hej ${customer.name}!\n\nVi har en offert åt dig — totalt ${fmtN(primaryAmount)} kr ${isB2B ? 'exkl. moms' : 'inkl. moms'} (${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'}).\n\nÖppna och bekräfta din offert här:\n${cartUrl}\n\nPå offertsidan ser du hela prisspecifikationen, kan ställa frågor och bekräfta direkt.\n${note?.trim() ? '\nPersonlig hälsning:\n' + note.trim() + '\n' : ''}${datumStr ? '\n' + datumStr : ''}${platsStr ? '\n' + platsStr : ''}\n\nLänken är personlig och giltig i 21 dagar.\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
+  const plainText = `Hej ${customer.name}!\n${customer.company ? `\nOffert till företag: ${customer.company}${customer.orgnr ? ' (Org.nr ' + customer.orgnr + ')' : ''}\n` : ''}\nVi har en offert åt dig — totalt ${fmtN(primaryAmount)} kr ${isB2B ? 'exkl. moms' : 'inkl. moms'} (${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'}).\n\nÖppna och bekräfta din offert här:\n${cartUrl}\n\nPå offertsidan ser du hela prisspecifikationen, kan ställa frågor och bekräfta direkt.\n${note?.trim() ? '\nPersonlig hälsning:\n' + note.trim() + '\n' : ''}${datumStr ? '\n' + datumStr : ''}${platsStr ? '\n' + platsStr : ''}\n\nLänken är personlig och giltig i 21 dagar.\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
 
   try {
     const internalBody = `<p style="color:#888;font-size:13px;margin:0 0 20px;">Skickad till: <strong>${customer.email}</strong></p>${htmlBody}

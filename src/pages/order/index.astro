@@ -54,6 +54,34 @@ import orderCatalog from '../../data/order-catalog-flat.json';
 
   /* ── ORDER CARD ────────────────────────────────────────── */
   .order-header { margin-bottom: 2rem; }
+  .order-company-badge {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 0.5rem;
+    margin: 0.5rem 0 0.25rem;
+    padding: 7px 12px;
+    background: rgba(196,181,244,0.10);
+    border: 1px solid rgba(196,181,244,0.28);
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+  .order-company-badge .ocb-label {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .order-company-badge .ocb-name {
+    color: #f0eeff;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .order-company-badge .ocb-orgnr {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.78rem;
+  }
   .order-id {
     font-size: 0.78rem;
     font-weight: 700;
@@ -351,6 +379,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     <!-- Header -->
     <div class="order-header">
       <div class="order-id" id="orderId"></div>
+      <div id="orderCompanyBadge" class="order-company-badge" style="display:none"></div>
       <h1 class="order-title" id="orderTitle">Din order</h1>
       <p class="order-subtitle" id="orderSubtitle"></p>
     </div>
@@ -546,13 +575,24 @@ function renderOrder(c) {
   // Header
   document.getElementById('orderId').textContent    = c.id;
   document.getElementById('orderTitle').textContent = `Hej ${c.customer_name?.split(' ')[0] || 'där'}!`;
-  // Visa företagsnamn om det finns
+
+  // B2B-badge: visa företagsnamn tydligt om det finns
+  const companyBadge = document.getElementById('orderCompanyBadge');
+  if (companyBadge) {
+    if (c.customer_company) {
+      const orgnrPart = c.customer_orgnr ? ` <span class="ocb-orgnr">· Org.nr ${c.customer_orgnr}</span>` : '';
+      companyBadge.innerHTML = `<span class="ocb-label">🏢 Offert till företag</span><span class="ocb-name">${c.customer_company}</span>${orgnrPart}`;
+      companyBadge.style.display = '';
+    } else {
+      companyBadge.style.display = 'none';
+    }
+  }
+
+  // Visa eventinfo i subtitle (företagsnamn flyttat till badge)
   const subtitleParts = [];
-  if (c.customer_company) subtitleParts.push(c.customer_company);
   if (c.event_date) subtitleParts.push(`Order för event ${fmtDate(c.event_date)}${c.event_location ? ' · ' + c.event_location : ''}`);
   else subtitleParts.push('Här kan du följa status på din order och skicka meddelanden till oss.');
   document.getElementById('orderSubtitle').textContent = subtitleParts.join(' · ');
-  // orderSubtitle set above with company info
 
   // Status
   const s = STATUS[c.status] || STATUS.open;

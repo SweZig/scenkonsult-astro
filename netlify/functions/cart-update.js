@@ -26,25 +26,38 @@ async function sendConfirmationEmail(cart) {
 
   const dateStr     = cart.event_date ? `<p style="color:#555;font-size:14px;margin:8px 0;">📅 Eventdatum: <strong>${cart.event_date}</strong></p>` : '';
   const locationStr = cart.event_location ? `<p style="color:#555;font-size:14px;margin:8px 0;">📍 Plats: <strong>${cart.event_location}</strong></p>` : '';
+  // B2B: visa företagsnamn tydligt
+  const companyStr  = cart.customer_company ? `<p style="color:#555;font-size:14px;margin:8px 0;">🏢 Företag: <strong>${cart.customer_company}</strong></p>` : '';
+
+  // Kunden har redan klick-bekräftat → ingen påminnelse om signering
+  const alreadySigned = !!cart.confirmed_at;
+  const signNotice = alreadySigned ? '' : `
+    <div style="background:#fff8e6;border:1px solid #fbbf24;border-radius:10px;padding:14px 18px;margin:0 0 22px;">
+      <div style="color:#92400e;font-weight:700;font-size:14px;margin:0 0 4px;">⚠ Slutför din bokning</div>
+      <div style="color:#78350f;font-size:13px;line-height:1.55;">För att din bokning ska bli bindande behöver du gå in på offertsidan och klicka <strong>"Godkänn order"</strong>. Det tar 10 sekunder.</div>
+    </div>`;
 
   const html = htmlWrapper(`
     <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
       <span style="font-size:2rem;">✅</span>
       <div>
-        <div style="color:#166534;font-weight:700;font-size:16px;">Din order är bekräftad!</div>
+        <div style="color:#166534;font-weight:700;font-size:16px;">${alreadySigned ? 'Din order är bekräftad!' : 'Din order är preliminärt bekräftad'}</div>
         <div style="color:#166534;font-size:13px;">Orderreferens: ${cart.id}</div>
       </div>
     </div>
     <h2 style="color:#1e1850;margin:0 0 8px;font-size:20px;">Tack, ${cart.customer_name || 'kunden'}!</h2>
-    <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi bekräftar härmed din order. Vi ses på eventet! Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a> eller svara på detta mail.</p>
-    ${dateStr}${locationStr}
+    <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">${alreadySigned
+      ? 'Vi bekräftar härmed din order. Vi ses på eventet!'
+      : 'Vi har preliminärt bekräftat din order — det enda som återstår är din digitala bekräftelse.'} Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a> eller svara på detta mail.</p>
+    ${signNotice}
+    ${companyStr}${dateStr}${locationStr}
     <p style="margin:20px 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din beställning</p>
     ${tableHtml}
-    ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">Se din orderbekräftelse →</a></p>
-    <p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du se alla detaljer och chatta med oss.</p>` : ''}
+    ${cartUrl ? `<p style="margin:24px 0 0;text-align:center;"><a href="${cartUrl}" style="background:${alreadySigned ? '#332885' : '#c4b5f4'};color:${alreadySigned ? '#fff' : '#0c0a24'};padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:700;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.15);">${alreadySigned ? 'Se din orderbekräftelse →' : 'Öppna offert &amp; godkänn order →'}</a></p>
+    <p style="margin:10px 0 0;color:#888;font-size:12px;text-align:center;">Via länken kan du se alla detaljer och chatta med oss.</p>` : ''}
   `);
 
-  const plain = `Din order är bekräftad!\n\nTack, ${cart.customer_name||''}!\n\nOrderreferens: ${cart.id}\n${cart.event_date?'Datum: '+cart.event_date+'\n':''}${cart.event_location?'Plats: '+cart.event_location+'\n':''}\nDin beställning:\n${allItems.map(i=>`${i.name} x${i.qty||1} — ${((i.price||0)*(i.qty||1)).toLocaleString('sv-SE')} kr`).join('\n')}\nTotalt inkl. moms: ${grandIncl.toLocaleString('sv-SE')} kr\n${cartUrl?'\nOrderbekräftelse: '+cartUrl:''}\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden`;
+  const plain = `${alreadySigned ? 'Din order är bekräftad!' : 'Din order är preliminärt bekräftad — slutför genom att godkänna digitalt!'}\n\nTack, ${cart.customer_name||''}!\n\nOrderreferens: ${cart.id}\n${cart.customer_company?'Företag: '+cart.customer_company+'\n':''}${cart.event_date?'Datum: '+cart.event_date+'\n':''}${cart.event_location?'Plats: '+cart.event_location+'\n':''}${alreadySigned ? '' : '\n⚠ VIKTIGT: För att din bokning ska bli bindande behöver du gå in på offertsidan och klicka "Godkänn order".\n'}\nDin beställning:\n${allItems.map(i=>`${i.name} x${i.qty||1} — ${((i.price||0)*(i.qty||1)).toLocaleString('sv-SE')} kr`).join('\n')}\nTotalt inkl. moms: ${grandIncl.toLocaleString('sv-SE')} kr\n${cartUrl?'\n'+(alreadySigned ? 'Orderbekräftelse: ' : 'Öppna och godkänn här: ')+cartUrl:''}\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden`;
 
   const res = await fetch(RESEND_API, {
     method: 'POST',

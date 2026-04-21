@@ -402,8 +402,17 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); }
   catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltigt JSON' }) }; }
 
-  const { cart_id, resend } = body;
+  const { cart_id, resend, override_invoice_number } = body;
   if (!cart_id) return { statusCode: 400, headers, body: JSON.stringify({ error: 'cart_id krävs' }) };
+
+  // Validera ev. override-nummer
+  let overrideNum = null;
+  if (override_invoice_number) {
+    if (typeof override_invoice_number !== 'string' || !/^K\d+$/.test(override_invoice_number)) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltigt override_invoice_number (förväntat K + siffror)' }) };
+    }
+    overrideNum = override_invoice_number;
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'RESEND_API_KEY saknas' }) };
@@ -425,7 +434,16 @@ exports.handler = async (event) => {
       ? cart.invoice_email
       : cart.customer_email;
 
-    const invoiceNumber = await getOrCreateInvoiceNumber(db, cart);
+    let invoiceNumber;
+    if (overrideNum) {
+      // Admin har valt ett specifikt fakturanummer i dialogen — applicera atomiskt
+      await db.update('carts', { invoice_number: overrideNum }, 'id', cart.id);
+      await logAudit(db, cart.id, 'admin', 'invoice_number_override', { number: overrideNum, was: cart.invoice_number || null });
+      invoiceNumber = overrideNum;
+    } else {
+      invoiceNumber = await getOrCreateInvoiceNumber(db, cart);
+    }
+    cart.invoice_number = invoiceNumber;
 
     // ── Auto-lägg bokningsavgift 49 kr om ingen fakturaavgift finns ─────
     // Regel: har korgen redan fakturaavgift-0/29/49, hoppa över.

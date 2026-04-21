@@ -2378,9 +2378,14 @@ async function invCreateAndSend() {
   const btn = document.querySelector('[onclick="invCreateAndSend()"]');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Skapar faktura…'; }
   try {
+    const sendBody = { cart_id: currentCart.id };
+    // Skicka med override-numret atomiskt så invoice-send använder rätt K-nummer
+    if (confirmed.override && confirmed.invoice_number) {
+      sendBody.override_invoice_number = confirmed.invoice_number;
+    }
     const { ok, data, status } = await api('invoice-send', {
       method: 'POST',
-      body: JSON.stringify({ cart_id: currentCart.id })
+      body: JSON.stringify(sendBody)
     });
     if (ok && !data.error) {
       currentCart.status = 'fakturerad';
@@ -2442,20 +2447,29 @@ function showInvoiceConfirmDialog(invoiceNum, totalIncl) {
 
     document.body.appendChild(dlg);
 
-    dlg.querySelector('#inv-confirm-cancel').onclick = () => { dlg.remove(); resolve(false); };
+    dlg.querySelector('#inv-confirm-cancel').onclick = () => { dlg.remove(); resolve(null); };
     dlg.querySelector('#inv-confirm-ok').onclick = async () => {
       const inputNum = parseInt(dlg.querySelector('#inv-confirm-num').value);
-      // Om numret ändrats — reservera och uppdatera currentCart
-      if ('K' + inputNum !== invoiceNum && inputNum > 0) {
-        // Reservera gamla numret och sätt nytt
-        await api('invoice-reserve', { method:'POST', body: JSON.stringify({ next_number: inputNum }) });
-        await api('cart-update', { method:'POST', body: JSON.stringify({ cart_id: currentCart.id, invoice_number: 'K' + inputNum }) });
-        currentCart.invoice_number = 'K' + inputNum;
+      if (!inputNum || inputNum < 1) {
+        toast('Ogiltigt fakturanummer', 'error');
+        return;
+      }
+      const finalInvoiceNumber = 'K' + inputNum;
+      const isOverride = finalInvoiceNumber !== invoiceNum;
+
+      // Om numret ändrats: reservera serien så nästa auto-genererade nummer hoppar rätt
+      if (isOverride) {
+        try {
+          await api('invoice-reserve', { method:'POST', body: JSON.stringify({ next_number: inputNum }) });
+        } catch (e) {
+          console.warn('invoice-reserve misslyckades — fortsätter ändå:', e.message);
+        }
       }
       dlg.remove();
-      resolve(true);
+      // Returnera valt nummer atomiskt — invoice-send applicerar det
+      resolve({ invoice_number: finalInvoiceNumber, override: isOverride });
     };
-    dlg.onclick = e => { if (e.target === dlg) { dlg.remove(); resolve(false); } };
+    dlg.onclick = e => { if (e.target === dlg) { dlg.remove(); resolve(null); } };
   });
 }
 window.showInvoiceConfirmDialog = showInvoiceConfirmDialog;
