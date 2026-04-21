@@ -248,6 +248,17 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .badge-ev-green { background: rgba(74,222,128,0.12);  color: #4ade80; }
     .badge-ev-gray  { background: rgba(255,255,255,0.08);   color: rgba(255,255,255,0.60); }
 
+    /* Read-status badges (offert läst/oläst av kund) */
+    .read-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.65rem; font-weight: 700; padding: 1px 6px;
+      border-radius: 99px; letter-spacing: 0.02em;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: help;
+    }
+    .read-badge-yes { background: rgba(74,222,128,0.14);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+    .read-badge-no  { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.22); }
+
     /* Urgency-färger */
     .urg-red    { --cc-urgency: var(--red); }
     .urg-amber  { --cc-urgency: var(--amber); }
@@ -962,6 +973,41 @@ function waitingEvBadge(c) {
   return `<span class="cc-ev-badge ${cls}">${sign}${diff}d</span>`;
 }
 
+// Visar om kunden har läst sin offert (visas bara för waiting/confirmed)
+function readBadge(c, { compact = false } = {}) {
+  if (!['waiting','confirmed','fakturerad','betald'].includes(c.status)) return '';
+  const lastRead = c.last_read_customer ? new Date(c.last_read_customer) : null;
+  // Visa inte "läst" om kunden öppnade FÖRE senaste admin-uppdatering
+  // (då har vi skickat ny info som de inte sett ännu)
+  const updated = new Date(c.updated_at || c.created_at);
+  const isReadAfterUpdate = lastRead && lastRead >= updated;
+
+  if (isReadAfterUpdate) {
+    const ago = readAgoText(lastRead);
+    const title = `Kunden har läst offerten ${ago}`;
+    return compact
+      ? `<span class="read-badge read-badge-yes" title="${title}">👁</span>`
+      : `<span class="read-badge read-badge-yes" title="${title}">👁 Läst</span>`;
+  } else {
+    // Visa bara "ej läst"-flagga för waiting (när vi väntar på svar)
+    if (c.status !== 'waiting') return '';
+    const title = 'Kunden har inte öppnat offerten ännu';
+    return compact
+      ? `<span class="read-badge read-badge-no" title="${title}">👁⃠</span>`
+      : `<span class="read-badge read-badge-no" title="${title}">Ej läst</span>`;
+  }
+}
+
+function readAgoText(date) {
+  const mins = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (mins < 1) return 'just nu';
+  if (mins < 60) return `för ${mins} min sedan`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `för ${hours} ${hours === 1 ? 'timme' : 'timmar'} sedan`;
+  const days = Math.floor(hours / 24);
+  return `för ${days} ${days === 1 ? 'dag' : 'dagar'} sedan`;
+}
+
 function sortWaiting(arr) {
   const a = [...arr];
   if (_waitingSort === 'event') {
@@ -984,6 +1030,7 @@ function cartCardCompact(c) {
   const total    = c.total_excl ? fmt(Math.round(c.total_excl/100)) + ' kr' : '–';
   const uCls     = urgencyClass(c);
   const evBadge  = waitingEvBadge(c);
+  const rBadge   = readBadge(c, { compact: true });
   const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
@@ -993,6 +1040,7 @@ function cartCardCompact(c) {
       <div class="cc-row1">
         <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
         ${evBadge}
+        ${rBadge}
         ${unread}
       </div>
       <div class="cc-row2">
@@ -1108,6 +1156,7 @@ function cartCardHTML(c) {
   const total = c.total_excl ? fmt(Math.round(c.total_excl/100)) + ' kr' : '–';
   const unread = c.unread_count > 0
     ? `<span class="unread-pill">💬 ${c.unread_count} ny${c.unread_count > 1 ? 'a' : 't'}</span>` : '';
+  const rBadge = readBadge(c);
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
   const showBadge = ['new','waiting'].includes(c.status);
@@ -1150,7 +1199,7 @@ function cartCardHTML(c) {
       </div>
       <div class="cart-card-footer">
         <span class="cart-card-price">${total}</span>
-        ${unread}
+        <span style="display:flex;align-items:center;gap:6px">${rBadge}${unread}</span>
       </div>
     </div>`;
 }
@@ -2713,8 +2762,17 @@ function showNextReminder() {
   const companyStr = c.customer_company
     ? ` <span style="color:rgba(255,255,255,0.55);font-weight:400">(${c.customer_company})</span>`
     : '';
+
+  // Lässtatus: visar om kunden har öppnat offerten efter senaste admin-uppdatering
+  const lastRead = c.last_read_customer ? new Date(c.last_read_customer) : null;
+  const updated  = new Date(c.updated_at || c.created_at);
+  const readAfterUpdate = lastRead && lastRead >= updated;
+  const readLine = readAfterUpdate
+    ? `<div style="margin-top:10px;padding:8px 12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.22);border-radius:6px;color:#4ade80;font-size:0.8rem;font-weight:600;">👁 Kunden har läst offerten ${readAgoText(lastRead)}</div>`
+    : `<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.22);border-radius:6px;color:#fbbf24;font-size:0.8rem;font-weight:600;">⏳ Kunden har <u>inte</u> öppnat offerten ännu</div>`;
+
   document.getElementById('reminder-msg').innerHTML =
-    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${companyStr}${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.<br>Vill du skicka en påminnelse?`;
+    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${companyStr}${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.${readLine}<div style="margin-top:12px">Vill du skicka en påminnelse?</div>`;
   const overlay = document.getElementById('reminder-overlay');
   overlay.style.display = 'flex';
 }

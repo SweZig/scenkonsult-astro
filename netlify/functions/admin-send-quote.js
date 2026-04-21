@@ -104,29 +104,70 @@ exports.handler = async (event) => {
     : '';
   const platsStr = customer.location ? `Plats: ${customer.location}` : '';
   const noteHtml = note?.trim()
-    ? `<p style="margin:16px 0 0;padding:12px 14px;background:#f7f7fb;border-left:3px solid #8b7dd4;border-radius:0 6px 6px 0;color:#555;font-size:13px;line-height:1.6;">${note.trim().replace(/\n/g,'<br>')}</p>`
+    ? `<div style="margin:0 0 22px;padding:14px 16px;background:#fff8e6;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;color:#5a4a1a;font-size:13px;line-height:1.65;"><strong style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#a07712;margin-bottom:4px;">Personlig hälsning</strong>${note.trim().replace(/\n/g,'<br>')}</div>`
     : '';
 
-  const htmlBody = `
-    <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px;">Offert från Scenkonsult Norden</h2>
-    <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 24px;">Hej ${customer.name}! Vi har satt ihop en offert åt dig. Granska nedan och bekräfta när du är nöjd.</p>
-    <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din offert</p>
-    ${buildPriceTable(realItems)}
-    ${noteHtml}
-    ${datumStr || platsStr ? `<p style="margin:14px 0 0;color:#666;font-size:13px;">${[datumStr,platsStr].filter(Boolean).join(' &middot; ')}</p>` : ''}
-    <p style="margin:28px 0 8px;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Se och bekräfta din offert →</a></p>
-    <p style="margin:10px 0 0;color:#888;font-size:12px;">Länken är giltig i 21 dagar.</p>
-    <p style="margin:20px 0 0;color:#555;font-size:13px;">Frågor? Ring <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a> eller svara på detta mail.</p>`;
+  // Beräkna summering för teaser (utan att avslöja priserna per rad)
+  const totalIncl = Math.round(totalExcl * 1.25);
+  const fmtN      = n => n.toLocaleString('sv-SE');
+  const itemsCount = realItems.reduce((s, i) => s + (i.qty || 1), 0);
 
-  const plainText = `Offert från Scenkonsult Norden\n\nHej ${customer.name}!\n\nSe och bekräfta din offert:\n${cartUrl}\n\n${realItems.map(i=>`${i.name} x${i.qty||1} — ${((i.price||0)*(i.qty||1)).toLocaleString('sv-SE')} kr`).join('\n')}\nTotalt: ${totalExcl.toLocaleString('sv-SE')} kr (exkl. moms)${note?.trim()?'\n\nAnmärkning:\n'+note.trim():''}${datumStr?'\n'+datumStr:''}\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
+  // Kompakt produktlista (namn + antal, inga priser — driver till webben)
+  const itemsList = realItems.length
+    ? `<div style="margin:0 0 22px;padding:14px 16px;background:#fafaff;border:1px solid #ececf5;border-radius:8px;">
+         <p style="margin:0 0 8px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;">Innehåll i offerten</p>
+         <ul style="margin:0;padding:0 0 0 18px;color:#333;font-size:13px;line-height:1.8;">
+           ${realItems.map(i => `<li>${i.name}${(i.qty||1) > 1 ? ` <span style="color:#888;">× ${i.qty}</span>` : ''}</li>`).join('')}
+         </ul>
+       </div>`
+    : '';
+
+  const bigCta = `
+    <div style="margin:0 0 24px;padding:24px 20px;background:linear-gradient(135deg,#1e1850 0%,#332885 100%);border-radius:12px;text-align:center;">
+      <p style="margin:0 0 4px;color:rgba(255,255,255,0.65);font-size:12px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">Total inkl. moms</p>
+      <p style="margin:0 0 4px;color:#c4b5f4;font-size:34px;font-weight:800;line-height:1;font-family:Arial,sans-serif;">${fmtN(totalIncl)} kr</p>
+      <p style="margin:0 0 18px;color:rgba(255,255,255,0.55);font-size:12px;">${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalExcl)} kr exkl. moms</p>
+      <a href="${cartUrl}" style="display:inline-block;background:#c4b5f4;color:#0c0a24;padding:16px 36px;border-radius:8px;text-decoration:none;font-size:16px;font-weight:800;letter-spacing:0.01em;box-shadow:0 4px 12px rgba(0,0,0,0.25);">Öppna offerten →</a>
+      <p style="margin:14px 0 0;color:rgba(255,255,255,0.55);font-size:12px;line-height:1.5;">På offertsidan kan du se hela prisspecifikationen,<br>ställa frågor och bekräfta direkt.</p>
+    </div>`;
+
+  const eventInfo = (datumStr || platsStr)
+    ? `<div style="margin:0 0 22px;padding:12px 14px;background:#fafaff;border-radius:8px;color:#555;font-size:13px;line-height:1.7;">
+         ${datumStr ? `<div>📅 ${datumStr}</div>` : ''}
+         ${platsStr ? `<div>📍 ${platsStr}</div>` : ''}
+       </div>`
+    : '';
+
+  const secondaryCta = `
+    <div style="margin:24px 0 8px;padding:16px;background:#fafaff;border:1px dashed #d8d4f0;border-radius:8px;text-align:center;">
+      <p style="margin:0 0 10px;color:#555;font-size:14px;line-height:1.5;">Klar att gå vidare? Bekräfta din offert med ett klick.</p>
+      <a href="${cartUrl}" style="display:inline-block;background:#332885;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:700;">Se och bekräfta →</a>
+    </div>`;
+
+  const htmlBody = `
+    <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px;">Hej ${customer.name}!</h2>
+    <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har satt ihop en offert åt dig. Klicka nedan för att se den fullständiga specifikationen — där kan du också ställa frågor, justera och bekräfta direkt.</p>
+    ${bigCta}
+    ${noteHtml}
+    ${itemsList}
+    ${eventInfo}
+    ${secondaryCta}
+    <p style="margin:18px 0 0;color:#888;font-size:12px;text-align:center;">Länken är personlig och giltig i 21 dagar.</p>
+    <p style="margin:14px 0 0;color:#555;font-size:13px;text-align:center;">Frågor? Ring <a href="tel:0724481000" style="color:#1e1850;font-weight:600;">072-448 10 00</a> eller svara på detta mail.</p>`;
+
+  const plainText = `Hej ${customer.name}!\n\nVi har en offert åt dig — totalt ${fmtN(totalIncl)} kr inkl. moms (${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'}).\n\nÖppna och bekräfta din offert här:\n${cartUrl}\n\nPå offertsidan ser du hela prisspecifikationen, kan ställa frågor och bekräfta direkt.\n${note?.trim() ? '\nPersonlig hälsning:\n' + note.trim() + '\n' : ''}${datumStr ? '\n' + datumStr : ''}${platsStr ? '\n' + platsStr : ''}\n\nLänken är personlig och giltig i 21 dagar.\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
 
   try {
+    const internalBody = `<p style="color:#888;font-size:13px;margin:0 0 20px;">Skickad till: <strong>${customer.email}</strong></p>${htmlBody}
+      <hr style="border:none;border-top:1px solid #e0e0e8;margin:30px 0 20px;">
+      <p style="margin:0 0 10px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;">Intern referens — full prisspecifikation</p>
+      ${buildPriceTable(realItems)}`;
     await sendEmail(apiKey, {
       from:     MAIL_FROM,
       to:       ['info@scenkonsult.se'],
       reply_to: customer.email,
       subject:  `Offert skickad till ${customer.name}`,
-      html:     htmlWrapper(`<p style="color:#888;font-size:13px;margin:0 0 20px;">Skickad till: <strong>${customer.email}</strong></p>${htmlBody}`),
+      html:     htmlWrapper(internalBody),
       text:     `Offert skickad till ${customer.email}\n\n${plainText}`,
     });
     await sleep(600);
