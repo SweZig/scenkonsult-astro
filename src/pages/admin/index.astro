@@ -2278,6 +2278,17 @@ function renderFakturaTab() {
         <p style="color:var(--text-faint);font-size:0.72rem;margin:8px 0 0;font-style:italic">
           Tips: om du skickat faktura K2013 manuellt, sätt nästa nummer till 2014.
         </p>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 12px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text)">Senaste fakturor</div>
+          <button onclick="invLoadRecent()" class="btn-action" style="font-size:0.7rem;padding:2px 8px">↻ Ladda om</button>
+        </div>
+        <p style="color:var(--text-faint);font-size:0.7rem;margin:0 0 8px;font-style:italic">
+          Radera en faktura för att frigöra K-numret — används för testfakturor. Luckor fylls automatiskt vid nästa fakturagenerering.
+        </p>
+        <div id="inv-recent-list" style="font-size:0.75rem;color:var(--text-muted)">Laddar…</div>
       </div>
     </details>
   `;
@@ -2347,20 +2358,23 @@ function invUpdateDueDate() {
 async function invCreateAndSend() {
   if (!currentCart.customer_email) { toast('Kunden saknar e-postadress', 'error'); return; }
 
-  // Beräkna nästa fakturanummer via cart-list (kräver admin-auth, hämtar alla carts)
+  // Beräkna nästa fakturanummer via admin-carts: lägsta lediga ≥ 2010 (gap-filling)
   let previewNum = currentCart.invoice_number || '…';
   if (!currentCart.invoice_number) {
     try {
       const { ok: listOk, data: listData } = await api('admin-carts', {});
       if (listOk && listData?.carts) {
-        let maxNum = 2009;
+        const START = 2010;
+        const taken = new Set();
         listData.carts.forEach(c => {
           if (c.invoice_number?.startsWith('K')) {
             const n = parseInt(c.invoice_number.slice(1));
-            if (n > maxNum) maxNum = n;
+            if (!isNaN(n) && n >= START) taken.add(n);
           }
         });
-        previewNum = 'K' + (maxNum + 1);
+        let next = START;
+        while (taken.has(next)) next++;
+        previewNum = 'K' + next;
       }
     } catch(e) { /* fortsätt med fallback … */ }
   }
@@ -2563,16 +2577,108 @@ async function invLoadPreviewNumber() {
   try {
     const { ok, data } = await api('admin-carts', { method: 'POST', body: JSON.stringify({ action: 'list' }) });
     if (!ok) return;
-    let maxNum = 2000;
+    const START = 2010;
+    const taken = new Set();
     (data.carts||[]).forEach(c => {
       if (c.invoice_number?.startsWith('K')) {
         const n = parseInt(c.invoice_number.slice(1));
-        if (n > maxNum) maxNum = n;
+        if (!isNaN(n) && n >= START) taken.add(n);
       }
     });
-    el.textContent = '→ tilldelas ' + 'K' + (maxNum + 1);
+    let next = START;
+    while (taken.has(next)) next++;
+    el.textContent = '→ tilldelas K' + next;
   } catch(e) { if (el) el.textContent = ''; }
+
+  // Ladda även lista på senaste fakturor om sektionen finns
+  invLoadRecent();
 }
+
+async function invLoadRecent() {
+  const el = document.getElementById('inv-recent-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--text-faint);padding:6px 0">Laddar…</div>';
+  try {
+    const { ok, data } = await api('invoice-list?limit=5');
+    if (!ok) {
+      el.innerHTML = '<div style="color:var(--red)">Kunde inte ladda fakturor: ' + (data?.error || 'fel') + '</div>';
+      return;
+    }
+    const rows = data?.invoices || [];
+    if (rows.length === 0) {
+      el.innerHTML = '<div style="color:var(--text-faint);font-style:italic;padding:6px 0">Inga fakturor i systemet ännu.</div>';
+      return;
+    }
+    el.innerHTML = rows.map(r => {
+      const isReserve = r.id?.startsWith('SK-RESERVE-');
+      const total = r.total_excl ? Math.round(r.total_excl * 1.25 / 100).toLocaleString('sv-SE') + ' kr' : '—';
+      const name = isReserve ? '<em style="color:var(--text-faint)">[reservation]</em>'
+                             : (r.customer_company ? r.customer_company + ' · ' : '') + (r.customer_name || '—');
+      const date = r.invoice_sent_at
+        ? fmtDate(r.invoice_sent_at)
+        : (r.created_at ? fmtDate(r.created_at) : '—');
+      const paid = r.invoice_paid_at ? ' <span style="color:var(--green);font-weight:600">· Betald</span>' : '';
+      const cartIdAttr = encodeURIComponent(r.id);
+      const openBtn = !isReserve
+        ? `<button onclick="openDetail('${r.id}')" class="btn-action" style="font-size:0.68rem;padding:2px 7px;border-color:var(--border);color:var(--text-muted)" title="Öppna order">📂</button>`
+        : '';
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;color:var(--brand-lav);font-size:0.82rem">${r.invoice_number}</div>
+            <div style="color:var(--text-muted);font-size:0.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+            <div style="color:var(--text-faint);font-size:0.68rem">${date} · ${total}${paid}</div>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            ${openBtn}
+            <button onclick="invDeleteInvoice('${cartIdAttr}','${r.invoice_number}')" class="btn-action"
+              style="font-size:0.68rem;padding:2px 8px;border-color:rgba(239,68,68,0.5);color:#f87171"
+              title="Radera faktura och frigör numret">🗑 Radera</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = '<div style="color:var(--red)">Fel: ' + e.message + '</div>';
+  }
+}
+window.invLoadRecent = invLoadRecent;
+
+async function invDeleteInvoice(cartIdEnc, invoiceNumber) {
+  const cartId = decodeURIComponent(cartIdEnc);
+  const isReserve = cartId.startsWith('SK-RESERVE-');
+  const msg = isReserve
+    ? `Radera reservation ${invoiceNumber}?\n\nHela reservationsraden tas bort så numret blir ledigt i serien.`
+    : `Radera faktura ${invoiceNumber}?\n\n• K-numret blir ledigt i serien\n• Ordern återställs till status "Bekräftad" (inga fakturafält sparas)\n• Produkter och kunduppgifter rörs inte\n\nDetta kan INTE ångras automatiskt.`;
+  if (!confirm(msg)) return;
+
+  try {
+    const { ok, data } = await api('invoice-delete', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: cartId }),
+    });
+    if (!ok || data?.error) {
+      toast(data?.error || 'Kunde inte radera fakturan', 'error');
+      return;
+    }
+    toast(`Faktura ${data.freed_number} raderad — nummer frigjort`);
+    // Uppdatera panel om det är samma cart som är öppen
+    if (currentCart && currentCart.id === cartId && !data.deleted_cart) {
+      currentCart.invoice_number   = null;
+      currentCart.invoice_sent_at  = null;
+      currentCart.invoice_paid_at  = null;
+      currentCart.invoice_due_date = null;
+      if (data.status) currentCart.status = data.status;
+      renderTab('faktura');
+    } else {
+      invLoadRecent();
+      invLoadPreviewNumber();
+    }
+    await loadCarts();
+  } catch (e) {
+    toast('Nätverksfel: ' + e.message, 'error');
+  }
+}
+window.invDeleteInvoice = invDeleteInvoice;
 
 
 // ── SMS & UTLÄMNING ───────────────────────────────────────────

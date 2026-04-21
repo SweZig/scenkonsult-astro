@@ -258,4 +258,46 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   </tr></table>`;
   return html;
 }
-module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM, MAIL_LOGO_URL };
+
+// ── Fakturanummer: returnerar cart.invoice_number om satt, annars lägsta lediga K-nummer ≥ 2010
+// Gap-filling: om tidigare nummer raderats återanvänds de innan nya tilldelas.
+async function getOrCreateInvoiceNumber(db, cart) {
+  if (cart.invoice_number) return cart.invoice_number;
+
+  const START_NUM = 2010; // Serien börjar på K2010
+  const supaUrl = process.env.SUPABASE_URL;
+  const supaKey = process.env.SUPABASE_SERVICE_KEY;
+  const taken = new Set();
+  let highest = START_NUM - 1;
+
+  try {
+    const res = await fetch(
+      `${supaUrl}/rest/v1/carts?select=invoice_number&invoice_number=not.is.null`,
+      { headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}` } }
+    );
+    if (res.ok) {
+      const rows = await res.json();
+      (rows || []).forEach(c => {
+        if (c.invoice_number && typeof c.invoice_number === 'string' && c.invoice_number.startsWith('K')) {
+          const n = parseInt(c.invoice_number.slice(1));
+          if (!isNaN(n) && n >= START_NUM) {
+            taken.add(n);
+            if (n > highest) highest = n;
+          }
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('getOrCreateInvoiceNumber: kunde inte läsa serien, fallback till +1:', e.message);
+  }
+
+  // Hitta lägsta lediga nummer i intervallet [START_NUM .. highest+1]
+  let next = START_NUM;
+  while (taken.has(next)) next++;
+  const newNum = 'K' + next;
+
+  await db.update('carts', { invoice_number: newNum }, 'id', cart.id);
+  return newNum;
+}
+
+module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, MAIL_FROM, MAIL_LOGO_URL };
