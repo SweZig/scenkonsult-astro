@@ -1277,7 +1277,7 @@ function renderTab(tab) {
           .join('');
     }
   }
-  if (tab === 'faktura')  { body.innerHTML = renderFakturaTab(); invLoadPreviewNumber(); }
+  if (tab === 'faktura')  { body.innerHTML = renderFakturaTab(); invLoadPreviewNumber(); invLoadRecent(); }
   // Force browser to respect dark styling on form elements
   requestAnimationFrame(() => {
     document.querySelectorAll('.status-select, .admin-note-area, .prod-input, .chat-textarea').forEach(el => {
@@ -2589,9 +2589,6 @@ async function invLoadPreviewNumber() {
     while (taken.has(next)) next++;
     el.textContent = '→ tilldelas K' + next;
   } catch(e) { if (el) el.textContent = ''; }
-
-  // Ladda även lista på senaste fakturor om sektionen finns
-  invLoadRecent();
 }
 
 async function invLoadRecent() {
