@@ -2358,23 +2358,14 @@ function invUpdateDueDate() {
 async function invCreateAndSend() {
   if (!currentCart.customer_email) { toast('Kunden saknar e-postadress', 'error'); return; }
 
-  // Beräkna nästa fakturanummer via admin-carts: lägsta lediga ≥ 2010 (gap-filling)
+  // Hämta nästa fakturanummer från servern — tar hänsyn till BÅDE riktiga
+  // fakturor och reservationer (som admin-carts filtrerar bort).
   let previewNum = currentCart.invoice_number || '…';
   if (!currentCart.invoice_number) {
     try {
-      const { ok: listOk, data: listData } = await api('admin-carts', {});
-      if (listOk && listData?.carts) {
-        const START = 2010;
-        const taken = new Set();
-        listData.carts.forEach(c => {
-          if (c.invoice_number?.startsWith('K')) {
-            const n = parseInt(c.invoice_number.slice(1));
-            if (!isNaN(n) && n >= START) taken.add(n);
-          }
-        });
-        let next = START;
-        while (taken.has(next)) next++;
-        previewNum = 'K' + next;
+      const { ok: nextOk, data: nextData } = await api('invoice-next-number');
+      if (nextOk && nextData?.next_number) {
+        previewNum = nextData.next_number;
       }
     } catch(e) { /* fortsätt med fallback … */ }
   }
@@ -2575,19 +2566,9 @@ async function invLoadPreviewNumber() {
   const el = document.getElementById('inv-preview-num');
   if (!el) return;
   try {
-    const { ok, data } = await api('admin-carts', { method: 'POST', body: JSON.stringify({ action: 'list' }) });
-    if (!ok) return;
-    const START = 2010;
-    const taken = new Set();
-    (data.carts||[]).forEach(c => {
-      if (c.invoice_number?.startsWith('K')) {
-        const n = parseInt(c.invoice_number.slice(1));
-        if (!isNaN(n) && n >= START) taken.add(n);
-      }
-    });
-    let next = START;
-    while (taken.has(next)) next++;
-    el.textContent = '→ tilldelas K' + next;
+    const { ok, data } = await api('invoice-next-number');
+    if (!ok || !data?.next_number) return;
+    el.textContent = '→ tilldelas ' + data.next_number;
   } catch(e) { if (el) el.textContent = ''; }
 }
 
