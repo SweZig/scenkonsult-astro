@@ -211,6 +211,23 @@ async function sendEmail(apiKey, payload) {
   return res.json();
 }
 
+// ── Bokningsavgift/fakturaavgift-detektor ───────────────────────────────────
+// Används både för att filtrera bort avgiftsrader i presentationer och för
+// att avgöra om auto-add i invoice-send ska hoppa över. Matchar:
+//   • id som börjar med 'fakturaavgift'  (fakturaavgift-0 / -29 / -49)
+//   • id som börjar med 'SK-TJN-0003'    (katalog-SKU:er, inkl. legacy 'Fakturaavgift')
+//   • namn som matchar /^(Fakturaavgift|Bokningsavgift|Ingen bokningsavgift)/i
+function isBookingFee(item) {
+  if (!item) return false;
+  if (typeof item.id === 'string') {
+    if (item.id.startsWith('fakturaavgift')) return true;
+    if (item.id.startsWith('SK-TJN-0003'))   return true;
+  }
+  if (typeof item.artno === 'string' && item.artno.startsWith('SK-TJN-0003')) return true;
+  if (typeof item.name === 'string' && /^(Fakturaavgift|Bokningsavgift|Ingen bokningsavgift)/i.test(item.name.trim())) return true;
+  return false;
+}
+
 function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   const SVC_CATS  = ['Tjänster', 'Tillägg'];
   const SVC_IDS   = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','montering-tim','rigg-teknik']);
@@ -218,9 +235,9 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   const resolveId = i => ID_ALIAS[i.id] ? {...i, id: ID_ALIAS[i.id]} : i;
   const isSvc     = i => i.type === 'service' || SVC_CATS.includes(i.category) || SVC_IDS.has(i.id);
   const allReal   = (cart || []).filter(i => !i._note && i.name).map(resolveId);
-  const prodItems = allReal.filter(i => !isSvc(i) && !(i.id && i.id.startsWith('fakturaavgift')));
-  const svcItems  = allReal.filter(i => isSvc(i) && !(i.id && i.id.startsWith('fakturaavgift')));
-  const feeItem   = showFakturaavgift ? allReal.find(i => i.id && i.id.startsWith('fakturaavgift')) : null;
+  const prodItems = allReal.filter(i => !isSvc(i) && !isBookingFee(i));
+  const svcItems  = allReal.filter(i => isSvc(i) && !isBookingFee(i));
+  const feeItem   = showFakturaavgift ? allReal.find(isBookingFee) : null;
   const noteItem  = (cart || []).find(i => i._note);
   const qty  = i => i.quantity || i.qty || 1;
   const sum  = i => (i.price || 0) * qty(i);
@@ -300,4 +317,4 @@ async function getOrCreateInvoiceNumber(db, cart) {
   return newNum;
 }
 
-module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, MAIL_FROM, MAIL_LOGO_URL };
+module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };

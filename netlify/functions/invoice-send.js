@@ -6,7 +6,7 @@
 // 4. Skickar via Resend med PDF som bilaga
 // 5. Uppdaterar invoice_sent_at + status → fakturerad
 
-const { supabase: createSupabase, logAudit, getOrCreateInvoiceNumber } = require('./_lib');
+const { supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingFee } = require('./_lib');
 const PDFDocument = require('pdfkit');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
@@ -418,13 +418,12 @@ exports.handler = async (event) => {
     }
     cart.invoice_number = invoiceNumber;
 
-    // ── Auto-lägg bokningsavgift 49 kr om ingen fakturaavgift finns ─────
-    // Regel: har korgen redan fakturaavgift-0/29/49, hoppa över.
+    // ── Auto-lägg bokningsavgift 49 kr om ingen bokningsavgift finns ─────
+    // Regel: har korgen redan någon bokningsavgift-rad (id fakturaavgift-*,
+    // SK-TJN-0003*, eller namn "Bokningsavgift"/"Fakturaavgift"), hoppa över.
     // Annars lägg till SK-TJN-0003-49 (49 kr bokningsavgift) och uppdatera DB.
     const existingItems = Array.isArray(cart.items) ? cart.items : [];
-    const hasFakturaavgift = existingItems.some(i =>
-      i && i.id && typeof i.id === 'string' && i.id.startsWith('fakturaavgift')
-    );
+    const hasFakturaavgift = existingItems.some(isBookingFee);
     if (!hasFakturaavgift) {
       const feeItem = {
         id:       'fakturaavgift-49',
