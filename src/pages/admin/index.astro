@@ -2252,6 +2252,32 @@ function renderFakturaTab() {
       <button class="btn-action" onclick="invDownloadPdf()" style="font-size:0.78rem;border-color:rgba(196,181,244,0.45);color:rgba(196,181,244,0.8)">📄 Spara som PDF</button>
     </div>
 
+    ${isSent ? `
+      <!-- ═══ Kreditfaktura ═══ -->
+      <div style="margin-top:14px;padding:10px 12px;background:rgba(185,28,28,0.06);border:1px solid rgba(185,28,28,0.25);border-radius:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:0.82rem;font-weight:700;color:#f87171;display:flex;align-items:center;gap:6px">
+              ↩ Kreditfaktura
+              ${c.credit_invoice_number
+                ? `<span style="background:rgba(185,28,28,0.2);color:#fca5a5;padding:1px 8px;border-radius:10px;font-size:0.7rem;font-weight:600">${c.credit_invoice_number}</span>`
+                : ''}
+            </div>
+            <div style="color:var(--text-faint);font-size:0.72rem;margin-top:2px">
+              ${c.credit_invoice_number
+                ? `Skickad ${c.credit_sent_at ? fmtDate(c.credit_sent_at) : '—'} · ${Math.round((c.credit_amount_excl||0) * -1.25).toLocaleString('sv-SE')} kr inkl. moms`
+                : 'Skapa kreditfaktura för denna order — hela eller partiell enligt avbokningsregler.'}
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${c.credit_invoice_number
+              ? `<button class="btn-action" onclick="invResendCredit()" style="font-size:0.75rem;border-color:rgba(239,68,68,0.5);color:#f87171">📤 Skicka om</button>`
+              : `<button class="btn-action" onclick="invCreateCredit()" style="font-size:0.78rem;background:rgba(185,28,28,0.2);border-color:rgba(239,68,68,0.5);color:#fca5a5">↩ Skapa kreditfaktura</button>`}
+          </div>
+        </div>
+      </div>
+    ` : ''}
+
     <details style="margin-top:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
       <summary style="padding:8px 12px;cursor:pointer;font-size:0.78rem;font-weight:600;color:var(--text-muted);background:var(--surface);list-style:none;display:flex;align-items:center;gap:6px">
         ⚙ Fakturaserie
@@ -2729,6 +2755,183 @@ async function invClearAllReservations() {
 }
 window.invClearAllReservations = invClearAllReservations;
 window.invLoadRecent = invLoadRecent;
+
+// ═══════════════════════════════════════════════════════════════════════════
+//   Kreditfaktura
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function invCreateCredit() {
+  if (!currentCart?.id) return;
+  if (!currentCart.invoice_sent_at) { toast('Skapa faktura först', 'error'); return; }
+
+  // Hämta preview-data (totalbelopp, avbokningsregler)
+  let preview;
+  try {
+    const { ok, data } = await api('invoice-credit-preview?cart_id=' + encodeURIComponent(currentCart.id));
+    if (!ok) { toast(data?.error || 'Kunde inte läsa orderdata', 'error'); return; }
+    preview = data;
+  } catch(e) { toast('Nätverksfel: ' + e.message, 'error'); return; }
+
+  const choice = await showCreditDialog(preview);
+  if (!choice) return;
+
+  try {
+    const { ok, data } = await api('invoice-credit', {
+      method: 'POST',
+      body: JSON.stringify({
+        cart_id: currentCart.id,
+        mode:    choice.mode,
+        custom_percent: choice.mode === 'custom' ? choice.percent : undefined,
+        reason:  choice.reason || null,
+      }),
+    });
+    if (!ok || data?.error) {
+      toast(data?.error || 'Kunde inte skapa kreditfaktura', 'error');
+      return;
+    }
+    toast(`Kreditfaktura ${data.credit_invoice_number} skickad! 📧`);
+    currentCart.credit_invoice_number = data.credit_invoice_number;
+    currentCart.credit_sent_at        = new Date().toISOString();
+    currentCart.credit_amount_excl    = data.total_excl;
+    currentCart.credit_mode           = choice.mode;
+    await loadCarts();
+    renderTab('faktura');
+  } catch(e) {
+    toast('Nätverksfel: ' + e.message, 'error');
+  }
+}
+window.invCreateCredit = invCreateCredit;
+
+async function invResendCredit() {
+  if (!currentCart?.credit_invoice_number) return;
+  if (!confirm(`Skicka om kreditfaktura ${currentCart.credit_invoice_number}?\n\nPDF regenereras och skickas på nytt.`)) return;
+  try {
+    const { ok, data } = await api('invoice-credit', {
+      method: 'POST',
+      body: JSON.stringify({
+        cart_id: currentCart.id,
+        mode:    currentCart.credit_mode || 'full',
+        custom_percent: currentCart.credit_mode === 'custom'
+          ? Math.round((currentCart.credit_amount_excl || 0) * -100 /
+              (currentCart.items||[]).filter(i=>!i._note&&i.name).reduce((s,i)=>s+((i.price||0)*(i.qty||1)),1))
+          : undefined,
+        resend: true,
+      }),
+    });
+    if (!ok || data?.error) { toast(data?.error || 'Kunde inte skicka om', 'error'); return; }
+    toast(`Kreditfaktura ${data.credit_invoice_number} skickad igen! 📧`);
+  } catch(e) { toast('Nätverksfel: ' + e.message, 'error'); }
+}
+window.invResendCredit = invResendCredit;
+
+function showCreditDialog(preview) {
+  return new Promise(resolve => {
+    document.getElementById('credit-dialog')?.remove();
+
+    const origIncl = preview.total_incl || 0;
+    const origExcl = preview.total_excl || 0;
+    const rules    = preview.cancel_rules || { percent: 100, days: null, isDj: false };
+    const daysTxt  = rules.days == null ? '(ingen eventdatum)' : `${rules.days} dag${rules.days === 1 ? '' : 'ar'} till event`;
+    const ruleLbl  = `${rules.isDj ? 'DJ-bokning' : 'Regulär bokning'} · ${daysTxt}`;
+    const ruleAmt  = Math.round(origIncl * rules.percent / 100);
+
+    const rulesDisabled = rules.percent === 0;
+
+    const dlg = document.createElement('div');
+    dlg.id = 'credit-dialog';
+    dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    dlg.innerHTML = `
+      <div style="background:#1a1740;border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:1.6rem;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto">
+        <div style="font-size:1rem;font-weight:700;color:#fca5a5;margin-bottom:0.4rem">↩ Skapa kreditfaktura</div>
+        <div style="color:rgba(255,255,255,0.55);font-size:0.78rem;margin-bottom:1rem">Krediterar ${preview.invoice_number || '—'} · ${origIncl.toLocaleString('sv-SE')} kr inkl. moms</div>
+
+        <!-- Val-radios -->
+        <label style="display:block;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;margin-bottom:8px;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="radio" name="credit-mode" value="full" checked style="accent-color:#f87171">
+            <div style="flex:1">
+              <div style="color:#f0eeff;font-weight:600;font-size:0.85rem">Full kreditering</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:0.72rem">Hela beloppet återbetalas · ${origIncl.toLocaleString('sv-SE')} kr</div>
+            </div>
+          </div>
+        </label>
+
+        <label style="display:block;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;margin-bottom:8px;cursor:${rulesDisabled?'not-allowed':'pointer'};opacity:${rulesDisabled?'0.5':'1'}">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="radio" name="credit-mode" value="cancel_rules" ${rulesDisabled?'disabled':''} style="accent-color:#f87171">
+            <div style="flex:1">
+              <div style="color:#f0eeff;font-weight:600;font-size:0.85rem">Enligt avbokningsregler (${rules.percent} %)</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:0.72rem">${ruleLbl}</div>
+              <div style="color:#fca5a5;font-weight:600;font-size:0.78rem;margin-top:2px">Återbetalning: ${ruleAmt.toLocaleString('sv-SE')} kr</div>
+              ${rulesDisabled ? `<div style="color:#f87171;font-size:0.7rem;margin-top:3px;font-style:italic">⚠ 0 % kreditering möjlig enligt reglerna</div>` : ''}
+            </div>
+          </div>
+        </label>
+
+        <label style="display:block;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;margin-bottom:12px;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <input type="radio" name="credit-mode" value="custom" style="accent-color:#f87171">
+            <div style="flex:1;min-width:140px">
+              <div style="color:#f0eeff;font-weight:600;font-size:0.85rem">Anpassat %</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:0.72rem">Ange valfri procent mellan 1-100</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input id="credit-custom-pct" type="number" min="1" max="100" step="1" value="75" disabled
+                style="width:64px;font-size:0.85rem;padding:4px 8px;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.2);border-radius:5px;text-align:right">
+              <span style="color:rgba(255,255,255,0.6);font-size:0.8rem">%</span>
+            </div>
+          </div>
+          <div id="credit-custom-amt" style="color:#fca5a5;font-size:0.72rem;margin-top:4px;margin-left:24px;display:none"></div>
+        </label>
+
+        <!-- Anledning (valfri) -->
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:3px">Anledning (valfri)</label>
+          <input id="credit-reason" type="text" placeholder="T.ex. Avbokad 2026-03-11"
+            style="width:100%;font-size:0.8rem;padding:6px 10px;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.2);border-radius:6px;box-sizing:border-box">
+        </div>
+
+        <div style="display:flex;gap:0.6rem">
+          <button id="credit-cancel" style="flex:1;padding:0.7rem;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;font-size:0.82rem">Avbryt</button>
+          <button id="credit-ok" style="flex:2;padding:0.7rem;background:#b91c1c;border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:0.85rem">Skapa & skicka kreditfaktura →</button>
+        </div>
+      </div>`;
+    document.body.appendChild(dlg);
+
+    const pctInput = dlg.querySelector('#credit-custom-pct');
+    const customAmtEl = dlg.querySelector('#credit-custom-amt');
+    function updateCustomAmt() {
+      const p = parseInt(pctInput.value) || 0;
+      const amt = Math.round(origIncl * p / 100);
+      customAmtEl.textContent = `Återbetalning: ${amt.toLocaleString('sv-SE')} kr`;
+    }
+    pctInput.addEventListener('input', updateCustomAmt);
+
+    dlg.querySelectorAll('input[name="credit-mode"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const isCustom = r.value === 'custom' && r.checked;
+        pctInput.disabled = !isCustom;
+        customAmtEl.style.display = isCustom ? 'block' : 'none';
+        if (isCustom) { updateCustomAmt(); pctInput.focus(); }
+      });
+    });
+
+    dlg.querySelector('#credit-cancel').onclick = () => { dlg.remove(); resolve(null); };
+    dlg.querySelector('#credit-ok').onclick = () => {
+      const mode = dlg.querySelector('input[name="credit-mode"]:checked')?.value;
+      if (!mode) { toast('Välj ett alternativ', 'error'); return; }
+      let pct;
+      if (mode === 'custom') {
+        pct = parseInt(pctInput.value);
+        if (!pct || pct < 1 || pct > 100) { toast('Ange % mellan 1 och 100', 'error'); return; }
+      }
+      const reason = dlg.querySelector('#credit-reason').value.trim();
+      dlg.remove();
+      resolve({ mode, percent: pct, reason });
+    };
+    dlg.onclick = e => { if (e.target === dlg) { dlg.remove(); resolve(null); } };
+  });
+}
 
 async function invDeleteInvoice(cartIdEnc, invoiceNumber) {
   const cartId = decodeURIComponent(cartIdEnc);

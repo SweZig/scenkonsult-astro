@@ -278,6 +278,8 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
 
 // ── Fakturanummer: returnerar cart.invoice_number om satt, annars lägsta lediga K-nummer ≥ 2010
 // Gap-filling: om tidigare nummer raderats återanvänds de innan nya tilldelas.
+// Numren räknas från både invoice_number OCH credit_invoice_number (kreditfakturor
+// delar K-serie med riktiga fakturor).
 async function getOrCreateInvoiceNumber(db, cart) {
   if (cart.invoice_number) return cart.invoice_number;
 
@@ -289,19 +291,21 @@ async function getOrCreateInvoiceNumber(db, cart) {
 
   try {
     const res = await fetch(
-      `${supaUrl}/rest/v1/carts?select=invoice_number&invoice_number=not.is.null`,
+      `${supaUrl}/rest/v1/carts?select=invoice_number,credit_invoice_number&or=(invoice_number.not.is.null,credit_invoice_number.not.is.null)`,
       { headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}` } }
     );
     if (res.ok) {
       const rows = await res.json();
       (rows || []).forEach(c => {
-        if (c.invoice_number && typeof c.invoice_number === 'string' && c.invoice_number.startsWith('K')) {
-          const n = parseInt(c.invoice_number.slice(1));
-          if (!isNaN(n) && n >= START_NUM) {
-            taken.add(n);
-            if (n > highest) highest = n;
+        [c.invoice_number, c.credit_invoice_number].forEach(v => {
+          if (v && typeof v === 'string' && v.startsWith('K')) {
+            const n = parseInt(v.slice(1));
+            if (!isNaN(n) && n >= START_NUM) {
+              taken.add(n);
+              if (n > highest) highest = n;
+            }
           }
-        }
+        });
       });
     }
   } catch (e) {
@@ -317,4 +321,33 @@ async function getOrCreateInvoiceNumber(db, cart) {
   return newNum;
 }
 
-module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };
+// ── Returnerar Set med alla K-nummer som är tagna (invoice + credit) samt högsta
+// Används av invoice-next-number och invoice-reserve.
+async function getTakenInvoiceNumbers() {
+  const START_NUM = 2010;
+  const supaUrl = process.env.SUPABASE_URL;
+  const supaKey = process.env.SUPABASE_SERVICE_KEY;
+  const taken = new Set();
+  let highest = START_NUM - 1;
+
+  const res = await fetch(
+    `${supaUrl}/rest/v1/carts?select=invoice_number,credit_invoice_number&or=(invoice_number.not.is.null,credit_invoice_number.not.is.null)`,
+    { headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}` } }
+  );
+  if (!res.ok) throw new Error(`Supabase ${res.status}`);
+  const rows = await res.json();
+  (rows || []).forEach(c => {
+    [c.invoice_number, c.credit_invoice_number].forEach(v => {
+      if (v && typeof v === 'string' && v.startsWith('K')) {
+        const n = parseInt(v.slice(1));
+        if (!isNaN(n) && n >= START_NUM) {
+          taken.add(n);
+          if (n > highest) highest = n;
+        }
+      }
+    });
+  });
+  return { taken, highest, START_NUM };
+}
+
+module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, getTakenInvoiceNumbers, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };
