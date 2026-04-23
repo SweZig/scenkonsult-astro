@@ -2254,41 +2254,65 @@ function renderFakturaTab() {
 
     <details style="margin-top:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
       <summary style="padding:8px 12px;cursor:pointer;font-size:0.78rem;font-weight:600;color:var(--text-muted);background:var(--surface);list-style:none;display:flex;align-items:center;gap:6px">
-        ⚙ Underhåll fakturanummerserie
+        ⚙ Fakturaserie
       </summary>
-      <div style="padding:12px;background:var(--bg);font-size:0.8rem">
-        <p style="color:var(--text-muted);margin:0 0 10px;line-height:1.5">
-          Används när manuella fakturor skickats utanför systemet och ett nummer måste hoppas över.
-          Ange nästa K-nummer som ska användas.
-        </p>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <div>
-            <div style="color:var(--text-faint);font-size:0.7rem;margin-bottom:3px">Nästa fakturanummer</div>
-            <div style="display:flex;align-items:center;gap:4px">
-              <span style="color:var(--text-muted);font-size:0.9rem;font-weight:600">K</span>
-              <input id="inv-next-num" type="number" min="1" step="1" placeholder="2012"
-                style="width:90px;font-size:0.85rem;padding:4px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
-            </div>
+      <div style="padding:14px;background:var(--bg);font-size:0.8rem">
+
+        <!-- ═══ Översikt: Nästa + Senaste använt + Reservationer ═══ -->
+        <div id="inv-serie-overview" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div style="background:linear-gradient(135deg,rgba(196,181,244,0.12),rgba(196,181,244,0.04));border:1px solid rgba(196,181,244,0.3);border-radius:10px;padding:10px 12px">
+            <div style="color:var(--text-faint);font-size:0.66rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Nästa nummer</div>
+            <div id="inv-serie-next" style="color:var(--brand-lav);font-size:1.4rem;font-weight:700;line-height:1.1">…</div>
           </div>
-          <button class="btn-action" onclick="invSetNextNumber()" style="font-size:0.78rem;margin-top:18px">
-            Reservera nummer
-          </button>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+            <div style="color:var(--text-faint);font-size:0.66rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Senast använt</div>
+            <div id="inv-serie-highest" style="color:var(--text);font-size:1.4rem;font-weight:700;line-height:1.1">…</div>
+          </div>
         </div>
-        <div id="inv-maint-status" style="margin-top:8px;font-size:0.75rem;color:var(--text-faint)"></div>
-        <p style="color:var(--text-faint);font-size:0.72rem;margin:8px 0 0;font-style:italic">
-          Tips: om du skickat faktura K2013 manuellt, sätt nästa nummer till 2014.
-        </p>
 
-        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 12px">
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:0.78rem;font-weight:700;color:var(--text)">Senaste fakturor</div>
-          <button onclick="invLoadRecent()" class="btn-action" style="font-size:0.7rem;padding:2px 8px">↻ Ladda om</button>
+        <!-- ═══ Hoppa till nummer ═══ -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px">
+          <div style="color:var(--text);font-weight:600;font-size:0.8rem;margin-bottom:3px">Hoppa till nummer</div>
+          <p style="color:var(--text-faint);font-size:0.72rem;margin:0 0 8px;line-height:1.4">
+            Används när manuella fakturor skickats utanför systemet. Alla lediga nummer fram till valt nummer reserveras automatiskt.
+          </p>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span style="color:var(--text-muted);font-size:0.9rem;font-weight:600">K</span>
+            <input id="inv-next-num" type="number" min="2011" step="1" placeholder="2020"
+              style="width:90px;font-size:0.85rem;padding:5px 9px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
+            <button class="btn-action" onclick="invSetNextNumber()" style="font-size:0.78rem">
+              Reservera →
+            </button>
+            <span id="inv-maint-status" style="margin-left:4px;font-size:0.72rem;color:var(--text-faint);flex:1;min-width:140px"></span>
+          </div>
         </div>
-        <p style="color:var(--text-faint);font-size:0.7rem;margin:0 0 8px;font-style:italic">
-          Radera en faktura för att frigöra K-numret — används för testfakturor. Luckor fylls automatiskt vid nästa fakturagenerering.
-        </p>
-        <div id="inv-recent-list" style="font-size:0.75rem;color:var(--text-muted)">Laddar…</div>
+
+        <!-- ═══ Reservationer (visas bara om > 0) ═══ -->
+        <div id="inv-reserv-section" style="display:none;margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;flex-wrap:wrap">
+            <div style="font-size:0.78rem;font-weight:700;color:var(--text)">
+              Reservationer <span id="inv-reserv-count" style="color:var(--text-faint);font-weight:400"></span>
+            </div>
+            <button onclick="invClearAllReservations()" class="btn-action"
+              style="font-size:0.7rem;padding:2px 9px;border-color:rgba(239,68,68,0.5);color:#f87171">
+              🗑 Rensa alla
+            </button>
+          </div>
+          <div id="inv-reserv-list" style="font-size:0.74rem;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 10px;max-height:200px;overflow-y:auto"></div>
+        </div>
+
+        <!-- ═══ Senaste fakturor (utan reservationer) ═══ -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-size:0.78rem;font-weight:700;color:var(--text)">Senaste fakturor</div>
+            <button onclick="invLoadRecent()" class="btn-action" style="font-size:0.7rem;padding:2px 8px">↻ Uppdatera</button>
+          </div>
+          <p style="color:var(--text-faint);font-size:0.7rem;margin:0 0 6px;font-style:italic;line-height:1.4">
+            Radera en faktura för att frigöra K-numret — nyttigt för testfakturor. Luckor fylls automatiskt vid nästa fakturagenerering.
+          </p>
+          <div id="inv-recent-list" style="font-size:0.75rem;color:var(--text-muted)">Laddar…</div>
+        </div>
+
       </div>
     </details>
   `;
@@ -2313,6 +2337,8 @@ async function invSetNextNumber() {
     if (res.ok) {
       if(status) { status.style.color='var(--green)'; status.textContent = `✓ Nästa faktura blir K${num}`; }
       if(input) input.value = '';
+      // Uppdatera översikt + listor direkt så användaren ser förändringen
+      invLoadRecent();
     } else {
       const err = await res.json();
       if(status) { status.style.color='var(--red)'; status.textContent = '⚠ ' + (err.error||'Fel'); }
@@ -2572,34 +2598,89 @@ async function invLoadPreviewNumber() {
   } catch(e) { if (el) el.textContent = ''; }
 }
 
-async function invLoadRecent() {
-  const el = document.getElementById('inv-recent-list');
-  if (!el) return;
-  el.innerHTML = '<div style="color:var(--text-faint);padding:6px 0">Laddar…</div>';
+// Uppdatera översiktskorten (Nästa nummer + Senast använt)
+async function invLoadSerieOverview() {
+  const nextEl = document.getElementById('inv-serie-next');
+  const highEl = document.getElementById('inv-serie-highest');
+  if (!nextEl && !highEl) return;
   try {
-    const { ok, data } = await api('invoice-list?limit=5');
+    const { ok, data } = await api('invoice-next-number');
+    if (!ok || !data) return;
+    if (nextEl) nextEl.textContent = data.next_number || '—';
+    if (highEl) highEl.textContent = data.highest && data.highest !== 'K2009' ? data.highest : '—';
+    // Pre-fylla input med ett vettigt defaultvärde (nästa nummer + 3, avrundat uppåt till jämnt 5-tal)
+    const input = document.getElementById('inv-next-num');
+    if (input && !input.value && data.next_num) {
+      const suggest = Math.ceil((data.next_num + 3) / 5) * 5;
+      input.placeholder = String(suggest);
+    }
+  } catch(e) { /* tyst */ }
+}
+window.invLoadSerieOverview = invLoadSerieOverview;
+
+async function invLoadRecent() {
+  const reservSection = document.getElementById('inv-reserv-section');
+  const reservList    = document.getElementById('inv-reserv-list');
+  const reservCount   = document.getElementById('inv-reserv-count');
+  const recentEl      = document.getElementById('inv-recent-list');
+  if (!recentEl) return;
+
+  // Uppdatera även översiktskorten
+  invLoadSerieOverview();
+
+  recentEl.innerHTML = '<div style="color:var(--text-faint);padding:6px 0">Laddar…</div>';
+  try {
+    // Hämta fler rader så vi kan visa 5 riktiga fakturor + alla reservationer
+    const { ok, data } = await api('invoice-list?limit=50');
     if (!ok) {
-      el.innerHTML = '<div style="color:var(--red)">Kunde inte ladda fakturor: ' + (data?.error || 'fel') + '</div>';
+      recentEl.innerHTML = '<div style="color:var(--red)">Kunde inte ladda fakturor: ' + (data?.error || 'fel') + '</div>';
       return;
     }
-    const rows = data?.invoices || [];
-    if (rows.length === 0) {
-      el.innerHTML = '<div style="color:var(--text-faint);font-style:italic;padding:6px 0">Inga fakturor i systemet ännu.</div>';
+    const allRows = data?.invoices || [];
+    const reservations = allRows.filter(r => r.id?.startsWith('SK-RESERVE-'));
+    const realInvoices = allRows.filter(r => !r.id?.startsWith('SK-RESERVE-')).slice(0, 5);
+
+    // ── Reservationer-sektion ──
+    if (reservSection) {
+      if (reservations.length === 0) {
+        reservSection.style.display = 'none';
+      } else {
+        reservSection.style.display = '';
+        if (reservCount) reservCount.textContent = `(${reservations.length} st)`;
+        if (reservList) {
+          // Sortera K-nummer numeriskt stigande
+          const sorted = reservations.slice().sort((a, b) => {
+            const na = parseInt((a.invoice_number||'').slice(1)) || 0;
+            const nb = parseInt((b.invoice_number||'').slice(1)) || 0;
+            return na - nb;
+          });
+          reservList.innerHTML = sorted.map(r => {
+            const cartIdAttr = encodeURIComponent(r.id);
+            return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--border);font-size:0.74rem">
+              <span style="font-weight:700;color:rgba(196,181,244,0.8);font-family:monospace;min-width:60px">${r.invoice_number}</span>
+              <span style="color:var(--text-faint);flex:1;font-style:italic">Reserverat</span>
+              <button onclick="invDeleteInvoice('${cartIdAttr}','${r.invoice_number}')" class="btn-action"
+                style="font-size:0.66rem;padding:1px 7px;border-color:rgba(239,68,68,0.4);color:#f87171"
+                title="Frigör numret">🗑</button>
+            </div>`;
+          }).join('');
+        }
+      }
+    }
+
+    // ── Riktiga fakturor ──
+    if (realInvoices.length === 0) {
+      recentEl.innerHTML = '<div style="color:var(--text-faint);font-style:italic;padding:6px 0">Inga fakturor i systemet ännu.</div>';
       return;
     }
-    el.innerHTML = rows.map(r => {
-      const isReserve = r.id?.startsWith('SK-RESERVE-');
+    recentEl.innerHTML = realInvoices.map(r => {
       const total = r.total_excl ? Math.round(r.total_excl * 1.25 / 100).toLocaleString('sv-SE') + ' kr' : '—';
-      const name = isReserve ? '<em style="color:var(--text-faint)">[reservation]</em>'
-                             : (r.customer_company ? r.customer_company + ' · ' : '') + (r.customer_name || '—');
+      const name = (r.customer_company ? r.customer_company + ' · ' : '') + (r.customer_name || '—');
       const date = r.invoice_sent_at
         ? fmtDate(r.invoice_sent_at)
         : (r.created_at ? fmtDate(r.created_at) : '—');
       const paid = r.invoice_paid_at ? ' <span style="color:var(--green);font-weight:600">· Betald</span>' : '';
       const cartIdAttr = encodeURIComponent(r.id);
-      const openBtn = !isReserve
-        ? `<button onclick="openDetail('${r.id}')" class="btn-action" style="font-size:0.68rem;padding:2px 7px;border-color:var(--border);color:var(--text-muted)" title="Öppna order">📂</button>`
-        : '';
       return `
         <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
           <div style="flex:1;min-width:0">
@@ -2608,7 +2689,7 @@ async function invLoadRecent() {
             <div style="color:var(--text-faint);font-size:0.68rem">${date} · ${total}${paid}</div>
           </div>
           <div style="display:flex;gap:4px;flex-shrink:0">
-            ${openBtn}
+            <button onclick="openDetail('${r.id}')" class="btn-action" style="font-size:0.68rem;padding:2px 7px;border-color:var(--border);color:var(--text-muted)" title="Öppna order">📂</button>
             <button onclick="invDeleteInvoice('${cartIdAttr}','${r.invoice_number}')" class="btn-action"
               style="font-size:0.68rem;padding:2px 8px;border-color:rgba(239,68,68,0.5);color:#f87171"
               title="Radera faktura och frigör numret">🗑 Radera</button>
@@ -2616,9 +2697,37 @@ async function invLoadRecent() {
         </div>`;
     }).join('');
   } catch (e) {
-    el.innerHTML = '<div style="color:var(--red)">Fel: ' + e.message + '</div>';
+    recentEl.innerHTML = '<div style="color:var(--red)">Fel: ' + e.message + '</div>';
   }
 }
+
+// Rensa alla SK-RESERVE-* rader i ett svep
+async function invClearAllReservations() {
+  try {
+    const { ok, data } = await api('invoice-list?limit=100');
+    if (!ok) { toast('Kunde inte ladda reservationer', 'error'); return; }
+    const reservations = (data?.invoices || []).filter(r => r.id?.startsWith('SK-RESERVE-'));
+    if (reservations.length === 0) { toast('Inga reservationer att rensa'); return; }
+
+    if (!confirm(`Rensa alla ${reservations.length} reservationer?\n\nAlla K-nummer som för närvarande är reserverade (men ej tilldelade riktiga fakturor) frigörs. Luckorna fylls automatiskt vid nästa fakturagenerering.\n\nDetta kan INTE ångras.`)) return;
+
+    let done = 0, failed = 0;
+    for (const r of reservations) {
+      try {
+        const { ok: delOk, data: delData } = await api('invoice-delete', {
+          method: 'POST', body: JSON.stringify({ cart_id: r.id })
+        });
+        if (delOk && !delData?.error) done++; else failed++;
+      } catch(e) { failed++; }
+    }
+    if (failed === 0) toast(`${done} reservation${done!==1?'er':''} rensad${done!==1?'e':''}`);
+    else toast(`${done} rensade, ${failed} misslyckades`, 'error');
+    invLoadRecent();
+  } catch(e) {
+    toast('Nätverksfel: ' + e.message, 'error');
+  }
+}
+window.invClearAllReservations = invClearAllReservations;
 window.invLoadRecent = invLoadRecent;
 
 async function invDeleteInvoice(cartIdEnc, invoiceNumber) {
