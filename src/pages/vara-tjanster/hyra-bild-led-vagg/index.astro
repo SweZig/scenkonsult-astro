@@ -547,9 +547,16 @@ const faqSchema = {
 
         priceRowsEl.innerHTML = priceLines.map(l => {
           let valStr;
-          if (l.value === null) valStr = '<em style="color:rgba(255,255,255,0.5);">separat</em>';
-          else if (l.value === 0) valStr = '<span style="color:rgba(143,214,148,0.85);font-style:italic;">ingår</span>';
-          else valStr = fmtKr(l.value);
+          if (l.value === null) {
+            valStr = '<em style="color:rgba(255,255,255,0.5);">separat</em>';
+          } else if (l.value === 0) {
+            valStr = '<span style="color:rgba(143,214,148,0.85);font-style:italic;">ingår</span>';
+          } else {
+            // Båda excl/incl renderas; global skApplyVat() växlar synlighet via .hidden
+            const incl = Math.round(l.value * 1.25);
+            valStr = `<span class="sk-price-excl">${fmtKr(l.value)}</span>` +
+                     `<span class="sk-price-incl hidden">${fmtKr(incl)}</span>`;
+          }
           return priceRow(l.label, valStr, l.sub);
         }).join('');
 
@@ -558,9 +565,9 @@ const faqSchema = {
         totalExcl.setAttribute('data-exkl', String(totalExclVal));
         totalIncl.textContent = fmtKr(totalExclVal * 1.25);
 
-        // Om applyVat finns globalt, kör den så incl/excl-toggle uppdateras konsekvent
-        if (typeof window.applyVat === 'function') {
-          try { window.applyVat(); } catch(e) {}
+        // Aktivera moms-toggle på de nyrenderade prisraderna (Layout.astro:s skApplyVat)
+        if (typeof window.skApplyVat === 'function') {
+          try { window.skApplyVat(); } catch(e) {}
         }
 
         // Preview-SVG — teknisk eller visuell baserat på view-state
