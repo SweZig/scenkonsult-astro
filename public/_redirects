@@ -1,0 +1,20 @@
+# GSC edge cases — URL:er utan trailing slash som inte täcks av netlify.toml
+# (netlify.toml-redirects använder /path/ med slash, dessa fångar /path utan)
+
+# Bare /requests (utan slash) — gammal WP-sida som ska 410 Gone
+/requests   /  410!
+/requests/  /  410!
+
+# Gamla WP-URL:er utan trailing slash (de med slash finns redan i netlify.toml)
+/hyra-dj                           /vara-tjanster/hyra-dj/                    301!
+/hyra-ljud                         /vara-tjanster/hyra-ljud/                  301!
+/hyra-ljus                         /vara-tjanster/hyra-ljus/                  301!
+/hyra-scen                         /vara-tjanster/hyra-scen/                  301!
+/hyra-projektor                    /vara-tjanster/hyra-bild-projektorer-skarmar/    301!
+/hyra-bild-projektorer-skarmar     /vara-tjanster/hyra-bild-projektorer-skarmar/    301!
+/uthyrning-av-ljud                 /vara-tjanster/hyra-ljud/                  301!
+/uthyrning-av-scen                 /vara-tjanster/hyra-scen/                  301!
+/uthyrning-av-ljus-fardiga-paket   /vara-tjanster/hyra-ljus/fardiga-paket/    301!
+/uthyrning-av-ljuseffekter         /vara-tjanster/hyra-ljus/ljuseffekter/     301!
+/uthyrning-av-rok-pyro             /vara-tjanster/hyra-ljus/rok-pyro/         301!
+/uthyrning-av-stativ-tross         /vara-tjanster/hyra-ljus/stativ-tross/     301!

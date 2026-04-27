@@ -60,6 +60,7 @@ interface Props {
   description?: string;
   image?: string;
   schemaExtra?: object;
+  noindex?: boolean;
 }
 
 const {
@@ -67,6 +68,7 @@ const {
   description = 'Uthyrning av scen, ljud, ljus, bild och DJ-utrustning för fest, bröllop, event och konsert. Komplett scenproduktion i Stockholm. Leverans och montering. Sedan 1986.',
   image = '/images/hero/scen3_hero.webp',
   schemaExtra,
+  noindex = false,
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
@@ -155,6 +157,7 @@ const localBusinessSchema = {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content={description} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
   <link rel="canonical" href={canonicalURL} />
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
