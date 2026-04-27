@@ -1272,7 +1272,7 @@ function renderTab(tab) {
       const catalog = window.__ADMIN_QUOTE_CATALOG__ || {};
       catSel.innerHTML = '<option value="">\u2014 välj kategori —</option>' +
         Object.keys(catalog)
-          .filter(k => !['Tillägg','Eigen rad','DJ-tjänster'].includes(k))
+          .filter(k => !['Egen rad'].includes(k))
           .map(k => `<option value="${k}">${k}</option>`)
           .join('');
     }

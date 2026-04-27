@@ -7,18 +7,17 @@ Fallback: slug för bakåtkompatibilitet med äldre ordrar
 Kategoristruktur:
   Scen | Scentillbehör | Ljud | Ljudtillbehör | Ljus | Ljustillbehör | DJ | Bild | Tjänster
 
-Ändringar v2 (2026-04-27):
-  • Datadriven Tjänster-sektion — läser från JSON-filerna istället för hårdkodning
-  • Plockar upp services-arrays från ljud.json, ljus.json, bild.json
-  • Plockar upp tillagg-arrayen från tjanster.json
-  • Plockar upp ALLA leveransalternativ + enkelresor från tjanster.leverans
-  • Plockar upp ALLA fakturaavgift-options (SK-TJN-0003-0/29/49)
-  • DJ-tjänster (SK-DJ-0009..0017) flyttade till Tjänster-kategorin
+Datadriven från JSON (2026-04-27 v3):
+  • Inga hårdkodade artno eller priser — allt läses från src/data/*.json
+  • Tjänster strukturerade i undergrupper: Personal | Foto/Video | DJ-spel |
+    Leverans | Montering | Bokningsavgift
+  • DJ-spel (SK-DJ-0009..0017) flyttat till Tjänster (matchar Excel-katalogen)
+  • Tillägg-alias borttaget — Tjänster är ENDA tjänstekategorin
 """
 import json, os
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-def load(path): return json.load(open(os.path.join(BASE, 'src/data', path), encoding='utf-8'))
+def load(p): return json.load(open(os.path.join(BASE, 'src/data', p), encoding='utf-8'))
 
 scenes = load('scenes.json')
 ljud   = load('ljud.json')
@@ -27,8 +26,10 @@ bild   = load('bild.json')
 dj     = load('dj.json')
 frakt  = load('tjanster.json')
 
-def prod(p, cat=None, item_type='product'):
-    artno = p.get('artno','').strip()
+# ── Generiska helpers ────────────────────────────────────────────────────────
+def prod(p, item_type='product'):
+    """Hyresprodukt-format (bil/scen/ljud-paket m.fl.)."""
+    artno = (p.get('artno') or '').strip()
     slug  = p.get('slug') or p.get('id','')
     return {
         'id':    artno or slug,
@@ -39,6 +40,30 @@ def prod(p, cat=None, item_type='product'):
         'image': p.get('image',''),
         'desc':  p.get('description') or p.get('desc') or '',
         'type':  p.get('type', item_type),
+    }
+
+def svc_from_service(s):
+    """Konvertera ett services-array-objekt (ljud/ljus/bild) till tjänsterad."""
+    a = (s.get('artno') or '').strip()
+    return {
+        'id': a or s.get('slug',''), 'artno': a, 'slug': s.get('slug') or a,
+        'name': s.get('name') or s.get('label') or '',
+        'price': s.get('price') or s.get('pris') or 0,
+        'image': s.get('image',''),
+        'desc':  s.get('description') or s.get('desc') or s.get('note','') or '',
+        'type':  'service',
+    }
+
+def svc_from_dict(d, label_key='label', price_key='pris'):
+    """Konvertera ett dict-objekt (leverans/montering/avgift) till tjänsterad."""
+    a = (d.get('artno') or '').strip()
+    return {
+        'id': a or d.get('id',''), 'artno': a, 'slug': d.get('id', a),
+        'name': d.get(label_key,'') or d.get('name',''),
+        'price': d.get(price_key, d.get('price', 0)),
+        'image': '',
+        'desc':  d.get('description','') or d.get('note',''),
+        'type':  'service',
     }
 
 catalog = {}
@@ -75,167 +100,123 @@ catalog['Ljus'] = {'sub': {
     'Stativ & tross': [prod(p) for p in ljus.get('stativ',{}).get('products',[])],
 }}
 
-# ── Ljustillbehör (dmx + stativ-tillbehör + rök-förbrukning + el) ─────────────
+# ── Ljustillbehör (DMX + stativ-tillbehör + rök-förbrukning + el) ─────────────
 catalog['Ljustillbehör'] = {'sub': {
-    'DMX-styrning':        [prod(p) for p in ljus.get('dmx',{}).get('tillbehor',[])
-                            if p.get('artno') or p.get('slug')],
-    'Stativ & fästen':     [prod(p) for p in ljus.get('stativ',{}).get('tillbehor',[])
-                            if p.get('artno') or p.get('slug')],
-    'Rök förbrukning':     [prod(p) for p in ljus.get('rok',{}).get('tillbehor',[])
-                            if p.get('artno') or p.get('slug')],
-    'El-tillbehör':        [prod(p) for p in ljus.get('el',[])
-                            if p.get('artno') or p.get('slug')],
+    'DMX-styrning':    [prod(p) for p in ljus.get('dmx',{}).get('tillbehor',[])
+                        if p.get('artno') or p.get('slug')],
+    'Stativ & fästen': [prod(p) for p in ljus.get('stativ',{}).get('tillbehor',[])
+                        if p.get('artno') or p.get('slug')],
+    'Rök förbrukning': [prod(p) for p in ljus.get('rok',{}).get('tillbehor',[])
+                        if p.get('artno') or p.get('slug')],
+    'El-tillbehör':    [prod(p) for p in ljus.get('el',[])
+                        if p.get('artno') or p.get('slug')],
 }}
 
-# ── DJ-utrustning (paket + controllers + bord, EXKL DJ-spel som är tjänster) ──
+# ── DJ — utrustning + paket (DJ-spel klassas som Tjänster, läggs nedan) ───────
+DJ_SVC_ARTNOS = {f'SK-DJ-{i:04d}' for i in range(9, 18)}  # SK-DJ-0009..0017
 eq = dj.get('equipment', [])
 if isinstance(eq, dict): eq = list(eq.values())
-DJ_SVC_PREFIXES = ('SK-DJ-0009','SK-DJ-0010','SK-DJ-0011',
-                   'SK-DJ-0012','SK-DJ-0013','SK-DJ-0014',
-                   'SK-DJ-0015','SK-DJ-0016','SK-DJ-0017')
-dj_utr = [p for p in eq if p.get('type') != 'service'
-                       and not (p.get('artno','') in DJ_SVC_PREFIXES)]
-dj_svc_eq = [p for p in eq if p.get('type') == 'service'
-                          or p.get('artno','') in DJ_SVC_PREFIXES]
-catalog['DJ'] = {'products': [prod(p) for p in dj_utr]}
-# DJ-paketen (SK-DJ-PAK-*) ligger redan i equipment och hamnar under DJ ovan
+dj_utr = [p for p in eq if p.get('type') != 'service' and p.get('artno','') not in DJ_SVC_ARTNOS]
+dj_svc_eq = [p for p in eq if p.get('type') == 'service' or p.get('artno','') in DJ_SVC_ARTNOS]
+catalog['DJ'] = {'sub': {
+    'DJ-utrustning':   [prod(p) for p in dj_utr],
+    'DJ-paket':        [prod(p) for p in dj.get('packages', [])],
+}}
 
-# ── Bild (produkter + tillbehör) ──────────────────────────────────────────────
+# ── Bild (produkter + tillbehör; services hamnar under Tjänster) ──────────────
 catalog['Bild'] = {'sub': {
     'Projektorer & skärmar': [prod(p) for p in bild.get('products',[])],
     'Tillbehör':             [prod(p) for p in bild.get('tillbehor',[])
                               if p.get('artno') or p.get('slug')],
 }}
 
-# ── Tjänster (DATADRIVEN — läses från tjanster.json + services-arrays) ────────
-def svc(p):
-    """Konvertera ett tjänste-objekt till quote-catalog-format."""
-    artno = (p.get('artno') or '').strip()
-    return {
-        'id':    artno or p.get('id') or p.get('slug',''),
-        'artno': artno,
-        'slug':  p.get('slug') or artno,
-        'name':  p.get('name') or p.get('label') or '',
-        'price': p.get('price') or p.get('pris') or 0,
-        'image': p.get('image',''),
-        'desc':  p.get('description') or p.get('desc') or p.get('note','') or '',
-        'type':  'service',
-    }
-
-tjanster_products = []
-
-# 1) Personal — services från ljud.json + ljus.json (dedupliceras på artno)
+# ── Tjänster (DATADRIVEN, strukturerad i undergrupper) ────────────────────────
 seen_svc = set()
-for src_file in (ljud, ljus):
-    for s in src_file.get('services', []):
-        a = (s.get('artno') or '').strip()
+def take(rows):
+    """Filtrera bort dubbletter på artno när vi bygger tjänstegrupperna."""
+    out = []
+    for r in rows:
+        a = r['artno']
         if a and a not in seen_svc:
             seen_svc.add(a)
-            tjanster_products.append(svc(s))
+            out.append(r)
+    return out
 
-# 2) Foto/Video — services från bild.json
-for s in bild.get('services', []):
-    a = (s.get('artno') or '').strip()
-    if a and a not in seen_svc:
-        seen_svc.add(a)
-        tjanster_products.append(svc(s))
-
-# 3) DJ-spel — equipment-rader markerade som tjänster
-for s in dj_svc_eq:
-    a = (s.get('artno') or '').strip()
-    if a and a not in seen_svc:
-        seen_svc.add(a)
-        tjanster_products.append(svc(s))
-
-# 4) Leverans — alla huvudalternativ + enkelresor från tjanster.leverans
-for key, item in frakt.get('leverans', {}).items():
-    if not isinstance(item, dict) or not item.get('artno'):
-        continue
-    # Huvudalternativ (tur & retur)
-    a = item['artno'].strip()
-    if a not in seen_svc:
-        seen_svc.add(a)
-        tjanster_products.append({
-            'id': a, 'artno': a, 'slug': item.get('id', a),
-            'name': item.get('label',''),
-            'price': item.get('pris', 0),
-            'image': '',
-            'desc': item.get('note',''),
-            'type': 'service',
-        })
-    # Enkelresa-variant (om finns)
-    enkel = item.get('enkel')
-    if isinstance(enkel, dict) and enkel.get('artno'):
-        ae = enkel['artno'].strip()
-        if ae not in seen_svc:
-            seen_svc.add(ae)
-            tjanster_products.append({
-                'id': ae, 'artno': ae, 'slug': enkel.get('id', ae),
-                'name': enkel.get('label',''),
-                'price': enkel.get('pris', 0),
-                'image': '',
-                'desc': enkel.get('note',''),
-                'type': 'service',
-            })
-
-# 5) Tillägg — t.ex. SK-TJN-0002 Tekniker
+# Personal — services från ljud.json + ljus.json (deduplicerat)
+personal = []
+for src_file in (ljud, ljus):
+    for s in src_file.get('services', []):
+        personal.append(svc_from_service(s))
+# Lägg också till tillagg (t.ex. Tekniker SK-TJN-0002)
 for t in frakt.get('tillagg', []):
-    if not t.get('artno'):
-        continue
-    a = t['artno'].strip()
-    if a in seen_svc:
-        continue
-    seen_svc.add(a)
-    tjanster_products.append({
-        'id': a, 'artno': a, 'slug': t.get('id', a),
+    personal.append({
+        'id': t.get('artno',''), 'artno': t.get('artno','').strip(),
+        'slug': t.get('id', t.get('artno','')),
         'name': t.get('label',''),
-        'price': t.get('pris', 0),
-        'image': '',
+        'price': t.get('pris', 0), 'image': '',
         'desc': t.get('description',''),
         'type': 'service',
     })
+personal = take(personal)
 
-# 6) Montering
+# Foto/Video — services från bild.json
+foto_video = take([svc_from_service(s) for s in bild.get('services', [])])
+
+# DJ-spel — equipment-rader markerade som tjänster
+dj_spel = take([svc_from_service(p) for p in dj_svc_eq])
+
+# Leverans — alla huvudalternativ + enkelresor från tjanster.leverans
+leverans = []
+for key, item in frakt.get('leverans', {}).items():
+    if not isinstance(item, dict) or not item.get('artno'):
+        continue
+    leverans.append(svc_from_dict(item))
+    enkel = item.get('enkel')
+    if isinstance(enkel, dict) and enkel.get('artno'):
+        leverans.append(svc_from_dict(enkel))
+leverans = take(leverans)
+
+# Montering
+montering = []
 mon = frakt.get('montering', {})
 if mon.get('artno'):
-    a = mon['artno'].strip()
-    if a not in seen_svc:
-        seen_svc.add(a)
-        tjanster_products.append({
-            'id': a, 'artno': a, 'slug': a,
-            'name': f"{mon.get('label','Montering')} (per tim)",
-            'price': mon.get('prisPerTimme', 0),
-            'image': '',
-            'desc': mon.get('note',''),
-            'type': 'service',
-        })
+    montering.append({
+        'id': mon['artno'], 'artno': mon['artno'].strip(), 'slug': mon['artno'],
+        'name': f"{mon.get('label','Montering')} (per tim)",
+        'price': mon.get('prisPerTimme', 0), 'image': '',
+        'desc': mon.get('note',''), 'type': 'service',
+    })
+montering = take(montering)
 
-# 7) Bokningsavgift — alla options
+# Bokningsavgift — alla options
+bokningsavgift = []
 fa = frakt.get('fakturaavgift', {})
 for opt in fa.get('options', []):
     if not opt.get('artno'):
         continue
-    a = opt['artno'].strip()
-    if a in seen_svc:
-        continue
-    seen_svc.add(a)
-    tjanster_products.append({
-        'id': a, 'artno': a, 'slug': opt.get('id', a),
+    bokningsavgift.append({
+        'id': opt['artno'], 'artno': opt['artno'].strip(),
+        'slug': opt.get('id', opt['artno']),
         'name': opt.get('label',''),
-        'price': opt.get('pris', 0),
-        'image': '',
+        'price': opt.get('pris', 0), 'image': '',
         'desc': fa.get('description',''),
         'type': 'service',
     })
+bokningsavgift = take(bokningsavgift)
 
-catalog['Tjänster'] = {'products': tjanster_products}
+catalog['Tjänster'] = {'sub': {
+    'Personal':       personal,
+    'Foto/Video':     foto_video,
+    'DJ-spel':        dj_spel,
+    'Leverans':       leverans,
+    'Montering':      montering,
+    'Bokningsavgift': bokningsavgift,
+}}
 
-# Tillägg-alias (bakåtkompatibilitet — quoteModal SVC_CATALOG_KEYS)
-catalog['Tillägg'] = catalog['Tjänster']
-
-catalog['Eigen rad'] = {'products': [
-    {'id':'custom','artno':'','slug':'custom','name':'Ange benämning och pris →','price':0,
-     'image':'','desc':'','type':'product','custom':True}
+# ── Egen rad (custom-row för admin-quote) ─────────────────────────────────────
+catalog['Egen rad'] = {'products': [
+    {'id':'custom','artno':'','slug':'custom','name':'Ange benämning och pris →',
+     'price':0,'image':'','desc':'','type':'product','custom':True}
 ]}
 
 # ── Spara quote-catalog.json ──────────────────────────────────────────────────
@@ -266,7 +247,7 @@ def add_flat(prods, cat_name):
             order_catalog[slug] = entry
 
 for cn, d in catalog.items():
-    if cn in ('Tillägg', 'Eigen rad'): continue  # skip aliases
+    if cn == 'Egen rad': continue
     if 'products' in d:
         add_flat(d['products'], cn)
     if 'sub' in d:
@@ -280,27 +261,28 @@ with open(flat_path, 'w', encoding='utf-8') as f:
 # ── Statistik ─────────────────────────────────────────────────────────────────
 total = sum(
     len(v.get('products',[])) + sum(len(s) for s in v.get('sub',{}).values())
-    for k,v in catalog.items() if k not in ('Tillägg','Eigen rad')
+    for k,v in catalog.items() if k != 'Egen rad'
 )
-artno_keys   = [k for k in order_catalog if k.startswith('SK-') or k.startswith('lev-') or k.startswith('montering') or k.startswith('faktura')]
-slug_aliases = [k for k in order_catalog if not (k.startswith('SK-') or k.startswith('lev-') or k.startswith('montering') or k.startswith('faktura'))]
+artno_keys = [k for k in order_catalog if k.startswith('SK-')]
+slug_aliases = [k for k in order_catalog if not k.startswith('SK-')]
 
 print(f"✅ quote-catalog.json: {total} poster")
 print(f"✅ order-catalog-flat.json: {len(artno_keys)} artno-nycklar + {len(slug_aliases)} slug-alias")
-print("Kategorier:", [k for k in catalog if k not in ('Tillägg','Eigen rad')])
-print(f"   Tjänster: {len(catalog['Tjänster']['products'])} st")
+print()
+print("Kategoristruktur:")
+for cn, d in catalog.items():
+    if cn == 'Egen rad': continue
+    if 'products' in d:
+        print(f"  {cn}: {len(d['products'])} produkter")
+    if 'sub' in d:
+        print(f"  {cn}:")
+        for sn, sp in d['sub'].items():
+            print(f"    └─ {sn}: {len(sp)}")
 
 # Verifiera tidigare saknade artno
-print("\n🔎 Verifiering — tidigare saknade artno:")
+print("\n🔎 Verifiering — tidigare saknade artno i admin:")
 for check in ['SK-LJD-TJN-0001','SK-TJN-0002','SK-BLD-TJN-0001','SK-BLD-TJN-0002',
               'SK-BLD-TJN-0003','SK-BLD-TJN-0004','SK-LEV-0005','SK-LEV-0005-E',
               'SK-LEV-0006','SK-LEV-0006-E','SK-TJN-0003-49','SK-DJ-0010']:
-    entry = order_catalog.get(check,{})
-    name = entry.get('name','SAKNAS')
-    print(f"   {check}: {name} | cat={entry.get('catName','?')}")
-
-# Sanity-check oförändrade artno
-print("\n🔎 Sanity check — oförändrade artno:")
-for check in ['SK-LJD-MIK-0016','SK-LJD-EL-0001','SK-LJS-EL-0001','SK-LJS-DMX-0001','SK-SCN-0002','SK-BLD-ACC-0003']:
-    entry = order_catalog.get(check,{})
-    print(f"   {check}: {entry.get('name','SAKNAS')} | cat={entry.get('catName','?')} | type={entry.get('type','?')}")
+    e = order_catalog.get(check, {})
+    print(f"   {check:18}  {e.get('name','SAKNAS'):50}  cat={e.get('catName','?')}")
