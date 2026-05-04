@@ -159,8 +159,13 @@ exports.handler = async (event) => {
 
   const dtstamp = nowUtc();
 
+  // Endast faktiskt bokade ordrar — proposal/waiting/cancelled hör inte hemma
+  // i en masterkalender (kalendern ska visa det som "äter tid", inte rena förfrågningar)
+  const FEED_STATUSES = new Set(['confirmed', 'fakturerad', 'betald']);
+
   for (const c of carts) {
     if (!c.event_date) continue;
+    if (!FEED_STATUSES.has(c.status)) continue;
 
     const startDate  = c.event_date;
     const startTime  = c.delivery_time || '13:00';
