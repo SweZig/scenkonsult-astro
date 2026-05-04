@@ -233,6 +233,80 @@ import quoteCatalogData from '../../data/quote-catalog.json';
 
     .cc-urgency-bar { height: 2px; border-radius: 1px; margin-top: 4px; background: var(--cc-urgency, var(--border)); }
 
+    /* ── Kontaktförfrågan-kort (status='open') ───────────────── */
+    .cc-open {
+      background: rgba(196,181,244,0.04);
+      border: 1px dashed rgba(196,181,244,0.28);
+      border-radius: 8px;
+      padding: 0.6rem 0.7rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .cc-open:hover {
+      background: rgba(196,181,244,0.08);
+      border-color: rgba(196,181,244,0.45);
+    }
+    .cc-open-header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .cc-open-name { font-weight: 600; font-size: 0.86rem; color: rgba(255,255,255,0.92); }
+    .cc-open-age { font-size: 0.65rem; color: var(--text-muted); flex-shrink: 0; }
+    .cc-open-meta { display: flex; gap: 10px; font-size: 0.7rem; color: var(--text-muted); flex-wrap: wrap; }
+    .cc-open-msg {
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.6);
+      font-style: italic;
+      line-height: 1.4;
+      padding: 0.35rem 0.5rem;
+      background: rgba(0,0,0,0.18);
+      border-left: 2px solid rgba(196,181,244,0.4);
+      border-radius: 4px;
+      max-height: 4.2em;
+      overflow: hidden;
+    }
+    .cc-open-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 0.15rem;
+    }
+    .cc-open-btn {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      letter-spacing: 0.01em;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cc-open-handled {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.7);
+    }
+    .cc-open-handled:hover {
+      background: rgba(248,113,113,0.12);
+      border-color: rgba(248,113,113,0.4);
+      color: rgb(252,165,165);
+    }
+    .cc-open-convert {
+      background: rgba(196,181,244,0.14);
+      border: 1px solid rgba(196,181,244,0.42);
+      color: rgb(226,220,251);
+    }
+    .cc-open-convert:hover {
+      background: rgba(196,181,244,0.25);
+      border-color: rgba(196,181,244,0.65);
+      color: #fff;
+    }
+
     /* Sort-knappar i waiting-header */
     .waiting-sort { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
     .wsort-btn {
@@ -485,12 +559,6 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       line-height: 1;
     }
     .cal-band:hover { filter: brightness(1.25); z-index: 5; }
-    .cal-band.s-open {
-      background: rgba(196,181,244,0.08);
-      border-color: rgba(196,181,244,0.30);
-      color: rgba(226,220,251,0.8);
-      border-style: dashed;
-    }
     .cal-band.s-new {
       background: rgba(196,181,244,0.18);
       border-color: rgba(196,181,244,0.55);
@@ -1139,6 +1207,35 @@ function sortWaiting(arr) {
   return a;
 }
 
+// ── KONTAKTFÖRFRÅGAN-KORT (status='open') ──────────────────────
+// Förenklad vy med två tydliga triagering-knappar direkt på kortet.
+// Hanterad → status: cancelled. Skapa manuell order → öppnar produkt-fliken.
+function cartCardOpen(c) {
+  const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at).getTime()) / 86400000) : null;
+  const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age}d sedan` : '';
+  const msgRaw = (c.customer_message || '').trim();
+  const msgEsc = msgRaw.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const msgSnip = msgEsc.length > 140 ? msgEsc.slice(0, 137) + '…' : msgEsc;
+  const nameEsc = (c.customer_name || 'Okänd kund').replace(/[<>"']/g, ch => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+  return `
+    <div class="cc-open" data-id="${c.id}" data-cart-id="${c.id}">
+      <div class="cc-open-header">
+        <span class="cc-open-name">${nameEsc}</span>
+        ${ageStr ? `<span class="cc-open-age">${ageStr}</span>` : ''}
+      </div>
+      <div class="cc-open-meta">
+        ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : '<span style="color:rgba(255,255,255,0.35)">Inget datum</span>'}
+        ${c.customer_email ? `<span style="color:rgba(255,255,255,0.5)">✉ ${c.customer_email}</span>` : ''}
+      </div>
+      ${msgSnip ? `<div class="cc-open-msg">"${msgSnip}"</div>` : ''}
+      <div class="cc-open-actions">
+        <button class="cc-open-btn cc-open-handled" data-action="handled" data-id="${c.id}">✓ Hanterad</button>
+        <button class="cc-open-btn cc-open-convert" data-action="convert" data-id="${c.id}">📤 Skapa manuell order</button>
+      </div>
+    </div>`;
+}
+
 function cartCardCompact(c) {
   const now = Date.now();
   const sentDays = Math.floor((now - new Date(c.updated_at || c.created_at).getTime()) / 86400000);
@@ -1209,7 +1306,11 @@ function renderKanban() {
         <div class="kanban-cards">
           ${colCarts.length === 0
             ? '<div class="empty-col">Tom</div>'
-            : colCarts.map(c => _kanbanView === 'compact' ? cartCardCompact(c) : cartCardHTML(c)).join('')}
+            : colCarts.map(c =>
+                status === 'open'      ? cartCardOpen(c) :
+                _kanbanView === 'compact' ? cartCardCompact(c) :
+                cartCardHTML(c)
+              ).join('')}
         </div>
       </div>`;
   }).join('');
@@ -1226,7 +1327,16 @@ function renderKanban() {
 
   // Event delegation — survives re-renders
   board.onclick = e => {
-    const card = e.target.closest('.cart-card, .cc-compact');
+    // Triagering-knappar på Kontaktförfrågan-kort har företräde framför öppna-detalj
+    const actionBtn = e.target.closest('.cc-open-btn[data-action]');
+    if (actionBtn) {
+      e.stopPropagation();
+      const cartId = actionBtn.dataset.id;
+      if (actionBtn.dataset.action === 'handled')      handleContactRequest(cartId);
+      else if (actionBtn.dataset.action === 'convert') convertContactToOrder(cartId);
+      return;
+    }
+    const card = e.target.closest('.cart-card, .cc-compact, .cc-open');
     if (card) openDetail(card.dataset.id);
   };
 }
@@ -3233,6 +3343,41 @@ async function cancelOrder() {
   } else toast('Fel vid avbrytning', 'error');
 }
 
+// ── KONTAKTFÖRFRÅGAN-TRIAGERING (status='open') ─────────────────
+// Markera som hanterad — flyttar förfrågan till Avbruten.
+async function handleContactRequest(cartId) {
+  if (!cartId) return;
+  if (!confirm('Markera kontaktförfrågan som hanterad? Den flyttas till "Avbruten".')) return;
+  const { ok } = await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: cartId, status: 'cancelled' })
+  });
+  if (ok) {
+    toast('Förfrågan markerad som hanterad');
+    await loadCarts();
+    renderKanban();
+  } else {
+    toast('Kunde inte uppdatera status', 'error');
+  }
+}
+window.handleContactRequest = handleContactRequest;
+
+// Skapa manuell order — öppnar detaljpanelen i produkt-fliken så admin kan
+// bygga en offert utifrån kundens uppgifter. När admin sedan skickar offerten
+// via "Skicka offert"-knappen sätts status automatiskt till 'waiting'.
+async function convertContactToOrder(cartId) {
+  if (!cartId) return;
+  // Öppna detaljpanelen och hoppa direkt till produkt-fliken
+  await openDetail(cartId);
+  // openDetail laddar via async — vänta tills currentCart är satt innan vi byter flik
+  if (currentCart?.id === cartId) {
+    activeTab = 'products';
+    renderTab('products');
+    toast('Bygg offerten och tryck "Skicka offert" när du är klar');
+  }
+}
+window.convertContactToOrder = convertContactToOrder;
+
 // ── 48h PÅMINNELSE-SYSTEM ──────────────────────────────────────
 const REMINDER_HOURS = 48;
 const REMINDER_LS_KEY = 'sk_admin_reminders'; // { [cartId]: 'snoozed' | 'sent' | <iso-dismissed-ts> }
@@ -3812,10 +3957,11 @@ function renderCalendar() {
   const viewEndStr   = toIso(viewEnd);
 
   // Filtrera bokningar som överlappar visningen.
-  // Använd samma kända statusar som kanban-vyn (STATUS_LABELS) — annars blir
-  // det "ghost"-band utan färg från carts med null/legacy/okänd status, som
-  // aldrig syns i listvyn (kanban dropar dem tyst när ingen kolumn matchar).
+  // Använd kanban-statusar (STATUS_LABELS) för att fånga okända/legacy ghost-rader,
+  // men exkludera 'open' (kontaktförfrågningar) och 'cancelled' — kalendern visar
+  // bara faktisk bearbetad pipeline. Open-förfrågningar syns i kanban-kolumnen.
   const KNOWN_STATUSES = new Set(Object.keys(STATUS_LABELS));
+  const CALENDAR_STATUSES = new Set(['new','waiting','confirmed','fakturerad','betald']);
   const unknownInCalendar = carts.filter(c => c.event_date && !KNOWN_STATUSES.has(c.status));
   if (unknownInCalendar.length) {
     console.warn(
@@ -3825,7 +3971,7 @@ function renderCalendar() {
     );
   }
   const visible = carts
-    .filter(c => c.event_date && KNOWN_STATUSES.has(c.status) && c.status !== 'cancelled')
+    .filter(c => c.event_date && CALENDAR_STATUSES.has(c.status))
     .map(c => ({
       cart: c,
       start: c.event_date,
