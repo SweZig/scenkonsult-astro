@@ -458,24 +458,123 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
       font-size: 0.78rem;
     }
-    .cal-day-num { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.3rem; width: fit-content; }
-    .cal-event {
-      background: rgba(30,24,80,0.9); border-left: 3px solid var(--brand-lav);
-      border-radius: 0 4px 4px 0; padding: 2px 5px; font-size: 0.68rem;
-      margin-bottom: 2px; cursor: pointer; overflow: hidden; white-space: nowrap;
-      text-overflow: ellipsis; transition: background 0.12s; display: block;
+    .cal-day-num { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.3rem; width: fit-content; position: relative; z-index: 3; }
+
+    /* Bands-area inom varje dagscell — extends utanför cellpaddning så banden möts kant-i-kant */
+    .cal-bands { position: relative; margin: 0 -0.4rem; min-height: 4px; }
+
+    /* Bokningsband — flygbokningsstil. Varje booking fyller en "lane" i Y-led */
+    .cal-band {
+      position: absolute;
+      height: 20px;
+      font-size: 0.68rem;
+      padding: 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      z-index: 2;
+      font-weight: 500;
+      border: 1px solid;
+      transition: filter 0.12s, transform 0.12s;
+      line-height: 1;
     }
-    .cal-event:hover { background: var(--brand-purple); }
-    .cal-event.s-confirmed { border-left-color: var(--green); }
-    .cal-event.s-waiting   { border-left-color: var(--amber); }
-    .cal-event.s-new       { border-left-color: var(--brand-lav); }
-    .cal-event.s-cancelled { border-left-color: var(--red); opacity: 0.4; }
-    .cal-event-time { color: rgba(255,255,255,0.60); font-size: 0.62rem; margin-right: 3px; }
-    /* Period-markering: highlight för returdag */
-    .cal-event.is-return { background: rgba(196,181,244,0.12); border-left-color: rgba(196,181,244,0.4); border-left-width: 2px; border-style: dashed; }
-    .cal-event.is-return.s-confirmed { border-left-color: rgba(74,222,128,0.4); }
-    .cal-event.is-return.s-waiting   { border-left-color: rgba(251,191,36,0.4); }
-    .cal-day.has-period { background: rgba(196,181,244,0.04) !important; }
+    .cal-band:hover { filter: brightness(1.25); z-index: 5; }
+    .cal-band.s-new {
+      background: rgba(196,181,244,0.18);
+      border-color: rgba(196,181,244,0.55);
+      color: #e2dcfb;
+    }
+    .cal-band.s-waiting {
+      background: rgba(251,191,36,0.16);
+      border-color: rgba(251,191,36,0.50);
+      color: rgb(255,224,150);
+    }
+    .cal-band.s-confirmed {
+      background: rgba(74,222,128,0.18);
+      border-color: rgba(74,222,128,0.50);
+      color: rgb(190,255,210);
+    }
+    .cal-band.s-fakturerad {
+      background: rgba(96,165,250,0.18);
+      border-color: rgba(96,165,250,0.55);
+      color: rgb(200,225,255);
+    }
+    .cal-band.s-betald {
+      background: rgba(34,197,94,0.22);
+      border-color: rgba(34,197,94,0.65);
+      color: rgb(180,255,200);
+    }
+    .cal-band.s-cancelled {
+      background: rgba(248,113,113,0.10);
+      border-color: rgba(248,113,113,0.30);
+      color: rgba(248,180,180,0.6);
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+    .cal-band-time {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
+    .cal-band-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .cal-band-return {
+      margin-left: auto;
+      color: rgba(255,255,255,0.85);
+      font-size: 0.62rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .cal-band-cont-arrow {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+    .cal-band-total {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.6rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-left: auto;
+      padding-left: 4px;
+    }
+
+    /* Feed-URL ruta */
+    .cal-feed-box {
+      background: var(--surface);
+      border: 1px solid rgba(196,181,244,0.18);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+    }
+    .cal-feed-box code {
+      background: rgba(0,0,0,0.35);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: 'SF Mono', Menlo, monospace;
+      font-size: 0.78rem;
+      color: var(--brand-lav);
+      flex: 1 1 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cal-feed-box .btn-action { padding: 0.4rem 0.85rem; font-size: 0.78rem; }
 
     /* ── BUTTONS ───────────────────────────────────────── */
     .btn-action {
@@ -627,6 +726,16 @@ import quoteCatalogData from '../../data/quote-catalog.json';
         <div class="cal-weekday">Sön</div>
       </div>
       <div class="cal-days" id="cal-days"></div>
+    </div>
+
+    <!-- Feed-URL för extern kalender (Google/iCloud/Outlook) -->
+    <div class="cal-feed-box" id="cal-feed-box" style="display:none">
+      <span style="font-size:1.1rem">📡</span>
+      <span style="color:var(--text-muted);font-weight:500;flex-shrink:0">Kalender-feed (.ics):</span>
+      <code id="cal-feed-url">—</code>
+      <button class="btn-action" id="cal-feed-copy">📋 Kopiera</button>
+      <button class="btn-action" id="cal-feed-open" title="Öppna i webbläsare">↗ Öppna</button>
+      <a class="btn-action" id="cal-feed-help" href="#" style="text-decoration:none;color:var(--text-muted)" title="Lägg till i Google/iCloud/Outlook">❓ Hjälp</a>
     </div>
   </div>
 
@@ -3643,6 +3752,30 @@ $('cal-prev').addEventListener('click',  () => { if (--calMonth < 0)  { calMonth
 $('cal-next').addEventListener('click',  () => { if (++calMonth > 11) { calMonth = 0;  calYear++; } renderCalendar(); });
 $('cal-today').addEventListener('click', () => { calYear = new Date().getFullYear(); calMonth = new Date().getMonth(); renderCalendar(); });
 
+// Calendar feed: kopiera URL till urklipp
+$('cal-feed-copy')?.addEventListener('click', async () => {
+  const url = $('cal-feed-url').textContent;
+  try {
+    await navigator.clipboard.writeText(url);
+    toast('Feed-URL kopierad — klistra in i Google/iCloud/Outlook');
+  } catch {
+    toast('Kunde inte kopiera — markera och kopiera manuellt', 'error');
+  }
+});
+$('cal-feed-open')?.addEventListener('click', () => {
+  window.open($('cal-feed-url').textContent, '_blank');
+});
+$('cal-feed-help')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  alert(
+    'Lägg till feed i din kalender:\n\n' +
+    '• Google Calendar: Inställningar → "Lägg till kalender" → "Från URL" → klistra in feed-URL\n' +
+    '• iCloud/Apple Kalender: Arkiv → "Ny kalenderprenumeration…" → klistra in URL\n' +
+    '• Outlook: Hem → "Lägg till kalender" → "Från Internet" → klistra in URL\n\n' +
+    'Kalendern uppdateras automatiskt (Google: var några timmar, Apple: ställbart).'
+  );
+});
+
 function renderCalendar() {
   const months = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
   $('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
@@ -3660,64 +3793,182 @@ function renderCalendar() {
 
   const totalCells = Math.ceil((startDow + lastDay.getDate()) / 7) * 7;
 
+  // Helper: format ISO date YYYY-MM-DD
+  const toIso = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  // Visning sträcker sig från cell 0 till sista cell
+  const viewStart = new Date(calYear, calMonth, 1 - startDow);
+  const viewEnd   = new Date(calYear, calMonth, totalCells - startDow - 1);
+  const viewStartStr = toIso(viewStart);
+  const viewEndStr   = toIso(viewEnd);
+
+  // Filtrera bokningar som överlappar visningen
+  const visible = carts
+    .filter(c => c.event_date && c.status !== 'cancelled')
+    .map(c => ({
+      cart: c,
+      start: c.event_date,
+      end:   c.return_date && c.return_date >= c.event_date ? c.return_date : c.event_date,
+      pickupTime: c.delivery_time || '13:00',
+      returnTime: c.return_time   || '11:00',
+    }))
+    .filter(b => b.start <= viewEndStr && b.end >= viewStartStr);
+
+  // Lane-allokering: greedy efter startdatum, längre bokningar först vid lika start
+  const sorted = [...visible].sort((a, b) => {
+    if (a.start !== b.start) return a.start < b.start ? -1 : 1;
+    return a.end > b.end ? -1 : 1;
+  });
+  const laneEnds = []; // laneEnds[i] = senaste end-datumet i lane i
+  for (const b of sorted) {
+    let lane = -1;
+    for (let i = 0; i < laneEnds.length; i++) {
+      if (laneEnds[i] < b.start) { lane = i; break; }
+    }
+    if (lane === -1) { lane = laneEnds.length; laneEnds.push(b.end); }
+    else laneEnds[lane] = b.end;
+    b.lane = lane;
+  }
+  const maxLane = laneEnds.length;
+  const LANE_H  = 22; // px per lane
+
+  // Index: vilka bokningar finns på varje datum
+  const byDate = {};
+  for (const b of visible) {
+    let d = new Date(b.start + 'T00:00:00');
+    const endD = new Date(b.end + 'T00:00:00');
+    while (d <= endD) {
+      const k = toIso(d);
+      (byDate[k] = byDate[k] || []).push(b);
+      d.setDate(d.getDate() + 1);
+    }
+  }
+
   for (let i = 0; i < totalCells; i++) {
     const dayOffset = i - startDow + 1;
-    const date = new Date(calYear, calMonth, dayOffset);
-    const isOther = dayOffset < 1 || dayOffset > lastDay.getDate();
-    const isToday = !isOther && date.toDateString() === today.toDateString();
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    const date      = new Date(calYear, calMonth, dayOffset);
+    const isOther   = dayOffset < 1 || dayOffset > lastDay.getDate();
+    const isToday   = !isOther && date.toDateString() === today.toDateString();
+    const dateStr   = toIso(date);
 
-    // Utlämningsdagar (event_date) för denna dag
-    const pickupCarts = carts.filter(c => c.event_date === dateStr && c.status !== 'cancelled');
-    // Returdagar (return_date) — separata markeringar
-    const returnCarts = carts.filter(c => {
-      const ret = c.return_date || c.event_date;
-      return ret === dateStr && c.event_date !== dateStr && c.status !== 'cancelled';
-    });
-    // Perioden pågår — dagar MELLAN event_date och return_date
-    const inPeriodCarts = carts.filter(c => {
-      if (!c.event_date || c.status === 'cancelled') return false;
-      const ret = c.return_date || c.event_date;
-      return dateStr > c.event_date && dateStr < ret;
-    });
+    const dow = (date.getDay() + 6) % 7; // Mon=0 ... Sun=6
+    const isWeekStart = dow === 0;
+    const isWeekEnd   = dow === 6;
 
-    const hasPeriod = inPeriodCarts.length > 0;
     const cell = document.createElement('div');
-    cell.className = `cal-day${isOther ? ' other-month' : ''}${isToday ? ' today' : ''}${hasPeriod ? ' has-period' : ''}`;
+    cell.className = `cal-day${isOther ? ' other-month' : ''}${isToday ? ' today' : ''}`;
 
-    // Pågående period — diskret bakgrundslinje
-    const periodLines = inPeriodCarts.map(c =>
-      `<div style="height:3px;border-radius:2px;margin:1px 0;background:${
-        c.status==='confirmed'?'rgba(74,222,128,0.35)':
-        c.status==='waiting'?'rgba(251,191,36,0.35)':'rgba(196,181,244,0.2)'
-      }" title="${c.customer_name||c.id}"></div>`
-    ).join('');
+    // Day number
+    const dayNum = document.createElement('div');
+    dayNum.className = 'cal-day-num';
+    dayNum.textContent = date.getDate();
+    cell.appendChild(dayNum);
 
-    // Utlämning — med tid 13:00 och totalpris
-    const pickupHTML = pickupCarts.map(c => {
-      const dlTime  = c.delivery_time || '13:00';
-      const totalKr = c.total_excl ? Math.round(c.total_excl/100).toLocaleString('sv-SE')+' kr' : '';
-      return `<div class="cal-event s-${c.status}" data-id="${c.id}">
-        <span class="cal-event-time">${dlTime}</span>${STATUS_LABELS[c.status]?.icon||''} ${c.customer_name||c.id}${totalKr ? `<span style="float:right;color:rgba(196,181,244,0.7);font-size:0.6rem;margin-left:3px">${totalKr}</span>` : ''}
-      </div>`;
-    }).join('');
+    // Bands-area — höjd reserveras så cellerna håller jämn höjd
+    const bandsArea = document.createElement('div');
+    bandsArea.className = 'cal-bands';
+    bandsArea.style.height = `${Math.max(maxLane, 1) * LANE_H}px`;
 
-    // Retur — med tid 11:00, streckad kant
-    const returnHTML = returnCarts.map(c => {
-      const rtTime = c.return_time || '11:00';
-      return `<div class="cal-event is-return s-${c.status}" data-id="${c.id}">
-        <span class="cal-event-time">${rtTime}↩</span>${c.customer_name||c.id}
-      </div>`;
-    }).join('');
+    const todays = (byDate[dateStr] || []);
+    for (const b of todays) {
+      const isStart = b.start === dateStr;
+      const isEnd   = b.end   === dateStr;
 
-    cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>
-      ${periodLines}${pickupHTML}${returnHTML}`;
+      const band = document.createElement('div');
+      band.className = `cal-band s-${b.cart.status}`;
+      band.dataset.id = b.cart.id;
 
-    cell.querySelectorAll('.cal-event').forEach(el => {
-      el.addEventListener('click', e => { e.stopPropagation(); openDetail(el.dataset.id); });
-    });
+      // Position
+      band.style.top = `${b.lane * LANE_H}px`;
+
+      // Kant-i-kant: extend 0.4rem (cell-padding) för att täcka cellgränserna
+      // i mittendagar; rounded corners endast på faktiska start/slut
+      band.style.left  = isStart      ? '0.4rem' : '0';
+      band.style.right = isEnd        ? '0.4rem' : '0';
+      band.style.borderTopLeftRadius     = isStart ? '6px' : '0';
+      band.style.borderBottomLeftRadius  = isStart ? '6px' : '0';
+      band.style.borderTopRightRadius    = isEnd   ? '6px' : '0';
+      band.style.borderBottomRightRadius = isEnd   ? '6px' : '0';
+
+      // Inga vänster/höger borders mitt-i-segmentet — för sömlös ribbon
+      if (!isStart) band.style.borderLeft  = 'none';
+      if (!isEnd)   band.style.borderRight = 'none';
+
+      // Innehåll: text endast på start (och ev. på vecko-kontinuationer)
+      const customerName = b.cart.customer_company || b.cart.customer_name || b.cart.id;
+      const totalKr = b.cart.total_excl ? Math.round(b.cart.total_excl/100).toLocaleString('sv-SE') + ' kr' : '';
+
+      let html = '';
+      if (isStart) {
+        html += `<span class="cal-band-time">${b.pickupTime}</span>`;
+        html += `<span class="cal-band-name">${escapeHtml(customerName)}</span>`;
+      } else if (isWeekStart) {
+        // Forts. från föregående vecka
+        html += `<span class="cal-band-cont-arrow">→</span>`;
+        html += `<span class="cal-band-name">${escapeHtml(customerName)}</span>`;
+      }
+
+      if (isEnd && !isStart) {
+        html += `<span class="cal-band-return">↩ ${b.returnTime}</span>`;
+      } else if (isStart && isEnd && totalKr) {
+        // Single-day: visa totalpris istället för returpil
+        html += `<span class="cal-band-total">${totalKr}</span>`;
+      } else if (isStart && !isEnd && totalKr) {
+        // Flerdagsbokning: visa totalpris diskret efter namn
+        html += `<span class="cal-band-total">${totalKr}</span>`;
+      }
+
+      // Tooltip
+      const tipParts = [
+        customerName,
+        `${b.pickupTime} → ${b.returnTime}`,
+        `${b.start}${b.end !== b.start ? ' – ' + b.end : ''}`,
+      ];
+      if (b.cart.event_location) tipParts.push(b.cart.event_location);
+      if (totalKr) tipParts.push(totalKr);
+      band.title = tipParts.join('\n');
+
+      band.innerHTML = html;
+      band.addEventListener('click', e => {
+        e.stopPropagation();
+        openDetail(b.cart.id);
+      });
+      bandsArea.appendChild(band);
+    }
+
+    cell.appendChild(bandsArea);
     days.appendChild(cell);
   }
+
+  // Visa feed-URL om CALENDAR_FEED_TOKEN är konfigurerat på servern
+  // Hämtas via skyddad endpoint så feed-token aldrig syns i admin-HTML innan auth
+  const feedBox = $('cal-feed-box');
+  if (feedBox && !feedBox.dataset.loaded) {
+    feedBox.dataset.loaded = '1';
+    api('admin-calendar-feed-url').then(({ ok: o, data }) => {
+      if (o && data?.configured && data?.url) {
+        $('cal-feed-url').textContent = data.url;
+        feedBox.dataset.webcal = data.webcal_url || '';
+        feedBox.style.display = 'flex';
+      } else {
+        // Visa en informativ hint istället för att dölja helt
+        $('cal-feed-url').textContent = data?.message || 'CALENDAR_FEED_TOKEN saknas i Netlify-env';
+        feedBox.style.display = 'flex';
+        feedBox.style.opacity = '0.7';
+        $('cal-feed-copy').disabled = true;
+        $('cal-feed-open').style.display = 'none';
+      }
+    }).catch(() => {
+      feedBox.style.display = 'none';
+    });
+  }
+}
+
+// Liten hjälpfunktion för band-text (undviker XSS från kundnamn)
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
 }
 
 // ── REFRESH ───────────────────────────────────────────────────
