@@ -8,6 +8,52 @@
 
 'use strict';
 
+// ── Rate limiting ────────────────────────────────────────────────
+// In-memory sliding window. State delas mellan invocations på samma
+// warm function-instans men nollas vid cold start. Tillräckligt skydd
+// mot opportunistisk spam; bestämd angripare kan trigga cold starts
+// för att kringgå (acceptabel risk för en read-only kalenderfeed).
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 timme
+const RATE_PER_IP    = 30;             // Per klient-IP
+const RATE_PER_TOKEN = 200;            // Globalt per token (skydd vid token-läcka)
+const ipHits    = new Map();   // ip → [timestamp, ...]
+const tokenHits = new Map();   // tokenHash → [timestamp, ...]
+
+function pruneAndCount(map, key, now) {
+  const arr = map.get(key) || [];
+  const cutoff = now - RATE_WINDOW_MS;
+  // Drop expirerade hits från början (arrayen är monotont stigande)
+  let i = 0;
+  while (i < arr.length && arr[i] < cutoff) i++;
+  if (i > 0) arr.splice(0, i);
+  return arr;
+}
+function checkRate(map, key, limit, now) {
+  const arr = pruneAndCount(map, key, now);
+  if (arr.length >= limit) return { ok: false, count: arr.length, retryAfter: Math.ceil((arr[0] + RATE_WINDOW_MS - now) / 1000) };
+  arr.push(now);
+  map.set(key, arr);
+  return { ok: true, count: arr.length };
+}
+
+// Periodisk städning så Map:en inte växer obegränsat (varje 100 anrop
+// rensas helt utgångna nycklar)
+let cleanupCounter = 0;
+function maybeCleanup(now) {
+  if (++cleanupCounter < 100) return;
+  cleanupCounter = 0;
+  const cutoff = now - RATE_WINDOW_MS;
+  for (const [k, v] of ipHits)    if (!v.length || v[v.length-1] < cutoff) ipHits.delete(k);
+  for (const [k, v] of tokenHits) if (!v.length || v[v.length-1] < cutoff) tokenHits.delete(k);
+}
+
+// Lättviktig hash för token-bucket (vi vill inte ha klartext-token i en Map)
+function hashToken(t) {
+  let h = 5381;
+  for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+  return String(h);
+}
+
 // ── Hjälpfunktioner ──────────────────────────────────────────────
 const ESC = (s) => String(s ?? '')
   .replace(/\\/g, '\\\\')
@@ -70,6 +116,29 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method not allowed' };
   }
 
+  const now = Date.now();
+  maybeCleanup(now);
+
+  // ── IP rate limit (före auth — skyddar mot brute-force på token) ──
+  // Netlify exponerar klient-IP via x-nf-client-connection-ip, fall tillbaka på x-forwarded-for
+  const ip =
+    event.headers?.['x-nf-client-connection-ip'] ||
+    (event.headers?.['x-forwarded-for'] || '').split(',')[0].trim() ||
+    'unknown';
+  const ipCheck = checkRate(ipHits, ip, RATE_PER_IP, now);
+  if (!ipCheck.ok) {
+    return {
+      statusCode: 429,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Retry-After': String(ipCheck.retryAfter),
+        'X-RateLimit-Limit': String(RATE_PER_IP),
+        'X-RateLimit-Remaining': '0',
+      },
+      body: `För många förfrågningar från denna IP (${RATE_PER_IP}/timme). Försök igen om ${Math.ceil(ipCheck.retryAfter/60)} min.`,
+    };
+  }
+
   // Token i query-param (inte header — kalenderprenumerationer stödjer inte headers)
   const provided = event.queryStringParameters?.token || '';
   const expected = process.env.CALENDAR_FEED_TOKEN || '';
@@ -82,6 +151,22 @@ exports.handler = async (event) => {
   // Konstanttidsjämförelse light — undvik timing-läckor
   if (provided.length !== expected.length || provided !== expected) {
     return { statusCode: 401, body: 'Unauthorized' };
+  }
+
+  // ── Token rate limit (efter auth — skyddar mot token-läcka) ──
+  const tokenCheck = checkRate(tokenHits, hashToken(provided), RATE_PER_TOKEN, now);
+  if (!tokenCheck.ok) {
+    console.warn('CALENDAR_ICS_TOKEN_LIMIT:', { ip, count: tokenCheck.count });
+    return {
+      statusCode: 429,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Retry-After': String(tokenCheck.retryAfter),
+        'X-RateLimit-Limit': String(RATE_PER_TOKEN),
+        'X-RateLimit-Remaining': '0',
+      },
+      body: `Token har överskridit ${RATE_PER_TOKEN}/timme. Om detta inte är förväntat — rotera CALENDAR_FEED_TOKEN i Netlify.`,
+    };
   }
 
   const supaUrl = process.env.SUPABASE_URL;
@@ -238,6 +323,10 @@ exports.handler = async (event) => {
       'Content-Disposition': 'inline; filename="scenkonsult-bokningar.ics"',
       'Cache-Control': 'private, max-age=300',
       'X-Robots-Tag': 'noindex, nofollow',
+      'X-RateLimit-Limit-IP': String(RATE_PER_IP),
+      'X-RateLimit-Remaining-IP': String(Math.max(0, RATE_PER_IP - ipCheck.count)),
+      'X-RateLimit-Limit-Token': String(RATE_PER_TOKEN),
+      'X-RateLimit-Remaining-Token': String(Math.max(0, RATE_PER_TOKEN - tokenCheck.count)),
     },
     body,
   };
