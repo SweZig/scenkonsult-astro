@@ -1389,6 +1389,19 @@ function cartCardHTML(c) {
     ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`
     : '';
 
+  // Bounce-badge: röd vid bounced, orange vid complained (markerat som spam)
+  let bounceBadge = '';
+  let cardExtraStyle = '';
+  if (c.bounce_status === 'bounced') {
+    bounceBadge = `<div style="margin:6px 0 2px;padding:4px 8px;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.55);color:#fca5a5;border-radius:6px;font-size:0.72rem;font-weight:700;display:flex;align-items:center;gap:4px"><span>⚠</span> Mailet studsade — kontrollera adress</div>`;
+    cardExtraStyle = 'border-color:rgba(239,68,68,0.6);box-shadow:0 0 0 1px rgba(239,68,68,0.25)';
+  } else if (c.bounce_status === 'complained') {
+    bounceBadge = `<div style="margin:6px 0 2px;padding:4px 8px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.5);color:#fdba74;border-radius:6px;font-size:0.72rem;font-weight:700;display:flex;align-items:center;gap:4px"><span>🚫</span> Markerat som spam av mottagaren</div>`;
+    cardExtraStyle = 'border-color:rgba(251,146,60,0.55)';
+  } else if (c.bounce_status === 'delayed') {
+    bounceBadge = `<div style="margin:6px 0 2px;padding:4px 8px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;border-radius:6px;font-size:0.72rem;font-weight:700;display:flex;align-items:center;gap:4px"><span>⏳</span> Leverans försenad</div>`;
+  }
+
   // Dagar-kvar-flagga för bekräftade/fakturerade ordrar med eventdatum
   let daysFlag = '';
   if (['confirmed','fakturerad','betald'].includes(c.status) && c.event_date) {
@@ -1409,7 +1422,7 @@ function cartCardHTML(c) {
   }
 
   return `
-    <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative">
+    <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative;${cardExtraStyle}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
         <div class="cart-card-name" style="margin:0">${c.customer_name || 'Okänd kund'}</div>
         ${intentBadge}
@@ -1417,6 +1430,7 @@ function cartCardHTML(c) {
       ${daysFlag}
       ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
       <div class="cart-card-sub">${c.customer_email || ''}</div>
+      ${bounceBadge}
       <div class="cart-card-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
         ${c.event_location ? `<span>📍 ${c.event_location}</span>` : ''}
@@ -1779,7 +1793,45 @@ async function prodSave() {
 function renderInfoTab() {
   const c = currentCart;
   const s = STATUS_LABELS[c.status];
+
+  // Bounce-varning högst upp om mailet studsade / markerades som spam
+  let bounceBanner = '';
+  if (c.bounce_status === 'bounced' || c.bounce_status === 'complained' || c.bounce_status === 'delayed') {
+    const isComplaint = c.bounce_status === 'complained';
+    const isDelayed   = c.bounce_status === 'delayed';
+    const bg     = isComplaint ? 'rgba(251,146,60,0.12)' : isDelayed ? 'rgba(251,191,36,0.10)' : 'rgba(239,68,68,0.12)';
+    const border = isComplaint ? 'rgba(251,146,60,0.55)' : isDelayed ? 'rgba(251,191,36,0.45)' : 'rgba(239,68,68,0.6)';
+    const color  = isComplaint ? '#fdba74' : isDelayed ? '#fbbf24' : '#fca5a5';
+    const icon   = isComplaint ? '🚫' : isDelayed ? '⏳' : '⚠';
+    const title  = isComplaint
+      ? 'Mottagaren har markerat mailet som spam'
+      : isDelayed
+        ? 'Leveransen är försenad'
+        : 'Mailet kunde inte levereras';
+    const advice = isComplaint
+      ? 'Kontakta kunden via telefon innan du skickar fler mail. Att fortsätta skicka till en spam-anmäld adress kan skada vår domänreputation.'
+      : isDelayed
+        ? 'Resend försöker leverera igen automatiskt. Vänta en stund eller kontakta kunden via telefon.'
+        : 'Kontrollera e-postadressen nedan, korrigera den och tryck Spara. Klicka sedan "📤 Skicka om offert" i fotmenyn för att skicka på nytt.';
+    const whenStr = c.bounce_at ? new Date(c.bounce_at).toLocaleString('sv-SE') : '';
+    const reasonStr = c.bounce_reason ? `<div style="margin-top:6px;font-size:0.75rem;color:rgba(255,255,255,0.5);font-family:monospace;word-break:break-word">${c.bounce_reason.replace(/</g,'&lt;').replace(/&/g,'&amp;')}</div>` : '';
+
+    bounceBanner = `
+      <div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:14px 16px;margin-bottom:14px;color:${color}">
+        <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.95rem;margin-bottom:4px">
+          <span style="font-size:1.1rem">${icon}</span>
+          <span>${title}</span>
+        </div>
+        <div style="font-size:0.83rem;line-height:1.5;color:rgba(255,255,255,0.78)">
+          ${c.customer_email ? `Mail till <strong>${c.customer_email}</strong> ` : ''}${whenStr ? `(${whenStr})` : ''}
+        </div>
+        <div style="font-size:0.83rem;line-height:1.55;color:rgba(255,255,255,0.7);margin-top:6px">${advice}</div>
+        ${reasonStr}
+      </div>`;
+  }
+
   return `
+    ${bounceBanner}
     <div class="section-label">Status</div>
     <div class="status-row">
       <select class="status-select" id="status-select" style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;padding-right:2.25rem">
@@ -3266,6 +3318,16 @@ function renderPanelFooter() {
     footer.appendChild(b);
   };
 
+  // "Skicka om offert" — knapp synlig för statusar där en offert redan skickats.
+  // När bounce_status är satt visas knappen prominent i röd/orange för att
+  // signalera att admin behöver agera.
+  const hasBounce = ['bounced','complained'].includes(c.bounce_status);
+  const resendBtnLabel = hasBounce
+    ? (c.bounce_status === 'complained' ? '🚫 Skicka om offert (markerad som spam)' : '⚠ Skicka om offert (mailet studsade)')
+    : '📤 Skicka om offert';
+  const resendBtnCls = hasBounce ? 'btn-danger' : '';
+  const showResend = ['waiting','confirmed','fakturerad','betald'].includes(c.status);
+
   // Context-sensitive buttons based on status
   if (c.status === 'new') {
     makeBtn('📤 Skapa & skicka offert', 'btn-success', () => { renderTab('products'); });
@@ -3273,15 +3335,18 @@ function renderPanelFooter() {
 
   } else if (c.status === 'waiting') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
+    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
     makeBtn('📩 Påminn kund', '', sendCustomerNotice);
     makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
   } else if (c.status === 'confirmed') {
     makeBtn('🧾 Skapa faktura', 'btn-success', () => renderTab('faktura'));
+    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
   } else if (c.status === 'fakturerad') {
     makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
     makeBtn('📩 Påminn om betalning', '', sendCustomerNotice);
+    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
   } else if (c.status === 'betald') {
-    // Avslutad — bara info
+    if (showResend && hasBounce) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
   } else if (c.status !== 'cancelled') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
     makeBtn('📤 Skicka offert', '', () => openQuoteModalForCart(c));

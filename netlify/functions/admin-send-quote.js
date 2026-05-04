@@ -198,13 +198,29 @@ exports.handler = async (event) => {
       }];
       console.log('ADMIN_QUOTE: bifogad PDF:', pdf_attachment.filename);
     }
-    await sendEmail(apiKey, customerMailPayload);
+    const customerSendResp = await sendEmail(apiKey, customerMailPayload);
+    const messageId = customerSendResp?.id || null;
 
-    console.log('ADMIN_QUOTE_SENT:', cartId, 'to', customer.email);
+    // Spara Resend's message-id så resend-webhook.js kan koppla bounce → cart.
+    // Rensa samtidigt eventuella gamla bounce-flaggor — admin har just skickat
+    // ett nytt försök, ev. tidigare bounce ska inte längre flagga ordern.
+    try {
+      await db.update('carts', {
+        last_quote_message_id: messageId,
+        bounce_status:         null,
+        bounce_at:             null,
+        bounce_reason:         null,
+      }, 'id', cartId);
+    } catch (e) {
+      // Icke-blockerande — kolumnerna kan saknas (migration ej körd än)
+      console.warn('ADMIN_QUOTE: kunde inte spara message_id/bounce-rensning:', e.message);
+    }
+
+    console.log('ADMIN_QUOTE_SENT:', cartId, 'to', customer.email, 'message_id', messageId);
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify({ ok: true, cart_id: cartId, cart_token: cartToken, cart_url: cartUrl }),
+      body: JSON.stringify({ ok: true, cart_id: cartId, cart_token: cartToken, cart_url: cartUrl, message_id: messageId }),
     };
   } catch (e) {
     console.error('ADMIN_QUOTE_MAIL_ERROR:', e.message);
