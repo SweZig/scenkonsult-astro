@@ -166,6 +166,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       border-radius: 12px; padding: 0.75rem; min-height: 180px;
       border-left-width: 3px;
     }
+    .kanban-col:has(.s-open)       { border-left-color: rgba(196,181,244,0.45); }
     .kanban-col:has(.s-new)        { border-left-color: var(--amber); }
     .kanban-col:has(.s-waiting)    { border-left-color: var(--blue);  }
     .kanban-col:has(.s-confirmed)  { border-left-color: var(--green); }
@@ -266,6 +267,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .urg-gray   { --cc-urgency: var(--border); }
 
     /* Status colors */
+    .s-open      { color: rgba(196,181,244,0.7); }
     .s-new       { color: var(--amber); }
     .s-waiting   { color: var(--amber); }
     .s-confirmed { color: var(--green); }
@@ -483,6 +485,12 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       line-height: 1;
     }
     .cal-band:hover { filter: brightness(1.25); z-index: 5; }
+    .cal-band.s-open {
+      background: rgba(196,181,244,0.08);
+      border-color: rgba(196,181,244,0.30);
+      color: rgba(226,220,251,0.8);
+      border-style: dashed;
+    }
     .cal-band.s-new {
       background: rgba(196,181,244,0.18);
       border-color: rgba(196,181,244,0.55);
@@ -911,6 +919,7 @@ function toast(msg, type = 'success') {
 }
 
 const STATUS_LABELS = {
+  open:       { icon: '📥', label: 'Kontaktförfrågan', cls: 's-open'       },
   new:        { icon: '📬', label: 'Inkommen',       cls: 's-new'        },
   waiting:    { icon: '⏳', label: 'Offert skickad', cls: 's-waiting'    },
   confirmed:  { icon: '✅', label: 'Bekräftad',      cls: 's-confirmed'  },
@@ -1161,7 +1170,7 @@ function renderKanban() {
   // Filtrera bort reservationsrader
   carts = carts.filter(c => !c.id?.startsWith('SK-RESERVE-') && c.customer_name !== '[Reserverat fakturanummer]');
   const filtered = getFilteredCarts();
-  const cols = ['new','waiting','confirmed','fakturerad','betald','cancelled'];
+  const cols = ['open','new','waiting','confirmed','fakturerad','betald','cancelled'];
   const board = $('kanban-board');
   board.innerHTML = cols.map(status => {
     const s = STATUS_LABELS[status];
