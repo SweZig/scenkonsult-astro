@@ -3802,9 +3802,21 @@ function renderCalendar() {
   const viewStartStr = toIso(viewStart);
   const viewEndStr   = toIso(viewEnd);
 
-  // Filtrera bokningar som överlappar visningen
+  // Filtrera bokningar som överlappar visningen.
+  // Använd samma kända statusar som kanban-vyn (STATUS_LABELS) — annars blir
+  // det "ghost"-band utan färg från carts med null/legacy/okänd status, som
+  // aldrig syns i listvyn (kanban dropar dem tyst när ingen kolumn matchar).
+  const KNOWN_STATUSES = new Set(Object.keys(STATUS_LABELS));
+  const unknownInCalendar = carts.filter(c => c.event_date && !KNOWN_STATUSES.has(c.status));
+  if (unknownInCalendar.length) {
+    console.warn(
+      `[Calendar] ${unknownInCalendar.length} cart(s) med okänd status hoppas över. ` +
+      `Städa upp i Supabase eller mappa till en känd status:`,
+      unknownInCalendar.map(c => ({ id: c.id, status: c.status, event_date: c.event_date, customer: c.customer_name }))
+    );
+  }
   const visible = carts
-    .filter(c => c.event_date && c.status !== 'cancelled')
+    .filter(c => c.event_date && KNOWN_STATUSES.has(c.status) && c.status !== 'cancelled')
     .map(c => ({
       cart: c,
       start: c.event_date,
