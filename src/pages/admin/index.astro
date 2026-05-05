@@ -491,6 +491,23 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .chat-send-btn:hover { background: var(--brand-lav); color: var(--brand-dark); }
     .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .chat-empty { color: var(--text-faint); font-size: 0.875rem; text-align: center; padding: 2rem; }
+    .chat-templates {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;
+    }
+    .chat-templates-label {
+      font-size: 0.72rem; color: var(--text-faint); text-transform: uppercase;
+      letter-spacing: 0.05em; width: 100%; margin-bottom: -0.25rem;
+    }
+    .chat-template-btn {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 999px; padding: 0.4rem 0.85rem; font-family: inherit;
+      font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+    .chat-template-btn:hover {
+      background: var(--brand-lav); color: var(--brand-dark); border-color: var(--brand-lav);
+    }
+    .chat-template-btn:active { transform: translateY(1px); }
 
     /* ── KALENDER ──────────────────────────────────────── */
     #view-calendar { display: none; }
@@ -1653,6 +1670,22 @@ function renderTab(tab) {
     $('chat-input')?.addEventListener('keydown', e => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendMessage();
     });
+    // Snabbmalls-knappar — fyller textarea med fördefinierad text som admin kan redigera
+    document.querySelectorAll('.chat-template-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.template;
+        const tpl = CHAT_TEMPLATES[key];
+        if (!tpl) return;
+        const input = $('chat-input');
+        if (!input) return;
+        const existing = input.value.trim();
+        if (existing && !confirm('Det finns redan text i meddelandet. Vill du ersätta den med mallen?')) return;
+        input.value = tpl.body;
+        input.focus();
+        // Placera markören i slutet
+        input.setSelectionRange(input.value.length, input.value.length);
+      });
+    });
   }
 }
 
@@ -2345,6 +2378,23 @@ function prodTotals() {
     <td style="text-align:right;color:var(--text-muted);font-size:0.85rem">${fmt(Math.round(total*1.25))} kr</td><td></td></tr>`;
 }
 
+// ── CHAT-SNABBMALLAR ──────────────────────────────────────────
+// Lägg till nya mallar här. {body} infogas i textarea, admin kan redigera innan utskick.
+const CHAT_TEMPLATES = {
+  'google-review': {
+    label: '⭐ Be om Google-recension',
+    title: 'Vänlig förfrågan om kunden vill skriva en recension på Google',
+    body: `Hej!
+
+Om ni är nöjda med vår service eller produkter får ni jättegärna ta 2-3 minuter och skriva ett betyg på Google så andra kunder hittar till oss.
+
+Här är en [direktlänk](https://maps.google.com/?cid=5076721930755148492) till Google.
+
+Tusen tack!
+/Teamet på Scenkonsult`
+  }
+};
+
 function renderChatTab() {
   const body = $('panel-body');
   const msgs = currentMessages;
@@ -2365,10 +2415,19 @@ function renderChatTab() {
           </div>`;
       }).join('')}</div>`;
 
+  const templatesHTML = `
+    <div class="chat-templates">
+      <span class="chat-templates-label">Snabbmallar</span>
+      ${Object.entries(CHAT_TEMPLATES).map(([key, t]) =>
+        `<button type="button" class="chat-template-btn" data-template="${key}" title="${t.title}">${t.label}</button>`
+      ).join('')}
+    </div>`;
+
   body.innerHTML = `
     ${msgsHTML}
     <div class="section-label">Nytt meddelande till kund</div>
     <div class="chat-input-wrap">
+      ${templatesHTML}
       <textarea class="chat-textarea" id="chat-input" placeholder="Skriv ett meddelande… (Ctrl+Enter för att skicka)"></textarea>
       <button class="chat-send-btn" id="chat-send-btn">Skicka till kund →</button>
     </div>`;
