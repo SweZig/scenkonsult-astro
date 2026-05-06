@@ -106,10 +106,7 @@ const faqSchema = {
                 <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(d.price * 1.25).toLocaleString('sv')} kr</span>
                 <span class="text-gray-400 text-xs">{d.priceNote ?? '/dygn'}</span>
               </div>
-              <span class="duk-info-icon" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                Info
-              </span>
+              <CartButton id={d.artno} artno={d.artno} name={d.name} price={d.price} priceNote={d.priceNote ?? '/dygn'} category="Projektorduk" image={d.image} bulky={d.bulky} size="sm" iconOnly={true} />
             </div>
           </div>
         </article>
@@ -425,20 +422,6 @@ const faqSchema = {
     margin-top: 0.25rem;
     gap: 0.5rem;
   }
-  .duk-info-icon {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    color: rgba(196, 181, 244, 0.85);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    transition: color 0.2s;
-  }
-  .duk-card:hover .duk-info-icon {
-    color: #e2dcfb;
-  }
 
   /* ── DUK MODAL ──────────────────────────────────────────────── */
   .duk-modal {
@@ -668,8 +651,14 @@ const faqSchema = {
     // Klick på dukkort
     document.querySelectorAll('.duk-card[data-duk-idx]').forEach(card => {
       const idx = parseInt(card.getAttribute('data-duk-idx'), 10);
-      card.addEventListener('click', () => openModal(idx));
+      card.addEventListener('click', (e) => {
+        // Ignorera klick på cart-knappen (har egen handler i sk-cart globalt)
+        if (e.target.closest('.cart-add-btn')) return;
+        openModal(idx);
+      });
       card.addEventListener('keydown', (e) => {
+        // Ignorera om fokus ligger på cart-knappen
+        if (e.target.closest('.cart-add-btn')) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           openModal(idx);
