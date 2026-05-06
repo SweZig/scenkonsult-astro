@@ -97,6 +97,9 @@ Object.values(dj.equipment || {}).forEach(p => {
 (bild.products || []).forEach(p => {
   if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
+(bild.dukar || []).forEach(p => {
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+});
 (bild.tillbehor || []).forEach(p => {
   if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
@@ -214,6 +217,15 @@ sects.push('PROJEKTOR & SKÄRM → /vara-tjanster/hyra-bild-projektorer-skarmar/
 });
 sects.push('');
 
+// PROJEKTORDUKAR
+if (bild.dukar?.length) {
+  sects.push('PROJEKTORDUKAR → /vara-tjanster/hyra-bild-projektorer-skarmar/');
+  bild.dukar.forEach(p => {
+    if (p.price) sects.push(prodLine(p.name, p.price, '/dygn'));
+  });
+  sects.push('');
+}
+
 const PRODUKTER_OCH_PRISER = sects.join('\n');
 
 // ── QUOTE_CATALOG (för admin-panelens produktväljare) ─────────────────────────
@@ -270,6 +282,7 @@ QUOTE_CAT['DJ'] = { products: [
 // Bild
 QUOTE_CAT['Bild'] = { sub: {
   'Projektorer & skärmar': (bild.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Projektordukar':        (bild.dukar||[]).filter(p=>p.slug&&p.price).map(qp),
   'Tillbehör':             (bild.tillbehor||[]).filter(p=>p.slug&&p.price).map(qp),
 }};
 

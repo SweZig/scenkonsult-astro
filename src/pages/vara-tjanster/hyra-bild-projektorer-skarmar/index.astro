@@ -86,6 +86,69 @@ const faqSchema = {
     </div>
   </section>
 
+  <!-- PROJEKTORDUKAR -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Projektordukar</h2>
+    <p class="text-gray-400 text-sm mb-6">Pull-up-dukar för konferensrum upp till stora ramdukar för scen och mässa. Klicka på en duk för full information.</p>
+    <div class="duk-grid">
+      {bildData.dukar?.map((d, i) => (
+        <article class="duk-card group" data-duk-idx={i} tabindex="0" role="button" aria-label={`Visa info om ${d.name}`}>
+          <div class="duk-card-img bg-brand-dark overflow-hidden">
+            <img src={d.image} alt={d.alt ?? d.name} loading="lazy"
+              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="duk-card-body">
+            <h3 class="duk-card-title">{d.name}</h3>
+            <p class="duk-card-tagline">{d.includes?.[0] ?? ''}</p>
+            <div class="duk-card-foot">
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{d.price.toLocaleString('sv')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(d.price * 1.25).toLocaleString('sv')} kr</span>
+                <span class="text-gray-400 text-xs">{d.priceNote ?? '/dygn'}</span>
+              </div>
+              <span class="duk-info-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Info
+              </span>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- DUK MODAL -->
+  <div id="duk-modal" class="duk-modal" role="dialog" aria-modal="true" aria-labelledby="duk-modal-title" aria-hidden="true">
+    <div class="duk-modal-backdrop" data-duk-close></div>
+    <div class="duk-modal-panel" role="document">
+      <button class="duk-modal-close" data-duk-close aria-label="Stäng">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="duk-modal-grid">
+        <div class="duk-modal-img bg-brand-dark">
+          <img id="duk-modal-image" src="" alt="" />
+        </div>
+        <div class="duk-modal-info">
+          <h3 id="duk-modal-title" class="duk-modal-title"></h3>
+          <p id="duk-modal-artno" class="artno-badge"></p>
+          <p id="duk-modal-desc" class="duk-modal-desc"></p>
+          <ul id="duk-modal-includes" class="duk-modal-includes"></ul>
+          <div class="duk-modal-foot">
+            <div class="leading-none">
+              <span id="duk-modal-price-excl" class="sk-price-excl text-brand-orange font-extrabold text-2xl"></span>
+              <span id="duk-modal-price-incl" class="sk-price-incl hidden text-brand-orange font-extrabold text-2xl"></span>
+              <span class="text-gray-400 text-sm">/dygn</span>
+            </div>
+            <button id="duk-modal-cart" class="duk-modal-cta">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <span id="duk-modal-cart-label">Lägg i varukorgen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- TILLBEHÖR BILD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör</h2>
@@ -298,5 +361,353 @@ const faqSchema = {
     background: #e2dcfb;
     transform: translateX(4px);
   }
+
+  /* ── PROJEKTORDUKAR — Grid + kort ───────────────────────────── */
+  .duk-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 640px) {
+    .duk-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .duk-grid { grid-template-columns: repeat(5, 1fr); gap: 1.25rem; }
+  }
+  .duk-card {
+    background: #1e1850;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 1rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+  .duk-card:hover,
+  .duk-card:focus-visible {
+    border-color: rgba(196, 181, 244, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    outline: none;
+  }
+  .duk-card-img {
+    aspect-ratio: 1024 / 853;
+  }
+  .duk-card-body {
+    padding: 0.85rem 0.9rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.4rem;
+  }
+  .duk-card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: white;
+    font-size: 0.95rem;
+    line-height: 1.25;
+    margin: 0;
+  }
+  .duk-card-tagline {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.72rem;
+    line-height: 1.35;
+    margin: 0;
+    flex: 1;
+  }
+  .duk-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    padding-top: 0.55rem;
+    margin-top: 0.25rem;
+    gap: 0.5rem;
+  }
+  .duk-info-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: rgba(196, 181, 244, 0.85);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  .duk-card:hover .duk-info-icon {
+    color: #e2dcfb;
+  }
+
+  /* ── DUK MODAL ──────────────────────────────────────────────── */
+  .duk-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .duk-modal[aria-hidden="false"] {
+    display: flex;
+  }
+  .duk-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 6, 22, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .duk-modal-panel {
+    position: relative;
+    background: #15123a;
+    border: 1px solid rgba(196, 181, 244, 0.25);
+    border-radius: 1.25rem;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+    max-width: 980px;
+    width: 100%;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    animation: dukModalIn 0.22s ease-out;
+  }
+  @keyframes dukModalIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .duk-modal-close {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(12, 10, 36, 0.6);
+    color: rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .duk-modal-close:hover {
+    background: rgba(196, 181, 244, 0.18);
+    border-color: rgba(196, 181, 244, 0.5);
+    color: #e2dcfb;
+  }
+  .duk-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  @media (min-width: 768px) {
+    .duk-modal-grid { grid-template-columns: 1.1fr 1fr; }
+  }
+  .duk-modal-img {
+    aspect-ratio: 1024 / 853;
+    overflow: hidden;
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .duk-modal-img {
+      border-top-right-radius: 0;
+      border-bottom-left-radius: 1.25rem;
+      aspect-ratio: auto;
+      height: 100%;
+    }
+  }
+  .duk-modal-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .duk-modal-info {
+    padding: 1.5rem clamp(1.25rem, 3vw, 2rem) 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .duk-modal-title {
+    font-family: 'DM Serif Display', serif;
+    color: white;
+    font-size: clamp(1.4rem, 3vw, 1.75rem);
+    line-height: 1.2;
+    margin: 0;
+  }
+  .duk-modal-desc {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0;
+  }
+  .duk-modal-includes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    padding-top: 0.85rem;
+  }
+  .duk-modal-includes li {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    display: flex;
+    gap: 0.5rem;
+    line-height: 1.4;
+  }
+  .duk-modal-includes li::before {
+    content: "▸";
+    color: #4ade80;
+    flex-shrink: 0;
+  }
+  .duk-modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .duk-modal-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: #c4b5f4;
+    color: #0c0a24;
+    padding: 0.85rem 1.4rem;
+    border: none;
+    border-radius: 0.7rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .duk-modal-cta:hover {
+    background: #e2dcfb;
+    transform: translateX(2px);
+  }
+  .duk-modal-cta.added {
+    background: #4ade80;
+    color: #0c0a24;
+  }
 </style>
+
+<script define:vars={{ dukar: bildData.dukar || [] }}>
+  (function() {
+    const modal = document.getElementById('duk-modal');
+    if (!modal || !dukar.length) return;
+
+    const elImg     = document.getElementById('duk-modal-image');
+    const elTitle   = document.getElementById('duk-modal-title');
+    const elArtno   = document.getElementById('duk-modal-artno');
+    const elDesc    = document.getElementById('duk-modal-desc');
+    const elInc     = document.getElementById('duk-modal-includes');
+    const elPriceEx = document.getElementById('duk-modal-price-excl');
+    const elPriceIn = document.getElementById('duk-modal-price-incl');
+    const elCart    = document.getElementById('duk-modal-cart');
+
+    let currentDuk = null;
+    let lastFocused = null;
+
+    function fmt(n) {
+      return Number(n).toLocaleString('sv-SE');
+    }
+
+    function openModal(idx) {
+      const d = dukar[idx];
+      if (!d) return;
+      currentDuk = d;
+      lastFocused = document.activeElement;
+
+      elImg.src = d.image;
+      elImg.alt = d.alt || d.name;
+      elTitle.textContent = d.name;
+      elArtno.textContent = d.artno || '';
+      elArtno.style.display = d.artno ? '' : 'none';
+      elDesc.textContent = d.description || '';
+      elInc.innerHTML = '';
+      (d.includes || []).forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        elInc.appendChild(li);
+      });
+      elPriceEx.textContent = fmt(d.price) + ' kr';
+      elPriceIn.textContent = fmt(Math.round(d.price * 1.25)) + ' kr';
+
+      // Reset cart-knapp
+      elCart.classList.remove('added');
+      const cartLabel = document.getElementById('duk-modal-cart-label');
+      if (cartLabel) cartLabel.textContent = 'Lägg i varukorgen';
+
+      // Re-applicera moms
+      if (window.skApplyVat) window.skApplyVat();
+
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      // Fokus till stäng-knappen för tillgänglighet
+      modal.querySelector('.duk-modal-close')?.focus();
+    }
+
+    function closeModal() {
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      currentDuk = null;
+      if (lastFocused && lastFocused.focus) lastFocused.focus();
+    }
+
+    // Klick på dukkort
+    document.querySelectorAll('.duk-card[data-duk-idx]').forEach(card => {
+      const idx = parseInt(card.getAttribute('data-duk-idx'), 10);
+      card.addEventListener('click', () => openModal(idx));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openModal(idx);
+        }
+      });
+    });
+
+    // Stäng på backdrop / X / data-duk-close
+    modal.querySelectorAll('[data-duk-close]').forEach(el => {
+      el.addEventListener('click', closeModal);
+    });
+
+    // ESC stänger
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
+        closeModal();
+      }
+    });
+
+    // Lägg i varukorgen
+    elCart.addEventListener('click', () => {
+      if (!currentDuk || !window.skCart) return;
+      window.skCart.add({
+        id:       currentDuk.artno,
+        artno:    currentDuk.artno,
+        name:     currentDuk.name,
+        price:    currentDuk.price,
+        category: 'Projektorduk',
+        image:    currentDuk.image,
+        qty:      1
+      });
+      // Bekräftelse
+      elCart.classList.add('added');
+      const cartLabel2 = document.getElementById('duk-modal-cart-label');
+      if (cartLabel2) cartLabel2.textContent = 'Tillagd ✓';
+      // Auto-stäng efter 1.2 sek
+      setTimeout(closeModal, 1200);
+    });
+  })();
+</script>
 </Layout>

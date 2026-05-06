@@ -123,9 +123,11 @@ catalog['DJ'] = {'sub': {
     'DJ-paket':        [prod(p) for p in dj.get('packages', [])],
 }}
 
-# ── Bild (produkter + tillbehör; services hamnar under Tjänster) ──────────────
+# ── Bild (produkter + dukar + tillbehör; services hamnar under Tjänster) ─────
 catalog['Bild'] = {'sub': {
     'Projektorer & skärmar': [prod(p) for p in bild.get('products',[])],
+    'Projektordukar':        [prod(p) for p in bild.get('dukar',[])
+                              if p.get('artno') or p.get('slug')],
     'Tillbehör':             [prod(p) for p in bild.get('tillbehor',[])
                               if p.get('artno') or p.get('slug')],
 }}

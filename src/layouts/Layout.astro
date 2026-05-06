@@ -51,6 +51,9 @@ Object.values((djJson as any).equipment || {}).forEach((p: any) => {
 ((bildJson as any).products as any[] || []).forEach((p: any) => {
   if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
 });
+((bildJson as any).dukar as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
+});
 ((bildJson as any).tillbehor as any[] || []).forEach((p: any) => {
   if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
 });
