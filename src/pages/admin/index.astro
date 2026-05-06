@@ -508,6 +508,82 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       background: var(--brand-lav); color: var(--brand-dark); border-color: var(--brand-lav);
     }
     .chat-template-btn:active { transform: translateY(1px); }
+    .chat-template-manage-btn {
+      background: transparent; color: var(--text-faint); border: 1px dashed var(--border);
+      border-radius: 999px; padding: 0.4rem 0.85rem; font-family: inherit;
+      font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 0.35rem; margin-left: auto;
+    }
+    .chat-template-manage-btn:hover {
+      background: var(--surface2); color: var(--text); border-color: var(--brand-lav); border-style: solid;
+    }
+    .ct-modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 9999; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .ct-modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      width: 100%; max-width: 640px; max-height: 90vh; display: flex; flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .ct-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    }
+    .ct-modal-header h3 { margin: 0; font-size: 1.1rem; color: var(--text); }
+    .ct-close {
+      background: transparent; border: none; color: var(--text-faint);
+      font-size: 1.5rem; cursor: pointer; padding: 0; width: 2rem; height: 2rem;
+      display: flex; align-items: center; justify-content: center; border-radius: 6px;
+    }
+    .ct-close:hover { background: var(--surface2); color: var(--text); }
+    .ct-modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
+    .ct-modal-footer {
+      padding: 1rem 1.25rem; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 0.5rem;
+    }
+    .ct-btn-primary {
+      background: var(--brand-lav); color: var(--brand-dark); border: none;
+      padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+      font-family: inherit; font-size: 0.875rem;
+    }
+    .ct-btn-primary:hover { background: var(--brand-lav-light); }
+    .ct-btn-secondary {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;
+      font-family: inherit; font-size: 0.875rem;
+    }
+    .ct-btn-secondary:hover { background: var(--surface); }
+    .ct-empty { color: var(--text-faint); text-align: center; padding: 2rem; }
+    .ct-list { list-style: none; padding: 0; margin: 0; }
+    .ct-row {
+      display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;
+      border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.5rem;
+    }
+    .ct-row-info { flex: 1; min-width: 0; }
+    .ct-row-label { font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+    .ct-row-preview { font-size: 0.8rem; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ct-row-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+    .ct-row-actions button {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer;
+      font-family: inherit; font-size: 0.78rem;
+    }
+    .ct-row-actions button:hover:not(:disabled) { background: var(--brand-lav); color: var(--brand-dark); border-color: var(--brand-lav); }
+    .ct-row-actions button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .ct-btn-delete:hover:not(:disabled) { background: #c62828 !important; color: #fff !important; border-color: #c62828 !important; }
+    .ct-editor-hint { color: var(--text-faint); font-size: 0.85rem; margin: 0 0 1rem; }
+    .ct-field { display: block; margin-bottom: 1rem; }
+    .ct-field > span { display: block; font-size: 0.78rem; color: var(--text-faint); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ct-field > span code { background: var(--surface2); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.75rem; }
+    .ct-field input, .ct-field textarea {
+      width: 100%; box-sizing: border-box;
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      padding: 0.6rem 0.75rem; border-radius: 8px; font-family: inherit; font-size: 0.9rem;
+    }
+    .ct-field textarea { font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; font-size: 0.85rem; line-height: 1.5; resize: vertical; }
+    .ct-field input:focus, .ct-field textarea:focus { outline: none; border-color: var(--brand-lav); }
+    .ct-editor-actions { display: flex; justify-content: space-between; margin-top: 1rem; }
 
     /* ── KALENDER ──────────────────────────────────────── */
     #view-calendar { display: none; }
@@ -1047,6 +1123,7 @@ function showApp() {
   $('login-screen').style.display = 'none';
   $('app').style.display = 'flex';
   loadCarts();
+  loadChatTemplates();
   startRefreshTimer();
 }
 
@@ -1673,8 +1750,8 @@ function renderTab(tab) {
     // Snabbmalls-knappar — fyller textarea med fördefinierad text som admin kan redigera
     document.querySelectorAll('.chat-template-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const key = btn.dataset.template;
-        const tpl = CHAT_TEMPLATES[key];
+        const id = btn.dataset.templateId;
+        const tpl = currentChatTemplates.find(t => t.id === id);
         if (!tpl) return;
         const input = $('chat-input');
         if (!input) return;
@@ -1686,6 +1763,8 @@ function renderTab(tab) {
         input.setSelectionRange(input.value.length, input.value.length);
       });
     });
+    // "⚙️ Hantera"-knappen öppnar redigeringsmodalen
+    $('chat-templates-manage')?.addEventListener('click', openChatTemplatesModal);
   }
 }
 
@@ -2379,11 +2458,15 @@ function prodTotals() {
 }
 
 // ── CHAT-SNABBMALLAR ──────────────────────────────────────────
-// Lägg till nya mallar här. {body} infogas i textarea, admin kan redigera innan utskick.
-const CHAT_TEMPLATES = {
-  'google-review': {
+// Mallar laddas från Supabase via /admin-chat-templates vid pageload.
+// `currentChatTemplates` är en array med { id, label, title, body, sort_order }.
+// Hårdkodad fallback används om endpoint:en fallerar (Supabase nere etc.).
+const CHAT_TEMPLATES_FALLBACK = [
+  {
+    id: 'google-review',
     label: '⭐ Be om Google-recension',
     title: 'Vänlig förfrågan om kunden vill skriva en recension på Google',
+    sort_order: 0,
     body: `Hej!
 
 Om ni är nöjda med vår service eller produkter får ni jättegärna ta 2-3 minuter och skriva ett betyg på Google så andra kunder hittar till oss.
@@ -2393,7 +2476,205 @@ Här är en [direktlänk](https://search.google.com/local/writereview?placeid=Ch
 Tusen tack!
 /Teamet på Scenkonsult`
   }
-};
+];
+
+let currentChatTemplates = [...CHAT_TEMPLATES_FALLBACK];
+
+async function loadChatTemplates() {
+  try {
+    const r = await fetch('/.netlify/functions/admin-chat-templates', {
+      headers: { 'Authorization': 'Bearer ' + adminToken },
+    });
+    if (!r.ok) return; // behåll fallback
+    const data = await r.json();
+    if (Array.isArray(data.templates) && data.templates.length > 0) {
+      currentChatTemplates = data.templates;
+    }
+  } catch (e) {
+    console.warn('loadChatTemplates failed, using fallback:', e.message);
+  }
+}
+
+// ── Hantera-modal: lista, redigera, lägg till, ta bort ─────────
+function openChatTemplatesModal() {
+  let modal = document.getElementById('chat-templates-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'chat-templates-modal';
+    modal.className = 'ct-modal-backdrop';
+    modal.innerHTML = `
+      <div class="ct-modal" role="dialog" aria-modal="true" aria-labelledby="ct-modal-title">
+        <div class="ct-modal-header">
+          <h3 id="ct-modal-title">Hantera snabbmallar</h3>
+          <button type="button" class="ct-close" aria-label="Stäng">×</button>
+        </div>
+        <div class="ct-modal-body" id="ct-modal-body"></div>
+        <div class="ct-modal-footer">
+          <button type="button" class="ct-btn-secondary" id="ct-btn-cancel">Stäng</button>
+          <button type="button" class="ct-btn-primary" id="ct-btn-new">+ Ny mall</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('.ct-close').addEventListener('click', closeChatTemplatesModal);
+    modal.querySelector('#ct-btn-cancel').addEventListener('click', closeChatTemplatesModal);
+    modal.querySelector('#ct-btn-new').addEventListener('click', () => renderChatTemplateEditor(null));
+    modal.addEventListener('click', e => {
+      if (e.target === modal) closeChatTemplatesModal();
+    });
+  }
+  modal.style.display = 'flex';
+  renderChatTemplatesList();
+}
+
+function closeChatTemplatesModal() {
+  const modal = document.getElementById('chat-templates-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderChatTemplatesList() {
+  const body = document.getElementById('ct-modal-body');
+  if (!body) return;
+  if (currentChatTemplates.length === 0) {
+    body.innerHTML = '<p class="ct-empty">Inga mallar — klicka "+ Ny mall" för att lägga till en.</p>';
+    return;
+  }
+  body.innerHTML = `
+    <ul class="ct-list">
+      ${currentChatTemplates.map((t, i) => {
+        const preview = (t.body || '').replace(/\n/g, ' ').slice(0, 90);
+        return `
+          <li class="ct-row" data-id="${t.id}">
+            <div class="ct-row-info">
+              <div class="ct-row-label">${escapeHtml(t.label)}</div>
+              <div class="ct-row-preview">${escapeHtml(preview)}${t.body && t.body.length > 90 ? '…' : ''}</div>
+            </div>
+            <div class="ct-row-actions">
+              <button type="button" class="ct-btn-up" data-i="${i}" title="Flytta upp" ${i === 0 ? 'disabled' : ''}>↑</button>
+              <button type="button" class="ct-btn-down" data-i="${i}" title="Flytta ner" ${i === currentChatTemplates.length - 1 ? 'disabled' : ''}>↓</button>
+              <button type="button" class="ct-btn-edit" data-id="${t.id}">Redigera</button>
+              <button type="button" class="ct-btn-delete" data-id="${t.id}">Ta bort</button>
+            </div>
+          </li>
+        `;
+      }).join('')}
+    </ul>
+  `;
+  body.querySelectorAll('.ct-btn-edit').forEach(b => b.addEventListener('click', () => {
+    const t = currentChatTemplates.find(x => x.id === b.dataset.id);
+    if (t) renderChatTemplateEditor(t);
+  }));
+  body.querySelectorAll('.ct-btn-delete').forEach(b => b.addEventListener('click', () => deleteChatTemplate(b.dataset.id)));
+  body.querySelectorAll('.ct-btn-up').forEach(b => b.addEventListener('click', () => moveChatTemplate(parseInt(b.dataset.i), -1)));
+  body.querySelectorAll('.ct-btn-down').forEach(b => b.addEventListener('click', () => moveChatTemplate(parseInt(b.dataset.i), 1)));
+}
+
+function renderChatTemplateEditor(tpl) {
+  const body = document.getElementById('ct-modal-body');
+  if (!body) return;
+  const t = tpl || { id: '', label: '', title: '', body: '' };
+  body.innerHTML = `
+    <div class="ct-editor">
+      <p class="ct-editor-hint">${tpl ? 'Redigera mall' : 'Ny mall'} — alla fält sparas till databasen.</p>
+      <label class="ct-field">
+        <span>Label (knapptext)</span>
+        <input type="text" id="ct-field-label" maxlength="80" value="${escapeHtml(t.label)}" placeholder="⭐ Be om Google-recension">
+      </label>
+      <label class="ct-field">
+        <span>Tooltip (visas vid hover, valfri)</span>
+        <input type="text" id="ct-field-title" maxlength="200" value="${escapeHtml(t.title || '')}" placeholder="Vänlig förfrågan om recension">
+      </label>
+      <label class="ct-field">
+        <span>Meddelandetext (markdown-länkar stöds: <code>[text](url)</code>)</span>
+        <textarea id="ct-field-body" rows="10" maxlength="5000" placeholder="Hej!&#10;...">${escapeHtml(t.body)}</textarea>
+      </label>
+      <div class="ct-editor-actions">
+        <button type="button" class="ct-btn-secondary" id="ct-editor-back">← Tillbaka</button>
+        <button type="button" class="ct-btn-primary" id="ct-editor-save">${tpl ? 'Spara ändringar' : 'Skapa mall'}</button>
+      </div>
+    </div>
+  `;
+  body.querySelector('#ct-editor-back').addEventListener('click', renderChatTemplatesList);
+  body.querySelector('#ct-editor-save').addEventListener('click', () => saveChatTemplate(tpl?.id || null));
+}
+
+async function saveChatTemplate(existingId) {
+  const label = document.getElementById('ct-field-label')?.value?.trim();
+  const title = document.getElementById('ct-field-title')?.value?.trim();
+  const body  = document.getElementById('ct-field-body')?.value?.trim();
+  if (!label) { alert('Label krävs'); return; }
+  if (!body) { alert('Meddelandetext krävs'); return; }
+
+  const sortOrder = existingId
+    ? (currentChatTemplates.find(t => t.id === existingId)?.sort_order ?? 0)
+    : currentChatTemplates.length;
+
+  try {
+    const r = await fetch('/.netlify/functions/admin-chat-templates', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'upsert',
+        template: { id: existingId || undefined, label, title: title || null, body, sort_order: sortOrder },
+      }),
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      alert('Kunde inte spara: ' + (e.error || r.status));
+      return;
+    }
+    const data = await r.json();
+    // Uppdatera local state: ersätt befintlig eller lägg till
+    const idx = currentChatTemplates.findIndex(t => t.id === data.template.id);
+    if (idx >= 0) currentChatTemplates[idx] = data.template;
+    else currentChatTemplates.push(data.template);
+    currentChatTemplates.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    renderChatTemplatesList();
+    // Re-rendera Chatt-fliken om den är öppen så pill-knapparna uppdateras
+    if (currentTab === 'chat' && currentCart) renderChatTab();
+    if (currentTab === 'chat' && currentCart) bindTabEvents('chat');
+  } catch (e) {
+    alert('Nätverksfel: ' + e.message);
+  }
+}
+
+async function deleteChatTemplate(id) {
+  if (!confirm('Ta bort den här mallen? Detta går att ångra genom att skapa en ny med samma innehåll.')) return;
+  try {
+    const r = await fetch('/.netlify/functions/admin-chat-templates', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    });
+    if (!r.ok) { alert('Kunde inte ta bort'); return; }
+    currentChatTemplates = currentChatTemplates.filter(t => t.id !== id);
+    renderChatTemplatesList();
+    if (currentTab === 'chat' && currentCart) { renderChatTab(); bindTabEvents('chat'); }
+  } catch (e) {
+    alert('Nätverksfel: ' + e.message);
+  }
+}
+
+async function moveChatTemplate(index, direction) {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= currentChatTemplates.length) return;
+  // Byt plats i arrayen
+  [currentChatTemplates[index], currentChatTemplates[newIndex]] = [currentChatTemplates[newIndex], currentChatTemplates[index]];
+  renderChatTemplatesList();
+  // Skicka ny ordning till servern
+  try {
+    await fetch('/.netlify/functions/admin-chat-templates', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reorder', ids: currentChatTemplates.map(t => t.id) }),
+    });
+    // Uppdatera lokal sort_order
+    currentChatTemplates.forEach((t, i) => { t.sort_order = i; });
+    if (currentTab === 'chat' && currentCart) { renderChatTab(); bindTabEvents('chat'); }
+  } catch (e) {
+    console.warn('Reorder failed:', e.message);
+  }
+}
 
 function renderChatTab() {
   const body = $('panel-body');
@@ -2418,9 +2699,10 @@ function renderChatTab() {
   const templatesHTML = `
     <div class="chat-templates">
       <span class="chat-templates-label">Snabbmallar</span>
-      ${Object.entries(CHAT_TEMPLATES).map(([key, t]) =>
-        `<button type="button" class="chat-template-btn" data-template="${key}" title="${t.title}">${t.label}</button>`
+      ${currentChatTemplates.map(t =>
+        `<button type="button" class="chat-template-btn" data-template-id="${t.id}" title="${(t.title||'').replace(/"/g,'&quot;')}">${t.label}</button>`
       ).join('')}
+      <button type="button" class="chat-template-manage-btn" id="chat-templates-manage" title="Hantera mallar — lägg till, redigera eller ta bort">⚙️ Hantera</button>
     </div>`;
 
   body.innerHTML = `
