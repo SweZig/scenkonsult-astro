@@ -13,8 +13,22 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// Avgör om event_date är imorgon/idag/annat — robust mot DST
+function dateRelation(eventDateStr) {
+  if (!eventDateStr) return 'other';
+  const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
+  if (eventDateStr === todayStr) return 'today';
+  const [y, mo, d] = todayStr.split('-').map(Number);
+  const utcAnchor = Date.UTC(y, mo - 1, d, 12, 0, 0);
+  const tomorrowStr = new Date(utcAnchor + 24 * 60 * 60 * 1000)
+    .toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
+  if (eventDateStr === tomorrowStr) return 'tomorrow';
+  return 'other';
+}
+
 function buildPickupReminderEmail(cart) {
   const isDelivery = cart.delivery_mode === 'delivery';
+  const rel = dateRelation(cart.event_date); // 'tomorrow' | 'today' | 'other'
 
   const firstName = (cart.customer_name || '').split(' ')[0] || 'Hej';
   const signUrl   = `https://scenkonsult.se/sign/?cart=${cart.id}&token=${cart.cart_token}`;
@@ -35,15 +49,34 @@ function buildPickupReminderEmail(cart) {
   const modeWordCap = isDelivery ? 'Leverans' : 'Utlämning';
   const ctaText     = isDelivery ? 'Förbered din leverans →' : 'Förbered din utlämning →';
   const subjectMode = isDelivery ? 'leverans'                  : 'utlämning';
+
+  // Tidsord — varierar baserat på relation till event_date
+  const dayCap   = rel === 'tomorrow' ? 'Imorgon'   : rel === 'today' ? 'Idag'   : '';
+  const dayLower = rel === 'tomorrow' ? 'imorgon'   : rel === 'today' ? 'idag'   : '';
+  const subjectPrefix = dayCap ? `${dayCap}: ` : '';
+
+  // H2: "Imorgon är det dags…" / "Idag är det dags…" / "Förbered din utlämning…"
+  const h2 = dayCap
+    ? `${dayCap} är det dags för din ${modeWord}, ${escapeHtml(firstName)}!`
+    : `Förbered din ${modeWord}, ${escapeHtml(firstName)}!`;
+
+  // Hero-intro
+  const heroIntro = (() => {
+    if (rel === 'tomorrow') return isDelivery ? 'Imorgon kommer vi med din utrustning!' : 'Imorgon kommer du och hämtar din utrustning!';
+    if (rel === 'today')    return isDelivery ? 'Idag kommer vi med din utrustning!'    : 'Idag kommer du och hämtar din utrustning!';
+    return isDelivery ? 'Vi närmar oss leveransdagen!' : 'Vi närmar oss utlämningsdagen!';
+  })();
+
   const heroLine1   = isDelivery
-    ? 'Innan dess vill vi att du gör en sak innan som sparar tid vid leveransen — det tar 2 minuter.'
-    : 'Innan dess vill vi att du gör en sak innan som sparar tid vid utlämningen — det tar 2 minuter.';
-  const stepLabel2  = isDelivery ? 'Vid leveransen' : 'Vid utlämningen';
+    ? 'Innan dess vill vi att du gör en sak som sparar tid vid leveransen — det tar 2 minuter.'
+    : 'Innan dess vill vi att du gör en sak som sparar tid vid utlämningen — det tar 2 minuter.';
+
+  const stepLabel2 = (dayCap ? dayCap + ' ' : '') + (isDelivery ? 'vid leveransen' : 'vid utlämningen');
   const stepText2   = isDelivery
     ? 'Vi går igenom utrustningen tillsammans när vi kommer'
     : 'Vi går igenom utrustningen tillsammans';
   const stepText3   = 'Vi aktiverar din kvittens och du får en kopia';
-  const intro2 = 'Det första steget gör du själv innan — du förbereder din digitala signatur och laddar upp en bild på körkort eller annan legitimation.';
+  const intro2 = 'Det första steget gör du själv innan utlämningsdagen — du förbereder din digitala signatur och laddar upp en bild på körkort eller annan legitimation.';
 
   // Tids-disclaimer vid leverans
   const timeDisclaimer = isDelivery
@@ -65,7 +98,7 @@ function buildPickupReminderEmail(cart) {
     ? `<tr><td colspan="2" style="padding:8px 12px;font-size:13px;color:#999;font-style:italic">+ ${items.length - 8} till på orderbekräftelsen…</td></tr>`
     : '';
 
-  const subject = `Förbered din ${subjectMode}${dateStr ? ' — ' + dateStr : ''}`;
+  const subject = `${subjectPrefix}Förbered din ${subjectMode}${dateStr ? ' — ' + dateStr : ''}`;
 
   const html = `<!DOCTYPE html>
 <html lang="sv"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -81,9 +114,9 @@ function buildPickupReminderEmail(cart) {
 
 <!-- Hero -->
 <tr><td style="background:#fff;padding:36px 32px 28px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8">
-  <h2 style="margin:0 0 6px;color:#1e1850;font-size:23px;line-height:1.3">Det är dags att förbereda din ${modeWord}, ${escapeHtml(firstName)}!</h2>
+  <h2 style="margin:0 0 6px;color:#1e1850;font-size:23px;line-height:1.3">${h2}</h2>
   <p style="margin:0 0 22px;color:#666;font-size:15px;line-height:1.6">
-    Vi ses snart! ${heroLine1}
+    ${heroIntro} ${heroLine1}
   </p>
 
   ${dateStr ? `
@@ -116,12 +149,12 @@ function buildPickupReminderEmail(cart) {
     <tr>
       <td width="33%" valign="top" style="padding:0 8px;text-align:center">
         <div style="font-size:30px;line-height:1;margin-bottom:8px">📱</div>
-        <p style="margin:0 0 4px;color:#1e1850;font-size:13px;font-weight:700">1. Nu</p>
+        <p style="margin:0 0 4px;color:#1e1850;font-size:13px;font-weight:700">1. Innan</p>
         <p style="margin:0;color:#666;font-size:12px;line-height:1.5">Förbered signatur och legitimation</p>
       </td>
       <td width="33%" valign="top" style="padding:0 8px;text-align:center">
         <div style="font-size:30px;line-height:1;margin-bottom:8px">${isDelivery ? '🚚' : '📦'}</div>
-        <p style="margin:0 0 4px;color:#1e1850;font-size:13px;font-weight:700">2. ${stepLabel2}</p>
+        <p style="margin:0 0 4px;color:#1e1850;font-size:13px;font-weight:700">2. ${stepLabel2.charAt(0).toUpperCase() + stepLabel2.slice(1)}</p>
         <p style="margin:0;color:#666;font-size:12px;line-height:1.5">${stepText2}</p>
       </td>
       <td width="33%" valign="top" style="padding:0 8px;text-align:center">
@@ -171,19 +204,19 @@ function buildPickupReminderEmail(cart) {
 </table></td></tr></table>
 </body></html>`;
 
-  const text = `Förbered din ${modeWord}${dateStr ? ', ' + dateStr : ''}
+  const text = `${subjectPrefix}Förbered din ${modeWord}${dateStr ? ', ' + dateStr : ''}
 
 Hej ${firstName}!
 
-${intro2}
+${heroIntro} ${intro2}
 
 VIKTIGT: Själva kvittensen blir inte giltig förrän vi bekräftar att du fått all utrustning. Du behöver alltså inte oroa dig — vi kontrollerar tillsammans att allt stämmer innan kvittensen aktiveras.
 
 ${dateStr ? `${modeWordCap}: ${dateStr} kl ${timeStr}\nPlats: ${cart.event_location || 'Grimstagatan 164, 162 58 Vällingby'}${timeDisclaimerText}\n\n` : ''}Förbered här: ${signUrl}
 
 SÅ FUNKAR DET
-1. Nu — Förbered signatur och legitimation
-2. ${stepLabel2} — ${stepText2}
+1. Innan — Förbered signatur och legitimation
+2. ${stepLabel2.charAt(0).toUpperCase() + stepLabel2.slice(1)} — ${stepText2}
 3. Klart — ${stepText3}
 
 HJÄLP & GUIDER

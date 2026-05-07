@@ -1,17 +1,40 @@
 // netlify/functions/scheduled-pickup-reminder.js
-// Schemalagd: körs varje dag kl 07:00 UTC (= 08:00 SE-vintertid, 09:00 SE-sommartid).
-// Letar carts med event_date = idag, status confirmed/fakturerad/betald, och
-// pickup_reminder_sent_at IS NULL. Skickar förberedelsemail.
-//
-// För same-day-bookings (utlämning < 6h fram) skippas auto-utskick — admin
-// måste manuellt trigga via knappen i admin-panelen istället.
-
+// Skickar förberedelsemail kl 19:00 svensk tid till kunder vars utlämning är
+// IMORGON. DST-säkrad genom att cron körs två gånger (UTC 17 + 18) — funktionen
+// avbryter snabbt om Stockholm-timmen inte är 19, så bara en av körningarna
+// triggar skarpt utskick. Funktionen är idempotent via pickup_reminder_sent_at.
 'use strict';
+
 const { supabase, sendEmail, logAudit, MAIL_FROM } = require('./_lib');
 const { buildPickupReminderEmail } = require('./_pickup-reminder-mail');
 
-// Schedule i ny modern Netlify-syntax (ingen netlify.toml-ändring krävs)
-exports.config = { schedule: '0 7 * * *' };
+// Cron i UTC. Båda triggas, men bara en kör skarpt — den andra exitar snabbt.
+//   sommartid (CEST = UTC+2): 17:00 UTC = 19:00 SE  → kör skarpt
+//                              18:00 UTC = 20:00 SE  → exit
+//   vintertid (CET  = UTC+1): 17:00 UTC = 18:00 SE  → exit
+//                              18:00 UTC = 19:00 SE  → kör skarpt
+exports.config = { schedule: '0 17,18 * * *' };
+
+// Hämta nuvarande timme i Stockholm (0–23)
+function stockholmHour() {
+  const s = new Date().toLocaleString('en-US', {
+    timeZone: 'Europe/Stockholm',
+    hour: 'numeric',
+    hour12: false,
+  });
+  const m = String(s).match(/\d+/);
+  return m ? parseInt(m[0], 10) : -1;
+}
+
+// Hämta morgondagens datum i Stockholm-tid som YYYY-MM-DD
+function tomorrowSE() {
+  const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
+  const [y, mo, d] = todayStr.split('-').map(Number);
+  // Använd 12:00 UTC som "ankarpunkt" — säkert förbi DST-skiften
+  const utcAnchor = Date.UTC(y, mo - 1, d, 12, 0, 0);
+  const tomorrowDate = new Date(utcAnchor + 24 * 60 * 60 * 1000);
+  return tomorrowDate.toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
+}
 
 exports.handler = async () => {
   const apiKey = process.env.RESEND_API_KEY;
@@ -20,22 +43,22 @@ exports.handler = async () => {
     return { statusCode: 500, body: 'Ej konfigurerad' };
   }
 
+  // DST-skydd: körning sker bara om Stockholm-timmen är 19
+  const hour = stockholmHour();
+  if (hour !== 19) {
+    console.log(`SCHEDULED_PICKUP: Skippas — Stockholm-timme ${hour}, väntar 19`);
+    return { statusCode: 200, body: `Skipped (hour=${hour})` };
+  }
+
   const db = supabase();
-
-  // Hämta dagens datum i Sverige (Europe/Stockholm)
-  // Använd Intl-API för korrekt DST-hantering
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
-  const nowMs = Date.now();
-  const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
-
-  console.log('SCHEDULED_PICKUP: Letar utlämningar för', today);
+  const tomorrow = tomorrowSE();
+  console.log('SCHEDULED_PICKUP: Letar utlämningar för imorgon', tomorrow);
 
   let candidates;
   try {
-    // _lib.js har ingen .in() — vi filtrerar status i kod
     const { data, error } = await db.from('carts')
       .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, pickup_reminder_sent_at, customer_company, delivery_mode')
-      .eq('event_date', today);
+      .eq('event_date', tomorrow);
     if (error) throw error;
     candidates = data || [];
   } catch (e) {
@@ -44,13 +67,13 @@ exports.handler = async () => {
   }
 
   const ALLOWED = new Set(['confirmed', 'fakturerad', 'betald']);
-  const todays = candidates.filter(c => ALLOWED.has(c.status));
+  const tomorrows = candidates.filter(c => ALLOWED.has(c.status));
 
-  console.log(`SCHEDULED_PICKUP: ${todays.length} utlämningar idag`);
+  console.log(`SCHEDULED_PICKUP: ${tomorrows.length} utlämningar imorgon`);
 
-  const results = { sent: 0, skipped_already_sent: 0, skipped_no_email: 0, skipped_too_late: 0, errors: [] };
+  const results = { sent: 0, skipped_already_sent: 0, skipped_no_email: 0, errors: [] };
 
-  for (const cart of todays) {
+  for (const cart of tomorrows) {
     if (cart.pickup_reminder_sent_at) {
       results.skipped_already_sent++;
       continue;
@@ -58,18 +81,6 @@ exports.handler = async () => {
     if (!cart.customer_email) {
       results.skipped_no_email++;
       console.warn('SCHEDULED_PICKUP: Saknar email för', cart.id);
-      continue;
-    }
-
-    // Same-day skydd: är utlämningen mindre än 6h fram?
-    // Bygg utlämningstid: event_date + delivery_time (default 13:00) i SE-tid
-    const pickupTime = cart.delivery_time || '13:00';
-    const pickupSE = `${cart.event_date}T${pickupTime}:00`;
-    // Tolka som svensk lokal tid → konvertera till UTC ms
-    const pickupMs = parsePickupAsSE(cart.event_date, pickupTime);
-    if (pickupMs && (pickupMs - nowMs) < SIX_HOURS_MS) {
-      results.skipped_too_late++;
-      console.log(`SCHEDULED_PICKUP: Skippar ${cart.id} — utlämning ${pickupSE} är < 6h fram`);
       continue;
     }
 
@@ -84,7 +95,7 @@ exports.handler = async () => {
         reply_to: 'info@scenkonsult.se',
       });
       await db.update('carts', { pickup_reminder_sent_at: new Date().toISOString() }, 'id', cart.id);
-      await logAudit(db, cart.id, 'system', 'pickup_reminder_sent', { to: cart.customer_email, scheduled: true });
+      await logAudit(db, cart.id, 'system', 'pickup_reminder_sent', { to: cart.customer_email, scheduled: true, for_date: tomorrow });
       results.sent++;
       console.log('SCHEDULED_PICKUP: ✅ Skickat till', cart.customer_email, 'för', cart.id);
       // Liten paus mellan utskick (Resend rate limit)
@@ -98,21 +109,3 @@ exports.handler = async () => {
   console.log('SCHEDULED_PICKUP_RESULT:', JSON.stringify(results));
   return { statusCode: 200, body: JSON.stringify(results) };
 };
-
-// Tolka YYYY-MM-DD + HH:MM som svensk lokal tid → returnera UTC ms
-// Hanterar DST genom att jämföra UTC-offset för datumet
-function parsePickupAsSE(dateStr, timeStr) {
-  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
-  if (!timeStr || !/^\d{2}:\d{2}/.test(timeStr)) return null;
-  const [y, mo, d] = dateStr.split('-').map(Number);
-  const [h, mi] = timeStr.split(':').map(Number);
-  // Skapa Date som om det vore UTC
-  const asUtc = Date.UTC(y, mo - 1, d, h, mi);
-  // Räkna ut SE-offset för det datumet (sommar 2h, vinter 1h)
-  // Använd Intl för att hitta offsetstrenge
-  const probe = new Date(asUtc);
-  const seString = probe.toLocaleString('en-US', { timeZone: 'Europe/Stockholm', timeZoneName: 'shortOffset' });
-  const m = seString.match(/GMT([+-]\d+)/);
-  const offsetH = m ? parseInt(m[1], 10) : 1;
-  return asUtc - offsetH * 3600 * 1000;
-}
