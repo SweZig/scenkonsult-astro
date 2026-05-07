@@ -33,7 +33,7 @@ export default async (req, context) => {
   }
 
   try {
-    const url = `https://places.googleapis.com/v1/places/${PLACE_ID}?languageCode=sv&reviewsSort=NEWEST`;
+    const url = `https://places.googleapis.com/v1/places/${PLACE_ID}?languageCode=sv`;
     const r = await fetch(url, {
       headers: {
         'X-Goog-Api-Key': API_KEY,
@@ -50,12 +50,21 @@ export default async (req, context) => {
     }
 
     const data = await r.json();
-    const reviews = (data.reviews || []).map(rv => {
+    // Sortera reviews: nyaste först. Places API:s default är MOST_RELEVANT,
+    // och endpointen stödjer inte reviewsSort-parameter (returnerar 400).
+    // Vi sorterar därför själva på publishTime (ISO timestamp).
+    const rawReviews = (data.reviews || []).slice().sort((a, b) => {
+      const ta = new Date(a.publishTime || 0).getTime();
+      const tb = new Date(b.publishTime || 0).getTime();
+      return tb - ta;
+    });
+    const reviews = rawReviews.map(rv => {
       const author = rv.authorAttribution?.displayName || 'Anonym';
       return {
         author,
         initials: initials(author),
         time: rv.relativePublishTimeDescription || '',
+        publishTime: rv.publishTime || null,
         text: rv.text?.text || rv.originalText?.text || '',
         rating: rv.rating || 5,
         uri: rv.authorAttribution?.uri || null,
