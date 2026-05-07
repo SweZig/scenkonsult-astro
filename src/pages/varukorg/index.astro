@@ -686,7 +686,8 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
   // Applicerar volympriser på hela kundkorgen — anropas vid sidladdning och qty-ändringar
   function applyVolumePricing(cart) {
-    return cart.map(item => {
+    return (cart || []).map(item => {
+      if (!item || typeof item !== 'object') return item;
       const vp = resolveUnitPrice(item.id, item.qty || 1, item.artno);
       if (vp !== null && item.price !== vp) return { ...item, price: vp };
       return item;
@@ -1065,7 +1066,15 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   // ── RENDER ─────────────────────────────────────────────────
   function renderCart() {
     // Applicera volympriser baserat på current qty vid varje rendering
-    const cart = applyVolumePricing(getCart());
+    let cart = applyVolumePricing(getCart());
+    // Defensiv: filtrera bort trasiga items (saknar id eller name) så hela sidan
+    // inte kraschar om ett enskilt item är fel-format. Logga varning så vi kan
+    // hitta orsaken i framtiden.
+    const orig = cart.length;
+    cart = cart.filter(i => i && typeof i === 'object' && i.id && i.name);
+    if (cart.length !== orig) {
+      console.warn(`[varukorg] Filtrerade bort ${orig - cart.length} trasiga items`, getCart());
+    }
     const emptyEl   = document.getElementById('cartEmpty');
     const contentEl = document.getElementById('cartContent');
     if (cart.length === 0) {
@@ -1079,6 +1088,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     const tbody = document.getElementById('cartTableBody');
     tbody.innerHTML = cart.map(item => {
       const imgSrc = _getImg(item);
+      const safeQty = item.qty || 1;
       return `
       <tr data-id="${item.id}" class="cart-row-clickable" title="Klicka för mer info">
         <td>
@@ -1097,14 +1107,14 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
         </td>
         <td class="td-price">
           ${fmt(item.price)}
-          ${resolveUnitPrice(item.id, item.qty, item.artno) !== null && item.qty > 1
+          ${resolveUnitPrice(item.id, safeQty, item.artno) !== null && safeQty > 1
             ? `<div class="vol-badge">Volymrabatt</div>`
             : ''}
         </td>
         <td class="td-qty">
           <div class="qty-stepper">
             <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
-            <input class="qty-input" type="text" inputmode="numeric" value="${item.qty}" data-id="${item.id}" readonly />
+            <input class="qty-input" type="text" inputmode="numeric" value="${safeQty}" data-id="${item.id}" readonly />
             <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
           </div>
         </td>

@@ -709,7 +709,9 @@ const localBusinessSchema = {
       } catch {}
     }
     function skCartTotal() {
-      return skGetCart().reduce((sum, item) => sum + item.qty, 0);
+      return skGetCart()
+        .filter(i => i && i.id && i.name)
+        .reduce((sum, item) => sum + (item.qty || 1), 0);
     }
     function skUpdateBadge() {
       const total = skCartTotal();
@@ -722,6 +724,11 @@ const localBusinessSchema = {
       });
     }
     function skAddToCart(item) {
+      // Defensiv: validera att item har minst id + name
+      if (!item || typeof item !== 'object' || !item.id || !item.name) {
+        console.warn('[skCart.add] Ignorerade trasigt item — saknar id eller name', item);
+        return;
+      }
       const cart = skGetCart();
       const addQty = (typeof item.qty === 'number' && item.qty > 0) ? item.qty : 1;
       const existing = cart.find(i => i.id === item.id);
