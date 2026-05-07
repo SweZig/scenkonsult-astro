@@ -86,11 +86,8 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         <div style="font-size:0.75rem;font-weight:700;color:#c4b5f4;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">⚙ Admin — Leveranstyp</div>
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
           <select id="adminLevType" style="background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;cursor:pointer;color-scheme:dark;">
-            <option value="auto">Automatisk (bulky-regel)</option>
-            <option value="standard">Vanlig bil</option>
-            <option value="skrymmande">Bil med släpvagn</option>
-            <option value="lastbil">Lätt/tung lastbil</option>
-            <option value="bakgavel">Lastbil med bakgavellift</option>
+            <option value="auto">Automatisk (regelmotor)</option>
+            <!-- Övriga options fylls i av JS från tjanster.json -->
           </select>
           <select id="adminLevResa" style="background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;cursor:pointer;color-scheme:dark;">
             <option value="tur-retur">Tur & retur</option>
@@ -972,29 +969,47 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     });
   }
 
-  // Leverans: automatisk bil/släpvagn/bakgavellift beroende på cart-innehåll
-  function cartHasBulky(cart) {
-    return cart.some(i => i.bulky === true);
+  // Leverans: JSON-driven regelmotor.
+  // Regler ligger i tjanster.json under leverans.selection_rules och evalueras
+  // i ordning — första matchande regel vinner. Stöd för:
+  //   if=anyItemForces  + use=FROM_PRODUCT  → använd cartens första forceLeverans
+  //   if=bulkyCount, min=N + use=<key>      → matcha om antal bulky-items >= N
+  //   if=default + use=<key>                → fallback (bör vara sist)
+  function _bulkyCount(cart) {
+    return (cart || []).filter(i => i && i.bulky === true).reduce((n, i) => n + (i.qty || 1), 0);
   }
-  function cartRequiresBakgavel(cart) {
-    return cart.some(i => i.requiresBakgavel === true);
+  function _firstForceLeverans(cart) {
+    const item = (cart || []).find(i => i && typeof i.forceLeverans === 'string' && i.forceLeverans.trim());
+    return item ? item.forceLeverans.trim() : null;
   }
+  function resolveLevKey(cart) {
+    const rules = FRAKT?.leverans?.selection_rules || [];
+    for (const rule of rules) {
+      if (!rule || !rule.use) continue;
+      const cond = rule.if;
+      if (cond === 'anyItemForces') {
+        const forced = _firstForceLeverans(cart);
+        if (forced && FRAKT.leverans[forced]) return forced;
+        // Om use=FROM_PRODUCT men ingen produkt har forceLeverans, hoppa vidare
+      } else if (cond === 'bulkyCount') {
+        const min = typeof rule.min === 'number' ? rule.min : 1;
+        if (_bulkyCount(cart) >= min) return rule.use;
+      } else if (cond === 'default' || !cond) {
+        return rule.use;
+      }
+    }
+    return 'standard'; // sista fallback om regler är tomma
+  }
+
   function calcLev(cart) {
     // Admin-override: kolla dropdown
     const adminType = document.getElementById('adminLevType')?.value || 'auto';
     const adminResa = document.getElementById('adminLevResa')?.value || 'tur-retur';
     const enkelresa = adminResa === 'enkel';
 
-    let key = null;
-    if (adminType !== 'auto') {
-      key = adminType; // 'standard','skrymmande','lastbil','bakgavel'
-    } else if (cartRequiresBakgavel(cart)) {
-      key = 'bakgavel'; // LED-vägg etc. — kräver lätt lastbil m. bakgavellift
-    } else {
-      key = cartHasBulky(cart) ? 'skrymmande' : 'standard';
-    }
-
+    const key = adminType !== 'auto' ? adminType : resolveLevKey(cart);
     const lev = FRAKT.leverans[key] || FRAKT.leverans.standard;
+
     const price = enkelresa
       ? (lev.enkelresa || Math.round(lev.pris / 2))
       : lev.pris;
@@ -1239,6 +1254,21 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     if (pn) pn.classList.toggle('hidden', !!document.getElementById('chkLeverans')?.checked);
   });
   document.getElementById('chkMontering')?.addEventListener('change', updateSummary);
+  // Auto-fyll adminLevType-dropdown från tjanster.json (allt JSON-driven)
+  (function populateAdminLevDropdown() {
+    const sel = document.getElementById('adminLevType');
+    if (!sel || !FRAKT?.leverans) return;
+    const META_KEYS = new Set(['label', 'description', 'zon', 'selection_rules']);
+    const fragments = [];
+    for (const [key, val] of Object.entries(FRAKT.leverans)) {
+      if (META_KEYS.has(key)) continue;
+      if (!val || typeof val !== 'object' || !val.id) continue;
+      // Läsbar label från JSON, ta bort '(tur & retur)' som är redundant i dropdown
+      const label = (val.label || key).replace(/\s*\(tur\s*&?\s*retur\)\s*/i, '');
+      fragments.push(`<option value="${key}">${label}</option>`);
+    }
+    if (fragments.length) sel.insertAdjacentHTML('beforeend', fragments.join(''));
+  })();
   // Admin leverans-override: uppdatera pris live vid val
   document.getElementById('adminLevType')?.addEventListener('change', updateSummary);
   document.getElementById('adminLevResa')?.addEventListener('change', updateSummary);
@@ -1544,13 +1574,14 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     });
   })();
   // Auto-select av leverans + montering om cart har LED-vägg eller andra
-  // produkter som kräver det (flaggor: requiresBakgavel, assemblyMinutesTotal, bulky)
+  // produkter som kräver det (flaggor: forceLeverans, assemblyMinutesTotal, bulky)
   function autoSelectServices() {
     const cart = getCart();
     if (!cart.length) return;
 
-    // Leverans: auto-bocka om cart har bulky eller requiresBakgavel
-    const needsDelivery = cart.some(i => i.bulky === true || i.requiresBakgavel === true);
+    // Leverans: auto-bocka om cart har bulky eller forceLeverans-flagga
+    // (requiresBakgavel kvar som bakåtkompatibilitet om gamla items finns i localStorage)
+    const needsDelivery = cart.some(i => i.bulky === true || (typeof i.forceLeverans === 'string' && i.forceLeverans) || i.requiresBakgavel === true);
     const chkLev = document.getElementById('chkLeverans');
     if (needsDelivery && chkLev && !chkLev.checked) {
       chkLev.checked = true;

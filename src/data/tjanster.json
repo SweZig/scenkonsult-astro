@@ -4,6 +4,30 @@
     "label": "Leverans & upphämtning",
     "description": "Vi kör ut och hämtar upp utrustningen. Priset avser tur-och-retur.",
     "zon": "Priser gäller inom Storstockholm. Längre transporter — kontakta oss.",
+    "selection_rules": [
+      {
+        "if": "anyItemForces",
+        "use": "FROM_PRODUCT",
+        "comment": "Om någon produkt har forceLeverans-flagga, använd den"
+      },
+      {
+        "if": "bulkyCount",
+        "min": 2,
+        "use": "storbil_slap",
+        "comment": "2+ skrymmande produkter"
+      },
+      {
+        "if": "bulkyCount",
+        "min": 1,
+        "use": "skrymmande",
+        "comment": "1 skrymmande produkt"
+      },
+      {
+        "if": "default",
+        "use": "standard",
+        "comment": "Default: liten bil"
+      }
+    ],
     "standard": {
       "id": "lev-standard",
       "label": "Vanlig bil (tur & retur)",

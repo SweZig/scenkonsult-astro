@@ -941,8 +941,11 @@ const faqSchema = {
 
         // Panel-rad (qty = antal paneler).
         // Flaggor till varukorgen:
-        //   requiresBakgavel: true   → välj automatiskt "Lätt lastbil m. bakgavellift" som leverans
-        //   assemblyMinutesTotal: N  → fast monteringstid i minuter, oavsett antal paneler
+        //   forceLeverans: "lastbil"  → använd alltid Lätt lastbil som leverans
+        //                              (LED-vägg kräver lastbil för säker hantering)
+        //   bulky: true               → räknas som skrymmande (även om forceLeverans
+        //                              tar prioritet, är flaggan rätt)
+        //   assemblyMinutesTotal: N   → fast monteringstid i minuter, oavsett antal paneler
         //                              (om kunden valt tekniker — annars 0)
         const cartAssembly = c.monteringHours > 0 ? c.monteringHours * 60 : 0;
         window.skCart.add({
@@ -954,7 +957,7 @@ const faqSchema = {
           category: 'LED-vägg',
           image: c.panel.image,
           bulky: true,
-          requiresBakgavel: true,
+          forceLeverans: 'lastbil',
           assemblyMinutesTotal: cartAssembly,
           qty: c.totalPanels,
         });
@@ -1001,7 +1004,7 @@ const faqSchema = {
           });
         }
 
-        // Transport hanteras automatiskt av varukorgen via requiresBakgavel-flaggan på panel-raden
+        // Transport hanteras automatiskt av varukorgen via forceLeverans-flaggan på panel-raden
         // — ingen separat produktrad behövs här.
 
         feedbackEl.textContent = '✓ Lagt i varukorgen — öppna varukorgen för att gå vidare till offert.';
