@@ -51,7 +51,7 @@ exports.handler = async (event) => {
     if (body.getLogs) {
       // ── Senaste 200 loggar för frågtabellen ───────────────────────────────
       let q = db.from('sven_logs')
-        .select('id, created_at, message, reply_preview, is_chip, customer_type, page_url')
+        .select('id, created_at, message, reply_preview, is_chip, customer_type, page_url, session_id, message_idx')
         .order('created_at', { ascending: false })
         .limit(200);
 
@@ -61,6 +61,21 @@ exports.handler = async (event) => {
 
       const { data: logs } = await q;
       return ok({ today, week, month, avg, rating, daily, logs: logs || [] });
+    }
+
+    if (body.getThread && body.session_id) {
+      // ── Hela konversationen för en session ────────────────────────────────
+      const { data: thread, error: tErr } = await db.from('sven_logs')
+        .select('id, created_at, message, reply_preview, is_chip, customer_type, page_url, session_id, message_idx')
+        .eq('session_id', body.session_id)
+        .order('message_idx', { ascending: true })
+        .order('created_at', { ascending: true })
+        .limit(500);
+      if (tErr) {
+        console.error('SVEN_THREAD_ERR:', tErr.message);
+        return err('Kunde inte hämta tråd', 500);
+      }
+      return ok({ thread: thread || [] });
     }
 
     return ok({ today, week, month, avg, rating, daily });

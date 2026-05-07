@@ -56,6 +56,31 @@
     .pg-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: rgba(255,255,255,0.6); font-size: 0.8rem; padding: 4px 10px; cursor: pointer; }
     .pg-btn:disabled { opacity: 0.3; cursor: default; }
     .pg-info { font-size: 0.78rem; color: rgba(255,255,255,0.60); }
+
+    /* ── Konversations-modal ─────────────────────────────────────── */
+    .q-table tr[data-session] { cursor: pointer; }
+    .q-table tr[data-session]:hover td:first-child::before { content: '👁  '; color: rgba(196,181,244,0.6); }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(12,10,36,0.85); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-backdrop.open { display: flex; }
+    .modal-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.25); border-radius: 16px; max-width: 720px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-head { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+    .modal-head-title { font-size: 1rem; font-weight: 700; color: #c4b5f4; margin-bottom: 0.5rem; }
+    .modal-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; font-size: 0.72rem; color: rgba(255,255,255,0.60); }
+    .modal-meta strong { color: rgba(196,181,244,0.85); font-weight: 600; }
+    .modal-close { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
+    .modal-close:hover { background: rgba(255,255,255,0.12); }
+    .modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
+    .bubble-row { margin-bottom: 1rem; }
+    .bubble-row:last-child { margin-bottom: 0; }
+    .bubble-time { font-size: 0.65rem; color: rgba(255,255,255,0.40); margin-bottom: 4px; padding: 0 0.25rem; }
+    .bubble-q { background: #0c0a24; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px 12px 12px 2px; padding: 0.7rem 0.95rem; font-size: 0.88rem; color: #f0eeff; line-height: 1.5; max-width: 85%; white-space: pre-wrap; word-break: break-word; }
+    .bubble-q.is-chip { background: rgba(196,181,244,0.06); font-style: italic; color: rgba(255,255,255,0.72); }
+    .bubble-q-label { font-size: 0.65rem; color: rgba(196,181,244,0.55); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; padding: 0 0.25rem; }
+    .bubble-a { background: rgba(196,181,244,0.08); border: 1px solid rgba(196,181,244,0.18); border-radius: 12px 12px 2px 12px; padding: 0.7rem 0.95rem; font-size: 0.85rem; color: rgba(255,255,255,0.85); line-height: 1.5; max-width: 85%; margin-left: auto; white-space: pre-wrap; word-break: break-word; font-style: italic; }
+    .bubble-a-label { font-size: 0.65rem; color: rgba(196,181,244,0.55); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; padding: 0 0.25rem; text-align: right; }
+    .modal-empty { padding: 2rem; text-align: center; color: rgba(255,255,255,0.6); font-size: 0.85rem; }
+    .modal-loading { padding: 2rem; text-align: center; color: rgba(196,181,244,0.5); font-size: 0.85rem; }
   </style>
 </head>
 <body>
@@ -124,6 +149,22 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Konversations-modal -->
+<div class="modal-backdrop" id="thread-modal" onclick="closeThread(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <div class="modal-head-title">Konversation</div>
+        <div class="modal-meta" id="thread-meta">–</div>
+      </div>
+      <button class="modal-close" onclick="closeThread()" title="Stäng (Esc)">✕</button>
+    </div>
+    <div class="modal-body" id="thread-body">
+      <div class="modal-loading">Laddar tråd…</div>
+    </div>
   </div>
 </div>
 
@@ -251,11 +292,11 @@ function renderTable() {
   }
 
   tbody.innerHTML = slice.map(l => `
-    <tr>
+    <tr ${l.session_id ? `data-session="${l.session_id}" onclick="openThread('${l.session_id}')"` : ''} title="${l.session_id ? 'Klicka för hela konversationen' : ''}">
       <td style="color:rgba(255,255,255,0.60);font-size:0.78rem;white-space:nowrap">${fmtTime(l.created_at)}</td>
       <td>
-        <div>${l.message || '–'}</div>
-        ${l.reply_preview ? `<div class="reply-preview">↳ ${l.reply_preview.replace(/</g,'&lt;').substring(0,120)}…</div>` : ''}
+        <div>${escapeHtml(l.message || '–')}</div>
+        ${l.reply_preview ? `<div class="reply-preview">↳ ${escapeHtml(l.reply_preview).substring(0,140)}…</div>` : ''}
       </td>
       <td>${typeTag(l.customer_type)}</td>
       <td><span class="page-tag">${(l.page_url||'–').replace('/vara-tjanster','').replace('/for/','/')}</span></td>
@@ -269,6 +310,81 @@ function renderTable() {
 }
 
 function changePage(dir) { page += dir; renderTable(); }
+
+// ── Konversations-modal (klickbar rad → hela tråden) ─────────────────────────
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function openThread(sessionId) {
+  if (!sessionId) return;
+  const modal = document.getElementById('thread-modal');
+  const body  = document.getElementById('thread-body');
+  const meta  = document.getElementById('thread-meta');
+  body.innerHTML = '<div class="modal-loading">Laddar tråd…</div>';
+  meta.textContent = '';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  const data = await api('sven-stats', { getThread: true, session_id: sessionId });
+  const thread = (data && data.thread) || [];
+
+  if (!thread.length) {
+    body.innerHTML = '<div class="modal-empty">Hittade inga meddelanden för denna session.</div>';
+    return;
+  }
+
+  // Metadata: kundtyp + sida + antal meddelanden + första tidpunkten
+  const first = thread[0];
+  const last  = thread[thread.length - 1];
+  const minutes = Math.round((new Date(last.created_at) - new Date(first.created_at)) / 60000);
+  const pages = [...new Set(thread.map(t => t.page_url).filter(Boolean))];
+  meta.innerHTML = [
+    `<span><strong>${thread.length}</strong> meddelanden</span>`,
+    `<span>Kundtyp: ${typeTag(first.customer_type)}</span>`,
+    `<span>Startade: <strong>${fmtTime(first.created_at)}</strong></span>`,
+    minutes > 0 ? `<span>Längd: <strong>${minutes} min</strong></span>` : '',
+    pages.length ? `<span>Sida: <strong style="font-family:monospace;font-size:0.7rem">${pages[0].replace('/vara-tjanster','').replace('/for/','/')}</strong>${pages.length > 1 ? ` (+${pages.length - 1})` : ''}</span>` : '',
+    `<span style="color:rgba(255,255,255,0.4);font-family:monospace;font-size:0.65rem">${sessionId}</span>`,
+  ].filter(Boolean).join(' · ');
+
+  body.innerHTML = thread.map(t => `
+    <div class="bubble-row">
+      <div class="bubble-time">${fmtTime(t.created_at)}${t.is_chip ? ' · 💬 chip-svar' : ''}</div>
+      <div class="bubble-q-label">Kund</div>
+      <div class="bubble-q ${t.is_chip ? 'is-chip' : ''}">${escapeHtml(t.message || '–')}</div>
+      ${t.reply_preview ? `
+        <div class="bubble-a-label" style="margin-top:0.6rem">Sven (svarspreview)</div>
+        <div class="bubble-a">${escapeHtml(t.reply_preview)}${t.reply_preview.length >= 300 ? ' …' : ''}</div>
+      ` : ''}
+    </div>`).join('');
+
+  body.scrollTop = 0;
+}
+
+function closeThread(e) {
+  if (e && e.target && e.target.id !== 'thread-modal' && !e.target.classList.contains('modal-close')) {
+    if (e.type === 'click' && e.target.closest('.modal-box')) return;
+  }
+  document.getElementById('thread-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Esc stänger modalen
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('thread-modal').classList.contains('open')) {
+    closeThread();
+  }
+});
+
+// Exponera för dynamiska onclick (Astro <script> är ES-modul)
+window.openThread  = openThread;
+window.closeThread = closeThread;
+window.setFilter   = setFilter;
+window.changePage  = changePage;
+window.loadLogs    = loadLogs;
 
 async function init() {
   await Promise.all([loadStats(), loadLogs()]);
