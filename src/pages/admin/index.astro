@@ -2555,7 +2555,7 @@ function renderTemplate(body, cart) {
 async function loadChatTemplates() {
   try {
     const r = await fetch('/.netlify/functions/admin-chat-templates', {
-      headers: { 'Authorization': 'Bearer ' + adminToken },
+      headers: { 'Authorization': `Bearer ${TOKEN}` },
     });
     if (!r.ok) return; // behåll fallback
     const data = await r.json();
@@ -2710,7 +2710,7 @@ async function saveChatTemplate(existingId) {
   try {
     const r = await fetch('/.netlify/functions/admin-chat-templates', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'upsert',
         template: { id: existingId || undefined, label, title: title || null, body, sort_order: sortOrder },
@@ -2741,7 +2741,7 @@ async function deleteChatTemplate(id) {
   try {
     const r = await fetch('/.netlify/functions/admin-chat-templates', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'delete', id }),
     });
     if (!r.ok) { alert('Kunde inte ta bort'); return; }
@@ -2763,7 +2763,7 @@ async function moveChatTemplate(index, direction) {
   try {
     await fetch('/.netlify/functions/admin-chat-templates', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'reorder', ids: currentChatTemplates.map(t => t.id) }),
     });
     // Uppdatera lokal sort_order
