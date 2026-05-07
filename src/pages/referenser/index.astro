@@ -395,7 +395,7 @@ const pageSchema = {
       // 2. Om ingen färsk cache → fetcha
       if (!data) {
         try {
-          const r = await fetch('/api/google-reviews');
+          const r = await fetch('/api/google-reviews?v=3');
           if (!r.ok) return; // Behåll hårdkodade fallback
           const json = await r.json();
           if (!json.ok || !Array.isArray(json.reviews) || json.reviews.length === 0) return;
