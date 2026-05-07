@@ -584,6 +584,30 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .ct-field textarea { font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; font-size: 0.85rem; line-height: 1.5; resize: vertical; }
     .ct-field input:focus, .ct-field textarea:focus { outline: none; border-color: var(--brand-lav); }
     .ct-editor-actions { display: flex; justify-content: space-between; margin-top: 1rem; }
+    .ct-vars-panel {
+      margin: 0.75rem 0 1rem;
+      padding: 0.85rem 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .ct-vars-label {
+      font-size: 0.75rem; color: var(--text-faint); margin-bottom: 0.5rem;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .ct-vars-chips {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+    }
+    .ct-var-chip {
+      background: var(--surface); color: var(--brand-lav); border: 1px solid var(--brand-lav);
+      border-radius: 6px; padding: 0.25rem 0.55rem; cursor: pointer;
+      font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; font-size: 0.78rem;
+      transition: all 0.12s;
+    }
+    .ct-var-chip:hover { background: var(--brand-lav); color: var(--brand-dark); }
+    .ct-vars-hint {
+      font-size: 0.72rem; color: var(--text-faint); margin-top: 0.6rem; line-height: 1.5;
+    }
 
     /* ── KALENDER ──────────────────────────────────────── */
     #view-calendar { display: none; }
@@ -1757,7 +1781,8 @@ function renderTab(tab) {
         if (!input) return;
         const existing = input.value.trim();
         if (existing && !confirm('Det finns redan text i meddelandet. Vill du ersätta den med mallen?')) return;
-        input.value = tpl.body;
+        // Ersätt variabler ({förnamn}, {namn}, etc.) med kundens data från currentCart
+        input.value = renderTemplate(tpl.body, currentCart);
         input.focus();
         // Placera markören i slutet
         input.setSelectionRange(input.value.length, input.value.length);
@@ -2480,6 +2505,53 @@ Tusen tack!
 
 let currentChatTemplates = [...CHAT_TEMPLATES_FALLBACK];
 
+// Tillgängliga variabler i chattmallar — visas också i mall-editorn
+const TEMPLATE_VARIABLES = [
+  { name: 'förnamn',     desc: 'Kundens förnamn (första ordet av namnet)' },
+  { name: 'efternamn',   desc: 'Kundens efternamn (resten av namnet)' },
+  { name: 'namn',        desc: 'Kundens fulla namn' },
+  { name: 'företag',     desc: 'Företagsnamn (om angivet)' },
+  { name: 'epost',       desc: 'Kundens e-postadress' },
+  { name: 'telefon',     desc: 'Kundens telefonnummer' },
+  { name: 'datum',       desc: 'Eventdatum (formaterat på svenska)' },
+  { name: 'plats',       desc: 'Eventets plats / leveransadress' },
+  { name: 'ordernummer', desc: 'Cart-ID (t.ex. SK-A1B2C3D4-E5F6)' },
+];
+
+// Ersätt variabler som {förnamn} med värden från currentCart.
+// Okända variabler lämnas oförändrade så admin ser om hen skrivit fel.
+function renderTemplate(body, cart) {
+  if (!body) return '';
+  if (!cart) return body;
+
+  const fullName = (cart.customer_name || '').trim();
+  const parts = fullName.split(/\s+/).filter(Boolean);
+  const firstName = parts[0] || '';
+  const lastName = parts.length > 1 ? parts.slice(1).join(' ') : '';
+
+  const eventDate = cart.event_date
+    ? new Date(cart.event_date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+
+  const vars = {
+    'förnamn':     firstName,
+    'efternamn':   lastName,
+    'namn':        fullName,
+    'företag':     cart.customer_company || '',
+    'epost':       cart.customer_email || '',
+    'telefon':     cart.customer_phone || '',
+    'datum':       eventDate,
+    'plats':       cart.event_location || '',
+    'ordernummer': cart.id || '',
+  };
+
+  // Matcha {nyckel} med svenska tecken. Okända lämnas oförändrade.
+  return body.replace(/\{([a-zåäöA-ZÅÄÖ_]+)\}/g, (match, key) => {
+    const val = vars[key.toLowerCase()];
+    return val !== undefined ? val : match;
+  });
+}
+
 async function loadChatTemplates() {
   try {
     const r = await fetch('/.netlify/functions/admin-chat-templates', {
@@ -2586,8 +2658,17 @@ function renderChatTemplateEditor(tpl) {
       </label>
       <label class="ct-field">
         <span>Meddelandetext (markdown-länkar stöds: <code>[text](url)</code>)</span>
-        <textarea id="ct-field-body" rows="10" maxlength="5000" placeholder="Hej!&#10;...">${escapeHtml(t.body)}</textarea>
+        <textarea id="ct-field-body" rows="10" maxlength="5000" placeholder="Hej {förnamn}!&#10;...">${escapeHtml(t.body)}</textarea>
       </label>
+      <div class="ct-vars-panel">
+        <div class="ct-vars-label">Tillgängliga variabler — klicka för att infoga vid markörens position:</div>
+        <div class="ct-vars-chips">
+          ${TEMPLATE_VARIABLES.map(v =>
+            `<button type="button" class="ct-var-chip" data-var="${v.name}" title="${escapeHtml(v.desc)}">{${v.name}}</button>`
+          ).join('')}
+        </div>
+        <div class="ct-vars-hint">Variabler ersätts automatiskt med kundens data när admin klickar på mall-knappen i en chatt. Okända variabler lämnas oförändrade.</div>
+      </div>
       <div class="ct-editor-actions">
         <button type="button" class="ct-btn-secondary" id="ct-editor-back">← Tillbaka</button>
         <button type="button" class="ct-btn-primary" id="ct-editor-save">${tpl ? 'Spara ändringar' : 'Skapa mall'}</button>
@@ -2596,6 +2677,23 @@ function renderChatTemplateEditor(tpl) {
   `;
   body.querySelector('#ct-editor-back').addEventListener('click', renderChatTemplatesList);
   body.querySelector('#ct-editor-save').addEventListener('click', () => saveChatTemplate(tpl?.id || null));
+  // Variabel-chips: infoga {variabel} vid markörens position i body-textareat
+  body.querySelectorAll('.ct-var-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const textarea = body.querySelector('#ct-field-body');
+      if (!textarea) return;
+      const varName = chip.dataset.var;
+      const insert = `{${varName}}`;
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const before = textarea.value.slice(0, start);
+      const after = textarea.value.slice(end);
+      textarea.value = before + insert + after;
+      const newPos = start + insert.length;
+      textarea.focus();
+      textarea.setSelectionRange(newPos, newPos);
+    });
+  });
 }
 
 async function saveChatTemplate(existingId) {
