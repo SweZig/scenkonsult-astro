@@ -33,7 +33,7 @@ export default async (req, context) => {
   }
 
   try {
-    const url = `https://places.googleapis.com/v1/places/${PLACE_ID}?languageCode=sv`;
+    const url = `https://places.googleapis.com/v1/places/${PLACE_ID}?languageCode=sv&reviewsSort=NEWEST`;
     const r = await fetch(url, {
       headers: {
         'X-Goog-Api-Key': API_KEY,
