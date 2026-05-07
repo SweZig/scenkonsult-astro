@@ -334,6 +334,32 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .read-badge-yes { background: rgba(74,222,128,0.14);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
     .read-badge-no  { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.22); }
 
+    /* Pickup-state badges (kvittens-flöde) */
+    .pickup-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.65rem; font-weight: 700; padding: 1px 6px;
+      border-radius: 99px; letter-spacing: 0.02em;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: help;
+    }
+    /* Förberedd: kund har signerat sin del, väntar på admin */
+    .pickup-badge-prepared {
+      background: rgba(196,181,244,0.15);
+      color: #c4b5f4;
+      border: 1px solid rgba(196,181,244,0.35);
+      animation: pulse-prepared 2.5s ease-in-out infinite;
+    }
+    /* Aktiverad: helt motkvitterad */
+    .pickup-badge-activated {
+      background: rgba(74,222,128,0.14);
+      color: #4ade80;
+      border: 1px solid rgba(74,222,128,0.30);
+    }
+    @keyframes pulse-prepared {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(196,181,244,0); }
+      50%      { box-shadow: 0 0 0 3px rgba(196,181,244,0.15); }
+    }
+
     /* Urgency-färger */
     .urg-red    { --cc-urgency: var(--red); }
     .urg-amber  { --cc-urgency: var(--amber); }
@@ -1308,6 +1334,29 @@ function readBadge(c, { compact = false } = {}) {
   }
 }
 
+// Pickup-state-badge (kvittens-flödet)
+//  - 'prepared': kund har signerat men ingen motkvitterad ännu (väntar på admin)
+//  - 'activated': fullt motkvitterad — kvittens aktiv
+function pickupBadge(c, { compact = false } = {}) {
+  // Bara relevant för aktiva ordrar i utlämnings-flödet
+  if (!['confirmed', 'fakturerad', 'betald'].includes(c.status)) return '';
+  if (c.pickup_confirmed_at) {
+    const when = fmtTime ? fmtTime(c.pickup_confirmed_at) : new Date(c.pickup_confirmed_at).toLocaleString('sv-SE');
+    const title = `Kvittens aktiverad ${when}`;
+    return compact
+      ? `<span class="pickup-badge pickup-badge-activated" title="${title}">✓</span>`
+      : `<span class="pickup-badge pickup-badge-activated" title="${title}">✓ Aktiverad</span>`;
+  }
+  if (c.pickup_signed_at) {
+    const when = fmtTime ? fmtTime(c.pickup_signed_at) : new Date(c.pickup_signed_at).toLocaleString('sv-SE');
+    const title = `Kund har förberett kvittens ${when} — väntar på din motkvittering`;
+    return compact
+      ? `<span class="pickup-badge pickup-badge-prepared" title="${title}">✍</span>`
+      : `<span class="pickup-badge pickup-badge-prepared" title="${title}">✍ Förberedd</span>`;
+  }
+  return '';
+}
+
 function readAgoText(date) {
   const mins = Math.floor((Date.now() - date.getTime()) / 60000);
   if (mins < 1) return 'just nu';
@@ -1370,6 +1419,7 @@ function cartCardCompact(c) {
   const uCls     = urgencyClass(c);
   const evBadge  = waitingEvBadge(c);
   const rBadge   = readBadge(c, { compact: true });
+  const pBadge   = pickupBadge(c, { compact: true });
   const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
@@ -1379,6 +1429,7 @@ function cartCardCompact(c) {
       <div class="cc-row1">
         <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
         ${evBadge}
+        ${pBadge}
         ${rBadge}
         ${unread}
       </div>
@@ -1509,6 +1560,7 @@ function cartCardHTML(c) {
   const unread = c.unread_count > 0
     ? `<span class="unread-pill">💬 ${c.unread_count} ny${c.unread_count > 1 ? 'a' : 't'}</span>` : '';
   const rBadge = readBadge(c);
+  const pBadge = pickupBadge(c);
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
   const showBadge = ['new','waiting'].includes(c.status);
@@ -1565,7 +1617,7 @@ function cartCardHTML(c) {
       </div>
       <div class="cart-card-footer">
         <span class="cart-card-price">${total}</span>
-        <span style="display:flex;align-items:center;gap:6px">${rBadge}${unread}</span>
+        <span style="display:flex;align-items:center;gap:6px">${pBadge}${rBadge}${unread}</span>
       </div>
     </div>`;
 }
