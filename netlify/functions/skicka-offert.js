@@ -89,6 +89,7 @@ exports.handler = async (event) => {
           delivery_time:    customer.delivery_time || '13:00',
           return_time:      customer.return_time   || '11:00',
           event_location:   selfPickup ? 'Självhämtning — Grimstagatan 164, Vällingby' : (customer.address || ''),
+          delivery_mode:    selfPickup ? 'self_pickup' : 'delivery',
           total_excl:       totalExcl * 100,
           cart_token:       cartToken,
           expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),

@@ -970,6 +970,15 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       <div class="form-row full" style="margin-bottom:0">
         <div><label class="form-label">Plats / Adress</label><input class="form-input" id="qc-location" placeholder="Lokal eller adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
       </div>
+      <div class="form-row full" style="margin-bottom:0">
+        <div><label class="form-label">Hämtning eller leverans</label>
+          <select class="form-input" id="qc-delivery-mode" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;">
+            <option value="">— välj —</option>
+            <option value="self_pickup">📦 Hämtar och lämnar själv</option>
+            <option value="delivery">🚚 Önskar leverans och upphämtning</option>
+          </select>
+        </div>
+      </div>
 
       <!-- Produktväljare -->
       <div class="section-label">Lägg till produkter</div>
@@ -4241,6 +4250,7 @@ function openQuoteModal(prefill) {
   if ($('qc-time-from')) $('qc-time-from').value = prefill?.delivery_time || '13:00';
   if ($('qc-time-to'))   $('qc-time-to').value   = prefill?.return_time   || '11:00';
   $('qc-location').value = prefill?.event_location || '';
+  if ($('qc-delivery-mode')) $('qc-delivery-mode').value = prefill?.delivery_mode || '';
   $('qc-company').value  = prefill?.customer_company || '';
   if ($('qc-orgnr')) $('qc-orgnr').value = prefill?.customer_orgnr || '';
   // Show/hide orgnr based on company
@@ -4538,6 +4548,7 @@ async function sendQuote() {
       delivery_time: $('qc-time-from')?.value        || '13:00',
       return_time:   $('qc-time-to')?.value          || '11:00',
       location:      $('qc-location').value.trim()   || null,
+      delivery_mode: $('qc-delivery-mode')?.value     || null,
       company:  $('qc-company')?.value.trim() || null,
       orgnr:    $('qc-orgnr')?.value.trim()   || null,
     },

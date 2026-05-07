@@ -67,6 +67,10 @@ exports.handler = async (event) => {
   const cartUrl   = `https://scenkonsult.se/order/?cart=${cartId}&token=${cartToken}`;
 
   try {
+    // Validera delivery_mode (whitelist) — undvik att klient skickar skräpvärden
+    const dmRaw = customer.delivery_mode;
+    const deliveryMode = (dmRaw === 'self_pickup' || dmRaw === 'delivery') ? dmRaw : null;
+
     await db.upsert('carts', {
       id:               cartId,
       status:           'waiting',
@@ -77,6 +81,7 @@ exports.handler = async (event) => {
       customer_message: '',
       event_date:       customer.date     || null,
       event_location:   customer.location || null,
+      delivery_mode:    deliveryMode,
       delivery_time:    customer.delivery_time || '13:00',
       return_time:      customer.return_time   || '11:00',
       return_date:      customer.return_date   || null,
