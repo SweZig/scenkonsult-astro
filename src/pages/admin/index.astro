@@ -2729,8 +2729,7 @@ async function saveChatTemplate(existingId) {
     currentChatTemplates.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     renderChatTemplatesList();
     // Re-rendera Chatt-fliken om den är öppen så pill-knapparna uppdateras
-    if (activeTab === 'chat' && currentCart) renderChatTab();
-    if (activeTab === 'chat' && currentCart) bindTabEvents('chat');
+    if (activeTab === 'chat' && currentCart) renderTab('chat');
   } catch (e) {
     alert('Nätverksfel: ' + e.message);
   }
@@ -2747,7 +2746,7 @@ async function deleteChatTemplate(id) {
     if (!r.ok) { alert('Kunde inte ta bort'); return; }
     currentChatTemplates = currentChatTemplates.filter(t => t.id !== id);
     renderChatTemplatesList();
-    if (activeTab === 'chat' && currentCart) { renderChatTab(); bindTabEvents('chat'); }
+    if (activeTab === 'chat' && currentCart) renderTab('chat');
   } catch (e) {
     alert('Nätverksfel: ' + e.message);
   }
@@ -2768,7 +2767,7 @@ async function moveChatTemplate(index, direction) {
     });
     // Uppdatera lokal sort_order
     currentChatTemplates.forEach((t, i) => { t.sort_order = i; });
-    if (activeTab === 'chat' && currentCart) { renderChatTab(); bindTabEvents('chat'); }
+    if (activeTab === 'chat' && currentCart) renderTab('chat');
   } catch (e) {
     console.warn('Reorder failed:', e.message);
   }
