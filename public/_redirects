@@ -1,6 +1,15 @@
 # GSC edge cases — URL:er utan trailing slash som inte täcks av netlify.toml
 # (netlify.toml-redirects använder /path/ med slash, dessa fångar /path utan)
 
+# Döda WP-infrastruktur — 410 Gone (override mot netlify.toml som har 301)
+# Berättar för Google att filerna är permanent borta → tas bort ur indexet
+/wp-content/*    /  410!
+/wp-includes/*   /  410!
+/wp-admin/*      /  410!
+/wp-json/*       /  410!
+/xmlrpc.php      /  410!
+/wp-login.php    /  410!
+
 # Bare /requests (utan slash) — gammal WP-sida som ska 410 Gone
 /requests   /  410!
 /requests/  /  410!
