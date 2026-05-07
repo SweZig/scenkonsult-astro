@@ -253,10 +253,10 @@
 
   <!-- Main form -->
   <div id="main-state" style="display:none">
-    <h1>Förbered din kvittens</h1>
+    <h1 id="sign-h1">Förbered din utlämning</h1>
     <p class="sub" id="order-sub">Förbered din digitala signatur och legitimation. Kvittensen aktiveras när vi träffas vid utlämningen.</p>
 
-    <div style="background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.85rem;line-height:1.55;color:rgba(255,255,255,0.85)">
+    <div id="info-panel" style="background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.85rem;line-height:1.55;color:rgba(255,255,255,0.85)">
       ℹ <strong style="color:#c4b5f4">Detta är förberedelse</strong> — kvittensen blir inte juridiskt bindande förrän vi tillsammans bekräftar att all utrustning lämnats över korrekt. Du riskerar inget genom att fylla i detta nu.
     </div>
 
@@ -322,24 +322,57 @@
   const sigWrap   = document.getElementById('sig-wrap');
   const placeholder = document.getElementById('sig-placeholder');
 
+  // dprRatio bevarar internt koordinatsystem 1:1 med CSS-pixlar via ctx.scale,
+  // medan canvas.width ökar för skarp rendering på HiDPI-skärmar.
+  let dprRatio = 1;
+
   function initCanvas() {
-    const w = sigWrap.offsetWidth;
-    canvas.width  = w;
-    canvas.height = 180;
+    const w = sigWrap.clientWidth;
+    if (w < 10) {
+      // Layout inte klar ännu — försök igen i nästa frame
+      requestAnimationFrame(initCanvas);
+      return;
+    }
+    const h = 180;
+    dprRatio = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = Math.round(w * dprRatio);
+    canvas.height = Math.round(h * dprRatio);
+    canvas.style.width  = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dprRatio, 0, 0, dprRatio, 0, 0); // 1 ctx-enhet = 1 CSS-px
     ctx.strokeStyle = '#c4b5f4';
     ctx.lineWidth   = 2.5;
     ctx.lineCap     = 'round';
     ctx.lineJoin    = 'round';
   }
-  initCanvas();
-  window.addEventListener('resize', initCanvas);
+  // Vänta tills DOM är fullt renderat
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCanvas);
+  } else {
+    requestAnimationFrame(initCanvas);
+  }
+  window.addEventListener('resize', () => {
+    // Bevara existerande ritning vid resize
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width; tmp.height = canvas.height;
+    tmp.getContext('2d').drawImage(canvas, 0, 0);
+    initCanvas();
+    if (hasSig) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // rita rå
+      ctx.drawImage(tmp, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+  });
 
   let drawing = false, lastX = 0, lastY = 0;
 
   function getPos(e) {
     const r = canvas.getBoundingClientRect();
-    const src = e.touches ? e.touches[0] : e;
-    return [src.clientX - r.left, src.clientY - r.top];
+    // Pointer/touch/mouse events har alla clientX/clientY direkt
+    const cx = e.clientX != null ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const cy = e.clientY != null ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    return [cx - r.left, cy - r.top];
   }
 
   function startDraw(e) {
@@ -347,6 +380,17 @@
     drawing = true;
     [lastX, lastY] = getPos(e);
     placeholder.style.opacity = '0';
+    // Rita en prick så enstaka klick också syns
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 1.25, 0, Math.PI * 2);
+    ctx.fillStyle = '#c4b5f4';
+    ctx.fill();
+    hasSig = true;
+    updateSubmit();
+    // Capture pointer så vi får events även om muspekaren lämnar canvas
+    if (e.pointerId != null && canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch {}
+    }
   }
   function draw(e) {
     if (!drawing) return;
@@ -360,15 +404,29 @@
     hasSig = true;
     updateSubmit();
   }
-  function stopDraw() { drawing = false; }
+  function stopDraw(e) {
+    drawing = false;
+    if (e && e.pointerId != null && canvas.releasePointerCapture) {
+      try { canvas.releasePointerCapture(e.pointerId); } catch {}
+    }
+  }
 
-  canvas.addEventListener('touchstart', startDraw, { passive: false });
-  canvas.addEventListener('touchmove',  draw,      { passive: false });
-  canvas.addEventListener('touchend',   stopDraw);
-  canvas.addEventListener('mousedown',  startDraw);
-  canvas.addEventListener('mousemove',  draw);
-  canvas.addEventListener('mouseup',    stopDraw);
-  canvas.addEventListener('mouseleave', stopDraw);
+  // Pointer Events fungerar för mus + touch + penna och är mest robust
+  if (window.PointerEvent) {
+    canvas.addEventListener('pointerdown', startDraw);
+    canvas.addEventListener('pointermove', draw);
+    canvas.addEventListener('pointerup',   stopDraw);
+    canvas.addEventListener('pointercancel', stopDraw);
+  } else {
+    // Fallback för äldre browsers
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove',  draw,      { passive: false });
+    canvas.addEventListener('touchend',   stopDraw);
+    canvas.addEventListener('mousedown',  startDraw);
+    canvas.addEventListener('mousemove',  draw);
+    canvas.addEventListener('mouseup',    stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+  }
 
   document.getElementById('clear-btn').addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -478,6 +536,17 @@
       }
 
       // Läge 3: Kund ska förbereda — visa formuläret
+      const isDelivery = cart.delivery_mode === 'delivery';
+      const modeWord     = isDelivery ? 'leverans' : 'utlämning';
+      const modeWordCap  = isDelivery ? 'Leverans' : 'Utlämning';
+
+      // Anpassa header och info-panel utifrån leveransläge
+      document.getElementById('sign-h1').textContent = `Förbered din ${modeWord}`;
+      document.getElementById('order-sub').textContent =
+        `Förbered din digitala signatur och legitimation. Kvittensen aktiveras när vi träffas vid ${modeWord}en.`;
+      document.getElementById('info-panel').innerHTML =
+        `ℹ <strong style="color:#c4b5f4">Detta är förberedelse</strong> — kvittensen blir inte juridiskt bindande förrän vi tillsammans bekräftar att all utrustning lämnats över korrekt. Du riskerar inget genom att fylla i detta nu.`;
+
       // Visa orderbox
       const items  = (cart.items || []).filter(i => !i._note && i.name);
       const prodRows = items.slice(0,5).map(i =>
@@ -489,16 +558,19 @@
         ? new Date(cart.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' })
         : null;
       const timeStr = cart.delivery_time || '13:00';
+      const placeLabel = isDelivery
+        ? (cart.event_location ? cart.event_location : 'Adress saknas — kontakta oss')
+        : 'Grimstagatan 164, 162 58 Vällingby';
+      const timeNote = isDelivery
+        ? `<div style="margin-top:0.4rem;font-size:0.75rem;color:rgba(255,255,255,0.55);font-style:italic">Tiden är ungefärlig — vi kontaktar dig om förseningen blir mer än 30 min.</div>`
+        : '';
 
       document.getElementById('order-box').innerHTML = `
-        <strong>${cart.customer_name || 'Kund'}</strong> hämtar
+        <strong>${cart.customer_name || 'Kund'}</strong> ${isDelivery ? 'får leverans' : 'hämtar'}
         ${dateStr ? `<strong>${dateStr} kl ${timeStr}</strong>` : 'utrustning'}.<br>
-        ${cart.event_location ? `<span style="color:rgba(255,255,255,0.60)">${cart.event_location}</span><br>` : ''}
+        <span style="color:rgba(255,255,255,0.60)">${placeLabel}</span>${timeNote}
         <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06)">${prodRows}${more}</div>
         <div class="ref">${cart.id}</div>`;
-
-      document.getElementById('order-sub').textContent =
-        `Hej ${(cart.customer_name||'').split(' ')[0] || 'du'}! Förbered din digitala signatur och legitimation nedan.`;
 
       show('main-state');
     } catch (e) {
@@ -534,7 +606,15 @@
     btn.textContent = '⏳ Sparar…';
 
     try {
-      const sigData = canvas.toDataURL('image/png');
+      // Exportera i CSS-pixel-resolution (även om internt canvas är HiDPI)
+      // för att hålla filstorleken under sign-submit's 512KB-gräns
+      const exportW = parseInt(canvas.style.width)  || canvas.width;
+      const exportH = parseInt(canvas.style.height) || canvas.height;
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width  = exportW;
+      exportCanvas.height = exportH;
+      exportCanvas.getContext('2d').drawImage(canvas, 0, 0, exportW, exportH);
+      const sigData = exportCanvas.toDataURL('image/png');
 
       const res = await fetch('/.netlify/functions/sign-submit', {
         method:  'POST',

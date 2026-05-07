@@ -1,6 +1,8 @@
 // netlify/functions/_pickup-reminder-mail.js
 // Delad mailmall för förberedelse av kvittens (flight check-in-stil).
-// Används både av scheduled-pickup-reminder och pickup-reminder-trigger (manuell).
+// Anpassas efter cart.delivery_mode:
+//   - 'self_pickup' (default): kunden hämtar hos oss på Grimstagatan
+//   - 'delivery':              vi levererar till kundens event_location
 'use strict';
 
 const LOGO_URL = 'https://scenkonsult.se/logo-white.png';
@@ -12,6 +14,8 @@ function escapeHtml(s) {
 }
 
 function buildPickupReminderEmail(cart) {
+  const isDelivery = cart.delivery_mode === 'delivery';
+
   const firstName = (cart.customer_name || '').split(' ')[0] || 'Hej';
   const signUrl   = `https://scenkonsult.se/sign/?cart=${cart.id}&token=${cart.cart_token}`;
 
@@ -20,7 +24,36 @@ function buildPickupReminderEmail(cart) {
         { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     : null;
   const timeStr = cart.delivery_time || '13:00';
-  const placeStr = cart.event_location ? escapeHtml(cart.event_location) : null;
+
+  // Adress: vid leverans kommer vi till kunden, annars hämtar de hos oss
+  const placeStr = isDelivery
+    ? (cart.event_location ? escapeHtml(cart.event_location) : 'Adress saknas — kontakta oss')
+    : 'Grimstagatan 164, 162 58 Vällingby';
+
+  // Mode-specifika ord
+  const modeWord    = isDelivery ? 'leverans' : 'utlämning';
+  const modeWordCap = isDelivery ? 'Leverans' : 'Utlämning';
+  const ctaText     = isDelivery ? 'Förbered din leverans →' : 'Förbered din utlämning →';
+  const subjectMode = isDelivery ? 'leverans'                  : 'utlämning';
+  const heroLine1   = isDelivery
+    ? 'Innan dess vill vi att du gör en sak innan som sparar tid vid leveransen — det tar 2 minuter.'
+    : 'Innan dess vill vi att du gör en sak innan som sparar tid vid utlämningen — det tar 2 minuter.';
+  const stepLabel2  = isDelivery ? 'Vid leveransen' : 'Vid utlämningen';
+  const stepText2   = isDelivery
+    ? 'Vi går igenom utrustningen tillsammans när vi kommer'
+    : 'Vi går igenom utrustningen tillsammans';
+  const stepText3   = 'Vi aktiverar din kvittens och du får en kopia';
+  const intro2 = 'Det första steget gör du själv innan — du förbereder din digitala signatur och laddar upp en bild på körkort eller annan legitimation.';
+
+  // Tids-disclaimer vid leverans
+  const timeDisclaimer = isDelivery
+    ? `<p style="margin:6px 0 0;color:#888;font-size:12px;line-height:1.5;font-style:italic">
+         Tiden är ungefärlig och kan påverkas av trafik eller annat. Blir vi mer än 30 min försenade kontaktar vi dig.
+       </p>`
+    : '';
+  const timeDisclaimerText = isDelivery
+    ? '\n(Tiden är ungefärlig — vi kontaktar dig om förseningen blir mer än 30 min.)'
+    : '';
 
   // Utrustningslista (visa upp till 8, övriga under "+ X till")
   const items = (cart.items || []).filter(i => !i._note && i.name);
@@ -32,7 +65,7 @@ function buildPickupReminderEmail(cart) {
     ? `<tr><td colspan="2" style="padding:8px 12px;font-size:13px;color:#999;font-style:italic">+ ${items.length - 8} till på orderbekräftelsen…</td></tr>`
     : '';
 
-  const subject = `Förbered din utlämning${dateStr ? ' — ' + dateStr : ''}`;
+  const subject = `Förbered din ${subjectMode}${dateStr ? ' — ' + dateStr : ''}`;
 
   const html = `<!DOCTYPE html>
 <html lang="sv"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -48,29 +81,30 @@ function buildPickupReminderEmail(cart) {
 
 <!-- Hero -->
 <tr><td style="background:#fff;padding:36px 32px 28px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8">
-  <h2 style="margin:0 0 6px;color:#1e1850;font-size:23px;line-height:1.3">Det är dags att förbereda din utlämning, ${escapeHtml(firstName)}!</h2>
+  <h2 style="margin:0 0 6px;color:#1e1850;font-size:23px;line-height:1.3">Det är dags att förbereda din ${modeWord}, ${escapeHtml(firstName)}!</h2>
   <p style="margin:0 0 22px;color:#666;font-size:15px;line-height:1.6">
-    Vi ses snart! Innan dess vill vi att du gör en sak hemifrån — det tar 2 minuter och sparar tid vid disken.
+    Vi ses snart! ${heroLine1}
   </p>
 
   ${dateStr ? `
   <div style="background:#f7f7fb;border-left:3px solid #c4b5f4;border-radius:8px;padding:14px 18px;margin:0 0 24px">
-    <p style="margin:0 0 4px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700">Utlämning</p>
+    <p style="margin:0 0 4px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700">${modeWordCap}</p>
     <p style="margin:0;color:#222;font-size:15px;font-weight:600">📅 ${dateStr} kl ${timeStr}</p>
-    ${placeStr ? `<p style="margin:4px 0 0;color:#666;font-size:14px">📍 ${placeStr}</p>` : `<p style="margin:4px 0 0;color:#666;font-size:14px">📍 Grimstagatan 164, 162 58 Vällingby</p>`}
+    <p style="margin:4px 0 0;color:#666;font-size:14px">📍 ${placeStr}</p>
+    ${timeDisclaimer}
   </div>` : ''}
 
   <!-- CTA -->
   <div style="text-align:center;margin:18px 0 26px">
     <a href="${signUrl}" style="display:inline-block;background:#c4b5f4;color:#0c0a24;text-decoration:none;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:700;letter-spacing:0.01em">
-      Förbered din kvittens →
+      ${ctaText}
     </a>
   </div>
 
   <!-- Förklaring -->
   <div style="background:#fafaff;border:1px solid #ececf5;border-radius:8px;padding:18px 20px;margin:0 0 26px">
     <p style="margin:0 0 10px;color:#333;font-size:14px;line-height:1.65">
-      Det första steget gör du själv hemma — du förbereder din digitala signatur och laddar upp en bild på körkort eller annan legitimation.
+      ${intro2}
     </p>
     <p style="margin:0;color:#333;font-size:14px;line-height:1.65">
       <strong style="color:#1e1850">Viktigt:</strong> Själva kvittensen blir inte giltig förrän vi bekräftar att du fått all utrustning. Du behöver alltså inte oroa dig — vi kontrollerar tillsammans att allt stämmer innan kvittensen aktiveras.
@@ -86,20 +120,20 @@ function buildPickupReminderEmail(cart) {
         <p style="margin:0;color:#666;font-size:12px;line-height:1.5">Förbered signatur och legitimation</p>
       </td>
       <td width="33%" valign="top" style="padding:0 8px;text-align:center">
-        <div style="font-size:30px;line-height:1;margin-bottom:8px">📦</div>
-        <p style="margin:0 0 4px;color:#1e1850;font-size:13px;font-weight:700">2. Vid utlämning</p>
-        <p style="margin:0;color:#666;font-size:12px;line-height:1.5">Vi går igenom utrustningen tillsammans</p>
+        <div style="font-size:30px;line-height:1;margin-bottom:8px">${isDelivery ? '🚚' : '📦'}</div>
+        <p style="margin:0 0 4px;color:#1e1850;font-size:13px;font-weight:700">2. ${stepLabel2}</p>
+        <p style="margin:0;color:#666;font-size:12px;line-height:1.5">${stepText2}</p>
       </td>
       <td width="33%" valign="top" style="padding:0 8px;text-align:center">
         <div style="font-size:30px;line-height:1;margin-bottom:8px">✍️</div>
         <p style="margin:0 0 4px;color:#1e1850;font-size:13px;font-weight:700">3. Klart</p>
-        <p style="margin:0;color:#666;font-size:12px;line-height:1.5">Vi aktiverar din kvittens och du får en kopia</p>
+        <p style="margin:0;color:#666;font-size:12px;line-height:1.5">${stepText3}</p>
       </td>
     </tr>
   </table>
 
   ${itemRows ? `
-  <p style="margin:0 0 8px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700">Det här ska du hämta</p>
+  <p style="margin:0 0 8px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700">${isDelivery ? 'Det här levererar vi' : 'Det här ska du hämta'}</p>
   <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;border:1px solid #eee;border-radius:8px;overflow:hidden">
     <tbody>${itemRows}${moreRows}</tbody>
   </table>` : ''}
@@ -137,20 +171,20 @@ function buildPickupReminderEmail(cart) {
 </table></td></tr></table>
 </body></html>`;
 
-  const text = `Förbered din utlämning${dateStr ? ', ' + dateStr : ''}
+  const text = `Förbered din ${modeWord}${dateStr ? ', ' + dateStr : ''}
 
 Hej ${firstName}!
 
-Det första steget i utlämningen gör du själv hemma — du förbereder din digitala signatur och laddar upp en bild på körkort eller annan legitimation. Det tar 2 minuter.
+${intro2}
 
 VIKTIGT: Själva kvittensen blir inte giltig förrän vi bekräftar att du fått all utrustning. Du behöver alltså inte oroa dig — vi kontrollerar tillsammans att allt stämmer innan kvittensen aktiveras.
 
-${dateStr ? `Utlämning: ${dateStr} kl ${timeStr}\n${cart.event_location || 'Grimstagatan 164, 162 58 Vällingby'}\n\n` : ''}Förbered här: ${signUrl}
+${dateStr ? `${modeWordCap}: ${dateStr} kl ${timeStr}\nPlats: ${cart.event_location || 'Grimstagatan 164, 162 58 Vällingby'}${timeDisclaimerText}\n\n` : ''}Förbered här: ${signUrl}
 
 SÅ FUNKAR DET
 1. Nu — Förbered signatur och legitimation
-2. Vid utlämning — Vi går igenom utrustningen tillsammans
-3. Klart — Vi aktiverar din kvittens och du får en kopia
+2. ${stepLabel2} — ${stepText2}
+3. Klart — ${stepText3}
 
 HJÄLP & GUIDER
 Ring oss om något är oklart: 072-448 10 00

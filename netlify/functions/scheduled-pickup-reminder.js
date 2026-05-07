@@ -34,7 +34,7 @@ exports.handler = async () => {
   try {
     // _lib.js har ingen .in() — vi filtrerar status i kod
     const { data, error } = await db.from('carts')
-      .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, pickup_reminder_sent_at, customer_company')
+      .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, pickup_reminder_sent_at, customer_company, delivery_mode')
       .eq('event_date', today);
     if (error) throw error;
     candidates = data || [];
