@@ -8,7 +8,7 @@
 // Anrop: GET /api/google-reviews → { ok, rating, count, reviews: [{author,initials,time,text,rating,uri}] }
 
 const PLACE_ID = 'ChIJuWsoFN2fX0YRzIoYyrIjdEY';
-const FIELD_MASK = 'rating,userRatingCount,reviews';
+const FIELD_MASK = 'rating,userRatingCount,reviews,regularOpeningHours';
 
 function initials(name) {
   if (!name) return '?';
@@ -67,6 +67,13 @@ export default async (req, context) => {
       rating: data.rating || null,
       count: data.userRatingCount || reviews.length,
       reviews,
+      // Veckovis öppettider — periods används av frontend för "öppet nu"-pill
+      // periods: [{ open: {day, hour, minute}, close: {day, hour, minute} }]
+      // day: 0=Sunday, 1=Monday, ... 6=Saturday
+      openingHours: data.regularOpeningHours ? {
+        periods: data.regularOpeningHours.periods || [],
+        weekdayDescriptions: data.regularOpeningHours.weekdayDescriptions || [],
+      } : null,
     }), { status: 200, headers });
   } catch (err) {
     console.error('GOOGLE_REVIEWS_EXCEPTION:', err.message);
