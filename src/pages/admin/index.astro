@@ -2124,20 +2124,57 @@ function renderInfoTab() {
       ${c.cart_token ? `<a href="https://scenkonsult.se/order/?cart=${c.id}&token=${c.cart_token}&preview=1" target="_blank" style="background:var(--surface2);border:1px solid rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">👁 Förhandsgranska ↗</a>` : ''}
     </div>
 
+    ${['confirmed','fakturerad','betald'].includes(c.status) ? `
+    <div class="section-label">Utlämningsflöde</div>
+    <div style="background:var(--bg);border-radius:8px;padding:0.85rem 1rem;margin-bottom:1rem;font-size:0.85rem;line-height:1.65">
+      ${
+        c.pickup_confirmed_at ? `
+        <div style="display:flex;align-items:center;gap:0.5rem;color:var(--green);font-weight:600">
+          <span>✍️</span>
+          <span>Kvittens aktiverad ${fmtTime(c.pickup_confirmed_at)}</span>
+        </div>
+        ${c.pickup_admin_note ? `<div style="margin-top:0.5rem;padding:0.5rem 0.7rem;background:rgba(251,191,36,0.06);border-left:2px solid rgba(251,191,36,0.5);border-radius:4px;font-size:0.78rem;color:rgba(255,255,255,0.78);font-style:italic">📝 ${c.pickup_admin_note.replace(/</g,'&lt;')}</div>` : ''}
+        `
+        : c.pickup_signed_at ? `
+        <div style="display:flex;align-items:center;gap:0.5rem;color:var(--green);font-weight:600;margin-bottom:0.5rem">
+          <span>✅</span>
+          <span>Kund förberedd — klar att motkvittera</span>
+        </div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Förberedde ${fmtTime(c.pickup_signed_at)} · IP: ${c.pickup_sign_ip||'–'}</div>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem">
+          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:pointer" onclick="adminOpenPickupConfirm(currentCart)" title="Klicka för att motkvittera">` : ''}
+          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:pointer" onclick="adminOpenPickupConfirm(currentCart)" title="Legitimation">` : '<span style="font-size:0.72rem;color:rgba(255,255,255,0.55);align-self:center">Inget leg-foto</span>'}
+        </div>
+        `
+        : c.pickup_reminder_sent_at ? `
+        <div style="display:flex;align-items:center;gap:0.5rem;color:var(--brand-lav);font-weight:600;margin-bottom:0.25rem">
+          <span>📨</span>
+          <span>Förberedelsemail skickat — kund har inte börjat</span>
+        </div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Skickat ${fmtTime(c.pickup_reminder_sent_at)}</div>
+        `
+        : (c.event_date && c.event_date === new Date().toLocaleDateString('sv-SE')) ? `
+        <div style="display:flex;align-items:center;gap:0.5rem;color:var(--amber);font-weight:600;margin-bottom:0.25rem">
+          <span>⚠</span>
+          <span>Utlämning idag — förberedelsemail ej skickat</span>
+        </div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Skicka manuellt via knappen i panelens fot</div>
+        `
+        : `
+        <div style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.65);margin-bottom:0.25rem">
+          <span>🕐</span>
+          <span>Förberedelsemail schemalagt</span>
+        </div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.55)">Skickas automatiskt 08:00 på utlämningsdagen${c.event_date ? ` (${new Date(c.event_date+'T00:00:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})})` : ''}</div>
+        `
+      }
+    </div>` : ''}
+
     <div class="section-label">Tidsstämplar</div>
     <div class="info-grid">
       <div class="info-field"><div class="info-field-label">Skapad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.created_at)}</div></div>
       <div class="info-field"><div class="info-field-label">Uppdaterad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.updated_at)}</div></div>
       <div class="info-field"><div class="info-field-label">Kund senast aktiv</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.last_read_customer)}</div></div>
-      ${c.pickup_signed_at ? `
-      <div class="info-field" style="margin-top:0.5rem;padding:0.75rem;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);border-radius:8px;">
-        <div class="info-field-label" style="color:var(--green)">✅ Utlämning kvitterad</div>
-        <div class="info-field-value" style="font-size:0.8rem;margin-bottom:0.75rem">${fmtTime(c.pickup_signed_at)} · IP: ${c.pickup_sign_ip||'–'}</div>
-        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:60px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:pointer" onclick="adminShowPickup(currentCart)" title="Klicka för fullständig kvittens">` : ''}
-          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:60px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:pointer" onclick="adminShowPickup(currentCart)" title="Legitimation">` : '<span style="font-size:0.75rem;color:rgba(255,255,255,0.60)">Inget leg-foto</span>'}
-        </div>
-      </div>` : ''}
       <div class="info-field"><div class="info-field-label">Utgår</div><div class="info-field-value" style="font-size:0.8rem;color:${c.expires_at ? 'var(--amber)' : 'var(--green)'}">${c.expires_at ? fmtDate(c.expires_at) : '♾ Bekräftad'}</div></div>
     </div>
 
@@ -3749,19 +3786,132 @@ async function adminSendPickupLink(c) {
   navigator.clipboard.writeText(url).catch(()=>{});
 
   if (c.customer_email) {
-    if (confirm(`Skicka utlämningslänk via e-post till ${c.customer_email}?`)) {
-      const { ok: sent, data } = await api('pickup-email', {
+    const wasSent = !!c.pickup_reminder_sent_at;
+    const promptMsg = wasSent
+      ? `Skicka NY påminnelse till ${c.customer_email}? (Förberedelsemail har redan skickats ${new Date(c.pickup_reminder_sent_at).toLocaleString('sv-SE')})`
+      : `Skicka förberedelsemail till ${c.customer_email}?\n\nKunden får en länk för att förbereda signatur och legitimation. Kvittensen aktiveras först när du motkvitterar vid utlämningen.`;
+    if (confirm(promptMsg)) {
+      const { ok: sent, data } = await api('pickup-reminder-trigger', {
         method: 'POST',
         body: JSON.stringify({ cart_id: c.id })
       });
-      if (sent) toast(`Utlämningslänk skickad till ${c.customer_email} ✓`);
-      else toast(data?.error || 'E-postfel', 'error');
+      if (sent) {
+        toast(`Förberedelsemail skickat till ${c.customer_email} ✓`);
+        currentCart.pickup_reminder_sent_at = new Date().toISOString();
+        loadCarts();
+        renderPanelFooter();
+        if (typeof renderTab === 'function') renderTab('info');
+      } else {
+        toast(data?.error || 'E-postfel', 'error');
+      }
       return;
     }
   }
   // Inget mail — länk kopierad
-  toast('Utlämningslänk kopierad till urklipp! (Kunden saknar e-post)');
+  toast('Förberedelse-länk kopierad till urklipp! (Kunden saknar e-post)');
 }
+
+// Modal: granska kundens förberedelse + motkvittera
+function adminOpenPickupConfirm(c) {
+  const overlay = document.createElement('div');
+  overlay.id = 'pickup-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(12,10,36,0.85);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem';
+
+  const sigDate = c.pickup_signed_at ? new Date(c.pickup_signed_at).toLocaleString('sv-SE') : '–';
+  const dateStr = c.event_date
+    ? new Date(c.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' })
+    : '';
+  const timeStr = c.delivery_time || '13:00';
+  const items = (c.items || []).filter(i => !i._note && i.name);
+  const itemRows = items.slice(0, 12).map(i =>
+    `<tr><td style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem">${i.name.replace(/</g,'&lt;')}</td><td style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem;text-align:right;color:rgba(255,255,255,0.6)">×${i.qty || 1}</td></tr>`
+  ).join('');
+  const moreCount = Math.max(0, items.length - 12);
+
+  overlay.innerHTML = `
+    <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.3);border-radius:14px;max-width:560px;width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;color:#f0eeff;font-family:'Space Grotesk',system-ui,sans-serif">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:0.7rem;color:rgba(196,181,244,0.6);text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Granska & Motkvittera</div>
+          <div style="font-size:1rem;font-weight:700;color:#c4b5f4;margin-top:2px">${c.customer_name || 'Okänd'} — ${c.id}</div>
+        </div>
+        <button id="pc-close" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1rem">✕</button>
+      </div>
+
+      <div style="padding:1.25rem;overflow-y:auto;flex:1">
+        <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#86efac">
+          ✓ Kunden förberedde sin kvittens ${sigDate}
+        </div>
+
+        <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Kundens signatur</div>
+        ${c.pickup_signature
+          ? `<img src="${c.pickup_signature}" style="width:100%;max-height:160px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem">`
+          : '<div style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-style:italic;margin-bottom:1rem">Saknas</div>'}
+
+        <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Legitimation</div>
+        ${c.pickup_id_photo
+          ? `<img src="${c.pickup_id_photo}" style="width:100%;max-height:200px;object-fit:contain;background:#0c0a24;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem">`
+          : '<div style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-style:italic;margin-bottom:1rem">Inget legitimationsfoto uppladdat</div>'}
+
+        <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Utlämning</div>
+        <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.85rem;line-height:1.65">
+          📅 ${dateStr || 'Ej angivet'} kl ${timeStr}<br>
+          📍 ${(c.event_location || 'Grimstagatan 164, Vällingby').replace(/</g,'&lt;')}
+        </div>
+
+        <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Utrustning att lämna ut (${items.length})</div>
+        ${items.length ? `
+        <table style="width:100%;border-collapse:collapse;background:rgba(0,0,0,0.2);border-radius:8px;overflow:hidden;margin-bottom:1rem">
+          <tbody>${itemRows}${moreCount ? `<tr><td colspan="2" style="padding:5px 8px;font-size:0.8rem;color:rgba(255,255,255,0.5);font-style:italic">+ ${moreCount} till…</td></tr>` : ''}</tbody>
+        </table>` : ''}
+
+        <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem">
+          <div style="font-weight:700;color:#fbbf24;font-size:0.9rem;margin-bottom:0.5rem">Har all utrustning överlämnats korrekt?</div>
+          <div style="font-size:0.82rem;line-height:1.55;color:rgba(255,255,255,0.78);margin-bottom:0.75rem">
+            När du klickar "Bekräfta utlämning" aktiveras kundens signatur som juridiskt bindande. PDF-kvitto skickas till kunden.
+          </div>
+          <label style="display:block;font-size:0.75rem;color:rgba(196,181,244,0.65);margin-bottom:0.35rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:700">Anteckning om något avvek (frivilligt)</label>
+          <textarea id="pc-note" rows="2" placeholder="Ex: 'Strömkabel extra utlånad', 'Ersatt mot likvärdig modell'..." style="width:100%;background:#0c0a24;color:#f0eeff;border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:0.5rem 0.65rem;font-size:0.85rem;font-family:inherit;resize:vertical;color-scheme:dark"></textarea>
+        </div>
+      </div>
+
+      <div style="padding:0.85rem 1.25rem;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
+        <button id="pc-cancel" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);padding:0.55rem 1.1rem;border-radius:8px;font-size:0.85rem;cursor:pointer">Avbryt</button>
+        <button id="pc-confirm" style="background:#22c55e;border:none;color:#fff;padding:0.55rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer">✅ Bekräfta utlämning</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => { overlay.remove(); document.body.style.overflow = ''; };
+  overlay.querySelector('#pc-close').onclick = close;
+  overlay.querySelector('#pc-cancel').onclick = close;
+  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+
+  overlay.querySelector('#pc-confirm').onclick = async () => {
+    const note = overlay.querySelector('#pc-note').value.trim();
+    const btn = overlay.querySelector('#pc-confirm');
+    btn.disabled = true; btn.textContent = '⏳ Bekräftar…';
+    const { ok, data } = await api('pickup-confirm', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: c.id, admin_note: note || null })
+    });
+    if (ok) {
+      currentCart.pickup_confirmed_at = data?.confirmed_at || new Date().toISOString();
+      if (note) currentCart.pickup_admin_note = note;
+      toast('Utlämning bekräftad ✅ Kvittensen är nu juridiskt bindande');
+      close();
+      loadCarts();
+      renderTab('info');
+      renderPanelFooter();
+    } else {
+      btn.disabled = false; btn.textContent = '✅ Bekräfta utlämning';
+      toast(data?.error || 'Kunde inte bekräfta', 'error');
+    }
+  };
+}
+window.adminOpenPickupConfirm = adminOpenPickupConfirm;
 
 function adminShowPickup(c) {
   if (!c.pickup_signature) { toast('Ingen kvittens sparad', 'error'); return; }
@@ -3842,13 +3992,20 @@ function renderPanelFooter() {
     makeBtn('💬 Skicka SMS', '', () => adminSendSms(c));
   }
 
-  // Utlämningslänk (betald eller confirmed)
+  // Utlämning — flerstegs-flöde (förberedelsemail → förberedd → motkvittens)
   if (['confirmed','fakturerad','betald'].includes(c.status) && c.cart_token) {
-    const icon = c.pickup_signed_at ? '✅ Kvitterad' : '📦 Skicka utlämningslänk';
-    if (!c.pickup_signed_at) {
-      makeBtn(icon, 'btn-success', () => adminSendPickupLink(c));
-    } else {
+    if (c.pickup_confirmed_at) {
+      // Helt klart
       makeBtn('📋 Visa kvittens', '', () => adminShowPickup(c));
+    } else if (c.pickup_signed_at) {
+      // Kund har förberett — admin behöver motkvittera
+      makeBtn('✅ Granska & motkvittera', 'btn-success', () => adminOpenPickupConfirm(c));
+    } else if (c.pickup_reminder_sent_at) {
+      // Mail skickat, kund har inte börjat
+      makeBtn('📩 Skicka påminnelse', '', () => adminSendPickupLink(c));
+    } else {
+      // Inget mail skickat ännu (auto-mailas 08:00 dag X om event_date = idag)
+      makeBtn('📦 Skicka förberedelsemail nu', 'btn-success', () => adminSendPickupLink(c));
     }
   }
 }

@@ -228,19 +228,37 @@
     <a href="/" style="color:#c4b5f4;font-size:0.875rem">← Tillbaka</a>
   </div>
 
-  <!-- Success -->
+  <!-- Success: kvittens FULLT bekräftad (admin har motkvitterat) -->
   <div id="success-state">
     <div class="success-card">
       <div class="success-icon">✅</div>
-      <div class="success-title">Utrustning kvitterad!</div>
+      <div class="success-title">Kvittens bekräftad!</div>
       <div class="success-sub" id="success-ref">Tack för ditt förtroende.</div>
+    </div>
+  </div>
+
+  <!-- Prepared: kund har förberett, väntar på admin-bekräftelse vid utlämning -->
+  <div id="prepared-state" style="display:none">
+    <div class="success-card" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25)">
+      <div class="success-icon">⏳</div>
+      <div class="success-title" style="color:#86efac">Förberedelsen är klar!</div>
+      <div class="success-sub" id="prepared-sub" style="margin-bottom:1rem">Vi aktiverar din kvittens när vi träffas vid utlämningen.</div>
+      <div id="prepared-summary" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:0.75rem 1rem;margin-top:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.85);text-align:left"></div>
+      <p style="margin:1rem 0 0;font-size:0.78rem;color:rgba(255,255,255,0.55)">
+        Vill du ändra något? Tryck knappen nedan så öppnar vi formuläret igen.
+      </p>
+      <button id="reopen-btn" style="margin-top:0.75rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);padding:0.55rem 1.25rem;border-radius:8px;font-size:0.82rem;cursor:pointer">↻ Ändra mina uppgifter</button>
     </div>
   </div>
 
   <!-- Main form -->
   <div id="main-state" style="display:none">
-    <h1>Kvittera utrustning</h1>
-    <p class="sub" id="order-sub">Signera nedan för att bekräfta att du hämtat utrustningen.</p>
+    <h1>Förbered din kvittens</h1>
+    <p class="sub" id="order-sub">Förbered din digitala signatur och legitimation. Kvittensen aktiveras när vi träffas vid utlämningen.</p>
+
+    <div style="background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.85rem;line-height:1.55;color:rgba(255,255,255,0.85)">
+      ℹ <strong style="color:#c4b5f4">Detta är förberedelse</strong> — kvittensen blir inte juridiskt bindande förrän vi tillsammans bekräftar att all utrustning lämnats över korrekt. Du riskerar inget genom att fylla i detta nu.
+    </div>
 
     <div class="order-box" id="order-box">
       <div class="spinner"></div>
@@ -398,7 +416,7 @@
 
   // ── Load order ────────────────────────────────────────────────
   function show(id) {
-    ['loading-state','error-state','success-state','main-state'].forEach(s => {
+    ['loading-state','error-state','success-state','prepared-state','main-state'].forEach(s => {
       document.getElementById(s).style.display = s === id ? 'block' : 'none';
     });
   }
@@ -423,15 +441,43 @@
       const cart = data.cart;
       if (!cart) throw new Error('Kunde inte ladda order');
 
-      // Redan kvitterad?
-      if (cart.pickup_signed_at) {
+      // Läge 1: Admin har motkvitterat → fullständig success
+      if (cart.pickup_confirmed_at) {
         show('success-state');
-        const d = new Date(cart.pickup_signed_at).toLocaleString('sv-SE');
+        const d = new Date(cart.pickup_confirmed_at).toLocaleString('sv-SE');
         document.getElementById('success-ref').textContent =
-          `Utrustningen kvitterades redan ${d}. Ordernr: ${cart.id}`;
+          `Vi bekräftade utlämningen ${d}. Ordernr: ${cart.id}`;
         return;
       }
 
+      // Läge 2: Kunden har förberett, väntar på admin-bekräftelse
+      if (cart.pickup_signed_at) {
+        const dateStr = cart.event_date
+          ? new Date(cart.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' })
+          : null;
+        const timeStr = cart.delivery_time || '13:00';
+        document.getElementById('prepared-sub').textContent =
+          dateStr ? `Vi ses ${dateStr} kl ${timeStr}.` : 'Vi aktiverar din kvittens när vi träffas vid utlämningen.';
+        const items = (cart.items || []).filter(i => !i._note && i.name);
+        const sigDate = new Date(cart.pickup_signed_at).toLocaleDateString('sv-SE');
+        document.getElementById('prepared-summary').innerHTML = `
+          <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem">
+            <span style="color:#86efac">✓</span>
+            <span>Signatur förberedd ${sigDate}</span>
+          </div>
+          ${cart.pickup_id_photo ? `
+          <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem">
+            <span style="color:#86efac">✓</span>
+            <span>Legitimation uppladdad</span>
+          </div>` : ''}
+          <div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.8rem;color:rgba(255,255,255,0.6)">
+            ${items.length} ${items.length === 1 ? 'artikel' : 'artiklar'} · Order ${cart.id}
+          </div>`;
+        show('prepared-state');
+        return;
+      }
+
+      // Läge 3: Kund ska förbereda — visa formuläret
       // Visa orderbox
       const items  = (cart.items || []).filter(i => !i._note && i.name);
       const prodRows = items.slice(0,5).map(i =>
@@ -439,15 +485,20 @@
       ).join('');
       const more = items.length > 5 ? `<div style="color:rgba(255,255,255,0.60);font-size:0.8rem">+${items.length-5} till…</div>` : '';
 
+      const dateStr = cart.event_date
+        ? new Date(cart.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' })
+        : null;
+      const timeStr = cart.delivery_time || '13:00';
+
       document.getElementById('order-box').innerHTML = `
         <strong>${cart.customer_name || 'Kund'}</strong> hämtar
-        ${cart.event_date ? `till eventet <strong>${new Date(cart.event_date).toLocaleDateString('sv-SE')}</strong>` : 'utrustning'}.<br>
+        ${dateStr ? `<strong>${dateStr} kl ${timeStr}</strong>` : 'utrustning'}.<br>
         ${cart.event_location ? `<span style="color:rgba(255,255,255,0.60)">${cart.event_location}</span><br>` : ''}
         <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06)">${prodRows}${more}</div>
         <div class="ref">${cart.id}</div>`;
 
       document.getElementById('order-sub').textContent =
-        `Hej ${(cart.customer_name||'').split(' ')[0] || 'du'}! Signera nedan för att bekräfta att du tagit emot utrustningen.`;
+        `Hej ${(cart.customer_name||'').split(' ')[0] || 'du'}! Förbered din digitala signatur och legitimation nedan.`;
 
       show('main-state');
     } catch (e) {
@@ -455,6 +506,24 @@
       document.getElementById('error-msg').textContent = e.message;
     }
   }
+
+  // "Ändra mina uppgifter" — kund vill korrigera innan utlämning
+  document.getElementById('reopen-btn')?.addEventListener('click', async () => {
+    if (!confirm('Vill du börja om förberedelsen? Din nuvarande signatur och legitimation tas bort.')) return;
+    try {
+      const res = await fetch('/.netlify/functions/sign-reopen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cart_id: cartId, token: cartToken }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Kunde inte återställa');
+      // Ladda om sidan
+      loadOrder();
+    } catch (e) {
+      alert('Kunde inte återställa: ' + e.message);
+    }
+  });
 
   // ── Submit ────────────────────────────────────────────────────
   document.getElementById('submit-btn').addEventListener('click', async () => {

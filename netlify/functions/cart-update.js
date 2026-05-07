@@ -193,6 +193,7 @@ exports.handler = async (event) => {
         updates.delivery_mode = (dm === 'self_pickup' || dm === 'delivery') ? dm : null;
       }
       if (body.referral_source !== undefined) updates.referral_source = body.referral_source || null;
+      if (body.pickup_admin_note !== undefined) updates.pickup_admin_note = body.pickup_admin_note || null;
 
       // Statusändring
       if (body.status !== undefined) {
