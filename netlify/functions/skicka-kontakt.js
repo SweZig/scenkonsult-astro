@@ -66,7 +66,7 @@ exports.handler = async (event) => {
   if (RATE_LIMIT[ip].length >= RATE_MAX) return { statusCode: 429, headers, body: JSON.stringify({ error: 'For manga forfrågningar, forsok igen om en minut.' }) };
   RATE_LIMIT[ip].push(now);
 
-  const { namn, telefon, epost, typ, gaster, datum, meddelande, hittade, sendCopy } = data;
+  const { namn, telefon, epost, typ, foretag, gaster, datum, leverans, meddelande, hittade, sendCopy } = data;
 
   console.log('KONTAKT_INCOMING:', JSON.stringify({ namn, epost, sendCopy: !!sendCopy }));
 
@@ -80,22 +80,37 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   }
 
+  // Härled customer_type från typ-listrutan ("Privat" / "Företag")
+  const customerType = (typ === 'Företag') ? 'b2b' : 'b2c';
+  const companyClean = (foretag || '').trim() || null;
+  const guestsCount  = gaster && /^\d+$/.test(String(gaster).trim()) ? parseInt(String(gaster).trim(), 10) : null;
+  const deliveryMode = (leverans === 'self_pickup' || leverans === 'delivery') ? leverans : null;
+  const referralSrc  = (hittade || '').trim() || null;
+
+  // Etiketter för mailet
+  const kundtypLabel = customerType === 'b2b' ? 'Företag' : 'Privatperson';
+  const leveransLabel = deliveryMode === 'self_pickup' ? 'Hämtar och lämnar själv'
+                      : deliveryMode === 'delivery'    ? 'Önskar leverans och upphämtning'
+                      : '';
+
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'E-postkonfiguration saknas.' }) };
 
-  const plainInternal = `Nytt kontaktmeddelande\n\nNamn: ${namn}\nE-post: ${epost}\nTelefon: ${telefon}\nEventtyp: ${typ||'-'}\nAntal gaster: ${gaster||'-'}\nDatum: ${datum||'-'}\nHittade oss via: ${hittade||'-'}\n\nMeddelande:\n${meddelande}\n\n---\nScenkonsult Norden | 072-448 10 00`;
+  const plainInternal = `Nytt kontaktmeddelande\n\nNamn: ${namn}\nKundtyp: ${kundtypLabel}${companyClean ? `\nForetag: ${companyClean}` : ''}\nE-post: ${epost}\nTelefon: ${telefon}\nAntal gaster: ${guestsCount ?? '-'}\nDatum: ${datum||'-'}${leveransLabel ? `\nLeverans: ${leveransLabel}` : ''}\nHittade oss via: ${referralSrc||'-'}\n\nMeddelande:\n${meddelande}\n\n---\nScenkonsult Norden | 072-448 10 00`;
 
   const htmlInternal = htmlWrapper('Nytt kontaktmeddelande', `
     <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Nytt kontaktmeddelande</h2>
     <p style="margin:0 0 20px;color:#888;font-size:13px;">Mottaget via scenkonsult.se</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       ${field('Namn', namn)}
+      ${field('Kundtyp', kundtypLabel)}
+      ${field('Foretag', companyClean)}
       ${field('E-post', `<a href="mailto:${epost}" style="color:#4a3faa;">${epost}</a>`)}
       ${field('Telefon', `<a href="tel:${telefon}" style="color:#4a3faa;">${telefon}</a>`)}
-      ${field('Eventtyp', typ)}
-      ${field('Antal gaster', gaster)}
+      ${field('Antal gaster', guestsCount)}
       ${field('Datum', datum)}
-      ${field('Hittade oss via', hittade)}
+      ${field('Leverans', leveransLabel)}
+      ${field('Hittade oss via', referralSrc)}
     </table>
     <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;margin-bottom:20px;">
       <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Meddelande</p>
@@ -108,7 +123,7 @@ exports.handler = async (event) => {
 
     await sleep(600);
     try {
-      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Kontakt: ${namn} — ${typ||'okant event'}`, html: htmlInternal, text: plainInternal });
+      await sendEmail(apiKey, { from: FROM, to: [TRELLO_EMAIL], subject: `Kontakt: ${namn} — ${kundtypLabel}`, html: htmlInternal, text: plainInternal });
     } catch (e) { console.error('TRELLO_COPY_ERROR:', e.message); }
 
     console.log('KONTAKT_OK:', JSON.stringify({ ip, namn, epost, sendCopy: !!sendCopy }));
@@ -132,13 +147,18 @@ exports.handler = async (event) => {
           customer_email:   epost,
           customer_phone:   telefon || null,
           customer_message: meddelande,
+          customer_type:    customerType,
+          customer_company: companyClean,
+          guests_count:     guestsCount,
+          delivery_mode:    deliveryMode,
+          referral_source:  referralSrc,
           event_date:       datum   || null,
           event_location:   null,
           total_excl:       0,
           cart_token:       cartToken,
           expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
         });
-        await logAudit(db, cartId, 'customer', 'contact_form', { typ: typ||'okänt' });
+        await logAudit(db, cartId, 'customer', 'contact_form', { customer_type: customerType, company: companyClean || undefined, guests: guestsCount || undefined, delivery_mode: deliveryMode || undefined, referral: referralSrc || undefined });
         cartUrl = `https://scenkonsult.se/order/?cart=${cartId}&token=${cartToken}`;
         console.log('KONTAKT_CART_CREATED:', cartId);
 

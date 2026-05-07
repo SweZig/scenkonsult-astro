@@ -1709,6 +1709,11 @@ function renderTab(tab) {
     $('save-info-btn')?.addEventListener('click', async () => {
       const btn = $('save-info-btn');
       btn.disabled = true; btn.textContent = '⏳ Sparar…';
+      // Antal gäster: heltal eller null
+      const guestsRaw = ($('edit-guests')?.value || '').trim();
+      const guestsNum = guestsRaw && /^\d+$/.test(guestsRaw) ? parseInt(guestsRaw, 10) : null;
+      const dmRaw = $('edit-delivery-mode')?.value || '';
+      const deliveryMode = (dmRaw === 'self_pickup' || dmRaw === 'delivery') ? dmRaw : null;
       const updates = {
         cart_id:        currentCart.id,
         customer_name:    $('edit-name')?.value.trim()     || null,
@@ -1727,6 +1732,9 @@ function renderTab(tab) {
         invoice_email:    $('edit-invoice-email')?.value.trim() || null,
         use_invoice_email: $('use-invoice-email')?.checked ? true : false,
         cc_email:         $('edit-cc-email')?.value.trim()     || null,
+        guests_count:     guestsNum,
+        delivery_mode:    deliveryMode,
+        referral_source:  $('edit-referral')?.value.trim()  || null,
       };
       const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
       if (ok) {
@@ -1746,6 +1754,9 @@ function renderTab(tab) {
           invoice_email:    updates.invoice_email,
           use_invoice_email: updates.use_invoice_email,
           cc_email:         updates.cc_email,
+          guests_count:     updates.guests_count,
+          delivery_mode:    updates.delivery_mode,
+          referral_source:  updates.referral_source,
         });
         $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
         toast('Kunduppgifter sparade!');
@@ -2078,6 +2089,32 @@ function renderInfoTab() {
     <div style="background:var(--bg);border-radius:8px;padding:1rem;font-size:0.9rem;line-height:1.6;font-family:'Source Sans 3',sans-serif;color:var(--text-muted)">
       ${c.customer_message.replace(/\n/g,'<br>')}
     </div>` : ''}
+
+    <div class="section-label">Eventinfo</div>
+    <div class="info-grid">
+      <div class="info-field">
+        <div class="info-field-label">Antal gäster</div>
+        <input class="info-edit-input" id="edit-guests" type="number" min="0" step="1" value="${c.guests_count ?? ''}" placeholder="ex. 150" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field">
+        <div class="info-field-label">Hämtning eller leverans</div>
+        <select class="info-edit-input" id="edit-delivery-mode" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+          <option value=""             ${!c.delivery_mode                       ? 'selected' : ''}>Ej angivet</option>
+          <option value="self_pickup"  ${c.delivery_mode === 'self_pickup'      ? 'selected' : ''}>📦 Hämtar och lämnar själv</option>
+          <option value="delivery"     ${c.delivery_mode === 'delivery'         ? 'selected' : ''}>🚚 Önskar leverans och upphämtning</option>
+        </select>
+      </div>
+      <div class="info-field" style="grid-column:1/-1">
+        <div class="info-field-label">Källa (hittade oss via)</div>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          ${c.referral_source
+            ? `<span style="background:rgba(196,181,244,0.12);border:1px solid rgba(196,181,244,0.3);color:#c4b5f4;border-radius:20px;padding:3px 12px;font-size:0.78rem;font-weight:600;white-space:nowrap">📍 ${c.referral_source.replace(/</g,'&lt;')}</span>`
+            : `<span style="color:rgba(255,255,255,0.40);font-size:0.82rem">Ej angivet</span>`
+          }
+          <input class="info-edit-input" id="edit-referral" value="${(c.referral_source||'').replace(/"/g,'&quot;')}" placeholder="Google, Sociala medier, Rekommendation..." style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.85rem;flex:1">
+        </div>
+      </div>
+    </div>
 
     <div class="section-label">Snabblänkar</div>
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">

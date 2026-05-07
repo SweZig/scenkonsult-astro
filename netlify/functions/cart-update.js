@@ -180,6 +180,20 @@ exports.handler = async (event) => {
       if (body.cc_email             !== undefined) updates.cc_email             = body.cc_email          || null;
       if (body.customer_company     !== undefined) updates.customer_company     = body.customer_company  || null;
 
+      // Eventinfo från kontaktformuläret
+      if (body.guests_count !== undefined) {
+        if (body.guests_count === null || body.guests_count === '') updates.guests_count = null;
+        else {
+          const g = parseInt(body.guests_count, 10);
+          updates.guests_count = Number.isFinite(g) && g >= 0 ? g : null;
+        }
+      }
+      if (body.delivery_mode !== undefined) {
+        const dm = body.delivery_mode;
+        updates.delivery_mode = (dm === 'self_pickup' || dm === 'delivery') ? dm : null;
+      }
+      if (body.referral_source !== undefined) updates.referral_source = body.referral_source || null;
+
       // Statusändring
       if (body.status !== undefined) {
         const ALLOWED = ['open', 'new', 'waiting', 'confirmed', 'cancelled', 'fakturerad', 'betald'];
