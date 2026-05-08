@@ -693,7 +693,9 @@ const homeSchema = {
     <div class="rev2-head">
       <div>
         <span class="overline" style="color:#c4b5f4;">Vad kunderna säger</span>
-        <h2 class="display" style="color:white;margin-top:0.5rem;">Omdömen som<br><em>värmer</em></h2>
+        <h2 class="display" style="color:white;margin-top:0.5rem;">
+          <a href="/referenser/" class="rev2-headlink" style="color:inherit;text-decoration:none;">Omdömen som<br><em>värmer</em> <span class="rev2-arrow" aria-hidden="true">→</span></a>
+        </h2>
       </div>
       <div class="rev2-score-badge">
         <div class="rev2-score-n">4.8</div>
@@ -717,6 +719,9 @@ const homeSchema = {
         <p class="rev2-text">"Så värt att hyra in en DJ till festen — precis som krogen på 90-talet! 😉"</p>
         <p class="rev2-who">Jonas A · Stockholm</p>
       </div>
+    </div>
+    <div class="rev2-cta-wrap">
+      <a href="/referenser/" class="rev2-cta-link">Se alla våra referenser och kunder <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
@@ -1181,6 +1186,49 @@ const homeSchema = {
   letter-spacing: 0.2em; text-transform: uppercase;
   color: rgba(255,255,255,0.50); margin: 0;
 }
+.rev2-headlink {
+  display: inline;
+  transition: color 0.2s ease;
+}
+.rev2-headlink:hover { color: #c4b5f4 !important; }
+.rev2-headlink:hover .rev2-arrow { transform: translateX(4px); color: #c4b5f4; }
+.rev2-arrow {
+  display: inline-block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.55em;
+  vertical-align: middle;
+  margin-left: 0.4em;
+  color: #c4b5f4;
+  transition: transform 0.2s ease;
+}
+.rev2-cta-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(2rem, 4vw, 3rem);
+}
+.rev2-cta-link {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #c4b5f4;
+  text-decoration: none;
+  border: 1px solid rgba(196,181,244,0.35);
+  background: rgba(196,181,244,0.06);
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.rev2-cta-link:hover {
+  background: rgba(196,181,244,0.14);
+  border-color: rgba(196,181,244,0.6);
+}
+.rev2-cta-link:hover span { transform: translateX(3px); display: inline-block; }
+.rev2-cta-link span { transition: transform 0.2s ease; }
 
 /* ════════════════════════════════════
    PROCESS
