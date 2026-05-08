@@ -382,6 +382,8 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .req-badge.req-order   { background: rgba(251,191,36,0.14); color: var(--amber); border: 1px solid rgba(251,191,36,0.35); }
     .req-badge.req-booking { background: rgba(196,181,244,0.10); color: rgba(196,181,244,0.85); border: 1px solid rgba(196,181,244,0.32); }
     .req-badge.req-paid    { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.40); }
+    .req-badge.req-overdue-warn { background: rgba(251,191,36,0.18); color: rgb(255,210,120); border: 1px solid rgba(251,191,36,0.55); font-weight: 700; }
+    .req-badge.req-overdue-crit { background: rgba(239,68,68,0.20); color: rgb(252,165,165); border: 1px solid rgba(239,68,68,0.65); font-weight: 700; }
 
     /* ── DETAIL PANEL ──────────────────────────────────── */
     #detail-overlay {
@@ -1171,6 +1173,19 @@ function paidBadge(c) {
   return c.invoice_paid_at ? '<span class="req-badge req-paid">💚 Betald</span>' : '';
 }
 
+// Hjälpfunktion: returnerar förfallen-flagga för obetalda fakturor
+// Regel: 0–2 dagar förfallen → ingen flagga, 3–7 dagar → gul, 8+ dagar → röd
+function overdueFlag(c) {
+  if (c.status !== 'fakturerad' || c.invoice_paid_at) return '';
+  if (!c.invoice_due_date) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(c.invoice_due_date + 'T00:00:00');
+  const daysOverdue = Math.floor((today - due) / 86400000);
+  if (daysOverdue < 3) return '';
+  if (daysOverdue < 8) return `<span class="req-badge req-overdue-warn">⚠ Förfallen ${daysOverdue}d</span>`;
+  return `<span class="req-badge req-overdue-crit">🚨 Förfallen ${daysOverdue}d</span>`;
+}
+
 // ── AUTH ──────────────────────────────────────────────────────
 function checkAuth() {
   // Försök sessionStorage (samma flik) först, sedan localStorage (korsfliks-token)
@@ -1446,6 +1461,7 @@ function cartCardCompact(c) {
   const pBadge   = pickupBadge(c, { compact: true });
   const reqB     = reqBadge(c);
   const paidB    = paidBadge(c);
+  const overdueB = overdueFlag(c);
   const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
@@ -1455,6 +1471,7 @@ function cartCardCompact(c) {
       <div class="cc-row1">
         <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
         ${reqB}
+        ${overdueB}
         ${paidB}
         ${evBadge}
         ${pBadge}
@@ -1632,6 +1649,7 @@ function cartCardHTML(c) {
 
   const reqB  = reqBadge(c);
   const paidB = paidBadge(c);
+  const overdueB = overdueFlag(c);
 
   return `
     <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative;${cardExtraStyle}">
@@ -1640,7 +1658,7 @@ function cartCardHTML(c) {
         ${intentBadge}
       </div>
       ${daysFlag}
-      ${(reqB || paidB) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${reqB}${paidB}</div>` : ''}
+      ${(reqB || paidB || overdueB) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${reqB}${overdueB}${paidB}</div>` : ''}
       ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
       <div class="cart-card-sub">${c.customer_email || ''}</div>
       ${bounceBadge}
