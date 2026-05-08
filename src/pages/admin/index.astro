@@ -4016,7 +4016,9 @@ function renderPanelFooter() {
 
   // Context-sensitive buttons based on status
   if (c.status === 'new') {
-    makeBtn('📤 Skapa & skicka offert', 'btn-success', () => { renderTab('products'); });
+    // Öppna offert-modalen direkt med varukorgens produkter förifyllda.
+    // sendQuote() sätter automatiskt status new → waiting när mailet skickats.
+    makeBtn('📤 Skapa & skicka offert', 'btn-success', () => openQuoteModalForCart(c));
     makeBtn('❌ Avvisa', 'btn-danger', cancelOrder);
 
   } else if (c.status === 'waiting') {
