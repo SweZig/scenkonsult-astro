@@ -141,7 +141,7 @@ exports.handler = async (event) => {
         const cartToken = generateCartToken();
         await db.upsert('carts', {
           id:               cartId,
-          status:           'open',
+          status:           'new',
           items:            [],
           customer_name:    namn,
           customer_email:   epost,

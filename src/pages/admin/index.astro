@@ -166,12 +166,11 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       border-radius: 12px; padding: 0.75rem; min-height: 180px;
       border-left-width: 3px;
     }
-    .kanban-col:has(.s-open)       { border-left-color: rgba(196,181,244,0.45); }
     .kanban-col:has(.s-new)        { border-left-color: var(--amber); }
     .kanban-col:has(.s-waiting)    { border-left-color: var(--blue);  }
     .kanban-col:has(.s-confirmed)  { border-left-color: var(--green); }
     .kanban-col:has(.s-fakturerad) { border-left-color: var(--brand-lav); }
-    .kanban-col:has(.s-betald)     { border-left-color: var(--green); }
+    .kanban-col:has(.s-completed)  { border-left-color: var(--green); }
     .kanban-col:has(.s-cancelled)  { border-left-color: var(--red);   }
     .kanban-col-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -367,11 +366,22 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .urg-gray   { --cc-urgency: var(--border); }
 
     /* Status colors */
-    .s-open      { color: rgba(196,181,244,0.7); }
     .s-new       { color: var(--amber); }
     .s-waiting   { color: var(--amber); }
     .s-confirmed { color: var(--green); }
+    .s-fakturerad { color: var(--brand-lav); }
+    .s-completed { color: var(--green); }
     .s-cancelled { color: var(--red);   }
+
+    /* Badges på Inkommen-kort: skiljer Bokningsförfrågan från Orderförfrågan */
+    .req-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.02em;
+      padding: 2px 7px; border-radius: 10px; line-height: 1.3;
+    }
+    .req-badge.req-order   { background: rgba(251,191,36,0.14); color: var(--amber); border: 1px solid rgba(251,191,36,0.35); }
+    .req-badge.req-booking { background: rgba(196,181,244,0.10); color: rgba(196,181,244,0.85); border: 1px solid rgba(196,181,244,0.32); }
+    .req-badge.req-paid    { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.40); }
 
     /* ── DETAIL PANEL ──────────────────────────────────── */
     #detail-overlay {
@@ -722,7 +732,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       border-color: rgba(96,165,250,0.55);
       color: rgb(200,225,255);
     }
-    .cal-band.s-betald {
+    .cal-band.s-completed {
       background: rgba(34,197,94,0.22);
       border-color: rgba(34,197,94,0.65);
       color: rgb(180,255,200);
@@ -1139,14 +1149,27 @@ function toast(msg, type = 'success') {
 }
 
 const STATUS_LABELS = {
-  open:       { icon: '📥', label: 'Kontaktförfrågan', cls: 's-open'       },
   new:        { icon: '📬', label: 'Inkommen',       cls: 's-new'        },
   waiting:    { icon: '⏳', label: 'Offert skickad', cls: 's-waiting'    },
   confirmed:  { icon: '✅', label: 'Bekräftad',      cls: 's-confirmed'  },
   fakturerad: { icon: '🧾', label: 'Fakturerad',     cls: 's-fakturerad' },
-  betald:     { icon: '💚', label: 'Betald',          cls: 's-betald'     },
+  completed:  { icon: '🏁', label: 'Avslutade',      cls: 's-completed'  },
   cancelled:  { icon: '❌', label: 'Avbruten',       cls: 's-cancelled'  },
 };
+
+// Hjälpfunktion: returnerar badge för Inkommen-kort baserat på om kunden har produkter i varukorgen
+function reqBadge(c) {
+  if (c.status !== 'new') return '';
+  const hasItems = (c.items || []).filter(i => !i._note && i.name?.trim()).length > 0;
+  return hasItems
+    ? '<span class="req-badge req-order">🛒 Orderförfrågan</span>'
+    : '<span class="req-badge req-booking">💬 Bokningsförfrågan</span>';
+}
+
+// Hjälpfunktion: returnerar Betald-badge om fakturan är betald
+function paidBadge(c) {
+  return c.invoice_paid_at ? '<span class="req-badge req-paid">💚 Betald</span>' : '';
+}
 
 // ── AUTH ──────────────────────────────────────────────────────
 function checkAuth() {
@@ -1315,7 +1338,7 @@ function waitingEvBadge(c) {
 // Visar om kunden har läst sin offert (visas för waiting/confirmed/fakturerad/betald)
 // Semantik: "läst" = last_read_customer är satt (kunden har någon gång öppnat sin offertsida)
 function readBadge(c, { compact = false } = {}) {
-  if (!['waiting','confirmed','fakturerad','betald'].includes(c.status)) return '';
+  if (!['waiting','confirmed','fakturerad','completed'].includes(c.status)) return '';
   const lastRead = c.last_read_customer ? new Date(c.last_read_customer) : null;
 
   if (lastRead) {
@@ -1339,7 +1362,7 @@ function readBadge(c, { compact = false } = {}) {
 //  - 'activated': fullt motkvitterad — kvittens aktiv
 function pickupBadge(c, { compact = false } = {}) {
   // Bara relevant för aktiva ordrar i utlämnings-flödet
-  if (!['confirmed', 'fakturerad', 'betald'].includes(c.status)) return '';
+  if (!['confirmed', 'fakturerad', 'completed'].includes(c.status)) return '';
   if (c.pickup_confirmed_at) {
     const when = fmtTime ? fmtTime(c.pickup_confirmed_at) : new Date(c.pickup_confirmed_at).toLocaleString('sv-SE');
     const title = `Kvittens aktiverad ${when}`;
@@ -1383,7 +1406,7 @@ function sortWaiting(arr) {
   return a;
 }
 
-// ── KONTAKTFÖRFRÅGAN-KORT (status='open') ──────────────────────
+// ── BOKNINGSFÖRFRÅGAN-KORT (status='new', utan produkter) ──────
 // Förenklad vy med två tydliga triagering-knappar direkt på kortet.
 // Hanterad → status: cancelled. Skapa manuell order → öppnar produkt-fliken.
 function cartCardOpen(c) {
@@ -1400,6 +1423,7 @@ function cartCardOpen(c) {
         <span class="cc-open-name">${nameEsc}</span>
         ${ageStr ? `<span class="cc-open-age">${ageStr}</span>` : ''}
       </div>
+      <div style="margin:1px 0 2px"><span class="req-badge req-booking">💬 Bokningsförfrågan</span></div>
       <div class="cc-open-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : '<span style="color:rgba(255,255,255,0.35)">Inget datum</span>'}
         ${c.customer_email ? `<span style="color:rgba(255,255,255,0.5)">✉ ${c.customer_email}</span>` : ''}
@@ -1420,6 +1444,8 @@ function cartCardCompact(c) {
   const evBadge  = waitingEvBadge(c);
   const rBadge   = readBadge(c, { compact: true });
   const pBadge   = pickupBadge(c, { compact: true });
+  const reqB     = reqBadge(c);
+  const paidB    = paidBadge(c);
   const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
@@ -1428,6 +1454,8 @@ function cartCardCompact(c) {
     <div class="cc-compact ${uCls}" data-id="${c.id}" data-cart-id="${c.id}">
       <div class="cc-row1">
         <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
+        ${reqB}
+        ${paidB}
         ${evBadge}
         ${pBadge}
         ${rBadge}
@@ -1445,7 +1473,7 @@ function renderKanban() {
   // Filtrera bort reservationsrader
   carts = carts.filter(c => !c.id?.startsWith('SK-RESERVE-') && c.customer_name !== '[Reserverat fakturanummer]');
   const filtered = getFilteredCarts();
-  const cols = ['open','new','waiting','confirmed','fakturerad','betald','cancelled'];
+  const cols = ['new','waiting','confirmed','fakturerad','completed','cancelled'];
   const board = $('kanban-board');
   board.innerHTML = cols.map(status => {
     const s = STATUS_LABELS[status];
@@ -1484,11 +1512,13 @@ function renderKanban() {
         <div class="kanban-cards">
           ${colCarts.length === 0
             ? '<div class="empty-col">Tom</div>'
-            : colCarts.map(c =>
-                status === 'open'      ? cartCardOpen(c) :
-                _kanbanView === 'compact' ? cartCardCompact(c) :
-                cartCardHTML(c)
-              ).join('')}
+            : colCarts.map(c => {
+                // Bokningsförfrågan = status='new' UTAN produkter → triagerings-kort
+                const isBookingRequest = status === 'new'
+                  && (c.items || []).filter(i => !i._note && i.name?.trim()).length === 0;
+                if (isBookingRequest) return cartCardOpen(c);
+                return _kanbanView === 'compact' ? cartCardCompact(c) : cartCardHTML(c);
+              }).join('')}
         </div>
       </div>`;
   }).join('');
@@ -1581,9 +1611,9 @@ function cartCardHTML(c) {
     bounceBadge = `<div style="margin:6px 0 2px;padding:4px 8px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;border-radius:6px;font-size:0.72rem;font-weight:700;display:flex;align-items:center;gap:4px"><span>⏳</span> Leverans försenad</div>`;
   }
 
-  // Dagar-kvar-flagga för bekräftade/fakturerade ordrar med eventdatum
+  // Dagar-kvar-flagga för bekräftade/fakturerade/avslutade ordrar med eventdatum
   let daysFlag = '';
-  if (['confirmed','fakturerad','betald'].includes(c.status) && c.event_date) {
+  if (['confirmed','fakturerad','completed'].includes(c.status) && c.event_date) {
     const today = new Date(); today.setHours(0,0,0,0);
     const evDate = new Date(c.event_date + 'T00:00:00');
     const diff = Math.round((evDate - today) / 86400000);
@@ -1600,6 +1630,9 @@ function cartCardHTML(c) {
     }
   }
 
+  const reqB  = reqBadge(c);
+  const paidB = paidBadge(c);
+
   return `
     <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative;${cardExtraStyle}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
@@ -1607,6 +1640,7 @@ function cartCardHTML(c) {
         ${intentBadge}
       </div>
       ${daysFlag}
+      ${(reqB || paidB) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${reqB}${paidB}</div>` : ''}
       ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
       <div class="cart-card-sub">${c.customer_email || ''}</div>
       ${bounceBadge}
@@ -2185,7 +2219,7 @@ function renderInfoTab() {
       ${c.cart_token ? `<a href="https://scenkonsult.se/order/?cart=${c.id}&token=${c.cart_token}&preview=1" target="_blank" style="background:var(--surface2);border:1px solid rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">👁 Förhandsgranska ↗</a>` : ''}
     </div>
 
-    ${['confirmed','fakturerad','betald'].includes(c.status) ? `
+    ${['confirmed','fakturerad','completed'].includes(c.status) ? `
     <div class="section-label">Utlämningsflöde</div>
     <div style="background:var(--bg);border-radius:8px;padding:0.85rem 1rem;margin-bottom:1rem;font-size:0.85rem;line-height:1.65">
       ${
@@ -3044,7 +3078,7 @@ function renderFakturaTab() {
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <span style="font-size:1rem;font-weight:700;color:var(--brand-lav)">${invNum}</span>
       ${invNum === '— (ej skapad)' ? `<span id="inv-preview-num" style="font-size:0.75rem;color:var(--text-faint)">beräknar nästa nummer…</span>` : ''}
-      ${isPaid ? '<span class="s-betald" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">💚 Betald</span>' :
+      ${isPaid ? '<span class="req-badge req-paid" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">💚 Betald</span>' :
         isSent ? '<span class="s-fakturerad" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">🧾 Skickad</span>' :
         '<span class="s-waiting" style="font-size:0.75rem;padding:2px 8px;border-radius:20px">⏳ Ej skickad</span>'}
     </div>
@@ -3102,6 +3136,7 @@ function renderFakturaTab() {
         ? `<button class="btn-action btn-success" onclick="invCreateAndSend()" style="font-size:0.8rem">🧾 Skapa &amp; skicka faktura</button>`
         : `<button class="btn-action" onclick="invResend()" style="font-size:0.8rem;border-color:var(--brand-lav);color:var(--brand-lav)">📤 Skicka om faktura ${invNum !== '— (ej skapad)' ? invNum : ''}</button>`}
       ${!isPaid && isSent ? `<button class="btn-action btn-success" onclick="invMarkPaid()" style="font-size:0.8rem">💚 Markera betald</button>` : ''}
+      ${isPaid ? `<button class="btn-action" onclick="invUnmarkPaid()" style="font-size:0.8rem;border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6)">↩ Avmarkera betald</button>` : ''}
       <button class="btn-action" onclick="invDownloadPdf()" style="font-size:0.78rem;border-color:rgba(196,181,244,0.45);color:rgba(196,181,244,0.8)">📄 Spara som PDF</button>
     </div>
 
@@ -3432,17 +3467,47 @@ async function invSendEmail() {
 async function invMarkPaid() {
   if (!confirm('Markera ordern som betald?')) return;
   const now = new Date().toISOString();
-  const { ok } = await api('cart-update', {
-    method: 'POST',
-    body: JSON.stringify({ cart_id: currentCart.id, status: 'betald', invoice_paid_at: now })
-  });
+
+  // Auto-flytt till 'Avslutade' om eventet redan passerat (>1 dag sedan).
+  // Annars stannar kortet i 'Fakturerad' med Betald-badge.
+  let newStatus = currentCart.status;
+  if (currentCart.event_date && currentCart.status === 'fakturerad') {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const evDate = new Date(currentCart.event_date + 'T00:00:00');
+    const daysSinceEvent = Math.round((today - evDate) / 86400000);
+    if (daysSinceEvent > 1) newStatus = 'completed';
+  }
+
+  const payload = { cart_id: currentCart.id, invoice_paid_at: now };
+  if (newStatus !== currentCart.status) payload.status = newStatus;
+
+  const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(payload) });
   if (ok) {
-    currentCart.status = 'betald';
     currentCart.invoice_paid_at = now;
-    toast('Order markerad som betald! 💚');
+    currentCart.status = newStatus;
+    toast(newStatus === 'completed' ? 'Markerad betald — flyttad till Avslutade 🏁' : 'Order markerad som betald! 💚');
     await loadCarts();
     if (currentCart) { renderTab('faktura'); renderPanelFooter(); }
   } else toast('Fel vid markering', 'error');
+}
+
+async function invUnmarkPaid() {
+  if (!confirm('Avmarkera betald? Fakturan markeras som obetald igen.')) return;
+  // Om kortet ligger i Avslutade (auto-promotat efter betalning) — återställ till Fakturerad
+  let newStatus = currentCart.status;
+  if (currentCart.status === 'completed') newStatus = 'fakturerad';
+
+  const payload = { cart_id: currentCart.id, invoice_paid_at: null };
+  if (newStatus !== currentCart.status) payload.status = newStatus;
+
+  const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(payload) });
+  if (ok) {
+    currentCart.invoice_paid_at = null;
+    currentCart.status = newStatus;
+    toast('Betalning avmarkerad');
+    await loadCarts();
+    if (currentCart) { renderTab('faktura'); renderPanelFooter(); }
+  } else toast('Fel vid avmarkering', 'error');
 }
 
 async function invResend() {
@@ -4012,7 +4077,7 @@ function renderPanelFooter() {
     ? (c.bounce_status === 'complained' ? '🚫 Skicka om offert (markerad som spam)' : '⚠ Skicka om offert (mailet studsade)')
     : '📤 Skicka om offert';
   const resendBtnCls = hasBounce ? 'btn-danger' : '';
-  const showResend = ['waiting','confirmed','fakturerad','betald'].includes(c.status);
+  const showResend = ['waiting','confirmed','fakturerad','completed'].includes(c.status);
 
   // Context-sensitive buttons based on status
   if (c.status === 'new') {
@@ -4030,10 +4095,22 @@ function renderPanelFooter() {
     makeBtn('🧾 Skapa faktura', 'btn-success', () => renderTab('faktura'));
     if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
   } else if (c.status === 'fakturerad') {
-    makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
+    if (c.invoice_paid_at) {
+      // Redan betald — visa avmarkera-knapp för rättning av miss-klick
+      makeBtn('↩ Avmarkera betald', '', invUnmarkPaid);
+    } else {
+      makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
+    }
     makeBtn('📩 Påminn om betalning', '', sendCustomerNotice);
     if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
-  } else if (c.status === 'betald') {
+  } else if (c.status === 'completed') {
+    // Avslutade ordrar: minimala actions
+    if (!c.invoice_paid_at) {
+      // Edge case: order avslutad utan att fakturan är betald (manuellt flyttad?)
+      makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
+    } else {
+      makeBtn('↩ Avmarkera betald', '', invUnmarkPaid);
+    }
     if (showResend && hasBounce) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
   } else if (c.status !== 'cancelled') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
@@ -4051,8 +4128,8 @@ function renderPanelFooter() {
   }
 
   // Återkommande kund: skapa ny offert med samma kundinfo förifylld.
-  // Visas för alla statusar utom 'open' (kontaktförfrågan) och 'cancelled'.
-  if (c.customer_name && c.customer_email && !['open','cancelled'].includes(c.status)) {
+  // Visas för alla statusar utom 'cancelled'.
+  if (c.customer_name && c.customer_email && c.status !== 'cancelled') {
     makeBtn('📋 Ny offert till samma kund', '', () => cloneCustomerToNewQuote(c));
   }
 
@@ -4062,7 +4139,7 @@ function renderPanelFooter() {
   }
 
   // Utlämning — flerstegs-flöde (förberedelsemail → förberedd → motkvittens)
-  if (['confirmed','fakturerad','betald'].includes(c.status) && c.cart_token) {
+  if (['confirmed','fakturerad','completed'].includes(c.status) && c.cart_token) {
     if (c.pickup_confirmed_at) {
       // Helt klart
       makeBtn('📋 Visa kvittens', '', () => adminShowPickup(c));
@@ -4141,7 +4218,7 @@ function cloneCustomerToNewQuote(c) {
   toast('Kundinfo förifylld — fyll i nytt datum & produkter');
 }
 
-// ── KONTAKTFÖRFRÅGAN-TRIAGERING (status='open') ─────────────────
+// ── BOKNINGSFÖRFRÅGAN-TRIAGERING (status='new' utan produkter) ─────────────────
 // Markera som hanterad — flyttar förfrågan till Avbruten.
 async function handleContactRequest(cartId) {
   if (!cartId) return;
@@ -4757,11 +4834,10 @@ function renderCalendar() {
   const viewEndStr   = toIso(viewEnd);
 
   // Filtrera bokningar som överlappar visningen.
-  // Använd kanban-statusar (STATUS_LABELS) för att fånga okända/legacy ghost-rader,
-  // men exkludera 'open' (kontaktförfrågningar) och 'cancelled' — kalendern visar
-  // bara faktisk bearbetad pipeline. Open-förfrågningar syns i kanban-kolumnen.
+  // Kalendern visar bara faktisk bearbetad pipeline — Bokningsförfrågningar
+  // (status='new' utan produkter) hoppas över tills admin har triagerat dem.
   const KNOWN_STATUSES = new Set(Object.keys(STATUS_LABELS));
-  const CALENDAR_STATUSES = new Set(['new','waiting','confirmed','fakturerad','betald']);
+  const CALENDAR_STATUSES = new Set(['new','waiting','confirmed','fakturerad','completed']);
   const unknownInCalendar = carts.filter(c => c.event_date && !KNOWN_STATUSES.has(c.status));
   if (unknownInCalendar.length) {
     console.warn(
@@ -4770,8 +4846,10 @@ function renderCalendar() {
       unknownInCalendar.map(c => ({ id: c.id, status: c.status, event_date: c.event_date, customer: c.customer_name }))
     );
   }
+  const isBookingRequest = (c) =>
+    c.status === 'new' && (c.items || []).filter(i => !i._note && i.name?.trim()).length === 0;
   const visible = carts
-    .filter(c => c.event_date && CALENDAR_STATUSES.has(c.status))
+    .filter(c => c.event_date && CALENDAR_STATUSES.has(c.status) && !isBookingRequest(c))
     .map(c => ({
       cart: c,
       start: c.event_date,
@@ -5017,6 +5095,7 @@ window.prodPickerAdd       = prodPickerAdd;
 window.prodUpdateSvc       = prodUpdateSvc;
 window.prodSaveAndSendOffer= prodSaveAndSendOffer;
 window.invMarkPaid         = invMarkPaid;
+window.invUnmarkPaid       = invUnmarkPaid;
 window.invResend           = invResend;
 window.invLoadPreviewNumber= invLoadPreviewNumber;
 window.invSendEmail        = invSendEmail;

@@ -93,7 +93,7 @@ function nowUtc() {
 
 // Status-mapping till iCal STATUS
 function icalStatus(s) {
-  if (s === 'confirmed' || s === 'fakturerad' || s === 'betald') return 'CONFIRMED';
+  if (s === 'confirmed' || s === 'fakturerad' || s === 'completed') return 'CONFIRMED';
   if (s === 'cancelled') return 'CANCELLED';
   return 'TENTATIVE';
 }
@@ -246,7 +246,7 @@ exports.handler = async (event) => {
 
   // Endast faktiskt bokade ordrar — proposal/waiting/cancelled hör inte hemma
   // i en masterkalender (kalendern ska visa det som "äter tid", inte rena förfrågningar)
-  const FEED_STATUSES = new Set(['confirmed', 'fakturerad', 'betald']);
+  const FEED_STATUSES = new Set(['confirmed', 'fakturerad', 'completed']);
 
   for (const c of carts) {
     if (!c.event_date) continue;

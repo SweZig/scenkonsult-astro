@@ -61,7 +61,7 @@ exports.handler = async (event) => {
     }
 
     // Vanlig cart: rensa fakturafält, återställ status till confirmed om fakturerad/betald
-    const statusReset = ['fakturerad', 'betald'].includes(cart.status) ? 'confirmed' : cart.status;
+    const statusReset = ['fakturerad', 'completed'].includes(cart.status) ? 'confirmed' : cart.status;
     const updates = {
       invoice_number:   null,
       invoice_sent_at:  null,

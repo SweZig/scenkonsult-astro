@@ -68,7 +68,7 @@ exports.handler = async (event) => {
       const { data: existing } = await db.from('carts')
         .select('status').eq('id', cartId).single().catch(() => ({ data: null }));
 
-      const PROTECTED = ['waiting', 'confirmed', 'fakturerad', 'betald'];
+      const PROTECTED = ['waiting', 'confirmed', 'fakturerad', 'completed'];
       if (existing && PROTECTED.includes(existing.status)) {
         console.error('OFFERT_BLOCKED: Försök att skriva över skyddad cart', cartId, existing.status);
       } else {

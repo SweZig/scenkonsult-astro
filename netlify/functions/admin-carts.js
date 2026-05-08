@@ -41,9 +41,29 @@ exports.handler = async (event) => {
       'Content-Type': 'application/json'
     };
 
+    // ── LAZY AUTO-PROMOTION: fakturerad + betald + event passerat → completed ─
+    // Körs vid varje admin-laddning. Atomisk PATCH som filtrerar i query — uppdaterar
+    // bara rader som matchar (oftast 0 vid varje laddning, så billig operation).
+    try {
+      const today = new Date();
+      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+      const cutoff = yesterday.toISOString().slice(0, 10); // YYYY-MM-DD
+      await fetch(
+        `${supaUrl}/rest/v1/carts?status=eq.fakturerad&event_date=lt.${cutoff}&invoice_paid_at=not.is.null`,
+        {
+          method: 'PATCH',
+          headers: { ...headers, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ status: 'completed' })
+        }
+      );
+    } catch (autoPromoteErr) {
+      console.warn('AUTO_PROMOTE_WARN:', autoPromoteErr.message);
+      // Icke-fatal — fortsätt ladda carts
+    }
+
     // Hämta varukorgar
     // Hämta alla varukorgar — service key bypasser RLS, inga radfilter behövs
-    let q = `${supaUrl}/rest/v1/carts?select=id,status,customer_name,customer_company,customer_email,customer_phone,event_date,return_date,delivery_time,return_time,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,bounce_status,bounce_at,bounce_reason,last_quote_message_id,pickup_signed_at,pickup_confirmed_at,created_at,updated_at&id=not.like.SK-RESERVE-*&order=updated_at.desc`;
+    let q = `${supaUrl}/rest/v1/carts?select=id,status,items,customer_name,customer_company,customer_email,customer_phone,event_date,return_date,delivery_time,return_time,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,bounce_status,bounce_at,bounce_reason,last_quote_message_id,pickup_signed_at,pickup_confirmed_at,created_at,updated_at&id=not.like.SK-RESERVE-*&order=updated_at.desc`;
     if (status) q += `&status=eq.${status}`;
     if (from_date) q += `&event_date=gte.${from_date}`;
     if (to_date)   q += `&event_date=lte.${to_date}`;
@@ -73,9 +93,11 @@ exports.handler = async (event) => {
 
     // Sammanfattning per status
     const summary = {
-      open:      enriched.filter(c => c.status === 'open').length,
+      new:       enriched.filter(c => c.status === 'new').length,
       waiting:   enriched.filter(c => c.status === 'waiting').length,
       confirmed: enriched.filter(c => c.status === 'confirmed').length,
+      fakturerad:enriched.filter(c => c.status === 'fakturerad').length,
+      completed: enriched.filter(c => c.status === 'completed').length,
       cancelled: enriched.filter(c => c.status === 'cancelled').length,
       total_unread: Object.values(unreadCount).reduce((a, b) => a + b, 0)
     };

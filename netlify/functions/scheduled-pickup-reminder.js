@@ -66,7 +66,7 @@ exports.handler = async () => {
     return { statusCode: 500, body: 'DB-fel' };
   }
 
-  const ALLOWED = new Set(['confirmed', 'fakturerad', 'betald']);
+  const ALLOWED = new Set(['confirmed', 'fakturerad', 'completed']);
   const tomorrows = candidates.filter(c => ALLOWED.has(c.status));
 
   console.log(`SCHEDULED_PICKUP: ${tomorrows.length} utlämningar imorgon`);

@@ -197,7 +197,7 @@ exports.handler = async (event) => {
 
       // Statusändring
       if (body.status !== undefined) {
-        const ALLOWED = ['open', 'new', 'waiting', 'confirmed', 'cancelled', 'fakturerad', 'betald'];
+        const ALLOWED = ['new', 'waiting', 'confirmed', 'cancelled', 'fakturerad', 'completed'];
         if (!ALLOWED.includes(body.status)) return err('Ogiltig status', 400);
 
         const oldStatus = cart.status;
@@ -295,7 +295,7 @@ exports.handler = async (event) => {
       await db.update('carts', {
         expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
       }, 'id', cart.id);
-    } else if (newStatus !== 'confirmed' && newStatus !== 'betald') {
+    } else if (newStatus !== 'confirmed' && newStatus !== 'completed') {
       // Förläng TTL med 21 dagar för aktiva ordrar
       try { await db.rpc('extend_cart_ttl', { cart_id: cart.id }); } catch (e) {
         // extend_cart_ttl RPC saknas — sätt expires_at direkt
