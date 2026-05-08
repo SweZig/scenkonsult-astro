@@ -4050,6 +4050,12 @@ function renderPanelFooter() {
     });
   }
 
+  // Återkommande kund: skapa ny offert med samma kundinfo förifylld.
+  // Visas för alla statusar utom 'open' (kontaktförfrågan) och 'cancelled'.
+  if (c.customer_name && c.customer_email && !['open','cancelled'].includes(c.status)) {
+    makeBtn('📋 Ny offert till samma kund', '', () => cloneCustomerToNewQuote(c));
+  }
+
   // SMS-knapp om telefonnummer finns
   if (c.customer_phone) {
     makeBtn('💬 Skicka SMS', '', () => adminSendSms(c));
@@ -4101,6 +4107,38 @@ async function cancelOrder() {
     renderTab('info');
     renderPanelFooter();
   } else toast('Fel vid avbrytning', 'error');
+}
+
+// ── KLONA KUND TILL NY OFFERT ──────────────────────────────────
+// Återanvänder kundinfo (namn, email, telefon, företag, plats osv) men
+// lämnar datum, tider, produkter och anmärkning tomma. När admin klickar
+// "✉ Skicka offert" i modalen skapas en helt ny cart i databasen — den
+// gamla offerten lämnas orörd.
+function cloneCustomerToNewQuote(c) {
+  if (!c?.customer_name || !c?.customer_email) {
+    toast('Kundinfo saknas — kan inte klona', 'error');
+    return;
+  }
+  // Stäng detaljpanelen så fokus hamnar på offert-modalen
+  closePanel();
+  // VIKTIGT: nollställ currentCart så existing_cart_id blir null i sendQuote
+  currentCart = null;
+  // Förifyll endast kundrelaterad info — INGA items, INGET datum
+  openQuoteModal({
+    customer_name:    c.customer_name,
+    customer_email:   c.customer_email,
+    customer_phone:   c.customer_phone,
+    customer_company: c.customer_company,
+    customer_orgnr:   c.customer_orgnr,
+    cc_email:         c.cc_email,
+    event_location:   c.event_location,
+    delivery_mode:    c.delivery_mode,
+    // event_date, return_date, delivery_time, return_time, items, note utelämnas medvetet
+  });
+  // Tvinga ny order — openQuoteModal sätter denna baserat på (prefill === null),
+  // så vi måste explicit sätta true här eftersom vi skickar in ett objekt.
+  _quoteIsNewOrder = true;
+  toast('Kundinfo förifylld — fyll i nytt datum & produkter');
 }
 
 // ── KONTAKTFÖRFRÅGAN-TRIAGERING (status='open') ─────────────────
@@ -4990,6 +5028,7 @@ window.closePanel      = closePanel;
 window.sendMessage     = sendMessage;
 window.confirmOrder    = confirmOrder;
 window.cancelOrder     = cancelOrder;
+window.cloneCustomerToNewQuote = cloneCustomerToNewQuote;
 window.notifyCustomer  = sendCustomerNotice;
 window.quoteAddCustomRow = quoteAddCustomRow;
 window.quotePickerCat  = quotePickerCat;
