@@ -21,6 +21,7 @@ const svgId = `pkt-${paket.id}`;
   data-paket-id={paket.id}
   data-paket-artno={paket.artno}
   data-paket-name={paket.name}
+  data-paket-transport={paket.transport}
   data-paket-config={JSON.stringify(cfg)}
   itemscope itemtype="https://schema.org/Product"
 >
@@ -321,9 +322,14 @@ const svgId = `pkt-${paket.id}`;
     cartBtn?.addEventListener('click', () => {
       if (!window.skCart || cartBtn.disabled) return;
       const mc = moduleCount(cfg.width, cfg.depth, surface);
-      const lev = getRecommendedFrakt(mc);
+      const transport = card.dataset.paketTransport;
+      const isKravs = transport === 'krävs';
+      // Krävs: forceLeverans (override eller auto-rekommenderat fordon)
+      // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
+      const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(mc)) : null;
 
-      // Modul-rad
+      // Modul-rad. bulky+requiresAssembly bara om paketet kräver transport,
+      // annars utelämnas → kunden i varukorgen får välja transport+montering själv.
       const modItem = {
         id: MOD_ARTNO[surface],
         artno: MOD_ARTNO[surface],
@@ -331,14 +337,16 @@ const svgId = `pkt-${paket.id}`;
         price: MOD_PRICE[surface],
         qty: mc,
         category: 'Scen',
-        bulky: true,
-        requiresAssembly: true,
-        monteringMin: 10,
+        monteringMin: 10, // alltid satt så att monteringspriset blir rätt om kunden bockar i
       };
-      if (lev) modItem.forceLeverans = lev;
+      if (isKravs) {
+        modItem.bulky = true;
+        modItem.requiresAssembly = true;
+        if (lev) modItem.forceLeverans = lev;
+      }
       window.skCart.add(modItem);
 
-      // Trapp-rader
+      // Trapp-rader (om kunden valt > 0)
       if (stairs > 0) {
         const t = TRAPP[cfg.defaultHeight];
         if (t) {
@@ -353,9 +361,9 @@ const svgId = `pkt-${paket.id}`;
         }
       }
 
-      // Tak (om paket har)
+      // Tak-paket — alltid bulky/montering eftersom tak är skrymmande och tar tid
       if (cfg.tak) {
-        window.skCart.add({
+        const takItem = {
           id: cfg.tak.artno,
           artno: cfg.tak.artno,
           name: `${cfg.tak.name} — ${paketName}`,
@@ -365,7 +373,11 @@ const svgId = `pkt-${paket.id}`;
           bulky: true,
           requiresAssembly: true,
           monteringMin: cfg.tak.monteringMin,
-        });
+        };
+        // Om paketet har forceLeverans-override på sig (Large+ tak: lastbil),
+        // sätt det på tak-raden också så att 'lastbil' definitivt vinner i cart
+        if (cfg.forceLeverans) takItem.forceLeverans = cfg.forceLeverans;
+        window.skCart.add(takItem);
       }
 
       if (cartLabel) {
