@@ -1,0 +1,444 @@
+---
+// Dynamiskt paket-kort: kunden väljer yta + trappor → live-pris + live-illustration
+// Cart-add splittar paketet i komponentrader (modul × N + trappor + ev. tak)
+const { paket } = Astro.props;
+const cfg = paket.config;
+const useFoto = !!paket.image;
+
+const SURFACE_LABELS = {
+  '1x2-slat':    'Slät 1×2',
+  '1x2-halkfri': 'Halkfri 1×2',
+  '1x1-halkfri': 'Halkfri 1×1',
+};
+
+// Generera deterministiskt unikt id för SVG-pattern (kollisionssäkert)
+const svgId = `pkt-${paket.id}`;
+---
+
+<article
+  class="paket-card"
+  id={paket.id}
+  data-paket-id={paket.id}
+  data-paket-artno={paket.artno}
+  data-paket-name={paket.name}
+  data-paket-config={JSON.stringify(cfg)}
+  itemscope itemtype="https://schema.org/Product"
+>
+  <div class="paket-image-wrap">
+    {useFoto ? (
+      <img src={paket.image} alt={paket.alt || paket.name} width="512" height="427" loading="lazy" class="paket-foto" />
+    ) : (
+      <svg
+        class="paket-svg"
+        id={svgId}
+        data-paket-svg
+        viewBox="0 0 400 320"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label={`Visualisering av ${paket.name}`}
+      ></svg>
+    )}
+  </div>
+
+  <div class="paket-body">
+    <p class="paket-tagline">{paket.tagline}</p>
+    <h3 class="paket-name" itemprop="name">{paket.name}</h3>
+    <p class="paket-artno">{paket.artno}</p>
+
+    <div class="paket-specs">
+      <div class="paket-spec-row"><span class="paket-spec-label">Storlek</span><span class="paket-spec-val">{paket.size}</span></div>
+      <div class="paket-spec-row"><span class="paket-spec-label">Mått</span><span class="paket-spec-val">{paket.dimensions}</span></div>
+      <div class="paket-spec-row"><span class="paket-spec-label">Höjd</span><span class="paket-spec-val" data-paket-display-height>{cfg.defaultHeight} cm</span></div>
+      <div class="paket-spec-row"><span class="paket-spec-label">Kapacitet</span><span class="paket-spec-val">{paket.capacity}</span></div>
+      <div class="paket-spec-row"><span class="paket-spec-label">Transport</span>
+        {paket.transport === 'krävs' ? (
+          <span class="paket-spec-val paket-spec-warn">Krävs – tillkommer</span>
+        ) : (
+          <span class="paket-spec-val">Tilläggstjänst</span>
+        )}
+      </div>
+    </div>
+
+    <p class="paket-description" itemprop="description">{paket.description}</p>
+
+    <div class="paket-control">
+      <span class="paket-control-label">Yta</span>
+      <div class="paket-pills" role="radiogroup" aria-label="Yta">
+        {cfg.supportedSurfaces.map(s => (
+          <button
+            type="button"
+            class="paket-pill"
+            data-yta={s}
+            aria-pressed={s === cfg.defaultSurface ? 'true' : 'false'}
+          >{SURFACE_LABELS[s]}</button>
+        ))}
+      </div>
+    </div>
+
+    <div class="paket-control">
+      <span class="paket-control-label">Trappor</span>
+      <div class="paket-pills" role="radiogroup" aria-label="Antal trappor">
+        {cfg.stairCounts.map(n => (
+          <button
+            type="button"
+            class="paket-pill"
+            data-stairs={n}
+            aria-pressed={n === cfg.defaultStairCount ? 'true' : 'false'}
+          >{n}</button>
+        ))}
+      </div>
+    </div>
+
+    <div class="paket-bottom" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+      <meta itemprop="priceCurrency" content="SEK" />
+      <meta itemprop="price" content={paket.price} />
+      <meta itemprop="availability" content="https://schema.org/InStock" />
+      <div class="paket-price">
+        <span class="sk-price-excl paket-price-num" data-paket-price-excl>{paket.price.toLocaleString('sv-SE')} kr</span>
+        <span class="sk-price-incl hidden paket-price-num" data-paket-price-incl>{Math.round(paket.price * 1.25).toLocaleString('sv-SE')} kr</span>
+        <span class="paket-price-suffix">/dygn</span>
+      </div>
+      <button type="button" class="paket-cart-btn" data-paket-add aria-label={`Lägg ${paket.name} i varukorgen`}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span data-paket-cart-label>Lägg i varukorg</span>
+      </button>
+    </div>
+    <p class="paket-warning" data-paket-warning hidden></p>
+  </div>
+</article>
+
+<script>
+  // ──────────────────────────────────────────────────────────────────
+  // Konstanter — synkade med SceneConfigurator
+  // ──────────────────────────────────────────────────────────────────
+  const MOD_PRICE = { '1x2-slat': 200, '1x2-halkfri': 225, '1x1-halkfri': 150 };
+  const MOD_ARTNO = { '1x2-slat': 'SK-SCN-MOD-0002', '1x2-halkfri': 'SK-SCN-MOD-0003', '1x1-halkfri': 'SK-SCN-MOD-0001' };
+  const MOD_NAMES = { '1x2-slat': 'Plattform 1×2 m (slät)', '1x2-halkfri': 'Plattform 1×2 m (halkfri)', '1x1-halkfri': 'Plattform 1×1 m (halkfri)' };
+  const TRAPP = {
+    40: { artno: 'SK-SCN-ACC-0001', name: 'Scentrapp (40 cm)', price: 279 },
+    60: { artno: 'SK-SCN-ACC-0002', name: 'Scentrapp (60 cm)', price: 349 },
+  };
+
+  function fmt(n) { return Math.round(n).toLocaleString('sv-SE') + ' kr'; }
+
+  function moduleCount(w, d, surface) {
+    const area = w * d;
+    return surface === '1x1-halkfri' ? area : Math.floor(area / 2);
+  }
+
+  function isSurfaceValid(w, d, surface) {
+    if (surface === '1x1-halkfri') return w * d <= 12;
+    // 1×2 kräver att minst en dimension är jämn
+    return (w % 2 === 0) || (d % 2 === 0);
+  }
+
+  function computePrice(cfg, surface, stairs) {
+    if (!isSurfaceValid(cfg.width, cfg.depth, surface)) return null;
+    const mc = moduleCount(cfg.width, cfg.depth, surface);
+    const stairPrice = TRAPP[cfg.defaultHeight]?.price || 0;
+    let price = mc * MOD_PRICE[surface] + stairs * stairPrice;
+    if (cfg.tak) price += cfg.tak.price;
+    return price;
+  }
+
+  function getRecommendedFrakt(modCount) {
+    if (modCount === 0) return null;
+    if (modCount <= 8) return 'storbil';
+    if (modCount <= 12) return 'storbil_slap';
+    return 'lastbil';
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // SVG-rendering: top-down 2D av scen + trappor (samma stil som konfiguratorn)
+  // ──────────────────────────────────────────────────────────────────
+  function drawPaketSvg(svgEl, cfg, surface, stairs) {
+    const { width: w, depth: d } = cfg;
+    const padX = 60, padY = 60;
+    const vw = 400, vh = 320;
+    const maxW = vw - 2 * padX;
+    const maxH = vh - 2 * padY - 30; // utrymme för trappa under
+    const scale = Math.min(maxW / w, maxH / d);
+    const stageW = w * scale;
+    const stageD = d * scale;
+    const x0 = (vw - stageW) / 2;
+    const y0 = (vh - stageD) / 2 - 8;
+
+    const svgIdSafe = svgEl.id || 'pkt';
+    const isHalkfri = surface.includes('halkfri');
+    const moduleFill = isHalkfri ? `url(#patHalkfri-${svgIdSafe})` : '#3a3370';
+
+    let html = '';
+    if (isHalkfri) {
+      html += `<defs><pattern id="patHalkfri-${svgIdSafe}" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><rect width="6" height="6" fill="#3a3370"/><line x1="0" y1="0" x2="0" y2="6" stroke="#5a4ea0" stroke-width="1.2"/></pattern></defs>`;
+    }
+
+    // Skugga
+    const sh = 5;
+    html += `<rect x="${x0 + sh}" y="${y0 + sh}" width="${stageW}" height="${stageD}" fill="rgba(0,0,0,0.4)" rx="2"/>`;
+
+    // Scenens topp
+    html += `<rect x="${x0}" y="${y0}" width="${stageW}" height="${stageD}" fill="${moduleFill}" stroke="#c4b5f4" stroke-width="1.5" rx="2"/>`;
+
+    // Modulrutnät
+    if (surface === '1x1-halkfri') {
+      for (let i = 1; i < w; i++) {
+        const x = x0 + i * scale;
+        html += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="0.6" opacity="0.45"/>`;
+      }
+      for (let j = 1; j < d; j++) {
+        const y = y0 + j * scale;
+        html += `<line x1="${x0}" y1="${y}" x2="${x0 + stageW}" y2="${y}" stroke="#c4b5f4" stroke-width="0.6" opacity="0.45"/>`;
+      }
+    } else {
+      // 1×2: orientera moduler så att den jämna sidan får 2-uppdelning
+      const horiz = (w % 2 === 0); // 2m längs bredden
+      if (horiz) {
+        for (let i = 2; i < w; i += 2) {
+          const x = x0 + i * scale;
+          html += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="0.6" opacity="0.45"/>`;
+        }
+        for (let j = 1; j < d; j++) {
+          const y = y0 + j * scale;
+          html += `<line x1="${x0}" y1="${y}" x2="${x0 + stageW}" y2="${y}" stroke="#c4b5f4" stroke-width="0.6" opacity="0.45"/>`;
+        }
+      } else {
+        for (let i = 1; i < w; i++) {
+          const x = x0 + i * scale;
+          html += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="0.6" opacity="0.45"/>`;
+        }
+        for (let j = 2; j < d; j += 2) {
+          const y = y0 + j * scale;
+          html += `<line x1="${x0}" y1="${y}" x2="${x0 + stageW}" y2="${y}" stroke="#c4b5f4" stroke-width="0.6" opacity="0.45"/>`;
+        }
+      }
+    }
+
+    // Trappor — alltid längs framsidan (botten i SVG)
+    const sw = Math.min(stageW, stageD) * 0.18;
+    const sd = sw * 0.7;
+    const placements = stairs === 1 ? [0.5] : stairs === 2 ? [0.3, 0.7] : [];
+    placements.forEach(frac => {
+      const sx = x0 + stageW * frac - sw / 2;
+      const sy = y0 + stageD;
+      html += `<g><rect x="${sx}" y="${sy}" width="${sw}" height="${sd}" fill="#2d2670" stroke="#c4b5f4" stroke-width="1" rx="2"/>`;
+      for (let i = 1; i < 4; i++) {
+        const ly = sy + (sd * i / 4);
+        html += `<line x1="${sx + 2}" y1="${ly}" x2="${sx + sw - 2}" y2="${ly}" stroke="#c4b5f4" stroke-width="0.8" stroke-opacity="0.7"/>`;
+      }
+      html += `</g>`;
+    });
+
+    // "Tak"-symbol om paket har tak — markering ovanpå scenen
+    if (cfg.tak) {
+      const tx = x0 + stageW / 2;
+      const ty = y0 - 14;
+      html += `<g opacity="0.8">`;
+      html += `<text x="${tx}" y="${ty}" text-anchor="middle" fill="#c4b5f4" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="700" letter-spacing="1">↑ MED TAK</text>`;
+      html += `</g>`;
+    }
+
+    svgEl.innerHTML = html;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Init varje kort
+  // ──────────────────────────────────────────────────────────────────
+  function initPaketCard(card) {
+    const cfg = JSON.parse(card.dataset.paketConfig || '{}');
+    const paketName = card.dataset.paketName;
+    let surface = cfg.defaultSurface;
+    let stairs = cfg.defaultStairCount;
+
+    const svgEl = card.querySelector('[data-paket-svg]');
+    const priceExcl = card.querySelector('[data-paket-price-excl]');
+    const priceIncl = card.querySelector('[data-paket-price-incl]');
+    const heightDisplay = card.querySelector('[data-paket-display-height]');
+    const cartBtn = card.querySelector('[data-paket-add]');
+    const cartLabel = card.querySelector('[data-paket-cart-label]');
+    const warning = card.querySelector('[data-paket-warning]');
+
+    function update() {
+      const price = computePrice(cfg, surface, stairs);
+
+      // Disable invalid surfaces
+      card.querySelectorAll('[data-yta]').forEach(b => {
+        const valid = isSurfaceValid(cfg.width, cfg.depth, b.dataset.yta);
+        if (!valid) {
+          b.classList.add('paket-pill-disabled');
+          b.disabled = true;
+          b.title = b.dataset.yta === '1x1-halkfri' ? `1×1-yta stöder max 12 m² (paketet är ${cfg.width * cfg.depth} m²)` : 'Kräver att en dimension är jämn';
+        } else {
+          b.classList.remove('paket-pill-disabled');
+          b.disabled = false;
+          b.title = '';
+        }
+      });
+
+      if (price === null) {
+        priceExcl.textContent = '—';
+        priceIncl.textContent = '—';
+        cartBtn.disabled = true;
+        warning.hidden = false;
+        warning.textContent = 'Vald yta är inte kompatibel med paketets mått.';
+      } else {
+        priceExcl.textContent = price.toLocaleString('sv-SE') + ' kr';
+        priceIncl.textContent = Math.round(price * 1.25).toLocaleString('sv-SE') + ' kr';
+        cartBtn.disabled = false;
+        warning.hidden = true;
+      }
+
+      if (heightDisplay) heightDisplay.textContent = cfg.defaultHeight + ' cm';
+
+      // Pressed-states
+      card.querySelectorAll('[data-yta]').forEach(b => {
+        b.setAttribute('aria-pressed', b.dataset.yta === surface ? 'true' : 'false');
+      });
+      card.querySelectorAll('[data-stairs]').forEach(b => {
+        b.setAttribute('aria-pressed', String(parseInt(b.dataset.stairs)) === String(stairs) ? 'true' : 'false');
+      });
+
+      if (svgEl) drawPaketSvg(svgEl, cfg, surface, stairs);
+    }
+
+    card.querySelectorAll('[data-yta]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        surface = btn.dataset.yta;
+        update();
+      });
+    });
+    card.querySelectorAll('[data-stairs]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        stairs = parseInt(btn.dataset.stairs);
+        update();
+      });
+    });
+
+    cartBtn?.addEventListener('click', () => {
+      if (!window.skCart || cartBtn.disabled) return;
+      const mc = moduleCount(cfg.width, cfg.depth, surface);
+      const lev = getRecommendedFrakt(mc);
+
+      // Modul-rad
+      const modItem = {
+        id: MOD_ARTNO[surface],
+        artno: MOD_ARTNO[surface],
+        name: `${MOD_NAMES[surface]} — ${paketName}`,
+        price: MOD_PRICE[surface],
+        qty: mc,
+        category: 'Scen',
+        bulky: true,
+        requiresAssembly: true,
+        monteringMin: 10,
+      };
+      if (lev) modItem.forceLeverans = lev;
+      window.skCart.add(modItem);
+
+      // Trapp-rader
+      if (stairs > 0) {
+        const t = TRAPP[cfg.defaultHeight];
+        if (t) {
+          window.skCart.add({
+            id: t.artno,
+            artno: t.artno,
+            name: `${t.name} — ${paketName}`,
+            price: t.price,
+            qty: stairs,
+            category: 'Scen tillbehör',
+          });
+        }
+      }
+
+      // Tak (om paket har)
+      if (cfg.tak) {
+        window.skCart.add({
+          id: cfg.tak.artno,
+          artno: cfg.tak.artno,
+          name: `${cfg.tak.name} — ${paketName}`,
+          price: cfg.tak.price,
+          qty: 1,
+          category: 'Scen tillbehör',
+          bulky: true,
+          requiresAssembly: true,
+          monteringMin: cfg.tak.monteringMin,
+        });
+      }
+
+      if (cartLabel) {
+        const original = cartLabel.textContent;
+        cartLabel.textContent = '✓ Lagt till!';
+        cartBtn.classList.add('paket-cart-btn-success');
+        setTimeout(() => {
+          cartLabel.textContent = original;
+          cartBtn.classList.remove('paket-cart-btn-success');
+        }, 1800);
+      }
+    });
+
+    update();
+  }
+
+  // Init alla paket-kort på sidan
+  document.querySelectorAll('.paket-card').forEach(initPaketCard);
+</script>
+
+<style is:global>
+  .paket-card {
+    background: #1e1850;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.18s;
+  }
+  .paket-card:hover { border-color: rgba(196,181,244,0.4); }
+
+  .paket-image-wrap {
+    background: #0c0a24;
+    aspect-ratio: 1024/853;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .paket-svg { width: 100%; height: 100%; display: block; }
+  .paket-foto { width: 100%; height: 100%; object-fit: cover; }
+
+  .paket-body { padding: 1.1rem 1.15rem 1.15rem; display: flex; flex-direction: column; flex: 1; }
+  .paket-tagline { color: #c4b5f4; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 0.35rem; }
+  .paket-name { font-family: 'DM Serif Display', serif; color: white; font-size: 1.3rem; line-height: 1.15; margin: 0 0 0.25rem; }
+  .paket-artno { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; color: rgba(196,181,244,0.65); letter-spacing: 0.08em; margin: 0 0 0.7rem; }
+
+  .paket-specs { background: rgba(12,10,36,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 9px; padding: 0.6rem 0.75rem; margin: 0 0 0.7rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .paket-spec-row { display: flex; justify-content: space-between; gap: 0.6rem; font-size: 0.78rem; line-height: 1.4; }
+  .paket-spec-label { color: rgba(255,255,255,0.4); }
+  .paket-spec-val { color: rgba(255,255,255,0.75); text-align: right; }
+  .paket-spec-warn { color: #fbbf24; font-weight: 600; }
+
+  .paket-description { color: rgba(255,255,255,0.6); font-size: 0.86rem; line-height: 1.5; margin: 0 0 0.95rem; }
+
+  .paket-control { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.6rem; }
+  .paket-control-label { color: rgba(255,255,255,0.55); font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; min-width: 56px; }
+  .paket-pills { display: flex; gap: 0.3rem; flex-wrap: wrap; flex: 1; }
+  .paket-pill { background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); padding: 0.4rem 0.7rem; border-radius: 99px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.13s; font-family: 'Space Grotesk', sans-serif; }
+  .paket-pill:hover:not(:disabled) { border-color: rgba(196,181,244,0.4); color: white; }
+  .paket-pill[aria-pressed="true"] { background: #c4b5f4; color: #0c0a24; border-color: #c4b5f4; }
+  .paket-pill-disabled, .paket-pill:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .paket-bottom { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-top: 0.85rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); }
+  .paket-price { display: flex; align-items: baseline; gap: 0.25rem; line-height: 1; }
+  .paket-price-num { color: #c4b5f4; font-weight: 800; font-size: 1.25rem; }
+  .paket-price-suffix { color: rgba(255,255,255,0.45); font-size: 0.78rem; }
+
+  .paket-cart-btn { background: #c4b5f4; color: #0c0a24; border: 0; padding: 0.55rem 0.9rem; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Space Grotesk', sans-serif; }
+  .paket-cart-btn:hover:not(:disabled) { background: #e2dcfb; }
+  .paket-cart-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .paket-cart-btn-success { background: #86efac !important; }
+
+  .paket-warning { color: #fbbf24; font-size: 0.78rem; margin: 0.55rem 0 0; line-height: 1.4; }
+</style>

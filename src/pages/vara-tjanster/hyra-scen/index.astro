@@ -5,6 +5,7 @@ import ProductCard from '../../../components/ProductCard.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import CartButton from '../../../components/CartButton.astro';
 import SceneConfigurator from '../../../components/SceneConfigurator.astro';
+import DynamicPaketCard from '../../../components/DynamicPaketCard.astro';
 import scenData from '../../../data/scenes.json';
 
 const pageSchema = {
@@ -79,37 +80,10 @@ const pageSchema = {
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-10">
     <div class="mb-8">
       <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Färdiga scenpaket</h2>
-      <p class="text-gray-400 text-sm">Snabba paketval om du inte vill konfigurera själv. Alla paket är förkonfigurerade kombinationer av plattformar, höjd, trapp och scenkjol till ett rabatterat paketpris.</p>
+      <p class="text-gray-400 text-sm">Snabba paketval om du inte vill konfigurera själv. Välj yta och antal trappor i kortet — pris och illustration uppdateras direkt. Tak-paketen ligger sist.</p>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {scenData.products.map(p => (
-        <div id={p.id}>
-          <ProductCard
-            id={p.artno || `scen-${p.id}`}
-            artno={p.artno}
-            name={p.name}
-            price={p.price}
-            priceNote={`/${p.priceNote ?? 'dygn'}`}
-            image={p.image}
-            alt={p.alt}
-            description={p.description}
-            category="Scen"
-            bulky={p.bulky ?? false}
-            monteringMin={p.monteringMin}
-            dimensionTable={[
-              { label: 'Storlek', value: p.size },
-              { label: 'Mått', value: p.dimensions },
-              { label: 'Höjd', value: p.heights.join(' / ') },
-              { label: 'Kapacitet', value: p.capacity },
-              {
-                label: 'Transport',
-                value: p.transport === 'krävs' ? 'Krävs – tillkommer som tillägg' : 'Tilläggstjänst',
-                highlight: p.transport === 'krävs'
-              },
-            ]}
-          />
-        </div>
-      ))}
+      {scenData.products.map(p => <DynamicPaketCard paket={p} />)}
     </div>
   </section>
 
