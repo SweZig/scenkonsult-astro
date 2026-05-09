@@ -35,6 +35,51 @@ const configData = {
     <p class="cfg-lead">Välj plattformstyp, mått och tillbehör. Vi ritar upp scenen, räknar ut alla moduler och totalpriset live. Lägg sedan hela konfigurationen i varukorgen i ett klick.</p>
   </div>
 
+  <!-- Yta-jämförelse: halkfri vs slät -->
+  <div class="cfg-ytor">
+    <div class="cfg-ytor-head">
+      <h3 class="cfg-ytor-title">Halkfri eller slät yta — vilken passar ditt event?</h3>
+      <p class="cfg-ytor-lead">Alla våra plattformsmoduler har samma stabilitet och bärighet. Det är bara ovansidan som skiljer.</p>
+    </div>
+    <div class="cfg-ytor-grid">
+      <article class="cfg-yta-card">
+        <div class="cfg-yta-photo" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></div>
+        <h4 class="cfg-yta-name">Halkfri yta</h4>
+        <p class="cfg-yta-tagline">Texturerad ovansida — säker direkt utan matta.</p>
+        <ul class="cfg-yta-props">
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Halkfri även när det är vått (regn, dryck)</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Inget behov av matta eller heltäcknings-täckning</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Standardval för utomhusbruk &amp; livescen</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Tål dans, band, högtalare &amp; instrument med fötter</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Lättstädad — torka av direkt på plats</li>
+        </ul>
+        <div class="cfg-yta-prices">
+          <span class="cfg-yta-price-chip">1×1 m — <strong>150 kr</strong>/dygn</span>
+          <span class="cfg-yta-price-chip">1×2 m — <strong>225 kr</strong>/dygn</span>
+        </div>
+        <button type="button" class="cfg-yta-cta" data-yta-select="1x2-halkfri">Välj halkfri 1×2 m i konfiguratorn ↓</button>
+      </article>
+
+      <article class="cfg-yta-card">
+        <div class="cfg-yta-photo" style="background-image:url('/images/scen/tex_yta_slat.webp')" aria-hidden="true"></div>
+        <h4 class="cfg-yta-name">Slät yta</h4>
+        <p class="cfg-yta-tagline">Jämn lackerad ovansida — bygg över med matta eller möblera.</p>
+        <ul class="cfg-yta-props">
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Avsedd som underlag — lägg matta eller heltäckning över</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Stabilt &amp; jämnt för möbler, bord &amp; podium</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Bra för konferens, talarscen, fotostudio &amp; mässa</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Lägre pris än halkfri (25 kr/modul billigare)</li>
+          <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Inomhusbruk eller under tak vid utomhusevent</li>
+        </ul>
+        <div class="cfg-yta-prices">
+          <span class="cfg-yta-price-chip">1×2 m — <strong>200 kr</strong>/dygn</span>
+          <span class="cfg-yta-price-chip cfg-yta-price-na">1×1 m — finns endast halkfri</span>
+        </div>
+        <button type="button" class="cfg-yta-cta" data-yta-select="1x2-slat">Välj slät 1×2 m i konfiguratorn ↓</button>
+      </article>
+    </div>
+  </div>
+
   <div class="cfg-grid">
     <div class="cfg-visual">
       <div class="cfg-svg-frame" id="cfg-svg-frame">
@@ -756,6 +801,20 @@ const configData = {
     document.querySelectorAll('input[name="moduleType"]').forEach(el => {
       el.addEventListener('change', e => { state.moduleType = e.target.value; render(); });
     });
+
+    // CTA i ytor-jämförelsen: välj plattformstyp och scrolla till formuläret
+    document.querySelectorAll('[data-yta-select]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const target = e.currentTarget.dataset.ytaSelect;
+        const radio = document.querySelector(`input[name="moduleType"][value="${target}"]`);
+        if (radio) {
+          radio.checked = true;
+          state.moduleType = target;
+          render();
+          radio.closest('.cfg-card-radio')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    });
     document.querySelectorAll('input[name="height"]').forEach(el => {
       el.addEventListener('change', e => { state.height = parseInt(e.target.value, 10); render(); });
     });
@@ -912,6 +971,33 @@ const configData = {
 .cfg-eyebrow { color: #c4b5f4; font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 0.6rem; }
 .cfg-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; color: white; margin: 0 0 0.75rem; }
 .cfg-lead { color: rgba(255,255,255,0.6); font-size: clamp(0.95rem, 2vw, 1.05rem); line-height: 1.7; margin: 0; max-width: 720px; }
+
+/* Yta-jämförelse: halkfri vs slät */
+.cfg-ytor { max-width: 1200px; margin: 0 auto 2rem; }
+.cfg-ytor-head { max-width: 720px; margin: 0 auto 1.5rem; text-align: center; }
+.cfg-ytor-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.3rem, 2.6vw, 1.7rem); color: white; margin: 0 0 0.55rem; line-height: 1.2; }
+.cfg-ytor-lead { color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.6; margin: 0; }
+.cfg-ytor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 760px) { .cfg-ytor-grid { grid-template-columns: 1fr; gap: 1rem; } }
+
+.cfg-yta-card { background: #1e1850; border: 1px solid rgba(196,181,244,0.18); border-radius: 16px; padding: 1.6rem 1.4rem 1.4rem; display: flex; flex-direction: column; transition: border-color 0.2s, transform 0.2s; }
+.cfg-yta-card:hover { border-color: rgba(196,181,244,0.45); }
+
+.cfg-yta-photo { width: 130px; height: 130px; border-radius: 50%; background-size: cover; background-position: center; margin: 0 auto 1rem; border: 3px solid rgba(196,181,244,0.3); box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+.cfg-yta-name { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: white; margin: 0 0 0.4rem; text-align: center; }
+.cfg-yta-tagline { color: rgba(255,255,255,0.7); font-size: 0.92rem; line-height: 1.5; margin: 0 0 1.05rem; text-align: center; font-style: italic; }
+
+.cfg-yta-props { list-style: none; padding: 0; margin: 0 0 1.1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.cfg-yta-props li { display: flex; gap: 0.6rem; color: rgba(255,255,255,0.82); font-size: 0.88rem; line-height: 1.5; }
+.cfg-yta-tick { color: #c4b5f4; font-weight: 800; flex-shrink: 0; line-height: 1.5; }
+
+.cfg-yta-prices { display: flex; flex-direction: column; gap: 0.4rem; padding: 0.85rem 0; border-top: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1.1rem; }
+.cfg-yta-price-chip { color: rgba(255,255,255,0.85); font-size: 0.88rem; font-family: 'Space Grotesk', sans-serif; }
+.cfg-yta-price-chip strong { color: #c4b5f4; font-weight: 800; }
+.cfg-yta-price-na { color: rgba(255,255,255,0.4); font-style: italic; }
+
+.cfg-yta-cta { background: transparent; border: 1.5px solid #c4b5f4; color: #c4b5f4; padding: 0.7rem 1.1rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; font-family: 'Space Grotesk', sans-serif; margin-top: auto; }
+.cfg-yta-cta:hover { background: #c4b5f4; color: #0c0a24; }
 
 .cfg-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(1rem, 2vw, 1.75rem); max-width: 1200px; margin: 0 auto; }
 @media (max-width: 900px) { .cfg-grid { grid-template-columns: 1fr; } }
