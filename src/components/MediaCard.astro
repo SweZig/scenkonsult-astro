@@ -248,11 +248,34 @@ if (!window.__mcInit) {
     const slide = st.slides[st.current];
     const isVideo = slide.type === 'video';
 
-    // Stoppa eventuell aktiv video
+    // Stoppa eventuell aktiv video / YouTube-iframe
     const oldVideo = area.querySelector('video');
     if (oldVideo) { oldVideo.pause(); oldVideo.src = ''; }
+    const oldIframe = area.querySelector('iframe');
+    if (oldIframe) { oldIframe.src = 'about:blank'; }
 
-    if (isVideo) {
+    // YouTube-detektering på video-slides
+    const ytMatch = isVideo ? String(slide.src || '').match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{11})/) : null;
+    const ytId = ytMatch ? ytMatch[1] : null;
+
+    if (isVideo && ytId) {
+      // YouTube-iframe — autoplay + mute så den startar direkt vid slide-byte
+      area.innerHTML = `
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1"
+          style="width:100%;height:100%;display:block;border:0;background:#050410"
+          title=""
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+        <div style="position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:5px;background:rgba(12,10,36,.75);border:1px solid rgba(196,181,244,.3);border-radius:4px;padding:3px 8px;font-size:9px;color:rgba(196,181,244,.85);font-weight:700;letter-spacing:.04em;pointer-events:none">
+          <span style="width:6px;height:6px;border-radius:50%;background:#c4b5f4;animation:mcPulse 1.1s ease-in-out infinite;flex-shrink:0"></span>
+          VIDEO
+        </div>`;
+      area.style.cursor = 'default';
+      area.onclick = null;
+    } else if (isVideo) {
       // Inline autoplay-video, muted (krävs av browsers)
       area.innerHTML = `
         <video

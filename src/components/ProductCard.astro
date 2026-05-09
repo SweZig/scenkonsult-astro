@@ -28,6 +28,14 @@ const _ytMatch = videoSrc ? String(videoSrc).match(/(?:youtu\.be\/|v=|embed\/)([
 const youtubeId = _ytMatch ? _ytMatch[1] : '';
 const isYouTube = Boolean(youtubeId);
 
+// Bygg slides-array (bild först, sedan video) — används om både bild och video finns
+const _slides: Array<{ type: 'image' | 'video'; src: string }> = [];
+if (image) _slides.push({ type: 'image', src: image });
+if (videoSrc) _slides.push({ type: 'video', src: videoSrc });
+const hasMultipleSlides = _slides.length > 1;
+const mcId = hasMultipleSlides ? `mc-pc-${Math.random().toString(36).slice(2, 8)}` : '';
+const slidesJson = hasMultipleSlides ? JSON.stringify(_slides) : '';
+
 const productJson = JSON.stringify({
   name:      name,
   artno:     artno ?? '',
@@ -49,36 +57,47 @@ const productJson = JSON.stringify({
   class={`bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full ${wide ? 'lg:col-span-2' : ''}`}
   itemscope itemtype="https://schema.org/Product"
   data-sk-product={productJson}
+  data-mc-id={hasMultipleSlides ? mcId : undefined}
+  data-mc-slides={hasMultipleSlides ? slidesJson : undefined}
   style="cursor:pointer"
 >
-  {image && (
+  {image && !hasMultipleSlides && (
     <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
       <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy"
         class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+    </div>
+  )}
+  {hasMultipleSlides && (
+    <div class="relative bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+      <div class="mc-slide-area w-full h-full" id={`${mcId}-area`}>
+        <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy"
+          class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+      </div>
+      <button
+        class="mc-arr mc-arr-l absolute left-1.5 top-1/2 -translate-y-1/2 z-10 w-7 h-8 flex items-center justify-center bg-black/65 hover:bg-brand-orange/70 border border-white/15 rounded-md text-white text-base leading-none transition-colors"
+        data-mc-dir="-1"
+        aria-label="Föregående"
+      >‹</button>
+      <button
+        class="mc-arr mc-arr-r absolute right-1.5 top-1/2 -translate-y-1/2 z-10 w-7 h-8 flex items-center justify-center bg-black/65 hover:bg-brand-orange/70 border border-white/15 rounded-md text-white text-base leading-none transition-colors"
+        data-mc-dir="1"
+        aria-label="Nästa"
+      >›</button>
+      <div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-10 flex gap-1" id={`${mcId}-dots`}>
+        {_slides.map((s, i) => (
+          <button
+            class={`mc-dot transition-all ${i === 0 ? 'bg-brand-orange w-2.5 h-2' : 'bg-white/30 w-2 h-2'} ${s.type === 'video' ? 'rounded-sm' : 'rounded-full'}`}
+            data-mc-goto={i}
+            aria-label={`Slide ${i + 1}`}
+          ></button>
+        ))}
+      </div>
     </div>
   )}
   <meta itemprop="image" content={image ? `https://scenkonsult.se${image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
   <!-- Product schema metadata -->
   <meta itemprop="brand" content="Scenkonsult Norden" />
   {!description && <meta itemprop="description" content={`Hyra ${name} från Scenkonsult Norden. Leverans i hela Storstockholm.`} />}
-  {videoSrc && isYouTube && (
-    <div class="bg-black" style="aspect-ratio:16/9">
-      <iframe
-        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1`}
-        title={`Video: ${name}`}
-        loading="lazy"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-        class="w-full h-full"
-        style="border:0"
-      ></iframe>
-    </div>
-  )}
-  {videoSrc && !isYouTube && (
-    <div class="bg-black" style="aspect-ratio:16/9">
-      <video src={videoSrc} controls preload="none" class="w-full h-full" poster={image ?? undefined} />
-    </div>
-  )}
   <div class="p-5 flex flex-col flex-1">
 
     {persons && <p class="text-[10px] font-semibold uppercase tracking-wider mb-1" style="color:#c4b5f4">{persons}</p>}
