@@ -328,6 +328,21 @@ const svgId = `pkt-${paket.id}`;
       // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
       const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(mc)) : null;
 
+      // skCart.add merger qty på existing item-id men SÄTTER INTE flaggor på en
+      // existerande rad. För att flaggor (bulky/requiresAssembly/forceLeverans/
+      // monteringMin) garanterat hamnar på storage-itemet, applicera dem direkt
+      // efter add-anropet via skCart.get/save.
+      function applyFlagsTo(itemId, flags) {
+        try {
+          const c = window.skCart.get();
+          const stored = c.find(i => i.id === itemId);
+          if (stored) {
+            Object.assign(stored, flags);
+            window.skCart.save(c);
+          }
+        } catch (e) { /* tyst — flaggor är best-effort */ }
+      }
+
       // Modul-rad. bulky+requiresAssembly bara om paketet kräver transport,
       // annars utelämnas → kunden i varukorgen får välja transport+montering själv.
       const modItem = {
@@ -345,6 +360,14 @@ const svgId = `pkt-${paket.id}`;
         if (lev) modItem.forceLeverans = lev;
       }
       window.skCart.add(modItem);
+      // Säkerställ flaggor även om itemet redan fanns i cart (merge-bug-skydd)
+      const modFlags = { monteringMin: 10 };
+      if (isKravs) {
+        modFlags.bulky = true;
+        modFlags.requiresAssembly = true;
+        if (lev) modFlags.forceLeverans = lev;
+      }
+      applyFlagsTo(modItem.id, modFlags);
 
       // Trapp-rader (om kunden valt > 0)
       if (stairs > 0) {
@@ -378,6 +401,14 @@ const svgId = `pkt-${paket.id}`;
         // sätt det på tak-raden också så att 'lastbil' definitivt vinner i cart
         if (cfg.forceLeverans) takItem.forceLeverans = cfg.forceLeverans;
         window.skCart.add(takItem);
+        // Säkerställ flaggor även vid merge
+        const takFlags = {
+          bulky: true,
+          requiresAssembly: true,
+          monteringMin: cfg.tak.monteringMin,
+        };
+        if (cfg.forceLeverans) takFlags.forceLeverans = cfg.forceLeverans;
+        applyFlagsTo(cfg.tak.artno, takFlags);
       }
 
       if (cartLabel) {
