@@ -9,7 +9,7 @@ const stairs = (scenData.tillbehor || []).filter(t =>
 );
 const skirt = (scenData.tillbehor || []).find(t => t.artno === 'SK-SCN-ACC-0003');
 const railSegments = (scenData.tillbehor || []).filter(t =>
-  ['SK-SCN-ACC-0005', 'SK-SCN-ACC-0006', 'SK-SCN-ACC-0007'].includes(t.artno)
+  ['SK-SCN-ACC-0005', 'SK-SCN-ACC-0007'].includes(t.artno)
 );
 
 const fraktOptions = {
@@ -147,7 +147,7 @@ const configData = {
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">6</span>Skyddsräcken</legend>
-        <p class="cfg-hint">140 kr per löpmeter. Räcken kan inte placeras där trappa står.</p>
+        <p class="cfg-hint">140 kr/m för 1,0 m och 2,0 m segment. Räcken rekommenderas för scener från 60 cm höjd och uppåt. Räcken kan inte placeras där trappa står.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="railMode" value="none" checked /><span>Ingen</span></label>
           <label class="cfg-pill"><input type="radio" name="railMode" value="custom" /><span>Anpassad placering</span></label>
@@ -209,6 +209,7 @@ const configData = {
   <div class="cfg-summary">
     <h3 class="cfg-summary-title">Specifikation och pris</h3>
     <ul class="cfg-spec-list" id="cfg-spec-list"></ul>
+    <p class="cfg-spec-info">💡 Montering &amp; leverans listas ovan med estimat — i varukorgen läggs de som tilläggstjänster (separat sektion) och kan anpassas där. Slutpriset på montering faktureras efter faktisk arbetstid.</p>
     <div class="cfg-total-row">
       <span class="cfg-total-label">Totalt per dygn</span>
       <span class="cfg-total-value">
@@ -449,7 +450,7 @@ const configData = {
         return;
       }
 
-      const padX = 80, padY = 70;
+      const padX = 95, padY = 85;
       const usableW = 600 - 2 * padX;
       const usableH = 420 - 2 * padY;
       const scale = Math.min(usableW / state.width, usableH / state.depth) * 0.95;
@@ -519,7 +520,7 @@ const configData = {
         });
       }
 
-      // Trappor — rektangel med horisontella streck (sett uppifrån)
+      // Trappor — rektangel med horisontella streck (sett uppifrån) + "Trappa"-etikett
       const stairsArr = state.stairPositions.slice(0, state.stairCount);
       stairsArr.forEach(side => {
         const sw = Math.min(stageW, stageD) * 0.20;
@@ -530,26 +531,37 @@ const configData = {
         if (side === 'vanster') { sx = x0 - sd; sy = y0 + stageD / 2 - sw / 2; w = sd; h = sw; }
         if (side === 'hoger') { sx = x0 + stageW; sy = y0 + stageD / 2 - sw / 2; w = sd; h = sw; }
         html += `<g>`;
-        html += `<rect x="${sx}" y="${sy}" width="${w}" height="${h}" fill="#1e1850" stroke="#c4b5f4" stroke-width="1.5" rx="2"/>`;
+        html += `<rect x="${sx}" y="${sy}" width="${w}" height="${h}" fill="#2d2670" stroke="#c4b5f4" stroke-width="1.8" rx="3"/>`;
         if (side === 'vanster' || side === 'hoger') {
           for (let i = 1; i < 4; i++) {
             const lx = sx + (w * i / 4);
-            html += `<line x1="${lx}" y1="${sy + 3}" x2="${lx}" y2="${sy + h - 3}" stroke="#c4b5f4" stroke-width="1.2" stroke-opacity="0.85"/>`;
+            html += `<line x1="${lx}" y1="${sy + 3}" x2="${lx}" y2="${sy + h - 3}" stroke="#c4b5f4" stroke-width="1.4" stroke-opacity="0.95"/>`;
           }
         } else {
           for (let i = 1; i < 4; i++) {
             const ly = sy + (h * i / 4);
-            html += `<line x1="${sx + 3}" y1="${ly}" x2="${sx + w - 3}" y2="${ly}" stroke="#c4b5f4" stroke-width="1.2" stroke-opacity="0.85"/>`;
+            html += `<line x1="${sx + 3}" y1="${ly}" x2="${sx + w - 3}" y2="${ly}" stroke="#c4b5f4" stroke-width="1.4" stroke-opacity="0.95"/>`;
           }
+        }
+        // "Trappa"-text — placeras utanför trappan (mot motsatt riktning från scenen)
+        const trappaStyle = `fill="#c4b5f4" font-family="Space Grotesk,sans-serif" font-size="10" font-weight="700" letter-spacing="0.5"`;
+        if (side === 'fram') {
+          html += `<text x="${sx + w / 2}" y="${sy + h + 13}" text-anchor="middle" ${trappaStyle}>Trappa</text>`;
+        } else if (side === 'bak') {
+          html += `<text x="${sx + w / 2}" y="${sy - 5}" text-anchor="middle" ${trappaStyle}>Trappa</text>`;
+        } else if (side === 'vanster') {
+          html += `<text x="${sx - 6}" y="${sy + h / 2 + 3}" text-anchor="end" ${trappaStyle}>Trappa</text>`;
+        } else if (side === 'hoger') {
+          html += `<text x="${sx + w + 6}" y="${sy + h / 2 + 3}" text-anchor="start" ${trappaStyle}>Trappa</text>`;
         }
         html += `</g>`;
       });
 
-      const labelStyle = `fill="rgba(255,255,255,0.55)" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600"`;
-      html += `<text x="${x0 + stageW / 2}" y="${y0 + stageD + 50}" text-anchor="middle" ${labelStyle}>Bredd: ${state.width} m (Fram)</text>`;
-      html += `<text x="${x0 + stageW / 2}" y="${y0 - 28}" text-anchor="middle" ${labelStyle} fill-opacity="0.4">${state.width} m (Bak)</text>`;
-      html += `<text x="${x0 - 28}" y="${y0 + stageD / 2}" text-anchor="middle" ${labelStyle} transform="rotate(-90 ${x0 - 28} ${y0 + stageD / 2})">${state.depth} m</text>`;
-      html += `<text x="20" y="30" fill="rgba(196,181,244,0.55)" font-family="Space Grotesk,sans-serif" font-size="9" font-weight="700" letter-spacing="1.5">↑ BAK · ↓ FRAM (mot publik)</text>`;
+      const labelStyle = `fill="rgba(255,255,255,0.6)" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600"`;
+      html += `<text x="${x0 + stageW / 2}" y="${y0 + stageD + 70}" text-anchor="middle" ${labelStyle}>Bredd: ${state.width} m (Fram)</text>`;
+      html += `<text x="${x0 + stageW / 2}" y="${y0 - 48}" text-anchor="middle" ${labelStyle} fill-opacity="0.45">${state.width} m (Bak)</text>`;
+      html += `<text x="${x0 - 48}" y="${y0 + stageD / 2}" text-anchor="middle" ${labelStyle} transform="rotate(-90 ${x0 - 48} ${y0 + stageD / 2})">${state.depth} m</text>`;
+      html += `<text x="20" y="30" fill="rgba(196,181,244,0.6)" font-family="Space Grotesk,sans-serif" font-size="10" font-weight="700" letter-spacing="1.5">↑ BAK · ↓ FRAM (mot publik)</text>`;
 
       svg.innerHTML = html;
     }
@@ -836,13 +848,38 @@ const configData = {
         feedback('Varukorgen är inte tillgänglig på den här sidan.', 'error');
         return;
       }
-      lines.forEach(l => {
-        window.skCart.add({
-          id: l.artno, artno: l.artno, name: l.name,
-          price: l.price, category: l.category || 'Scen', qty: l.qty,
-        });
+
+      // Filtrera bort Tjänst (montering) och Leverans (frakt) från cart-rader.
+      // Dessa hamnar istället under "Tilläggstjänster" i varukorgen via
+      // bulky/monteringMin/forceLeverans-flaggor på plattformsmodul-raden.
+      const cartLines = lines.filter(l => l.category !== 'Tjänst' && l.category !== 'Leverans');
+      const platformArtnos = Object.values(MODULE_ARTNO);
+
+      cartLines.forEach(l => {
+        const isPlatform = platformArtnos.includes(l.artno);
+        const item = {
+          id: l.artno,
+          artno: l.artno,
+          name: l.name,
+          price: l.price,
+          category: l.category || 'Scen',
+          qty: l.qty,
+        };
+        if (isPlatform) {
+          item.bulky = true;
+          if (state.installation) {
+            item.monteringMin = 15;
+            item.requiresAssembly = true;
+          }
+          if (state.frakt !== 'none') {
+            item.forceLeverans = state.frakt;
+          }
+        }
+        window.skCart.add(item);
       });
-      feedback(`✓ Lade ${lines.length} rader i varukorgen — ${formatKr(totalPrice(lines))}/dygn.`, 'success');
+
+      const totalSum = totalPrice(lines);
+      feedback(`✓ Lade ${cartLines.length} rader i varukorgen — ${formatKr(totalSum)}/dygn (montering/leverans tillkommer som tilläggstjänster).`, 'success');
     });
 
     function feedback(msg, kind) {
@@ -886,84 +923,85 @@ const configData = {
 @media (max-width: 900px) { .cfg-visual { position: static; } }
 .cfg-svg-frame { background: #0c0a24; border-radius: 10px; padding: 0.5rem; aspect-ratio: 600/420; }
 .cfg-svg-frame svg { width: 100%; height: 100%; display: block; }
-.cfg-meta-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-top: 0.85rem; }
-.cfg-meta { background: #0c0a24; border-radius: 8px; padding: 0.5rem 0.45rem; text-align: center; }
-.cfg-meta-label { font-size: 0.62rem; color: rgba(196,181,244,0.7); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-.cfg-meta-value { font-size: 0.88rem; color: white; font-weight: 700; margin-top: 0.15rem; }
+.cfg-meta-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 1rem; }
+.cfg-meta { background: #0c0a24; border-radius: 9px; padding: 0.6rem 0.55rem; text-align: center; }
+.cfg-meta-label { font-size: 0.68rem; color: rgba(196,181,244,0.75); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.cfg-meta-value { font-size: 0.98rem; color: white; font-weight: 700; margin-top: 0.2rem; }
 
-.cfg-form { display: flex; flex-direction: column; gap: 0.7rem; }
-.cfg-step { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.85rem 1rem; margin: 0; }
-.cfg-step legend { display: flex; align-items: center; gap: 0.5rem; color: white; font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600; padding: 0; margin-bottom: 0.6rem; }
-.cfg-step-num { display: inline-flex; align-items: center; justify-content: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: #c4b5f4; color: #0c0a24; font-weight: 800; font-size: 0.78rem; }
+.cfg-form { display: flex; flex-direction: column; gap: 0.85rem; }
+.cfg-step { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 13px; padding: 1rem 1.15rem; margin: 0; }
+.cfg-step legend { display: flex; align-items: center; gap: 0.6rem; color: white; font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; padding: 0; margin-bottom: 0.75rem; }
+.cfg-step-num { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #c4b5f4; color: #0c0a24; font-weight: 800; font-size: 0.85rem; }
 
-.cfg-radio-stack { display: flex; flex-direction: column; gap: 0.4rem; }
-.cfg-radio-stack-tight { gap: 0.3rem; }
-.cfg-card-radio { display: flex; gap: 0.55rem; padding: 0.55rem 0.7rem; border-radius: 9px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.15s; align-items: flex-start; }
+.cfg-radio-stack { display: flex; flex-direction: column; gap: 0.5rem; }
+.cfg-radio-stack-tight { gap: 0.4rem; }
+.cfg-card-radio { display: flex; gap: 0.65rem; padding: 0.65rem 0.85rem; border-radius: 10px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.15s; align-items: flex-start; }
 .cfg-card-radio:hover { border-color: rgba(196,181,244,0.4); }
 .cfg-card-radio:has(input:checked) { border-color: #c4b5f4; background: rgba(196,181,244,0.08); }
 .cfg-card-radio input { margin-top: 1px; accent-color: #c4b5f4; flex-shrink: 0; }
 .cfg-radio-body { flex: 1; min-width: 0; }
-.cfg-radio-title { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; color: white; font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
-.cfg-radio-price { color: #c4b5f4; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-.cfg-radio-desc { color: rgba(255,255,255,0.5); font-size: 0.73rem; line-height: 1.45; margin-top: 0.2rem; }
+.cfg-radio-title { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; color: white; font-size: 0.93rem; font-weight: 600; line-height: 1.25; }
+.cfg-radio-price { color: #c4b5f4; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+.cfg-radio-desc { color: rgba(255,255,255,0.55); font-size: 0.8rem; line-height: 1.5; margin-top: 0.25rem; }
 
-.cfg-pill-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-.cfg-pill-row-narrow { margin-bottom: 0.55rem; }
+.cfg-pill-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.cfg-pill-row-narrow { margin-bottom: 0.65rem; }
 .cfg-pill { display: inline-flex; align-items: center; cursor: pointer; }
 .cfg-pill input { display: none; }
-.cfg-pill span { padding: 0.4rem 0.85rem; border-radius: 99px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); font-size: 0.8rem; font-weight: 600; transition: all 0.15s; }
+.cfg-pill span { padding: 0.45rem 0.95rem; border-radius: 99px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 0.88rem; font-weight: 600; transition: all 0.15s; }
 .cfg-pill:hover span { border-color: rgba(196,181,244,0.4); color: white; }
 .cfg-pill input:checked + span { background: #c4b5f4; color: #0c0a24; border-color: #c4b5f4; }
 .cfg-pill.cfg-pill-disabled { opacity: 0.35; pointer-events: none; }
 
-.cfg-dim-row { display: flex; gap: 0.85rem; flex-wrap: wrap; }
-.cfg-dim-input { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 130px; }
-.cfg-dim-label { color: rgba(255,255,255,0.7); font-size: 0.74rem; font-weight: 600; }
-.cfg-stepper { display: flex; align-items: stretch; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; overflow: hidden; }
-.cfg-step-btn { background: transparent; color: #c4b5f4; border: 0; padding: 0.3rem 0.75rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+.cfg-dim-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.cfg-dim-input { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.65rem; flex: 1; min-width: 200px; }
+.cfg-dim-label { color: rgba(255,255,255,0.78); font-size: 0.84rem; font-weight: 600; }
+.cfg-stepper { display: flex; align-items: stretch; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; min-width: 0; }
+.cfg-step-btn { background: transparent; color: #c4b5f4; border: 0; padding: 0.4rem 0.85rem; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
 .cfg-step-btn:hover { background: rgba(196,181,244,0.1); }
-.cfg-stepper input { background: transparent !important; color: white !important; color-scheme: dark; border: 0; width: 100%; text-align: center; font-size: 0.9rem; font-weight: 600; -moz-appearance: textfield; padding: 0.3rem 0; }
+.cfg-stepper input { background: transparent !important; color: white !important; color-scheme: dark; border: 0; width: 100%; min-width: 0; text-align: center; font-size: 1rem; font-weight: 600; -moz-appearance: textfield; padding: 0.4rem 0; }
 .cfg-stepper input::-webkit-outer-spin-button, .cfg-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.cfg-dim-unit { color: rgba(196,181,244,0.7); font-size: 0.75rem; font-weight: 600; }
+.cfg-dim-unit { color: rgba(196,181,244,0.85); font-size: 0.88rem; font-weight: 700; }
 
-.cfg-side-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.35rem; margin-top: 0.55rem; max-height: 300px; opacity: 1; transition: max-height 0.2s, opacity 0.2s, margin-top 0.2s; overflow: hidden; }
+.cfg-side-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.45rem; margin-top: 0.65rem; max-height: 300px; opacity: 1; transition: max-height 0.2s, opacity 0.2s, margin-top 0.2s; overflow: hidden; }
 .cfg-side-grid.cfg-collapsed { max-height: 0; margin-top: 0; opacity: 0; pointer-events: none; }
-.cfg-side-check { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.7rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; cursor: pointer; transition: all 0.15s; color: rgba(255,255,255,0.75); font-size: 0.82rem; }
+.cfg-side-check { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.85rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; transition: all 0.15s; color: rgba(255,255,255,0.78); font-size: 0.9rem; }
 .cfg-side-check:hover { border-color: rgba(196,181,244,0.4); }
 .cfg-side-check input { accent-color: #c4b5f4; }
 .cfg-side-check:has(input:checked) { background: rgba(196,181,244,0.12); border-color: #c4b5f4; color: white; }
 .cfg-side-disabled { opacity: 0.4; cursor: not-allowed !important; }
 .cfg-side-disabled:hover { border-color: rgba(255,255,255,0.1) !important; }
 
-.cfg-stair-placement { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; }
-.cfg-stair-row { display: flex; align-items: center; gap: 0.6rem; }
-.cfg-stair-num { color: rgba(255,255,255,0.7); font-size: 0.78rem; font-weight: 600; min-width: 70px; }
-.cfg-select { background: #0c0a24 !important; color: white !important; color-scheme: dark; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.82rem; flex: 1; }
+.cfg-stair-placement { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.45rem; }
+.cfg-stair-row { display: flex; align-items: center; gap: 0.7rem; }
+.cfg-stair-num { color: rgba(255,255,255,0.78); font-size: 0.86rem; font-weight: 600; min-width: 80px; }
+.cfg-select { background: #0c0a24 !important; color: white !important; color-scheme: dark; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; padding: 0.4rem 0.6rem; font-size: 0.9rem; flex: 1; }
 
-.cfg-toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem 0.7rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; }
+.cfg-toggle { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.6rem 0.85rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; }
 .cfg-toggle input { accent-color: #c4b5f4; }
-.cfg-toggle-text { color: rgba(255,255,255,0.85); font-size: 0.82rem; }
+.cfg-toggle-text { color: rgba(255,255,255,0.88); font-size: 0.9rem; }
 
-.cfg-hint { color: rgba(255,255,255,0.5); font-size: 0.74rem; margin: 0.3rem 0 0; line-height: 1.5; }
-.cfg-hint-block { margin-top: 0.55rem; }
-.cfg-warning { color: #fbbf24; font-size: 0.78rem; margin: 0.4rem 0 0; line-height: 1.5; }
+.cfg-hint { color: rgba(255,255,255,0.55); font-size: 0.82rem; margin: 0.4rem 0 0; line-height: 1.55; }
+.cfg-hint-block { margin-top: 0.65rem; }
+.cfg-warning { color: #fbbf24; font-size: 0.85rem; margin: 0.5rem 0 0; line-height: 1.55; }
 
-.cfg-summary { max-width: 1200px; margin: 1.5rem auto 0; background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 14px; padding: clamp(1.25rem, 3vw, 1.75rem); }
-.cfg-summary-title { color: white; font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin: 0 0 1rem; }
+.cfg-summary { max-width: 1200px; margin: 1.75rem auto 0; background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 15px; padding: clamp(1.4rem, 3vw, 2rem); }
+.cfg-summary-title { color: white; font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin: 0 0 1.15rem; }
 .cfg-spec-list { list-style: none; padding: 0; margin: 0 0 1rem; border-top: 1px solid rgba(255,255,255,0.08); }
-.cfg-spec-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.65rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); gap: 1rem; }
-.cfg-spec-name { color: rgba(255,255,255,0.85); font-size: 0.9rem; line-height: 1.45; }
-.cfg-spec-qty { color: #c4b5f4; font-weight: 700; margin-right: 0.35rem; }
-.cfg-spec-meta { color: rgba(255,255,255,0.45); font-size: 0.78rem; }
-.cfg-spec-price { color: white; font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
-.cfg-spec-empty { padding: 0.65rem 0; color: rgba(255,255,255,0.4); font-style: italic; font-size: 0.88rem; }
-.cfg-total-row { display: flex; justify-content: space-between; align-items: baseline; padding: 1rem 0 1.25rem; border-top: 2px solid rgba(196,181,244,0.3); }
-.cfg-total-label { color: white; font-weight: 700; font-size: 1.05rem; }
-.cfg-total-value { color: #c4b5f4; font-weight: 800; font-size: 1.5rem; }
-.cfg-cart-btn { display: inline-flex; align-items: center; gap: 0.6rem; background: #c4b5f4; color: #0c0a24; border: 0; padding: 0.85rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.15s; font-family: 'Space Grotesk', sans-serif; }
+.cfg-spec-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); gap: 1rem; }
+.cfg-spec-name { color: rgba(255,255,255,0.88); font-size: 0.97rem; line-height: 1.5; }
+.cfg-spec-qty { color: #c4b5f4; font-weight: 700; margin-right: 0.4rem; }
+.cfg-spec-meta { color: rgba(255,255,255,0.5); font-size: 0.84rem; }
+.cfg-spec-price { color: white; font-weight: 600; font-size: 0.97rem; white-space: nowrap; }
+.cfg-spec-empty { padding: 0.75rem 0; color: rgba(255,255,255,0.4); font-style: italic; font-size: 0.95rem; }
+.cfg-spec-info { background: rgba(196,181,244,0.07); border: 1px solid rgba(196,181,244,0.2); border-radius: 9px; padding: 0.85rem 1.05rem; margin: 0 0 0.5rem; color: rgba(255,255,255,0.78); font-size: 0.86rem; line-height: 1.55; }
+.cfg-total-row { display: flex; justify-content: space-between; align-items: baseline; padding: 1.1rem 0 1.4rem; border-top: 2px solid rgba(196,181,244,0.3); }
+.cfg-total-label { color: white; font-weight: 700; font-size: 1.12rem; }
+.cfg-total-value { color: #c4b5f4; font-weight: 800; font-size: 1.65rem; }
+.cfg-cart-btn { display: inline-flex; align-items: center; gap: 0.7rem; background: #c4b5f4; color: #0c0a24; border: 0; padding: 0.95rem 1.65rem; border-radius: 11px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.15s; font-family: 'Space Grotesk', sans-serif; }
 .cfg-cart-btn:hover { background: #e2dcfb; }
 .cfg-cart-btn:disabled { background: #4a4078 !important; color: rgba(255,255,255,0.3) !important; cursor: not-allowed !important; }
-.cfg-cart-feedback { margin: 0.85rem 0 0; font-size: 0.88rem; min-height: 1.25rem; }
+.cfg-cart-feedback { margin: 0.95rem 0 0; font-size: 0.95rem; min-height: 1.35rem; }
 .cfg-cart-feedback.is-success { color: #86efac; }
 .cfg-cart-feedback.is-error { color: #fca5a5; }
 </style>
