@@ -65,7 +65,7 @@ const configData = {
             <input type="radio" name="moduleType" value="1x1-halkfri" />
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">125 kr/modul</span></div>
+              <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">150 kr/modul</span></div>
               <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 12 m² (12 moduler).</div>
             </div>
           </label>
@@ -190,7 +190,7 @@ const configData = {
   <div class="cfg-summary">
     <h3 class="cfg-summary-title">Specifikation och pris</h3>
     <ul class="cfg-spec-list" id="cfg-spec-list"></ul>
-    <p class="cfg-spec-info">💡 Montering &amp; leverans listas ovan med estimat — i varukorgen läggs de som tilläggstjänster (separat sektion) och kan anpassas där. Slutpriset på montering faktureras efter faktisk arbetstid.</p>
+    <p class="cfg-spec-info">💡 Montering &amp; leverans listas ovan med estimat — i varukorgen läggs de som tilläggstjänster (separat sektion) och kan anpassas där.</p>
     <div class="cfg-total-row">
       <span class="cfg-total-label">Totalt per dygn</span>
       <span class="cfg-total-value">
@@ -238,7 +238,7 @@ const configData = {
       fraktTrip: 'tr',
     };
 
-    const MODULE_PRICES = { '1x2-slat': 200, '1x2-halkfri': 225, '1x1-halkfri': 125 };
+    const MODULE_PRICES = { '1x2-slat': 200, '1x2-halkfri': 225, '1x1-halkfri': 150 };
     const MODULE_ARTNO = { '1x2-slat': 'SK-SCN-MOD-0002', '1x2-halkfri': 'SK-SCN-MOD-0003', '1x1-halkfri': 'SK-SCN-MOD-0001' };
     const MODULE_NAME = {
       '1x2-slat': 'Plattform 1×2 m (slät)',
@@ -372,7 +372,7 @@ const configData = {
       }
 
       if (state.installation) {
-        const totalMin = modCount * 15 * 2;
+        const totalMin = modCount * 10 * 2;
         const hours = Math.round(totalMin / 60 * 4) / 4;
         const monteringPris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
         lines.push({
@@ -451,18 +451,16 @@ const configData = {
       const y0 = cy - stageD / 2;
 
       let html = `<defs>
-        <pattern id="patHalkfri" patternUnits="userSpaceOnUse" width="32" height="32">
-          <image href="/images/scen/tex_yta_halkfri.webp" x="0" y="0" width="32" height="32" preserveAspectRatio="xMidYMid slice"/>
-        </pattern>
-        <pattern id="patSlat" patternUnits="userSpaceOnUse" width="48" height="48">
-          <image href="/images/scen/tex_yta_slat.webp" x="0" y="0" width="48" height="48" preserveAspectRatio="xMidYMid slice"/>
+        <pattern id="patHalkfri" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+          <rect width="6" height="6" fill="#3a3370"/>
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#5a4ea0" stroke-width="1.2"/>
         </pattern>
       </defs>`;
       const shadowOff = 6;
       html += `<rect x="${x0 + shadowOff}" y="${y0 + shadowOff}" width="${stageW}" height="${stageD}" fill="rgba(0,0,0,0.4)" rx="2"/>`;
 
       const isHalkfri = state.moduleType.includes('halkfri');
-      const moduleFill = isHalkfri ? 'url(#patHalkfri)' : 'url(#patSlat)';
+      const moduleFill = isHalkfri ? 'url(#patHalkfri)' : '#3a3370';
       const moduleStroke = '#c4b5f4';
 
       let mods = [];
@@ -684,7 +682,7 @@ const configData = {
       const installCb = document.getElementById('cfg-installation');
       const installLabel = document.getElementById('cfg-installation-label');
       const installHint = document.getElementById('cfg-installation-hint');
-      const minutes = moduleCount() * 15 * 2;
+      const minutes = moduleCount() * 10 * 2;
       const hours = Math.round(minutes / 60 * 4) / 4;
       const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
 
@@ -700,7 +698,7 @@ const configData = {
           if (state.installation) {
             installHint.textContent = `Beräknad tid: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Faktureras efter faktisk tid.`;
           } else {
-            installHint.textContent = 'Beräknad tid: 15 min/modul × 2 (montering + demontering). Pris timdebiteras (600 kr/tim). Obligatoriskt vid scen ≥ 16 m².';
+            installHint.textContent = 'Beräknad tid: 10 min/modul × 2 (montering + demontering). Pris timdebiteras (600 kr/tim). Obligatoriskt vid scen ≥ 16 m².';
           }
         }
       }
@@ -866,7 +864,7 @@ const configData = {
         if (isPlatform) {
           item.bulky = true;
           if (state.installation) {
-            item.monteringMin = 15;
+            item.monteringMin = 10;
             item.requiresAssembly = true;
           }
           if (state.frakt === 'auto') {
