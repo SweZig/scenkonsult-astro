@@ -4,6 +4,7 @@ import CategoryHero from '../../../components/CategoryHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import CartButton from '../../../components/CartButton.astro';
+import SceneConfigurator from '../../../components/SceneConfigurator.astro';
 import scenData from '../../../data/scenes.json';
 
 const pageSchema = {
@@ -64,15 +65,22 @@ const pageSchema = {
       { label: "Hyra scen" }
     ]}
     badges={[
-      "Halkfria ytor – inomhus & utomhus",
-      "Leverans & montering tillgängligt",
-      "Scentak till alla storlekar"
+      "Halkfri eller slät yta",
+      "Bygg din egen från 2×2 m",
+      "Leverans & montering tillgängligt"
     ]}
     priceFrom={599}
   />
 
-  <!-- SCENPAKET -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <!-- SCENKONFIGURATOR — bygg din egen scen -->
+  <SceneConfigurator />
+
+  <!-- SCENPAKET (färdiga) -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-10">
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Färdiga scenpaket</h2>
+      <p class="text-gray-400 text-sm">Snabba paketval om du inte vill konfigurera själv. Alla paket är förkonfigurerade kombinationer av plattformar, höjd, trapp och scenkjol till ett rabatterat paketpris.</p>
+    </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {scenData.products.map(p => (
         <div id={p.id}>
@@ -130,9 +138,9 @@ const pageSchema = {
     <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
       <h2 class="text-2xl font-bold text-white mb-4">Generell information om våra scener</h2>
       <div class="text-gray-400 text-sm leading-relaxed space-y-3">
-        <p>Kontakta oss för hjälp med att planera eventet så det blir optimalt. Alla scener har halkfria ytor och passar för inomhus- och utomhusbruk.</p>
-        <p>Scener upp till 12m² (Medium+) finns i 40 eller 60 cm höjd. Större scener finns i 60 eller 80 cm. Observera att scenräcken krävs för scener över 80 cm enligt Boverket.</p>
-        <p>För scener från 20m² (Large) tillkommer alltid transport, montering och demontering av vår personal. Vi har scentak för alla storlekar – upp till 100m² på förfrågan.</p>
+        <p>Kontakta oss för hjälp med att planera eventet så det blir optimalt. Alla scener har halkfria ytor som standard (slät yta finns för 1×2-moduler om matta läggs ovanpå) och passar för inomhus- och utomhusbruk.</p>
+        <p>Standardhöjder är 40 cm eller 60 cm. Större scener (över ca 16 m²) kräver alltid montering av vår personal — beräknad uppställningstid är ca 15 min per modul.</p>
+        <p>Scentak finns till våra större paket (Medium+ inkl. tak, Large+ inkl. tak). Övriga konfigurationer offereras separat — kontakta oss för specifika önskemål.</p>
         <p class="font-medium text-gray-300">Alla priser gäller hyra per dygn (22 timmar). Hämtning från kl 13:00, återlämning innan kl 11:00 nästkommande dag. Längre perioder offerteras separat.</p>
       </div>
       <div class="flex flex-wrap gap-4 mt-6">

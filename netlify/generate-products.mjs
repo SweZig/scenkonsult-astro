@@ -46,6 +46,9 @@ const cartLines = [];
 scenes.products.forEach(p => {
   if (p.id && p.price) cartLines.push(cartLine(p.name, p.artno || `scen-${p.id}`, p.price));
 });
+(scenes.modules || []).forEach(p => {
+  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
+});
 
 // Ljud: event, live, music, portable, mixers
 ['event','live','music','portable'].forEach(sec => {
@@ -117,6 +120,12 @@ scenes.products.forEach(p => {
   const pers = p.persons ? ` — ${p.persons}` : '';
   sects.push(prodLine(`${p.name}${dim}`, p.price, '/dygn', pers.trim() || undefined));
 });
+if (scenes.modules?.length) {
+  sects.push('Plattformsmoduler för egen scen-konfiguration:');
+  scenes.modules.forEach(m => {
+    sects.push(prodLine(m.name, m.price, '/dygn'));
+  });
+}
 if (scenes.accessories?.length) {
   const accStr = scenes.accessories.map(a => `${a.name} ${fmtPrice(a.price)}`).join(', ');
   sects.push(`Tillbehör: ${accStr}`);
@@ -237,7 +246,10 @@ const QUOTE_CAT = {};
 const frakt = readJson('tjanster.json');
 
 // Scen
-QUOTE_CAT['Scen']          = { products: scenes.products.filter(p=>p.price).map(p=>({id:p.artno||('scen-'+p.id),artno:p.artno||'',name:p.name,price:p.price})) };
+QUOTE_CAT['Scen'] = { sub: {
+  'Färdiga paket':     scenes.products.filter(p=>p.price).map(p=>({id:p.artno||('scen-'+p.id),artno:p.artno||'',name:p.name,price:p.price})),
+  'Plattformsmoduler': (scenes.modules||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug,artno:p.artno||'',name:p.name,price:p.price})),
+}};
 QUOTE_CAT['Scentillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug||'scen-acc',artno:p.artno||'',name:p.name,price:p.price})) };
 
 // Ljud (paket + mixers)

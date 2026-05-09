@@ -69,7 +69,10 @@ def svc_from_dict(d, label_key='label', price_key='pris'):
 catalog = {}
 
 # ── Scen ──────────────────────────────────────────────────────────────────────
-catalog['Scen'] = {'products': [prod(p) for p in scenes.get('products', [])]}
+catalog['Scen'] = {'sub': {
+    'Färdiga paket':        [prod(p) for p in scenes.get('products', [])],
+    'Plattformsmoduler':    [prod(p) for p in scenes.get('modules', [])],
+}}
 catalog['Scentillbehör'] = {'products': [prod(p) for p in scenes.get('tillbehor', [])]}
 
 # ── Ljud (paket + mixers) ─────────────────────────────────────────────────────
