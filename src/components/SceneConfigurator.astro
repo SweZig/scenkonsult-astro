@@ -62,7 +62,16 @@ const configData = {
         <legend><span class="cfg-step-num">1</span>Plattformstyp</legend>
         <div class="cfg-radio-stack">
           <label class="cfg-card-radio">
+            <input type="radio" name="moduleType" value="1x1-halkfri" />
+            <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
+            <div class="cfg-radio-body">
+              <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">125 kr/modul</span></div>
+              <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 12 m² (12 moduler).</div>
+            </div>
+          </label>
+          <label class="cfg-card-radio">
             <input type="radio" name="moduleType" value="1x2-slat" checked />
+            <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_slat.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×2 m — slät yta <span class="cfg-radio-price">200 kr/modul</span></div>
               <div class="cfg-radio-desc">Bäst om matta läggs över. Mått måste passa i 1×2-moduler.</div>
@@ -70,16 +79,10 @@ const configData = {
           </label>
           <label class="cfg-card-radio">
             <input type="radio" name="moduleType" value="1x2-halkfri" />
+            <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×2 m — halkfri yta <span class="cfg-radio-price">225 kr/modul</span></div>
               <div class="cfg-radio-desc">Standard halkfri ovansida. Mått måste passa i 1×2-moduler.</div>
-            </div>
-          </label>
-          <label class="cfg-card-radio">
-            <input type="radio" name="moduleType" value="1x1-halkfri" />
-            <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">125 kr/modul</span></div>
-              <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 12 m² (12 moduler).</div>
             </div>
           </label>
         </div>
@@ -171,36 +174,14 @@ const configData = {
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">8</span>Leverans</legend>
-        <p class="cfg-hint" id="cfg-frakt-rec"></p>
-        <div class="cfg-pill-row cfg-pill-row-narrow">
+        <p class="cfg-hint" id="cfg-frakt-rec">Vi väljer rätt fordon automatiskt baserat på storleken.</p>
+        <div class="cfg-pill-row">
+          <label class="cfg-pill"><input type="radio" name="frakt" value="none" checked /><span>Hämta själv</span></label>
+          <label class="cfg-pill"><input type="radio" name="frakt" value="auto" /><span>Leverans</span></label>
+        </div>
+        <div class="cfg-pill-row cfg-pill-row-narrow cfg-collapsed-row" id="cfg-frakt-trip-row" style="margin-top:0.6rem">
           <label class="cfg-pill"><input type="radio" name="fraktTrip" value="tr" checked /><span>Tur &amp; retur</span></label>
           <label class="cfg-pill"><input type="radio" name="fraktTrip" value="enkel" /><span>Enkelresa</span></label>
-        </div>
-        <div class="cfg-radio-stack cfg-radio-stack-tight">
-          <label class="cfg-card-radio">
-            <input type="radio" name="frakt" value="none" checked />
-            <div class="cfg-radio-body">
-              <div class="cfg-radio-title">Ingen — jag hämtar själv <span class="cfg-radio-price">0 kr</span></div>
-            </div>
-          </label>
-          <label class="cfg-card-radio">
-            <input type="radio" name="frakt" value="storbil" />
-            <div class="cfg-radio-body">
-              <div class="cfg-radio-title">Stor bil <span class="cfg-radio-price" data-frakt-price="storbil">— kr</span></div>
-            </div>
-          </label>
-          <label class="cfg-card-radio">
-            <input type="radio" name="frakt" value="storbil_slap" />
-            <div class="cfg-radio-body">
-              <div class="cfg-radio-title">Stor bil + släp <span class="cfg-radio-price" data-frakt-price="storbil_slap">— kr</span></div>
-            </div>
-          </label>
-          <label class="cfg-card-radio">
-            <input type="radio" name="frakt" value="lastbil" />
-            <div class="cfg-radio-body">
-              <div class="cfg-radio-title">Lätt lastbil <span class="cfg-radio-price" data-frakt-price="lastbil">— kr</span></div>
-            </div>
-          </label>
         </div>
       </fieldset>
     </div>
@@ -299,22 +280,31 @@ const configData = {
       return 'lastbil';
     }
 
-    function fraktPrice(key) {
-      if (key === 'none') return 0;
+    // state.frakt är 'none' eller 'auto' — vehicle bestäms av getRecommendedFrakt().
+    function activeFraktKey() {
+      if (state.frakt !== 'auto') return null;
+      return getRecommendedFrakt();
+    }
+
+    function fraktPrice() {
+      const key = activeFraktKey();
+      if (!key) return 0;
       const opt = FRAKT_DATA[key];
       if (!opt) return 0;
       return state.fraktTrip === 'enkel' ? (opt.enkelresa || 0) : (opt.pris || 0);
     }
 
-    function fraktArtno(key) {
-      if (key === 'none') return null;
+    function fraktArtno() {
+      const key = activeFraktKey();
+      if (!key) return null;
       const opt = FRAKT_DATA[key];
       if (!opt) return null;
       return state.fraktTrip === 'enkel' ? (opt.enkel?.artno || opt.artno) : opt.artno;
     }
 
-    function fraktLabel(key) {
-      if (key === 'none') return 'Ingen leverans (kund hämtar själv)';
+    function fraktLabel() {
+      const key = activeFraktKey();
+      if (!key) return 'Ingen leverans (kund hämtar själv)';
       const base = FRAKT_LABELS[key] || key;
       return state.fraktTrip === 'enkel' ? `${base} (enkelresa)` : `${base} (tur & retur)`;
     }
@@ -396,13 +386,13 @@ const configData = {
         });
       }
 
-      if (state.frakt !== 'none') {
-        const fpris = fraktPrice(state.frakt);
-        const fartno = fraktArtno(state.frakt);
+      if (state.frakt === 'auto') {
+        const fpris = fraktPrice();
+        const fartno = fraktArtno();
         if (fpris > 0 && fartno) {
           lines.push({
             artno: fartno,
-            name: `${prefix} ${fraktLabel(state.frakt)}`,
+            name: `${prefix} ${fraktLabel()}`,
             price: fpris,
             qty: 1,
             category: 'Leverans',
@@ -461,16 +451,18 @@ const configData = {
       const y0 = cy - stageD / 2;
 
       let html = `<defs>
-        <pattern id="patHalkfri" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-          <rect width="6" height="6" fill="#3a3370"/>
-          <line x1="0" y1="0" x2="0" y2="6" stroke="#5a4ea0" stroke-width="1.2"/>
+        <pattern id="patHalkfri" patternUnits="userSpaceOnUse" width="32" height="32">
+          <image href="/images/scen/tex_yta_halkfri.webp" x="0" y="0" width="32" height="32" preserveAspectRatio="xMidYMid slice"/>
+        </pattern>
+        <pattern id="patSlat" patternUnits="userSpaceOnUse" width="48" height="48">
+          <image href="/images/scen/tex_yta_slat.webp" x="0" y="0" width="48" height="48" preserveAspectRatio="xMidYMid slice"/>
         </pattern>
       </defs>`;
       const shadowOff = 6;
       html += `<rect x="${x0 + shadowOff}" y="${y0 + shadowOff}" width="${stageW}" height="${stageD}" fill="rgba(0,0,0,0.4)" rx="2"/>`;
 
       const isHalkfri = state.moduleType.includes('halkfri');
-      const moduleFill = isHalkfri ? 'url(#patHalkfri)' : '#3a3370';
+      const moduleFill = isHalkfri ? 'url(#patHalkfri)' : 'url(#patSlat)';
       const moduleStroke = '#c4b5f4';
 
       let mods = [];
@@ -667,18 +659,24 @@ const configData = {
       if (skirtSides) skirtSides.classList.toggle('cfg-collapsed', state.skirtMode !== 'custom');
       if (railSides) railSides.classList.toggle('cfg-collapsed', state.railMode !== 'custom');
 
-      // Frakt-rekommendation
+      // Frakt-rekommendation + trip-toggle visas bara om Leverans valt
       const recEl = document.getElementById('cfg-frakt-rec');
-      const rec = getRecommendedFrakt();
-      if (recEl) {
-        if (rec) recEl.textContent = `Vi rekommenderar: ${FRAKT_LABELS[rec]} baserat på ${moduleCount()} moduler. Du kan välja annat.`;
-        else recEl.textContent = '';
+      const tripRow = document.getElementById('cfg-frakt-trip-row');
+      if (state.frakt === 'auto') {
+        const rec = getRecommendedFrakt();
+        if (recEl) {
+          if (rec) {
+            const pris = formatKr(fraktPrice());
+            recEl.textContent = `Vi väljer ${FRAKT_LABELS[rec]} baserat på ${moduleCount()} moduler — ${pris}.`;
+          } else {
+            recEl.textContent = '';
+          }
+        }
+        if (tripRow) tripRow.classList.remove('cfg-collapsed-row');
+      } else {
+        if (recEl) recEl.textContent = 'Vi väljer rätt fordon automatiskt baserat på storleken.';
+        if (tripRow) tripRow.classList.add('cfg-collapsed-row');
       }
-
-      // Frakt-priser
-      document.querySelectorAll('[data-frakt-price]').forEach(el => {
-        el.textContent = formatKr(fraktPrice(el.dataset.fraktPrice));
-      });
     }
 
     function renderInstallation() {
@@ -871,8 +869,9 @@ const configData = {
             item.monteringMin = 15;
             item.requiresAssembly = true;
           }
-          if (state.frakt !== 'none') {
-            item.forceLeverans = state.frakt;
+          if (state.frakt === 'auto') {
+            const lev = getRecommendedFrakt();
+            if (lev) item.forceLeverans = lev;
           }
         }
         window.skCart.add(item);
@@ -984,6 +983,17 @@ const configData = {
 .cfg-hint { color: rgba(255,255,255,0.55); font-size: 0.82rem; margin: 0.4rem 0 0; line-height: 1.55; }
 .cfg-hint-block { margin-top: 0.65rem; }
 .cfg-warning { color: #fbbf24; font-size: 0.85rem; margin: 0.5rem 0 0; line-height: 1.55; }
+
+/* Hint som sitter direkt efter legenden tätare ihop med rubriken */
+.cfg-step legend + .cfg-hint { margin-top: -0.15rem; margin-bottom: 0.55rem; }
+
+/* Yta-swatch (texturthumbnail i plattform-radio-kort) */
+.cfg-yta-swatch { width: 38px; height: 38px; border-radius: 50%; background-size: cover; background-position: center; flex-shrink: 0; border: 1.5px solid rgba(196,181,244,0.35); box-shadow: 0 1px 3px rgba(0,0,0,0.4); display: block; margin-top: 1px; }
+.cfg-card-radio:has(input:checked) .cfg-yta-swatch { border-color: #c4b5f4; box-shadow: 0 0 0 2px rgba(196,181,244,0.15), 0 1px 3px rgba(0,0,0,0.4); }
+
+/* Pill-rad som kan kollapsas (för fraktTrip när "Hämta själv" valt) */
+.cfg-collapsed-row { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; margin-top: 0 !important; transition: max-height 0.2s, opacity 0.2s, margin-top 0.2s; }
+.cfg-pill-row.cfg-collapsed-row { max-height: 0; }
 
 .cfg-summary { max-width: 1200px; margin: 1.75rem auto 0; background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 15px; padding: clamp(1.4rem, 3vw, 2rem); }
 .cfg-summary-title { color: white; font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin: 0 0 1.15rem; }
