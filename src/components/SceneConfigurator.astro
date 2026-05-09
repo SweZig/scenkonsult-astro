@@ -1,7 +1,7 @@
 ---
-// SceneConfigurator.astro — interaktiv scenkonfigurator
-// Bygger ovanpå scenes.json (modules + tillbehor)
+// SceneConfigurator.astro — interaktiv scenkonfigurator (v2)
 import scenData from '../data/scenes.json';
+import tjanster from '../data/tjanster.json';
 
 const modules = scenData.modules || [];
 const stairs = (scenData.tillbehor || []).filter(t =>
@@ -12,12 +12,19 @@ const railSegments = (scenData.tillbehor || []).filter(t =>
   ['SK-SCN-ACC-0005', 'SK-SCN-ACC-0006', 'SK-SCN-ACC-0007'].includes(t.artno)
 );
 
-// Data till JS — JSON-säkert
+const fraktOptions = {
+  storbil: tjanster.leverans?.storbil,
+  storbil_slap: tjanster.leverans?.storbil_slap,
+  lastbil: tjanster.leverans?.lastbil,
+};
+
 const configData = {
   modules,
   stairs,
   skirt: skirt ? { ...skirt, pricePerMeter: 24.75 } : null,
   railSegments,
+  frakt: fraktOptions,
+  montering: tjanster.montering,
 };
 ---
 
@@ -29,7 +36,6 @@ const configData = {
   </div>
 
   <div class="cfg-grid">
-    <!-- VISUALISERINGSSPALT -->
     <div class="cfg-visual">
       <div class="cfg-svg-frame" id="cfg-svg-frame">
         <svg id="cfg-svg" viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Visualisering av scenen"></svg>
@@ -37,11 +43,7 @@ const configData = {
       <div class="cfg-meta-row">
         <div class="cfg-meta">
           <div class="cfg-meta-label">Mått</div>
-          <div class="cfg-meta-value" id="cfg-display-dim">— × — m</div>
-        </div>
-        <div class="cfg-meta">
-          <div class="cfg-meta-label">Yta</div>
-          <div class="cfg-meta-value" id="cfg-display-area">— m²</div>
+          <div class="cfg-meta-value" id="cfg-display-dim">— m</div>
         </div>
         <div class="cfg-meta">
           <div class="cfg-meta-label">Höjd</div>
@@ -54,38 +56,35 @@ const configData = {
       </div>
     </div>
 
-    <!-- FORMSPALT -->
     <div class="cfg-form">
 
-      <!-- Steg 1 — Plattformstyp -->
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">1</span>Plattformstyp</legend>
         <div class="cfg-radio-stack">
           <label class="cfg-card-radio">
             <input type="radio" name="moduleType" value="1x2-slat" checked />
             <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×2 m — slät yta</div>
-              <div class="cfg-radio-desc">200 kr/modul. Bäst om matta läggs över. Mått måste passa i 1×2-moduler.</div>
+              <div class="cfg-radio-title">1×2 m — slät yta <span class="cfg-radio-price">200 kr/modul</span></div>
+              <div class="cfg-radio-desc">Bäst om matta läggs över. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
           <label class="cfg-card-radio">
             <input type="radio" name="moduleType" value="1x2-halkfri" />
             <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×2 m — halkfri yta</div>
-              <div class="cfg-radio-desc">225 kr/modul. Standard halkfri ovansida. Mått måste passa i 1×2-moduler.</div>
+              <div class="cfg-radio-title">1×2 m — halkfri yta <span class="cfg-radio-price">225 kr/modul</span></div>
+              <div class="cfg-radio-desc">Standard halkfri ovansida. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
           <label class="cfg-card-radio">
             <input type="radio" name="moduleType" value="1x1-halkfri" />
             <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×1 m — halkfri yta</div>
-              <div class="cfg-radio-desc">125 kr/modul. Maximal flexibilitet — fri val av alla mått.</div>
+              <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">125 kr/modul</span></div>
+              <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 12 m² (12 moduler).</div>
             </div>
           </label>
         </div>
       </fieldset>
 
-      <!-- Steg 2 — Mått -->
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">2</span>Mått</legend>
         <div class="cfg-dim-row">
@@ -109,49 +108,51 @@ const configData = {
           </label>
         </div>
         <p id="cfg-dim-warning" class="cfg-warning"></p>
-        <p class="cfg-hint">Min 2×2 m. Max 12×8 m. Större på offert.</p>
+        <p class="cfg-hint">Min 2×2 m, max 12×8 m. Större på offert.</p>
       </fieldset>
 
-      <!-- Steg 3 — Höjd -->
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">3</span>Höjd</legend>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="height" value="40" /><span>40 cm</span></label>
-          <label class="cfg-pill"><input type="radio" name="height" value="60" checked /><span>60 cm</span></label>
+          <label class="cfg-pill cfg-pill-height-60"><input type="radio" name="height" value="60" checked /><span>60 cm</span></label>
         </div>
       </fieldset>
 
-      <!-- Steg 4 — Trappor -->
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">4</span>Trappor</legend>
         <p class="cfg-hint">Trappans höjd anpassas automatiskt till scenhöjden. Max 2 trappor.</p>
         <div class="cfg-pill-row">
-          <label class="cfg-pill"><input type="radio" name="stairCount" value="0" /><span>0 trappor</span></label>
-          <label class="cfg-pill"><input type="radio" name="stairCount" value="1" checked /><span>1 trappa</span></label>
-          <label class="cfg-pill"><input type="radio" name="stairCount" value="2" /><span>2 trappor</span></label>
+          <label class="cfg-pill"><input type="radio" name="stairCount" value="0" /><span>0</span></label>
+          <label class="cfg-pill"><input type="radio" name="stairCount" value="1" checked /><span>1</span></label>
+          <label class="cfg-pill"><input type="radio" name="stairCount" value="2" /><span>2</span></label>
         </div>
-        <div id="cfg-stair-placement" class="cfg-stair-placement">
-          <!-- Genereras dynamiskt baserat på antal trappor -->
-        </div>
+        <div id="cfg-stair-placement" class="cfg-stair-placement"></div>
       </fieldset>
 
-      <!-- Steg 5 — Scenkjol -->
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">5</span>Scenkjol</legend>
         <p class="cfg-hint">Svart scenkjol som döljer ben och teknik. 24,75 kr per löpmeter.</p>
-        <div class="cfg-side-grid">
-          <label class="cfg-side-check"><input type="checkbox" name="skirt" data-side="fram" checked /><span>Fram</span></label>
+        <div class="cfg-pill-row">
+          <label class="cfg-pill"><input type="radio" name="skirtMode" value="none" checked /><span>Ingen</span></label>
+          <label class="cfg-pill"><input type="radio" name="skirtMode" value="custom" /><span>Anpassad placering</span></label>
+        </div>
+        <div class="cfg-side-grid cfg-collapsed" id="cfg-skirt-sides">
+          <label class="cfg-side-check"><input type="checkbox" name="skirt" data-side="fram" /><span>Fram</span></label>
           <label class="cfg-side-check"><input type="checkbox" name="skirt" data-side="vanster" /><span>Vänster</span></label>
           <label class="cfg-side-check"><input type="checkbox" name="skirt" data-side="hoger" /><span>Höger</span></label>
           <label class="cfg-side-check"><input type="checkbox" name="skirt" data-side="bak" /><span>Bak</span></label>
         </div>
       </fieldset>
 
-      <!-- Steg 6 — Skyddsräcken -->
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">6</span>Skyddsräcken</legend>
         <p class="cfg-hint">140 kr per löpmeter. Räcken kan inte placeras där trappa står.</p>
-        <div class="cfg-side-grid">
+        <div class="cfg-pill-row">
+          <label class="cfg-pill"><input type="radio" name="railMode" value="none" checked /><span>Ingen</span></label>
+          <label class="cfg-pill"><input type="radio" name="railMode" value="custom" /><span>Anpassad placering</span></label>
+        </div>
+        <div class="cfg-side-grid cfg-collapsed" id="cfg-rail-sides">
           <label class="cfg-side-check"><input type="checkbox" name="rail" data-side="fram" /><span>Fram</span></label>
           <label class="cfg-side-check"><input type="checkbox" name="rail" data-side="vanster" /><span>Vänster</span></label>
           <label class="cfg-side-check"><input type="checkbox" name="rail" data-side="hoger" /><span>Höger</span></label>
@@ -159,19 +160,52 @@ const configData = {
         </div>
       </fieldset>
 
-      <!-- Steg 7 — Montering -->
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">7</span>Montering</legend>
         <label class="cfg-toggle">
           <input type="checkbox" id="cfg-installation" />
           <span class="cfg-toggle-text" id="cfg-installation-label">Inkludera montering &amp; demontering av Scenkonsult</span>
         </label>
-        <p id="cfg-installation-hint" class="cfg-hint">Beräknad tid: 15 min/modul. Pris timdebiteras separat. Obligatoriskt vid scen ≥ 16 m².</p>
+        <p id="cfg-installation-hint" class="cfg-hint"></p>
+      </fieldset>
+
+      <fieldset class="cfg-step">
+        <legend><span class="cfg-step-num">8</span>Leverans</legend>
+        <p class="cfg-hint" id="cfg-frakt-rec"></p>
+        <div class="cfg-pill-row cfg-pill-row-narrow">
+          <label class="cfg-pill"><input type="radio" name="fraktTrip" value="tr" checked /><span>Tur &amp; retur</span></label>
+          <label class="cfg-pill"><input type="radio" name="fraktTrip" value="enkel" /><span>Enkelresa</span></label>
+        </div>
+        <div class="cfg-radio-stack cfg-radio-stack-tight">
+          <label class="cfg-card-radio">
+            <input type="radio" name="frakt" value="none" checked />
+            <div class="cfg-radio-body">
+              <div class="cfg-radio-title">Ingen — jag hämtar själv <span class="cfg-radio-price">0 kr</span></div>
+            </div>
+          </label>
+          <label class="cfg-card-radio">
+            <input type="radio" name="frakt" value="storbil" />
+            <div class="cfg-radio-body">
+              <div class="cfg-radio-title">Stor bil <span class="cfg-radio-price" data-frakt-price="storbil">— kr</span></div>
+            </div>
+          </label>
+          <label class="cfg-card-radio">
+            <input type="radio" name="frakt" value="storbil_slap" />
+            <div class="cfg-radio-body">
+              <div class="cfg-radio-title">Stor bil + släp <span class="cfg-radio-price" data-frakt-price="storbil_slap">— kr</span></div>
+            </div>
+          </label>
+          <label class="cfg-card-radio">
+            <input type="radio" name="frakt" value="lastbil" />
+            <div class="cfg-radio-body">
+              <div class="cfg-radio-title">Lätt lastbil <span class="cfg-radio-price" data-frakt-price="lastbil">— kr</span></div>
+            </div>
+          </label>
+        </div>
       </fieldset>
     </div>
   </div>
 
-  <!-- PRIS-SPEC + CART -->
   <div class="cfg-summary">
     <h3 class="cfg-summary-title">Specifikation och pris</h3>
     <ul class="cfg-spec-list" id="cfg-spec-list"></ul>
@@ -194,17 +228,16 @@ const configData = {
 
 <script>
 (function () {
-  if (window.__sceneConfiguratorInit) return;
-  window.__sceneConfiguratorInit = true;
-
-  function init() {
+  function initConfigurator() {
     const root = document.getElementById('scene-configurator');
     if (!root) return;
+    if (root.dataset.cfgReady === '1') return;
+    root.dataset.cfgReady = '1';
+
     const dataNode = document.getElementById('cfg-data');
     if (!dataNode) return;
     const cfg = JSON.parse(dataNode.textContent || '{}');
 
-    // ── State ───────────────────────────────────────────────────────────
     const SIDES = ['fram', 'vanster', 'hoger', 'bak'];
     const SIDE_LABELS = { fram: 'Fram', vanster: 'Vänster', hoger: 'Höger', bak: 'Bak' };
     const state = {
@@ -213,10 +246,14 @@ const configData = {
       depth: 4,
       height: 60,
       stairCount: 1,
-      stairPositions: ['fram'], // array of sides
-      skirt: { fram: true, vanster: false, hoger: false, bak: false },
+      stairPositions: ['fram'],
+      skirtMode: 'none',
+      skirt: { fram: false, vanster: false, hoger: false, bak: false },
+      railMode: 'none',
       rail: { fram: false, vanster: false, hoger: false, bak: false },
       installation: false,
+      frakt: 'none',
+      fraktTrip: 'tr',
     };
 
     const MODULE_PRICES = { '1x2-slat': 200, '1x2-halkfri': 225, '1x1-halkfri': 125 };
@@ -226,25 +263,24 @@ const configData = {
       '1x2-halkfri': 'Plattform 1×2 m (halkfri)',
       '1x1-halkfri': 'Plattform 1×1 m (halkfri)',
     };
-    const RAIL_SEGMENTS = [
-      { artno: 'SK-SCN-ACC-0007', length: 2.0, name: 'Skyddsräcke 2,0 m', price: 280 },
-      { artno: 'SK-SCN-ACC-0005', length: 1.0, name: 'Skyddsräcke 1,0 m', price: 140 },
-    ]; // sorted desc — only 2.0 + 1.0 needed for integer meters
-    const RAIL_PRICE_PER_METER = 140;
+    const FRAKT_DATA = cfg.frakt || {};
+    const FRAKT_LABELS = { storbil: 'Stor bil', storbil_slap: 'Stor bil + släp', lastbil: 'Lätt lastbil' };
     const SKIRT_PRICE_PER_METER = 24.75;
+    const MONTERING_PRICE_PER_HOUR = 600;
 
     function getStairForHeight(h) {
       if (h === 40) return { artno: 'SK-SCN-ACC-0001', name: 'Scentrapp (40 cm)', price: 279 };
       return { artno: 'SK-SCN-ACC-0002', name: 'Scentrapp (60 cm)', price: 349 };
     }
 
-    // ── Validering ──────────────────────────────────────────────────────
     function isDimValid() {
       const { moduleType, width, depth } = state;
       if (width < 2 || width > 12 || depth < 2 || depth > 8) return false;
       if (!Number.isInteger(width) || !Number.isInteger(depth)) return false;
-      if (moduleType === '1x1-halkfri') return true;
-      // 1x2: minst en sida måste vara jämn
+      if (moduleType === '1x1-halkfri') {
+        if (width * depth > 12) return false;
+        return true;
+      }
       return (width % 2 === 0) || (depth % 2 === 0);
     }
 
@@ -254,7 +290,34 @@ const configData = {
       return (state.width * state.depth) / 2;
     }
 
-    // ── Pris-kalkyl ─────────────────────────────────────────────────────
+    function getRecommendedFrakt() {
+      const count = moduleCount();
+      if (count === 0) return null;
+      if (count <= 8) return 'storbil';
+      if (count <= 12) return 'storbil_slap';
+      return 'lastbil';
+    }
+
+    function fraktPrice(key) {
+      if (key === 'none') return 0;
+      const opt = FRAKT_DATA[key];
+      if (!opt) return 0;
+      return state.fraktTrip === 'enkel' ? (opt.enkelresa || 0) : (opt.pris || 0);
+    }
+
+    function fraktArtno(key) {
+      if (key === 'none') return null;
+      const opt = FRAKT_DATA[key];
+      if (!opt) return null;
+      return state.fraktTrip === 'enkel' ? (opt.enkel?.artno || opt.artno) : opt.artno;
+    }
+
+    function fraktLabel(key) {
+      if (key === 'none') return 'Ingen leverans (kund hämtar själv)';
+      const base = FRAKT_LABELS[key] || key;
+      return state.fraktTrip === 'enkel' ? `${base} (enkelresa)` : `${base} (tur & retur)`;
+    }
+
     function computeLineItems() {
       const lines = [];
       if (!isDimValid()) return lines;
@@ -262,7 +325,6 @@ const configData = {
       const prefix = `[Scen ${state.width}×${state.depth}·${state.height}cm]`;
       const modCount = moduleCount();
 
-      // 1. Plattformsmoduler
       lines.push({
         artno: MODULE_ARTNO[state.moduleType],
         name: `${prefix} ${MODULE_NAME[state.moduleType]}`,
@@ -271,7 +333,6 @@ const configData = {
         category: 'Scen',
       });
 
-      // 2. Trappor
       if (state.stairCount > 0) {
         const stair = getStairForHeight(state.height);
         const positions = state.stairPositions.slice(0, state.stairCount);
@@ -286,55 +347,80 @@ const configData = {
         });
       }
 
-      // 3. Scenkjol — räkna meter över alla valda sidor
-      const skirtMeters = sideLengthsTotal('skirt');
-      if (skirtMeters > 0) {
+      if (state.skirtMode === 'custom') {
+        const skirtMeters = sideLengthsTotal('skirt');
+        if (skirtMeters > 0) {
+          lines.push({
+            artno: 'SK-SCN-ACC-0003',
+            name: `${prefix} Scenkjol (${skirtMeters} m)`,
+            price: Math.round(skirtMeters * SKIRT_PRICE_PER_METER * 100) / 100,
+            qty: 1,
+            category: 'Scen',
+            isCalculated: true,
+            metaText: `${skirtMeters} m × 24,75 kr`,
+          });
+        }
+      }
+
+      if (state.railMode === 'custom') {
+        const stairSet = new Set(state.stairPositions.slice(0, state.stairCount));
+        const railSidesValid = SIDES.filter(s => state.rail[s] && !stairSet.has(s));
+        const railTotals = { 'SK-SCN-ACC-0007': 0, 'SK-SCN-ACC-0005': 0 };
+        railSidesValid.forEach(side => {
+          const len = sideLengthMeters(side);
+          const packed = packRail(len);
+          railTotals['SK-SCN-ACC-0007'] += packed.count20;
+          railTotals['SK-SCN-ACC-0005'] += packed.count10;
+        });
+        if (railTotals['SK-SCN-ACC-0007'] > 0) {
+          lines.push({ artno: 'SK-SCN-ACC-0007', name: `${prefix} Skyddsräcke 2,0 m`, price: 280, qty: railTotals['SK-SCN-ACC-0007'], category: 'Scen' });
+        }
+        if (railTotals['SK-SCN-ACC-0005'] > 0) {
+          lines.push({ artno: 'SK-SCN-ACC-0005', name: `${prefix} Skyddsräcke 1,0 m`, price: 140, qty: railTotals['SK-SCN-ACC-0005'], category: 'Scen' });
+        }
+      }
+
+      if (state.installation) {
+        const totalMin = modCount * 15 * 2;
+        const hours = Math.round(totalMin / 60 * 4) / 4;
+        const monteringPris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
         lines.push({
-          artno: 'SK-SCN-ACC-0003',
-          name: `${prefix} Scenkjol (${skirtMeters} m)`,
-          price: Math.round(skirtMeters * SKIRT_PRICE_PER_METER * 100) / 100,
+          artno: 'SK-TJN-0001',
+          name: `${prefix} Montering & demontering (~${formatTime(totalMin)})`,
+          price: monteringPris,
           qty: 1,
-          category: 'Scen',
-          isCalculated: true, // visa pris-per-meter info i spec
-          metaText: `${skirtMeters} m × 24,75 kr`,
+          category: 'Tjänst',
+          isCalculated: true,
+          metaText: `${hours} tim × 600 kr`,
         });
       }
 
-      // 4. Räcken — pack varje sida med 2.0+1.0-segment, exkludera trappa-sidor
-      const railSidesValid = SIDES.filter(s => state.rail[s] && !state.stairPositions.slice(0, state.stairCount).includes(s));
-      const railTotals = { 'SK-SCN-ACC-0007': 0, 'SK-SCN-ACC-0005': 0 };
-      let railTotalMeters = 0;
-      railSidesValid.forEach(side => {
-        const len = sideLengthMeters(side);
-        const packed = packRail(len);
-        railTotals['SK-SCN-ACC-0007'] += packed.count20;
-        railTotals['SK-SCN-ACC-0005'] += packed.count10;
-        railTotalMeters += len;
-      });
-      if (railTotals['SK-SCN-ACC-0007'] > 0) {
-        lines.push({
-          artno: 'SK-SCN-ACC-0007',
-          name: `${prefix} Skyddsräcke 2,0 m`,
-          price: 280,
-          qty: railTotals['SK-SCN-ACC-0007'],
-          category: 'Scen',
-        });
-      }
-      if (railTotals['SK-SCN-ACC-0005'] > 0) {
-        lines.push({
-          artno: 'SK-SCN-ACC-0005',
-          name: `${prefix} Skyddsräcke 1,0 m`,
-          price: 140,
-          qty: railTotals['SK-SCN-ACC-0005'],
-          category: 'Scen',
-        });
+      if (state.frakt !== 'none') {
+        const fpris = fraktPrice(state.frakt);
+        const fartno = fraktArtno(state.frakt);
+        if (fpris > 0 && fartno) {
+          lines.push({
+            artno: fartno,
+            name: `${prefix} ${fraktLabel(state.frakt)}`,
+            price: fpris,
+            qty: 1,
+            category: 'Leverans',
+          });
+        }
       }
 
       return lines;
     }
 
+    function formatTime(min) {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      if (h === 0) return `${m} min`;
+      if (m === 0) return `${h} tim`;
+      return `${h} tim ${m} min`;
+    }
+
     function sideLengthMeters(side) {
-      // fram & bak = bredd, vanster & hoger = djup
       return (side === 'fram' || side === 'bak') ? state.width : state.depth;
     }
 
@@ -343,7 +429,6 @@ const configData = {
     }
 
     function packRail(meters) {
-      // greedy: 2.0 sedan 1.0
       let remaining = meters;
       let count20 = 0, count10 = 0;
       while (remaining >= 2 - 0.001) { count20++; remaining -= 2; }
@@ -355,19 +440,15 @@ const configData = {
       return lines.reduce((sum, l) => sum + l.price * l.qty, 0);
     }
 
-    // ── Rendering: SVG (top-down isometrisk) ────────────────────────────
     function renderSVG() {
       const svg = document.getElementById('cfg-svg');
       if (!svg) return;
-      svg.innerHTML = '';
 
       if (!isDimValid()) {
         svg.innerHTML = `<text x="300" y="210" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="Space Grotesk,sans-serif" font-size="14">Vänligen välj giltiga mått</text>`;
         return;
       }
 
-      // Skala: 600x420 viewport. Topp-down, isometrisk lutning.
-      // Beräkna skala så att största sidan får ca 80% av rutan
       const padX = 80, padY = 70;
       const usableW = 600 - 2 * padX;
       const usableH = 420 - 2 * padY;
@@ -378,142 +459,115 @@ const configData = {
       const x0 = cx - stageW / 2;
       const y0 = cy - stageD / 2;
 
-      // Bakgrund (golv-skugga)
+      let html = `<defs>
+        <pattern id="patHalkfri" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+          <rect width="6" height="6" fill="#3a3370"/>
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#5a4ea0" stroke-width="1.2"/>
+        </pattern>
+      </defs>`;
       const shadowOff = 6;
-      svg.innerHTML += `<rect x="${x0 + shadowOff}" y="${y0 + shadowOff}" width="${stageW}" height="${stageD}" fill="rgba(0,0,0,0.4)" rx="2"/>`;
-
-      // Plattformsraster
-      const modW = state.moduleType === '1x1-halkfri' ? 1 : 2;
-      const modH = 1;
-      // Bestäm orientation: om bredd är jämn, lägg moduler liggande (modW=2 i bredd)
-      // Om djup är jämn, lägg moduler liggande i djup
-      // För 1x1: alltid 1m moduler
-      let mods = [];
-      if (state.moduleType === '1x1-halkfri') {
-        for (let r = 0; r < state.depth; r++) {
-          for (let c = 0; c < state.width; c++) {
-            mods.push({ x: c, y: r, w: 1, h: 1 });
-          }
-        }
-      } else {
-        // 1x2: orientering — om bredd jämn, lägg 1×2 horisontellt; annars 2×1 vertikalt
-        if (state.width % 2 === 0) {
-          for (let r = 0; r < state.depth; r++) {
-            for (let c = 0; c < state.width; c += 2) {
-              mods.push({ x: c, y: r, w: 2, h: 1 });
-            }
-          }
-        } else {
-          for (let r = 0; r < state.depth; r += 2) {
-            for (let c = 0; c < state.width; c++) {
-              mods.push({ x: c, y: r, w: 1, h: 2 });
-            }
-          }
-        }
-      }
+      html += `<rect x="${x0 + shadowOff}" y="${y0 + shadowOff}" width="${stageW}" height="${stageD}" fill="rgba(0,0,0,0.4)" rx="2"/>`;
 
       const isHalkfri = state.moduleType.includes('halkfri');
       const moduleFill = isHalkfri ? 'url(#patHalkfri)' : '#3a3370';
       const moduleStroke = '#c4b5f4';
 
-      // Mönster för halkfri yta
-      svg.innerHTML += `
-        <defs>
-          <pattern id="patHalkfri" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-            <rect width="6" height="6" fill="#3a3370"/>
-            <line x1="0" y1="0" x2="0" y2="6" stroke="#5a4ea0" stroke-width="1.2"/>
-          </pattern>
-        </defs>`;
-
-      // Rita modulerna
+      let mods = [];
+      if (state.moduleType === '1x1-halkfri') {
+        for (let r = 0; r < state.depth; r++) {
+          for (let c = 0; c < state.width; c++) mods.push({ x: c, y: r, w: 1, h: 1 });
+        }
+      } else {
+        if (state.width % 2 === 0) {
+          for (let r = 0; r < state.depth; r++) {
+            for (let c = 0; c < state.width; c += 2) mods.push({ x: c, y: r, w: 2, h: 1 });
+          }
+        } else {
+          for (let r = 0; r < state.depth; r += 2) {
+            for (let c = 0; c < state.width; c++) mods.push({ x: c, y: r, w: 1, h: 2 });
+          }
+        }
+      }
       mods.forEach(m => {
         const mx = x0 + m.x * scale;
         const my = y0 + m.y * scale;
-        svg.innerHTML += `<rect x="${mx}" y="${my}" width="${m.w * scale}" height="${m.h * scale}"
-          fill="${moduleFill}" stroke="${moduleStroke}" stroke-width="1" stroke-opacity="0.4" />`;
+        html += `<rect x="${mx}" y="${my}" width="${m.w * scale}" height="${m.h * scale}" fill="${moduleFill}" stroke="${moduleStroke}" stroke-width="1" stroke-opacity="0.4" />`;
       });
+      html += `<rect x="${x0}" y="${y0}" width="${stageW}" height="${stageD}" fill="none" stroke="#c4b5f4" stroke-width="2" stroke-opacity="0.8" />`;
 
-      // Yttergräns med tjockare ram
-      svg.innerHTML += `<rect x="${x0}" y="${y0}" width="${stageW}" height="${stageD}"
-        fill="none" stroke="#c4b5f4" stroke-width="2" stroke-opacity="0.8" />`;
+      if (state.skirtMode === 'custom') {
+        Object.keys(state.skirt).forEach(side => {
+          if (!state.skirt[side]) return;
+          const t = 6;
+          if (side === 'fram') html += `<rect x="${x0}" y="${y0 + stageD - t}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
+          if (side === 'bak') html += `<rect x="${x0}" y="${y0}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
+          if (side === 'vanster') html += `<rect x="${x0}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
+          if (side === 'hoger') html += `<rect x="${x0 + stageW - t}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
+        });
+      }
 
-      // Scenkjol (svart band)
-      Object.keys(state.skirt).forEach(side => {
-        if (!state.skirt[side]) return;
-        const t = 6;
-        let r;
-        if (side === 'fram') r = `<rect x="${x0}" y="${y0 + stageD - t}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
-        if (side === 'bak') r = `<rect x="${x0}" y="${y0}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
-        if (side === 'vanster') r = `<rect x="${x0}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
-        if (side === 'hoger') r = `<rect x="${x0 + stageW - t}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
-        svg.innerHTML += r;
-      });
-
-      // Skyddsräcken (lavendel-linje)
       const stairSet = new Set(state.stairPositions.slice(0, state.stairCount));
-      Object.keys(state.rail).forEach(side => {
-        if (!state.rail[side]) return;
-        if (stairSet.has(side)) return; // ingen räcke vid trappa
-        const off = 4;
-        let r;
-        if (side === 'fram') r = `<line x1="${x0}" y1="${y0 + stageD + off}" x2="${x0 + stageW}" y2="${y0 + stageD + off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
-        if (side === 'bak') r = `<line x1="${x0}" y1="${y0 - off}" x2="${x0 + stageW}" y2="${y0 - off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
-        if (side === 'vanster') r = `<line x1="${x0 - off}" y1="${y0}" x2="${x0 - off}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
-        if (side === 'hoger') r = `<line x1="${x0 + stageW + off}" y1="${y0}" x2="${x0 + stageW + off}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
-        svg.innerHTML += r;
-      });
+      if (state.railMode === 'custom') {
+        Object.keys(state.rail).forEach(side => {
+          if (!state.rail[side]) return;
+          if (stairSet.has(side)) return;
+          const off = 4;
+          if (side === 'fram') html += `<line x1="${x0}" y1="${y0 + stageD + off}" x2="${x0 + stageW}" y2="${y0 + stageD + off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+          if (side === 'bak') html += `<line x1="${x0}" y1="${y0 - off}" x2="${x0 + stageW}" y2="${y0 - off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+          if (side === 'vanster') html += `<line x1="${x0 - off}" y1="${y0}" x2="${x0 - off}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+          if (side === 'hoger') html += `<line x1="${x0 + stageW + off}" y1="${y0}" x2="${x0 + stageW + off}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+        });
+      }
 
-      // Trappor (triangulära markörer pekande in)
+      // Trappor — rektangel med horisontella streck (sett uppifrån)
       const stairsArr = state.stairPositions.slice(0, state.stairCount);
       stairsArr.forEach(side => {
-        const sw = Math.min(stageW, stageD) * 0.18; // trapp-bredd ~ 18% av minsta sidan
-        let pts;
-        if (side === 'fram') {
-          const tx = x0 + stageW / 2, ty = y0 + stageD;
-          pts = `${tx - sw / 2},${ty + sw} ${tx + sw / 2},${ty + sw} ${tx},${ty + 4}`;
+        const sw = Math.min(stageW, stageD) * 0.20;
+        const sd = sw * 0.8;
+        let sx, sy, w, h;
+        if (side === 'fram') { sx = x0 + stageW / 2 - sw / 2; sy = y0 + stageD; w = sw; h = sd; }
+        if (side === 'bak') { sx = x0 + stageW / 2 - sw / 2; sy = y0 - sd; w = sw; h = sd; }
+        if (side === 'vanster') { sx = x0 - sd; sy = y0 + stageD / 2 - sw / 2; w = sd; h = sw; }
+        if (side === 'hoger') { sx = x0 + stageW; sy = y0 + stageD / 2 - sw / 2; w = sd; h = sw; }
+        html += `<g>`;
+        html += `<rect x="${sx}" y="${sy}" width="${w}" height="${h}" fill="#1e1850" stroke="#c4b5f4" stroke-width="1.5" rx="2"/>`;
+        if (side === 'vanster' || side === 'hoger') {
+          for (let i = 1; i < 4; i++) {
+            const lx = sx + (w * i / 4);
+            html += `<line x1="${lx}" y1="${sy + 3}" x2="${lx}" y2="${sy + h - 3}" stroke="#c4b5f4" stroke-width="1.2" stroke-opacity="0.85"/>`;
+          }
+        } else {
+          for (let i = 1; i < 4; i++) {
+            const ly = sy + (h * i / 4);
+            html += `<line x1="${sx + 3}" y1="${ly}" x2="${sx + w - 3}" y2="${ly}" stroke="#c4b5f4" stroke-width="1.2" stroke-opacity="0.85"/>`;
+          }
         }
-        if (side === 'bak') {
-          const tx = x0 + stageW / 2, ty = y0;
-          pts = `${tx - sw / 2},${ty - sw} ${tx + sw / 2},${ty - sw} ${tx},${ty - 4}`;
-        }
-        if (side === 'vanster') {
-          const tx = x0, ty = y0 + stageD / 2;
-          pts = `${tx - sw},${ty - sw / 2} ${tx - sw},${ty + sw / 2} ${tx - 4},${ty}`;
-        }
-        if (side === 'hoger') {
-          const tx = x0 + stageW, ty = y0 + stageD / 2;
-          pts = `${tx + sw},${ty - sw / 2} ${tx + sw},${ty + sw / 2} ${tx + 4},${ty}`;
-        }
-        svg.innerHTML += `<polygon points="${pts}" fill="#e2dcfb" stroke="#c4b5f4" stroke-width="1.2" />`;
+        html += `</g>`;
       });
 
-      // Mått-etiketter
       const labelStyle = `fill="rgba(255,255,255,0.55)" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="600"`;
-      svg.innerHTML += `<text x="${x0 + stageW / 2}" y="${y0 + stageD + 50}" text-anchor="middle" ${labelStyle}>Bredd: ${state.width} m (Fram)</text>`;
-      svg.innerHTML += `<text x="${x0 + stageW / 2}" y="${y0 - 28}" text-anchor="middle" ${labelStyle} fill-opacity="0.4">${state.width} m (Bak)</text>`;
-      svg.innerHTML += `<text x="${x0 - 28}" y="${y0 + stageD / 2}" text-anchor="middle" ${labelStyle} transform="rotate(-90 ${x0 - 28} ${y0 + stageD / 2})">${state.depth} m</text>`;
+      html += `<text x="${x0 + stageW / 2}" y="${y0 + stageD + 50}" text-anchor="middle" ${labelStyle}>Bredd: ${state.width} m (Fram)</text>`;
+      html += `<text x="${x0 + stageW / 2}" y="${y0 - 28}" text-anchor="middle" ${labelStyle} fill-opacity="0.4">${state.width} m (Bak)</text>`;
+      html += `<text x="${x0 - 28}" y="${y0 + stageD / 2}" text-anchor="middle" ${labelStyle} transform="rotate(-90 ${x0 - 28} ${y0 + stageD / 2})">${state.depth} m</text>`;
+      html += `<text x="20" y="30" fill="rgba(196,181,244,0.55)" font-family="Space Grotesk,sans-serif" font-size="9" font-weight="700" letter-spacing="1.5">↑ BAK · ↓ FRAM (mot publik)</text>`;
 
-      // Compass / orientering hint
-      svg.innerHTML += `<text x="20" y="30" fill="rgba(196,181,244,0.55)" font-family="Space Grotesk,sans-serif" font-size="9" font-weight="700" letter-spacing="1.5">↑ BAK · ↓ FRAM (mot publik)</text>`;
+      svg.innerHTML = html;
     }
 
-    // ── Rendering: meta-rad ─────────────────────────────────────────────
     function renderMeta() {
       const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
       if (isDimValid()) {
-        set('cfg-display-dim', `${state.width} × ${state.depth} m`);
-        set('cfg-display-area', `${state.width * state.depth} m²`);
+        const area = state.width * state.depth;
+        set('cfg-display-dim', `${state.width} × ${state.depth} m = ${area} m²`);
         set('cfg-display-height', `${state.height} cm`);
         set('cfg-display-modules', `${moduleCount()} st`);
       } else {
-        set('cfg-display-dim', '— × — m');
-        set('cfg-display-area', '— m²');
+        set('cfg-display-dim', '— m');
         set('cfg-display-height', `${state.height} cm`);
         set('cfg-display-modules', '— st');
       }
     }
 
-    // ── Rendering: trapplaceringar (dynamiskt) ──────────────────────────
     function renderStairPlacement() {
       const wrap = document.getElementById('cfg-stair-placement');
       if (!wrap) return;
@@ -529,8 +583,6 @@ const configData = {
         </div>`;
       }
       wrap.innerHTML = html;
-
-      // Bind
       wrap.querySelectorAll('select[data-stair-idx]').forEach(sel => {
         sel.addEventListener('change', e => {
           const idx = parseInt(e.target.dataset.stairIdx, 10);
@@ -540,21 +592,50 @@ const configData = {
       });
     }
 
-    // ── Rendering: dim-warning + räcke-disabling ────────────────────────
     function renderValidation() {
       const warn = document.getElementById('cfg-dim-warning');
+      const cartBtn = document.getElementById('cfg-add-to-cart');
       if (!warn) return;
-      if (!isDimValid()) {
-        if (state.moduleType !== '1x1-halkfri' && state.width % 2 !== 0 && state.depth % 2 !== 0) {
-          warn.textContent = `⚠ Med 1×2-moduler måste antingen bredd eller djup vara jämn. Välj t.ex. ${state.width}×${state.depth + 1} eller använd 1×1-moduler.`;
-        } else {
-          warn.textContent = '⚠ Måtten ligger utanför tillåtet intervall (min 2 m, max 12×8 m).';
-        }
-      } else {
-        warn.textContent = '';
+
+      const area = state.width * state.depth;
+      const dimRangeOK = state.width >= 2 && state.width <= 12 && state.depth >= 2 && state.depth <= 8;
+      const evenSideOK = state.moduleType === '1x1-halkfri' || (state.width % 2 === 0) || (state.depth % 2 === 0);
+
+      let warning = '';
+      if (!dimRangeOK) {
+        warning = '⚠ Måtten ligger utanför tillåtet intervall (min 2 m, max 12×8 m).';
+      } else if (state.moduleType === '1x1-halkfri' && area > 12) {
+        warning = `⚠ 1×1-modulerna räcker till max 12 m² (${area} m² valt). Välj 1×2-moduler för större scen, eller minska måtten.`;
+      } else if (!evenSideOK) {
+        const altW = state.width + 1 <= 12 ? state.width + 1 : null;
+        const altD = state.depth + 1 <= 8 ? state.depth + 1 : null;
+        const sugg = altW && altD ? ` Välj t.ex. ${altW}×${state.depth} eller ${state.width}×${altD},` : '';
+        warning = `⚠ Med 1×2-moduler måste antingen bredd eller djup vara jämn.${sugg} eller använd 1×1-moduler.`;
+      }
+      warn.textContent = warning;
+
+      const valid = isDimValid();
+      if (cartBtn) {
+        cartBtn.disabled = !valid;
       }
 
-      // Disabla räcke-checkboxar för sidor där trappa står
+      // 1×1 → lås höjd till 40 cm
+      const height60 = document.querySelector('input[name="height"][value="60"]');
+      const height40 = document.querySelector('input[name="height"][value="40"]');
+      const pill60 = document.querySelector('.cfg-pill-height-60');
+      if (state.moduleType === '1x1-halkfri') {
+        if (state.height !== 40) {
+          state.height = 40;
+          if (height40) height40.checked = true;
+        }
+        if (height60) height60.disabled = true;
+        if (pill60) pill60.classList.add('cfg-pill-disabled');
+      } else {
+        if (height60) height60.disabled = false;
+        if (pill60) pill60.classList.remove('cfg-pill-disabled');
+      }
+
+      // Räcken vid trappa — disabla
       const stairSet = new Set(state.stairPositions.slice(0, state.stairCount));
       document.querySelectorAll('input[name="rail"]').forEach(cb => {
         const side = cb.dataset.side;
@@ -567,17 +648,64 @@ const configData = {
           cb.parentElement?.classList.remove('cfg-side-disabled');
         }
       });
+
+      // Visa/dölj custom-paneler
+      const skirtSides = document.getElementById('cfg-skirt-sides');
+      const railSides = document.getElementById('cfg-rail-sides');
+      if (skirtSides) skirtSides.classList.toggle('cfg-collapsed', state.skirtMode !== 'custom');
+      if (railSides) railSides.classList.toggle('cfg-collapsed', state.railMode !== 'custom');
+
+      // Frakt-rekommendation
+      const recEl = document.getElementById('cfg-frakt-rec');
+      const rec = getRecommendedFrakt();
+      if (recEl) {
+        if (rec) recEl.textContent = `Vi rekommenderar: ${FRAKT_LABELS[rec]} baserat på ${moduleCount()} moduler. Du kan välja annat.`;
+        else recEl.textContent = '';
+      }
+
+      // Frakt-priser
+      document.querySelectorAll('[data-frakt-price]').forEach(el => {
+        el.textContent = formatKr(fraktPrice(el.dataset.fraktPrice));
+      });
     }
 
-    // ── Rendering: spec-lista + total ───────────────────────────────────
+    function renderInstallation() {
+      const area = state.width * state.depth;
+      const installCb = document.getElementById('cfg-installation');
+      const installLabel = document.getElementById('cfg-installation-label');
+      const installHint = document.getElementById('cfg-installation-hint');
+      const minutes = moduleCount() * 15 * 2;
+      const hours = Math.round(minutes / 60 * 4) / 4;
+      const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
+
+      if (area >= 16) {
+        if (installCb) { installCb.checked = true; installCb.disabled = true; }
+        state.installation = true;
+        if (installLabel) installLabel.textContent = 'Montering & demontering ingår (obligatoriskt över 16 m²)';
+        if (installHint) installHint.textContent = `Montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Faktureras efter faktisk tid.`;
+      } else {
+        if (installCb) installCb.disabled = false;
+        if (installLabel) installLabel.textContent = 'Inkludera montering & demontering av Scenkonsult';
+        if (installHint) {
+          if (state.installation) {
+            installHint.textContent = `Beräknad tid: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Faktureras efter faktisk tid.`;
+          } else {
+            installHint.textContent = 'Beräknad tid: 15 min/modul × 2 (montering + demontering). Pris timdebiteras (600 kr/tim). Obligatoriskt vid scen ≥ 16 m².';
+          }
+        }
+      }
+    }
+
     function renderSpec() {
       const list = document.getElementById('cfg-spec-list');
       if (!list) return;
       const lines = computeLineItems();
       if (lines.length === 0) {
         list.innerHTML = '<li class="cfg-spec-empty">Välj giltiga mått för att se specifikation.</li>';
-        document.getElementById('cfg-total-excl').textContent = '0 kr';
-        document.getElementById('cfg-total-incl').textContent = '0 kr';
+        const totalEx = document.getElementById('cfg-total-excl');
+        const totalIn = document.getElementById('cfg-total-incl');
+        if (totalEx) totalEx.textContent = '0 kr';
+        if (totalIn) totalIn.textContent = '0 kr';
         return;
       }
       let html = '';
@@ -598,26 +726,10 @@ const configData = {
       list.innerHTML = html;
 
       const total = totalPrice(lines);
-      document.getElementById('cfg-total-excl').textContent = formatKr(total);
-      document.getElementById('cfg-total-incl').textContent = formatKr(Math.round(total * 1.25));
-
-      // Installation hint
-      const area = state.width * state.depth;
-      const installHint = document.getElementById('cfg-installation-hint');
-      const installCb = document.getElementById('cfg-installation');
-      const installLabel = document.getElementById('cfg-installation-label');
-      const minutes = moduleCount() * 15;
-      if (area >= 16) {
-        if (installCb) { installCb.checked = true; installCb.disabled = true; state.installation = true; }
-        if (installLabel) installLabel.textContent = 'Montering & demontering ingår (obligatoriskt över 16 m²)';
-        if (installHint) installHint.textContent = `Beräknad tid: ca ${minutes} min montering. Pris timdebiteras separat (offereras).`;
-      } else {
-        if (installCb) installCb.disabled = false;
-        if (installLabel) installLabel.textContent = 'Inkludera montering & demontering av Scenkonsult';
-        if (installHint) installHint.textContent = state.installation
-          ? `Beräknad tid: ca ${minutes} min montering. Pris timdebiteras separat (offereras).`
-          : 'Beräknad tid: 15 min/modul. Pris timdebiteras separat. Obligatoriskt vid scen ≥ 16 m².';
-      }
+      const totalEx = document.getElementById('cfg-total-excl');
+      const totalIn = document.getElementById('cfg-total-incl');
+      if (totalEx) totalEx.textContent = formatKr(total);
+      if (totalIn) totalIn.textContent = formatKr(Math.round(total * 1.25));
     }
 
     function formatKr(n) {
@@ -626,33 +738,23 @@ const configData = {
 
     function render() {
       renderValidation();
+      renderInstallation();
       renderMeta();
       renderStairPlacement();
       renderSVG();
       renderSpec();
     }
 
-    // ── Bind events ─────────────────────────────────────────────────────
     document.querySelectorAll('input[name="moduleType"]').forEach(el => {
-      el.addEventListener('change', e => {
-        state.moduleType = e.target.value;
-        render();
-      });
+      el.addEventListener('change', e => { state.moduleType = e.target.value; render(); });
     });
-
     document.querySelectorAll('input[name="height"]').forEach(el => {
-      el.addEventListener('change', e => {
-        state.height = parseInt(e.target.value, 10);
-        render();
-      });
+      el.addEventListener('change', e => { state.height = parseInt(e.target.value, 10); render(); });
     });
-
     document.querySelectorAll('input[name="stairCount"]').forEach(el => {
       el.addEventListener('change', e => {
         state.stairCount = parseInt(e.target.value, 10);
-        // Säkra att stairPositions har rätt längd
         while (state.stairPositions.length < state.stairCount) {
-          // Använd första lediga sida
           const used = new Set(state.stairPositions);
           const next = SIDES.find(s => !used.has(s)) || 'fram';
           state.stairPositions.push(next);
@@ -660,26 +762,37 @@ const configData = {
         render();
       });
     });
-
-    document.querySelectorAll('input[name="skirt"]').forEach(el => {
+    document.querySelectorAll('input[name="skirtMode"]').forEach(el => {
       el.addEventListener('change', e => {
-        state.skirt[e.target.dataset.side] = e.target.checked;
+        state.skirtMode = e.target.value;
+        if (state.skirtMode === 'none') {
+          SIDES.forEach(s => { state.skirt[s] = false; });
+          document.querySelectorAll('input[name="skirt"]').forEach(cb => cb.checked = false);
+        }
         render();
       });
     });
-
-    document.querySelectorAll('input[name="rail"]').forEach(el => {
+    document.querySelectorAll('input[name="skirt"]').forEach(el => {
+      el.addEventListener('change', e => { state.skirt[e.target.dataset.side] = e.target.checked; render(); });
+    });
+    document.querySelectorAll('input[name="railMode"]').forEach(el => {
       el.addEventListener('change', e => {
-        state.rail[e.target.dataset.side] = e.target.checked;
+        state.railMode = e.target.value;
+        if (state.railMode === 'none') {
+          SIDES.forEach(s => { state.rail[s] = false; });
+          document.querySelectorAll('input[name="rail"]').forEach(cb => cb.checked = false);
+        }
         render();
       });
+    });
+    document.querySelectorAll('input[name="rail"]').forEach(el => {
+      el.addEventListener('change', e => { state.rail[e.target.dataset.side] = e.target.checked; render(); });
     });
 
     const widthInput = document.getElementById('cfg-width');
     const depthInput = document.getElementById('cfg-depth');
     widthInput?.addEventListener('input', e => { state.width = parseInt(e.target.value, 10) || 0; render(); });
     depthInput?.addEventListener('input', e => { state.depth = parseInt(e.target.value, 10) || 0; render(); });
-
     document.querySelectorAll('button[data-dim-step]').forEach(btn => {
       btn.addEventListener('click', () => {
         const dim = btn.dataset.dimStep;
@@ -696,11 +809,19 @@ const configData = {
     });
 
     document.getElementById('cfg-installation')?.addEventListener('change', e => {
-      state.installation = e.target.checked;
-      render();
+      if (!e.target.disabled) {
+        state.installation = e.target.checked;
+        render();
+      }
     });
 
-    // ── Lägg i varukorgen ───────────────────────────────────────────────
+    document.querySelectorAll('input[name="frakt"]').forEach(el => {
+      el.addEventListener('change', e => { state.frakt = e.target.value; render(); });
+    });
+    document.querySelectorAll('input[name="fraktTrip"]').forEach(el => {
+      el.addEventListener('change', e => { state.fraktTrip = e.target.value; render(); });
+    });
+
     document.getElementById('cfg-add-to-cart')?.addEventListener('click', () => {
       if (!isDimValid()) {
         feedback('Vänligen välj giltiga mått innan du lägger till.', 'error');
@@ -716,15 +837,9 @@ const configData = {
         return;
       }
       lines.forEach(l => {
-        // Multiplicera qty: skCart.add lägger 1, vi anropar qty gånger ELLER skickar med qty
-        // Befintligt API: skCart.add({id,name,price,category,qty})
         window.skCart.add({
-          id: l.artno,
-          artno: l.artno,
-          name: l.name,
-          price: l.price,
-          category: l.category || 'Scen',
-          qty: l.qty,
+          id: l.artno, artno: l.artno, name: l.name,
+          price: l.price, category: l.category || 'Scen', qty: l.qty,
         });
       });
       feedback(`✓ Lade ${lines.length} rader i varukorgen — ${formatKr(totalPrice(lines))}/dygn.`, 'success');
@@ -738,21 +853,17 @@ const configData = {
       setTimeout(() => { el.textContent = ''; el.className = 'cfg-cart-feedback'; }, 5000);
     }
 
-    // ── Initial render ──────────────────────────────────────────────────
     render();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', initConfigurator);
   } else {
-    init();
+    initConfigurator();
   }
   document.addEventListener('astro:page-load', () => {
-    window.__sceneConfiguratorInit = false;
-    if (document.getElementById('scene-configurator')) {
-      window.__sceneConfiguratorInit = true;
-      init();
-    }
+    const root = document.getElementById('scene-configurator');
+    if (root) { delete root.dataset.cfgReady; initConfigurator(); }
   });
 })();
 </script>
@@ -761,109 +872,83 @@ const configData = {
 .scene-configurator {
   background: linear-gradient(135deg, #1e1850 0%, #0c0a24 60%);
   padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 5vw, 4rem);
-  border-radius: 0;
   margin-bottom: 2rem;
 }
-
-.cfg-header { max-width: 920px; margin: 0 auto 2rem; }
+.cfg-header { max-width: 920px; margin: 0 auto 1.75rem; }
 .cfg-eyebrow { color: #c4b5f4; font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 0.6rem; }
 .cfg-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; color: white; margin: 0 0 0.75rem; }
 .cfg-lead { color: rgba(255,255,255,0.6); font-size: clamp(0.95rem, 2vw, 1.05rem); line-height: 1.7; margin: 0; max-width: 720px; }
 
-.cfg-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(1.25rem, 3vw, 2.5rem); max-width: 1200px; margin: 0 auto; }
+.cfg-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(1rem, 2vw, 1.75rem); max-width: 1200px; margin: 0 auto; }
 @media (max-width: 900px) { .cfg-grid { grid-template-columns: 1fr; } }
 
-/* Visualization column */
-.cfg-visual {
-  background: #1e1850;
-  border: 1px solid rgba(196,181,244,0.15);
-  border-radius: 14px;
-  padding: 1.25rem;
-  position: sticky;
-  top: 180px;
-  align-self: start;
-}
+.cfg-visual { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 14px; padding: 1rem; position: sticky; top: 180px; align-self: start; }
 @media (max-width: 900px) { .cfg-visual { position: static; } }
 .cfg-svg-frame { background: #0c0a24; border-radius: 10px; padding: 0.5rem; aspect-ratio: 600/420; }
 .cfg-svg-frame svg { width: 100%; height: 100%; display: block; }
-.cfg-meta-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 1rem; }
-.cfg-meta { background: #0c0a24; border-radius: 8px; padding: 0.6rem 0.5rem; text-align: center; }
-.cfg-meta-label { font-size: 0.65rem; color: rgba(196,181,244,0.7); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-.cfg-meta-value { font-size: 0.95rem; color: white; font-weight: 700; margin-top: 0.2rem; }
+.cfg-meta-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-top: 0.85rem; }
+.cfg-meta { background: #0c0a24; border-radius: 8px; padding: 0.5rem 0.45rem; text-align: center; }
+.cfg-meta-label { font-size: 0.62rem; color: rgba(196,181,244,0.7); font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.cfg-meta-value { font-size: 0.88rem; color: white; font-weight: 700; margin-top: 0.15rem; }
 
-/* Form column */
-.cfg-form { display: flex; flex-direction: column; gap: 1.25rem; }
-.cfg-step { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 14px; padding: 1.25rem; margin: 0; }
-.cfg-step legend { display: flex; align-items: center; gap: 0.6rem; color: white; font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; padding: 0; margin-bottom: 0.85rem; }
-.cfg-step-num { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #c4b5f4; color: #0c0a24; font-weight: 800; font-size: 0.85rem; }
+.cfg-form { display: flex; flex-direction: column; gap: 0.7rem; }
+.cfg-step { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.85rem 1rem; margin: 0; }
+.cfg-step legend { display: flex; align-items: center; gap: 0.5rem; color: white; font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600; padding: 0; margin-bottom: 0.6rem; }
+.cfg-step-num { display: inline-flex; align-items: center; justify-content: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: #c4b5f4; color: #0c0a24; font-weight: 800; font-size: 0.78rem; }
 
-/* Radio cards */
-.cfg-radio-stack { display: flex; flex-direction: column; gap: 0.5rem; }
-.cfg-card-radio { display: flex; gap: 0.75rem; padding: 0.85rem 1rem; border-radius: 10px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.15s; }
+.cfg-radio-stack { display: flex; flex-direction: column; gap: 0.4rem; }
+.cfg-radio-stack-tight { gap: 0.3rem; }
+.cfg-card-radio { display: flex; gap: 0.55rem; padding: 0.55rem 0.7rem; border-radius: 9px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.15s; align-items: flex-start; }
 .cfg-card-radio:hover { border-color: rgba(196,181,244,0.4); }
 .cfg-card-radio:has(input:checked) { border-color: #c4b5f4; background: rgba(196,181,244,0.08); }
-.cfg-card-radio input { margin-top: 2px; accent-color: #c4b5f4; }
-.cfg-radio-body { flex: 1; }
-.cfg-radio-title { color: white; font-size: 0.92rem; font-weight: 600; margin-bottom: 0.2rem; }
-.cfg-radio-desc { color: rgba(255,255,255,0.55); font-size: 0.78rem; line-height: 1.5; }
+.cfg-card-radio input { margin-top: 1px; accent-color: #c4b5f4; flex-shrink: 0; }
+.cfg-radio-body { flex: 1; min-width: 0; }
+.cfg-radio-title { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; color: white; font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
+.cfg-radio-price { color: #c4b5f4; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+.cfg-radio-desc { color: rgba(255,255,255,0.5); font-size: 0.73rem; line-height: 1.45; margin-top: 0.2rem; }
 
-/* Pill row (height, stair count) */
-.cfg-pill-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.cfg-pill-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.cfg-pill-row-narrow { margin-bottom: 0.55rem; }
 .cfg-pill { display: inline-flex; align-items: center; cursor: pointer; }
 .cfg-pill input { display: none; }
-.cfg-pill span { padding: 0.5rem 1rem; border-radius: 99px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); font-size: 0.85rem; font-weight: 600; transition: all 0.15s; }
+.cfg-pill span { padding: 0.4rem 0.85rem; border-radius: 99px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); font-size: 0.8rem; font-weight: 600; transition: all 0.15s; }
 .cfg-pill:hover span { border-color: rgba(196,181,244,0.4); color: white; }
 .cfg-pill input:checked + span { background: #c4b5f4; color: #0c0a24; border-color: #c4b5f4; }
+.cfg-pill.cfg-pill-disabled { opacity: 0.35; pointer-events: none; }
 
-/* Dimension steppers */
-.cfg-dim-row { display: flex; gap: 1rem; flex-wrap: wrap; }
-.cfg-dim-input { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 130px; }
-.cfg-dim-label { color: rgba(255,255,255,0.7); font-size: 0.78rem; font-weight: 600; }
-.cfg-stepper { display: flex; align-items: stretch; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; }
-.cfg-step-btn { background: transparent; color: #c4b5f4; border: 0; padding: 0.4rem 0.85rem; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+.cfg-dim-row { display: flex; gap: 0.85rem; flex-wrap: wrap; }
+.cfg-dim-input { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 130px; }
+.cfg-dim-label { color: rgba(255,255,255,0.7); font-size: 0.74rem; font-weight: 600; }
+.cfg-stepper { display: flex; align-items: stretch; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; overflow: hidden; }
+.cfg-step-btn { background: transparent; color: #c4b5f4; border: 0; padding: 0.3rem 0.75rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
 .cfg-step-btn:hover { background: rgba(196,181,244,0.1); }
-.cfg-stepper input {
-  background: transparent !important;
-  color: white !important;
-  color-scheme: dark;
-  border: 0;
-  width: 100%;
-  text-align: center;
-  font-size: 0.95rem;
-  font-weight: 600;
-  -moz-appearance: textfield;
-}
-.cfg-stepper input::-webkit-outer-spin-button,
-.cfg-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.cfg-dim-unit { color: rgba(196,181,244,0.7); font-size: 0.8rem; font-weight: 600; }
+.cfg-stepper input { background: transparent !important; color: white !important; color-scheme: dark; border: 0; width: 100%; text-align: center; font-size: 0.9rem; font-weight: 600; -moz-appearance: textfield; padding: 0.3rem 0; }
+.cfg-stepper input::-webkit-outer-spin-button, .cfg-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cfg-dim-unit { color: rgba(196,181,244,0.7); font-size: 0.75rem; font-weight: 600; }
 
-/* Side checkboxes */
-.cfg-side-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
-.cfg-side-check { display: flex; align-items: center; gap: 0.55rem; padding: 0.55rem 0.85rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; transition: all 0.15s; color: rgba(255,255,255,0.75); font-size: 0.88rem; }
+.cfg-side-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.35rem; margin-top: 0.55rem; max-height: 300px; opacity: 1; transition: max-height 0.2s, opacity 0.2s, margin-top 0.2s; overflow: hidden; }
+.cfg-side-grid.cfg-collapsed { max-height: 0; margin-top: 0; opacity: 0; pointer-events: none; }
+.cfg-side-check { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.7rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; cursor: pointer; transition: all 0.15s; color: rgba(255,255,255,0.75); font-size: 0.82rem; }
 .cfg-side-check:hover { border-color: rgba(196,181,244,0.4); }
 .cfg-side-check input { accent-color: #c4b5f4; }
 .cfg-side-check:has(input:checked) { background: rgba(196,181,244,0.12); border-color: #c4b5f4; color: white; }
 .cfg-side-disabled { opacity: 0.4; cursor: not-allowed !important; }
 .cfg-side-disabled:hover { border-color: rgba(255,255,255,0.1) !important; }
 
-/* Stair placement */
-.cfg-stair-placement { margin-top: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.cfg-stair-row { display: flex; align-items: center; gap: 0.85rem; }
-.cfg-stair-num { color: rgba(255,255,255,0.7); font-size: 0.85rem; font-weight: 600; min-width: 80px; }
-.cfg-select { background: #0c0a24 !important; color: white !important; color-scheme: dark; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 0.4rem 0.6rem; font-size: 0.88rem; flex: 1; }
+.cfg-stair-placement { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.cfg-stair-row { display: flex; align-items: center; gap: 0.6rem; }
+.cfg-stair-num { color: rgba(255,255,255,0.7); font-size: 0.78rem; font-weight: 600; min-width: 70px; }
+.cfg-select { background: #0c0a24 !important; color: white !important; color-scheme: dark; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.82rem; flex: 1; }
 
-/* Toggle */
-.cfg-toggle { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.65rem 0.85rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; }
+.cfg-toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem 0.7rem; background: #0c0a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; }
 .cfg-toggle input { accent-color: #c4b5f4; }
-.cfg-toggle-text { color: rgba(255,255,255,0.85); font-size: 0.9rem; }
+.cfg-toggle-text { color: rgba(255,255,255,0.85); font-size: 0.82rem; }
 
-/* Hints & warnings */
-.cfg-hint { color: rgba(255,255,255,0.5); font-size: 0.78rem; margin: 0.35rem 0 0; line-height: 1.5; }
-.cfg-hint-block { margin-top: 0.6rem; }
-.cfg-warning { color: #fbbf24; font-size: 0.82rem; margin: 0.45rem 0 0; line-height: 1.5; }
+.cfg-hint { color: rgba(255,255,255,0.5); font-size: 0.74rem; margin: 0.3rem 0 0; line-height: 1.5; }
+.cfg-hint-block { margin-top: 0.55rem; }
+.cfg-warning { color: #fbbf24; font-size: 0.78rem; margin: 0.4rem 0 0; line-height: 1.5; }
 
-/* Summary */
-.cfg-summary { max-width: 1200px; margin: 2rem auto 0; background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 14px; padding: clamp(1.25rem, 3vw, 1.75rem); }
+.cfg-summary { max-width: 1200px; margin: 1.5rem auto 0; background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 14px; padding: clamp(1.25rem, 3vw, 1.75rem); }
 .cfg-summary-title { color: white; font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin: 0 0 1rem; }
 .cfg-spec-list { list-style: none; padding: 0; margin: 0 0 1rem; border-top: 1px solid rgba(255,255,255,0.08); }
 .cfg-spec-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.65rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); gap: 1rem; }
@@ -877,6 +962,7 @@ const configData = {
 .cfg-total-value { color: #c4b5f4; font-weight: 800; font-size: 1.5rem; }
 .cfg-cart-btn { display: inline-flex; align-items: center; gap: 0.6rem; background: #c4b5f4; color: #0c0a24; border: 0; padding: 0.85rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.15s; font-family: 'Space Grotesk', sans-serif; }
 .cfg-cart-btn:hover { background: #e2dcfb; }
+.cfg-cart-btn:disabled { background: #4a4078 !important; color: rgba(255,255,255,0.3) !important; cursor: not-allowed !important; }
 .cfg-cart-feedback { margin: 0.85rem 0 0; font-size: 0.88rem; min-height: 1.25rem; }
 .cfg-cart-feedback.is-success { color: #86efac; }
 .cfg-cart-feedback.is-error { color: #fca5a5; }
