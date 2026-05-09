@@ -40,35 +40,12 @@ const faqSchema = {
     priceFrom={299}
   />
 
-  <!-- LED-VÄGG CTA-BANNER — leder till konfigurator -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <a href="/vara-tjanster/hyra-bild-led-vagg/" class="led-cta-banner" aria-label="Bygg din egen LED-vägg">
-      <div class="led-cta-bg" aria-hidden="true"></div>
-      <div class="led-cta-images" aria-hidden="true">
-        <img src="/images/bild/pp_bld_led_500x500.webp" alt="" loading="lazy" class="led-cab-1" width="180" height="180" />
-        <img src="/images/bild/pp_bld_led_500x1000.webp" alt="" loading="lazy" class="led-cab-2" width="120" height="240" />
-      </div>
-      <div class="led-cta-content">
-        <span class="led-cta-tag">Nytt · Bild & video</span>
-        <h2 class="led-cta-title">Hyr LED-vägg — bygg den exakt som du vill</h2>
-        <p class="led-cta-desc">Modulära kabinett för indoor och outdoor. Räkna ut storlek, upplösning, effekt och pris i vår konfigurator.</p>
-        <ul class="led-cta-bullets">
-          <li><strong>Indoor</strong> P1.95 / P2.604 från <strong>290 kr/dygn</strong></li>
-          <li><strong>Outdoor</strong> P3.91 IP65 från <strong>580 kr/dygn</strong></li>
-          <li>Ground support <strong>1 500 kr</strong> eller tross-rigg från <strong>5 500 kr</strong></li>
-        </ul>
-        <span class="led-cta-btn">
-          Bygg din LED-vägg
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </span>
-      </div>
-    </a>
-  </section>
-
-  <!-- PRODUKTER -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <!-- PROJEKTORER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Projektorer</h2>
+    <p class="text-gray-400 text-sm mb-6">Från kompakta XGA-projektorer för möteslokaler till 4K UHD-projektorer som klarar dagsljus och stora bildytor.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {bildData.products.map(p => (
+      {bildData.products.filter(p => p.section === 'projektor').map(p => (
         <ProductCard
           id={p.artno}
           artno={p.artno}
@@ -84,6 +61,77 @@ const faqSchema = {
         />
       ))}
     </div>
+  </section>
+
+  <!-- LED SKÄRMAR -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">LED Skärmar</h2>
+    <p class="text-gray-400 text-sm mb-6">Professionella 4K-skärmar från Samsung i 65", 75" och 85" för konferens, mässa, showroom och event.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {bildData.products.filter(p => p.section === 'skarm').map(p => (
+        <ProductCard
+          id={p.artno}
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt}
+          description={p.description}
+          specs={p.includes}
+          category="Projektor & skärm"
+          bulky={p.bulky}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- MOBILA LED SKÄRMAR PÅ TRAILER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mobila LED skärmar på Trailer</h2>
+    <p class="text-gray-400 text-sm mb-6">Storbildslösningar för utomhusevent, festival och sportarrangemang. Levereras färdigriggat på trailer — 7 m², 15 m² eller 28 m² LED-yta med pixelpitch P3.9.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {bildData.products.filter(p => p.section === 'trailer').map(p => (
+        <ProductCard
+          id={p.artno}
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt}
+          description={p.description}
+          specs={p.includes}
+          category="Projektor & skärm"
+          bulky={p.bulky}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- LED-VÄGG CTA-BANNER — leder till konfigurator -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <a href="/vara-tjanster/hyra-bild-led-vagg/" class="led-cta-banner" aria-label="Bygg din egen LED-vägg">
+      <div class="led-cta-bg" aria-hidden="true"></div>
+      <div class="led-cta-images" aria-hidden="true">
+        <img src="/images/bild/pp_bld_led_500x500.webp" alt="" loading="lazy" class="led-cab-1" width="180" height="180" />
+        <img src="/images/bild/pp_bld_led_500x1000.webp" alt="" loading="lazy" class="led-cab-2" width="120" height="240" />
+      </div>
+      <div class="led-cta-content">
+        <span class="led-cta-tag">Bygg din egen · Bild & video</span>
+        <h2 class="led-cta-title">Hyr LED-vägg — bygg den exakt som du vill</h2>
+        <p class="led-cta-desc">Modulära kabinett för indoor och outdoor. Räkna ut storlek, upplösning, effekt och pris i vår konfigurator.</p>
+        <ul class="led-cta-bullets">
+          <li><strong>Indoor</strong> P1.95 / P2.604 från <strong>290 kr/dygn</strong></li>
+          <li><strong>Outdoor</strong> P3.91 IP65 från <strong>580 kr/dygn</strong></li>
+          <li>Ground support <strong>1 500 kr</strong> eller tross-rigg från <strong>5 500 kr</strong></li>
+        </ul>
+        <span class="led-cta-btn">
+          Bygg din LED-vägg
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+      </div>
+    </a>
   </section>
 
   <!-- PROJEKTORDUKAR -->
