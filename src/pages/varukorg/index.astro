@@ -1194,7 +1194,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     const levEl = document.getElementById('leveransPrice');
     if (levEl) levEl.textContent = fmt(lp);
     const levNote = document.getElementById('leveransNote');
-    if (levNote) levNote.textContent = ll + (cartHasBulky(cart) ? ' — bil med släp' : '');
+    if (levNote) levNote.textContent = ll + (_bulkyCount(cart) > 0 ? ' — bil med släp' : '');
     const monEl = document.getElementById('monteringPrice');
     if (monEl) monEl.textContent = fmt(mp);
 
