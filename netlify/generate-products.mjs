@@ -299,10 +299,22 @@ QUOTE_CAT['Bild'] = { sub: {
 }};
 
 // Tjänster
+// Leverans-poster genereras dynamiskt från frakt.leverans — plockar alla leverans-keys
+// utom meta-nycklar (label/description/zon/selection_rules). Garanterar att nya transporttyper
+// (storbil, storbil_slap, extern_lev …) automatiskt syns i quote-catalog utan att denna fil ändras.
+const _LEV_META = new Set(['label', 'description', 'zon', 'selection_rules']);
+const _levProducts = Object.entries(frakt.leverans||{})
+  .filter(([k,v]) => !_LEV_META.has(k) && v && typeof v === 'object' && v.pris)
+  .flatMap(([k,v]) => {
+    const rows = [{ id: v.artno || v.id, name: 'Leverans — ' + v.label, price: v.pris }];
+    if (v.enkel && v.enkel.pris) {
+      rows.push({ id: v.enkel.artno || v.enkel.id, name: 'Leverans — ' + v.enkel.label, price: v.enkel.pris });
+    }
+    return rows;
+  });
+
 QUOTE_CAT['Tjänster'] = { products: [
-  {id:frakt.leverans.standard.artno||frakt.leverans.standard.id,       name:'Leverans — Vanlig bil (t&r)',    price:frakt.leverans.standard.pris},
-  {id:frakt.leverans.skrymmande.artno||frakt.leverans.skrymmande.id,   name:'Leverans — Bil med släp (t&r)', price:frakt.leverans.skrymmande.pris},
-  {id:frakt.leverans.lastbil.artno||frakt.leverans.lastbil.id,         name:'Leverans — Lastbil (t&r)',      price:frakt.leverans.lastbil.pris},
+  ..._levProducts,
   {id:frakt.montering.artno||'SK-TJN-0001', name:'Montering & demontering (600 kr/tim)', price:frakt.montering.prisPerTimme},
   ...(frakt.fakturaavgift?.options||[]).map(f=>({id:f.artno||f.id,name:f.label,price:f.pris})),
 ]};
