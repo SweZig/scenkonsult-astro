@@ -235,7 +235,7 @@ const configData = {
   <div class="cfg-summary">
     <h3 class="cfg-summary-title">Specifikation och pris</h3>
     <ul class="cfg-spec-list" id="cfg-spec-list"></ul>
-    <p class="cfg-spec-info">💡 Montering &amp; leverans listas ovan med estimat — i varukorgen läggs de som tilläggstjänster (separat sektion) och kan anpassas där.</p>
+    <p class="cfg-spec-info">💡 Montering &amp; leverans listas ovan med estimat.</p>
     <div class="cfg-total-row">
       <span class="cfg-total-label">Totalt per dygn</span>
       <span class="cfg-total-value">
@@ -747,7 +747,7 @@ const configData = {
           if (fraktAuto) fraktAuto.checked = true;
         }
         if (installLabel) installLabel.textContent = 'Montering & demontering ingår (obligatoriskt över 16 m²)';
-        if (installHint) installHint.textContent = `Montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Faktureras efter faktisk tid. Vid obligatorisk montering kräver vi att vi levererar.`;
+        if (installHint) installHint.textContent = `Montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Vid obligatorisk montering kräver vi att vi levererar.`;
       } else {
         if (installCb) installCb.disabled = false;
         // Återaktivera "Hämta själv"-pillen
@@ -756,7 +756,7 @@ const configData = {
         if (installLabel) installLabel.textContent = 'Inkludera montering & demontering av Scenkonsult';
         if (installHint) {
           if (state.installation) {
-            installHint.textContent = `Beräknad tid: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Faktureras efter faktisk tid.`;
+            installHint.textContent = `Beräknad tid: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}).`;
           } else {
             installHint.textContent = 'Beräknad tid: 10 min/modul × 2 (montering + demontering). Pris timdebiteras (600 kr/tim). Obligatoriskt vid scen ≥ 16 m².';
           }
@@ -953,7 +953,7 @@ const configData = {
       });
 
       const totalSum = totalPrice(lines);
-      feedback(`✓ Lade ${cartLines.length} rader i varukorgen — ${formatKr(totalSum)}/dygn (montering/leverans tillkommer som tilläggstjänster).`, 'success');
+      feedback(`✓ Lade ${cartLines.length} rader i varukorgen — ${formatKr(totalSum)}/dygn.`, 'success');
     });
 
     function feedback(msg, kind) {

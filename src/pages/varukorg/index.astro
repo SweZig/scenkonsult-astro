@@ -1573,13 +1573,13 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
       }
     });
   })();
-  // Auto-select av leverans + montering om cart har LED-vägg eller andra
-  // produkter som kräver det. Triggers (i prioritetsordning):
-  //   • forceLeverans / bulky:true / requiresBakgavel — primär
-  //   • category 'Scen' med qty >= 4 — fallback för paket-add (12 moduler etc)
-  //   • monteringMin > 0 — fallback för montering-trigger
-  //   • assemblyMinutesTotal — fast tid (LED-vägg etc.)
-  //   • requiresAssembly:true — explicit flag
+  // Auto-select av leverans + montering baserat på cart-items.
+  // STRIKTA regler — endast explicita flaggor från komponenterna styr.
+  // För scen: paket/konfigurator sätter bulky:true + requiresAssembly:true
+  //           + forceLeverans när transport krävs (Large+, XL, tak-paket eller
+  //           konfiguration ≥16 m²). Mindre paket sätter inte dessa flaggor.
+  // För andra kategorier: bulky/requiresAssembly följer respektive produkts
+  //   inneboende egenskaper i JSON-data.
   function autoSelectServices() {
     const cart = getCart();
     if (!cart.length) return;
@@ -1588,10 +1588,7 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     const needsDelivery = cart.some(i =>
       i.bulky === true ||
       (typeof i.forceLeverans === 'string' && i.forceLeverans) ||
-      i.requiresBakgavel === true ||
-      // Fallback: minst 4 scen-moduler eller en tak-rad i cart → defacto bulky
-      (i.category === 'Scen' && (i.qty || 1) >= 4) ||
-      (typeof i.id === 'string' && i.id.startsWith('SK-SCN-TAK-'))
+      i.requiresBakgavel === true
     );
     const chkLev = document.getElementById('chkLeverans');
     if (needsDelivery && chkLev && !chkLev.checked) {
@@ -1599,14 +1596,10 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
       chkLev.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    // Montering
+    // Montering — utlöses bara av explicita flaggor
     const needsAssembly = cart.some(i =>
       i.assemblyMinutesTotal ||
-      i.requiresAssembly === true ||
-      // Fallback: monteringMin satt + bulky → kunden behöver montering
-      (i.monteringMin > 0 && (i.bulky === true ||
-        (i.category === 'Scen' && (i.qty || 1) >= 4) ||
-        (typeof i.id === 'string' && i.id.startsWith('SK-SCN-TAK-'))))
+      i.requiresAssembly === true
     );
     const chkMon = document.getElementById('chkMontering');
     if (needsAssembly && chkMon && !chkMon.checked) {
