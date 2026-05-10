@@ -1,9 +1,15 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import ledData from '../../../data/led-paneler.json';
+import tjansterData from '../../../data/tjanster.json';
 
 const paneler = ledData.paneler;
 const paket = ledData.paket || [];
+// Leveranspriser från tjanster.json — single source of truth
+const LEVERANSER = {
+  storbil_slap: { artno: tjansterData.leverans.storbil_slap.artno, name: tjansterData.leverans.storbil_slap.label, pris: tjansterData.leverans.storbil_slap.pris },
+  lastbil:      { artno: tjansterData.leverans.lastbil.artno,      name: tjansterData.leverans.lastbil.label,      pris: tjansterData.leverans.lastbil.pris },
+};
 const faq = ledData.faq;
 
 // Härledda värden för rubriker (synkat med led-paneler.json)
@@ -155,7 +161,7 @@ const faqSchema = {
                     <span>Hårdvara</span>
                     <span><span class="sk-price-excl" data-row-total-excl></span><span class="sk-price-incl hidden" data-row-total-incl></span> <span style="color:rgba(255,255,255,0.5);font-weight:400;font-size:0.78rem;">/dygn</span></span>
                   </div>
-                  <p style="color:rgba(255,255,255,0.45);font-size:0.7rem;line-height:1.4;margin:0.4rem 0 0;">+ Montering 5 100 kr & transport 2 998 kr (Lätt lastbil) tillkommer i kassan</p>
+                  <p data-paket-frakt-note style="color:rgba(255,255,255,0.45);font-size:0.7rem;line-height:1.4;margin:0.4rem 0 0;">+ Montering 5 100 kr & transport 2 998 kr (Lätt lastbil) tillkommer i kassan</p>
                 </div>
 
                 <button
@@ -429,7 +435,7 @@ const faqSchema = {
     </div>
   </article>
 
-  <script is:inline define:vars={{ ledData }}>
+  <script is:inline define:vars={{ ledData, LEVERANSER }}>
     (function() {
       'use strict';
 
@@ -660,22 +666,27 @@ const faqSchema = {
           });
         }
 
-        // Upphängning: Ground support eller tross — båda kostar nu (1500 / 5500 kr)
+        // Upphängning: Ground support eller tross — pris per kolumn (regel i JSON)
         let mountCost = 0;
         if (mount === 'ground') {
-          mountCost = TILL.rigg.price_per_day_excl;
-          priceLines.push({ label: TILL.rigg.name, value: mountCost, sub: '', key: 'mount' });
+          mountCost = TILL.rigg.price_per_column * r.cols;
+          priceLines.push({ label: TILL.rigg.name, value: mountCost, sub: `${r.cols} kolumner × ${TILL.rigg.price_per_column} kr`, key: 'mount' });
         } else {
-          mountCost = TILL.tross.price_per_day_excl;
-          priceLines.push({ label: TILL.tross.name, value: mountCost, sub: '', key: 'mount' });
+          mountCost = TILL.tross.price_per_column * r.cols;
+          priceLines.push({ label: TILL.tross.name, value: mountCost, sub: `${r.cols} kolumner × ${TILL.tross.price_per_column} kr`, key: 'mount' });
         }
 
-        // Transport — alltid lätt lastbil m. bakgavellift för LED-vägg
-        const transportCost = TILL.transport.price_per_day_excl;
+        // Transport — välj baserat på yta enligt regel i JSON
+        const totalArea_m2 = (r.actualW * r.actualH) / 1_000_000;
+        const leveransKey = totalArea_m2 <= TILL.leverans_regel.tröskel_m2
+          ? TILL.leverans_regel.under_eller_lika
+          : TILL.leverans_regel.över;
+        const leverans = LEVERANSER[leveransKey];
+        const transportCost = leverans.pris;
         priceLines.push({
-          label: TILL.transport.name,
+          label: leverans.name,
           value: transportCost,
-          sub: 'obligatoriskt för LED-vägg',
+          sub: `obligatoriskt — ${totalArea_m2.toFixed(2).replace(/\.?0+$/, '').replace('.', ',')} m² ${totalArea_m2 <= TILL.leverans_regel.tröskel_m2 ? '≤' : '>'} ${TILL.leverans_regel.tröskel_m2} m²`,
           key: 'transport',
         });
 
@@ -755,6 +766,7 @@ const faqSchema = {
           monteringHours: monteringHours,
           mount,
           mountCost,
+          leveransKey,
           totalExclVal,
         };
 
@@ -1091,7 +1103,7 @@ const faqSchema = {
           category: 'LED-vägg',
           image: c.panel.image,
           bulky: true,
-          forceLeverans: 'lastbil',
+          forceLeverans: c.leveransKey,
           assemblyMinutesTotal: cartAssembly,
           qty: c.totalPanels,
         });
@@ -1113,13 +1125,13 @@ const faqSchema = {
         // Tekniker hanteras automatiskt av varukorgen via assemblyMinutesTotal-flaggan
         // på panel-raden ovan. Ingen separat produktrad behövs.
 
-        // Upphängning: ground support (1500 kr) eller tross (5500 kr) — alltid en separat rad
+        // Upphängning: ground/tross — pris per kolumn (dynamisk regel)
         if (c.mount === 'ground') {
           window.skCart.add({
-            id: TILL.rigg.artno,
+            id: TILL.rigg.artno + '__' + c.cols + 'kol',
             artno: TILL.rigg.artno,
-            name: TILL.rigg.name,
-            price: TILL.rigg.price_per_day_excl,
+            name: TILL.rigg.name + ' (' + c.cols + ' kolumner)',
+            price: TILL.rigg.price_per_column * c.cols,
             priceNote: '/dygn',
             category: 'LED-vägg',
             bulky: true,
@@ -1127,10 +1139,10 @@ const faqSchema = {
           });
         } else {
           window.skCart.add({
-            id: TILL.tross.artno,
+            id: TILL.tross.artno + '__' + c.cols + 'kol',
             artno: TILL.tross.artno,
-            name: TILL.tross.name,
-            price: TILL.tross.price_per_day_excl,
+            name: TILL.tross.name + ' (' + c.cols + ' kolumner)',
+            price: TILL.tross.price_per_column * c.cols,
             priceNote: '/dygn',
             category: 'LED-vägg',
             bulky: true,
@@ -1154,72 +1166,101 @@ const faqSchema = {
   </script>
 
   <!-- Cart-handler + dynamisk prisuppdatering för Färdiga paket -->
-  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "image": "/images/bild/pp_bld_led_500x1000.webp"}} }}>
+  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "panel_w_mm": 500, "panel_h_mm": 1000, "image": "/images/bild/pp_bld_led_500x1000.webp"}}, INJ_RULES: { montering: { grund_min: 360, min_per_panel: 10, round_to_min: 30, pris_per_h: 600 }, ground_per_kolumn: 250, tross_per_kolumn: 450, tröskel_m2: 7, leverans_under: 'storbil_slap', leverans_över: 'lastbil' }, INJ_LEV: LEVERANSER }}>
     (function () {
       'use strict';
 
-      // Konstanter (synkat med led-paneler.json tillbehor)
       const PANELS = INJ_PANELS;
+      const R = INJ_RULES;
+      const LEV = INJ_LEV;
+
       const MOUNT = {
-        ground: { artno: 'SK-BLD-LED-RIGG',  name: 'Ground support — LED-vägg', price: 1500 },
-        tross:  { artno: 'SK-BLD-LED-TROSS', name: 'Tross-rigg — LED-vägg',     price: 5500 },
+        ground: { artno: 'SK-BLD-LED-RIGG',  name: 'Ground support', per_kolumn: R.ground_per_kolumn },
+        tross:  { artno: 'SK-BLD-LED-TROSS', name: 'Trosslösning',   per_kolumn: R.tross_per_kolumn  },
       };
       const PROC = {
-        small: { artno: 'SK-BLD-LED-VX400',  name: 'Novastar VX400 Pro (videoprocessor)',  price: 295, max_pixels: 2_600_000 },
-        large: { artno: 'SK-BLD-LED-VX1000', name: 'Novastar VX1000 Pro (videoprocessor)', price: 595, max_pixels: 6_500_000 },
+        small: { artno: 'SK-BLD-LED-VX400',  name: 'Novastar VX400 Pro',  price: 295, max_pixels: 2_600_000 },
+        large: { artno: 'SK-BLD-LED-VX1000', name: 'Novastar VX1000 Pro', price: 595, max_pixels: 6_500_000 },
       };
 
       function pickProcessor(panelKey, totalPanels) {
-        const px = totalPanels * PANELS[panelKey].pixels_per_panel;
         if (panelKey === 'P39') return PROC.small;  // outdoor — alltid small
+        const px = totalPanels * PANELS[panelKey].pixels_per_panel;
         if (px <= PROC.small.max_pixels) return PROC.small;
         return PROC.large;
+      }
+
+      function calcMonteringMin(totalPanels) {
+        const raw = R.montering.grund_min + R.montering.min_per_panel * totalPanels;
+        return Math.ceil(raw / R.montering.round_to_min) * R.montering.round_to_min;
+      }
+
+      function pickLeverans(area_m2) {
+        const key = area_m2 <= R.tröskel_m2 ? R.leverans_under : R.leverans_över;
+        return { key, ...LEV[key] };
       }
 
       function fmtKr(n) {
         return n.toLocaleString('sv-SE') + ' kr';
       }
 
-      // Per-card state
       const cards = document.querySelectorAll('.led-paket-card');
       cards.forEach(card => {
         const variants = JSON.parse(card.dataset.paketVariants);
-        let panelKey = 'P26';   // default
-        let mountKey = 'ground'; // default
+        let panelKey = 'P26';
+        let mountKey = 'ground';
 
         function update() {
           const v = variants[panelKey];
-          if (!v) return; // disabled — inget att uppdatera
+          if (!v) return;
           const panel = PANELS[panelKey];
           const totalPanels = v.totalPanels;
+
+          // FYSISK YTA — räknad från faktisk panel-storlek (fixar P3.91-buggen)
+          const physW_mm = v.cols * panel.panel_w_mm;
+          const physH_mm = v.rows * panel.panel_h_mm;
+          const area_m2 = (physW_mm * physH_mm) / 1_000_000;
+
+          // Hårdvara
           const panelCost = panel.price * totalPanels;
           const mount = MOUNT[mountKey];
+          const mountCost = mount.per_kolumn * v.cols;
           const proc = pickProcessor(panelKey, totalPanels);
-          const total = panelCost + mount.price + proc.price;
+          const total = panelCost + mountCost + proc.price;
 
-          // Uppdatera DOM-rader
+          // Frakt + montering (visas bara som info-text)
+          const monteringMin = calcMonteringMin(totalPanels);
+          const monteringH = monteringMin / 60;
+          const monteringKr = (monteringMin / 60) * R.montering.pris_per_h;
+          const leverans = pickLeverans(area_m2);
+
+          // DOM-uppdatering
           card.querySelector('[data-row-panels-label]').textContent = totalPanels;
           card.querySelector('[data-row-panels-excl]').textContent = fmtKr(panelCost);
           card.querySelector('[data-row-panels-incl]').textContent = fmtKr(Math.round(panelCost * 1.25));
-          card.querySelector('[data-row-mount-label]').textContent = mount.name.split(' — ')[0];
-          card.querySelector('[data-row-mount-excl]').textContent = fmtKr(mount.price);
-          card.querySelector('[data-row-mount-incl]').textContent = fmtKr(Math.round(mount.price * 1.25));
-          card.querySelector('[data-row-proc-label]').textContent = proc.name.replace(' (videoprocessor)', '');
+          card.querySelector('[data-row-mount-label]').textContent = mount.name + ' (' + v.cols + ' kol × ' + mount.per_kolumn + ' kr)';
+          card.querySelector('[data-row-mount-excl]').textContent = fmtKr(mountCost);
+          card.querySelector('[data-row-mount-incl]').textContent = fmtKr(Math.round(mountCost * 1.25));
+          card.querySelector('[data-row-proc-label]').textContent = proc.name;
           card.querySelector('[data-row-proc-excl]').textContent = fmtKr(proc.price);
           card.querySelector('[data-row-proc-incl]').textContent = fmtKr(Math.round(proc.price * 1.25));
           card.querySelector('[data-row-total-excl]').textContent = fmtKr(total);
           card.querySelector('[data-row-total-incl]').textContent = fmtKr(Math.round(total * 1.25));
-
-          // Uppdatera dimension/paneler-rad
           card.querySelector('[data-paket-panels-label]').textContent = v.label;
 
-          // Uppdatera SVG om cols/rows ändrats (P39 kan vara annorlunda)
+          // Frakt + montering info-text
+          const monteringHLabel = Number.isInteger(monteringH) ? monteringH + ' h' : monteringH.toFixed(1).replace('.', ',') + ' h';
+          const noteEl = card.querySelector('[data-paket-frakt-note]');
+          if (noteEl) {
+            noteEl.innerHTML = '+ Montering ' + fmtKr(monteringKr) + ' (' + monteringHLabel + ') &amp; transport ' + fmtKr(leverans.pris) + ' (' + leverans.name + ') tillkommer i kassan';
+          }
+
+          // SVG — uppdatera med FYSISKA dimensioner (inte cols/rows direkt)
           const svg = card.querySelector('[data-paket-svg]');
           if (svg) {
             const visW = 280;
-            const aspectW = v.cols;
-            const aspectH = v.rows;
-            const visH = Math.round(visW * aspectH / aspectW);
+            const aspectRatio = physW_mm / physH_mm;
+            const visH = Math.round(visW / aspectRatio);
             svg.setAttribute('viewBox', `0 0 ${visW + 60} ${visH + 30}`);
             const wall = svg.querySelector('[data-svg-wall]');
             if (wall) {
@@ -1236,20 +1277,21 @@ const faqSchema = {
             if (wLabel) {
               wLabel.setAttribute('x', visW / 2);
               wLabel.setAttribute('y', visH + 25);
-              // Behåll dim-label från paketet (statisk yta)
             }
             const hLabel = svg.querySelector('[data-svg-h-label]');
             if (hLabel) {
               hLabel.setAttribute('x', visW + 8);
               hLabel.setAttribute('y', (visH + 10) / 2);
             }
+            // Personreferens (1,75 m) — skala mot fysisk höjd i meter
+            const physH_m = physH_mm / 1000;
             const person = svg.querySelector('[data-svg-person]');
             if (person) {
-              const personYStart = visH + 10 - (1.75 / (v.rows * 0.5)) * visH;
+              const personYStart = visH + 10 - (1.75 / physH_m) * visH;
               person.setAttribute('transform', `translate(${visW + 32}, ${personYStart})`);
               const line = person.querySelector('line');
               if (line) {
-                line.setAttribute('y2', (1.75 / (v.rows * 0.5)) * visH - 4);
+                line.setAttribute('y2', (1.75 / physH_m) * visH - 4);
               }
             }
           }
@@ -1272,7 +1314,6 @@ const faqSchema = {
           });
         }
 
-        // Pill click handlers
         card.querySelectorAll('[data-pill-panel]').forEach(btn => {
           btn.addEventListener('click', () => {
             if (btn.disabled) return;
@@ -1292,25 +1333,24 @@ const faqSchema = {
           });
         });
 
-        // Cart-add knapp
         const addBtn = card.querySelector('[data-led-paket-add]');
         if (addBtn) {
           addBtn.addEventListener('click', () => {
-            if (!window.skCart || typeof window.skCart.add !== 'function') {
-              console.error('LED-paket: cart saknas');
-              return;
-            }
+            if (!window.skCart || typeof window.skCart.add !== 'function') return;
             const v = variants[panelKey];
             if (!v) return;
             const panel = PANELS[panelKey];
             const mount = MOUNT[mountKey];
             const proc = pickProcessor(panelKey, v.totalPanels);
+            const physW_mm = v.cols * panel.panel_w_mm;
+            const physH_mm = v.rows * panel.panel_h_mm;
+            const area_m2 = (physW_mm * physH_mm) / 1_000_000;
+            const leverans = pickLeverans(area_m2);
+            const monteringMin = calcMonteringMin(v.totalPanels);
             const dim = card.dataset.paketDim;
             const size = card.dataset.paketSize;
 
-            // Panel-rad: qty = antal kabinetter, pris = per kabinett.
-            // Flaggor: bulky=true, forceLeverans=lastbil (auto-transport 2998 kr),
-            //          assemblyMinutesTotal=510 (auto-montering 5100 kr / 8,5h).
+            // Panel-rad: qty × pris, med flaggor för auto-transport + auto-montering
             window.skCart.add({
               id: panel.artno + '__paket-' + size + '__' + v.cols + 'x' + v.rows,
               artno: panel.artno,
@@ -1320,8 +1360,8 @@ const faqSchema = {
               category: 'LED-vägg',
               image: panel.image,
               bulky: true,
-              forceLeverans: 'lastbil',
-              assemblyMinutesTotal: 510,
+              forceLeverans: leverans.key,
+              assemblyMinutesTotal: monteringMin,
               qty: v.totalPanels,
             });
             // Processor
@@ -1335,19 +1375,18 @@ const faqSchema = {
               bulky: false,
               qty: 1,
             });
-            // Mount
+            // Mount (dynamiskt pris × cols)
             window.skCart.add({
-              id: mount.artno,
+              id: mount.artno + '__' + v.cols + 'kol',
               artno: mount.artno,
-              name: mount.name,
-              price: mount.price,
+              name: mount.name + ' (' + v.cols + ' kolumner)',
+              price: mount.per_kolumn * v.cols,
               priceNote: '/dygn',
               category: 'LED-vägg',
               bulky: true,
               qty: 1,
             });
 
-            // Visuell feedback
             const span = addBtn.querySelector('span');
             const orig = span.textContent;
             span.textContent = '✓ Tillagt!';
@@ -1359,11 +1398,9 @@ const faqSchema = {
           });
         }
 
-        // Initial render
         update();
       });
 
-      // Hover-effekt på kort
       cards.forEach(card => {
         card.addEventListener('mouseenter', () => {
           card.style.borderColor = 'rgba(196,181,244,0.45)';

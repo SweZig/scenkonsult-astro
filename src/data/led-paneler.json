@@ -349,14 +349,20 @@
     "rigg": {
       "artno": "SK-BLD-LED-RIGG",
       "name": "Ground support (markställning)",
-      "price_per_day_excl": 1500,
-      "description": "Markställning med ben/bakplattor — standardlösning för markmonterad LED-vägg."
+      "price_per_day_excl": 0,
+      "description": "Markställning med ben/bakplattor — standardlösning för markmonterad LED-vägg.",
+      "price_per_column": 250,
+      "_price_kalla": "Dynamisk: cols × price_per_column. Tex 5 kolumner = 1250 kr."
     },
     "montering": {
       "artno": "SK-TJN-0001",
       "name": "Tekniker/montering",
       "price_per_hour_excl": 600,
-      "description": "Scenengineer på plats för montering, drift och rivning."
+      "description": "Scenengineer på plats för montering, drift och rivning.",
+      "grund_min": 360,
+      "min_per_panel": 10,
+      "round_to_min": 30,
+      "_regel": "Total min = grund_min + (min_per_panel × antal_paneler), avrundas upp till närmaste round_to_min. Pris = total_h × price_per_hour_excl."
     },
     "flightcase": {
       "_comment": "Flightcases hanteras automatiskt baserat på antal kabinett — visas i specifikation, läggs ej i varukorg (transporten räknas separat).",
@@ -369,15 +375,24 @@
     "tross": {
       "artno": "SK-BLD-LED-TROSS",
       "name": "Trosslösning för upphängning",
-      "price_per_day_excl": 5500,
-      "description": "Tross och hängkonstruktion när väggen ska hängas istället för att stå på ground support."
+      "price_per_day_excl": 0,
+      "description": "Tross och hängkonstruktion när väggen ska hängas istället för att stå på ground support.",
+      "price_per_column": 450,
+      "_price_kalla": "Dynamisk: cols × price_per_column. Tex 5 kolumner = 2250 kr."
     },
     "transport": {
       "artno": "SK-LEV-0003",
       "name": "Lätt lastbil — skrymmande gods (tur & retur)",
       "price_per_day_excl": 2998,
       "_note": "Enkel resa = 1499 kr × 2",
-      "description": "Obligatoriskt transportsätt för LED-vägg — bakgavellift krävs för säker hantering av flightcases."
+      "description": "Obligatoriskt transportsätt för LED-vägg — bakgavellift krävs för säker hantering av flightcases.",
+      "_deprecated": "Ersatt av leverans_regel — välj leveranstyp dynamiskt baserat på yta."
+    },
+    "leverans_regel": {
+      "_kommentar": "Val av leveranstyp baserat på LED-vägg-yta. Slå upp pris från tjanster.json.leverans[X].",
+      "tröskel_m2": 7,
+      "under_eller_lika": "storbil_slap",
+      "över": "lastbil"
     }
   },
   "faq": [
