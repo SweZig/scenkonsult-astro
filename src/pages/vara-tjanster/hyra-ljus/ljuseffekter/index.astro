@@ -5,6 +5,7 @@ import MediaCard from '../../../../components/MediaCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import ljusData from '../../../../data/ljus.json';
+import _elData from '../../../../data/el.json';
 
 const WP = '/videos';
 
@@ -135,9 +136,9 @@ const faqSchema = {
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {[
-        ...(ljusData.el?.filter((p:any) => ['SK-LJS-EL-0001','SK-LJS-EL-0003','SK-LJS-EL-0002'].includes(p.artno))
-          .sort((a:any,b:any) => ['SK-LJS-EL-0001','SK-LJS-EL-0003','SK-LJS-EL-0002'].indexOf(a.artno) - ['SK-LJS-EL-0001','SK-LJS-EL-0003','SK-LJS-EL-0002'].indexOf(b.artno)) ?? []),
-        ...(ljusData.el?.filter((p:any) => !['SK-LJS-EL-0001','SK-LJS-EL-0002','SK-LJS-EL-0003'].includes(p.artno)) ?? []),
+        ...(_elData.products?.filter((p:any) => ['SK-EL-0001','SK-EL-0003','SK-EL-0002'].includes(p.artno))
+          .sort((a:any,b:any) => ['SK-EL-0001','SK-EL-0003','SK-EL-0002'].indexOf(a.artno) - ['SK-EL-0001','SK-EL-0003','SK-EL-0002'].indexOf(b.artno)) ?? []),
+        ...(_elData.products?.filter((p:any) => !['SK-EL-0001','SK-EL-0002','SK-EL-0003'].includes(p.artno)) ?? []),
       ].map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
