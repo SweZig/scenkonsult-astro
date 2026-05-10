@@ -731,13 +731,28 @@ const configData = {
       const hours = Math.round(minutes / 60 * 4) / 4;
       const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
 
+      // Frakt-radioknappar — "Hämta själv" och "Leverans"
+      const fraktNone = document.querySelector('input[name="frakt"][value="none"]');
+      const fraktAuto = document.querySelector('input[name="frakt"][value="auto"]');
+      const fraktNonePill = fraktNone?.closest('.cfg-pill');
+
       if (area >= 16) {
         if (installCb) { installCb.checked = true; installCb.disabled = true; }
         state.installation = true;
+        // Vid obligatorisk montering kan kunden inte hämta själv — lås frakt till Leverans
+        if (fraktNone) fraktNone.disabled = true;
+        if (fraktNonePill) fraktNonePill.classList.add('cfg-pill-disabled');
+        if (state.frakt !== 'auto') {
+          state.frakt = 'auto';
+          if (fraktAuto) fraktAuto.checked = true;
+        }
         if (installLabel) installLabel.textContent = 'Montering & demontering ingår (obligatoriskt över 16 m²)';
-        if (installHint) installHint.textContent = `Montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Faktureras efter faktisk tid.`;
+        if (installHint) installHint.textContent = `Montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Faktureras efter faktisk tid. Vid obligatorisk montering kräver vi att vi levererar.`;
       } else {
         if (installCb) installCb.disabled = false;
+        // Återaktivera "Hämta själv"-pillen
+        if (fraktNone) fraktNone.disabled = false;
+        if (fraktNonePill) fraktNonePill.classList.remove('cfg-pill-disabled');
         if (installLabel) installLabel.textContent = 'Inkludera montering & demontering av Scenkonsult';
         if (installHint) {
           if (state.installation) {
@@ -790,8 +805,11 @@ const configData = {
     }
 
     function render() {
-      renderValidation();
+      // OBS: renderInstallation kan ändra state.frakt till 'auto' vid obligatorisk
+      // montering (≥16 m²). Den måste därför köras FÖRE renderValidation som
+      // läser state.frakt och uppdaterar frakt-UI.
       renderInstallation();
+      renderValidation();
       renderMeta();
       renderStairPlacement();
       renderSVG();

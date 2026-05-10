@@ -734,6 +734,14 @@ const localBusinessSchema = {
       const existing = cart.find(i => i.id === item.id);
       if (existing) {
         existing.qty += addQty;
+        // Merge flaggor från nya item — om nya item har truthy värde, override existing
+        // (skyddar mot fall där samma artno läggs in från flera komponenter, t.ex.
+        // konfiguratorn först utan bulky, sen paket-kort som kräver bulky+montering)
+        ['bulky', 'requiresAssembly', 'forceLeverans', 'monteringMin', 'assemblyMinutesTotal', 'requiresBakgavel'].forEach(k => {
+          if (item[k] !== undefined && item[k] !== null && item[k] !== false && item[k] !== '') {
+            existing[k] = item[k];
+          }
+        });
       } else {
         cart.push({ ...item, qty: addQty });
       }
