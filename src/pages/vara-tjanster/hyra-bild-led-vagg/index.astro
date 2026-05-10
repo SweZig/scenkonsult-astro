@@ -54,64 +54,45 @@ const faqSchema = {
     <div style="max-width:1180px;margin:0 auto;">
 
       <!-- ═══════════════════════════════════════════════════════════════ -->
-      <!-- FÄRDIGA PAKET — 6 förkonfigurerade LED-väggar med P2.604 default -->
+      <!-- FÄRDIGA PAKET — 6 förkonfigurerade LED-väggar med togglar       -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <section id="led-paket" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
         <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.6rem;">Snabbval</p>
         <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);color:white;margin:0 0 0.75rem;line-height:1.2;">Färdiga paket</h2>
-        <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;margin:0 0 1.25rem;max-width:720px;">Sex förkonfigurerade LED-vägg-paket — från liten podium-bakgrund (3,75 m²) till festival-huvudscen (34 m²). Alla paket har P2.604 indoor-paneler som standard. Hårdvara, montering (8,5 h) och transport (Lätt lastbil) ingår — lägg i varukorgen och få allt klart.</p>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;margin:0 0 2rem;max-width:720px;">Sex förkonfigurerade LED-vägg-paket — från liten podium-bakgrund (3,75 m²) till festival-huvudscen (34 m²). Välj paneltyp och upphängning per paket — pris uppdateras direkt. <strong style="color:rgba(255,255,255,0.78);">Frakt och installation tillkommer i kassan</strong> (obligatoriskt — vi monterar alltid LED-väggar själva för säker hantering).</p>
 
-        <div style="display:flex;align-items:center;gap:0.6rem;background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.2);border-radius:10px;padding:0.85rem 1rem;margin-bottom:2rem;">
-          <span style="font-size:1.1rem;flex-shrink:0;">💡</span>
-          <p style="color:rgba(255,255,255,0.78);font-size:0.85rem;line-height:1.55;margin:0;">Vill du ha <strong style="color:#c4b5f4;">P1.95 premium indoor</strong> (skarpare bild) eller <strong style="color:#c4b5f4;">P3.91 outdoor</strong> (utomhus)? <a href="#led-calc" style="color:#c4b5f4;text-decoration:underline;text-decoration-color:rgba(196,181,244,0.4);">Konfigurera fritt nedan ↓</a></p>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.25rem;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.25rem;">
           {paket.map((pkt: any) => {
-            const total = pkt.hardware_price + pkt.assembly_price + pkt.transport_price;
-            const totalIncl = Math.round(total * 1.25);
-            // Visuell aspect ratio för SVG (begränsa höjd så små paket inte blir för smala)
-            const aspectW = pkt.cols;
-            const aspectH = pkt.rows;
+            const variants = pkt.variants;
+            // Default = P26 (alltid tillgänglig för alla paket)
+            const defV = variants.P26;
+            const aspectW = defV.cols;
+            const aspectH = defV.rows;
             const visW = 280;
             const visH = Math.round(visW * aspectH / aspectW);
             return (
               <article
-                style="background:#1e1850;border:1px solid rgba(196,181,244,0.18);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;transition:border-color 0.2s,transform 0.15s;"
-                onmouseenter="this.style.borderColor='rgba(196,181,244,0.45)';this.style.transform='translateY(-2px)'"
-                onmouseleave="this.style.borderColor='rgba(196,181,244,0.18)';this.style.transform='translateY(0)'"
+                class="led-paket-card"
                 data-paket-id={pkt.id}
-                data-paket-artno={pkt.artno}
-                data-paket-name={pkt.name}
-                data-paket-cols={pkt.cols}
-                data-paket-rows={pkt.rows}
-                data-paket-totalpanels={pkt.totalPanels}
+                data-paket-artno={pkt.artno_base}
+                data-paket-size={pkt.size_m2}
+                data-paket-dim={pkt.dimensions_label}
                 data-paket-image={pkt.image}
-                data-paket-hardware={pkt.hardware_price}
-                data-paket-assembly={pkt.assembly_price}
-                data-paket-transport={pkt.transport_price}
-                data-paket-dimensions={pkt.dimensions}
+                data-paket-variants={JSON.stringify(variants)}
+                style="background:#1e1850;border:1px solid rgba(196,181,244,0.18);border-radius:16px;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;transition:border-color 0.2s,transform 0.15s;"
               >
-                <!-- Visuell representation: rektangel med personreferens (1,75 m) -->
+                {/* Visuell representation: rektangel med personreferens (1,75 m) */}
                 <div style="background:#0c0a24;border-radius:10px;padding:1rem;display:flex;align-items:flex-end;justify-content:center;min-height:160px;border:1px solid rgba(255,255,255,0.04);">
-                  <svg viewBox={`0 0 ${visW + 60} ${visH + 30}`} style="width:100%;height:auto;max-height:200px;display:block;" aria-label={`LED-vägg ${pkt.dimensions}`}>
-                    {/* Vägg */}
-                    <rect x="0" y="10" width={visW} height={visH} fill="#0a0820" stroke="#c4b5f4" stroke-width="1.5" rx="2" />
-                    {/* Pixel-grid effekt — bara dekorativt */}
-                    <rect x="3" y="13" width={visW - 6} height={visH - 6} fill="url(#led-grid-pattern)" opacity="0.3" rx="1" />
-                    {/* Mått-text bredd */}
-                    <text x={visW / 2} y={visH + 25} text-anchor="middle" fill="rgba(255,255,255,0.55)" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">{(pkt.cols * 0.5).toString().replace('.',',')} m</text>
-                    {/* Mått-text höjd */}
-                    <text x={visW + 8} y={(visH + 10) / 2} text-anchor="start" dominant-baseline="middle" fill="rgba(255,255,255,0.55)" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">{(pkt.rows * 0.5).toString().replace('.',',')} m</text>
-                    {/* Personreferens (1,75 m) — höjd skalad mot panelhöjd där 1 panel = 0.5 m */}
-                    <g transform={`translate(${visW + 32}, ${visH + 10 - (1.75 / (pkt.rows * 0.5)) * visH})`}>
-                      {/* huvud */}
+                  <svg data-paket-svg viewBox={`0 0 ${visW + 60} ${visH + 30}`} style="width:100%;height:auto;max-height:200px;display:block;" aria-label={`LED-vägg ${pkt.dimensions_label}`}>
+                    <rect data-svg-wall x="0" y="10" width={visW} height={visH} fill="#0a0820" stroke="#c4b5f4" stroke-width="1.5" rx="2" />
+                    <rect data-svg-grid x="3" y="13" width={visW - 6} height={visH - 6} fill="url(#led-grid-pattern)" opacity="0.3" rx="1" />
+                    <text data-svg-w-label x={visW / 2} y={visH + 25} text-anchor="middle" fill="rgba(255,255,255,0.55)" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">{pkt.dimensions_label.split(' × ')[0]} m</text>
+                    <text data-svg-h-label x={visW + 8} y={(visH + 10) / 2} text-anchor="start" dominant-baseline="middle" fill="rgba(255,255,255,0.55)" font-family="'Space Grotesk',sans-serif" font-size="11" font-weight="600">{pkt.dimensions_label.split(' × ')[1]}</text>
+                    <g data-svg-person transform={`translate(${visW + 32}, ${visH + 10 - (1.75 / (defV.rows * 0.5)) * visH})`}>
                       <circle cx="0" cy="6" r="3.5" fill="rgba(196,181,244,0.6)" />
-                      {/* kropp */}
-                      <line x1="0" y1="10" x2="0" y2={(1.75 / (pkt.rows * 0.5)) * visH - 4} stroke="rgba(196,181,244,0.6)" stroke-width="2" stroke-linecap="round" />
+                      <line x1="0" y1="10" x2="0" y2={(1.75 / (defV.rows * 0.5)) * visH - 4} stroke="rgba(196,181,244,0.6)" stroke-width="2" stroke-linecap="round" />
                     </g>
                   </svg>
-                  {/* Pixel-grid pattern definition (en gång räcker; render varje gång är OK) */}
                   <svg width="0" height="0" style="position:absolute;">
                     <defs>
                       <pattern id="led-grid-pattern" width="6" height="6" patternUnits="userSpaceOnUse">
@@ -125,7 +106,7 @@ const faqSchema = {
                 <div style="display:flex;flex-direction:column;gap:0.4rem;">
                   <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0;">{pkt.tagline}</p>
                   <h3 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0;line-height:1.15;">{pkt.size_m2.toString().replace('.',',')} m²</h3>
-                  <p style="color:rgba(255,255,255,0.6);font-family:'Space Grotesk',sans-serif;font-size:0.85rem;margin:0;">{pkt.dimensions} · {pkt.cols}×{pkt.rows} = {pkt.totalPanels} paneler</p>
+                  <p style="color:rgba(255,255,255,0.6);font-family:'Space Grotesk',sans-serif;font-size:0.85rem;margin:0;"><span data-paket-dim-label>{pkt.dimensions_label}</span> · <span data-paket-panels-label>{defV.label}</span></p>
                 </div>
 
                 <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.35rem;">
@@ -137,34 +118,51 @@ const faqSchema = {
                   ))}
                 </ul>
 
+                {/* Toggle: paneltyp */}
+                <div>
+                  <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 0.4rem;">Paneltyp</p>
+                  <div role="radiogroup" aria-label="Paneltyp" style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                    <button type="button" class="led-pill" data-pill-panel="P26" aria-pressed="true" style="flex:1;min-width:90px;background:#c4b5f4;color:#0c0a24;border:1px solid rgba(196,181,244,0.6);border-radius:8px;padding:0.5rem 0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:all 0.15s;">P2.604</button>
+                    <button type="button" class="led-pill" data-pill-panel="P19" aria-pressed="false" disabled={variants.P19 === null} style={`flex:1;min-width:90px;background:transparent;color:${variants.P19 === null ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.85)'};border:1px solid ${variants.P19 === null ? 'rgba(255,255,255,0.08)' : 'rgba(196,181,244,0.3)'};border-radius:8px;padding:0.5rem 0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;cursor:${variants.P19 === null ? 'not-allowed' : 'pointer'};transition:all 0.15s;`} title={variants.P19 === null ? 'P1.95 ger för många pixlar för denna storlek — använd konfiguratorn nedan' : 'Premium indoor — skarpare bild'}>P1.95</button>
+                    <button type="button" class="led-pill" data-pill-panel="P39" aria-pressed="false" disabled={variants.P39 === null} style={`flex:1;min-width:90px;background:transparent;color:${variants.P39 === null ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.85)'};border:1px solid ${variants.P39 === null ? 'rgba(255,255,255,0.08)' : 'rgba(196,181,244,0.3)'};border-radius:8px;padding:0.5rem 0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;cursor:${variants.P39 === null ? 'not-allowed' : 'pointer'};transition:all 0.15s;`} title={variants.P39 === null ? 'P3.91 passar inte exakt i denna storlek — använd konfiguratorn nedan' : 'Outdoor — IP65, dagsljus'}>P3.91</button>
+                  </div>
+                </div>
+
+                {/* Toggle: mount */}
+                <div>
+                  <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 0.4rem;">Upphängning</p>
+                  <div role="radiogroup" aria-label="Upphängning" style="display:flex;gap:0.4rem;">
+                    <button type="button" class="led-pill" data-pill-mount="ground" aria-pressed="true" style="flex:1;background:#c4b5f4;color:#0c0a24;border:1px solid rgba(196,181,244,0.6);border-radius:8px;padding:0.5rem 0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:all 0.15s;">Ground support</button>
+                    <button type="button" class="led-pill" data-pill-mount="tross" aria-pressed="false" style="flex:1;background:transparent;color:rgba(255,255,255,0.85);border:1px solid rgba(196,181,244,0.3);border-radius:8px;padding:0.5rem 0.6rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:all 0.15s;">Tross</button>
+                  </div>
+                </div>
+
+                {/* Pris-breakdown — bara HÅRDVARA. Frakt + montering visas inte. */}
                 <div style="background:#0c0a24;border-radius:10px;padding:0.85rem 1rem;display:flex;flex-direction:column;gap:0.35rem;">
                   <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:rgba(255,255,255,0.65);">
-                    <span>Hårdvara</span>
-                    <span><span class="sk-price-excl">{pkt.hardware_price.toLocaleString('sv-SE')} kr</span><span class="sk-price-incl hidden">{Math.round(pkt.hardware_price * 1.25).toLocaleString('sv-SE')} kr</span></span>
+                    <span><span data-row-panels-label>{defV.totalPanels}</span> paneler</span>
+                    <span><span class="sk-price-excl" data-row-panels-excl></span><span class="sk-price-incl hidden" data-row-panels-incl></span></span>
                   </div>
                   <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:rgba(255,255,255,0.65);">
-                    <span>Montering (8,5 h)</span>
-                    <span><span class="sk-price-excl">{pkt.assembly_price.toLocaleString('sv-SE')} kr</span><span class="sk-price-incl hidden">{Math.round(pkt.assembly_price * 1.25).toLocaleString('sv-SE')} kr</span></span>
+                    <span data-row-mount-label>Ground support</span>
+                    <span><span class="sk-price-excl" data-row-mount-excl></span><span class="sk-price-incl hidden" data-row-mount-incl></span></span>
                   </div>
                   <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:rgba(255,255,255,0.65);">
-                    <span>Transport (Lätt lastbil)</span>
-                    <span><span class="sk-price-excl">{pkt.transport_price.toLocaleString('sv-SE')} kr</span><span class="sk-price-incl hidden">{Math.round(pkt.transport_price * 1.25).toLocaleString('sv-SE')} kr</span></span>
+                    <span data-row-proc-label>Videoprocessor</span>
+                    <span><span class="sk-price-excl" data-row-proc-excl></span><span class="sk-price-incl hidden" data-row-proc-incl></span></span>
                   </div>
                   <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:0.35rem;padding-top:0.5rem;display:flex;justify-content:space-between;font-size:0.95rem;color:white;font-weight:700;">
-                    <span>Totalt</span>
-                    <span><span class="sk-price-excl">{total.toLocaleString('sv-SE')} kr</span><span class="sk-price-incl hidden">{totalIncl.toLocaleString('sv-SE')} kr</span></span>
+                    <span>Hårdvara</span>
+                    <span><span class="sk-price-excl" data-row-total-excl></span><span class="sk-price-incl hidden" data-row-total-incl></span> <span style="color:rgba(255,255,255,0.5);font-weight:400;font-size:0.78rem;">/dygn</span></span>
                   </div>
+                  <p style="color:rgba(255,255,255,0.45);font-size:0.7rem;line-height:1.4;margin:0.4rem 0 0;">+ Montering 5 100 kr & transport 2 998 kr (Lätt lastbil) tillkommer i kassan</p>
                 </div>
 
                 <button
                   type="button"
                   data-led-paket-add
                   style="background:#c4b5f4;color:#0c0a24;border:none;border-radius:10px;padding:0.85rem 1rem;font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:background 0.15s,transform 0.1s;"
-                  onmouseenter="this.style.background='#d4c5ff'"
-                  onmouseleave="this.style.background='#c4b5f4'"
-                  onmousedown="this.style.transform='scale(0.98)'"
-                  onmouseup="this.style.transform='scale(1)'"
-                  aria-label={`Lägg ${pkt.name} i varukorgen`}
+                  aria-label={`Lägg ${pkt.tagline} i varukorgen`}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="9" cy="21" r="1"></circle>
@@ -1155,53 +1153,225 @@ const faqSchema = {
     })();
   </script>
 
-  <!-- Cart-handler för Färdiga paket-knapparna -->
-  <script>
+  <!-- Cart-handler + dynamisk prisuppdatering för Färdiga paket -->
+  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "image": "/images/bild/pp_bld_led_500x1000.webp"}} }}>
     (function () {
       'use strict';
-      const buttons = document.querySelectorAll('[data-led-paket-add]');
-      buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const card = btn.closest('[data-paket-id]');
-          if (!card || !window.skCart || typeof window.skCart.add !== 'function') {
-            console.error('LED-paket cart-add: cart eller card saknas');
-            return;
+
+      // Konstanter (synkat med led-paneler.json tillbehor)
+      const PANELS = INJ_PANELS;
+      const MOUNT = {
+        ground: { artno: 'SK-BLD-LED-RIGG',  name: 'Ground support — LED-vägg', price: 1500 },
+        tross:  { artno: 'SK-BLD-LED-TROSS', name: 'Tross-rigg — LED-vägg',     price: 5500 },
+      };
+      const PROC = {
+        small: { artno: 'SK-BLD-LED-VX400',  name: 'Novastar VX400 Pro (videoprocessor)',  price: 295, max_pixels: 2_600_000 },
+        large: { artno: 'SK-BLD-LED-VX1000', name: 'Novastar VX1000 Pro (videoprocessor)', price: 595, max_pixels: 6_500_000 },
+      };
+
+      function pickProcessor(panelKey, totalPanels) {
+        const px = totalPanels * PANELS[panelKey].pixels_per_panel;
+        if (panelKey === 'P39') return PROC.small;  // outdoor — alltid small
+        if (px <= PROC.small.max_pixels) return PROC.small;
+        return PROC.large;
+      }
+
+      function fmtKr(n) {
+        return n.toLocaleString('sv-SE') + ' kr';
+      }
+
+      // Per-card state
+      const cards = document.querySelectorAll('.led-paket-card');
+      cards.forEach(card => {
+        const variants = JSON.parse(card.dataset.paketVariants);
+        let panelKey = 'P26';   // default
+        let mountKey = 'ground'; // default
+
+        function update() {
+          const v = variants[panelKey];
+          if (!v) return; // disabled — inget att uppdatera
+          const panel = PANELS[panelKey];
+          const totalPanels = v.totalPanels;
+          const panelCost = panel.price * totalPanels;
+          const mount = MOUNT[mountKey];
+          const proc = pickProcessor(panelKey, totalPanels);
+          const total = panelCost + mount.price + proc.price;
+
+          // Uppdatera DOM-rader
+          card.querySelector('[data-row-panels-label]').textContent = totalPanels;
+          card.querySelector('[data-row-panels-excl]').textContent = fmtKr(panelCost);
+          card.querySelector('[data-row-panels-incl]').textContent = fmtKr(Math.round(panelCost * 1.25));
+          card.querySelector('[data-row-mount-label]').textContent = mount.name.split(' — ')[0];
+          card.querySelector('[data-row-mount-excl]').textContent = fmtKr(mount.price);
+          card.querySelector('[data-row-mount-incl]').textContent = fmtKr(Math.round(mount.price * 1.25));
+          card.querySelector('[data-row-proc-label]').textContent = proc.name.replace(' (videoprocessor)', '');
+          card.querySelector('[data-row-proc-excl]').textContent = fmtKr(proc.price);
+          card.querySelector('[data-row-proc-incl]').textContent = fmtKr(Math.round(proc.price * 1.25));
+          card.querySelector('[data-row-total-excl]').textContent = fmtKr(total);
+          card.querySelector('[data-row-total-incl]').textContent = fmtKr(Math.round(total * 1.25));
+
+          // Uppdatera dimension/paneler-rad
+          card.querySelector('[data-paket-panels-label]').textContent = v.label;
+
+          // Uppdatera SVG om cols/rows ändrats (P39 kan vara annorlunda)
+          const svg = card.querySelector('[data-paket-svg]');
+          if (svg) {
+            const visW = 280;
+            const aspectW = v.cols;
+            const aspectH = v.rows;
+            const visH = Math.round(visW * aspectH / aspectW);
+            svg.setAttribute('viewBox', `0 0 ${visW + 60} ${visH + 30}`);
+            const wall = svg.querySelector('[data-svg-wall]');
+            if (wall) {
+              wall.setAttribute('y', '10');
+              wall.setAttribute('width', visW);
+              wall.setAttribute('height', visH);
+            }
+            const grid = svg.querySelector('[data-svg-grid]');
+            if (grid) {
+              grid.setAttribute('width', visW - 6);
+              grid.setAttribute('height', visH - 6);
+            }
+            const wLabel = svg.querySelector('[data-svg-w-label]');
+            if (wLabel) {
+              wLabel.setAttribute('x', visW / 2);
+              wLabel.setAttribute('y', visH + 25);
+              // Behåll dim-label från paketet (statisk yta)
+            }
+            const hLabel = svg.querySelector('[data-svg-h-label]');
+            if (hLabel) {
+              hLabel.setAttribute('x', visW + 8);
+              hLabel.setAttribute('y', (visH + 10) / 2);
+            }
+            const person = svg.querySelector('[data-svg-person]');
+            if (person) {
+              const personYStart = visH + 10 - (1.75 / (v.rows * 0.5)) * visH;
+              person.setAttribute('transform', `translate(${visW + 32}, ${personYStart})`);
+              const line = person.querySelector('line');
+              if (line) {
+                line.setAttribute('y2', (1.75 / (v.rows * 0.5)) * visH - 4);
+              }
+            }
           }
-          const id = card.dataset.paketId;
-          const artno = card.dataset.paketArtno;
-          const name = card.dataset.paketName;
-          const cols = card.dataset.paketCols;
-          const rows = card.dataset.paketRows;
-          const totalPanels = card.dataset.paketTotalpanels;
-          const image = card.dataset.paketImage;
-          const hardware = parseInt(card.dataset.paketHardware, 10);
-          const dimensions = card.dataset.paketDimensions;
+        }
 
-          // Lägger paketet som EN cart-rad. Cart-systemet lägger automatiskt på:
-          //   - Lätt lastbil (2998 kr) via forceLeverans:'lastbil'
-          //   - Montering 8,5h = 5100 kr via assemblyMinutesTotal:510
-          window.skCart.add({
-            id: id,
-            artno: artno,
-            name: name + ' · ' + dimensions + ' (' + cols + '×' + rows + ' = ' + totalPanels + ' paneler)',
-            price: hardware,
-            priceNote: '/dygn',
-            category: 'LED-vägg',
-            image: image,
-            bulky: true,
-            forceLeverans: 'lastbil',
-            assemblyMinutesTotal: 510,
-            qty: 1,
+        function setPillState(group, key) {
+          card.querySelectorAll(`[data-pill-${group}]`).forEach(b => {
+            const isActive = b.dataset[`pill${group.charAt(0).toUpperCase()}${group.slice(1)}`] === key;
+            b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            if (b.disabled) return;
+            if (isActive) {
+              b.style.background = '#c4b5f4';
+              b.style.color = '#0c0a24';
+              b.style.borderColor = 'rgba(196,181,244,0.6)';
+            } else {
+              b.style.background = 'transparent';
+              b.style.color = 'rgba(255,255,255,0.85)';
+              b.style.borderColor = 'rgba(196,181,244,0.3)';
+            }
           });
+        }
 
-          // Visuell feedback — pulsa knappen
-          const originalText = btn.querySelector('span').textContent;
-          btn.querySelector('span').textContent = '✓ Tillagd!';
-          btn.style.background = '#7dd3a7';
-          setTimeout(() => {
-            btn.querySelector('span').textContent = originalText;
-            btn.style.background = '#c4b5f4';
-          }, 1600);
+        // Pill click handlers
+        card.querySelectorAll('[data-pill-panel]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            const key = btn.dataset.pillPanel;
+            if (variants[key] === null) return;
+            panelKey = key;
+            setPillState('panel', key);
+            update();
+          });
+        });
+        card.querySelectorAll('[data-pill-mount]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const key = btn.dataset.pillMount;
+            mountKey = key;
+            setPillState('mount', key);
+            update();
+          });
+        });
+
+        // Cart-add knapp
+        const addBtn = card.querySelector('[data-led-paket-add]');
+        if (addBtn) {
+          addBtn.addEventListener('click', () => {
+            if (!window.skCart || typeof window.skCart.add !== 'function') {
+              console.error('LED-paket: cart saknas');
+              return;
+            }
+            const v = variants[panelKey];
+            if (!v) return;
+            const panel = PANELS[panelKey];
+            const mount = MOUNT[mountKey];
+            const proc = pickProcessor(panelKey, v.totalPanels);
+            const dim = card.dataset.paketDim;
+            const size = card.dataset.paketSize;
+
+            // Panel-rad: qty = antal kabinetter, pris = per kabinett.
+            // Flaggor: bulky=true, forceLeverans=lastbil (auto-transport 2998 kr),
+            //          assemblyMinutesTotal=510 (auto-montering 5100 kr / 8,5h).
+            window.skCart.add({
+              id: panel.artno + '__paket-' + size + '__' + v.cols + 'x' + v.rows,
+              artno: panel.artno,
+              name: panel.name + ' — ' + size + ' m² (' + dim + ', ' + v.label + ')',
+              price: panel.price,
+              priceNote: '/dygn',
+              category: 'LED-vägg',
+              image: panel.image,
+              bulky: true,
+              forceLeverans: 'lastbil',
+              assemblyMinutesTotal: 510,
+              qty: v.totalPanels,
+            });
+            // Processor
+            window.skCart.add({
+              id: proc.artno,
+              artno: proc.artno,
+              name: proc.name,
+              price: proc.price,
+              priceNote: '/dygn',
+              category: 'LED-vägg',
+              bulky: false,
+              qty: 1,
+            });
+            // Mount
+            window.skCart.add({
+              id: mount.artno,
+              artno: mount.artno,
+              name: mount.name,
+              price: mount.price,
+              priceNote: '/dygn',
+              category: 'LED-vägg',
+              bulky: true,
+              qty: 1,
+            });
+
+            // Visuell feedback
+            const span = addBtn.querySelector('span');
+            const orig = span.textContent;
+            span.textContent = '✓ Tillagt!';
+            addBtn.style.background = '#7dd3a7';
+            setTimeout(() => {
+              span.textContent = orig;
+              addBtn.style.background = '#c4b5f4';
+            }, 1600);
+          });
+        }
+
+        // Initial render
+        update();
+      });
+
+      // Hover-effekt på kort
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          card.style.borderColor = 'rgba(196,181,244,0.45)';
+          card.style.transform = 'translateY(-2px)';
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.borderColor = 'rgba(196,181,244,0.18)';
+          card.style.transform = 'translateY(0)';
         });
       });
     })();
