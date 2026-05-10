@@ -8,7 +8,8 @@ interface Props {
   artno?: string;
   category: string;
   image?: string;
-  bulky?: boolean;        // skrymmande = kräver bil med släpvagn
+  bulky?: boolean;        // skrymmande = räknas i bulkyCount-regeln
+  forceLeverans?: string; // tvingar specifik leverans-key (t.ex. 'lastbil', 'extern_lev')
   monteringMin?: number;  // monteringstid i minuter
   size?: 'sm' | 'md' | 'lg';
   label?: string;
@@ -16,7 +17,7 @@ interface Props {
 }
 const {
   id, name, price, priceNote = '/dygn', artno = '', category,
-  image = '', bulky = false, monteringMin, size = 'md', label, iconOnly = false
+  image = '', bulky = false, forceLeverans, monteringMin, size = 'md', label, iconOnly = false
 } = Astro.props;
 
 const sizeClasses = {
@@ -36,6 +37,7 @@ const sizeClasses = {
   data-category={category}
   data-image={image}
   data-bulky={bulky ? 'true' : 'false'}
+  data-force-leverans={forceLeverans ?? ''}
   data-montering-min={monteringMin ?? ''}
   aria-label={`Lägg ${name} i varukorgen`}
 >

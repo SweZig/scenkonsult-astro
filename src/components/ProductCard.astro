@@ -19,8 +19,11 @@ interface Props {
   wide?: boolean;
   category?: string;
   manualUrl?: string;
+  bulky?: boolean;
+  forceLeverans?: string;
+  monteringMin?: number;
 }
-const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, dimensionTable, wide = false, category = 'Produkt', monteringMin, manualUrl } = Astro.props;
+const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, dimensionTable, wide = false, category = 'Produkt', monteringMin, manualUrl, bulky = false, forceLeverans } = Astro.props;
 const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 // YouTube-detektering — stödjer https://youtu.be/ID, youtube.com/watch?v=ID, youtube.com/embed/ID
@@ -181,7 +184,7 @@ const productJson = JSON.stringify({
           <span class="text-brand-orange font-extrabold text-xl shrink-0">
             <Price amount={price} suffix={priceNote} size="xl" />
           </span>
-          <CartButton id={cartId} name={name} price={price} priceNote={priceNote} artno={artno ?? ''} category={category} image={image ?? ''} monteringMin={monteringMin} size="md" />
+          <CartButton id={cartId} name={name} price={price} priceNote={priceNote} artno={artno ?? ''} category={category} image={image ?? ''} bulky={bulky} forceLeverans={forceLeverans} monteringMin={monteringMin} size="md" />
         </>
       ) : (
         <>
