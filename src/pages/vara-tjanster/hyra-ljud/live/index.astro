@@ -78,7 +78,10 @@ const faqSchema = {
   <!-- PAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {_ljudData.live.products.map((p: any) => (
+      {[
+        ..._ljudData.live.products,
+        ..._ljudData.music.products.filter((p: any) => Array.isArray(p.categories) && p.categories.includes('live'))
+      ].map((p: any) => (
         <ProductCard
           artno={p.artno}
           name={p.name}
