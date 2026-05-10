@@ -235,7 +235,7 @@ const configData = {
   <div class="cfg-summary">
     <h3 class="cfg-summary-title">Specifikation och pris</h3>
     <ul class="cfg-spec-list" id="cfg-spec-list"></ul>
-    <p class="cfg-spec-info">💡 Montering &amp; leverans listas ovan med estimat.</p>
+    <p class="cfg-spec-info">💡 Montering &amp; leverans är beräknade estimat och kan komma att justeras i orderbekräftelsen.</p>
     <div class="cfg-total-row">
       <span class="cfg-total-label">Totalt per dygn</span>
       <span class="cfg-total-value">
@@ -736,7 +736,7 @@ const configData = {
       const fraktAuto = document.querySelector('input[name="frakt"][value="auto"]');
       const fraktNonePill = fraktNone?.closest('.cfg-pill');
 
-      if (area >= 16) {
+      if (area > 16) {
         if (installCb) { installCb.checked = true; installCb.disabled = true; }
         state.installation = true;
         // Vid obligatorisk montering kan kunden inte hämta själv — lås frakt till Leverans
@@ -758,7 +758,7 @@ const configData = {
           if (state.installation) {
             installHint.textContent = `Beräknad tid: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}).`;
           } else {
-            installHint.textContent = 'Beräknad tid: 10 min/modul × 2 (montering + demontering). Pris timdebiteras (600 kr/tim). Obligatoriskt vid scen ≥ 16 m².';
+            installHint.textContent = 'Beräknad tid: 10 min/modul × 2 (montering + demontering). Pris timdebiteras (600 kr/tim). Obligatoriskt vid scen över 16 m².';
           }
         }
       }
