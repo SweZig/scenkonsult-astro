@@ -18,10 +18,32 @@ const fraktOptions = {
   lastbil: tjanster.leverans?.lastbil,
 };
 
+// ──────────────────────────────────────────────────────────────────
+// JSON-first lookups som tidigare var hårdkodade i klient-JS
+// ──────────────────────────────────────────────────────────────────
+function _surfaceKey(m) {
+  const sizeKey = (m.size || '').replace(/\s/g, '').replace(/×/g, 'x');
+  const surf = m.surface === 'slät' ? 'slat' : 'halkfri';
+  return `${sizeKey}-${surf}`;
+}
+
+const INJ_MODULE_BY_KEY = Object.fromEntries(
+  modules.map(m => [_surfaceKey(m), { artno: m.artno, name: m.name, price: m.price }])
+);
+
+const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
+const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
+const INJ_SKIRT_PRICE_PER_METER = skirt?.pricePerMeter || 24.75;
+const INJ_FRAKT_RULES = scenData.fraktByModuleCount || [
+  { maxModules: 8, fordon: 'storbil' },
+  { maxModules: 12, fordon: 'storbil_slap' },
+  { maxModules: 999, fordon: 'lastbil' },
+];
+
 const configData = {
   modules,
   stairs,
-  skirt: skirt ? { ...skirt, pricePerMeter: 24.75 } : null,
+  skirt: skirt ? { ...skirt, pricePerMeter: INJ_SKIRT_PRICE_PER_METER } : null,
   railSegments,
   frakt: fraktOptions,
   montering: tjanster.montering,
@@ -253,7 +275,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_FRAKT_RULES }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -283,17 +305,14 @@ const configData = {
       fraktTrip: 'tr',
     };
 
-    const MODULE_PRICES = { '1x2-slat': 200, '1x2-halkfri': 225, '1x1-halkfri': 150 };
-    const MODULE_ARTNO = { '1x2-slat': 'SK-SCN-MOD-0002', '1x2-halkfri': 'SK-SCN-MOD-0003', '1x1-halkfri': 'SK-SCN-MOD-0001' };
-    const MODULE_NAME = {
-      '1x2-slat': 'Plattform 1×2 m (slät)',
-      '1x2-halkfri': 'Plattform 1×2 m (halkfri)',
-      '1x1-halkfri': 'Plattform 1×1 m (halkfri)',
-    };
+    const MODULE_PRICES = Object.fromEntries(Object.entries(INJ_MODULE_BY_KEY).map(([k,v]) => [k, v.price]));
+    const MODULE_ARTNO  = Object.fromEntries(Object.entries(INJ_MODULE_BY_KEY).map(([k,v]) => [k, v.artno]));
+    const MODULE_NAME   = Object.fromEntries(Object.entries(INJ_MODULE_BY_KEY).map(([k,v]) => [k, v.name]));
     const FRAKT_DATA = cfg.frakt || {};
     const FRAKT_LABELS = { storbil: 'Stor bil', storbil_slap: 'Stor bil + släp', lastbil: 'Lätt lastbil' };
-    const SKIRT_PRICE_PER_METER = 24.75;
-    const MONTERING_PRICE_PER_HOUR = 600;
+    const SKIRT_PRICE_PER_METER = INJ_SKIRT_PRICE_PER_METER;
+    const MONTERING_PRICE_PER_HOUR = INJ_MONTERING_PRICE_PER_HOUR;
+    const OBLIG_OVER_M2 = INJ_OBLIG_OVER_M2;
 
     function getStairForHeight(h) {
       if (h === 40) return { artno: 'SK-SCN-ACC-0001', name: 'Scentrapp (40 cm)', price: 279 };
@@ -320,9 +339,10 @@ const configData = {
     function getRecommendedFrakt() {
       const count = moduleCount();
       if (count === 0) return null;
-      if (count <= 8) return 'storbil';
-      if (count <= 12) return 'storbil_slap';
-      return 'lastbil';
+      for (const rule of INJ_FRAKT_RULES) {
+        if (count <= rule.maxModules) return rule.fordon;
+      }
+      return INJ_FRAKT_RULES[INJ_FRAKT_RULES.length - 1]?.fordon || 'lastbil';
     }
 
     // state.frakt är 'none' eller 'auto' — vehicle bestäms av getRecommendedFrakt().
@@ -736,7 +756,7 @@ const configData = {
       const fraktAuto = document.querySelector('input[name="frakt"][value="auto"]');
       const fraktNonePill = fraktNone?.closest('.cfg-pill');
 
-      if (area > 16) {
+      if (area > OBLIG_OVER_M2) {
         if (installCb) { installCb.checked = true; installCb.disabled = true; }
         state.installation = true;
         // Vid obligatorisk montering kan kunden inte hämta själv — lås frakt till Leverans
