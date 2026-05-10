@@ -24,7 +24,8 @@ const _modules = scenData.modules || [];
 
 // surfaceKey: matchar surface (slät/halkfri) + size (1×1/1×2) → '1x2-slat' osv
 function _surfaceKey(m) {
-  const sizeKey = (m.size || '').replace(/\s/g, '').replace(/×/g, 'x'); // '1x2' eller '1x1'
+  // '1×1 m' → '1x1' (strip whitespace, ' m' suffix, ersätt ×→x)
+  const sizeKey = (m.size || '').replace(/\s*m\b/i, '').replace(/\s/g, '').replace(/×/g, 'x');
   const surf = m.surface === 'slät' ? 'slat' : 'halkfri';
   return `${sizeKey}-${surf}`;
 }
