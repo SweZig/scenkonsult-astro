@@ -1,0 +1,210 @@
+---
+import CartButton from '../../../components/CartButton.astro';
+import Layout from '../../../layouts/Layout.astro';
+import CategoryHero from '../../../components/CategoryHero.astro';
+import bildData from '../../../data/bild.json';
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": (bildData.faq as any[]).map(f => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+
+// Plocka 3 populäraste produkter att visa: FHD-projektor, 75" skärm, LED-trailer 7m²
+const fhdProjektor = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0002');
+const skarm75 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0004');
+const ledTrailer7 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0006');
+const populaira = [fhdProjektor, skarm75, ledTrailer7].filter(Boolean);
+
+const extraFaq = [
+  { q: "När ska jag välja projektor och när skärm/LED-vägg?", a: "Projektor + duk är billigast och flexibelt — passar för konferens, föreläsning och biljettmöte i nedmörkat rum. Skärm (65–85\") behövs när rummet är ljust eller när bilden ska vara skarp i full färg. LED-vägg eller mobil LED-trailer används när bilden ska synas i dagsljus eller från långt avstånd — festival, scenbakgrund, sportevent." },
+  { q: "Hur stor projektorduk behöver jag?", a: "Tumregel: bredden på duken bör vara minst 1/6 av avståndet till bakersta åskådare. För 50 personer i en konferenslokal räcker en 100\"-duk. För 200+ personer rekommenderar vi 166–190\" duk eller LED-vägg." },
+  { q: "Kan ni leverera och installera?", a: "Ja — leverans, installation, kabeldragning och soundcheck/testbild ingår vid bokning av installation. För LED-vägg och mobil LED-trailer ingår alltid montering. För enskilda projektorer/skärmar är installation tillval (600 kr/tim)." },
+  { q: "Klarar projektorn dagsljus utomhus?", a: "Nej — projektor behöver nedmörkat rum eller skugga. För utomhus i dagsljus krävs LED-vägg eller mobil LED-trailer. Vi har LED-trailers 7, 15 och 28 m² som klarar full sol." },
+];
+---
+
+<Layout title={bildData.metaTitle} description={bildData.metaDescription} schemaExtra={faqSchema}>
+
+  <CategoryHero
+    h1="Hyra Bild"
+    h1Accent="Stockholm"
+    intro={bildData.intro}
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Hyra bild" }
+    ]}
+    badges={[
+      "Projektor 3 500–12 000 ANSI",
+      "Skärmar 65–85\" 4K",
+      "LED-vägg & mobil LED-trailer",
+      "Leverans i hela Storstockholm"
+    ]}
+    priceFrom={299}
+  />
+
+  <!-- KATEGORI-GRID -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-8">Välj kategori</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {(bildData.categories as any[]).map((cat) => (
+        <a href={cat.href} class="bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group block">
+          <div class="h-52 sm:h-44 lg:h-40 bg-brand-dark overflow-hidden relative">
+            <img
+              src={cat.image}
+              alt={cat.name}
+              width="600" height="333"
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+          <div class="p-5">
+            <h3 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors mb-2">{cat.name}</h3>
+            <p class="text-gray-400 text-sm leading-relaxed mb-4">{cat.desc}</p>
+            <span class="text-brand-orange text-sm font-semibold">Se priser & sortiment →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- HUR VÄLJER DU RÄTT? -->
+  <section class="bg-brand-navy border-y border-white/10 py-14">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold text-white mb-2">Hur väljer du rätt bildsystem?</h2>
+      <p class="text-gray-400 mb-8">Tre frågor som avgör vad du behöver.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { n: "1", rubrik: "Inomhus eller utomhus?", text: "Nedmörkat inomhus → projektor + duk är billigast. Ljust inomhus → skärm 65–85\". Utomhus i dagsljus → LED-vägg eller mobil LED-trailer. Skugga utomhus i kvällsljus → projektor kan funka." },
+          { n: "2", rubrik: "Hur långt sitter publiken?", text: "Tumregel: bildbredden minst 1/6 av avståndet till bakersta åskådare. 50 personer i konferensrum → 100\"-duk. 500 personer på festival → LED-trailer 15 m² eller större." },
+          { n: "3", rubrik: "Vill du ha hjälp?", text: "Vi installerar, kabeldragar och kalibrerar bilden. Tekniker tillgänglig under hela eventet om du vill. För LED-vägg och mobil trailer ingår alltid montering." },
+        ].map(s => (
+          <div class="bg-brand-dark border border-white/10 rounded-2xl p-6">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mb-4" style="background:#c4b5f4">{s.n}</div>
+            <h3 class="font-bold text-white mb-2">{s.rubrik}</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">{s.text}</p>
+          </div>
+        ))}
+      </div>
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="📞 " data-label="072-448 10 00" href="#tel" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
+        <a href="/bokningssida/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Boka online</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- POPULÄRASTE PRODUKTER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <h2 class="text-2xl font-bold text-white mb-2">Populärast hos oss</h2>
+    <p class="text-gray-400 mb-8">FHD-projektor, 4K-skärm och mobil LED-trailer — de tre vanligaste valen.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {populaira.map((p:any) => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group" itemscope itemtype="https://schema.org/Product">
+          <meta itemprop="brand" content="Scenkonsult Norden" />
+          <meta itemprop="description" content={p.description ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
+          <div class="aspect-video bg-brand-dark overflow-hidden">
+            <img src={p.image} alt={p.alt ?? p.name} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" itemprop="image" />
+            <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
+          </div>
+          <div class="p-5">
+            <h3 class="font-bold text-white text-lg mb-1 group-hover:text-brand-orange transition-colors" itemprop="name">{p.name}</h3>
+            <p class="text-gray-400 text-sm mb-4">{p.description}</p>
+            <ul class="space-y-1 mb-4">
+              {(p.includes ?? []).slice(0,4).map((item:string) => (
+                <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{item}</li>
+              ))}
+            </ul>
+            <div class="flex items-center justify-between border-t border-white/10 pt-3" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+              <meta itemprop="priceCurrency" content="SEK" />
+              <meta itemprop="price" content={String(p.price)} />
+              <meta itemprop="priceValidUntil" content="2027-12-31" />
+              <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+                <meta itemprop="applicableCountry" content="SE" />
+                <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
+                <meta itemprop="merchantReturnDays" content="1" />
+                <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
+                <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
+              </div>
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{p.price.toLocaleString('sv-SE')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
+                <span class="text-gray-400 text-xs">{p.priceNote ?? '/dygn'}</span>
+              </div>
+              <CartButton id={p.artno || p.id || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Bild" image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" iconOnly={true} />
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+    <div class="mt-6 text-center">
+      <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" class="text-brand-orange hover:text-white transition-colors text-sm font-semibold">Se alla bildprodukter →</a>
+    </div>
+  </section>
+
+  <!-- VAD INGÅR ALLTID -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
+      <h2 class="text-2xl font-bold text-white mb-4">Vad ingår alltid?</h2>
+      <div class="text-gray-400 text-sm leading-relaxed space-y-3">
+        <p>Alla projektorer och skärmar levereras med HDMI-kabel, fjärrkontroll och nödvändiga adaptrar. Du behöver inte ta med någonting extra.</p>
+        <p>För LED-vägg och mobil LED-trailer ingår alltid montering, kalibrering och tekniker på plats.</p>
+        <p class="font-medium text-gray-300">Alla priser gäller per dygn (22 timmar). Hämtning från kl 13:00, återlämning senast kl 11:00 nästa dag. Transport tillkommer.</p>
+      </div>
+      <div class="flex flex-wrap gap-4 mt-6">
+        <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">Boka bildutrustning</a>
+        <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Fråga om offert</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-8">Vanliga frågor om bildhyrning</h2>
+    <div class="space-y-4">
+      {[...(bildData.faq as any[]), ...extraFaq].map((f:any) => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
+          <summary class="flex items-center justify-between p-5 cursor-pointer font-semibold text-white hover:text-brand-orange transition-colors list-none">
+            {f.q}
+            <span class="text-brand-orange ml-4 shrink-0 group-open:rotate-45 transition-transform duration-200">+</span>
+          </summary>
+          <div class="px-5 pb-5 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4">{f.a}</div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- KOMPLETTERA MED -->
+  <section class="bg-brand-navy border-t border-white/10 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-xl font-bold text-white mb-6">Komplettera med</h2>
+      <div class="flex flex-wrap gap-4">
+        <a href="/vara-tjanster/hyra-scen/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🎭 Hyra scen</a>
+        <a href="/vara-tjanster/hyra-ljud/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🔊 Hyra ljud</a>
+        <a href="/vara-tjanster/hyra-ljus/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">💡 Hyra ljus</a>
+        <a href="/vara-tjanster/hyra-dj/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🎛 Hyra DJ-utrustning</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Guider & resurser -->
+  <section style="background:#0c0a24;border-top:1px solid rgba(255,255,255,0.06);padding:2.5rem clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px;margin:0 auto;">
+      <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 1.25rem;">📖 Guider för bild & projektion</p>
+      <div style="display:flex;flex-wrap:wrap;gap:2.5rem;">
+        <div style="flex:1;min-width:220px;">
+          <a href="/for/guider/hyra-projektor-pris/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Hyra projektor — pris</a>
+          <a href="/for/guider/led-vagg-kalkylator/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>LED-vägg — kalkylator</a>
+          <a href="/for/guider/konferens-av-checklista/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Konferens AV — checklista</a>
+          <a href="/for/guider/" style="display:inline-block;margin-top:0.6rem;color:rgba(255,255,255,0.60);font-size:0.8rem;text-decoration:none;">Alla guider →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Layout>
