@@ -171,6 +171,8 @@ const pageSchema = {
             { label: 'Mått', value: p.dimensions },
             { label: 'Kapacitet', value: p.capacity },
           ]}
+          bulky={p.bulky}
+          forceLeverans={p.forceLeverans}
         />
       ))}
       {ljudData.event.products.filter(p => p.id === 'event-small').map(p => (
@@ -186,6 +188,8 @@ const pageSchema = {
           specs={p.includes}
           category="Ljud"
           persons={p.persons}
+          bulky={p.bulky}
+          forceLeverans={p.forceLeverans}
         />
       ))}
     </div>
