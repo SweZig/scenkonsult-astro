@@ -5,6 +5,7 @@ import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 import sceneData from '../../../data/scenes.json';
+import bildData from '../../../data/bild.json';
 
 const liveMedium = (ljudData.live.products as any[]).find((p:any) => p.artno === 'SK-LJD-LIV-0002') ?? ljudData.live.products[1];
 const liveSmall = ljudData.live.products[0];
@@ -12,6 +13,8 @@ const mhBeam = (ljusData.effekter.products as any[]).find((p:any) => p.artno ===
 const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0011');
 const scenMedium = sceneData.products[2] ?? sceneData.products[1];
 const rokmaskin = (ljusData.rok.products as any[])[0];
+const ledTrailer7 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0006');
+const ledTrailer15 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0011');
 
 const faq = [
   {
@@ -104,7 +107,7 @@ const pageSchema = {
           { icon: "🎭", title: "Modulscener", desc: "Hopfällbara scener från 4×3 m upp till 8×6 m. Halkfria ytor, stabil konstruktion och montering ingår vid behov.", link: "/vara-tjanster/hyra-scen/", cta: "Se scener" },
           { icon: "🔊", title: "Festival-PA", desc: "Line array och kraftfulla sub-systemer för utomhus. Rätt dimensionerat för er publikstorlek och plats.", link: "/vara-tjanster/hyra-ljud/", cta: "Se ljud" },
           { icon: "💡", title: "Scenljus", desc: "Vädertåliga moving heads, PAR-lampor och beam-effekter. Tänds när mörkret faller och tar over dansgolvet.", link: "/vara-tjanster/hyra-ljus/", cta: "Se ljus" },
-          { icon: "📡", title: "Projektor & LED", desc: "Ljusstarka projektorer och LED-skärmar för artistnamn, bakgrundsbilder och livefeed.", link: "/vara-tjanster/hyra-bild-projektorer-skarmar/", cta: "Se skärmar" }
+          { icon: "📡", title: "LED-skärm & projektor", desc: "Mobila LED-trailers från 7 till 28 m² — perfekt som scenbakgrund eller för sponsor-loopar. Lysstarkare än projektor i dagsljus. Projektor & duk för mindre scener.", link: "/vara-tjanster/hyra-bild-projektorer-skarmar/", cta: "Se LED-skärmar" }
         ].map(item => (
           <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:1.75rem; display:flex; flex-direction:column; gap:0.75rem;">
             <div style="font-size:1.75rem;">{item.icon}</div>
@@ -125,14 +128,14 @@ const pageSchema = {
 
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem;">
         {[
-          { label: "Liten festival", guests: "100–300 bes.", scen: "4×3 m", pa: "Live Small (4 000W)", ljus: "8× PAR + 2× moving head" },
-          { label: "Mellanstor", guests: "300–700 bes.", scen: "6×4 m", pa: "Live Medium (8 000W)", ljus: "16× PAR + 4× moving head" },
-          { label: "Stor festival", guests: "700–2000 bes.", scen: "8×6 m", pa: "Live Large (15 000W+)", ljus: "Fullrig — kontakta oss" }
+          { label: "Liten festival", guests: "100–300 bes.", scen: "4×3 m", pa: "Live Small (4 000W)", ljus: "8× PAR + 2× moving head", bild: "Projektor + 100\" duk" },
+          { label: "Mellanstor", guests: "300–700 bes.", scen: "6×4 m", pa: "Live Medium (8 000W)", ljus: "16× PAR + 4× moving head", bild: "LED-trailer 7 m²" },
+          { label: "Stor festival", guests: "700–2000 bes.", scen: "8×6 m", pa: "Live Large (15 000W+)", ljus: "Fullrig — kontakta oss", bild: "LED-trailer 15–28 m²" }
         ].map(p => (
           <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.5rem;">
             <h3 style="font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700; color:white; margin:0 0 0.25rem;">{p.label}</h3>
             <p style="color:#c4b5f4; font-size:0.8rem; font-weight:600; margin:0 0 1.25rem;">{p.guests}</p>
-            {[["Scen", p.scen], ["PA", p.pa], ["Ljus", p.ljus]].map(([l, v]) => (
+            {[["Scen", p.scen], ["PA", p.pa], ["Ljus", p.ljus], ["Bild", p.bild]].map(([l, v]) => (
               <div style="display:flex; flex-direction:column; gap:0.15rem; padding:0.4rem 0; border-bottom:1px solid rgba(255,255,255,0.06);">
                 <span style="color:rgba(255,255,255,0.60); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em;">{l}</span>
                 <span style="color:rgba(255,255,255,0.75); font-size:0.85rem;">{v}</span>
@@ -191,10 +194,23 @@ const pageSchema = {
           description={rokmaskin.description ?? ''}
           specs={rokmaskin.includes ?? []} category="Rök & pyro" />}
       </div>
+      {ledTrailer7 && <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
+        <ProductCard
+          artno={ledTrailer7.artno} name={ledTrailer7.name} price={ledTrailer7.price}
+          priceNote="/dygn" image={ledTrailer7.image} alt={ledTrailer7.name}
+          description={ledTrailer7.description ?? ''}
+          specs={ledTrailer7.includes ?? []} category="Bild" />
+        {ledTrailer15 && <ProductCard
+          artno={ledTrailer15.artno} name={ledTrailer15.name} price={ledTrailer15.price}
+          priceNote="/dygn" image={ledTrailer15.image} alt={ledTrailer15.name}
+          description={ledTrailer15.description ?? ''}
+          specs={ledTrailer15.includes ?? []} category="Bild" />}
+      </div>}
       <div class="mt-6 flex flex-wrap gap-3">
         <a href="/vara-tjanster/hyra-ljud/live/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Live PA-system →</a>
         <a href="/vara-tjanster/hyra-ljus/moving-heads/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Moving heads →</a>
         <a href="/vara-tjanster/hyra-scen/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Scener →</a>
+        <a href="/vara-tjanster/hyra-bild-led-vagg/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">LED-vägg & skärm →</a>
       </div>
     </div>
   </section>
