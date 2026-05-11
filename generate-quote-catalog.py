@@ -24,6 +24,7 @@ ljud   = load('ljud.json')
 ljus   = load('ljus.json')
 bild   = load('bild.json')
 dj     = load('dj.json')
+karaoke = load('karaoke.json')
 frakt  = load('tjanster.json')
 
 # ── Generiska helpers ────────────────────────────────────────────────────────
@@ -124,6 +125,11 @@ dj_svc_eq = [p for p in eq if p.get('type') == 'service' or p.get('artno','') in
 catalog['DJ'] = {'sub': {
     'DJ-utrustning':   [prod(p) for p in dj_utr],
     'DJ-paket':        [prod(p) for p in dj.get('packages', [])],
+}}
+
+# ── Karaoke (paket) ───────────────────────────────────────────────────────────
+catalog['Karaoke'] = {'sub': {
+    'Karaokepaket':    [prod(p) for p in karaoke.get('packages', [])],
 }}
 
 # ── Bild (produkter + dukar + tillbehör; services hamnar under Tjänster) ─────

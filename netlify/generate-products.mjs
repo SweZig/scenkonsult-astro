@@ -21,6 +21,7 @@ const ljud   = readJson('ljud.json');
 const ljus   = readJson('ljus.json');
 const dj     = readJson('dj.json');
 const bild   = readJson('bild.json');
+const karaoke = readJson('karaoke.json');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -88,6 +89,11 @@ Object.values(dj.equipment || {}).forEach(p => {
 });
 // DJ paket
 (dj.packages || []).forEach(p => {
+  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
+});
+
+// Karaoke paket
+(karaoke.packages || []).forEach(p => {
   if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
 });
 
@@ -207,6 +213,13 @@ sects.push('DJ-PAKET (inkl. ljud & ljus) → /vara-tjanster/hyra-dj/');
 });
 sects.push('');
 
+// Karaoke
+sects.push('KARAOKE-PAKET → /vara-tjanster/hyra-karaoke/');
+(karaoke.packages || []).forEach(p => {
+  sects.push(prodLine(p.name + ' (' + p.tagline + ')', p.price, ' exkl. moms'));
+});
+sects.push('');
+
 // TEKNIKER & TJÄNSTER
 if (ljud.services?.length) {
   sects.push('TEKNIKER/TJÄNSTER LJUD → /vara-tjanster/hyra-ljud/live/');
@@ -290,6 +303,11 @@ QUOTE_CAT['DJ'] = { products: [
   ...Object.values(dj.equipment||{}).filter(p=>p.slug&&p.price).map(qp),
   ...(dj.packages||[]).filter(p=>p.artno&&p.price).map(p=>({artno:p.artno,name:p.name,price:p.price}))
 ]};
+
+// Karaoke
+QUOTE_CAT['Karaoke'] = { products:
+  (karaoke.packages||[]).filter(p=>p.artno&&p.price).map(p=>({artno:p.artno,name:p.name,price:p.price}))
+};
 
 // Bild
 QUOTE_CAT['Bild'] = { sub: {
