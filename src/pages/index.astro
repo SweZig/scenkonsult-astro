@@ -3,63 +3,13 @@ import Layout from '../layouts/Layout.astro';
 
 const homeSchema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": ["LocalBusiness", "EventVenue"],
-      "@id": "https://scenkonsult.se/#business",
-      "name": "Scenkonsult Norden",
-      "alternateName": "Sigvardsson Consulting Group AB",
-      "description": "Uthyrning av scen, ljud, ljus, bild och DJ-utrustning för event, bröllop, konserter och festival i Stockholm. Leverans och montering sedan 1986.",
-      "url": "https://scenkonsult.se/",
-      "telephone": "+46724481000",
-      "email": "info@scenkonsult.se",
-      "vatID": "SE559068493101",
-      "foundingDate": "1986",
-      "priceRange": "$$",
-      "areaServed": { "@type": "City", "name": "Stockholm" },
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Grimstagatan 164",
-        "postalCode": "162 58",
-        "addressLocality": "Vällingby",
-        "addressRegion": "Stockholm",
-        "addressCountry": "SE"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 59.3636,
-        "longitude": 17.8517
-      },
-      "openingHoursSpecification": [
-        { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "09:00", "closes": "17:00" }
-      ],
-      "sameAs": [
-        "https://www.facebook.com/scenkonsult1",
-        "https://www.instagram.com/scenkonsult"
-      ],
-      "hasOfferCatalog": {
-        "@type": "OfferCatalog",
-        "name": "Uthyrning av scenproduktionsutrustning",
-        "itemListElement": [
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra scen", "url": "https://scenkonsult.se/vara-tjanster/hyra-scen/" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra ljud", "url": "https://scenkonsult.se/vara-tjanster/hyra-ljud/" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra ljus", "url": "https://scenkonsult.se/vara-tjanster/hyra-ljus/" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra projektor och skärm", "url": "https://scenkonsult.se/vara-tjanster/hyra-bild-projektorer-skarmar/" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra LED-vägg", "url": "https://scenkonsult.se/vara-tjanster/hyra-bild-led-vagg/" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Hyra DJ", "url": "https://scenkonsult.se/vara-tjanster/hyra-dj/" } }
-        ]
-      }
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        { "@type": "Question", "name": "Vad kan man hyra av Scenkonsult Norden?", "acceptedAnswer": { "@type": "Answer", "text": "Vi hyr ut scen, ljud (PA-system), ljus (LED PAR, moving heads, laser), bild (projektorer och LED-skärmar) och DJ-utrustning. Vi erbjuder även kompletta event-paket med leverans och montering i hela Storstockholm." } },
-        { "@type": "Question", "name": "Var i Stockholm levererar Scenkonsult?", "acceptedAnswer": { "@type": "Answer", "text": "Vi levererar inom ca 4 mils radie från Vällingby — det täcker hela Storstockholm inklusive Solna, Sundbyberg, Nacka, Huddinge, Täby och angränsande kommuner. Längre transporter offerteras separat." } },
-        { "@type": "Question", "name": "Hur lång är hyresperioden?", "acceptedAnswer": { "@type": "Answer", "text": "Normal hyresperiod är 22 timmar — hämtning eller leverans kl 13:00 och återlämning kl 11:00 påföljande dag. Längre perioder kan arrangeras mot tillägg." } },
-        { "@type": "Question", "name": "Vad kostar leverans av utrustning?", "acceptedAnswer": { "@type": "Answer", "text": "Leverans med vanlig bil kostar 1 118 kr tur och retur. Bil med släpvagn för skrymmande utrustning kostar 1 598 kr. Lastbil offerteras separat. Priser exkl. moms." } },
-        { "@type": "Question", "name": "Sedan när har Scenkonsult Norden funnits?", "acceptedAnswer": { "@type": "Answer", "text": "Scenkonsult Norden grundades 1986 och har sedan dess levererat scen, ljud och ljus till hundratals event per år i Storstockholm." } }
-      ]
-    }
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad kan man hyra av Scenkonsult Norden?", "acceptedAnswer": { "@type": "Answer", "text": "Vi hyr ut scen, ljud (PA-system), ljus (LED PAR, moving heads, laser), bild (projektorer och LED-skärmar) och DJ-utrustning. Vi erbjuder även kompletta event-paket med leverans och montering i hela Storstockholm." } },
+    { "@type": "Question", "name": "Var i Stockholm levererar Scenkonsult?", "acceptedAnswer": { "@type": "Answer", "text": "Vi levererar inom ca 4 mils radie från Vällingby — det täcker hela Storstockholm inklusive Solna, Sundbyberg, Nacka, Huddinge, Täby och angränsande kommuner. Längre transporter offerteras separat." } },
+    { "@type": "Question", "name": "Hur lång är hyresperioden?", "acceptedAnswer": { "@type": "Answer", "text": "Normal hyresperiod är 22 timmar — hämtning eller leverans kl 13:00 och återlämning kl 11:00 påföljande dag. Längre perioder kan arrangeras mot tillägg." } },
+    { "@type": "Question", "name": "Vad kostar leverans av utrustning?", "acceptedAnswer": { "@type": "Answer", "text": "Leverans med vanlig bil kostar 1 118 kr tur och retur. Bil med släpvagn för skrymmande utrustning kostar 1 598 kr. Lastbil offerteras separat. Priser exkl. moms." } },
+    { "@type": "Question", "name": "Sedan när har Scenkonsult Norden funnits?", "acceptedAnswer": { "@type": "Answer", "text": "Scenkonsult Norden grundades 1986 och har sedan dess levererat scen, ljud och ljus till hundratals event per år i Storstockholm." } }
   ]
 };
 ---

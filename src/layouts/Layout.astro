@@ -80,8 +80,11 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 const localBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
+  "@id": "https://scenkonsult.se/#business",
   "name": "Scenkonsult Norden",
   "legalName": "Sigvardsson Consulting Group",
+  "alternateName": "Sigvardsson Consulting Group AB",
+  "vatID": "SE559068493101",
   "url": "https://scenkonsult.se",
   "telephone": "+46724481000",
   "email": "info@scenkonsult.se",
@@ -127,7 +130,9 @@ const localBusinessSchema = {
     ]
   },
   "sameAs": [
-    "https://www.google.com/maps/search/Scenkonsult+Norden"
+    "https://www.google.com/maps/search/Scenkonsult+Norden",
+    "https://www.facebook.com/scenkonsult1",
+    "https://www.instagram.com/scenkonsult"
   ],
   ...(googleReviewsCache && typeof googleReviewsCache.rating === 'number' && typeof googleReviewsCache.count === 'number' && googleReviewsCache.count > 0 ? {
     "aggregateRating": {
