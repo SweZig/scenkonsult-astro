@@ -21,7 +21,7 @@ const pageSchema = {
       "@type": "Product",
       "name": `${p.name} – ${p.size}`,
       "description": p.description,
-      "image": `https://scenkonsult.se${p.image}`,
+      "image": `https://scenkonsult.se${p.image || '/images/hero/scen3_hero.webp'}`,
       "brand": { "@type": "Brand", "name": "Scenkonsult Norden" },
       "offers": {
         "@type": "Offer",
@@ -31,6 +31,24 @@ const pageSchema = {
         "availability": "https://schema.org/InStock",
         "seller": { "@type": "Organization", "name": "Scenkonsult Norden" },
         "url": `https://scenkonsult.se/vara-tjanster/hyra-scen/#${p.id}`,
+        "shippingDetails": {
+          "@type": "OfferShippingDetails",
+          "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "SE" },
+          "shippingRate": { "@type": "MonetaryAmount", "currency": "SEK", "value": "0" },
+          "deliveryTime": {
+            "@type": "ShippingDeliveryTime",
+            "handlingTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY" },
+            "transitTime": { "@type": "QuantitativeValue", "minValue": 0, "maxValue": 1, "unitCode": "DAY" }
+          }
+        },
+        "hasMerchantReturnPolicy": {
+          "@type": "MerchantReturnPolicy",
+          "applicableCountry": "SE",
+          "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+          "merchantReturnDays": 1,
+          "returnMethod": "https://schema.org/ReturnInStore",
+          "returnFees": "https://schema.org/FreeReturn"
+        }
       }
     }
   }))

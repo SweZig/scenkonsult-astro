@@ -117,8 +117,9 @@ const faqSchema = {
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col"
           itemscope itemtype="https://schema.org/Product">
           <meta itemprop="name" content={p.name} />
-          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : ''} />
+          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
           <meta itemprop="brand" content="Shure" />
+          <meta itemprop="description" content={p.description ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
           <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
             <img src={p.image} alt={p.name} width="512" height="427" loading="lazy"
               class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -136,7 +137,36 @@ const faqSchema = {
               itemprop="offers" itemscope itemtype="https://schema.org/Offer">
               <meta itemprop="priceCurrency" content="SEK" />
               <meta itemprop="price" content={String(p.price)} />
+              <meta itemprop="priceValidUntil" content="2027-12-31" />
               <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+                <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
+                  <meta itemprop="addressCountry" content="SE" />
+                </div>
+                <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
+                  <meta itemprop="currency" content="SEK" />
+                  <meta itemprop="value" content="0" />
+                </div>
+                <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                  <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                    <meta itemprop="minValue" content="0" />
+                    <meta itemprop="maxValue" content="1" />
+                    <meta itemprop="unitCode" content="DAY" />
+                  </div>
+                  <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                    <meta itemprop="minValue" content="0" />
+                    <meta itemprop="maxValue" content="1" />
+                    <meta itemprop="unitCode" content="DAY" />
+                  </div>
+                </div>
+              </div>
+              <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+                <meta itemprop="applicableCountry" content="SE" />
+                <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
+                <meta itemprop="merchantReturnDays" content="1" />
+                <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
+                <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
+              </div>
               <div>
                 <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price.toLocaleString('sv-SE')} kr</span>
                 <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
@@ -155,7 +185,9 @@ const faqSchema = {
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col"
           itemscope itemtype="https://schema.org/Product">
           <meta itemprop="name" content={p.name} />
-          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : ''} />
+          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
+          <meta itemprop="brand" content="Scenkonsult Norden" />
+          <meta itemprop="description" content={p.description ?? p.desc ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
           <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
             <img src={p.image} alt={p.name} width="512" height="427" loading="lazy"
               class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -172,7 +204,36 @@ const faqSchema = {
               itemprop="offers" itemscope itemtype="https://schema.org/Offer">
               <meta itemprop="priceCurrency" content="SEK" />
               <meta itemprop="price" content={String(p.price)} />
+              <meta itemprop="priceValidUntil" content="2027-12-31" />
               <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+                <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
+                  <meta itemprop="addressCountry" content="SE" />
+                </div>
+                <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
+                  <meta itemprop="currency" content="SEK" />
+                  <meta itemprop="value" content="0" />
+                </div>
+                <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                  <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                    <meta itemprop="minValue" content="0" />
+                    <meta itemprop="maxValue" content="1" />
+                    <meta itemprop="unitCode" content="DAY" />
+                  </div>
+                  <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                    <meta itemprop="minValue" content="0" />
+                    <meta itemprop="maxValue" content="1" />
+                    <meta itemprop="unitCode" content="DAY" />
+                  </div>
+                </div>
+              </div>
+              <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+                <meta itemprop="applicableCountry" content="SE" />
+                <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
+                <meta itemprop="merchantReturnDays" content="1" />
+                <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
+                <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
+              </div>
               <div>
                 <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price.toLocaleString('sv-SE')} kr</span>
                 <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
@@ -240,6 +301,9 @@ const faqSchema = {
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl p-4 transition-all group flex flex-col"
           itemscope itemtype="https://schema.org/Product">
           <meta itemprop="name" content={p.name} />
+          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
+          <meta itemprop="brand" content="Scenkonsult Norden" />
+          <meta itemprop="description" content={p.description ?? p.desc ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
           <div class="bg-brand-dark rounded-lg overflow-hidden mb-3" style="aspect-ratio:1024/853">
             <img src={p.image} alt={p.name} width="256" height="214" loading="lazy"
               class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
@@ -249,6 +313,36 @@ const faqSchema = {
             itemprop="offers" itemscope itemtype="https://schema.org/Offer">
             <meta itemprop="priceCurrency" content="SEK" />
             <meta itemprop="price" content={String(p.price)} />
+            <meta itemprop="priceValidUntil" content="2027-12-31" />
+            <meta itemprop="availability" content="https://schema.org/InStock" />
+            <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+              <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
+                <meta itemprop="addressCountry" content="SE" />
+              </div>
+              <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
+                <meta itemprop="currency" content="SEK" />
+                <meta itemprop="value" content="0" />
+              </div>
+              <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                  <meta itemprop="minValue" content="0" />
+                  <meta itemprop="maxValue" content="1" />
+                  <meta itemprop="unitCode" content="DAY" />
+                </div>
+                <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                  <meta itemprop="minValue" content="0" />
+                  <meta itemprop="maxValue" content="1" />
+                  <meta itemprop="unitCode" content="DAY" />
+                </div>
+              </div>
+            </div>
+            <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+              <meta itemprop="applicableCountry" content="SE" />
+              <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
+              <meta itemprop="merchantReturnDays" content="1" />
+              <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
+              <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
+            </div>
             <div>
               <span class="sk-price-excl text-brand-orange font-bold text-sm">{p.price} kr</span>
               <span class="sk-price-incl hidden text-brand-orange font-bold text-sm">{Math.round(p.price*1.25)} kr</span>

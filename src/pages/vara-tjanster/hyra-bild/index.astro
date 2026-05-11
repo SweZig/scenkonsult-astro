@@ -108,7 +108,7 @@ const extraFaq = [
           <meta itemprop="brand" content="Scenkonsult Norden" />
           <meta itemprop="description" content={p.description ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
           <div class="aspect-video bg-brand-dark overflow-hidden">
-            <img src={p.image} alt={p.alt ?? p.name} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" itemprop="image" />
+            <img src={p.image} alt={p.alt ?? p.name} width="400" height="225" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
             <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
           </div>
           <div class="p-5">
@@ -124,6 +124,27 @@ const extraFaq = [
               <meta itemprop="price" content={String(p.price)} />
               <meta itemprop="priceValidUntil" content="2027-12-31" />
               <meta itemprop="availability" content="https://schema.org/InStock" />
+              <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+                <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
+                  <meta itemprop="addressCountry" content="SE" />
+                </div>
+                <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
+                  <meta itemprop="currency" content="SEK" />
+                  <meta itemprop="value" content="0" />
+                </div>
+                <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                  <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                    <meta itemprop="minValue" content="0" />
+                    <meta itemprop="maxValue" content="1" />
+                    <meta itemprop="unitCode" content="DAY" />
+                  </div>
+                  <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                    <meta itemprop="minValue" content="0" />
+                    <meta itemprop="maxValue" content="1" />
+                    <meta itemprop="unitCode" content="DAY" />
+                  </div>
+                </div>
+              </div>
               <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
                 <meta itemprop="applicableCountry" content="SE" />
                 <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
