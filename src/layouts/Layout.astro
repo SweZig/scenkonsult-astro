@@ -3,6 +3,7 @@ import '../styles/global.css';
 import InlineEditor from '../components/InlineEditor.astro';
 import Tel from '../components/Tel.astro';
 import Mail from '../components/Mail.astro';
+import googleReviewsCache from '../data/google-reviews-cache.json';
 
 // ── Bygg SVEN_PRODUCTS från JSON-filer (auto-synkad vid varje deploy) ──
 import scenesJson from '../data/scenes.json';
@@ -127,7 +128,16 @@ const localBusinessSchema = {
   },
   "sameAs": [
     "https://www.google.com/maps/search/Scenkonsult+Norden"
-  ]
+  ],
+  ...(googleReviewsCache && typeof googleReviewsCache.rating === 'number' && typeof googleReviewsCache.count === 'number' && googleReviewsCache.count > 0 ? {
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": googleReviewsCache.rating,
+      "reviewCount": googleReviewsCache.count,
+      "bestRating": 5,
+      "worstRating": 1
+    }
+  } : {})
 };
 
 ---
