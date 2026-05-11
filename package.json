@@ -8,7 +8,8 @@
     "preview": "astro preview",
     "minify-sven": "terser public/sven-widget.src.js --compress passes=2 --mangle --format comments=false --output public/sven-widget.js",
     "fetch-reviews": "node scripts/fetch-google-reviews-buildtime.mjs",
-    "prebuild": "npm run minify-sven && npm run fetch-reviews"
+    "prebuild": "npm run minify-sven && npm run fetch-reviews && npm run generate-excel",
+    "generate-excel": "node generate-excel.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.2.0",
@@ -17,7 +18,8 @@
     "pdfkit": "^0.18.0",
     "pdfmake": "^0.3.7",
     "qrcode": "^1.5.4",
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^3.4.14",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "sharp": "^0.34.5",
