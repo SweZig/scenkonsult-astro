@@ -9,7 +9,7 @@ const stairs = (scenData.tillbehor || []).filter(t =>
 );
 const skirt = (scenData.tillbehor || []).find(t => t.artno === 'SK-SCN-ACC-0003');
 const railSegments = (scenData.tillbehor || []).filter(t =>
-  ['SK-SCN-ACC-0005', 'SK-SCN-ACC-0007'].includes(t.artno)
+  ['SK-SCN-ACC-0006', 'SK-SCN-ACC-0007'].includes(t.artno)
 );
 
 const fraktOptions = {
@@ -422,18 +422,18 @@ const configData = {
       if (state.railMode === 'custom') {
         const stairSet = new Set(state.stairPositions.slice(0, state.stairCount));
         const railSidesValid = SIDES.filter(s => state.rail[s] && !stairSet.has(s));
-        const railTotals = { 'SK-SCN-ACC-0007': 0, 'SK-SCN-ACC-0005': 0 };
+        const railTotals = { 'SK-SCN-ACC-0007': 0, 'SK-SCN-ACC-0006': 0 };
         railSidesValid.forEach(side => {
           const len = sideLengthMeters(side);
           const packed = packRail(len);
           railTotals['SK-SCN-ACC-0007'] += packed.count20;
-          railTotals['SK-SCN-ACC-0005'] += packed.count10;
+          railTotals['SK-SCN-ACC-0006'] += packed.count10;
         });
         if (railTotals['SK-SCN-ACC-0007'] > 0) {
           lines.push({ artno: 'SK-SCN-ACC-0007', name: `${prefix} Skyddsräcke 2,0 m`, price: 280, qty: railTotals['SK-SCN-ACC-0007'], category: 'Scen' });
         }
-        if (railTotals['SK-SCN-ACC-0005'] > 0) {
-          lines.push({ artno: 'SK-SCN-ACC-0005', name: `${prefix} Skyddsräcke 1,0 m`, price: 140, qty: railTotals['SK-SCN-ACC-0005'], category: 'Scen' });
+        if (railTotals['SK-SCN-ACC-0006'] > 0) {
+          lines.push({ artno: 'SK-SCN-ACC-0006', name: `${prefix} Skyddsräcke 1,0 m`, price: 140, qty: railTotals['SK-SCN-ACC-0006'], category: 'Scen' });
         }
       }
 
