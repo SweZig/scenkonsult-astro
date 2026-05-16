@@ -9,7 +9,7 @@
  * eller annan formattering i lead-texten.
  */
 interface Props {
-  eyebrow: string;          // "Snabbval"
+  eyebrow?: string;         // "Snabbval" (optional — utelämnas där hero redan har eyebrow nära)
   h2: string;               // "Färdiga scenpaket"
   lead?: string;            // Vanlig text
   leadHtml?: string;        // Alternativt: HTML-text (set:html)
@@ -30,7 +30,7 @@ const {
 ---
 
 <div class="sh-header" id={id} style={`margin-bottom:${marginBottom}`}>
-  <p class="sh-eyebrow">{eyebrow}</p>
+  {eyebrow && <p class="sh-eyebrow">{eyebrow}</p>}
   <h2 class="sh-h2">{h2}</h2>
   {leadHtml ? (
     <p class="sh-lead" style={`max-width:${maxWidth}`} set:html={leadHtml} />
