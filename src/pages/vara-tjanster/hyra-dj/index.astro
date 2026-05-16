@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
 import CartButton from '../../../components/CartButton.astro';
 import MediaCard from '../../../components/MediaCard.astro';
 import dj from '../../../data/dj.json';
@@ -101,12 +102,12 @@ const faqSchema = {
   <!-- HYR PROFESSIONELL DJ — omstrukturerad, full-width -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <div class="mb-6">
-      <h2 class="text-2xl font-bold text-white mb-2">Hyr professionell DJ</h2>
-      <p class="text-gray-400 text-sm max-w-2xl">
-        Vi har ett 10-tal professionella DJs med mångårig erfarenhet från nattklubbar, bröllop och företagsevent.
-        Spelar 70/80/90/00/10/20-tals musik i alla genre. Kvällen utformas i samråd med er —
-        beskriv ditt behov så matchar vi rätt profil.
-      </p>
+      <SectionHeader
+        eyebrow="DJ-tjänst"
+        h2="Hyr professionell DJ"
+        lead="Vi har ett 10-tal professionella DJs med mångårig erfarenhet från nattklubbar, bröllop och företagsevent. Spelar 70/80/90/00/10/20-tals musik i alla genrer. Kvällen utformas i samråd med er — beskriv ditt behov så matchar vi rätt profil."
+        marginBottom="0.5rem"
+      />
       <p class="text-gray-500 text-xs mt-2">
         DJ-hårdvara ingår. Resa, scen, ljud och ljus tillkommer. ¹Digital utrustning kräver internetanslutning på plats.
       </p>
@@ -177,8 +178,11 @@ const faqSchema = {
   <!-- DJ-PAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <div class="mb-6">
-      <h2 class="text-2xl font-bold text-white mb-2">Kompletta DJ-paket</h2>
-      <p class="text-gray-400 text-sm">DJ + ljud + ljus i ett paket. 3 timmars speltid ingår. Resa tillkommer.</p>
+      <SectionHeader
+        eyebrow="Paket"
+        h2="Kompletta DJ-paket"
+        lead="DJ + ljud + ljus i ett paket. 3 timmars speltid ingår. Resa tillkommer."
+      />
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {dj.packages.map((pkg, i) => (
@@ -218,8 +222,11 @@ const faqSchema = {
   <!-- VÅRA DJs — profilkort med genretaggar -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <div class="mb-6">
-      <h2 class="text-2xl font-bold text-white mb-2">Våra DJs</h2>
-      <p class="text-gray-400 text-sm">Ett urval ur vår DJ-databas. Vi har fler profiler — beskriv ditt behov så matchar vi rätt.</p>
+      <SectionHeader
+        eyebrow="Teamet"
+        h2="Våra DJs"
+        lead="Ett urval ur vår DJ-databas. Vi har fler profiler — beskriv ditt behov så matchar vi rätt."
+      />
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {dj.djProfiles.map(profile => (
@@ -286,8 +293,12 @@ const faqSchema = {
 
   <!-- MUSIK PER DECENNIUM & GENRE -->
   <section id="musik-genrer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <h2 class="text-2xl font-bold text-white mb-2">Musik per decennium & genre</h2>
-    <p class="text-gray-400 text-sm mb-6">Vi spelar hela spannet — från klassiska decennier till specialgenrer som Italo Disco, Schlager och Dansband.</p>
+    <SectionHeader
+      eyebrow="Musikbibliotek"
+      h2="Musik per decennium & genre"
+      lead="Vi spelar hela spannet — från klassiska decennier till specialgenrer som Italo Disco, Schlager och Dansband."
+      marginBottom="1.5rem"
+    />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {dj.decades.map((d) => (
         <div class="bg-brand-navy border border-white/10 rounded-2xl p-5 hover:border-brand-orange/40 transition-colors border-l-2 border-l-brand-orange/60">
@@ -304,14 +315,11 @@ const faqSchema = {
 
   <!-- HYR DJ-UTRUSTNING -->
   <section id="dj-utrustning" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-white mb-2">Hyr DJ-utrustning</h2>
-      <p class="text-gray-400 text-sm max-w-2xl">
-        Vill du mixa själv? Vi hyr ut professionella DJ-controllers från Numark och Denon —
-        från kompakta modeller för hemfesten till full standalone-setup för stora event.
-        Borden passar ihop med alla controllers och ger en komplett DJ-station på plats.
-      </p>
-    </div>
+    <SectionHeader
+      eyebrow="Utrustning"
+      h2="Hyr DJ-utrustning"
+      lead="Vill du mixa själv? Vi hyr ut professionella DJ-controllers från Numark och Denon — från kompakta modeller för hemfesten till full standalone-setup för stora event. Borden passar ihop med alla controllers och ger en komplett DJ-station på plats."
+    />
 
     <!-- Controllers — 2 per rad, större kort -->
     <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">DJ-controllers</h3>
@@ -350,7 +358,11 @@ const faqSchema = {
 
   <!-- FAQ -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6">Vanliga frågor om DJ-uthyrning</h2>
+    <SectionHeader
+      eyebrow="Vanliga frågor"
+      h2="Vanliga frågor om DJ-uthyrning"
+      marginBottom="1.5rem"
+    />
     <div class="space-y-3">
       {dj.faq.map(f => (
         <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
