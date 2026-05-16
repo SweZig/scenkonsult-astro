@@ -1,0 +1,166 @@
+---
+/**
+ * ModernHero — Premium hero-banner för produktsidor (LED-stil)
+ * Eyebrow + DM Serif h1 + intro + pris/feature-chips
+ *
+ * Ersätter den äldre CategoryHero (✓-badges) på sidor som vill ha mer
+ * redaktionell stil. Båda kan samexistera.
+ *
+ * Chips kan vara:
+ *  - String: rendrad som vanlig text
+ *  - { html: string }: rendrad via set:html för att tillåta moms-toggle
+ *    spans (.sk-price-excl / .sk-price-incl) eller andra interaktiva element
+ */
+interface Breadcrumb {
+  label: string;
+  href?: string;
+}
+
+interface ChipHtml {
+  html: string;
+}
+
+interface Props {
+  eyebrow?: string;           // "Scen · Modulär plattform"
+  h1: string;                 // "Hyra scen i"
+  h1Accent?: string;          // "Stockholm" — visas i italic lavendel
+  intro?: string;
+  chips?: Array<string | ChipHtml>;
+  breadcrumbs?: Breadcrumb[];
+  maxWidth?: string;          // default "920px"
+}
+
+const {
+  eyebrow,
+  h1,
+  h1Accent,
+  intro,
+  chips = [],
+  breadcrumbs = [],
+  maxWidth = '920px',
+} = Astro.props;
+---
+
+<div class="mh-wrap">
+  <div class="mh-inner" style={`max-width:${maxWidth}`}>
+    {breadcrumbs.length > 0 && (
+      <nav aria-label="Brödsmulor" class="mh-breadcrumb">
+        <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+          {breadcrumbs.map((crumb, i) => (
+            <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              {crumb.href
+                ? <a href={crumb.href} itemprop="item"><span itemprop="name">{crumb.label}</span></a>
+                : <span itemprop="name">{crumb.label}</span>
+              }
+              <meta itemprop="position" content={String(i + 1)} />
+              {i < breadcrumbs.length - 1 && <span class="mh-sep" aria-hidden="true">/</span>}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )}
+
+    {eyebrow && <p class="mh-eyebrow">{eyebrow}</p>}
+
+    <h1 class="mh-h1">
+      {h1}{h1Accent && <> <span class="mh-accent">{h1Accent}</span></>}
+    </h1>
+
+    {intro && <p class="mh-intro">{intro}</p>}
+
+    {chips.length > 0 && (
+      <div class="mh-chips">
+        {chips.map(chip => (
+          typeof chip === 'string'
+            ? <span class="mh-chip">{chip}</span>
+            : <span class="mh-chip" set:html={chip.html} />
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
+<style>
+  .mh-wrap {
+    background: linear-gradient(135deg, #1e1850 0%, #0c0a24 60%);
+    padding-top: calc(36px + 130px + clamp(2rem, 4vw, 3.5rem));
+    padding-bottom: clamp(2.5rem, 5vw, 4rem);
+    padding-inline: clamp(1rem, 5vw, 5rem);
+    position: relative;
+    overflow: hidden;
+  }
+  @media (max-width: 768px) {
+    .mh-wrap { padding-top: calc(32px + 100px + clamp(2rem, 4vw, 3.5rem)); }
+  }
+
+  .mh-inner {
+    position: relative;
+    z-index: 2;
+    margin: 0 auto;
+  }
+
+  .mh-breadcrumb { margin-bottom: 1.5rem; }
+  .mh-breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.60);
+  }
+  .mh-breadcrumb a {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .mh-breadcrumb a:hover { color: rgba(255,255,255,0.9); }
+  .mh-sep { opacity: 0.3; margin: 0 0.15rem; }
+
+  .mh-eyebrow {
+    color: #c4b5f4;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+  }
+
+  .mh-h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1.1;
+    color: white;
+    margin: 0 0 1rem;
+  }
+  .mh-accent {
+    color: #c4b5f4;
+    font-style: italic;
+  }
+
+  .mh-intro {
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    color: rgba(255,255,255,0.6);
+    line-height: 1.75;
+    margin: 0 0 1.25rem;
+  }
+
+  .mh-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .mh-chip {
+    background: rgba(196,181,244,0.12);
+    color: #c4b5f4;
+    padding: 0.35rem 0.75rem;
+    border-radius: 99px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(196,181,244,0.25);
+  }
+</style>

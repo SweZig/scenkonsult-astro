@@ -2,7 +2,7 @@
 import Price from '../../../components/Price.astro';
 import CartButton from '../../../components/CartButton.astro';
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import ljusData from '../../../data/ljus.json';
 
 const pageSchema = {
@@ -35,8 +35,9 @@ const faqSchema = {
 
 <Layout title={ljusData.metaTitle} description={ljusData.metaDescription} schemaExtra={[pageSchema, faqSchema]}>
 
-  <CategoryHero
-    h1="Hyra ljus"
+  <ModernHero
+    eyebrow="Ljus · Effekt & atmosfär"
+    h1="Hyra ljus i"
     h1Accent="Stockholm"
     intro={ljusData.intro}
     breadcrumbs={[
@@ -44,11 +45,12 @@ const faqSchema = {
       { label: "Våra tjänster", href: "/vara-tjanster/" },
       { label: "Hyra ljus" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">399 kr</span><span class="sk-price-incl hidden">499 kr</span> / dygn' },
       "Färdiga paket – plug & play",
       "DMX & automatiska program",
       "Tekniker tillgänglig",
-      "Leverans i Storstockholm"
+      "Leverans i Storstockholm",
     ]}
   />
 

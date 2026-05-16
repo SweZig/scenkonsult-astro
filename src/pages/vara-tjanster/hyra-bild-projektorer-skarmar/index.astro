@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import CartButton from '../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
@@ -22,23 +22,24 @@ const faqSchema = {
   description="Hyr projektor, storbildsskärm, LED-vägg och trailerscen för event och konferenser i Stockholm. Projektor fr 299 kr/dygn. Leverans i hela Storstockholm."
 >
 
-  <CategoryHero
-    h1="Hyr Projektor & Skärm"
+  <ModernHero
+    eyebrow="Bild · Projektor & skärm"
+    h1="Hyr projektor & skärm i"
     h1Accent="Stockholm"
-    intro="Hyr projektor, storbildsskärm eller moduluppbyggd LED-vägg för konferens, presentation och event i Stockholm. Vi levererar hela lösningen med stativ, duk och kablar. Transport och montering finns som tilläggstjänst."
+    intro="Hyr projektor, storbildsskärm eller moduluppbyggd LED-vägg för konferens, presentation och event i Stockholm. Vi levererar hela lösningen med stativ, duk och kablar. Transport och montering tillkommer separat."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Våra tjänster", href: "/vara-tjanster/" },
       { label: "Hyra bild", href: "/vara-tjanster/hyra-bild/" },
       { label: "Projektor & skärm" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">299 kr</span><span class="sk-price-incl hidden">374 kr</span> / dygn' },
       "3 500–12 000 ANSI lumen",
       "Full HD och 4K",
       "LED-vägg & trailerscen",
-      "Leverans i Storstockholm"
+      "Leverans i Storstockholm",
     ]}
-    priceFrom={299}
   />
 
   <!-- PROJEKTORER -->

@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import CartButton from '../../../components/CartButton.astro';
 import MediaCard from '../../../components/MediaCard.astro';
 import dj from '../../../data/dj.json';
@@ -21,8 +21,9 @@ const faqSchema = {
   description={dj.metaDescription}
 >
 
-  <CategoryHero
-    h1="Hyr DJ eller DJ-utrustning"
+  <ModernHero
+    eyebrow="DJ · Spelar & utrustning"
+    h1="Hyr DJ eller DJ-utrustning i"
     h1Accent="Stockholm"
     intro={dj.intro}
     breadcrumbs={[
@@ -30,13 +31,12 @@ const faqSchema = {
       { label: "Våra tjänster", href: "/vara-tjanster/" },
       { label: "Hyr DJ" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">1 999 kr</span><span class="sk-price-incl hidden">2 499 kr</span> / 2 tim' },
       "10+ professionella DJs",
-      "Alla genrer",
-      "70-tal till idag"
+      "Alla genrer — 70-tal till idag",
+      "Pioneer & Numark/Denon/Rane",
     ]}
-    priceFrom={1999}
-    priceSuffix="/2 tim"
   />
 
   <!-- Snabbnavigation -->

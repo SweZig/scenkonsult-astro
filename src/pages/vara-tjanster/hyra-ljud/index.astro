@@ -2,7 +2,7 @@
 import Price from '../../../components/Price.astro';
 import CartButton from '../../../components/CartButton.astro';
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import ljudData from '../../../data/ljud.json';
 
 const faqSchema = {
@@ -33,8 +33,9 @@ const extraFaq = [
 
 <Layout title={ljudData.metaTitle} description={ljudData.metaDescription} schemaExtra={faqSchema}>
 
-  <CategoryHero
-    h1="Hyra Ljud"
+  <ModernHero
+    eyebrow="Ljud · PA & högtalare"
+    h1="Hyra ljud i"
     h1Accent="Stockholm"
     intro={ljudData.intro}
     breadcrumbs={[
@@ -42,13 +43,13 @@ const extraFaq = [
       { label: "Våra tjänster", href: "/vara-tjanster/" },
       { label: "Hyra ljud" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">499 kr</span><span class="sk-price-incl hidden">624 kr</span> / dygn' },
       "PA för 1–2 000 personer",
       "Testkört och kalibrerat",
       "Tekniker tillgänglig",
-      "Leverans i hela Storstockholm"
+      "Leverans i Storstockholm",
     ]}
-    priceFrom={499}
   />
 
   <!-- KATEGORI-GRID -->

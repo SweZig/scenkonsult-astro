@@ -1,0 +1,70 @@
+---
+/**
+ * SectionHeader — Eyebrow + DM Serif h2 + lead för sektionsrubriker
+ *
+ * Standardiserar sektionsrubriker på produktsidor så de matchar premium-
+ * stilen (samma typografi som ModernHero h1 men i mindre storlek).
+ *
+ * Lead-prop kan ta HTML (set:html) om man behöver fetstil, lavendel-länk
+ * eller annan formattering i lead-texten.
+ */
+interface Props {
+  eyebrow: string;          // "Snabbval"
+  h2: string;               // "Färdiga scenpaket"
+  lead?: string;            // Vanlig text
+  leadHtml?: string;        // Alternativt: HTML-text (set:html)
+  id?: string;              // För scroll-target
+  maxWidth?: string;        // default "760px" för lead-textens bredd
+  marginBottom?: string;    // default "2rem"
+}
+
+const {
+  eyebrow,
+  h2,
+  lead,
+  leadHtml,
+  id,
+  maxWidth = '760px',
+  marginBottom = '2rem',
+} = Astro.props;
+---
+
+<div class="sh-header" id={id} style={`margin-bottom:${marginBottom}`}>
+  <p class="sh-eyebrow">{eyebrow}</p>
+  <h2 class="sh-h2">{h2}</h2>
+  {leadHtml ? (
+    <p class="sh-lead" style={`max-width:${maxWidth}`} set:html={leadHtml} />
+  ) : lead ? (
+    <p class="sh-lead" style={`max-width:${maxWidth}`}>{lead}</p>
+  ) : null}
+</div>
+
+<style>
+  .sh-header { scroll-margin-top: 180px; }
+  .sh-eyebrow {
+    color: #c4b5f4;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+  }
+  .sh-h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    color: white;
+    margin: 0 0 0.75rem;
+    line-height: 1.2;
+  }
+  .sh-lead {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin: 0;
+  }
+  .sh-lead :global(strong) {
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+  }
+</style>

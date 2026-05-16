@@ -1,7 +1,7 @@
 ---
 import CartButton from '../../../components/CartButton.astro';
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import bildData from '../../../data/bild.json';
 
 const faqSchema = {
@@ -30,8 +30,9 @@ const extraFaq = [
 
 <Layout title={bildData.metaTitle} description={bildData.metaDescription} schemaExtra={faqSchema}>
 
-  <CategoryHero
-    h1="Hyra Bild"
+  <ModernHero
+    eyebrow="Bild · Projektion & skärm"
+    h1="Hyra bild i"
     h1Accent="Stockholm"
     intro={bildData.intro}
     breadcrumbs={[
@@ -39,13 +40,13 @@ const extraFaq = [
       { label: "Våra tjänster", href: "/vara-tjanster/" },
       { label: "Hyra bild" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">299 kr</span><span class="sk-price-incl hidden">374 kr</span> / dygn' },
       "Projektor 3 500–12 000 ANSI",
       "Skärmar 65–85\" 4K",
       "LED-vägg & mobil LED-trailer",
-      "Leverans i hela Storstockholm"
+      "Leverans i Storstockholm",
     ]}
-    priceFrom={299}
   />
 
   <!-- KATEGORI-GRID -->

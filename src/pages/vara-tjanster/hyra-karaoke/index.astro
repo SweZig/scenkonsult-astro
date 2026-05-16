@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import CartButton from '../../../components/CartButton.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import karaoke from '../../../data/karaoke.json';
@@ -50,8 +50,9 @@ const tillbehor = karaoke.tillbehor
   description={karaoke.metaDescription}
 >
 
-  <CategoryHero
-    h1="Hyr karaoke-utrustning"
+  <ModernHero
+    eyebrow="Karaoke · Singa-integration"
+    h1="Hyr karaoke-utrustning i"
     h1Accent="Stockholm"
     intro={karaoke.intro}
     breadcrumbs={[
@@ -59,13 +60,13 @@ const tillbehor = karaoke.tillbehor
       { label: "Våra tjänster", href: "/vara-tjanster/" },
       { label: "Hyr karaoke-utrustning" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">699 kr</span><span class="sk-price-incl hidden">874 kr</span> / dygn' },
       "6 färdiga paket",
       "Trådlösa mikar",
-      "Sångtexter på skärm"
+      "80 000+ låtar via Singa",
+      "Sångtexter på skärm",
     ]}
-    priceFrom={699}
-    priceSuffix="/dygn"
   />
 
   <!-- Snabbnavigation -->
