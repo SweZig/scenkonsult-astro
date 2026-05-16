@@ -700,6 +700,40 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     /* Bands-area inom varje dagscell — extends utanför cellpaddning så banden möts kant-i-kant */
     .cal-bands { position: relative; margin: 0 -0.4rem; min-height: 4px; }
 
+    /* Färg-legend ovanför kalender-grid */
+    .cal-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 1.25rem;
+      padding: 0 1.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .cal-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+    }
+    .cal-legend-dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid;
+      flex-shrink: 0;
+    }
+    .cal-legend-hint {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: var(--text-faint);
+      font-style: italic;
+    }
+    @media (max-width: 700px) {
+      .cal-legend-hint { display: none; }
+    }
+
     /* Bokningsband — flygbokningsstil. Varje booking fyller en "lane" i Y-led */
     .cal-band {
       position: absolute;
@@ -959,6 +993,17 @@ import quoteCatalogData from '../../data/quote-catalog.json';
 
     <!-- Varning: bekräftade ordrar utan datum (osynliga i kalendern) -->
     <div id="cal-no-date-warn" style="display:none;margin:0 1.5rem 1rem;padding:0.75rem 1rem;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.32);border-radius:8px;font-size:0.85rem;color:#fbbf24;line-height:1.5"></div>
+
+    <!-- Färg-legend för statusar -->
+    <div class="cal-legend" aria-label="Statusförklaring för kalenderband">
+      <span class="cal-legend-item"><span class="cal-legend-dot s-new"></span>Inkommen</span>
+      <span class="cal-legend-item"><span class="cal-legend-dot s-waiting"></span>Offert skickad</span>
+      <span class="cal-legend-item"><span class="cal-legend-dot s-confirmed"></span>Bekräftad</span>
+      <span class="cal-legend-item"><span class="cal-legend-dot s-fakturerad"></span>Fakturerad</span>
+      <span class="cal-legend-item"><span class="cal-legend-dot s-completed"></span>Avslutad</span>
+      <span class="cal-legend-hint">💡 Hovra över ett band för fullständig information</span>
+    </div>
+
     <div class="cal-grid">
       <div class="cal-weekdays">
         <div class="cal-weekday">Mån</div><div class="cal-weekday">Tis</div>
@@ -5130,15 +5175,51 @@ function renderCalendar() {
         html += `<span class="cal-band-total">${totalKr}</span>`;
       }
 
-      // Tooltip
-      const tipParts = [
-        customerName,
-        `${b.pickupTime} → ${b.returnTime}`,
-        `${b.start}${b.end !== b.start ? ' – ' + b.end : ''}`,
-      ];
-      if (b.cart.event_location) tipParts.push(b.cart.event_location);
-      if (totalKr) tipParts.push(totalKr);
-      band.title = tipParts.join('\n');
+      // Tooltip: konsistent format över alla statusar — status överst,
+      // sedan kunduppgifter, tider, plats, totalpris, och statusspecifik
+      // extra-info (faktura, betald, pickup-state, etc).
+      const c = b.cart;
+      const sLabel = STATUS_LABELS[c.status]
+        ? `${STATUS_LABELS[c.status].icon} ${STATUS_LABELS[c.status].label}`
+        : `❓ ${c.status || 'okänd status'}`;
+
+      // Svenskt datumformat: "31 maj 2026" / "29–31 maj 2026" / "30 maj–2 juni 2026"
+      const fmtSE = iso => {
+        const d = new Date(iso + 'T00:00:00');
+        return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' });
+      };
+      const datumRad = b.end === b.start
+        ? `📅 ${fmtSE(b.start)}`
+        : `📅 ${fmtSE(b.start)} – ${fmtSE(b.end)}`;
+
+      const tipLines = [sLabel, '─────────────'];
+      if (c.customer_name) tipLines.push(`👤 ${c.customer_name}`);
+      if (c.customer_company) tipLines.push(`🏢 ${c.customer_company}`);
+      tipLines.push(datumRad);
+      tipLines.push(`🕐 Utlämning ${b.pickupTime}  ↩ Retur ${b.returnTime}`);
+      if (c.event_location) tipLines.push(`📍 ${c.event_location}`);
+      if (totalKr) tipLines.push(`💰 ${totalKr} (exkl moms)`);
+
+      // Statusspecifik extra-info — endast det som är relevant för aktuell status
+      if (c.status === 'waiting') {
+        if (c.last_read_customer) tipLines.push(`👁 Kunden har läst offerten`);
+        else                       tipLines.push(`👁⃠ Kunden har inte öppnat offerten`);
+        if (c.bounce_status === 'bounced')    tipLines.push(`⚠ Offertmail studsade`);
+        if (c.bounce_status === 'complained') tipLines.push(`🚫 Markerat som spam`);
+      }
+      if (c.status === 'fakturerad' || c.status === 'completed') {
+        if (c.invoice_number) tipLines.push(`🧾 Faktura ${c.invoice_number}`);
+        if (c.invoice_paid_at) tipLines.push(`💚 Betald ${fmtSE(c.invoice_paid_at.slice(0,10))}`);
+        else if (c.status === 'fakturerad' && c.invoice_due_date) {
+          tipLines.push(`💳 Förfaller ${fmtSE(c.invoice_due_date)}`);
+        }
+      }
+      if (['confirmed', 'fakturerad', 'completed'].includes(c.status)) {
+        if (c.pickup_confirmed_at)    tipLines.push(`✓ Utlämning kvitterad`);
+        else if (c.pickup_signed_at)  tipLines.push(`✍ Kund förberedd — väntar motkvittering`);
+      }
+
+      band.title = tipLines.join('\n');
 
       band.innerHTML = html;
       band.addEventListener('click', e => {
