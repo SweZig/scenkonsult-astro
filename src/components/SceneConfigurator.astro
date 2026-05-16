@@ -35,10 +35,10 @@ const INJ_MODULE_BY_KEY = Object.fromEntries(
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
 const INJ_SKIRT_PRICE_PER_METER = skirt?.pricePerMeter || 24.75;
-const INJ_FRAKT_RULES = scenData.fraktByModuleCount || [
-  { maxModules: 8, fordon: 'storbil' },
-  { maxModules: 12, fordon: 'storbil_slap' },
-  { maxModules: 999, fordon: 'lastbil' },
+const INJ_FRAKT_RULES = scenData.fraktByArea || [
+  { maxArea: 16, fordon: 'storbil' },
+  { maxArea: 24, fordon: 'storbil_slap' },
+  { maxArea: 9999, fordon: 'lastbil' },
 ];
 
 const configData = {
@@ -134,7 +134,7 @@ const configData = {
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">150 kr/modul</span></div>
-              <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 12 m² (12 moduler).</div>
+              <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 20 m² (20 moduler).</div>
             </div>
           </label>
           <label class="cfg-card-radio">
@@ -325,7 +325,7 @@ const configData = {
       if (width < 2 || width > 12 || depth < 2 || depth > 8) return false;
       if (!Number.isInteger(width) || !Number.isInteger(depth)) return false;
       if (moduleType === '1x1-halkfri') {
-        if (width * depth > 12) return false;
+        if (width * depth > 20) return false;
         return true;
       }
       return (width % 2 === 0) || (depth % 2 === 0);
@@ -338,10 +338,11 @@ const configData = {
     }
 
     function getRecommendedFrakt() {
-      const count = moduleCount();
-      if (count === 0) return null;
+      if (!isDimValid()) return null;
+      const area = state.width * state.depth;
+      if (area === 0) return null;
       for (const rule of INJ_FRAKT_RULES) {
-        if (count <= rule.maxModules) return rule.fordon;
+        if (area <= rule.maxArea) return rule.fordon;
       }
       return INJ_FRAKT_RULES[INJ_FRAKT_RULES.length - 1]?.fordon || 'lastbil';
     }
@@ -672,8 +673,8 @@ const configData = {
       let warning = '';
       if (!dimRangeOK) {
         warning = '⚠ Måtten ligger utanför tillåtet intervall (min 2 m, max 12×8 m).';
-      } else if (state.moduleType === '1x1-halkfri' && area > 12) {
-        warning = `⚠ 1×1-modulerna räcker till max 12 m² (${area} m² valt). Välj 1×2-moduler för större scen, eller minska måtten.`;
+      } else if (state.moduleType === '1x1-halkfri' && area > 20) {
+        warning = `⚠ 1×1-modulerna räcker till max 20 m² (${area} m² valt). Välj 1×2-moduler för större scen, eller minska måtten.`;
       } else if (!evenSideOK) {
         const altW = state.width + 1 <= 12 ? state.width + 1 : null;
         const altD = state.depth + 1 <= 8 ? state.depth + 1 : null;

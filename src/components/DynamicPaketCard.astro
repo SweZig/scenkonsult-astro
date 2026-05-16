@@ -43,10 +43,10 @@ const INJ_TRAPP_BY_HEIGHT = {
   60: _trapp60 ? { artno: _trapp60.artno, name: _trapp60.name, price: _trapp60.price } : null,
 };
 
-const INJ_FRAKT_RULES = scenData.fraktByModuleCount || [
-  { maxModules: 8, fordon: 'storbil' },
-  { maxModules: 12, fordon: 'storbil_slap' },
-  { maxModules: 999, fordon: 'lastbil' },
+const INJ_FRAKT_RULES = scenData.fraktByArea || [
+  { maxArea: 16, fordon: 'storbil' },
+  { maxArea: 24, fordon: 'storbil_slap' },
+  { maxArea: 9999, fordon: 'lastbil' },
 ];
 
 const INJ_MONTERING_MIN_PER_MODULE = 10;
@@ -198,7 +198,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
   }
 
   function isSurfaceValid(w, d, surface) {
-    if (surface === '1x1-halkfri') return w * d <= 12;
+    if (surface === '1x1-halkfri') return w * d <= 20;
     // 1×2 kräver att minst en dimension är jämn
     return (w % 2 === 0) || (d % 2 === 0);
   }
@@ -212,10 +212,10 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
     return price;
   }
 
-  function getRecommendedFrakt(modCount) {
-    if (modCount === 0) return null;
+  function getRecommendedFrakt(area) {
+    if (!area || area === 0) return null;
     for (const rule of INJ_FRAKT_RULES) {
-      if (modCount <= rule.maxModules) return rule.fordon;
+      if (area <= rule.maxArea) return rule.fordon;
     }
     return INJ_FRAKT_RULES[INJ_FRAKT_RULES.length - 1]?.fordon || 'lastbil';
   }
@@ -338,7 +338,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
         if (!valid) {
           b.classList.add('paket-pill-disabled');
           b.disabled = true;
-          b.title = b.dataset.yta === '1x1-halkfri' ? `1×1-yta stöder max 12 m² (paketet är ${cfg.width * cfg.depth} m²)` : 'Kräver att en dimension är jämn';
+          b.title = b.dataset.yta === '1x1-halkfri' ? `1×1-yta stöder max 20 m² (paketet är ${cfg.width * cfg.depth} m²)` : 'Kräver att en dimension är jämn';
         } else {
           b.classList.remove('paket-pill-disabled');
           b.disabled = false;
@@ -389,11 +389,12 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
     cartBtn?.addEventListener('click', () => {
       if (!window.skCart || cartBtn.disabled) return;
       const mc = moduleCount(cfg.width, cfg.depth, surface);
+      const area = cfg.width * cfg.depth;
       const transport = card.dataset.paketTransport;
       const isKravs = transport === 'krävs';
       // Krävs: forceLeverans (override eller auto-rekommenderat fordon)
       // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
-      const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(mc)) : null;
+      const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(area)) : null;
 
       // skCart.add merger qty på existing item-id men SÄTTER INTE flaggor på en
       // existerande rad. För att flaggor (bulky/requiresAssembly/forceLeverans/
