@@ -373,6 +373,40 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .s-completed { color: var(--green); }
     .s-cancelled { color: var(--red);   }
 
+    /* Permanent-radera-knapp på cancelled-kort. Visas vid hover på kortet. */
+    .cart-card-delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: rgba(248,113,113,0.16);
+      border: 1px solid rgba(248,113,113,0.45);
+      border-radius: 6px;
+      color: #fca5a5;
+      font-size: 0.95rem;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s ease, background 0.15s ease, transform 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 6;
+      font-family: inherit;
+    }
+    .cart-card:hover .cart-card-delete-btn,
+    .cc-compact:hover .cart-card-delete-btn,
+    .cart-card-delete-btn:focus { opacity: 1; }
+    .cart-card-delete-btn:hover {
+      background: rgba(248,113,113,0.40);
+      color: #fff;
+      transform: scale(1.08);
+    }
+    /* På kompakt-vyn: justera position så den inte krockar med pickup-badges */
+    .cc-compact .cart-card-delete-btn { top: 4px; right: 4px; width: 24px; height: 24px; font-size: 0.85rem; }
+
     /* Badges på Inkommen-kort: skiljer Bokningsförfrågan från Orderförfrågan */
     .req-badge {
       display: inline-flex; align-items: center; gap: 4px;
@@ -1567,8 +1601,13 @@ function cartCardCompact(c) {
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
   const loc      = c.event_location ? `· ${c.event_location}` : '';
+  // Permanent-radera-knapp endast på cancelled-kort
+  const delBtn   = c.status === 'cancelled'
+    ? `<button class="cart-card-delete-btn" onclick="event.stopPropagation(); deleteCancelledCart('${c.id}')" title="Radera permanent">🗑</button>`
+    : '';
   return `
     <div class="cc-compact ${uCls}" data-id="${c.id}" data-cart-id="${c.id}">
+      ${delBtn}
       <div class="cc-row1">
         <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
         ${reqB}
@@ -1753,9 +1792,14 @@ function cartCardHTML(c) {
   const paidB = paidBadge(c);
   const overdueB = overdueFlag(c);
   const noDateB  = noDateFlag(c);
+  // Permanent-radera-knapp endast på cancelled-kort
+  const delBtn   = c.status === 'cancelled'
+    ? `<button class="cart-card-delete-btn" onclick="event.stopPropagation(); deleteCancelledCart('${c.id}')" title="Radera permanent">🗑</button>`
+    : '';
 
   return `
     <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative;${cardExtraStyle}">
+      ${delBtn}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
         <div class="cart-card-name" style="margin:0">${c.customer_name || 'Okänd kund'}</div>
         ${intentBadge}
@@ -4335,6 +4379,43 @@ async function cancelOrder() {
     renderPanelFooter();
   } else toast('Fel vid avbrytning', 'error');
 }
+
+// ── PERMANENT RADERING AV AVBRUTEN ORDER (quick-fix tills auto-TTL) ──────
+// Endast tillgänglig på cancelled-kort. Confirm-dialog visar VAD som raderas
+// så admin inte råkar trycka. Backend (admin-cart-delete.js) verifierar
+// dubbelt att status='cancelled' innan radering — defensiv design.
+async function deleteCancelledCart(cartId) {
+  const c = carts.find(x => x.id === cartId);
+  if (!c) { toast('Kunde inte hitta ordern', 'error'); return; }
+  if (c.status !== 'cancelled') {
+    toast('Endast avbrutna ordrar kan raderas permanent', 'error');
+    return;
+  }
+  const customer = c.customer_name || c.customer_company || cartId;
+  if (!confirm(
+    `Radera "${customer}" permanent?\n\n` +
+    `Detta tar bort:\n` +
+    `• Ordern (${cartId})\n` +
+    `• All chatthistorik\n` +
+    `• Alla audit-loggar\n\n` +
+    `Åtgärden kan INTE ångras.`
+  )) return;
+
+  const { ok, data } = await api('admin-cart-delete', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: cartId })
+  });
+  if (ok) {
+    toast(`Order raderad: ${customer}`);
+    // Om detaljpanelen råkar visa just denna cart — stäng den
+    if (currentCart && currentCart.id === cartId) closePanel();
+    loadCarts();
+  } else {
+    console.error('CART_DELETE_FAIL:', cartId, data);
+    toast(data?.error || 'Kunde inte radera ordern', 'error');
+  }
+}
+window.deleteCancelledCart = deleteCancelledCart;
 
 // ── KLONA KUND TILL NY OFFERT ──────────────────────────────────
 // Återanvänder kundinfo (namn, email, telefon, företag, plats osv) men
