@@ -106,6 +106,21 @@ exports.handler = async (event) => {
     if (auditType === 'reminder_sent') auditPayload.preview = msgText.slice(0, 120);
     await logAudit(db, cart.id, sender, auditType, auditPayload);
 
+    // Cross-device påminnelse-state: när admin trycker "Ja, skicka påminnelse"
+    // i popup-systemet sätts admin_reminder_sent_at så att samma popup inte
+    // dyker upp på en annan device. Rensa även dismissed_until (irrelevant nu).
+    if (admin && body.event_type === 'reminder_sent') {
+      try {
+        await db.update('carts', {
+          admin_reminder_sent_at: new Date().toISOString(),
+          admin_reminder_dismissed_until: null,
+        }, 'id', cart.id);
+      } catch (e) {
+        // Icke-fatal — påminnelsen har redan skickats
+        console.warn('REMINDER_FLAG_WARN:', e.message);
+      }
+    }
+
     // ── Notiser ───────────────────────────────────────────────
     const cartUrl = cart.cart_token
       ? `https://scenkonsult.se/order/?cart=${cart.id}&token=${cart.cart_token}`

@@ -4293,31 +4293,36 @@ async function convertContactToOrder(cartId) {
 window.convertContactToOrder = convertContactToOrder;
 
 // ── 48h PÅMINNELSE-SYSTEM ──────────────────────────────────────
+// Cross-device-state: tidigare i localStorage ('sk_admin_reminders'),
+// nu på cart-objektet i Supabase:
+//   - admin_reminder_sent_at:        sätts av cart-message.js när action='yes'
+//   - admin_reminder_dismissed_until: sätts av admin-reminder-dismiss.js (snooze)
+// Snoozad-för-alltid använder sentinel 2099-12-31. Snoozad i 24h = NOW()+24h.
 const REMINDER_HOURS = 48;
-const REMINDER_LS_KEY = 'sk_admin_reminders'; // { [cartId]: 'snoozed' | 'sent' | <iso-dismissed-ts> }
 let _reminderQueue = [];  // carts som väntar på popup
 let _reminderActive = null; // den cart som visas just nu
 let _waitingSort = 'urgency'; // 'urgency' | 'event' | 'sent'
 let _kanbanView = localStorage.getItem('sk_kanban_view') || 'compact'; // 'compact' | 'standard'
 
-function getReminderState() {
-  try { return JSON.parse(localStorage.getItem(REMINDER_LS_KEY) || '{}'); } catch { return {}; }
+// Returnerar true om popupen för denna cart är dismissad just nu.
+function isReminderActive(c) {
+  if (c.admin_reminder_sent_at) return false; // redan skickad
+  if (c.admin_reminder_dismissed_until) {
+    const until = new Date(c.admin_reminder_dismissed_until).getTime();
+    if (until > Date.now()) return false; // dismissad, väntar på utgång
+  }
+  return true;
 }
-function setReminderState(s) { localStorage.setItem(REMINDER_LS_KEY, JSON.stringify(s)); }
 
 function checkReminderQueue() {
   const now = Date.now();
-  const state = getReminderState();
   const threshold = REMINDER_HOURS * 3600 * 1000;
 
   _reminderQueue = carts.filter(c => {
     if (c.status !== 'waiting') return false;
     // Kund har redan godkänt ordern digitalt — ingen påminnelse behövs
     if (c.confirmed_at) return false;
-    const cartState = state[c.id];
-    if (cartState === 'snoozed' || cartState === 'sent') return false;
-    // Dismissad < 24h sedan → hoppa över
-    if (cartState && (now - new Date(cartState).getTime()) < 24 * 3600 * 1000) return false;
+    if (!isReminderActive(c)) return false;
     // Offerten måste ha stått som waiting i minst 48h (proxy: updated_at)
     const age = now - new Date(c.updated_at || c.created_at).getTime();
     return age >= threshold;
@@ -4329,14 +4334,13 @@ function checkReminderQueue() {
 }
 
 function showNextReminder() {
-  // Filtrera bort carts som redan hanterats (race condition-skydd)
-  const currentState = getReminderState();
+  // Race-skydd: filtrera mot färska carts-data (auto-refresh kan ha kört
+  // mellan checkReminderQueue() och showNextReminder())
   while (_reminderQueue.length > 0) {
     const candidate = _reminderQueue.shift();
-    const s = currentState[candidate.id];
-    if (s === 'snoozed' || s === 'sent') continue; // redan hanterad
-    if (s && (Date.now() - new Date(s).getTime()) < 24 * 3600 * 1000) continue; // nyligen dismissad
-    _reminderActive = candidate;
+    const fresh = carts.find(c => c.id === candidate.id) || candidate;
+    if (!isReminderActive(fresh)) continue;
+    _reminderActive = fresh;
     break;
   }
   if (!_reminderActive) { closeReminderPopup(); return; }
@@ -4367,10 +4371,10 @@ function closeReminderPopup() {
 async function reminderAction(action) {
   if (!_reminderActive) return closeReminderPopup();
   const cartId = _reminderActive.id;
-  const state = getReminderState();
 
   if (action === 'yes') {
-    // Skicka påminnelse via cart-message (samma som admin-notis)
+    // Skicka påminnelse via cart-message — backend sätter automatiskt
+    // admin_reminder_sent_at på carten (cross-device)
     const defaultMsg = 'Hej! Vi vill bara påminna om offerten vi skickade – hör gärna av dig om du har frågor eller vill boka. 😊';
     const { ok } = await api('cart-message', {
       method: 'POST',
@@ -4378,19 +4382,28 @@ async function reminderAction(action) {
     });
     if (ok) {
       toast('Påminnelse skickad! 📩 Syns i Chatt-fliken.');
-      state[cartId] = 'sent';
+      // Optimistisk lokal uppdatering — backend har redan satt fältet
+      const cached = carts.find(c => c.id === cartId);
+      if (cached) cached.admin_reminder_sent_at = new Date().toISOString();
     } else {
       toast('Kunde inte skicka påminnelse', 'error');
     }
-  } else if (action === 'no') {
-    // Påminn igen imorgon
-    state[cartId] = new Date().toISOString();
-  } else if (action === 'snooze') {
-    // Visa aldrig igen för denna offert
-    state[cartId] = 'snoozed';
+  } else if (action === 'no' || action === 'snooze') {
+    // Påminn imorgon (24h) eller aldrig igen (sentinel) — synkas till Supabase
+    const dismissAction = action === 'snooze' ? 'snooze_forever' : 'snooze_24h';
+    const { ok, data } = await api('admin-reminder-dismiss', {
+      method: 'POST',
+      body: JSON.stringify({ cart_id: cartId, action: dismissAction })
+    });
+    if (ok) {
+      // Optimistisk lokal uppdatering
+      const cached = carts.find(c => c.id === cartId);
+      if (cached && data?.dismissed_until) cached.admin_reminder_dismissed_until = data.dismissed_until;
+    } else {
+      toast('Kunde inte spara dismiss-status', 'error');
+    }
   }
 
-  setReminderState(state);
   closeReminderPopup();
   // Visa nästa i kön om det finns fler
   if (_reminderQueue.length > 0) setTimeout(showNextReminder, 400);
