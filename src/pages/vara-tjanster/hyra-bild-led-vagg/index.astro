@@ -65,7 +65,7 @@ const faqSchema = {
       <section id="led-paket" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
         <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.6rem;">Snabbval</p>
         <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);color:white;margin:0 0 0.75rem;line-height:1.2;">Färdiga paket</h2>
-        <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;margin:0 0 2rem;max-width:720px;">Sex förkonfigurerade LED-vägg-paket — från liten podium-bakgrund (3,75 m²) till festival-huvudscen (34 m²). Välj paneltyp och upphängning per paket — pris uppdateras direkt. <strong style="color:rgba(255,255,255,0.78);">Frakt och installation tillkommer i kassan</strong> (obligatoriskt — vi monterar alltid LED-väggar själva för säker hantering).</p>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;margin:0 0 2rem;max-width:720px;">Sex förkonfigurerade LED-vägg-paket — från liten podium-bakgrund (3,75 m²) till festival-huvudscen (34 m²). Välj paneltyp och upphängning per paket — pris uppdateras direkt. <strong style="color:rgba(255,255,255,0.78);">Priserna är exkl. transport och montering, som tillkommer separat.</strong> Vi monterar alltid LED-väggar själva — det säkrar stabil rigg, korrekt kalibrering och bästa bildkvalitet.</p>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.25rem;">
           {paket.map((pkt: any) => {
@@ -336,11 +336,13 @@ const faqSchema = {
               <button type="button" role="tab" aria-selected="false" data-mount="tross" class="led-mount-btn" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:transparent;color:#f0eeff;border:none;border-radius:6px;cursor:pointer;">Trosslösning <span style="opacity:0.6;font-size:0.72rem;">· +{fmtKr(trossPris)}</span></button>
             </div>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:1.25rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.06);">
-            <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
-              <input id="led-incl-montering" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
-              <span>Inkludera tekniker (8 tim)</span>
-            </label>
+          <div style="display:flex;flex-wrap:wrap;gap:1.25rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.06);align-items:center;">
+            {/* Hidden checkbox — alltid checked. UI nedan visar att montering alltid sker. */}
+            <input id="led-incl-montering" type="checkbox" checked style="display:none;" />
+            <span style="display:inline-flex;align-items:center;gap:0.55rem;color:rgba(255,255,255,0.78);font-size:0.88rem;line-height:1.4;">
+              <span aria-hidden="true" style="font-size:1.05rem;line-height:1;">🔧</span>
+              <span>Våra tekniker sköter alltid montering — för säker rigg och bildkvalitet. <span style="color:rgba(255,255,255,0.55);">Tillkommer separat.</span></span>
+            </span>
             <label style="display:flex;align-items:center;gap:0.6rem;color:rgba(255,255,255,0.8);font-size:0.9rem;cursor:pointer;">
               <input id="led-incl-processor" type="checkbox" checked style="width:18px;height:18px;accent-color:#c4b5f4;cursor:pointer;" />
               <span>Inkludera LED-processor</span>
@@ -385,17 +387,21 @@ const faqSchema = {
             <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:1.25rem 0 0.6rem;">Pris per dygn</p>
             <div style="background:#0c0a24;border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:1rem 1.15rem;">
               <div id="led-price-rows" style="display:flex;flex-direction:column;gap:0.4rem;font-size:0.85rem;color:rgba(255,255,255,0.7);"></div>
-              <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:0.75rem;padding-top:0.75rem;display:flex;justify-content:space-between;align-items:baseline;">
-                <span style="color:white;font-weight:600;">Totalt</span>
-                <div style="text-align:right;">
+              <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:0.75rem;padding-top:0.75rem;display:flex;justify-content:space-between;align-items:baseline;gap:1rem;">
+                <span style="color:white;font-weight:600;display:flex;flex-direction:column;gap:0.15rem;">
+                  <span>Hårdvara</span>
+                  <span style="color:rgba(255,255,255,0.55);font-weight:400;font-size:0.72rem;font-family:'Space Grotesk',sans-serif;">exkl. transport &amp; montering</span>
+                </span>
+                <div style="text-align:right;white-space:nowrap;">
                   <span class="sk-price-excl" id="led-total-excl" style="color:#c4b5f4;font-size:1.45rem;font-weight:800;">0</span>
                   <span class="sk-price-incl hidden" id="led-total-incl" style="color:#c4b5f4;font-size:1.45rem;font-weight:800;">0</span>
                   <span style="color:rgba(255,255,255,0.5);font-size:0.8rem;"> kr/dygn</span>
                 </div>
               </div>
+              <p id="led-total-komplett" style="margin:0.4rem 0 0;color:rgba(255,255,255,0.62);font-size:0.8rem;font-style:italic;text-align:right;display:none;"></p>
               <p style="margin:0.85rem 0 0;padding-top:0.7rem;border-top:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.60);font-size:0.72rem;line-height:1.5;display:flex;align-items:flex-start;gap:0.4rem;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;color:rgba(196,181,244,0.7);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <span>Signal- och el-kablage tillkommer på dessa priser och offereras separat utifrån specifik installation.</span>
+                <span>Tillkommande poster är beräknade estimat och kan justeras i orderbekräftelsen. Signal- och el-kablage offereras separat utifrån specifik installation.</span>
               </p>
             </div>
 
@@ -633,7 +639,7 @@ const faqSchema = {
         // Priser
         const priceLines = [];
         const panelCost = totalPanels * p.price;
-        priceLines.push({ label: `${p.name}`, value: panelCost, sub: `${totalPanels} × ${fmtKr(p.price)}`, key: 'panels' });
+        priceLines.push({ label: `${p.name}`, value: panelCost, sub: `${totalPanels} × ${fmtKr(p.price)}`, key: 'panels', group: 'hardvara' });
 
         let processorObj = null;
         if (inclProcessor.checked) {
@@ -643,7 +649,18 @@ const faqSchema = {
             value: processorObj.price_per_day_excl,
             sub: '',
             key: 'processor',
+            group: 'hardvara',
           });
+        }
+
+        // Upphängning: Ground support eller tross — pris per kolumn (regel i JSON)
+        let mountCost = 0;
+        if (mount === 'ground') {
+          mountCost = TILL.rigg.price_per_column * r.cols;
+          priceLines.push({ label: TILL.rigg.name, value: mountCost, sub: `${r.cols} kolumner × ${TILL.rigg.price_per_column} kr`, key: 'mount', group: 'hardvara' });
+        } else {
+          mountCost = TILL.tross.price_per_column * r.cols;
+          priceLines.push({ label: TILL.tross.name, value: mountCost, sub: `${r.cols} kolumner × ${TILL.tross.price_per_column} kr`, key: 'mount', group: 'hardvara' });
         }
 
         // Dynamisk monteringstid: 6 tim grund + 10 min per panel.
@@ -663,17 +680,8 @@ const faqSchema = {
             value: monteringCost,
             sub: `${hoursLabel} (6 tim + 10 min × ${totalPanels})`,
             key: 'montering',
+            group: 'tillkommer',
           });
-        }
-
-        // Upphängning: Ground support eller tross — pris per kolumn (regel i JSON)
-        let mountCost = 0;
-        if (mount === 'ground') {
-          mountCost = TILL.rigg.price_per_column * r.cols;
-          priceLines.push({ label: TILL.rigg.name, value: mountCost, sub: `${r.cols} kolumner × ${TILL.rigg.price_per_column} kr`, key: 'mount' });
-        } else {
-          mountCost = TILL.tross.price_per_column * r.cols;
-          priceLines.push({ label: TILL.tross.name, value: mountCost, sub: `${r.cols} kolumner × ${TILL.tross.price_per_column} kr`, key: 'mount' });
         }
 
         // Transport — välj baserat på yta enligt regel i JSON
@@ -686,29 +694,65 @@ const faqSchema = {
         priceLines.push({
           label: leverans.name,
           value: transportCost,
-          sub: `obligatoriskt — ${totalArea_m2.toFixed(2).replace(/\.?0+$/, '').replace('.', ',')} m² ${totalArea_m2 <= TILL.leverans_regel.tröskel_m2 ? '≤' : '>'} ${TILL.leverans_regel.tröskel_m2} m²`,
+          sub: `Vi levererar — fordon väljs utifrån väggens yta (${totalArea_m2.toFixed(2).replace(/\.?0+$/, '').replace('.', ',')} m²)`,
           key: 'transport',
+          group: 'tillkommer',
         });
 
-        priceRowsEl.innerHTML = priceLines.map(l => {
+        // Rendera prisrader — separera hårdvara från tillkommer
+        function renderPriceRow(l) {
           let valStr;
           if (l.value === null) {
             valStr = '<em style="color:rgba(255,255,255,0.5);">separat</em>';
           } else if (l.value === 0) {
             valStr = '<span style="color:rgba(143,214,148,0.85);font-style:italic;">ingår</span>';
           } else {
-            // Båda excl/incl renderas; global skApplyVat() växlar synlighet via .hidden
             const incl = Math.round(l.value * 1.25);
             valStr = `<span class="sk-price-excl">${fmtKr(l.value)}</span>` +
                      `<span class="sk-price-incl hidden">${fmtKr(incl)}</span>`;
           }
           return priceRow(l.label, valStr, l.sub);
-        }).join('');
+        }
 
-        const totalExclVal = panelCost + (processorObj ? processorObj.price_per_day_excl : 0) + monteringCost + mountCost + transportCost;
+        const hardvaraLines = priceLines.filter(l => l.group === 'hardvara');
+        const tillkommerLines = priceLines.filter(l => l.group === 'tillkommer');
+        const hardvaraSum = hardvaraLines.reduce((s, l) => s + (l.value || 0), 0);
+        const tillkommerSum = tillkommerLines.reduce((s, l) => s + (l.value || 0), 0);
+
+        let priceHtml = hardvaraLines.map(renderPriceRow).join('');
+
+        if (tillkommerLines.length > 0) {
+          priceHtml += `<div style="margin-top:0.9rem;padding-top:0.7rem;border-top:1px solid rgba(196,181,244,0.18);">`
+            + `<p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 0.5rem;">Tillkommer separat</p>`
+            + tillkommerLines.map(renderPriceRow).join('')
+            + `<div style="margin-top:0.5rem;padding-top:0.45rem;border-top:1px dashed rgba(255,255,255,0.1);display:flex;justify-content:space-between;color:rgba(255,255,255,0.72);font-style:italic;font-size:0.85rem;">`
+            +   `<span>Tillkommer totalt</span>`
+            +   `<span><span class="sk-price-excl">${fmtKr(tillkommerSum)}</span><span class="sk-price-incl hidden">${fmtKr(Math.round(tillkommerSum * 1.25))}</span></span>`
+            + `</div>`
+            + `</div>`;
+        }
+
+        priceRowsEl.innerHTML = priceHtml;
+
+        // TOTAL = bara hårdvara (panel + processor + upphängning)
+        const totalExclVal = hardvaraSum;
         totalExcl.textContent = fmtKr(totalExclVal);
         totalExcl.setAttribute('data-exkl', String(totalExclVal));
         totalIncl.textContent = fmtKr(totalExclVal * 1.25);
+
+        // Komplett-pris (hårdvara + tillkommer) som mindre rad under total
+        const kompletEl = document.getElementById('led-total-komplett');
+        if (kompletEl) {
+          if (tillkommerLines.length > 0) {
+            const kompletSum = totalExclVal + tillkommerSum;
+            kompletEl.innerHTML = 'Komplett med tillkommande: '
+              + `<span class="sk-price-excl">~${fmtKr(kompletSum)}</span>`
+              + `<span class="sk-price-incl hidden">~${fmtKr(Math.round(kompletSum * 1.25))}</span>`;
+            kompletEl.style.display = '';
+          } else {
+            kompletEl.style.display = 'none';
+          }
+        }
 
         // Aktivera moms-toggle på de nyrenderade prisraderna (Layout.astro:s skApplyVat)
         if (typeof window.skApplyVat === 'function') {

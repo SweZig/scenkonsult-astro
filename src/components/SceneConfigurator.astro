@@ -235,14 +235,14 @@ const configData = {
         <legend><span class="cfg-step-num">7</span>Montering</legend>
         <label class="cfg-toggle">
           <input type="checkbox" id="cfg-installation" />
-          <span class="cfg-toggle-text" id="cfg-installation-label">Inkludera montering &amp; demontering av Scenkonsult</span>
+          <span class="cfg-toggle-text" id="cfg-installation-label">Lägg till montering &amp; demontering — tillkommer separat</span>
         </label>
         <p id="cfg-installation-hint" class="cfg-hint"></p>
       </fieldset>
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">8</span>Leverans</legend>
-        <p class="cfg-hint" id="cfg-frakt-rec">Vi väljer rätt fordon automatiskt baserat på storleken.</p>
+        <p class="cfg-hint" id="cfg-frakt-rec">Välj om vi kör ut scenen åt dig eller om du hämtar själv. Vid leverans väljer vi rätt fordon utifrån storleken — tillkommer separat.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="frakt" value="none" checked /><span>Hämta själv</span></label>
           <label class="cfg-pill"><input type="radio" name="frakt" value="auto" /><span>Leverans</span></label>
@@ -258,14 +258,15 @@ const configData = {
   <div class="cfg-summary">
     <h3 class="cfg-summary-title">Specifikation och pris</h3>
     <ul class="cfg-spec-list" id="cfg-spec-list"></ul>
-    <p class="cfg-spec-info">💡 Montering &amp; leverans är beräknade estimat och kan komma att justeras i orderbekräftelsen.</p>
+    <p class="cfg-spec-info">💡 Tillkommande poster är beräknade estimat och kan justeras i orderbekräftelsen. Slutlig debitering bekräftas innan leverans.</p>
     <div class="cfg-total-row">
-      <span class="cfg-total-label">Totalt per dygn</span>
+      <span class="cfg-total-label">Hårdvara per dygn <span class="cfg-total-sublabel">(exkl. transport &amp; montering)</span></span>
       <span class="cfg-total-value">
         <span class="sk-price-excl" id="cfg-total-excl">0 kr</span>
         <span class="sk-price-incl hidden" id="cfg-total-incl">0 kr</span>
       </span>
     </div>
+    <p class="cfg-total-komplett" id="cfg-total-komplett" style="display:none"></p>
     <button type="button" class="cfg-cart-btn" id="cfg-add-to-cart">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
       Lägg konfigurationen i varukorgen
@@ -761,26 +762,26 @@ const configData = {
       if (area > OBLIG_OVER_M2) {
         if (installCb) { installCb.checked = true; installCb.disabled = true; }
         state.installation = true;
-        // Vid obligatorisk montering kan kunden inte hämta själv — lås frakt till Leverans
+        // Vid stora scener sköter våra tekniker alltid montering — och då levererar vi.
         if (fraktNone) fraktNone.disabled = true;
         if (fraktNonePill) fraktNonePill.classList.add('cfg-pill-disabled');
         if (state.frakt !== 'auto') {
           state.frakt = 'auto';
           if (fraktAuto) fraktAuto.checked = true;
         }
-        if (installLabel) installLabel.textContent = 'Montering & demontering ingår (obligatoriskt över 16 m²)';
-        if (installHint) installHint.textContent = `Montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Vid obligatorisk montering kräver vi att vi levererar.`;
+        if (installLabel) installLabel.textContent = '🔧 Våra tekniker sköter alltid montering vid scen över 16 m² — för säker hantering';
+        if (installHint) installHint.textContent = `Tillkommer separat: montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Vi levererar alltid när vi monterar.`;
       } else {
         if (installCb) installCb.disabled = false;
         // Återaktivera "Hämta själv"-pillen
         if (fraktNone) fraktNone.disabled = false;
         if (fraktNonePill) fraktNonePill.classList.remove('cfg-pill-disabled');
-        if (installLabel) installLabel.textContent = 'Inkludera montering & demontering av Scenkonsult';
+        if (installLabel) installLabel.textContent = 'Lägg till montering & demontering — tillkommer separat';
         if (installHint) {
           if (state.installation) {
-            installHint.textContent = `Beräknad tid: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}).`;
+            installHint.textContent = `Tillkommer separat: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}).`;
           } else {
-            installHint.textContent = 'Beräknad tid: 10 min/modul × 2 (montering + demontering). Pris timdebiteras (600 kr/tim). Obligatoriskt vid scen över 16 m².';
+            installHint.textContent = 'Vi monterar och demonterar åt dig — 10 min/modul × 2. Pris timdebiteras (600 kr/tim). Tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering.';
           }
         }
       }
@@ -798,12 +799,12 @@ const configData = {
         if (totalIn) totalIn.textContent = '0 kr';
         return;
       }
-      let html = '';
-      lines.forEach(l => {
+
+      function renderRow(l) {
         const lineSum = l.price * l.qty;
         const meta = l.metaText ? ` <span class="cfg-spec-meta">(${l.metaText})</span>` : '';
         const qtyText = l.isCalculated ? '' : `<span class="cfg-spec-qty">${l.qty}×</span>`;
-        html += `<li class="cfg-spec-row">
+        return `<li class="cfg-spec-row">
           <div class="cfg-spec-name">
             ${qtyText}<span>${l.name}</span>${meta}
           </div>
@@ -812,14 +813,48 @@ const configData = {
             <span class="sk-price-incl hidden">${formatKr(Math.round(lineSum * 1.25))}</span>
           </div>
         </li>`;
-      });
+      }
+
+      // Gruppera: hårdvara (Scen) vs tillkommer (Tjänst + Leverans)
+      const hardvara = lines.filter(l => l.category === 'Scen');
+      const tillkommer = lines.filter(l => l.category === 'Tjänst' || l.category === 'Leverans');
+
+      let html = '';
+      hardvara.forEach(l => { html += renderRow(l); });
+
+      if (tillkommer.length > 0) {
+        const tillkommerSum = tillkommer.reduce((s, l) => s + l.price * l.qty, 0);
+        html += `<li class="cfg-spec-divider"><span>Tillkommer separat</span></li>`;
+        tillkommer.forEach(l => { html += renderRow(l); });
+        html += `<li class="cfg-spec-subtotal">
+          <div class="cfg-spec-name"><span>Tillkommer totalt</span></div>
+          <div class="cfg-spec-price">
+            <span class="sk-price-excl">${formatKr(tillkommerSum)}</span>
+            <span class="sk-price-incl hidden">${formatKr(Math.round(tillkommerSum * 1.25))}</span>
+          </div>
+        </li>`;
+      }
+
       list.innerHTML = html;
 
-      const total = totalPrice(lines);
+      // TOTAL = bara hårdvara
+      const hardvaraSum = hardvara.reduce((s, l) => s + l.price * l.qty, 0);
       const totalEx = document.getElementById('cfg-total-excl');
       const totalIn = document.getElementById('cfg-total-incl');
-      if (totalEx) totalEx.textContent = formatKr(total);
-      if (totalIn) totalIn.textContent = formatKr(Math.round(total * 1.25));
+      if (totalEx) totalEx.textContent = formatKr(hardvaraSum);
+      if (totalIn) totalIn.textContent = formatKr(Math.round(hardvaraSum * 1.25));
+
+      // Komplett-pris (hårdvara + tillkommer) som mindre rad
+      const kompletEl = document.getElementById('cfg-total-komplett');
+      if (kompletEl) {
+        if (tillkommer.length > 0) {
+          const kompletSum = totalPrice(lines);
+          kompletEl.innerHTML = `Komplett med tillkommande: <span class="sk-price-excl">~${formatKr(kompletSum)}</span><span class="sk-price-incl hidden">~${formatKr(Math.round(kompletSum * 1.25))}</span>`;
+          kompletEl.style.display = '';
+        } else {
+          kompletEl.style.display = 'none';
+        }
+      }
     }
 
     function formatKr(n) {
@@ -1123,15 +1158,21 @@ const configData = {
 .cfg-summary-title { color: white; font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin: 0 0 1.15rem; }
 .cfg-spec-list { list-style: none; padding: 0; margin: 0 0 1rem; border-top: 1px solid rgba(255,255,255,0.08); }
 .cfg-spec-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); gap: 1rem; }
+.cfg-spec-divider { padding: 0.95rem 0 0.5rem; color: #c4b5f4; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid rgba(196,181,244,0.18); margin-top: 0.6rem; }
+.cfg-spec-subtotal { display: flex; justify-content: space-between; align-items: baseline; padding: 0.6rem 0 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.06); gap: 1rem; color: rgba(255,255,255,0.72); font-style: italic; font-size: 0.92rem; }
+.cfg-spec-subtotal .cfg-spec-price { color: rgba(255,255,255,0.82); font-weight: 600; font-style: italic; }
 .cfg-spec-name { color: rgba(255,255,255,0.88); font-size: 0.97rem; line-height: 1.5; }
 .cfg-spec-qty { color: #c4b5f4; font-weight: 700; margin-right: 0.4rem; }
 .cfg-spec-meta { color: rgba(255,255,255,0.5); font-size: 0.84rem; }
 .cfg-spec-price { color: white; font-weight: 600; font-size: 0.97rem; white-space: nowrap; }
 .cfg-spec-empty { padding: 0.75rem 0; color: rgba(255,255,255,0.4); font-style: italic; font-size: 0.95rem; }
 .cfg-spec-info { background: rgba(196,181,244,0.07); border: 1px solid rgba(196,181,244,0.2); border-radius: 9px; padding: 0.85rem 1.05rem; margin: 0 0 0.5rem; color: rgba(255,255,255,0.78); font-size: 0.86rem; line-height: 1.55; }
-.cfg-total-row { display: flex; justify-content: space-between; align-items: baseline; padding: 1.1rem 0 1.4rem; border-top: 2px solid rgba(196,181,244,0.3); }
-.cfg-total-label { color: white; font-weight: 700; font-size: 1.12rem; }
-.cfg-total-value { color: #c4b5f4; font-weight: 800; font-size: 1.65rem; }
+.cfg-total-row { display: flex; justify-content: space-between; align-items: baseline; padding: 1.1rem 0 0.4rem; border-top: 2px solid rgba(196,181,244,0.3); gap: 1rem; }
+.cfg-total-label { color: white; font-weight: 700; font-size: 1.12rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.cfg-total-sublabel { color: rgba(255,255,255,0.55); font-weight: 400; font-size: 0.78rem; font-family: 'Space Grotesk', sans-serif; }
+.cfg-total-value { color: #c4b5f4; font-weight: 800; font-size: 1.65rem; white-space: nowrap; }
+.cfg-total-komplett { margin: 0 0 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.62); font-size: 0.84rem; font-style: italic; text-align: right; }
+.cfg-total-komplett .sk-price-excl, .cfg-total-komplett .sk-price-incl { font-weight: 600; color: rgba(255,255,255,0.82); }
 .cfg-cart-btn { display: inline-flex; align-items: center; gap: 0.7rem; background: #c4b5f4; color: #0c0a24; border: 0; padding: 0.95rem 1.65rem; border-radius: 11px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.15s; font-family: 'Space Grotesk', sans-serif; }
 .cfg-cart-btn:hover { background: #e2dcfb; }
 .cfg-cart-btn:disabled { background: #4a4078 !important; color: rgba(255,255,255,0.3) !important; cursor: not-allowed !important; }

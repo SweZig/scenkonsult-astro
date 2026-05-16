@@ -92,7 +92,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
       <div class="paket-spec-row"><span class="paket-spec-label">Kapacitet</span><span class="paket-spec-val">{paket.capacity}</span></div>
       <div class="paket-spec-row"><span class="paket-spec-label">Transport</span>
         {paket.transport === 'krävs' ? (
-          <span class="paket-spec-val paket-spec-warn">Krävs – tillkommer</span>
+          <span class="paket-spec-val paket-spec-warn">Vi levererar – tillkommer</span>
         ) : (
           <span class="paket-spec-val">Tilläggstjänst</span>
         )}
@@ -162,19 +162,22 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
         <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
         <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
       </div>
-      <div class="paket-price">
-        <span class="sk-price-excl paket-price-num" data-paket-price-excl>{paket.price.toLocaleString('sv-SE')} kr</span>
-        <span class="sk-price-incl hidden paket-price-num" data-paket-price-incl>{Math.round(paket.price * 1.25).toLocaleString('sv-SE')} kr</span>
-        <span class="paket-price-suffix">/dygn</span>
+      <div class="paket-bottom-row">
+        <div class="paket-price">
+          <span class="sk-price-excl paket-price-num" data-paket-price-excl>{paket.price.toLocaleString('sv-SE')} kr</span>
+          <span class="sk-price-incl hidden paket-price-num" data-paket-price-incl>{Math.round(paket.price * 1.25).toLocaleString('sv-SE')} kr</span>
+          <span class="paket-price-suffix">/dygn</span>
+        </div>
+        <button type="button" class="paket-cart-btn" data-paket-add aria-label={`Lägg ${paket.name} i varukorgen`}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <span data-paket-cart-label>Lägg i varukorg</span>
+        </button>
       </div>
-      <button type="button" class="paket-cart-btn" data-paket-add aria-label={`Lägg ${paket.name} i varukorgen`}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="9" cy="21" r="1"></circle>
-          <circle cx="20" cy="21" r="1"></circle>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-        </svg>
-        <span data-paket-cart-label>Lägg i varukorg</span>
-      </button>
+      <p class="paket-price-note">Exkl. transport &amp; montering — tillkommer separat</p>
     </div>
     <p class="paket-warning" data-paket-warning hidden></p>
   </div>
@@ -541,10 +544,12 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
   .paket-pill[aria-pressed="true"] { background: #c4b5f4; color: #0c0a24; border-color: #c4b5f4; }
   .paket-pill-disabled, .paket-pill:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  .paket-bottom { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-top: 0.85rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); }
+  .paket-bottom { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.85rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); }
+  .paket-bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
   .paket-price { display: flex; align-items: baseline; gap: 0.25rem; line-height: 1; }
   .paket-price-num { color: #c4b5f4; font-weight: 800; font-size: 1.25rem; }
   .paket-price-suffix { color: rgba(255,255,255,0.45); font-size: 0.78rem; }
+  .paket-price-note { color: rgba(255,255,255,0.5); font-size: 0.72rem; font-style: italic; margin: 0; line-height: 1.4; }
 
   .paket-cart-btn { background: #c4b5f4; color: #0c0a24; border: 0; padding: 0.55rem 0.9rem; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Space Grotesk', sans-serif; }
   .paket-cart-btn:hover:not(:disabled) { background: #e2dcfb; }
