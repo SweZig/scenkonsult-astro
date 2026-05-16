@@ -1261,21 +1261,53 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 });
 
 // ── API ───────────────────────────────────────────────────────
+// Robust fetch-wrapper:
+//   - AbortController med 20s timeout (Netlify cold-start kan ta 10+ sek)
+//   - Nätverks-/timeout-fel returneras som { ok:false, status:0, data:{error} }
+//     istället för throw. Callers slipper try-catch på fetch.
+//   - 401 → invalidera session och throw 'Unauthorized' (oförändrat beteende)
+//   - opts.silent: callers (t.ex. auto-refresh) som inte vill visa toast
+//     vid nätverksfel kan kolla data.netError efter retur.
 async function api(path, opts = {}) {
-  const res = await fetch(`/.netlify/functions/${path}`, {
-    ...opts,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${TOKEN}`,
-      ...(opts.headers || {})
-    }
-  });
+  const timeoutMs = opts.timeoutMs ?? 20000;
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), timeoutMs);
+
+  let res;
+  try {
+    res = await fetch(`/.netlify/functions/${path}`, {
+      ...opts,
+      signal: ctrl.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${TOKEN}`,
+        ...(opts.headers || {})
+      }
+    });
+  } catch (e) {
+    clearTimeout(tid);
+    const isTimeout = e.name === 'AbortError';
+    const reason    = isTimeout ? `timeout efter ${timeoutMs}ms` : (e.message || 'okänt');
+    console.error(`API_NET_ERR[${path}]:`, reason);
+    return {
+      ok: false,
+      status: 0,
+      netError: true,
+      data: {
+        error: isTimeout
+          ? 'Servern svarar inte (timeout) — kontrollera anslutningen'
+          : 'Nätverksfel — försök igen'
+      }
+    };
+  }
+  clearTimeout(tid);
+
   let data = {};
   try {
     const txt = await res.text();
     data = txt ? JSON.parse(txt) : {};
   } catch (e) {
-    console.error('API_PARSE_ERR:', res.status, res.url, e.message);
+    console.error(`API_PARSE_ERR[${path}]:`, res.status, res.url, e.message);
     data = { error: `Servern returnerade ett ogiltigt svar (HTTP ${res.status})` };
   }
   if (res.status === 401) {
@@ -1294,8 +1326,13 @@ async function api(path, opts = {}) {
 
 // ── LOAD CARTS ────────────────────────────────────────────────
 async function loadCarts() {
-  const { ok, data } = await api('admin-carts');
+  const { ok, data, netError } = await api('admin-carts');
   if (!ok) {
+    // Nätverksfel under auto-refresh ska INTE spamma toasts — tyst log
+    if (netError) {
+      console.warn('LOAD_CARTS: nätverksfel under polling — försöker igen om 30s');
+      return;
+    }
     if (data.error === 'Ej behörig') {
       $('login-error').style.display = 'block';
       $('login-error').textContent = 'Fel lösenord.';
@@ -3036,7 +3073,7 @@ async function sendMessage() {
   btn.disabled = true;
   btn.textContent = 'Skickar…';
 
-  const { ok, data } = await api('cart-message', {
+  const { ok, data, netError } = await api('cart-message', {
     method: 'POST',
     body: JSON.stringify({ cart_id: currentCart.id, body: text })
   });
@@ -3054,7 +3091,36 @@ async function sendMessage() {
     renderTab('chat');
     toast('Meddelande skickat!');
     loadCarts();
+  } else if (netError) {
+    // Anslutningen failade men servern har troligen redan tagit emot
+    // requesten (cart-message tar 2-5s pga 600ms Resend rate-limit-sleeps).
+    // Återhämta cart från servern och kolla om meddelandet finns där.
+    console.warn('SEND_MESSAGE: nätverksfel — verifierar om meddelandet kom fram');
+    btn.textContent = 'Verifierar…';
+    const cartId = currentCart.id;
+    const { ok: refetchOk, data: refetchData } = await api(`admin-carts?id=${cartId}`, { timeoutMs: 15000 });
+    if (refetchOk && Array.isArray(refetchData.messages)) {
+      // Senaste admin-meddelandet, jämför body
+      const recent = refetchData.messages
+        .filter(m => m.sender === 'admin')
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+      if (recent && recent.body === text &&
+          (Date.now() - new Date(recent.created_at).getTime()) < 60000) {
+        // Meddelandet kom fram trots nätverksfel — synka lokal state
+        currentMessages = refetchData.messages;
+        input.value = '';
+        renderTab('chat');
+        toast('✓ Meddelandet skickades (anslutningen var långsam)');
+        loadCarts();
+        return;
+      }
+    }
+    // Meddelandet kom INTE fram, eller verifieringen failade också
+    toast('Anslutningsproblem — försök skicka igen', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Skicka till kund →';
   } else {
+    console.error('SEND_MESSAGE: serverfel', data);
     toast(data.error || 'Kunde inte skicka', 'error');
     btn.disabled = false;
     btn.textContent = 'Skicka till kund →';
