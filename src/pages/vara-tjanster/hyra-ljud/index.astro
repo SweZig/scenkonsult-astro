@@ -45,7 +45,7 @@ const extraFaq = [
       { label: "Hyra ljud" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">499 kr</span><span class="sk-price-incl hidden">624 kr</span> / dygn' },
+      { html: 'Från <span class="sk-price-excl">499&nbsp;kr</span><span class="sk-price-incl hidden">624&nbsp;kr</span> / dygn' },
       "20–4 000 personer",
       "Testkört och kalibrerat",
       "Tekniker tillgänglig",
@@ -159,8 +159,8 @@ const extraFaq = [
         <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
               </div>
               <div class="leading-none">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{p.price.toLocaleString('sv-SE')} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
+                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{p.price.toLocaleString('sv-SE')}&nbsp;kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(p.price*1.25).toLocaleString('sv-SE')}&nbsp;kr</span>
                 <span class="text-gray-400 text-xs">{p.priceNote ?? '/dygn'}</span>
               </div>
               <CartButton id={p.artno || p.id || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category="Ljud" image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" iconOnly={true} />

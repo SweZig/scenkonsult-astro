@@ -35,7 +35,7 @@ const faqSchema = {
       { label: "Projektor & skärm" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">299 kr</span><span class="sk-price-incl hidden">374 kr</span> / dygn' },
+      { html: 'Från <span class="sk-price-excl">299&nbsp;kr</span><span class="sk-price-incl hidden">374&nbsp;kr</span> / dygn' },
       "Klarar dagsljus",
       "Full HD och 4K",
       "LED-vägg & trailerscen",
@@ -173,8 +173,8 @@ const faqSchema = {
             <p class="duk-card-tagline">{d.includes?.[0] ?? ''}</p>
             <div class="duk-card-foot">
               <div class="leading-none">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{d.price.toLocaleString('sv')} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(d.price * 1.25).toLocaleString('sv')} kr</span>
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{d.price.toLocaleString('sv')}&nbsp;kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(d.price * 1.25).toLocaleString('sv')}&nbsp;kr</span>
                 <span class="text-gray-400 text-xs">{d.priceNote ?? '/dygn'}</span>
               </div>
               <CartButton id={d.artno} artno={d.artno} name={d.name} price={d.price} priceNote={d.priceNote ?? '/dygn'} category="Projektorduk" image={d.image} bulky={d.bulky} size="sm" iconOnly={true} />
@@ -259,8 +259,8 @@ const faqSchema = {
             </ul>
             <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-3 gap-3">
               <div class="leading-none">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{svc.price.toLocaleString('sv')} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(svc.price * 1.25).toLocaleString('sv')} kr</span>
+                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{svc.price.toLocaleString('sv')}&nbsp;kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(svc.price * 1.25).toLocaleString('sv')}&nbsp;kr</span>
                 <span class="text-gray-400 text-xs">{svc.priceNote ?? '/tim'}</span>
               </div>
               <CartButton id={svc.artno} name={svc.name} price={svc.price} category="Tjänster" artno={svc.artno} image={svc.image} size="md" iconOnly={true} />
