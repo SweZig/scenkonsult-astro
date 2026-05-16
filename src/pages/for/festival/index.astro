@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
@@ -78,7 +78,8 @@ const pageSchema = {
   schemaExtra={pageSchema}
 >
 
-  <CategoryHero
+  <ModernHero
+    eyebrow="För ditt event · Festival & utomhus"
     h1="Scen & ljud till festival i"
     h1Accent="Stockholm"
     intro="Modulscener, kraftfulla PA-system och robust ljus för utomhus-event och festivaler. Vi har utrustning för 100 till 2 000 besökare och hanterar hela Storstockholm."
@@ -87,11 +88,11 @@ const pageSchema = {
       { label: "För ditt event", href: "/for/" },
       { label: "Festival & utomhus" }
     ]}
-    badges={[
+    chips={[
       "Scener upp till 8×6 m",
       "PA-system för 2 000 gäster",
       "Tål utomhusbruk och väder",
-      "Tekniker på plats tillgängligt"
+      "Tekniker på plats tillgängligt",
     ]}
   />
 

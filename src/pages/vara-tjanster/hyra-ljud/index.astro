@@ -3,6 +3,7 @@ import Price from '../../../components/Price.astro';
 import CartButton from '../../../components/CartButton.astro';
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
 import ljudData from '../../../data/ljud.json';
 
 const faqSchema = {
@@ -54,7 +55,7 @@ const extraFaq = [
 
   <!-- KATEGORI-GRID -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-8">Välj kategori</h2>
+    <SectionHeader eyebrow="Sortiment" h2="Välj kategori" />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {ljudData.categories.map((cat) => (
         <a href={cat.href} class="bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group block">
@@ -104,8 +105,7 @@ const extraFaq = [
 
   <!-- POPULÄRASTE PAKETEN -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-    <h2 class="text-2xl font-bold text-white mb-2">Populäraste paketen</h2>
-    <p class="text-gray-400 mb-8">Välkalibrerade system för fest, konferens och live – de tre vanligaste valen.</p>
+    <SectionHeader eyebrow="Snabbval" h2="Populäraste paketen" lead="Välkalibrerade system för fest, konferens och live – de tre vanligaste valen." />
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       {[...ljudData.event.products.slice(0,1), ...ljudData.music.products.slice(0,1), ...ljudData.live.products.slice(0,1)].map(p => (
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group" itemscope itemtype="https://schema.org/Product">
@@ -192,7 +192,7 @@ const extraFaq = [
 
   <!-- FAQ -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-8">Vanliga frågor om ljudhyrning</h2>
+    <SectionHeader eyebrow="Vanliga frågor" h2="Vanliga frågor om ljudhyrning" />
     <div class="space-y-4">
       {[...ljudData.faq, ...extraFaq].map(f => (
         <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">

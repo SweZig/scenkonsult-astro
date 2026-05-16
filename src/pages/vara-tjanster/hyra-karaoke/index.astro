@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
 import CartButton from '../../../components/CartButton.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import karaoke from '../../../data/karaoke.json';
@@ -96,8 +97,7 @@ const tillbehor = karaoke.tillbehor
   <!-- KARAOKEPAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <div class="mb-6">
-      <h2 class="text-2xl font-bold text-white mb-2">Kompletta karaokepaket</h2>
-      <p class="text-gray-400 text-sm">Sex färdiga paket — välj efter publik och ambitionsnivå. Resa tillkommer.</p>
+      <SectionHeader eyebrow="Snabbval" h2="Kompletta karaokepaket" lead="Sex färdiga paket — välj efter publik och ambitionsnivå. Resa tillkommer." />
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {karaoke.packages.map(pkg => (
@@ -191,8 +191,7 @@ const tillbehor = karaoke.tillbehor
   <!-- TILLBEHÖR -->
   <section id="karaoke-tillbehor" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <div class="mb-6">
-      <h2 class="text-2xl font-bold text-white mb-2">Bra tillbehör till karaokepaketet</h2>
-      <p class="text-gray-400 text-sm">Lägg till efter behov — projektorduk om du saknar fri vägg, ljuspaket för fest-känslan.</p>
+      <SectionHeader eyebrow="Komplettera" h2="Bra tillbehör till karaokepaketet" lead="Lägg till efter behov — projektorduk om du saknar fri vägg, ljuspaket för fest-känslan." />
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {tillbehor.map(t => (
@@ -219,7 +218,7 @@ const tillbehor = karaoke.tillbehor
 
   <!-- FAQ -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6">Vanliga frågor om karaokeuthyrning</h2>
+    <SectionHeader eyebrow="Vanliga frågor" h2="Vanliga frågor om karaokeuthyrning" marginBottom="1.5rem" />
     <div class="space-y-3">
       {karaoke.faq.map(f => (
         <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">

@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
+import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import CartButton from '../../../components/CartButton.astro';
 import bildData from '../../../data/bild.json';
@@ -68,7 +68,8 @@ const faqSchema = {
   schemaExtra={faqSchema}
 >
 
-  <CategoryHero
+  <ModernHero
+    eyebrow="Konferens · Komplett AV-paket"
     h1="AV-utrustning för Konferens"
     h1Accent="Stockholm"
     intro="Hyr komplett AV-utrustning för konferens och företagsevent i Stockholm. Trådlösa mikrofoner, projektor, storbildsskärm och diskreta PA-system — allt från ett ställe. Leverans och montering i hela Storstockholm."
@@ -77,14 +78,14 @@ const faqSchema = {
       { label: "Våra tjänster", href: "/vara-tjanster/" },
       { label: "Konferens AV" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">299&nbsp;kr</span><span class="sk-price-incl hidden">374&nbsp;kr</span> / dygn' },
       "Trådlösa mikrofoner",
       "Projektor & storbildsskärm",
       "Diskret PA-ljud",
       "Leverans & montering",
       "Sedan 1986",
     ]}
-    priceFrom={299}
   />
 
   <!-- Vad behöver du? -->
