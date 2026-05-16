@@ -5,6 +5,7 @@
 // triggar skarpt utskick. Funktionen är idempotent via pickup_reminder_sent_at.
 'use strict';
 
+const { schedule } = require('@netlify/functions');
 const { supabase, sendEmail, logAudit, MAIL_FROM } = require('./_lib');
 const { buildPickupReminderEmail } = require('./_pickup-reminder-mail');
 
@@ -13,7 +14,7 @@ const { buildPickupReminderEmail } = require('./_pickup-reminder-mail');
 //                              18:00 UTC = 20:00 SE  → exit
 //   vintertid (CET  = UTC+1): 17:00 UTC = 18:00 SE  → exit
 //                              18:00 UTC = 19:00 SE  → kör skarpt
-exports.config = { schedule: '0 17,18 * * *' };
+const SCHEDULE = '0 17,18 * * *';
 
 // Hämta nuvarande timme i Stockholm (0–23)
 function stockholmHour() {
@@ -36,7 +37,7 @@ function tomorrowSE() {
   return tomorrowDate.toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
 }
 
-exports.handler = async () => {
+const pickupReminderHandler = async () => {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error('SCHEDULED_PICKUP: RESEND_API_KEY saknas');
@@ -109,3 +110,9 @@ exports.handler = async () => {
   console.log('SCHEDULED_PICKUP_RESULT:', JSON.stringify(results));
   return { statusCode: 200, body: JSON.stringify(results) };
 };
+
+// schedule()-wrapper från @netlify/functions registrerar cron-schemat
+// pålitligt vid build. Tidigare 'exports.config = { schedule: ... }' fångades
+// inte av Netlify-bundlern i ett "type":"module"-paket, så funktionen
+// deployades som vanlig HTTP-function utan cron-trigger.
+exports.handler = schedule(SCHEDULE, pickupReminderHandler);
