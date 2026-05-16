@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import CategoryHero from '../../../../components/CategoryHero.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
@@ -59,8 +59,9 @@ const faqSchema = {
   description="Hyr musikljud och DJ-system i Stockholm från 999 kr/dygn. Kraftfulla sub-basar och fullrange för dansgolv med 20–1 500 gäster. Leverans i hela Storstockholm."
 >
 
-  <CategoryHero
-    h1="Musikljud & DJ-system"
+  <ModernHero
+    eyebrow="Ljud · Musik & dans"
+    h1="Musikljud & DJ-system i"
     h1Accent="Stockholm"
     intro="Hyr musikljud och DJ-system i Stockholm. Kraftfulla sub-basar och fullrange-system för dansgolv och fest med 20–1 500 gäster. Komplettera med mixerbord och trådlösa mikrofoner nedan."
     breadcrumbs={[
@@ -68,13 +69,13 @@ const faqSchema = {
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
       { label: "Ljud för Musik" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">999&nbsp;kr</span><span class="sk-price-incl hidden">1 249&nbsp;kr</span> / dygn' },
       "Sub-basar för dansgolv",
       "20–1 500 personer",
       "DJ-anpassat",
       "Leverans i Storstockholm",
     ]}
-    priceFrom={999}
   />
 
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">

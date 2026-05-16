@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import CategoryHero from '../../../../components/CategoryHero.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ljudData from '../../../../data/ljud.json';
 
@@ -108,8 +108,9 @@ const categories = [
   schemaExtra={faqSchema}
 >
 
-  <CategoryHero
-    h1="Hyra PA-anläggning"
+  <ModernHero
+    eyebrow="Ljud · PA-anläggning"
+    h1="Hyra PA-anläggning i"
     h1Accent="Stockholm"
     intro="Hyr PA-anläggning i Stockholm från 499 kr/dygn — för allt från litet möte till stor konsert. Vi har rätt system för ditt event oavsett storlek, inomhus eller utomhus. Leverans i hela Storstockholm."
     breadcrumbs={[
@@ -117,14 +118,13 @@ const categories = [
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
       { label: "PA-anläggning" }
     ]}
-    badges={[
-      "Från 499 kr/dygn",
+    chips={[
+      { html: 'Från <span class="sk-price-excl">499&nbsp;kr</span><span class="sk-price-incl hidden">624&nbsp;kr</span> / dygn' },
       "20–3 000 personer",
       "Inomhus & utomhus",
       "Batteridrift tillgängligt",
       "Leverans i Storstockholm",
     ]}
-    priceFrom={499}
   />
 
   <!-- Vad är en PA-anläggning -->

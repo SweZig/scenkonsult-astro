@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import CategoryHero from '../../../../components/CategoryHero.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
@@ -59,8 +59,9 @@ const faqSchema = {
   description="Hyr liveljud för konserter, trubadurer och liveband i Stockholm från 499 kr/dygn. Sub-basar och fullrange paket för 20–1 500 personer. Leverans i hela Storstockholm."
 >
 
-  <CategoryHero
-    h1="Liveljud & Konsert"
+  <ModernHero
+    eyebrow="Ljud · Live & konsert"
+    h1="Liveljud & konsert i"
     h1Accent="Stockholm"
     intro="Hyr liveljud för konsert, trubadur och liveband i Stockholm. Kraftfulla sub-basar och fullrange högtalarpaket för 20–1 500 personer. Komplettera med mixerbord och mikrofoner nedan."
     breadcrumbs={[
@@ -68,12 +69,12 @@ const faqSchema = {
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
       { label: "Live & Konsert" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">499&nbsp;kr</span><span class="sk-price-incl hidden">624&nbsp;kr</span> / dygn' },
       "Sub-basar & line array",
       "20–1 500 personer",
       "Leverans i Storstockholm",
     ]}
-    priceFrom={499}
   />
 
   <!-- PAKET -->

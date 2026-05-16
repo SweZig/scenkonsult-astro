@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import CategoryHero from '../../../../components/CategoryHero.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ljudData from '../../../../data/ljud.json';
@@ -56,8 +56,9 @@ const faqSchema = {
   schemaExtra={faqSchema}
 >
 
-  <CategoryHero
-    h1="Hyra Kolumnhögtalare"
+  <ModernHero
+    eyebrow="Ljud · Kolumnhögtalare"
+    h1="Hyra kolumnhögtalare i"
     h1Accent="Stockholm"
     intro="Hyr kolumnhögtalare i Stockholm — smal, diskret design som låter bra utan att synas. Perfekt för konferens, bröllop och event där utseendet spelar roll. Alto och LD Systems från 799 kr/dygn."
     breadcrumbs={[
@@ -66,14 +67,13 @@ const faqSchema = {
       { label: "Portabelt ljud", href: "/vara-tjanster/hyra-ljud/portable/" },
       { label: "Kolumnhögtalare" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">799&nbsp;kr</span><span class="sk-price-incl hidden">999&nbsp;kr</span> / dygn' },
       "Stockholms största utbud",
       "Alto & LD Systems",
-      "Från 799 kr/dygn",
       "Bluetooth & inbyggd mixer",
       "Leverans i Storstockholm",
     ]}
-    priceFrom={799}
   />
 
   <!-- Vad är kolumnhögtalare -->

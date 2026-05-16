@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import CategoryHero from '../../../../components/CategoryHero.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
 import MediaCard from '../../../../components/MediaCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ljusData from '../../../../data/ljus.json';
@@ -73,8 +73,9 @@ const faqSchema = {
   schemaExtra={faqSchema}
 >
 
-  <CategoryHero
-    h1="Hyra Moving Heads"
+  <ModernHero
+    eyebrow="Ljus · Moving heads"
+    h1="Hyra moving heads i"
     h1Accent="Stockholm"
     intro="Stockholms största utbud av moving heads för uthyrning. Wash, Beam/Spot och LED Bar — från 299 kr/st/dygn. Volympriser vid fler enheter. Vi levererar och hämtar i hela Storstockholm."
     breadcrumbs={[
@@ -83,14 +84,13 @@ const faqSchema = {
       { label: "Ljuseffekter", href: "/vara-tjanster/hyra-ljus/ljuseffekter/" },
       { label: "Moving Heads" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">299&nbsp;kr</span><span class="sk-price-incl hidden">374&nbsp;kr</span> / dygn' },
       "9 modeller i lager",
       "Wash & Beam/Spot",
-      "Från 299 kr/st/dygn",
       "Volympriser",
       "Leverans i Storstockholm",
     ]}
-    priceFrom={299}
   />
 
   <!-- USP-rad -->

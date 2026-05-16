@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import CategoryHero from '../../../../components/CategoryHero.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
 import MediaCard from '../../../../components/MediaCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
@@ -61,8 +61,9 @@ const faqSchema = {
   description="Hyr lösa ljuseffekter i Stockholm från 79 kr/dygn. LED PAR, Moving Head, Scanner, Strobe, Laser, LED Bar. Volympriser. Leverans i hela Storstockholm."
 >
 
-  <CategoryHero
-    h1="Ljuseffekter"
+  <ModernHero
+    eyebrow="Ljus · Effekter"
+    h1="Ljuseffekter i"
     h1Accent="Stockholm"
     intro="Hyr lösa ljuseffekter i Stockholm. LED PAR, Moving Heads, stroboskop, UV, laser och scanners – bygg din egna ljussetup. Volympriser för fler enheter. Leverans i hela Storstockholm."
     breadcrumbs={[
@@ -70,13 +71,13 @@ const faqSchema = {
       { label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/" },
       { label: "Ljuseffekter" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">79&nbsp;kr</span><span class="sk-price-incl hidden">99&nbsp;kr</span> / dygn' },
       "LED PAR & moving heads",
       "Stroboskop & UV & laser",
       "DMX-styrda",
       "Leverans i Storstockholm",
     ]}
-    priceFrom={79}
   />
 
   <!-- LED PAR -->

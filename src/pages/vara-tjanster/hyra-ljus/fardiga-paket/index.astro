@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
-import CategoryHero from '../../../../components/CategoryHero.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
 import MediaCard from '../../../../components/MediaCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
@@ -48,8 +48,9 @@ const faqSchema = {
   description="Hyr färdiga ljuspaket i Stockholm från 399 kr/dygn. Small till XL+ – 12 paket för 10–250 personer. LED PAR, Moving Heads, Strobe, Laser. Leverans Storstockholm."
 >
 
-  <CategoryHero
-    h1="Färdiga Ljuspaket"
+  <ModernHero
+    eyebrow="Ljus · Färdiga paket"
+    h1="Färdiga ljuspaket i"
     h1Accent="Stockholm"
     intro="Hyr färdiga ljuspaket för fest, bröllop och event i Stockholm. Tolv paket från Small till XL+ – för 10 till 250 personer. Plug & play med automatisk musiksynk, ingen DMX-kunskap krävs. Leverans i hela Storstockholm."
     breadcrumbs={[
@@ -57,13 +58,13 @@ const faqSchema = {
       { label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/" },
       { label: "Färdiga ljuspaket" }
     ]}
-    badges={[
+    chips={[
+      { html: 'Från <span class="sk-price-excl">399&nbsp;kr</span><span class="sk-price-incl hidden">499&nbsp;kr</span> / dygn' },
       "Plug & play",
       "Automatisk musiksynk",
       "DMX eller automatik",
       "Leverans i Storstockholm",
     ]}
-    priceFrom={399}
   />
 
 
