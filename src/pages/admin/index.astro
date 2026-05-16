@@ -392,7 +392,10 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     }
     #detail-overlay.open { display: block; }
     #detail-panel {
-      position: fixed; right: 0; top: 0; bottom: 0; width: min(780px, 100vw);
+      position: fixed; right: 0; top: 0; width: min(780px, 100vw);
+      /* iOS Safari: bottom:0 hamnar UNDER URL-baren. 100dvh exkluderar URL-bar. */
+      height: 100vh;   /* fallback */
+      height: 100dvh;  /* dynamic viewport — iOS Safari + Chrome mobile */
       background: var(--surface); border-left: 1px solid var(--border-lav);
       z-index: 201; display: flex; flex-direction: column;
       transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -423,13 +426,16 @@ import quoteCatalogData from '../../data/quote-catalog.json';
     .panel-tab:hover  { color: var(--text); }
     .panel-tab.active { color: var(--brand-lav); border-bottom-color: var(--brand-lav); }
 
-    .panel-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
+    .panel-body { flex: 1; min-height: 0; overflow-y: auto; padding: 1.5rem; }
     .panel-body::-webkit-scrollbar { width: 6px; }
     .panel-body::-webkit-scrollbar-track { background: transparent; }
     .panel-body::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
 
     .panel-footer {
-      padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0;
+      padding: 1rem 1.5rem;
+      /* iOS: respektera home-indicator-area så knappar inte kläms */
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border); flex-shrink: 0;
       display: flex; gap: 0.75rem; flex-wrap: wrap;
     }
 
@@ -950,6 +956,9 @@ import quoteCatalogData from '../../data/quote-catalog.json';
         <button class="cal-nav-btn" id="cal-next">▶</button>
       </div>
     </div>
+
+    <!-- Varning: bekräftade ordrar utan datum (osynliga i kalendern) -->
+    <div id="cal-no-date-warn" style="display:none;margin:0 1.5rem 1rem;padding:0.75rem 1rem;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.32);border-radius:8px;font-size:0.85rem;color:#fbbf24;line-height:1.5"></div>
     <div class="cal-grid">
       <div class="cal-weekdays">
         <div class="cal-weekday">Mån</div><div class="cal-weekday">Tis</div>
@@ -1185,6 +1194,14 @@ function overdueFlag(c) {
   if (daysOverdue < 3) return '';
   if (daysOverdue < 8) return `<span class="req-badge req-overdue-warn">⚠ Förfallen ${daysOverdue}d</span>`;
   return `<span class="req-badge req-overdue-crit">🚨 Förfallen ${daysOverdue}d</span>`;
+}
+
+// Hjälpfunktion: varnar när bekräftade/fakturerade ordrar saknar event_date.
+// Sådana ordrar är osynliga i kalendern och riskerar att missas helt.
+function noDateFlag(c) {
+  if (!['confirmed', 'fakturerad'].includes(c.status)) return '';
+  if (c.event_date) return '';
+  return '<span class="req-badge req-overdue-warn" title="Eventdatum saknas — ordern syns inte i kalendern. Lägg till datum i Info-fliken.">⚠ Datum saknas</span>';
 }
 
 // ── AUTH ──────────────────────────────────────────────────────
@@ -1463,6 +1480,7 @@ function cartCardCompact(c) {
   const reqB     = reqBadge(c);
   const paidB    = paidBadge(c);
   const overdueB = overdueFlag(c);
+  const noDateB  = noDateFlag(c);
   const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
@@ -1473,6 +1491,7 @@ function cartCardCompact(c) {
         <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
         ${reqB}
         ${overdueB}
+        ${noDateB}
         ${paidB}
         ${evBadge}
         ${pBadge}
@@ -1651,6 +1670,7 @@ function cartCardHTML(c) {
   const reqB  = reqBadge(c);
   const paidB = paidBadge(c);
   const overdueB = overdueFlag(c);
+  const noDateB  = noDateFlag(c);
 
   return `
     <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative;${cardExtraStyle}">
@@ -1659,7 +1679,7 @@ function cartCardHTML(c) {
         ${intentBadge}
       </div>
       ${daysFlag}
-      ${(reqB || paidB || overdueB) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${reqB}${overdueB}${paidB}</div>` : ''}
+      ${(reqB || paidB || overdueB || noDateB) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${reqB}${overdueB}${noDateB}${paidB}</div>` : ''}
       ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
       <div class="cart-card-sub">${c.customer_email || ''}</div>
       ${bounceBadge}
@@ -2279,7 +2299,7 @@ function renderInfoTab() {
           <span>🕐</span>
           <span>Förberedelsemail schemalagt</span>
         </div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.55)">Skickas automatiskt 08:00 på utlämningsdagen${c.event_date ? ` (${new Date(c.event_date+'T00:00:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})})` : ''}</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.55)">Skickas automatiskt kl 19:00 kvällen innan utlämning${c.event_date ? ` (${new Date(c.event_date+'T00:00:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})})` : ''}</div>
         `
       }
     </div>` : ''}
@@ -4830,6 +4850,24 @@ function renderCalendar() {
   const months = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
   $('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
 
+  // ── Varning: aktiva ordrar utan event_date är osynliga i kalendern ──
+  const ACTIVE_NO_DATE = new Set(['confirmed', 'fakturerad']);
+  const undated = carts.filter(c => ACTIVE_NO_DATE.has(c.status) && !c.event_date);
+  const warnEl = document.getElementById('cal-no-date-warn');
+  if (warnEl) {
+    if (undated.length) {
+      const links = undated.map(c =>
+        `<a href="#" onclick="event.preventDefault(); openDetail('${c.id}')" style="color:#fde68a;text-decoration:underline;font-weight:600">${c.customer_name || c.id}</a>`
+      ).join(', ');
+      warnEl.innerHTML =
+        `⚠ <strong>${undated.length} bekräftad${undated.length === 1 ? '' : 'e'} order utan datum</strong> visas inte i kalendern. ` +
+        `Lägg till event_date i Info-fliken: ${links}`;
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
+
   const firstDay = new Date(calYear, calMonth, 1);
   const lastDay  = new Date(calYear, calMonth + 1, 0);
   const today    = new Date();
@@ -4877,6 +4915,34 @@ function renderCalendar() {
       returnTime: c.return_time   || '11:00',
     }))
     .filter(b => b.start <= viewEndStr && b.end >= viewStartStr);
+
+  // ── DIAGNOS: vilka carts förkastades och varför? ─────────────────
+  // Hjälper felsöka "min bokning syns inte i kalendern". Logga endast om
+  // det FINNS förkastade carts i pipeline — annars skräpa inte i konsolen.
+  const visibleIds = new Set(visible.map(b => b.cart.id));
+  const inPipelineButDropped = carts.filter(c =>
+    CALENDAR_STATUSES.has(c.status) && !visibleIds.has(c.id)
+  );
+  if (inPipelineButDropped.length) {
+    console.groupCollapsed(
+      `[Calendar diagnos] ${inPipelineButDropped.length} cart(s) i pipeline men EJ synliga i ${months[calMonth]} ${calYear}`
+    );
+    inPipelineButDropped.forEach(c => {
+      const reasons = [];
+      if (!c.event_date) reasons.push('saknar event_date');
+      if (isBookingRequest(c)) reasons.push('bokningsförfrågan (status=new, inga items)');
+      if (c.event_date) {
+        const endDate = c.return_date && c.return_date >= c.event_date ? c.return_date : c.event_date;
+        if (c.event_date > viewEndStr) reasons.push(`event_date ${c.event_date} ligger EFTER vy (slutar ${viewEndStr})`);
+        else if (endDate < viewStartStr) reasons.push(`event_date ${c.event_date} (end ${endDate}) ligger FÖRE vy (börjar ${viewStartStr})`);
+      }
+      console.log(
+        `${c.id} [${c.status}] ${c.customer_name || '–'} → ${reasons.join(' + ') || 'OKÄND ORSAK (kolla c.status case + items)'}`,
+        c
+      );
+    });
+    console.groupEnd();
+  }
 
   // Lane-allokering: greedy efter startdatum, längre bokningar först vid lika start
   const sorted = [...visible].sort((a, b) => {
@@ -5122,6 +5188,7 @@ window.invSaveFields       = invSaveFields;
 window.invUpdateDueDate    = invUpdateDueDate;
 window.invCreateAndSend    = invCreateAndSend;
 window.openPanel       = openDetail;
+window.openDetail      = openDetail;
 window.closePanel      = closePanel;
 window.sendMessage     = sendMessage;
 window.confirmOrder    = confirmOrder;
