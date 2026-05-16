@@ -26,7 +26,10 @@ const jp = (artno: string) => [..._jp,..._je,..._jr].find((x:any) => x.artno ===
 const sp = (artno: string) => _sp.find(x => x.artno === artno)?.price ?? 0;
 const dp = (artno: string) => _dp.find((x:any) => x.artno === artno)?.price ?? 0;
 
-const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Vad kostar det att hyra scen, ljud och ljus? Prisguide 2026","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","dateModified":"2026-04-16","url":"https://scenkonsult.se/for/guider/vad-kostar-det/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar det att hyra scen i Stockholm?","acceptedAnswer":{"@type":"Answer","text":"Scenpaket Small (4 m²): 400 kr/dygn. Medium (10 m²): 1 499 kr/dygn. Large (20 m²): 2 999 kr/dygn. XL (36 m²): 5 399 kr/dygn. Priser exkl. moms. Transport tillkommer."}},{"@type":"Question","name":"Vad kostar det att hyra ljud till en fest med 100 gäster?","acceptedAnswer":{"@type":"Answer","text":"Music Small (999 kr/dygn) täcker 20–80 pers. med dans och subwoofer. Music Medium (1 499 kr/dygn) täcker 60–120 pers. Priser exkl. moms och transport."}},{"@type":"Question","name":"Vad kostar det att hyra ljus till ett event?","acceptedAnswer":{"@type":"Answer","text":"Ljuspaket Small (10–30 pers.): 399 kr/dygn. Ljuspaket Medium (40–80 pers.): 1 199 kr/dygn. Ljuspaket XL (100–250 pers.): 5 999 kr/dygn. Priser exkl. moms."}},{"@type":"Question","name":"Vad kostar leverans av scen och ljud i Stockholm?","acceptedAnswer":{"@type":"Answer","text":"Leverans med vanlig bil kostar 1 118 kr (tur och retur). Bil med släpvagn 1 598 kr. Avhämtning i Vällingby är alltid gratis. Priser exkl. moms."}},{"@type":"Question","name":"Vad kostar ett komplett paket med scen, ljud och ljus?","acceptedAnswer":{"@type":"Answer","text":"Liten fest 50 pers.: ca 1 200 kr/dygn. Bröllop 100 pers.: ca 3 500 kr/dygn. Företagsfest 200 pers.: ca 7 500 kr/dygn. Är det billigare att hämta själv?","acceptedAnswer":{"@type":"Answer","text":"Ja — avhämtning i Vällingby är alltid gratis. Spara leveranskostnaden om ni har lämpligt fordon."}}},{"@type":"Question","name":"Är det billigare att hämta scen och ljud själv?","acceptedAnswer":{"@type":"Answer","text":"Ja — avhämtning i Vällingby är alltid gratis. Spara 1 118 kr om ni har lämpligt fordon. Monteringstjänst kan alltid läggas till separat."}}]}]};
+// Format-helper för schema-strängar — "1 499" med non-breaking thin-space-konvention
+const fmt = (n: number) => n.toLocaleString('sv-SE');
+
+// Paket först (så att schema-strängarna kan referera till paket-summor)
 const paket = [
   {title:"Liten fest, ~50 gäster", rows:[
     {kat:"Ljud", prod:"Portable Medium",            p:lp("SK-LJD-POR-0003"), l:"/vara-tjanster/hyra-ljud/portable/"},
@@ -52,6 +55,37 @@ const paket = [
     {kat:"Rök",  prod:"Rökmaskin 1500W",            p:jp("SK-LJS-ROK-0001"), l:"/vara-tjanster/hyra-ljus/"},
   ], note:"Kontakta oss för festivalpris"},
 ].map(pak => ({...pak, total: pak.rows.reduce((s, r) => s + (r.p ?? 0), 0)}));
+
+// Schema-priser — JSON-first, alltid synkat med datafilerna
+const _scenSmall  = sp("SK-SCN-0001");   // 4 m²
+const _scenMedium = sp("SK-SCN-0004");   // 10 m²
+const _scenLarge  = sp("SK-SCN-0008");   // 20 m²
+const _scenXL     = sp("SK-SCN-0011");   // 36 m²
+const _musicSmall = lp("SK-LJD-MUS-0001");
+const _musicMed   = lp("SK-LJD-MUS-0003");
+const _ljusSmall  = jp("SK-LJS-PAK-0001");
+const _ljusMed    = jp("SK-LJS-PAK-0004");
+const _ljusXL     = jp("SK-LJS-PAK-0010");
+const _fraktBil   = (fraktData as any).leverans?.standard?.pris ?? 1118;
+const _fraktSlap  = (fraktData as any).leverans?.skrymmande?.pris ?? 1598;
+const _totLitenFest    = paket[0].total;
+const _totBrollop      = paket[1].total;
+const _totForetagsfest = paket[2].total;
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Article", "headline": "Vad kostar det att hyra scen, ljud och ljus? Prisguide 2026", "author": { "@type": "Organization", "name": "Scenkonsult Norden" }, "datePublished": "2025-01-01", "dateModified": "2026-04-16", "url": "https://scenkonsult.se/for/guider/vad-kostar-det/" },
+    { "@type": "FAQPage", "mainEntity": [
+      { "@type": "Question", "name": "Vad kostar det att hyra scen i Stockholm?", "acceptedAnswer": { "@type": "Answer", "text": `Scenpaket Small (4 m²): ${fmt(_scenSmall)} kr/dygn. Medium (10 m²): ${fmt(_scenMedium)} kr/dygn. Large (20 m²): ${fmt(_scenLarge)} kr/dygn. XL (36 m²): ${fmt(_scenXL)} kr/dygn. Priser exkl. moms. Transport tillkommer.` } },
+      { "@type": "Question", "name": "Vad kostar det att hyra ljud till en fest med 100 gäster?", "acceptedAnswer": { "@type": "Answer", "text": `Music Small (${fmt(_musicSmall)} kr/dygn) täcker 20–80 pers. med dans och subwoofer. Music Medium (${fmt(_musicMed)} kr/dygn) täcker 60–120 pers. Priser exkl. moms och transport.` } },
+      { "@type": "Question", "name": "Vad kostar det att hyra ljus till ett event?", "acceptedAnswer": { "@type": "Answer", "text": `Ljuspaket Small (10–30 pers.): ${fmt(_ljusSmall)} kr/dygn. Ljuspaket Medium (40–80 pers.): ${fmt(_ljusMed)} kr/dygn. Ljuspaket XL (100–250 pers.): ${fmt(_ljusXL)} kr/dygn. Priser exkl. moms.` } },
+      { "@type": "Question", "name": "Vad kostar leverans av scen och ljud i Stockholm?", "acceptedAnswer": { "@type": "Answer", "text": `Leverans med vanlig bil kostar ${fmt(_fraktBil)} kr (tur och retur). Bil med släpvagn ${fmt(_fraktSlap)} kr. Avhämtning i Vällingby är alltid gratis. Priser exkl. moms.` } },
+      { "@type": "Question", "name": "Vad kostar ett komplett paket med scen, ljud och ljus?", "acceptedAnswer": { "@type": "Answer", "text": `Liten fest 50 pers.: från ${fmt(_totLitenFest)} kr/dygn. Bröllop 100 pers.: från ${fmt(_totBrollop)} kr/dygn. Företagsfest 200 pers.: från ${fmt(_totForetagsfest)} kr/dygn. Priser exkl. moms — transport och montering tillkommer.` } },
+      { "@type": "Question", "name": "Är det billigare att hämta scen och ljud själv?", "acceptedAnswer": { "@type": "Answer", "text": `Ja — avhämtning i Vällingby är alltid gratis. Spara ${fmt(_fraktBil)} kr om ni har lämpligt fordon. Monteringstjänst kan alltid läggas till separat.` } }
+    ]}
+  ]
+};
 const sparTips = [
   {t:"Hämta själv",d:"Avhämtning är alltid gratis. Spara leveranskostnaden om ni har lämpligt fordon."},
   {t:"Helg = 1 dygn",d:"Hyr fredag, lämna tillbaka måndag — betala ett dygn om utrustningen inte är bokad."},
