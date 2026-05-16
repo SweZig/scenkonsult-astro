@@ -1,6 +1,5 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import CategoryHero from '../../../components/CategoryHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import CartButton from '../../../components/CartButton.astro';
@@ -74,80 +73,97 @@ const pageSchema = {
   }}
 >
 
-  <CategoryHero
-    h1="Hyra scen"
-    h1Accent="Stockholm"
-    intro={scenData.intro}
-    breadcrumbs={[
-      { label: "Hem", href: "/" },
-      { label: "Våra tjänster", href: "/vara-tjanster/" },
-      { label: "Hyra scen" }
-    ]}
-    badges={[
-      "Halkfri eller slät yta",
-      "Bygg din egen från 2×2 m",
-      "Leverans & montering tillgängligt"
-    ]}
-    priceFrom={400}
-  />
-
-  <!-- SCENKONFIGURATOR — bygg din egen scen -->
-  <SceneConfigurator />
-
-  <!-- SCENPAKET (färdiga) -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-10">
-    <div class="mb-8">
-      <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Färdiga scenpaket</h2>
-      <p class="text-gray-400 text-sm">Snabba paketval om du inte vill konfigurera själv. Välj yta och antal trappor i kortet — pris och illustration uppdateras direkt. Tak-paketen ligger sist. <span class="text-white/70">Priserna visas exkl. transport och montering, som tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering — för säker hantering.</span></p>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {scenData.products.map(p => <DynamicPaketCard paket={p} />)}
-    </div>
-  </section>
-
-  <!-- TILLBEHÖR -->
-  <section class="bg-brand-navy border-y border-white/10 py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl font-bold text-white mb-6">Tillbehör</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {scenData.tillbehor.map(a => (
-          <ElTillbehorCard
-            img={a.image}
-            name={a.name}
-            excl={a.price}
-            desc={a.description}
-            category="Scen tillbehör"
-            artno={a.artno}
-            slug={a.slug}
-          />
-        ))}
+  <!-- HERO — LED-stil: inline gradient + eyebrow + serif h1 + pris-chips -->
+  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);position:relative;overflow:hidden;">
+    <div style="max-width:920px;margin:0 auto;position:relative;z-index:2;">
+      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
+        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);">
+          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
+          <li><a href="/vara-tjanster/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Våra tjänster</a> <span style="opacity:0.3;">/</span></li>
+          <li style="color:white;">Hyra scen</li>
+        </ol>
+      </nav>
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Scen · Modulär plattform</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">Hyra scen i <span style="color:#c4b5f4;font-style:italic;">Stockholm</span></h1>
+      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0 0 1.25rem;">{scenData.intro}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+        <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Från <span class="sk-price-excl">400 kr</span><span class="sk-price-incl hidden">500 kr</span> / dygn</span>
+        <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Halkfri eller slät yta</span>
+        <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Bygg din egen från 2×2 m</span>
+        <span style="background:rgba(196,181,244,0.12);color:#c4b5f4;padding:0.35rem 0.75rem;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;border:1px solid rgba(196,181,244,0.25);">Leverans i Storstockholm</span>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- INFO + CTA -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
-      <h2 class="text-2xl font-bold text-white mb-4">Generell information om våra scener</h2>
-      <div class="text-gray-400 text-sm leading-relaxed space-y-3">
-        <p>Kontakta oss för hjälp med att planera eventet så det blir optimalt. Alla scener har halkfria ytor som standard (slät yta finns för 1×2-moduler om matta läggs ovanpå) och passar för inomhus- och utomhusbruk.</p>
-        <p>Standardhöjder är 40 cm eller 60 cm. Större scener (över ca 16 m²) kräver alltid montering av vår personal — beräknad uppställningstid är ca 15 min per modul.</p>
-        <p>Scentak finns till våra större paket (Medium+ inkl. tak, Large+ inkl. tak). Övriga konfigurationer offereras separat — kontakta oss för specifika önskemål.</p>
-        <p class="font-medium text-gray-300">Alla priser gäller hyra per dygn (22 timmar). Hämtning från kl 13:00, återlämning innan kl 11:00 nästkommande dag. Längre perioder offerteras separat.</p>
-      </div>
-      <div class="flex flex-wrap gap-4 mt-6">
-        <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">
-          Boka scen
-        </a>
-        <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">
-          Fråga om offert
-        </a>
-        <a href="/hyresvillkor/" class="text-brand-gray hover:text-white px-2 py-3 text-sm transition-colors">
-          Läs hyresvillkoren →
-        </a>
-      </div>
+  <!-- HUVUDSEKTION — färdiga paket först, konfigurator under -->
+  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1180px;margin:0 auto;">
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- FÄRDIGA SCENPAKET — snabbval                                    -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="scenpaket" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
+        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.6rem;">Snabbval</p>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);color:white;margin:0 0 0.75rem;line-height:1.2;">Färdiga scenpaket</h2>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;margin:0 0 2rem;max-width:760px;">Tolv färdigkomponerade scenpaket — från Small (2×2 m) till XL+ (8×6 m), inklusive paket med tak. Välj yta och antal trappor i kortet — pris och illustration uppdateras direkt. <strong style="color:rgba(255,255,255,0.78);">Priserna är exkl. transport och montering, som tillkommer separat.</strong> Vid scen över 16 m² sköter våra tekniker alltid montering — för säker hantering och stabilitet.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {scenData.products.map(p => <DynamicPaketCard paket={p} />)}
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- SCENKONFIGURATOR — bygg din egen                                -->
+      <!-- (Har egen intern eyebrow + h2 i komponenten)                    -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="scen-konfigurator" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
+        <SceneConfigurator />
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- TILLBEHÖR                                                       -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section style="margin-bottom:3.5rem;">
+        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.6rem;">Komplettera</p>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);color:white;margin:0 0 0.75rem;line-height:1.2;">Scentillbehör</h2>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;margin:0 0 2rem;max-width:720px;">Trappor, scenkjol, backdrop, skyddsräcke och ködelare — tillval för att färdigställa scenen efter behov.</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {scenData.tillbehor.map(a => (
+            <ElTillbehorCard
+              img={a.image}
+              name={a.name}
+              excl={a.price}
+              desc={a.description}
+              category="Scen tillbehör"
+              artno={a.artno}
+              slug={a.slug}
+            />
+          ))}
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- GENERELL INFO + CTA                                             -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section style="margin-bottom:1rem;">
+        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.6rem;">Bra att veta</p>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);color:white;margin:0 0 1.25rem;line-height:1.2;">Generell information om våra scener</h2>
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:clamp(1.5rem,3vw,2rem);max-width:820px;">
+          <div style="color:rgba(255,255,255,0.7);font-size:0.95rem;line-height:1.7;display:flex;flex-direction:column;gap:0.75rem;">
+            <p>Kontakta oss för hjälp med att planera eventet så det blir optimalt. Alla scener har halkfria ytor som standard (slät yta finns för 1×2-moduler om matta läggs ovanpå) och passar för inomhus- och utomhusbruk.</p>
+            <p>Standardhöjder är 40 cm eller 60 cm. Större scener (över 16 m²) kräver alltid montering av vår personal — beräknad uppställningstid är ca 15 min per modul.</p>
+            <p>Scentak finns till våra större paket (Medium+ inkl. tak, Large+ inkl. tak). Övriga konfigurationer offereras separat — kontakta oss för specifika önskemål.</p>
+            <p style="color:rgba(255,255,255,0.85);font-weight:500;">Alla priser gäller hyra per dygn (22 timmar). Hämtning från kl 13:00, återlämning innan kl 11:00 nästkommande dag. Längre perioder offereras separat.</p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.8rem;margin-top:1.5rem;align-items:center;">
+            <a href="/bokningssida/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.05em;padding:0.75rem 1.5rem;border-radius:10px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#e2dcfb'" onmouseout="this.style.background='#c4b5f4'">Boka scen</a>
+            <a href="/kontakt/" style="border:1px solid rgba(255,255,255,0.3);color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.85rem;padding:0.75rem 1.5rem;border-radius:10px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Fråga om offert</a>
+            <a href="/hyresvillkor/" style="color:rgba(255,255,255,0.55);font-size:0.85rem;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#c4b5f4'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">Läs hyresvillkoren →</a>
+          </div>
+        </div>
+      </section>
+
     </div>
-  </section>
+  </article>
 
 
   <!-- Guider & resurser -->
