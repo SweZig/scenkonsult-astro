@@ -4884,9 +4884,12 @@ function renderCalendar() {
   // Helper: format ISO date YYYY-MM-DD
   const toIso = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
-  // Visning sträcker sig från cell 0 till sista cell
+  // Visning sträcker sig från cell 0 till sista cell.
+  // Cell k = (1 - startDow + k) i calMonth. Sista cellen är k = totalCells - 1.
+  // Tidigare hade vi 'totalCells - startDow - 1' vilket är ETT FÖR MYCKET som
+  // dras bort — bokningar på sista cellen (t.ex. 31 maj 2026) filtrerades bort.
   const viewStart = new Date(calYear, calMonth, 1 - startDow);
-  const viewEnd   = new Date(calYear, calMonth, totalCells - startDow - 1);
+  const viewEnd   = new Date(calYear, calMonth, totalCells - startDow);
   const viewStartStr = toIso(viewStart);
   const viewEndStr   = toIso(viewEnd);
 
