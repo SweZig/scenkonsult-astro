@@ -1,0 +1,1051 @@
+---
+// src/pages/admin/produkter/index.astro
+// Produktunderhåll — redigera name, price, description i datafiler
+// Skriver tillbaka till GitHub via API → Netlify auto-deploys
+// Skyddad av samma ADMIN_TOKEN-flöde som /admin/
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produktunderhåll — Scenkonsult Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand-dark:  #0c0a24;
+      --brand-navy:  #1e1850;
+      --brand-lav:   #c4b5f4;
+      --brand-lav-l: #e2dcfb;
+      --bg:          #0f0d2a;
+      --surface:     #1a1740;
+      --surface2:    #221f50;
+      --border:      rgba(255,255,255,0.10);
+      --border-lav:  rgba(196,181,244,0.30);
+      --text:        #f0eeff;
+      --text-muted:  rgba(255,255,255,0.60);
+      --text-faint:  rgba(255,255,255,0.35);
+      --green:       #4ade80;
+      --green-bg:    rgba(74,222,128,0.12);
+      --amber:       #fbbf24;
+      --amber-bg:    rgba(251,191,36,0.14);
+      --red:         #f87171;
+      --red-bg:      rgba(248,113,113,0.14);
+      --blue:        #60a5fa;
+      --blue-bg:     rgba(96,165,250,0.12);
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* Inputs får aldrig OS-tema */
+    input, textarea, select, button {
+      font-family: inherit;
+      color-scheme: dark;
+    }
+    input[type="text"], input[type="number"], textarea {
+      background: #221f50 !important;
+      color: #f0eeff !important;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 13px;
+      width: 100%;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+      border-color: var(--brand-lav);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+
+    /* ── Login screen ────────────────────────────────────── */
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border-lav);
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+    .login-box h1 {
+      font-size: 20px; margin-bottom: 6px; color: var(--brand-lav);
+    }
+    .login-box .sub { color: var(--text-muted); font-size: 13px; margin-bottom: 22px; }
+    .login-box input { margin-bottom: 12px; }
+    .login-box button {
+      background: var(--brand-lav);
+      color: var(--brand-dark);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+      font-size: 14px;
+    }
+    .login-box button:hover { background: var(--brand-lav-l); }
+    .login-err { color: var(--red); font-size: 12px; margin-top: 8px; min-height: 16px; }
+
+    /* ── App layout ─────────────────────────────────────── */
+    .app {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .app.active { display: flex; }
+
+    .top {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .top h1 { font-size: 17px; color: var(--brand-lav); margin-right: auto; }
+    .top a, .top button {
+      color: var(--text-muted);
+      font-size: 12px;
+      background: none;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .top a:hover, .top button:hover { color: var(--text); border-color: var(--brand-lav); }
+
+    /* ── Sync banner (R/A/G) ────────────────────────────── */
+    .sync-banner {
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      transition: background .3s;
+    }
+    .sync-banner .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .sync-banner.green { background: var(--green-bg); color: var(--green); }
+    .sync-banner.amber { background: var(--amber-bg); color: var(--amber); }
+    .sync-banner.red   { background: var(--red-bg);   color: var(--red); }
+    .sync-banner.grey  { background: rgba(255,255,255,0.04); color: var(--text-muted); }
+    .sync-banner .msg { font-weight: 500; }
+    .sync-banner .meta { color: var(--text-muted); font-size: 12px; margin-left: auto; }
+    .sync-banner .meta a { color: inherit; text-decoration: underline; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+    .sync-banner.amber .dot { animation: pulse 1.5s ease-in-out infinite; }
+
+    /* ── File tabs ─────────────────────────────────────── */
+    .file-tabs {
+      background: var(--surface);
+      padding: 0 20px;
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .file-tab {
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .file-tab:hover { color: var(--text); }
+    .file-tab.active {
+      color: var(--brand-lav);
+      border-bottom-color: var(--brand-lav);
+    }
+
+    /* ── Section tabs (inom en fil) ───────────────────── */
+    .section-tabs {
+      background: var(--bg);
+      padding: 10px 20px;
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .section-tab {
+      padding: 5px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .section-tab:hover { border-color: var(--brand-lav); color: var(--text); }
+    .section-tab.active {
+      background: var(--brand-lav);
+      color: var(--brand-dark);
+      border-color: var(--brand-lav);
+      font-weight: 600;
+    }
+    .section-tab .count {
+      opacity: 0.7;
+      margin-left: 4px;
+    }
+
+    /* ── Main content ──────────────────────────────────── */
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .toolbar .filter-input { max-width: 240px; }
+    .toolbar .spacer { flex: 1; }
+    .btn-primary {
+      background: var(--brand-lav);
+      color: var(--brand-dark);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--brand-lav-l); }
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: none;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: var(--brand-lav); }
+
+    .pending-count {
+      color: var(--amber);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* ── Product table ────────────────────────────────── */
+    .prod-table {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .prod-row {
+      display: grid;
+      grid-template-columns: 28px 130px 1fr 110px 1.4fr 24px;
+      gap: 10px;
+      padding: 10px 14px;
+      align-items: start;
+      border-bottom: 1px solid var(--border);
+    }
+    .prod-row:last-child { border-bottom: none; }
+    .prod-row.header {
+      background: var(--bg);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      font-weight: 600;
+      align-items: center;
+      padding: 10px 14px;
+    }
+    .prod-row.changed {
+      background: rgba(251,191,36,0.06);
+      border-left: 3px solid var(--amber);
+      padding-left: 11px;
+    }
+    .prod-row.error {
+      background: rgba(248,113,113,0.07);
+      border-left: 3px solid var(--red);
+      padding-left: 11px;
+    }
+
+    .row-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 8px;
+    }
+    .row-status .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+    }
+    .row-status .dot.green { background: var(--green); }
+    .row-status .dot.amber { background: var(--amber); }
+    .row-status .dot.red   { background: var(--red); }
+
+    .artno {
+      font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding-top: 8px;
+      word-break: break-all;
+    }
+    .price-col input { text-align: right; }
+    .price-col .suffix {
+      color: var(--text-faint);
+      font-size: 11px;
+      margin-left: 4px;
+    }
+    .price-col-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .price-col-wrap input {
+      flex: 1;
+    }
+
+    .row-info {
+      padding-top: 8px;
+      font-size: 10px;
+      color: var(--text-faint);
+      text-align: center;
+    }
+    .row-info[title] { cursor: help; }
+
+    .field-err {
+      color: var(--red);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    /* ── Notifications ────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border-lav);
+      border-left: 4px solid var(--green);
+      padding: 14px 18px;
+      border-radius: 8px;
+      max-width: 380px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      z-index: 1000;
+      animation: slideIn .2s ease-out;
+    }
+    .toast.error { border-left-color: var(--red); }
+    .toast.warn  { border-left-color: var(--amber); }
+    .toast .title { font-weight: 600; margin-bottom: 4px; }
+    .toast .body  { color: var(--text-muted); font-size: 12px; }
+    @keyframes slideIn {
+      from { transform: translateX(20px); opacity: 0; }
+      to   { transform: translateX(0); opacity: 1; }
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 40px 20px;
+    }
+    .loading {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 40px 20px;
+    }
+    .loading::after {
+      content: '...';
+      animation: dots 1.4s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40%     { content: '.'; }
+      60%     { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+
+    /* Responsive: pack rader på mobil */
+    @media (max-width: 900px) {
+      .prod-row {
+        grid-template-columns: 28px 1fr 110px 24px;
+        grid-template-areas:
+          "status name name info"
+          "status artno price info"
+          "status desc desc info";
+        gap: 6px;
+      }
+      .prod-row.header { display: none; }
+      .row-status { grid-area: status; }
+      .row-info   { grid-area: info; }
+      .prod-row .artno-cell  { grid-area: artno; }
+      .prod-row .name-cell   { grid-area: name; }
+      .prod-row .price-cell  { grid-area: price; }
+      .prod-row .desc-cell   { grid-area: desc; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-box">
+      <h1>Produktunderhåll</h1>
+      <div class="sub">Logga in med admin-lösenord</div>
+      <input type="password" id="login-pw" placeholder="Lösenord" autocomplete="current-password" />
+      <button id="login-btn">Logga in</button>
+      <div class="login-err" id="login-err"></div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="app">
+
+    <div class="top">
+      <h1>📦 Produktunderhåll</h1>
+      <a href="/admin/">← Tillbaka till admin</a>
+      <button id="logout-btn">Logga ut</button>
+    </div>
+
+    <!-- Sync status banner -->
+    <div id="sync-banner" class="sync-banner grey">
+      <div class="dot"></div>
+      <div class="msg">Hämtar status…</div>
+      <div class="meta" id="sync-meta"></div>
+    </div>
+
+    <!-- Fil-tabbar -->
+    <div class="file-tabs" id="file-tabs"></div>
+
+    <!-- Sektion-tabbar (event/live/etc) -->
+    <div class="section-tabs" id="section-tabs"></div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="toolbar">
+        <input type="text" id="filter" placeholder="Sök artno/namn…" class="filter-input" />
+        <span class="pending-count" id="pending-count"></span>
+        <span class="spacer"></span>
+        <button id="reset-btn" class="btn-secondary" disabled>Ångra alla</button>
+        <button id="save-btn" class="btn-primary" disabled>Spara ändringar</button>
+      </div>
+      <div id="table-wrap">
+        <div class="loading">Laddar</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    'use strict';
+
+    // ─── Filer som kan redigeras (v1: pilot = bara ljud) ───
+    // Lägg till fler här när vi expanderar
+    const FILES = [
+      { key: 'ljud',   label: 'Ljud',    enabled: true  },
+      { key: 'ljus',   label: 'Ljus',    enabled: false },
+      { key: 'dj',     label: 'DJ',      enabled: false },
+      { key: 'scenes', label: 'Scen',    enabled: false },
+      { key: 'bild',   label: 'Bild',    enabled: false },
+      { key: 'el',     label: 'El',      enabled: false }
+    ];
+
+    // ─── State ─────────────────────────────────────────────
+    let TOKEN     = null;
+    let activeFil = 'ljud';
+    let fileData  = null;            // { sha, data, sections: [{key, label, products: [...]}] }
+    let pending   = new Map();       // path → { name?, price?, description?, errors? }
+    let activeSection = null;
+    let deployPollTimer = null;
+    let lastKnownSha  = null;        // hex för senaste commit vi har gjort
+
+    const $ = (id) => document.getElementById(id);
+
+    // ─── AUTH ──────────────────────────────────────────────
+    function checkAuth() {
+      let t = sessionStorage.getItem('sk_admin_token');
+      if (!t) {
+        try {
+          const ls = JSON.parse(localStorage.getItem('sk_admin_mode') || '{}');
+          const TTL = 8 * 60 * 60 * 1000;
+          if (ls.token && ls.ts && (Date.now() - ls.ts) < TTL) {
+            t = ls.token;
+            sessionStorage.setItem('sk_admin_token', t);
+          }
+        } catch {}
+      }
+      if (t) { TOKEN = t; showApp(); }
+    }
+
+    async function doLogin() {
+      const pw = $('login-pw').value.trim();
+      if (!pw) return;
+      $('login-err').textContent = '';
+      try {
+        const res = await fetch('/api/admin-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const j = await res.json();
+        if (!j.ok) {
+          $('login-err').textContent = j.error || 'Fel lösenord';
+          return;
+        }
+        TOKEN = pw;
+        sessionStorage.setItem('sk_admin_token', pw);
+        localStorage.setItem('sk_admin_mode', JSON.stringify({ ts: Date.now(), token: pw }));
+        showApp();
+      } catch (e) {
+        $('login-err').textContent = 'Nätverksfel';
+      }
+    }
+
+    $('login-pw').addEventListener('keydown', e => e.key === 'Enter' && doLogin());
+    $('login-btn').addEventListener('click', doLogin);
+
+    $('logout-btn').addEventListener('click', () => {
+      sessionStorage.removeItem('sk_admin_token');
+      localStorage.removeItem('sk_admin_mode');
+      location.reload();
+    });
+
+    function showApp() {
+      $('login-screen').style.display = 'none';
+      $('app').classList.add('active');
+      renderFileTabs();
+      loadFile(activeFil);
+      startDeployPoll();
+    }
+
+    // ─── Fetch helpers ─────────────────────────────────────
+    async function apiGet(url) {
+      const res = await fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+      if (res.status === 401) {
+        sessionStorage.removeItem('sk_admin_token');
+        localStorage.removeItem('sk_admin_mode');
+        location.reload();
+        return null;
+      }
+      const j = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, body: j };
+    }
+
+    async function apiPost(url, body) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+      if (res.status === 401) {
+        sessionStorage.removeItem('sk_admin_token');
+        localStorage.removeItem('sk_admin_mode');
+        location.reload();
+        return null;
+      }
+      const j = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, body: j };
+    }
+
+    // ─── Fil-tabbar ────────────────────────────────────────
+    function renderFileTabs() {
+      const wrap = $('file-tabs');
+      wrap.innerHTML = '';
+      for (const f of FILES) {
+        const btn = document.createElement('button');
+        btn.className = 'file-tab' + (f.key === activeFil ? ' active' : '');
+        btn.textContent = f.label + (f.enabled ? '' : ' 🔒');
+        btn.disabled = !f.enabled;
+        if (!f.enabled) {
+          btn.style.opacity = '0.4';
+          btn.style.cursor = 'not-allowed';
+          btn.title = 'Aktiveras i fas 2';
+        }
+        btn.addEventListener('click', () => {
+          if (!f.enabled) return;
+          if (pending.size > 0) {
+            if (!confirm('Du har osparade ändringar. Byta fil ändå?')) return;
+          }
+          activeFil = f.key;
+          pending.clear();
+          renderFileTabs();
+          loadFile(f.key);
+        });
+        wrap.appendChild(btn);
+      }
+    }
+
+    // ─── Bygg sections från JSON ───────────────────────────
+    // Hittar alla { products: [...] }-block och alla rotnivå-arrayer
+    function buildSections(data) {
+      const sections = [];
+      const SECTION_LABELS = {
+        event:    'Event-PA',
+        live:     'Live-PA',
+        music:    'Musik-PA',
+        portable: 'Portabelt',
+        mixers:           'Mixers',
+        mikrofoner:       'Mikrofoner',
+        tillbehor_mikrofon:'Mikrofontillbehör',
+        tillbehor_ljud:   'Ljudtillbehör'
+      };
+      for (const [key, val] of Object.entries(data)) {
+        // Mönster A: { products: [...] }
+        if (val && typeof val === 'object' && Array.isArray(val.products)) {
+          sections.push({
+            key,
+            label: SECTION_LABELS[key] || key,
+            products: val.products,
+            basePath: `${key}.products`
+          });
+        }
+        // Mönster B: rotnivå-array av produkter
+        else if (Array.isArray(val) && val.length > 0 &&
+                 typeof val[0] === 'object' && val[0] !== null &&
+                 ('artno' in val[0] || 'name' in val[0]) &&
+                 'price' in val[0]) {
+          sections.push({
+            key,
+            label: SECTION_LABELS[key] || key,
+            products: val,
+            basePath: key
+          });
+        }
+      }
+      return sections;
+    }
+
+    // ─── Ladda fil ─────────────────────────────────────────
+    async function loadFile(fil) {
+      $('table-wrap').innerHTML = '<div class="loading">Hämtar från GitHub</div>';
+      $('section-tabs').innerHTML = '';
+      const r = await apiGet(`/.netlify/functions/admin-products-list?fil=${encodeURIComponent(fil)}`);
+      if (!r) return;
+      if (!r.ok) {
+        $('table-wrap').innerHTML = `<div class="empty">Fel: ${escapeHtml(r.body.error || ('HTTP ' + r.status))}</div>`;
+        return;
+      }
+      const sections = buildSections(r.body.data);
+      fileData = {
+        sha:      r.body.sha,
+        data:     r.body.data,
+        sections
+      };
+      if (sections.length === 0) {
+        $('table-wrap').innerHTML = '<div class="empty">Inga redigerbara produktsektioner i denna fil.</div>';
+        return;
+      }
+      activeSection = sections[0].key;
+      renderSectionTabs();
+      renderTable();
+    }
+
+    // ─── Sektion-tabbar ───────────────────────────────────
+    function renderSectionTabs() {
+      const wrap = $('section-tabs');
+      wrap.innerHTML = '';
+      for (const s of fileData.sections) {
+        const btn = document.createElement('button');
+        btn.className = 'section-tab' + (s.key === activeSection ? ' active' : '');
+        btn.innerHTML = `${escapeHtml(s.label)} <span class="count">(${s.products.length})</span>`;
+        btn.addEventListener('click', () => {
+          activeSection = s.key;
+          renderSectionTabs();
+          renderTable();
+        });
+        wrap.appendChild(btn);
+      }
+    }
+
+    // ─── Rendera tabell ───────────────────────────────────
+    function renderTable() {
+      const section = fileData.sections.find(s => s.key === activeSection);
+      if (!section) {
+        $('table-wrap').innerHTML = '<div class="empty">Sektion saknas</div>';
+        return;
+      }
+      const filterText = $('filter').value.trim().toLowerCase();
+
+      let html = '<div class="prod-table">';
+      html += `<div class="prod-row header">
+        <div></div>
+        <div>Artno</div>
+        <div>Namn</div>
+        <div>Pris</div>
+        <div>Beskrivning</div>
+        <div></div>
+      </div>`;
+
+      let visible = 0;
+      section.products.forEach((p, i) => {
+        const path = `${section.basePath}.${i}`;
+        const pend = pending.get(path);
+
+        // Filter
+        if (filterText) {
+          const blob = ((p.artno || '') + ' ' + (p.name || '')).toLowerCase();
+          if (!blob.includes(filterText)) return;
+        }
+        visible++;
+
+        const curName  = pend && 'name' in pend  ? pend.name  : (p.name || '');
+        const curPrice = pend && 'price' in pend ? pend.price : (p.price ?? 0);
+        const curDesc  = pend && 'description' in pend ? pend.description : (p.description || '');
+
+        const isChanged = !!pend && Object.keys(pend).some(k => k !== 'errors');
+        const hasError  = !!(pend && pend.errors && Object.keys(pend.errors).length);
+
+        let rowClass = 'prod-row';
+        if (hasError) rowClass += ' error';
+        else if (isChanged) rowClass += ' changed';
+
+        const statusColor = hasError ? 'red' : (isChanged ? 'amber' : 'green');
+
+        html += `<div class="${rowClass}" data-path="${escapeHtml(path)}">
+          <div class="row-status"><div class="dot ${statusColor}" title="${statusColor === 'green' ? 'Synkad' : statusColor === 'amber' ? 'Osparade ändringar' : 'Valideringsfel'}"></div></div>
+          <div class="artno artno-cell">${escapeHtml(p.artno || '—')}</div>
+          <div class="name-cell">
+            <input type="text" data-field="name" value="${escapeHtml(curName)}" maxlength="200" />
+            ${hasError && pend.errors.name ? `<div class="field-err">${escapeHtml(pend.errors.name)}</div>` : ''}
+          </div>
+          <div class="price-cell">
+            <div class="price-col-wrap">
+              <input type="number" data-field="price" value="${curPrice}" min="0" step="1" />
+              <span class="suffix">kr</span>
+            </div>
+            ${hasError && pend.errors.price ? `<div class="field-err">${escapeHtml(pend.errors.price)}</div>` : ''}
+          </div>
+          <div class="desc-cell">
+            <textarea data-field="description" maxlength="2000" rows="2">${escapeHtml(curDesc)}</textarea>
+            ${hasError && pend.errors.description ? `<div class="field-err">${escapeHtml(pend.errors.description)}</div>` : ''}
+          </div>
+          <div class="row-info" title="${p.priceNote ? 'priceNote: ' + escapeHtml(p.priceNote) : ''}">${p.priceNote ? '⋯' : ''}</div>
+        </div>`;
+      });
+
+      if (visible === 0) {
+        html += '<div class="empty">Inga produkter matchar filtret.</div>';
+      }
+
+      html += '</div>';
+      $('table-wrap').innerHTML = html;
+
+      // Bind listeners
+      $('table-wrap').querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('input', onFieldChange);
+        input.addEventListener('blur', onFieldBlur);
+      });
+      updateToolbar();
+    }
+
+    // ─── Field-edit handlers ──────────────────────────────
+    function onFieldChange(e) {
+      const row = e.target.closest('.prod-row');
+      const path = row.dataset.path;
+      const field = e.target.dataset.field;
+      let value = e.target.value;
+      if (field === 'price') {
+        const num = Number(value);
+        value = Number.isFinite(num) ? num : value;
+      }
+
+      // Hämta originalvärdet för jämförelse
+      const section = fileData.sections.find(s => activeSection === s.key);
+      const idx = parseInt(path.split('.').pop(), 10);
+      const product = section.products[idx];
+      const original = field === 'price' ? (product.price ?? 0) : (product[field] || '');
+
+      const pend = pending.get(path) || {};
+
+      // Om värdet matchar originalet — ta bort fältet ur pending
+      if (value === original || (field === 'price' && Number(value) === Number(original))) {
+        delete pend[field];
+        if (pend.errors) delete pend.errors[field];
+      } else {
+        pend[field] = value;
+        // Validera
+        const err = validateField(field, value);
+        pend.errors = pend.errors || {};
+        if (err) pend.errors[field] = err;
+        else delete pend.errors[field];
+      }
+
+      // Städa upp om inget kvar
+      if (pend.errors && Object.keys(pend.errors).length === 0) delete pend.errors;
+      const hasOtherKeys = Object.keys(pend).filter(k => k !== 'errors').length > 0;
+      if (!hasOtherKeys) {
+        pending.delete(path);
+      } else {
+        pending.set(path, pend);
+      }
+
+      updateRowVisual(row, pend);
+      updateToolbar();
+    }
+
+    function onFieldBlur(e) {
+      // Inget för nu — input-eventet täcker validering
+    }
+
+    function updateRowVisual(row, pend) {
+      const dot = row.querySelector('.row-status .dot');
+      const hasError = !!(pend && pend.errors && Object.keys(pend.errors).length);
+      const isChanged = !!pend && Object.keys(pend).some(k => k !== 'errors');
+
+      row.classList.remove('changed', 'error');
+      if (hasError) row.classList.add('error');
+      else if (isChanged) row.classList.add('changed');
+
+      dot.classList.remove('green', 'amber', 'red');
+      if (hasError) dot.classList.add('red');
+      else if (isChanged) dot.classList.add('amber');
+      else dot.classList.add('green');
+
+      // Lägg till/ta bort field-error meddelanden
+      row.querySelectorAll('input, textarea').forEach(inp => {
+        const field = inp.dataset.field;
+        // Ta bort existerande error om den finns
+        let next = inp.nextElementSibling;
+        while (next && next.classList.contains('field-err')) {
+          const toRemove = next;
+          next = next.nextElementSibling;
+          toRemove.remove();
+        }
+        // Lägg till ny om det finns
+        if (pend && pend.errors && pend.errors[field]) {
+          const div = document.createElement('div');
+          div.className = 'field-err';
+          div.textContent = pend.errors[field];
+          inp.parentElement.appendChild(div);
+        }
+      });
+    }
+
+    function validateField(field, value) {
+      if (field === 'name') {
+        if (typeof value !== 'string' || value.trim().length === 0) return 'Namn krävs';
+        if (value.length > 200) return 'Max 200 tecken';
+      }
+      if (field === 'price') {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return 'Ogiltigt tal';
+        if (n < 0) return 'Pris kan inte vara negativt';
+        if (!Number.isInteger(n)) return 'Heltal (kr)';
+        if (n > 1_000_000) return 'Pris ologiskt högt';
+      }
+      if (field === 'description') {
+        if (value && value.length > 2000) return 'Max 2000 tecken';
+      }
+      return null;
+    }
+
+    function updateToolbar() {
+      const count = pending.size;
+      const hasErrors = Array.from(pending.values()).some(p => p.errors && Object.keys(p.errors).length);
+      $('pending-count').textContent = count > 0
+        ? (count === 1 ? '1 osparad ändring' : `${count} osparade ändringar`)
+        : '';
+      $('save-btn').disabled = count === 0 || hasErrors;
+      $('reset-btn').disabled = count === 0;
+    }
+
+    // ─── Filter ───────────────────────────────────────────
+    $('filter').addEventListener('input', () => renderTable());
+
+    // ─── Reset alla ────────────────────────────────────────
+    $('reset-btn').addEventListener('click', () => {
+      if (pending.size === 0) return;
+      if (!confirm(`Ångra ${pending.size} osparad${pending.size === 1 ? '' : 'e'} ändring${pending.size === 1 ? '' : 'ar'}?`)) return;
+      pending.clear();
+      renderTable();
+    });
+
+    // ─── Spara ─────────────────────────────────────────────
+    $('save-btn').addEventListener('click', async () => {
+      if (pending.size === 0) return;
+
+      // Bygg changes-array
+      const changes = [];
+      for (const [path, pend] of pending.entries()) {
+        const fields = {};
+        for (const k of ['name', 'price', 'description']) {
+          if (k in pend) fields[k] = pend[k];
+        }
+        if (Object.keys(fields).length > 0) {
+          changes.push({ path, fields });
+        }
+      }
+
+      if (changes.length === 0) return;
+      if (!confirm(`Spara och committa ${changes.length} ändring${changes.length === 1 ? '' : 'ar'} till GitHub? Netlify rebuildar automatiskt (~2 min).`)) return;
+
+      $('save-btn').disabled = true;
+      $('save-btn').textContent = 'Sparar…';
+
+      const r = await apiPost('/.netlify/functions/admin-products-update', {
+        fil:     activeFil,
+        sha:     fileData.sha,
+        changes
+      });
+
+      $('save-btn').textContent = 'Spara ändringar';
+
+      if (!r) return;
+
+      if (r.status === 409 && r.body.conflict) {
+        toast('error', 'Konflikt', r.body.error);
+        // Hämta om
+        await loadFile(activeFil);
+        pending.clear();
+        return;
+      }
+      if (!r.ok) {
+        let msg = r.body.error || `HTTP ${r.status}`;
+        if (r.body.validationErrors) {
+          msg += '\n' + r.body.validationErrors.map(e => `${e.path}: ${e.error}`).join('\n');
+        }
+        toast('error', 'Fel vid sparning', msg);
+        $('save-btn').disabled = false;
+        return;
+      }
+
+      // Lyckad commit
+      pending.clear();
+      lastKnownSha = (r.body.commitSha || '').slice(0, 7);
+      fileData.sha = r.body.newSha;
+      toast('ok', 'Sparat', `${r.body.changedCount} ändring${r.body.changedCount === 1 ? '' : 'ar'} committat (${lastKnownSha}). Netlify rebuildar nu.`);
+      renderTable();
+      // Trigga omedelbar deploy-poll
+      pollDeployStatus();
+      // Och kör snabba pollar i 60 sek
+      let count = 0;
+      const fastPoll = setInterval(() => {
+        pollDeployStatus();
+        count++;
+        if (count >= 12) clearInterval(fastPoll);
+      }, 5000);
+    });
+
+    // ─── Deploy status (R/A/G) ─────────────────────────────
+    async function pollDeployStatus() {
+      const r = await apiGet('/.netlify/functions/admin-deploy-status');
+      if (!r || !r.ok) return;
+      const p = r.body.production;
+      const banner = $('sync-banner');
+      const meta = $('sync-meta');
+
+      banner.classList.remove('green', 'amber', 'red', 'grey');
+
+      if (!p) {
+        banner.classList.add('grey');
+        banner.querySelector('.msg').textContent = 'Ingen deploy-info';
+        meta.innerHTML = '';
+        return;
+      }
+
+      const buildingStates = ['new','pending','enqueued','accepted','prepared','preparing','uploading','uploaded','building','processing'];
+      const sha7 = (p.commit_ref || '').slice(0, 7);
+
+      if (p.state === 'ready') {
+        banner.classList.add('green');
+        const when = p.published_at ? new Date(p.published_at).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        banner.querySelector('.msg').textContent = `Live · synkad med commit ${sha7}`;
+        meta.innerHTML = when ? `Publicerad ${when}` : '';
+      } else if (p.state === 'error') {
+        banner.classList.add('red');
+        banner.querySelector('.msg').textContent = `Build failed (commit ${sha7})`;
+        meta.innerHTML = p.admin_url
+          ? `<a href="${escapeAttr(p.admin_url)}" target="_blank">Se loggar →</a>`
+          : (p.error_message ? escapeHtml(p.error_message.slice(0, 120)) : '');
+      } else if (buildingStates.includes(p.state)) {
+        banner.classList.add('amber');
+        banner.querySelector('.msg').textContent = `Bygger (${p.state}) · commit ${sha7}`;
+        meta.innerHTML = p.admin_url ? `<a href="${escapeAttr(p.admin_url)}" target="_blank">Följ deploy →</a>` : '';
+      } else {
+        banner.classList.add('grey');
+        banner.querySelector('.msg').textContent = `Status: ${p.state}`;
+        meta.innerHTML = '';
+      }
+    }
+
+    function startDeployPoll() {
+      pollDeployStatus();
+      if (deployPollTimer) clearInterval(deployPollTimer);
+      deployPollTimer = setInterval(pollDeployStatus, 30_000);
+    }
+
+    // ─── Toast notifications ───────────────────────────────
+    function toast(kind, title, body) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      const t = document.createElement('div');
+      t.className = 'toast' + (kind === 'error' ? ' error' : kind === 'warn' ? ' warn' : '');
+      t.innerHTML = `<div class="title">${escapeHtml(title)}</div><div class="body">${escapeHtml(body).replace(/\n/g, '<br>')}</div>`;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), kind === 'error' ? 8000 : 5000);
+    }
+
+    // ─── Utils ─────────────────────────────────────────────
+    function escapeHtml(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s);
+    }
+
+    // ─── Varning vid stängning med osparade ändringar ─────
+    window.addEventListener('beforeunload', (e) => {
+      if (pending.size > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // ─── Start ─────────────────────────────────────────────
+    checkAuth();
+  </script>
+</body>
+</html>
