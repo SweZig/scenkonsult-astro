@@ -319,6 +319,13 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
   // Init varje kort
   // ──────────────────────────────────────────────────────────────────
   function initPaketCard(card) {
+    // Idempotent: skydda mot att initPaketCard anropas flera gånger på samma kort.
+    // Astro-script med define:vars renderas per komponent-instans (12 paket =
+    // 12 inline-scripts), och varje script kör querySelectorAll('.paket-card').forEach.
+    // Utan denna guard registreras click-handlers N gånger → ett klick = N add-calls.
+    if (card.dataset.paketInitialized === '1') return;
+    card.dataset.paketInitialized = '1';
+
     const cfg = JSON.parse(card.dataset.paketConfig || '{}');
     const paketName = card.dataset.paketName;
     let surface = cfg.defaultSurface;
