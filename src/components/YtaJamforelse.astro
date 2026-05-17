@@ -1,0 +1,165 @@
+---
+// YtaJamforelse.astro — informationssektion som jämför slät vs halkfri plattformsyta.
+// Visas typiskt överst på /vara-tjanster/hyra-scen/ för att hjälpa kunden
+// förstå ytvalet innan de bläddrar paket eller använder konfiguratorn.
+//
+// Priser läses live från scenes.modules (samma källa som DynamicPaketCard
+// och SceneConfigurator), så en prisändring i src/data/scenes.json propagerar
+// automatiskt utan att denna komponent behöver röras.
+
+import scenData from '../data/scenes.json';
+
+const modules = scenData.modules || [];
+
+function _surfaceKey(m: any) {
+  const sizeKey = (m.size || '').replace(/\s*m\b/i, '').replace(/\s/g, '').replace(/×/g, 'x');
+  const surf = m.surface === 'slät' ? 'slat' : 'halkfri';
+  return `${sizeKey}-${surf}`;
+}
+
+const PRICE_BY_KEY: Record<string, number | undefined> = Object.fromEntries(
+  modules.map((m: any) => [_surfaceKey(m), m.price])
+);
+---
+
+<section class="yta-jamforelse">
+  <div class="yta-head">
+    <h2 class="yta-title">Halkfri eller slät yta — vilken passar ditt event?</h2>
+    <p class="yta-lead">Alla våra plattformsmoduler har samma stabilitet och bärighet. Det är bara ovansidan som skiljer.</p>
+  </div>
+  <div class="yta-grid">
+    <article class="yta-card">
+      <div class="yta-photo" style="background-image:url('/images/scen/tex_yta_slat.webp')" aria-hidden="true"></div>
+      <h3 class="yta-name">Slät yta</h3>
+      <p class="yta-tagline">Jämn lackerad ovansida — bygg över med matta eller möblera.</p>
+      <ul class="yta-props">
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Avsedd som underlag — lägg matta eller heltäckning över</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Stabilt &amp; jämnt för möbler, bord &amp; podium</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Bra för konferens, talarscen, fotostudio &amp; mässa</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Lägre pris än halkfri</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Inomhusbruk eller under tak vid utomhusevent</li>
+      </ul>
+      <div class="yta-prices">
+        <span class="yta-price-chip yta-price-na">1×1 m — finns endast halkfri</span>
+        <span class="yta-price-chip">1×2 m — <strong>{PRICE_BY_KEY['1x2-slat']} kr</strong>/dygn</span>
+      </div>
+    </article>
+
+    <article class="yta-card">
+      <div class="yta-photo" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></div>
+      <h3 class="yta-name">Halkfri yta</h3>
+      <p class="yta-tagline">Texturerad ovansida — säker direkt utan matta.</p>
+      <ul class="yta-props">
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Halkfri även när det är vått (regn, dryck)</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Inget behov av matta eller heltäcknings-täckning</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Standardval för utomhusbruk &amp; livescen</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Tål dans, band, högtalare &amp; instrument med fötter</li>
+        <li><span class="yta-tick" aria-hidden="true">✓</span>Lättstädad — torka av direkt på plats</li>
+      </ul>
+      <div class="yta-prices">
+        <span class="yta-price-chip">1×1 m — <strong>{PRICE_BY_KEY['1x1-halkfri']} kr</strong>/dygn</span>
+        <span class="yta-price-chip">1×2 m — <strong>{PRICE_BY_KEY['1x2-halkfri']} kr</strong>/dygn</span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<style>
+  .yta-jamforelse {
+    margin-bottom: 3.5rem;
+  }
+  .yta-head {
+    text-align: center;
+    margin-bottom: 1.6rem;
+  }
+  .yta-title {
+    color: white;
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    line-height: 1.2;
+    margin: 0 0 0.55rem;
+  }
+  .yta-lead {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.95rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .yta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.4rem;
+  }
+  @media (max-width: 780px) {
+    .yta-grid { grid-template-columns: 1fr; }
+  }
+  .yta-card {
+    background: #1e1850;
+    border: 1px solid rgba(196,181,244,0.18);
+    border-radius: 16px;
+    padding: 1.6rem 1.4rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .yta-card:hover { border-color: rgba(196,181,244,0.45); }
+  .yta-photo {
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 3px solid rgba(196,181,244,0.25);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  }
+  .yta-name {
+    color: white;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.45rem;
+    text-align: center;
+    margin: 0 0 0.4rem;
+  }
+  .yta-tagline {
+    color: rgba(255,255,255,0.6);
+    font-style: italic;
+    text-align: center;
+    font-size: 0.92rem;
+    margin: 0 0 1.1rem;
+  }
+  .yta-props {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .yta-props li {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.92rem;
+    display: flex;
+    gap: 0.55rem;
+    line-height: 1.4;
+  }
+  .yta-tick {
+    color: #c4b5f4;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .yta-prices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.85rem 0 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: auto;
+  }
+  .yta-price-chip {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.88rem;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .yta-price-chip strong { color: #c4b5f4; font-weight: 800; }
+  .yta-price-na { color: rgba(255,255,255,0.4); font-style: italic; }
+</style>
