@@ -4997,12 +4997,27 @@ function quoteRenderTable() {
   const tbody = $('quote-prod-tbody');
   const tfoot = $('quote-prod-tfoot');
   if (!tbody) return;
+
+  // Identifiera första tjänst-rad så vi kan rita en visuell separator —
+  // samma mönster som kund-order-vyn (rad 2774). Tjänst = type='service'
+  // eller category i SVC_CATALOG_KEYS (['Tjänster', 'Tillägg']) eller
+  // 'Leverans' (frakt-rader från frakt-konfiguratorn).
+  const SVC_DISPLAY = ['Tjänster', 'Tillägg', 'Leverans'];
+  const isSvcItem = i => i.type === 'service' || SVC_DISPLAY.includes(i.category);
+  const firstSvcIdx = quoteItems.findIndex(i => isSvcItem(i));
+
   tbody.innerHTML = quoteItems.map((item, idx) => {
     const nameCell = item.custom
       ? `<input class="prod-input quote-custom-name" value="${item.name.replace(/"/g,'&quot;')}" placeholder="Ange benämning..." onchange="quoteEditName(${idx},this.value)"
            style="width:100%;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid rgba(196,181,244,0.3);padding:0.2rem 0.5rem;">`
       : `<span style="font-size:0.82rem">${item.name}</span>`;
-    return `
+
+    // Separator-rad före första tjänst (om det finns hårdvara före)
+    const separator = (idx === firstSvcIdx && firstSvcIdx > 0)
+      ? `<tr><td colspan="6" style="padding:6px 0 2px"><div style="border-top:1px dashed rgba(196,181,244,0.25);margin:2px 0"></div><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.55);padding:3px 4px;font-family:'Space Grotesk',sans-serif">Tjänster &amp; leverans</div></td></tr>`
+      : '';
+
+    return separator + `
     <tr data-qidx="${idx}" draggable="true"
         ondragstart="quoteDragStart(event,${idx})" ondragover="quoteDragOver(event)"
         ondrop="quoteDrop(event,${idx})" ondragend="quoteDragEnd(event)"
@@ -5646,6 +5661,18 @@ window.openQuoteModalForCart = openQuoteModalForCart;
 // ─────────────────────────────────────────────────────────────
 let _quoteSearchFlat = null;
 
+// Helper: infoga en hårdvaru-rad före första tjänst (samma logik som
+// quotePickerAdd) så tjänster alltid ligger sist i listan.
+const _QUOTE_SVC_DISPLAY = ['Tjänster', 'Tillägg', 'Leverans'];
+function _quoteIsSvc(i) {
+  return i?.type === 'service' || _QUOTE_SVC_DISPLAY.includes(i?.category);
+}
+function _quoteInsertHardware(item) {
+  const svcStart = quoteItems.findIndex(_quoteIsSvc);
+  if (svcStart === -1) quoteItems.push(item);
+  else quoteItems.splice(svcStart, 0, item);
+}
+
 function _buildQuoteSearchIndex() {
   if (_quoteSearchFlat) return _quoteSearchFlat;
   const flat = [];
@@ -5720,7 +5747,7 @@ function quoteSearchPick(idx) {
   const hits = resBox?._hits;
   if (!hits || !hits[idx]) return;
   const p = hits[idx];
-  // Lägg till samma logik som quotePickerAdd
+  // Klassificera som tjänst eller hårdvara
   const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
   const isSvc = SVC_CATALOG_KEYS.includes(p._cat) || SVC_IDS.has(p.id);
   const existing = quoteItems.find(i => i.id === p.id && !i.custom);
@@ -5729,11 +5756,9 @@ function quoteSearchPick(idx) {
   } else {
     const newItem = { id: p.id, name: p.name, price: p.price || 0, qty: 1, category: isSvc ? 'Tjänster' : '', type: isSvc ? 'service' : 'product' };
     if (isSvc) {
-      quoteItems.push(newItem);
+      quoteItems.push(newItem);     // tjänster sist
     } else {
-      const svcStart = quoteItems.findIndex(i => ['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','faktura'].some(s => i.id === s));
-      if (svcStart === -1) quoteItems.push(newItem);
-      else quoteItems.splice(svcStart, 0, newItem);
+      _quoteInsertHardware(newItem); // hårdvara före första tjänst
     }
   }
   quoteRenderTable();
@@ -5880,7 +5905,7 @@ function adminScenConfigAdd() {
   const prefix = `[Scen ${w}×${d}·${height}cm]`;
 
   // 1) Plattforms-rad
-  quoteItems.push({
+  _quoteInsertHardware({
     id:    modArtno,
     name:  `${prefix} ${modName}`,
     price: modPrice,
@@ -5893,7 +5918,7 @@ function adminScenConfigAdd() {
   if (trapp > 0) {
     const trappRow = (cfg.trappor || []).find(t => t.height === height);
     if (trappRow) {
-      quoteItems.push({
+      _quoteInsertHardware({
         id:    trappRow.artno,
         name:  `${prefix} ${trappRow.name}`,
         price: trappRow.price,
@@ -5907,7 +5932,7 @@ function adminScenConfigAdd() {
   // 3) Tak-rad (om vald)
   if (takVal) {
     const takOpt = document.getElementById('scen-cfg-tak').options[document.getElementById('scen-cfg-tak').selectedIndex];
-    quoteItems.push({
+    _quoteInsertHardware({
       id:    takVal,
       name:  `${prefix} ${takOpt.dataset.name}`,
       price: parseFloat(takOpt.dataset.price) || 0,
@@ -6014,7 +6039,7 @@ function adminLedConfigAdd() {
   const dimStr = `${(actualW_mm/1000).toFixed(2).replace(/\.?0+$/,'')}×${(actualH_mm/1000).toFixed(2).replace(/\.?0+$/,'')} m`;
 
   // 1) Panel-rad
-  quoteItems.push({
+  _quoteInsertHardware({
     id:    panelArtno + '__' + cols + 'x' + rows,
     name:  `${panelName} — ${cols}×${rows} = ${totalPanels} st · ${dimStr}`,
     price: panelPrice,
@@ -6028,7 +6053,7 @@ function adminLedConfigAdd() {
   const plarge = cfg.tillbehor?.processor_large;
   const proc = (totalPixels <= (psmall?.max_pixels || 2600000)) ? psmall : plarge;
   if (proc) {
-    quoteItems.push({
+    _quoteInsertHardware({
       id:    proc.artno,
       name:  proc.name,
       price: proc.price_per_day_excl,
@@ -6041,7 +6066,7 @@ function adminLedConfigAdd() {
   // 3) Mount (ground/tross)
   const mountRow = mount === 'tross' ? cfg.tillbehor?.tross : cfg.tillbehor?.rigg;
   if (mountRow) {
-    quoteItems.push({
+    _quoteInsertHardware({
       id:    mountRow.artno + '__' + cols + 'kol',
       name:  `${mountRow.name} (${cols} kolumner)`,
       price: (mountRow.price_per_column || 0) * cols,
