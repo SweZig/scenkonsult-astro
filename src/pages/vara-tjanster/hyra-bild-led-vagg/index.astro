@@ -207,7 +207,7 @@ const faqSchema = {
                     <span>Hårdvara</span>
                     <span><span class="sk-price-excl" data-row-total-excl></span><span class="sk-price-incl hidden" data-row-total-incl></span> <span style="color:rgba(255,255,255,0.5);font-weight:400;font-size:0.78rem;">/dygn</span></span>
                   </div>
-                  <p data-paket-frakt-note style="color:rgba(255,255,255,0.45);font-size:0.7rem;line-height:1.4;margin:0.4rem 0 0;">+ Montering 5 100 kr & transport 2 998 kr (Lätt lastbil) tillkommer i kassan</p>
+                  <p data-paket-frakt-note style="color:rgba(255,255,255,0.45);font-size:0.7rem;line-height:1.4;margin:0.4rem 0 0;">+ Montering &amp; demontering 5 100 kr &amp; transport 2 998 kr (Lätt lastbil) tillkommer i kassan</p>
                 </div>
 
                 <button
@@ -1322,7 +1322,7 @@ const faqSchema = {
           const monteringHLabel = Number.isInteger(monteringH) ? monteringH + ' h' : monteringH.toFixed(1).replace('.', ',') + ' h';
           const noteEl = card.querySelector('[data-paket-frakt-note]');
           if (noteEl) {
-            noteEl.innerHTML = '+ Montering ' + fmtKr(monteringKr) + ' (' + monteringHLabel + ') &amp; transport ' + fmtKr(leverans.pris) + ' (' + leverans.name + ') tillkommer i kassan';
+            noteEl.innerHTML = '+ Montering &amp; demontering ' + fmtKr(monteringKr) + ' (' + monteringHLabel + ') &amp; transport ' + fmtKr(leverans.pris) + ' (' + leverans.name + ') tillkommer i kassan';
           }
 
           // SVG — uppdatera med FYSISKA dimensioner (inte cols/rows direkt)
