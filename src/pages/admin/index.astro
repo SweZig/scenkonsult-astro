@@ -3,6 +3,31 @@
 // Adminpanel — Scenkonsult Norden
 // Tillgänglig på /admin/ — kräver ADMIN_TOKEN
 import quoteCatalogData from '../../data/quote-catalog.json';
+import scenesData from '../../data/scenes.json';
+import ledData from '../../data/led-paneler.json';
+
+// Förbered data för admin-konfiguratorerna (klient-side använder window-globals)
+// Scen: modules (3 ytor), tak-paket från scenes.products[*].config.tak,
+// trappor från tillbehor SK-SCN-ACC-0001/0002, monterings-min från tjanster
+const _scenAdminConfig = {
+  modules: scenesData.modules || [],
+  tak: (scenesData.products || [])
+    .filter((p: any) => p.config?.tak)
+    .map((p: any) => ({ ...p.config.tak, parentName: p.name })),
+  trappor: (scenesData.tillbehor || [])
+    .filter((t: any) => ['SK-SCN-ACC-0001', 'SK-SCN-ACC-0002'].includes(t.artno))
+    .map((t: any) => ({
+      artno: t.artno,
+      name: t.name,
+      price: t.price,
+      height: t.artno === 'SK-SCN-ACC-0001' ? 40 : 60,
+    })),
+};
+
+const _ledAdminConfig = {
+  paneler: ledData.paneler || [],
+  tillbehor: ledData.tillbehor || {},
+};
 ---
 <!DOCTYPE html>
 <html lang="sv">
@@ -953,8 +978,10 @@ import quoteCatalogData from '../../data/quote-catalog.json';
       #detail-panel { width: 100vw; }
     }
   </style>
-  <script is:inline define:vars={{ quoteCatalog: quoteCatalogData }}>
+  <script is:inline define:vars={{ quoteCatalog: quoteCatalogData, scenConfig: _scenAdminConfig, ledConfig: _ledAdminConfig }}>
     window.__ADMIN_QUOTE_CATALOG__ = quoteCatalog;
+    window.__ADMIN_SCEN_CONFIG__   = scenConfig;
+    window.__ADMIN_LED_CONFIG__    = ledConfig;
   </script>
 </head>
 <body>
@@ -1110,7 +1137,104 @@ import quoteCatalogData from '../../data/quote-catalog.json';
 
       <!-- Produktväljare -->
       <div class="section-label">Lägg till produkter</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.5rem;align-items:end;margin-bottom:0.75rem" id="quote-picker-row">
+
+      <!-- Snabbsök på produktnamn eller artno -->
+      <div style="position:relative;margin-bottom:0.75rem">
+        <input id="qp-search" type="text" placeholder="🔍 Snabbsök produkt eller artno (t.ex. 'subwoofer' eller 'SK-LJD-MIK-0014')"
+          autocomplete="off"
+          oninput="quoteSearchInput(this.value)"
+          onkeydown="quoteSearchKey(event)"
+          onfocus="quoteSearchInput(this.value)"
+          onblur="setTimeout(() => { const r = document.getElementById('qp-search-results'); if (r) r.style.display = 'none'; }, 200)"
+          style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(196,181,244,0.35);border-radius:8px;padding:0.55rem 0.75rem;font-family:inherit;font-size:0.85rem">
+        <div id="qp-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1640;border:1px solid rgba(196,181,244,0.3);border-radius:8px;margin-top:4px;max-height:340px;overflow-y:auto;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,0.4)"></div>
+      </div>
+
+      <!-- Konfigurator-knappar -->
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
+        <button class="btn-action" onclick="adminScenConfigOpen()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">🎭 Konfigurera scen</button>
+        <button class="btn-action" onclick="adminLedConfigOpen()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">📺 Konfigurera LED-vägg</button>
+        <button class="btn-action" onclick="quoteAddCustomRow()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);background:rgba(196,181,244,0.06)">✏ Fritext-rad</button>
+        <button class="btn-action" onclick="document.getElementById('quote-picker-row').style.display = document.getElementById('quote-picker-row').style.display === 'none' ? 'grid' : 'none'" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(255,255,255,0.18);color:rgba(255,255,255,0.6);background:transparent" title="Visa/dölj traditionell kategori-väljare">▾ Kategori-väljare</button>
+      </div>
+
+      <!-- Scen-konfigurator (kollapsad som standard) -->
+      <div id="admin-scen-config" style="display:none;background:rgba(196,181,244,0.05);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem;margin-bottom:0.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem">
+          <strong style="color:rgba(196,181,244,0.95);font-size:0.85rem">🎭 Konfigurera scen</strong>
+          <button onclick="adminScenConfigClose()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.2rem;cursor:pointer;padding:0 0.3rem">×</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.5rem;margin-bottom:0.6rem">
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Bredd (m)</label>
+            <input type="number" id="scen-cfg-w" min="2" max="12" step="1" value="4" oninput="adminScenConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Djup (m)</label>
+            <input type="number" id="scen-cfg-d" min="2" max="8" step="1" value="2" oninput="adminScenConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <label class="form-label" style="font-size:0.72rem">Plattformsyta</label>
+          <select id="scen-cfg-yta" onchange="adminScenConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem"></select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.6rem">
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Höjd</label>
+            <select id="scen-cfg-h" onchange="adminScenConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+              <option value="40">40 cm</option>
+              <option value="60">60 cm</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Trappor</label>
+            <input type="number" id="scen-cfg-trapp" min="0" max="4" step="1" value="0" oninput="adminScenConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Tak</label>
+            <select id="scen-cfg-tak" onchange="adminScenConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+              <option value="">— Inget tak —</option>
+            </select>
+          </div>
+        </div>
+        <div id="scen-cfg-preview" style="background:rgba(0,0,0,0.25);border-radius:6px;padding:0.6rem 0.75rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.78);font-family:'Space Grotesk',sans-serif"></div>
+        <div id="scen-cfg-warn" style="color:#ff9b9b;font-size:0.75rem;margin-bottom:0.6rem;display:none"></div>
+        <button onclick="adminScenConfigAdd()" id="scen-cfg-add-btn" class="btn-action btn-success" style="width:100%;padding:0.5rem;font-size:0.85rem">Lägg till rader i offerten</button>
+      </div>
+
+      <!-- LED-vägg-konfigurator (kollapsad som standard) -->
+      <div id="admin-led-config" style="display:none;background:rgba(196,181,244,0.05);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem;margin-bottom:0.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem">
+          <strong style="color:rgba(196,181,244,0.95);font-size:0.85rem">📺 Konfigurera LED-vägg</strong>
+          <button onclick="adminLedConfigClose()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.2rem;cursor:pointer;padding:0 0.3rem">×</button>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <label class="form-label" style="font-size:0.72rem">Panel</label>
+          <select id="led-cfg-panel" onchange="adminLedConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem"></select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.6rem">
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Kolumner (cols)</label>
+            <input type="number" id="led-cfg-cols" min="1" max="40" step="1" value="6" oninput="adminLedConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Rader (rows)</label>
+            <input type="number" id="led-cfg-rows" min="1" max="20" step="1" value="3" oninput="adminLedConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+        </div>
+        <div style="margin-bottom:0.6rem">
+          <label class="form-label" style="font-size:0.72rem">Upphängning</label>
+          <select id="led-cfg-mount" onchange="adminLedConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+            <option value="ground">Ground support (markställning)</option>
+            <option value="tross">Tross-upphängning</option>
+          </select>
+        </div>
+        <div id="led-cfg-preview" style="background:rgba(0,0,0,0.25);border-radius:6px;padding:0.6rem 0.75rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.78);font-family:'Space Grotesk',sans-serif"></div>
+        <button onclick="adminLedConfigAdd()" class="btn-action btn-success" style="width:100%;padding:0.5rem;font-size:0.85rem">Lägg till rader i offerten</button>
+      </div>
+
+      <!-- Traditionell kategori/sub/produkt-väljare (dold som standard) -->
+      <div style="display:none;grid-template-columns:1fr 1fr 1fr auto;gap:0.5rem;align-items:end;margin-bottom:0.75rem" id="quote-picker-row">
         <div>
           <label class="form-label">Kategori</label>
           <select id="qp-cat" onchange="quotePickerCat()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.55rem 0.75rem;font-family:inherit;font-size:0.82rem">
@@ -1130,11 +1254,6 @@ import quoteCatalogData from '../../data/quote-catalog.json';
           </select>
         </div>
         <button class="btn-action btn-success" onclick="quotePickerAdd()" style="height:34px;padding:0 0.75rem;font-size:0.82rem;white-space:nowrap">＋ Lägg till</button>
-      </div>
-
-      <!-- Fritext-rad-knapp -->
-      <div style="margin-bottom:0.6rem">
-        <button class="btn-action" onclick="quoteAddCustomRow()" style="font-size:0.78rem;padding:0.3rem 0.75rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);background:rgba(196,181,244,0.06)">✏ Lägg till fritext-rad</button>
       </div>
 
       <!-- Produkttabell -->
@@ -5452,6 +5571,428 @@ window.sendQuote       = sendQuote;
 window.closeQuoteModal = closeQuoteModal;
 window.openQuoteModal  = openQuoteModal;
 window.openQuoteModalForCart = openQuoteModalForCart;
+
+// ─────────────────────────────────────────────────────────────
+// SNABBSÖK i quote-picker
+// Skannar QUOTE_CATALOG rekursivt och matchar fritext mot namn + id (artno).
+// ─────────────────────────────────────────────────────────────
+let _quoteSearchFlat = null;
+
+function _buildQuoteSearchIndex() {
+  if (_quoteSearchFlat) return _quoteSearchFlat;
+  const flat = [];
+  const cat = window.__ADMIN_QUOTE_CATALOG__ || {};
+  for (const [catName, catEntry] of Object.entries(cat)) {
+    if (catEntry?.products) {
+      for (const p of catEntry.products) {
+        if (!p.custom && p.id) flat.push({ ...p, _cat: catName, _sub: null });
+      }
+    }
+    if (catEntry?.sub) {
+      for (const [subName, prods] of Object.entries(catEntry.sub)) {
+        for (const p of (prods || [])) {
+          if (!p.custom && p.id) flat.push({ ...p, _cat: catName, _sub: subName });
+        }
+      }
+    }
+  }
+  _quoteSearchFlat = flat;
+  return flat;
+}
+
+function quoteSearchInput(query) {
+  const resBox = document.getElementById('qp-search-results');
+  if (!resBox) return;
+  const q = (query || '').trim().toLowerCase();
+  if (!q) {
+    resBox.style.display = 'none';
+    return;
+  }
+  const flat = _buildQuoteSearchIndex();
+  // Match på namn ELLER id (artno) — case-insensitive substring
+  const hits = flat.filter(p => {
+    const name = (p.name || '').toLowerCase();
+    const id   = (p.id   || '').toLowerCase();
+    return name.includes(q) || id.includes(q);
+  }).slice(0, 12);
+
+  if (!hits.length) {
+    resBox.innerHTML = `<div style="padding:0.7rem 0.85rem;color:rgba(255,255,255,0.5);font-size:0.82rem">Inga träffar för "${q.replace(/</g,'&lt;')}"</div>`;
+    resBox.style.display = 'block';
+    return;
+  }
+
+  resBox.innerHTML = hits.map((p, i) => `
+    <div class="qp-search-hit" data-idx="${i}" onmousedown="quoteSearchPick(${i})" style="padding:0.55rem 0.85rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center;gap:0.6rem">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.85rem;color:#f0eeff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="font-size:0.7rem;color:rgba(196,181,244,0.7);margin-top:1px">${p.id}${p._sub ? ' · ' + p._sub : (p._cat ? ' · ' + p._cat : '')}</div>
+      </div>
+      <div style="font-size:0.82rem;color:#c4b5f4;font-weight:600;white-space:nowrap">${(p.price||0).toLocaleString('sv')} kr</div>
+    </div>
+  `).join('');
+  resBox.style.display = 'block';
+  // Spara senaste hits för pick-funktionen
+  resBox._hits = hits;
+}
+
+function quoteSearchKey(e) {
+  if (e.key === 'Escape') {
+    document.getElementById('qp-search-results').style.display = 'none';
+    e.target.blur();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const resBox = document.getElementById('qp-search-results');
+    if (resBox?._hits?.length) quoteSearchPick(0);
+  }
+}
+
+function quoteSearchPick(idx) {
+  const resBox = document.getElementById('qp-search-results');
+  const hits = resBox?._hits;
+  if (!hits || !hits[idx]) return;
+  const p = hits[idx];
+  // Lägg till samma logik som quotePickerAdd
+  const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+  const isSvc = SVC_CATALOG_KEYS.includes(p._cat) || SVC_IDS.has(p.id);
+  const existing = quoteItems.find(i => i.id === p.id && !i.custom);
+  if (existing) {
+    existing.qty++;
+  } else {
+    const newItem = { id: p.id, name: p.name, price: p.price || 0, qty: 1, category: isSvc ? 'Tjänster' : '', type: isSvc ? 'service' : 'product' };
+    if (isSvc) {
+      quoteItems.push(newItem);
+    } else {
+      const svcStart = quoteItems.findIndex(i => ['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','faktura'].some(s => i.id === s));
+      if (svcStart === -1) quoteItems.push(newItem);
+      else quoteItems.splice(svcStart, 0, newItem);
+    }
+  }
+  quoteRenderTable();
+  // Töm sökfältet och göm dropdown
+  const inp = document.getElementById('qp-search');
+  if (inp) { inp.value = ''; inp.focus(); }
+  resBox.style.display = 'none';
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCEN-KONFIGURATOR i admin
+// Mini-version av DynamicPaketCard-logiken: räkna moduler från
+// bredd × djup × yta, lägg till plattformar + trappor + tak.
+// Matematik dubblerad från DynamicPaketCard.astro — håll synk vid
+// prisändringar i scenes.json (priserna läses dynamiskt så det
+// fungerar automatiskt; bara om regler ändras behövs synk).
+// ─────────────────────────────────────────────────────────────
+function _scenModuleCount(w, d, surface) {
+  const area = w * d;
+  return surface === '1x1-halkfri' ? area : Math.floor(area / 2);
+}
+
+function _scenSurfaceValid(w, d, surface) {
+  if (surface === '1x1-halkfri') return w * d <= 20;
+  return (w % 2 === 0) || (d % 2 === 0);
+}
+
+function _scenSurfaceKey(m) {
+  const sizeKey = (m.size || '').replace(/\s*m\b/i, '').replace(/\s/g, '').replace(/×/g, 'x');
+  const surf = m.surface === 'slät' ? 'slat' : 'halkfri';
+  return `${sizeKey}-${surf}`;
+}
+
+function adminScenConfigOpen() {
+  const panel = document.getElementById('admin-scen-config');
+  if (!panel) return;
+  // Init ytor-dropdown från scenConfig.modules (dynamisk)
+  const cfg = window.__ADMIN_SCEN_CONFIG__ || {};
+  const sel = document.getElementById('scen-cfg-yta');
+  sel.innerHTML = (cfg.modules || []).map(m => {
+    const key = _scenSurfaceKey(m);
+    return `<option value="${key}" data-artno="${m.artno}" data-price="${m.price}" data-name="${m.name.replace(/"/g,'&quot;')}">${m.name} — ${m.price} kr/dygn</option>`;
+  }).join('');
+  // Pre-select 1x2-slät om det finns
+  const slatOpt = Array.from(sel.options).find(o => o.value === '1x2-slat');
+  if (slatOpt) slatOpt.selected = true;
+  // Init tak-dropdown
+  const takSel = document.getElementById('scen-cfg-tak');
+  takSel.innerHTML = '<option value="">— Inget tak —</option>' +
+    (cfg.tak || []).map(t => `<option value="${t.artno}" data-price="${t.price}" data-name="${t.name.replace(/"/g,'&quot;')}">${t.name} — ${(t.price||0).toLocaleString('sv')} kr/dygn</option>`).join('');
+  panel.style.display = 'block';
+  document.getElementById('admin-led-config').style.display = 'none';
+  adminScenConfigUpdate();
+}
+
+function adminScenConfigClose() {
+  document.getElementById('admin-scen-config').style.display = 'none';
+}
+
+function adminScenConfigUpdate() {
+  const w = parseInt(document.getElementById('scen-cfg-w').value) || 0;
+  const d = parseInt(document.getElementById('scen-cfg-d').value) || 0;
+  const surface = document.getElementById('scen-cfg-yta').value;
+  const trapp = parseInt(document.getElementById('scen-cfg-trapp').value) || 0;
+  const preview = document.getElementById('scen-cfg-preview');
+  const warn = document.getElementById('scen-cfg-warn');
+  const btn = document.getElementById('scen-cfg-add-btn');
+
+  const cfg = window.__ADMIN_SCEN_CONFIG__ || {};
+  const modOpt = document.getElementById('scen-cfg-yta').options[document.getElementById('scen-cfg-yta').selectedIndex];
+  const modPrice = parseFloat(modOpt?.dataset.price) || 0;
+  const modName  = modOpt?.dataset.name || '';
+
+  // Validering
+  let warning = '';
+  if (w < 2 || w > 12 || d < 2 || d > 8) {
+    warning = 'Mått utanför tillåtet intervall (min 2 m, max 12×8 m).';
+  } else if (!_scenSurfaceValid(w, d, surface)) {
+    warning = surface === '1x1-halkfri'
+      ? `1×1-yta stöder max 20 m² (du valt ${w * d} m²). Välj 1×2-yta eller minska måtten.`
+      : '1×2-yta kräver att bredd eller djup är jämn (eller välj 1×1).';
+  }
+  warn.textContent = warning;
+  warn.style.display = warning ? 'block' : 'none';
+  btn.disabled = !!warning;
+
+  if (warning) {
+    preview.innerHTML = `<span style="color:rgba(255,255,255,0.5)">—</span>`;
+    return;
+  }
+
+  // Räkna ut rader
+  const mc = _scenModuleCount(w, d, surface);
+  let modSubtotal = mc * modPrice;
+  let trappSubtotal = 0;
+  let takSubtotal = 0;
+  const lines = [];
+
+  lines.push(`${mc} × ${modName} (${(modPrice||0).toLocaleString('sv')} kr) = <strong style="color:#c4b5f4">${(modSubtotal||0).toLocaleString('sv')} kr</strong>`);
+
+  if (trapp > 0) {
+    const height = parseInt(document.getElementById('scen-cfg-h').value) || 40;
+    const trappRow = (cfg.trappor || []).find(t => t.height === height);
+    if (trappRow) {
+      trappSubtotal = trapp * trappRow.price;
+      lines.push(`${trapp} × ${trappRow.name} (${trappRow.price.toLocaleString('sv')} kr) = <strong style="color:#c4b5f4">${trappSubtotal.toLocaleString('sv')} kr</strong>`);
+    }
+  }
+
+  const takVal = document.getElementById('scen-cfg-tak').value;
+  if (takVal) {
+    const takOpt = document.getElementById('scen-cfg-tak').options[document.getElementById('scen-cfg-tak').selectedIndex];
+    takSubtotal = parseFloat(takOpt.dataset.price) || 0;
+    lines.push(`1 × ${takOpt.dataset.name} = <strong style="color:#c4b5f4">${takSubtotal.toLocaleString('sv')} kr</strong>`);
+  }
+
+  const total = modSubtotal + trappSubtotal + takSubtotal;
+  lines.push(`<div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.1)"><strong style="color:white">Totalt: ${(total||0).toLocaleString('sv')} kr/dygn</strong> <span style="color:rgba(255,255,255,0.5);font-size:0.7rem">exkl. transport/montering</span></div>`);
+  preview.innerHTML = lines.join('<br>');
+}
+
+function adminScenConfigAdd() {
+  const w = parseInt(document.getElementById('scen-cfg-w').value) || 0;
+  const d = parseInt(document.getElementById('scen-cfg-d').value) || 0;
+  const surface = document.getElementById('scen-cfg-yta').value;
+  const trapp = parseInt(document.getElementById('scen-cfg-trapp').value) || 0;
+  const height = parseInt(document.getElementById('scen-cfg-h').value) || 40;
+  const takVal = document.getElementById('scen-cfg-tak').value;
+
+  if (!_scenSurfaceValid(w, d, surface)) return;
+  const mc = _scenModuleCount(w, d, surface);
+  if (mc < 1) return;
+
+  const cfg = window.__ADMIN_SCEN_CONFIG__ || {};
+  const modOpt = document.getElementById('scen-cfg-yta').options[document.getElementById('scen-cfg-yta').selectedIndex];
+  const modPrice = parseFloat(modOpt?.dataset.price) || 0;
+  const modArtno = modOpt?.dataset.artno || '';
+  const modName  = modOpt?.dataset.name || '';
+
+  const prefix = `[Scen ${w}×${d}·${height}cm]`;
+
+  // 1) Plattforms-rad
+  quoteItems.push({
+    id:    modArtno,
+    name:  `${prefix} ${modName}`,
+    price: modPrice,
+    qty:   mc,
+    category: 'Scen',
+    type: 'product',
+  });
+
+  // 2) Trapp-rad (om antal > 0)
+  if (trapp > 0) {
+    const trappRow = (cfg.trappor || []).find(t => t.height === height);
+    if (trappRow) {
+      quoteItems.push({
+        id:    trappRow.artno,
+        name:  `${prefix} ${trappRow.name}`,
+        price: trappRow.price,
+        qty:   trapp,
+        category: 'Scen',
+        type: 'product',
+      });
+    }
+  }
+
+  // 3) Tak-rad (om vald)
+  if (takVal) {
+    const takOpt = document.getElementById('scen-cfg-tak').options[document.getElementById('scen-cfg-tak').selectedIndex];
+    quoteItems.push({
+      id:    takVal,
+      name:  `${prefix} ${takOpt.dataset.name}`,
+      price: parseFloat(takOpt.dataset.price) || 0,
+      qty:   1,
+      category: 'Scen',
+      type: 'product',
+    });
+  }
+
+  quoteRenderTable();
+  adminScenConfigClose();
+  toast?.(`✓ Lade till ${trapp > 0 ? '2–3' : '1–2'} rader (Scen ${w}×${d}·${height}cm)`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// LED-VÄGG-KONFIGURATOR i admin
+// Räknar paneler, processor (auto-välj från pixels), upphängning.
+// Matematik dubblerad från hyra-bild-led-vagg/index.astro.
+// ─────────────────────────────────────────────────────────────
+function adminLedConfigOpen() {
+  const panel = document.getElementById('admin-led-config');
+  if (!panel) return;
+  const cfg = window.__ADMIN_LED_CONFIG__ || {};
+  const sel = document.getElementById('led-cfg-panel');
+  sel.innerHTML = (cfg.paneler || []).map(p =>
+    `<option value="${p.artno}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.price_per_day_excl}" data-w-mm="${p.panel_w_mm}" data-h-mm="${p.panel_h_mm}" data-px-w="${p.pixels_w || 0}" data-px-h="${p.pixels_h || 0}">${p.name} (${p.panel_w_mm}×${p.panel_h_mm} mm) — ${p.price_per_day_excl} kr/dygn</option>`
+  ).join('');
+  panel.style.display = 'block';
+  document.getElementById('admin-scen-config').style.display = 'none';
+  adminLedConfigUpdate();
+}
+
+function adminLedConfigClose() {
+  document.getElementById('admin-led-config').style.display = 'none';
+}
+
+function adminLedConfigUpdate() {
+  const cols = parseInt(document.getElementById('led-cfg-cols').value) || 0;
+  const rows = parseInt(document.getElementById('led-cfg-rows').value) || 0;
+  const mount = document.getElementById('led-cfg-mount').value;
+  const cfg = window.__ADMIN_LED_CONFIG__ || {};
+  const panelOpt = document.getElementById('led-cfg-panel').options[document.getElementById('led-cfg-panel').selectedIndex];
+  const panelPrice = parseFloat(panelOpt?.dataset.price) || 0;
+  const panelName  = panelOpt?.dataset.name || '';
+  const panelPxW   = parseInt(panelOpt?.dataset.pxW) || 0;
+  const panelPxH   = parseInt(panelOpt?.dataset.pxH) || 0;
+  const panelWmm   = parseInt(panelOpt?.dataset.wMm) || 0;
+  const panelHmm   = parseInt(panelOpt?.dataset.hMm) || 0;
+
+  const preview = document.getElementById('led-cfg-preview');
+  if (!cols || !rows) {
+    preview.innerHTML = `<span style="color:rgba(255,255,255,0.5)">Ange kolumner och rader</span>`;
+    return;
+  }
+
+  const totalPanels = cols * rows;
+  const panelSubtotal = totalPanels * panelPrice;
+  const actualW_mm = cols * panelWmm;
+  const actualH_mm = rows * panelHmm;
+  const totalPixels = totalPanels * panelPxW * panelPxH;
+
+  // Processor: liten eller stor beroende på pixels
+  const psmall = cfg.tillbehor?.processor_small;
+  const plarge = cfg.tillbehor?.processor_large;
+  const proc = (totalPixels <= (psmall?.max_pixels || 2600000)) ? psmall : plarge;
+  const procPrice = proc?.price_per_day_excl || 0;
+
+  // Mount
+  const mountRow = mount === 'tross' ? cfg.tillbehor?.tross : cfg.tillbehor?.rigg;
+  const mountPrice = (mountRow?.price_per_column || 0) * cols;
+
+  const total = panelSubtotal + procPrice + mountPrice;
+  const dimStr = `${(actualW_mm/1000).toFixed(2).replace(/\.?0+$/,'')}×${(actualH_mm/1000).toFixed(2).replace(/\.?0+$/,'')} m`;
+
+  preview.innerHTML = `
+    <div>${totalPanels} × ${panelName} = <strong style="color:#c4b5f4">${(panelSubtotal||0).toLocaleString('sv')} kr</strong></div>
+    <div>1 × ${proc?.name || 'Processor'} = <strong style="color:#c4b5f4">${procPrice.toLocaleString('sv')} kr</strong></div>
+    <div>1 × ${mountRow?.name || ''} (${cols} kolumner) = <strong style="color:#c4b5f4">${mountPrice.toLocaleString('sv')} kr</strong></div>
+    <div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.1);font-size:0.72rem;color:rgba(255,255,255,0.55)">${cols}×${rows} = ${totalPanels} paneler · ${dimStr} · ${(totalPixels/1e6).toFixed(2)} Mpx</div>
+    <div><strong style="color:white">Totalt: ${(total||0).toLocaleString('sv')} kr/dygn</strong> <span style="color:rgba(255,255,255,0.5);font-size:0.7rem">exkl. transport/montering</span></div>
+  `;
+}
+
+function adminLedConfigAdd() {
+  const cols = parseInt(document.getElementById('led-cfg-cols').value) || 0;
+  const rows = parseInt(document.getElementById('led-cfg-rows').value) || 0;
+  const mount = document.getElementById('led-cfg-mount').value;
+  const cfg = window.__ADMIN_LED_CONFIG__ || {};
+  const panelOpt = document.getElementById('led-cfg-panel').options[document.getElementById('led-cfg-panel').selectedIndex];
+  if (!cols || !rows || !panelOpt) return;
+
+  const panelArtno = panelOpt.value;
+  const panelPrice = parseFloat(panelOpt.dataset.price) || 0;
+  const panelName  = panelOpt.dataset.name || '';
+  const panelPxW   = parseInt(panelOpt.dataset.pxW) || 0;
+  const panelPxH   = parseInt(panelOpt.dataset.pxH) || 0;
+  const totalPanels = cols * rows;
+  const totalPixels = totalPanels * panelPxW * panelPxH;
+  const actualW_mm = cols * (parseInt(panelOpt.dataset.wMm) || 0);
+  const actualH_mm = rows * (parseInt(panelOpt.dataset.hMm) || 0);
+  const dimStr = `${(actualW_mm/1000).toFixed(2).replace(/\.?0+$/,'')}×${(actualH_mm/1000).toFixed(2).replace(/\.?0+$/,'')} m`;
+
+  // 1) Panel-rad
+  quoteItems.push({
+    id:    panelArtno + '__' + cols + 'x' + rows,
+    name:  `${panelName} — ${cols}×${rows} = ${totalPanels} st · ${dimStr}`,
+    price: panelPrice,
+    qty:   totalPanels,
+    category: 'LED-vägg',
+    type: 'product',
+  });
+
+  // 2) Processor
+  const psmall = cfg.tillbehor?.processor_small;
+  const plarge = cfg.tillbehor?.processor_large;
+  const proc = (totalPixels <= (psmall?.max_pixels || 2600000)) ? psmall : plarge;
+  if (proc) {
+    quoteItems.push({
+      id:    proc.artno,
+      name:  proc.name,
+      price: proc.price_per_day_excl,
+      qty:   1,
+      category: 'LED-vägg',
+      type: 'product',
+    });
+  }
+
+  // 3) Mount (ground/tross)
+  const mountRow = mount === 'tross' ? cfg.tillbehor?.tross : cfg.tillbehor?.rigg;
+  if (mountRow) {
+    quoteItems.push({
+      id:    mountRow.artno + '__' + cols + 'kol',
+      name:  `${mountRow.name} (${cols} kolumner)`,
+      price: (mountRow.price_per_column || 0) * cols,
+      qty:   1,
+      category: 'LED-vägg',
+      type: 'product',
+    });
+  }
+
+  quoteRenderTable();
+  adminLedConfigClose();
+  toast?.(`✓ Lade till 3 rader (LED-vägg ${cols}×${rows})`);
+}
+
+// Window-exponering för admin-konfigurator-funktioner
+window.quoteSearchInput   = quoteSearchInput;
+window.quoteSearchKey     = quoteSearchKey;
+window.quoteSearchPick    = quoteSearchPick;
+window.adminScenConfigOpen   = adminScenConfigOpen;
+window.adminScenConfigClose  = adminScenConfigClose;
+window.adminScenConfigUpdate = adminScenConfigUpdate;
+window.adminScenConfigAdd    = adminScenConfigAdd;
+window.adminLedConfigOpen    = adminLedConfigOpen;
+window.adminLedConfigClose   = adminLedConfigClose;
+window.adminLedConfigUpdate  = adminLedConfigUpdate;
+window.adminLedConfigAdd     = adminLedConfigAdd;
 </script>
 
 </body>
