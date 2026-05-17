@@ -87,24 +87,42 @@ exports.handler = async (event) => {
       cart = data;
     }
 
-    // Spara meddelandet
+    // Spara meddelandet — KRITISKT, om detta failar måste vi returnera 500
     const sender = admin ? 'admin' : 'customer';
-    const [newMsg] = await db.insert('messages', {
-      cart_id:    cart.id,
-      sender,
-      body:       msgText,
-      read_at:    null,
-      created_at: new Date().toISOString()
-    });
+    let newMsg;
+    try {
+      const inserted = await db.insert('messages', {
+        cart_id:    cart.id,
+        sender,
+        body:       msgText,
+        read_at:    null,
+        created_at: new Date().toISOString()
+      });
+      newMsg = Array.isArray(inserted) ? inserted[0] : inserted;
+    } catch (e) {
+      console.error('CART_MESSAGE_INSERT_FAIL:', e.message);
+      return err('Kunde inte spara meddelandet', 500);
+    }
 
-    // Förläng TTL
-    await db.rpc('extend_cart_ttl', { cart_id: cart.id });
+    // Allt nedan är BEST-EFFORT — om något steg failar har meddelandet
+    // ändå sparats korrekt. Returnera success oavsett.
+
+    // Förläng TTL (RPC kan saknas i Supabase eller ge sporadiskt fel)
+    try {
+      await db.rpc('extend_cart_ttl', { cart_id: cart.id });
+    } catch (e) {
+      console.warn('CART_MESSAGE_TTL_WARN:', e.message);
+    }
 
     // Audit
-    const auditType = (admin && body.event_type) ? body.event_type : 'message_sent';
-    const auditPayload = { length: msgText.length };
-    if (auditType === 'reminder_sent') auditPayload.preview = msgText.slice(0, 120);
-    await logAudit(db, cart.id, sender, auditType, auditPayload);
+    try {
+      const auditType = (admin && body.event_type) ? body.event_type : 'message_sent';
+      const auditPayload = { length: msgText.length };
+      if (auditType === 'reminder_sent') auditPayload.preview = msgText.slice(0, 120);
+      await logAudit(db, cart.id, sender, auditType, auditPayload);
+    } catch (e) {
+      console.warn('CART_MESSAGE_AUDIT_WARN:', e.message);
+    }
 
     // Cross-device påminnelse-state: när admin trycker "Ja, skicka påminnelse"
     // i popup-systemet sätts admin_reminder_sent_at så att samma popup inte
@@ -116,8 +134,7 @@ exports.handler = async (event) => {
           admin_reminder_dismissed_until: null,
         }, 'id', cart.id);
       } catch (e) {
-        // Icke-fatal — påminnelsen har redan skickats
-        console.warn('REMINDER_FLAG_WARN:', e.message);
+        console.warn('CART_MESSAGE_REMINDER_WARN:', e.message);
       }
     }
 
@@ -126,46 +143,52 @@ exports.handler = async (event) => {
       ? `https://scenkonsult.se/order/?cart=${cart.id}&token=${cart.cart_token}`
       : null;
 
-    if (!admin && cart.customer_email !== null) {
-      // Kund → notis till admin
-      const html = mailWrapper(`
-        <h2 style="color:#1e1850;margin:0 0 16px;">💬 Nytt meddelande från kund</h2>
-        <p style="color:#555;margin:0 0 8px;"><strong>${cart.customer_name || 'Kund'}</strong> har skickat ett meddelande på varukorg <strong>${cart.id}</strong>:</p>
-        <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${msgText.replace(/\n/g, '<br>')}</div>
-        ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Öppna varukorg →</a></p>` : ''}
-      `);
-      await sendMail(
-        ADMIN_MAIL,
-        `💬 Nytt meddelande — ${cart.customer_name || cart.id}`,
-        html,
-        `Nytt meddelande från ${cart.customer_name || 'kund'}: ${msgText}`,
-        cart.customer_email
-      );
-    }
+    try {
+      if (!admin && cart.customer_email !== null) {
+        // Kund → notis till admin
+        const html = mailWrapper(`
+          <h2 style="color:#1e1850;margin:0 0 16px;">💬 Nytt meddelande från kund</h2>
+          <p style="color:#555;margin:0 0 8px;"><strong>${cart.customer_name || 'Kund'}</strong> har skickat ett meddelande på varukorg <strong>${cart.id}</strong>:</p>
+          <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${msgText.replace(/\n/g, '<br>')}</div>
+          ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Öppna varukorg →</a></p>` : ''}
+        `);
+        await sendMail(
+          ADMIN_MAIL,
+          `💬 Nytt meddelande — ${cart.customer_name || cart.id}`,
+          html,
+          `Nytt meddelande från ${cart.customer_name || 'kund'}: ${msgText}`,
+          cart.customer_email
+        );
+      }
 
-    if (admin && cart.customer_email) {
-      // Admin → notis till kund
-      const html = mailWrapper(`
-        <h2 style="color:#1e1850;margin:0 0 16px;">Svar från Scenkonsult Norden</h2>
-        <p style="color:#555;margin:0 0 8px;">Vi har skickat ett meddelande angående din offert/bokning:</p>
-        <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${msgText.replace(/\n/g, '<br>')}</div>
-        ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Svara på meddelandet →</a></p>` : ''}
-        <p style="color:#888;font-size:13px;margin:16px 0 0;">Via länken kan du se ditt orderförslag, svara och följa status.</p>
-      `);
-      await sendMail(
-        cart.customer_email,
-        `Svar från Scenkonsult — ${cart.id}`,
-        html,
-        `Svar från Scenkonsult: ${msgText}\n\nÖppna varukorgen: ${cartUrl || 'kontakta oss'}`,
-        ADMIN_MAIL,
-        cart.cc_email || null
-      );
+      if (admin && cart.customer_email) {
+        // Admin → notis till kund
+        const html = mailWrapper(`
+          <h2 style="color:#1e1850;margin:0 0 16px;">Svar från Scenkonsult Norden</h2>
+          <p style="color:#555;margin:0 0 8px;">Vi har skickat ett meddelande angående din offert/bokning:</p>
+          <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${msgText.replace(/\n/g, '<br>')}</div>
+          ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Svara på meddelandet →</a></p>` : ''}
+          <p style="color:#888;font-size:13px;margin:16px 0 0;">Via länken kan du se ditt orderförslag, svara och följa status.</p>
+        `);
+        await sendMail(
+          cart.customer_email,
+          `Svar från Scenkonsult — ${cart.id}`,
+          html,
+          `Svar från Scenkonsult: ${msgText}\n\nÖppna varukorgen: ${cartUrl || 'kontakta oss'}`,
+          ADMIN_MAIL,
+          cart.cc_email || null
+        );
+      }
+    } catch (e) {
+      console.warn('CART_MESSAGE_NOTIFY_WARN:', e.message);
     }
 
     return ok({ message: newMsg || { id: 'ok', created_at: new Date().toISOString() } });
 
   } catch (e) {
-    console.error('CART_MESSAGE_ERROR:', e.message);
+    // Yttre catch fångar endast fel FÖRE messages.insert (cart-lookup,
+    // body-parse, etc). Allt efter har egna try/catch.
+    console.error('CART_MESSAGE_ERROR:', e.message, e.stack);
     return err('Serverfel', 500);
   }
 };
