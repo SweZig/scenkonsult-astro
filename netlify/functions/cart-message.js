@@ -107,11 +107,20 @@ exports.handler = async (event) => {
     // Allt nedan är BEST-EFFORT — om något steg failar har meddelandet
     // ändå sparats korrekt. Returnera success oavsett.
 
-    // Förläng TTL (RPC kan saknas i Supabase eller ge sporadiskt fel)
+    // Förläng TTL (RPC är trasig i Supabase — fallback till direkt PATCH).
+    // Felmeddelandet 'relation "carts" does not exist' tyder på search_path-
+    // problem i extend_cart_ttl-funktionen. Cart-update.js har samma fallback.
     try {
       await db.rpc('extend_cart_ttl', { cart_id: cart.id });
     } catch (e) {
       console.warn('CART_MESSAGE_TTL_WARN:', e.message);
+      try {
+        await db.update('carts', {
+          expires_at: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString()
+        }, 'id', cart.id);
+      } catch (e2) {
+        console.warn('CART_MESSAGE_TTL_FALLBACK_WARN:', e2.message);
+      }
     }
 
     // Audit
