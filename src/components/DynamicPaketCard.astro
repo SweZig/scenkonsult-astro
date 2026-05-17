@@ -59,6 +59,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
   data-paket-artno={paket.artno}
   data-paket-name={paket.name}
   data-paket-transport={paket.transport}
+  data-paket-bulky={paket.bulky === true ? '1' : '0'}
   data-paket-config={JSON.stringify(cfg)}
   itemscope itemtype="https://schema.org/Product"
 >
@@ -114,6 +115,22 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
         ))}
       </div>
     </div>
+
+    {cfg.heights && cfg.heights.length > 1 && (
+      <div class="paket-control">
+        <span class="paket-control-label">Höjd</span>
+        <div class="paket-pills" role="radiogroup" aria-label="Höjd">
+          {cfg.heights.map(h => (
+            <button
+              type="button"
+              class="paket-pill"
+              data-height={h}
+              aria-pressed={h === cfg.defaultHeight ? 'true' : 'false'}
+            >{h} cm</button>
+          ))}
+        </div>
+      </div>
+    )}
 
     <div class="paket-control">
       <span class="paket-control-label">Trappor</span>
@@ -206,10 +223,11 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
     return (w % 2 === 0) || (d % 2 === 0);
   }
 
-  function computePrice(cfg, surface, stairs) {
+  function computePrice(cfg, surface, stairs, height) {
     if (!isSurfaceValid(cfg.width, cfg.depth, surface)) return null;
     const mc = moduleCount(cfg.width, cfg.depth, surface);
-    const stairPrice = TRAPP[cfg.defaultHeight]?.price || 0;
+    const useHeight = height ?? cfg.defaultHeight;
+    const stairPrice = TRAPP[useHeight]?.price || 0;
     let price = mc * MOD_PRICE[surface] + stairs * stairPrice;
     if (cfg.tak) price += cfg.tak.price;
     return price;
@@ -330,6 +348,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
     const paketName = card.dataset.paketName;
     let surface = cfg.defaultSurface;
     let stairs = cfg.defaultStairCount;
+    let height = cfg.defaultHeight;
 
     const svgEl = card.querySelector('[data-paket-svg]');
     const priceExcl = card.querySelector('[data-paket-price-excl]');
@@ -340,7 +359,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
     const warning = card.querySelector('[data-paket-warning]');
 
     function update() {
-      const price = computePrice(cfg, surface, stairs);
+      const price = computePrice(cfg, surface, stairs, height);
 
       // Disable invalid surfaces
       card.querySelectorAll('[data-yta]').forEach(b => {
@@ -369,7 +388,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
         warning.hidden = true;
       }
 
-      if (heightDisplay) heightDisplay.textContent = cfg.defaultHeight + ' cm';
+      if (heightDisplay) heightDisplay.textContent = height + ' cm';
 
       // Pressed-states
       card.querySelectorAll('[data-yta]').forEach(b => {
@@ -377,6 +396,9 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
       });
       card.querySelectorAll('[data-stairs]').forEach(b => {
         b.setAttribute('aria-pressed', String(parseInt(b.dataset.stairs)) === String(stairs) ? 'true' : 'false');
+      });
+      card.querySelectorAll('[data-height]').forEach(b => {
+        b.setAttribute('aria-pressed', String(parseInt(b.dataset.height)) === String(height) ? 'true' : 'false');
       });
 
       if (svgEl) drawPaketSvg(svgEl, cfg, surface, stairs);
@@ -395,6 +417,12 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
         update();
       });
     });
+    card.querySelectorAll('[data-height]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        height = parseInt(btn.dataset.height);
+        update();
+      });
+    });
 
     cartBtn?.addEventListener('click', () => {
       if (!window.skCart || cartBtn.disabled) return;
@@ -402,6 +430,11 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
       const area = cfg.width * cfg.depth;
       const transport = card.dataset.paketTransport;
       const isKravs = transport === 'krävs';
+      // bulky läses från JSON-flaggan paket.bulky (data-paket-bulky="1") — INTE
+      // härlett från transport. Det innebär att ett 'tillägg'-paket fortfarande
+      // räknas som skrymmande gods när kunden väljer leverans i kundkorgen, så
+      // fraktregeln "bulkyCount >= 1 → Bil med släp" matchar korrekt.
+      const isBulky = card.dataset.paketBulky === '1';
       // Krävs: forceLeverans (override eller auto-rekommenderat fordon)
       // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
       const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(area)) : null;
@@ -421,8 +454,9 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
         } catch (e) { /* tyst — flaggor är best-effort */ }
       }
 
-      // Modul-rad. bulky+requiresAssembly bara om paketet kräver transport,
-      // annars utelämnas → kunden i varukorgen får välja transport+montering själv.
+      // Modul-rad.
+      // - bulky: sätts från JSON-flaggan paket.bulky (oavsett transport)
+      // - requiresAssembly + forceLeverans: bara om paketet kräver transport
       const modItem = {
         id: MOD_ARTNO[surface],
         artno: MOD_ARTNO[surface],
@@ -432,24 +466,26 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
         category: 'Scen',
         monteringMin: MODULE_MONTERING_MIN, // alltid satt så att monteringspriset blir rätt om kunden bockar i
       };
-      if (isKravs) {
+      if (isBulky) {
         modItem.bulky = true;
+      }
+      if (isKravs) {
         modItem.requiresAssembly = true;
         if (lev) modItem.forceLeverans = lev;
       }
       window.skCart.add(modItem);
       // Säkerställ flaggor även om itemet redan fanns i cart (merge-bug-skydd)
       const modFlags = { monteringMin: MODULE_MONTERING_MIN };
+      if (isBulky) modFlags.bulky = true;
       if (isKravs) {
-        modFlags.bulky = true;
         modFlags.requiresAssembly = true;
         if (lev) modFlags.forceLeverans = lev;
       }
       applyFlagsTo(modItem.id, modFlags);
 
-      // Trapp-rader (om kunden valt > 0)
+      // Trapp-rader (om kunden valt > 0) — använd vald höjd, inte cfg.defaultHeight
       if (stairs > 0) {
-        const t = TRAPP[cfg.defaultHeight];
+        const t = TRAPP[height];
         if (t) {
           window.skCart.add({
             id: t.artno,
