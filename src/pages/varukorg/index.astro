@@ -791,7 +791,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     // Filtrering per kategori sker i respektive produktsida via categories[]-flagga.
     // Varukorgens katalog behöver alla tjänster — länken pekar till en lämplig
     // hyra-sida baserat på primärkategori i artno-prefixet.
-    for (const svc of (frakt.services ?? [])) {
+    for (const svc of (fraktData.services ?? [])) {
       let link = '/vara-tjanster/';
       if (svc.artno?.startsWith('SK-BLD-')) link = '/vara-tjanster/hyra-bild-projektorer-skarmar/';
       else if (svc.categories?.includes('ljud')) link = '/vara-tjanster/hyra-ljud/live/';
