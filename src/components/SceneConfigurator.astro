@@ -78,7 +78,7 @@ const configData = {
         </ul>
         <div class="cfg-yta-prices">
           <span class="cfg-yta-price-chip cfg-yta-price-na">1×1 m — finns endast halkfri</span>
-          <span class="cfg-yta-price-chip">1×2 m — <strong>200 kr</strong>/dygn</span>
+          <span class="cfg-yta-price-chip">1×2 m — <strong>{INJ_MODULE_BY_KEY['1x2-slat']?.price} kr</strong>/dygn</span>
         </div>
         <button type="button" class="cfg-yta-cta" data-yta-select="1x2-slat">Välj slät 1×2 m i konfiguratorn ↓</button>
       </article>
@@ -95,8 +95,8 @@ const configData = {
           <li><span class="cfg-yta-tick" aria-hidden="true">✓</span>Lättstädad — torka av direkt på plats</li>
         </ul>
         <div class="cfg-yta-prices">
-          <span class="cfg-yta-price-chip">1×1 m — <strong>150 kr</strong>/dygn</span>
-          <span class="cfg-yta-price-chip">1×2 m — <strong>225 kr</strong>/dygn</span>
+          <span class="cfg-yta-price-chip">1×1 m — <strong>{INJ_MODULE_BY_KEY['1x1-halkfri']?.price} kr</strong>/dygn</span>
+          <span class="cfg-yta-price-chip">1×2 m — <strong>{INJ_MODULE_BY_KEY['1x2-halkfri']?.price} kr</strong>/dygn</span>
         </div>
         <button type="button" class="cfg-yta-cta" data-yta-select="1x2-halkfri">Välj halkfri 1×2 m i konfiguratorn ↓</button>
       </article>
@@ -133,7 +133,7 @@ const configData = {
             <input type="radio" name="moduleType" value="1x1-halkfri" />
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">150 kr/modul</span></div>
+              <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x1-halkfri']?.price} kr/modul</span></div>
               <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 20 m² (20 moduler).</div>
             </div>
           </label>
@@ -141,7 +141,7 @@ const configData = {
             <input type="radio" name="moduleType" value="1x2-slat" checked />
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_slat.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×2 m — slät yta <span class="cfg-radio-price">200 kr/modul</span></div>
+              <div class="cfg-radio-title">1×2 m — slät yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x2-slat']?.price} kr/modul</span></div>
               <div class="cfg-radio-desc">Bäst om matta läggs över. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
@@ -149,7 +149,7 @@ const configData = {
             <input type="radio" name="moduleType" value="1x2-halkfri" />
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
-              <div class="cfg-radio-title">1×2 m — halkfri yta <span class="cfg-radio-price">225 kr/modul</span></div>
+              <div class="cfg-radio-title">1×2 m — halkfri yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x2-halkfri']?.price} kr/modul</span></div>
               <div class="cfg-radio-desc">Standard halkfri ovansida. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
@@ -739,17 +739,19 @@ const configData = {
         if (pill60) pill60.classList.remove('cfg-pill-disabled');
       }
 
-      // Räcken vid trappa — disabla
+      // Räcken på trapp-sidor är nu tillåtna (trappan tar av 1 m från sidans
+      // räcke-längd). Lägg en hint via title så användaren förstår.
       const stairSet = new Set(state.stairPositions.slice(0, state.stairCount));
       document.querySelectorAll('input[name="rail"]').forEach(cb => {
         const side = cb.dataset.side;
+        cb.disabled = false;
+        cb.parentElement?.classList.remove('cfg-side-disabled');
         if (stairSet.has(side)) {
-          cb.disabled = true;
-          if (cb.checked) { cb.checked = false; state.rail[side] = false; }
-          cb.parentElement?.classList.add('cfg-side-disabled');
+          cb.title = 'Räcket delas på sidor med trappa (trappan tar 1 m).';
+          cb.parentElement?.classList.add('cfg-side-with-stair');
         } else {
-          cb.disabled = false;
-          cb.parentElement?.classList.remove('cfg-side-disabled');
+          cb.title = '';
+          cb.parentElement?.classList.remove('cfg-side-with-stair');
         }
       });
 
