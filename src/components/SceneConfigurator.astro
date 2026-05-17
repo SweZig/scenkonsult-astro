@@ -423,10 +423,15 @@ const configData = {
 
       if (state.railMode === 'custom') {
         const stairSet = new Set(state.stairPositions.slice(0, state.stairCount));
-        const railSidesValid = SIDES.filter(s => state.rail[s] && !stairSet.has(s));
+        // Räcken tillåts på ALLA sidor som har räcke valt, inklusive sidor med
+        // trappa. På trapp-sidor räknas trappans bredd (1 m) av från sidlängden
+        // — om återstoden är < 1 m räknas inget räcke på den sidan.
+        const railSidesValid = SIDES.filter(s => state.rail[s]);
         const railTotals = { 'SK-SCN-ACC-0007': 0, 'SK-SCN-ACC-0006': 0 };
         railSidesValid.forEach(side => {
-          const len = sideLengthMeters(side);
+          let len = sideLengthMeters(side);
+          if (stairSet.has(side)) len -= 1; // trappan tar 1 m
+          if (len < 1) return;              // för smalt för räcke
           const packed = packRail(len);
           railTotals['SK-SCN-ACC-0007'] += packed.count20;
           railTotals['SK-SCN-ACC-0006'] += packed.count10;
@@ -567,14 +572,43 @@ const configData = {
 
       const stairSet = new Set(state.stairPositions.slice(0, state.stairCount));
       if (state.railMode === 'custom') {
+        // Räcken ritas på ALLA sidor som har räcke valt. På trapp-sidor delas
+        // räcket i två segment som flankerar trappan (trappan är 20% av min-
+        // dimensionen i SVG och placeras i mitten av sidan).
         Object.keys(state.rail).forEach(side => {
           if (!state.rail[side]) return;
-          if (stairSet.has(side)) return;
           const off = 4;
-          if (side === 'fram') html += `<line x1="${x0}" y1="${y0 + stageD + off}" x2="${x0 + stageW}" y2="${y0 + stageD + off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
-          if (side === 'bak') html += `<line x1="${x0}" y1="${y0 - off}" x2="${x0 + stageW}" y2="${y0 - off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
-          if (side === 'vanster') html += `<line x1="${x0 - off}" y1="${y0}" x2="${x0 - off}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
-          if (side === 'hoger') html += `<line x1="${x0 + stageW + off}" y1="${y0}" x2="${x0 + stageW + off}" y2="${y0 + stageD}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+          const hasStair = stairSet.has(side);
+          const stairWidthSvg = Math.min(stageW, stageD) * 0.20;
+          // Räcke ritas i 1 eller 2 segment per sida:
+          //   ingen trappa  → [0 → längd]
+          //   med trappa   → [0 → (mitt - sw/2)] + [(mitt + sw/2) → längd]
+          function railSegments(totalLen) {
+            if (!hasStair) return [[0, totalLen]];
+            const mid = totalLen / 2;
+            const half = stairWidthSvg / 2;
+            return [[0, mid - half], [mid + half, totalLen]].filter(s => s[1] - s[0] > 2);
+          }
+          if (side === 'fram') {
+            railSegments(stageW).forEach(([a, b]) => {
+              html += `<line x1="${x0 + a}" y1="${y0 + stageD + off}" x2="${x0 + b}" y2="${y0 + stageD + off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+            });
+          }
+          if (side === 'bak') {
+            railSegments(stageW).forEach(([a, b]) => {
+              html += `<line x1="${x0 + a}" y1="${y0 - off}" x2="${x0 + b}" y2="${y0 - off}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+            });
+          }
+          if (side === 'vanster') {
+            railSegments(stageD).forEach(([a, b]) => {
+              html += `<line x1="${x0 - off}" y1="${y0 + a}" x2="${x0 - off}" y2="${y0 + b}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+            });
+          }
+          if (side === 'hoger') {
+            railSegments(stageD).forEach(([a, b]) => {
+              html += `<line x1="${x0 + stageW + off}" y1="${y0 + a}" x2="${x0 + stageW + off}" y2="${y0 + b}" stroke="#c4b5f4" stroke-width="3" stroke-linecap="round"/>`;
+            });
+          }
         });
       }
 
