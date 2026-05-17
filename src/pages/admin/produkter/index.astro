@@ -474,15 +474,14 @@
   <script type="module">
     'use strict';
 
-    // ─── Filer som kan redigeras (v1: pilot = bara ljud) ───
-    // Lägg till fler här när vi expanderar
+    // ─── Filer som kan redigeras ──────────────────────────
     const FILES = [
       { key: 'ljud',   label: 'Ljud',    enabled: true  },
-      { key: 'ljus',   label: 'Ljus',    enabled: false },
-      { key: 'dj',     label: 'DJ',      enabled: false },
-      { key: 'scenes', label: 'Scen',    enabled: false },
-      { key: 'bild',   label: 'Bild',    enabled: false },
-      { key: 'el',     label: 'El',      enabled: false }
+      { key: 'ljus',   label: 'Ljus',    enabled: true  },
+      { key: 'dj',     label: 'DJ',      enabled: true  },
+      { key: 'scenes', label: 'Scen',    enabled: true  },
+      { key: 'bild',   label: 'Bild',    enabled: true  },
+      { key: 'el',     label: 'El',      enabled: true  }
     ];
 
     // ─── State ─────────────────────────────────────────────
@@ -613,29 +612,70 @@
       }
     }
 
+    // ─── Sektion-labels per fil ───────────────────────────
+    // Nyckel = fil, värde = map från JSON-nyckel → svensk etikett
+    const SECTION_LABELS = {
+      ljud: {
+        event:              'Event-PA',
+        live:               'Live-PA',
+        music:              'Musik-PA',
+        portable:           'Portabelt',
+        mixers:             'Mixers',
+        mikrofoner:         'Mikrofoner',
+        tillbehor_mikrofon: 'Mikrofontillbehör',
+        tillbehor_ljud:     'Ljudtillbehör',
+        services:           'Tjänster'
+      },
+      ljus: {
+        paket:    'Färdiga paket',
+        effekter: 'Ljuseffekter',
+        rok:      'Rök & pyro',
+        stativ:   'Stativ & tross',
+        services: 'Tjänster'
+      },
+      dj: {
+        equipment: 'DJ-utrustning',
+        packages:  'DJ-paket'
+      },
+      scenes: {
+        products: 'Scenpaket',
+        tillbehor:'Sceningens­tillbehör',
+        modules:  'Scenmoduler'
+      },
+      bild: {
+        products: 'Projektorer & skärmar',
+        tillbehor:'Bildtillbehör',
+        dukar:    'Dukar',
+        services: 'Tjänster'
+      },
+      el: {
+        products: 'El-tillbehör'
+      }
+    };
+
+    function labelFor(fil, key) {
+      const map = SECTION_LABELS[fil] || {};
+      return map[key] || key;
+    }
+
     // ─── Bygg sections från JSON ───────────────────────────
     // Hittar alla { products: [...] }-block och alla rotnivå-arrayer
-    function buildSections(data) {
+    function buildSections(fil, data) {
       const sections = [];
-      const SECTION_LABELS = {
-        event:    'Event-PA',
-        live:     'Live-PA',
-        music:    'Musik-PA',
-        portable: 'Portabelt',
-        mixers:           'Mixers',
-        mikrofoner:       'Mikrofoner',
-        tillbehor_mikrofon:'Mikrofontillbehör',
-        tillbehor_ljud:   'Ljudtillbehör'
-      };
       for (const [key, val] of Object.entries(data)) {
         // Mönster A: { products: [...] }
-        if (val && typeof val === 'object' && Array.isArray(val.products)) {
-          sections.push({
-            key,
-            label: SECTION_LABELS[key] || key,
-            products: val.products,
-            basePath: `${key}.products`
-          });
+        if (val && typeof val === 'object' && !Array.isArray(val) && Array.isArray(val.products)) {
+          if (val.products.length === 0) continue;
+          // Validera att det är produkter (har price)
+          const sample = val.products[0];
+          if (sample && typeof sample === 'object' && 'price' in sample) {
+            sections.push({
+              key,
+              label:    labelFor(fil, key),
+              products: val.products,
+              basePath: `${key}.products`
+            });
+          }
         }
         // Mönster B: rotnivå-array av produkter
         else if (Array.isArray(val) && val.length > 0 &&
@@ -644,7 +684,7 @@
                  'price' in val[0]) {
           sections.push({
             key,
-            label: SECTION_LABELS[key] || key,
+            label:    labelFor(fil, key),
             products: val,
             basePath: key
           });
@@ -663,7 +703,7 @@
         $('table-wrap').innerHTML = `<div class="empty">Fel: ${escapeHtml(r.body.error || ('HTTP ' + r.status))}</div>`;
         return;
       }
-      const sections = buildSections(r.body.data);
+      const sections = buildSections(fil, r.body.data);
       fileData = {
         sha:      r.body.sha,
         data:     r.body.data,
