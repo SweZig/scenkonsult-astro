@@ -947,7 +947,16 @@
         return;
       }
 
-      // Lyckad commit
+      // Lyckad commit — applicera ändringarna lokalt på fileData.data
+      // så att UI inte återgår till gamla värden vid nästa renderTable()
+      if (Array.isArray(r.body.changes)) {
+        for (const c of r.body.changes) {
+          const target = getByPath(fileData.data, c.path);
+          if (target && typeof target === 'object') {
+            Object.assign(target, c.after);
+          }
+        }
+      }
       pending.clear();
       lastKnownSha = (r.body.commitSha || '').slice(0, 7);
       fileData.sha = r.body.newSha;
@@ -1024,6 +1033,17 @@
     }
 
     // ─── Utils ─────────────────────────────────────────────
+    function getByPath(obj, path) {
+      const parts = path.split('.');
+      let cur = obj;
+      for (const p of parts) {
+        if (cur == null || typeof cur !== 'object') return null;
+        const key = /^\d+$/.test(p) ? Number(p) : p;
+        cur = cur[key];
+      }
+      return cur;
+    }
+
     function escapeHtml(s) {
       return String(s ?? '')
         .replace(/&/g, '&amp;')
