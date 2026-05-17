@@ -127,7 +127,7 @@ const faqSchema = {
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {(ljusData.dmx?.tillbehor ?? []).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? []} manualUrl={p.manualUrl} />
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? []} manualUrl={p.manualUrl} />
       ))}
     </div>
   </section>
@@ -141,10 +141,10 @@ const faqSchema = {
           .sort((a:any,b:any) => ['SK-EL-0001','SK-EL-0003','SK-EL-0002'].indexOf(a.artno) - ['SK-EL-0001','SK-EL-0003','SK-EL-0002'].indexOf(b.artno)) ?? []),
         ...(_elData.products.filter((p:any) => !p.categories || p.categories.includes('ljus'))?.filter((p:any) => !['SK-EL-0001','SK-EL-0002','SK-EL-0003'].includes(p.artno)) ?? []),
       ].map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
       {(ljusData.rok?.tillbehor?.filter((p:any) => ['SK-LJS-ROK-ACC-0001','SK-LJS-ROK-ACC-0002'].includes(p.artno)) ?? []).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/st'} />
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/st'} />
       ))}
     </div>
   </section>
