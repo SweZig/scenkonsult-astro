@@ -279,7 +279,7 @@
     }
     .prod-row {
       display: grid;
-      grid-template-columns: 28px 130px 1fr 110px 1.4fr 24px;
+      grid-template-columns: 28px 130px 1fr 110px 1.4fr 60px;
       gap: 10px;
       padding: 10px 14px;
       align-items: start;
@@ -401,10 +401,258 @@
       80%, 100% { content: '...'; }
     }
 
+    /* ── Volympris-indikator + action-knappar ────────────── */
+    .row-actions {
+      padding-top: 4px;
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .vol-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      transition: all .15s;
+    }
+    .vol-btn:hover {
+      color: var(--brand-lav);
+      border-color: var(--brand-lav);
+    }
+    .vol-btn.active {
+      color: var(--brand-lav);
+      border-color: var(--brand-lav);
+      background: rgba(196,181,244,0.10);
+    }
+    .vol-btn.active::after {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--brand-lav);
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    /* ── Modal ───────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-lav);
+      border-radius: 12px;
+      max-width: 640px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .modal-head h2 {
+      font-size: 16px;
+      color: var(--brand-lav);
+      flex: 1;
+    }
+    .modal-head .close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+    }
+    .modal-head .close:hover { color: var(--text); }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-foot {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* ── Volymtrappa-editor ──────────────────────────────── */
+    .vol-tiers {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .vol-tier {
+      display: grid;
+      grid-template-columns: 24px 1fr 1fr 28px;
+      gap: 8px;
+      align-items: center;
+      padding: 6px;
+      background: var(--bg);
+      border-radius: 6px;
+    }
+    .vol-tier .tnum {
+      color: var(--text-faint);
+      font-size: 11px;
+      text-align: center;
+    }
+    .vol-tier .tlabel {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+    .vol-tier .rm-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--red);
+      width: 24px; height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+    }
+    .vol-tier .rm-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .vol-tier .rm-btn:hover:not(:disabled) { background: var(--red-bg); }
+    .vol-tier-header {
+      display: grid;
+      grid-template-columns: 24px 1fr 1fr 28px;
+      gap: 8px;
+      padding: 0 6px;
+      color: var(--text-faint);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .vol-add-btn {
+      width: 100%;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .vol-add-btn:hover {
+      color: var(--brand-lav);
+      border-color: var(--brand-lav);
+    }
+    .vol-preview {
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .vol-preview .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      color: var(--text-faint);
+    }
+    .vol-preview .prow {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+    }
+    .vol-preview .savings {
+      color: var(--green);
+      font-size: 11px;
+    }
+    .vol-error {
+      color: var(--red);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    /* ── Form i ny-produkt-modal ─────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+    .form-grid label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-grid label .req { color: var(--red); }
+    .form-grid .hint {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+    .form-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .form-section h3 {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .toggle-row input[type="checkbox"] {
+      width: auto !important;
+      cursor: pointer;
+    }
+
+    .new-btn {
+      background: var(--brand-lav);
+      color: var(--brand-dark);
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+    .new-btn:hover { background: var(--brand-lav-l); }
+
     /* Responsive: pack rader på mobil */
     @media (max-width: 900px) {
       .prod-row {
-        grid-template-columns: 28px 1fr 110px 24px;
+        grid-template-columns: 28px 1fr 110px 60px;
         grid-template-areas:
           "status name name info"
           "status artno price info"
@@ -413,15 +661,129 @@
       }
       .prod-row.header { display: none; }
       .row-status { grid-area: status; }
-      .row-info   { grid-area: info; }
+      .row-actions { grid-area: info; }
       .prod-row .artno-cell  { grid-area: artno; }
       .prod-row .name-cell   { grid-area: name; }
       .prod-row .price-cell  { grid-area: price; }
       .prod-row .desc-cell   { grid-area: desc; }
+      .form-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
+
+  <!-- Volympris-modal -->
+  <div id="vol-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="vol-modal-title">📊 Volymrabatt</h2>
+        <button class="close" id="vol-modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+          Volympriser visas automatiskt på produktkortet och i kundkorgen.
+          Första raden (minQty:1) är ordinarie pris.
+          Varje följande tier kräver högre minQty och lägre unitPrice.
+        </div>
+        <div class="vol-tier-header">
+          <span></span>
+          <span>Min antal</span>
+          <span>Pris per st (kr)</span>
+          <span></span>
+        </div>
+        <div id="vol-tiers" class="vol-tiers"></div>
+        <button id="vol-add-tier" class="vol-add-btn">+ Lägg till nivå</button>
+        <div id="vol-error" class="vol-error" style="display:none"></div>
+        <div id="vol-preview" class="vol-preview" style="display:none">
+          <div class="label">Förhandsvisning på produktkortet</div>
+          <div id="vol-preview-rows"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button id="vol-modal-remove" class="btn-secondary" style="margin-right:auto;color:var(--red);border-color:var(--red)">Ta bort volymrabatt</button>
+        <button id="vol-modal-cancel" class="btn-secondary">Avbryt</button>
+        <button id="vol-modal-save" class="btn-primary">OK — uppdatera lokalt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ny produkt-modal -->
+  <div id="new-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="new-modal-title">+ Ny produkt</h2>
+        <button class="close" id="new-modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+          Skapar en ny produkt i den valda sektionen. Obligatoriska fält är markerade med <span style="color:var(--red)">*</span>.
+          Bilden måste laddas upp separat i <code>public/images/...</code> innan produkten syns korrekt på sajten.
+        </div>
+        <div class="form-grid">
+          <div>
+            <label>Artno <span class="req">*</span></label>
+            <input type="text" id="new-artno" placeholder="SK-LJS-EFF-0019" />
+            <div class="hint">Format: SK-XXX-XXX-NNNN, versaler/siffror</div>
+          </div>
+          <div>
+            <label>Slug <span class="req">*</span></label>
+            <input type="text" id="new-slug" placeholder="led-par-rgbaw" />
+            <div class="hint">a-z, siffror, bindestreck</div>
+          </div>
+          <div class="full">
+            <label>Namn <span class="req">*</span></label>
+            <input type="text" id="new-name" placeholder="LED PAR (15×10W RGBAW)" />
+          </div>
+          <div>
+            <label>Pris (kr) <span class="req">*</span></label>
+            <input type="number" id="new-price" min="0" step="1" placeholder="99" />
+          </div>
+          <div>
+            <label>Prisangivelse</label>
+            <input type="text" id="new-priceNote" value="/dygn" />
+            <div class="hint">T.ex. /dygn, /st/dygn, /tim</div>
+          </div>
+          <div class="full">
+            <label>Beskrivning</label>
+            <textarea id="new-description" rows="2" placeholder="Kort beskrivning som visas på produktkortet"></textarea>
+          </div>
+          <div class="full">
+            <label>Bildväg</label>
+            <input type="text" id="new-image" placeholder="/images/ljus/pp_ljus_effekt27.webp" />
+            <div class="hint">Bilden måste finnas under public/ — ladda upp separat</div>
+          </div>
+          <div class="full">
+            <label>Includes (en per rad)</label>
+            <textarea id="new-includes" rows="3" placeholder="15×10W RGBAW&#10;DMX-styrning&#10;IP65"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="toggle-row">
+            <input type="checkbox" id="new-vol-toggle" />
+            <span>📊 Lägg till volymrabatt</span>
+          </label>
+          <div id="new-vol-section" style="display:none">
+            <div class="vol-tier-header" style="margin-top:8px">
+              <span></span>
+              <span>Min antal</span>
+              <span>Pris per st (kr)</span>
+              <span></span>
+            </div>
+            <div id="new-vol-tiers" class="vol-tiers"></div>
+            <button id="new-vol-add-tier" class="vol-add-btn">+ Lägg till nivå</button>
+            <div id="new-vol-error" class="vol-error" style="display:none"></div>
+          </div>
+        </div>
+
+        <div id="new-error" class="vol-error" style="display:none;margin-top:12px"></div>
+      </div>
+      <div class="modal-foot">
+        <button id="new-modal-cancel" class="btn-secondary">Avbryt</button>
+        <button id="new-modal-save" class="btn-primary">Skapa produkt</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Login -->
   <div id="login-screen" class="login-screen">
@@ -462,6 +824,7 @@
         <input type="text" id="filter" placeholder="Sök artno/namn…" class="filter-input" />
         <span class="pending-count" id="pending-count"></span>
         <span class="spacer"></span>
+        <button id="new-product-btn" class="btn-secondary" title="Skapa ny produkt i aktuell sektion">+ Ny produkt</button>
         <button id="reset-btn" class="btn-secondary" disabled>Ångra alla</button>
         <button id="save-btn" class="btn-primary" disabled>Spara ändringar</button>
       </div>
@@ -488,7 +851,8 @@
     let TOKEN     = null;
     let activeFil = 'ljud';
     let fileData  = null;            // { sha, data, sections: [{key, label, products: [...]}] }
-    let pending   = new Map();       // path → { name?, price?, description?, errors? }
+    let pending   = new Map();       // path → { name?, price?, description?, volumePricing?, errors? }
+    let pendingAdditions = [];       // [{ sectionPath, sectionKey, product }]
     let activeSection = null;
     let deployPollTimer = null;
     let lastKnownSha  = null;        // hex för senaste commit vi har gjort
@@ -600,11 +964,12 @@
         }
         btn.addEventListener('click', () => {
           if (!f.enabled) return;
-          if (pending.size > 0) {
+          if (pending.size > 0 || pendingAdditions.length > 0) {
             if (!confirm('Du har osparade ändringar. Byta fil ändå?')) return;
           }
           activeFil = f.key;
           pending.clear();
+          pendingAdditions = [];
           renderFileTabs();
           loadFile(f.key);
         });
@@ -697,6 +1062,9 @@
     async function loadFile(fil) {
       $('table-wrap').innerHTML = '<div class="loading">Hämtar från GitHub</div>';
       $('section-tabs').innerHTML = '';
+      // Säkerhetsåterställning — om vi laddar om en fil ska all pending state rensas
+      pending.clear();
+      pendingAdditions = [];
       const r = await apiGet(`/.netlify/functions/admin-products-list?fil=${encodeURIComponent(fil)}`);
       if (!r) return;
       if (!r.ok) {
@@ -769,6 +1137,11 @@
         const curName  = pend && 'name' in pend  ? pend.name  : (p.name || '');
         const curPrice = pend && 'price' in pend ? pend.price : (p.price ?? 0);
         const curDesc  = pend && 'description' in pend ? pend.description : (p.description || '');
+        // Effektiv volumePricing — pending overrider original
+        const curVolPricing = pend && 'volumePricing' in pend
+          ? pend.volumePricing
+          : (p.volumePricing || null);
+        const hasVolPricing = Array.isArray(curVolPricing) && curVolPricing.length > 0;
 
         const isChanged = !!pend && Object.keys(pend).some(k => k !== 'errors');
         const hasError  = !!(pend && pend.errors && Object.keys(pend.errors).length);
@@ -778,6 +1151,10 @@
         else if (isChanged) rowClass += ' changed';
 
         const statusColor = hasError ? 'red' : (isChanged ? 'amber' : 'green');
+
+        const volTitle = hasVolPricing
+          ? `Volymrabatt: ${curVolPricing.length} nivåer (${curVolPricing[0].unitPrice}–${curVolPricing[curVolPricing.length-1].unitPrice} kr/st)`
+          : 'Lägg till volymrabatt';
 
         html += `<div class="${rowClass}" data-path="${escapeHtml(path)}">
           <div class="row-status"><div class="dot ${statusColor}" title="${statusColor === 'green' ? 'Synkad' : statusColor === 'amber' ? 'Osparade ändringar' : 'Valideringsfel'}"></div></div>
@@ -797,7 +1174,9 @@
             <textarea data-field="description" maxlength="2000" rows="2">${escapeHtml(curDesc)}</textarea>
             ${hasError && pend.errors.description ? `<div class="field-err">${escapeHtml(pend.errors.description)}</div>` : ''}
           </div>
-          <div class="row-info" title="${p.priceNote ? 'priceNote: ' + escapeHtml(p.priceNote) : ''}">${p.priceNote ? '⋯' : ''}</div>
+          <div class="row-actions">
+            <button class="vol-btn ${hasVolPricing ? 'active' : ''}" data-action="vol" title="${escapeAttr(volTitle)}">📊</button>
+          </div>
         </div>`;
       });
 
@@ -812,6 +1191,12 @@
       $('table-wrap').querySelectorAll('input, textarea').forEach(input => {
         input.addEventListener('input', onFieldChange);
         input.addEventListener('blur', onFieldBlur);
+      });
+      $('table-wrap').querySelectorAll('.vol-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const row = e.target.closest('.prod-row');
+          openVolModal(row.dataset.path);
+        });
       });
       updateToolbar();
     }
@@ -918,13 +1303,18 @@
     }
 
     function updateToolbar() {
-      const count = pending.size;
+      const editCount = pending.size;
+      const addCount  = pendingAdditions.length;
+      const total = editCount + addCount;
       const hasErrors = Array.from(pending.values()).some(p => p.errors && Object.keys(p.errors).length);
-      $('pending-count').textContent = count > 0
-        ? (count === 1 ? '1 osparad ändring' : `${count} osparade ändringar`)
-        : '';
-      $('save-btn').disabled = count === 0 || hasErrors;
-      $('reset-btn').disabled = count === 0;
+
+      const parts = [];
+      if (addCount) parts.push(`${addCount} ny${addCount === 1 ? '' : 'a'}`);
+      if (editCount) parts.push(`${editCount} ändring${editCount === 1 ? '' : 'ar'}`);
+      $('pending-count').textContent = parts.length ? `${parts.join(' + ')} osparad${total === 1 ? '' : 'e'}` : '';
+
+      $('save-btn').disabled = total === 0 || hasErrors;
+      $('reset-btn').disabled = total === 0;
     }
 
     // ─── Filter ───────────────────────────────────────────
@@ -932,21 +1322,387 @@
 
     // ─── Reset alla ────────────────────────────────────────
     $('reset-btn').addEventListener('click', () => {
-      if (pending.size === 0) return;
-      if (!confirm(`Ångra ${pending.size} osparad${pending.size === 1 ? '' : 'e'} ändring${pending.size === 1 ? '' : 'ar'}?`)) return;
+      const total = pending.size + pendingAdditions.length;
+      if (total === 0) return;
+      if (!confirm(`Ångra ${total} osparad${total === 1 ? '' : 'e'} ändring${total === 1 ? '' : 'ar'} (inklusive eventuella nya produkter)?`)) return;
       pending.clear();
+      pendingAdditions = [];
       renderTable();
     });
 
+    // ─── Volympris-modal ──────────────────────────────────
+    let volModalPath = null;   // Vilken produkt redigeras
+    let volModalTiers = [];    // Lokal kopia av tiers under redigering
+
+    function openVolModal(path) {
+      volModalPath = path;
+      const section = fileData.sections.find(s => s.key === activeSection);
+      const idx = parseInt(path.split('.').pop(), 10);
+      const product = section.products[idx];
+      const pend = pending.get(path);
+
+      // Hämta aktuella tiers — pending overrider original
+      let tiers;
+      if (pend && 'volumePricing' in pend) {
+        tiers = Array.isArray(pend.volumePricing) ? JSON.parse(JSON.stringify(pend.volumePricing)) : [];
+      } else if (Array.isArray(product.volumePricing)) {
+        tiers = JSON.parse(JSON.stringify(product.volumePricing));
+      } else {
+        tiers = [];
+      }
+
+      // Om inga tiers — lägg till första (basspris från produkten)
+      if (tiers.length === 0) {
+        const basePrice = pend && 'price' in pend ? pend.price : (product.price || 0);
+        tiers = [{ minQty: 1, unitPrice: basePrice }];
+      }
+
+      volModalTiers = tiers;
+      $('vol-modal-title').textContent = `📊 Volymrabatt — ${product.artno || product.name}`;
+      renderVolTiers();
+      $('vol-modal').classList.add('open');
+    }
+
+    function closeVolModal() {
+      $('vol-modal').classList.remove('open');
+      volModalPath = null;
+      volModalTiers = [];
+    }
+
+    function renderVolTiers() {
+      const wrap = $('vol-tiers');
+      wrap.innerHTML = volModalTiers.map((t, i) => `
+        <div class="vol-tier" data-idx="${i}">
+          <span class="tnum">${i + 1}.</span>
+          <input type="number" data-vt="minQty" value="${t.minQty}" min="1" step="1" ${i === 0 ? 'disabled title="Bas-tier — minQty alltid 1"' : ''} />
+          <input type="number" data-vt="unitPrice" value="${t.unitPrice}" min="0" step="1" />
+          <button class="rm-btn" data-rm="${i}" ${i === 0 ? 'disabled title="Bas-tier kan inte tas bort"' : ''}>×</button>
+        </div>
+      `).join('');
+      wrap.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const tier = e.target.closest('.vol-tier');
+          const idx = parseInt(tier.dataset.idx, 10);
+          const field = e.target.dataset.vt;
+          const v = parseInt(e.target.value, 10);
+          if (Number.isFinite(v)) volModalTiers[idx][field] = v;
+          updateVolPreview();
+        });
+      });
+      wrap.querySelectorAll('.rm-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.dataset.rm, 10);
+          volModalTiers.splice(idx, 1);
+          renderVolTiers();
+        });
+      });
+      updateVolPreview();
+    }
+
+    function updateVolPreview() {
+      const err = validateVolTiers(volModalTiers);
+      const errEl = $('vol-error');
+      if (err) {
+        errEl.textContent = err;
+        errEl.style.display = 'block';
+        $('vol-modal-save').disabled = true;
+      } else {
+        errEl.style.display = 'none';
+        $('vol-modal-save').disabled = false;
+      }
+
+      const prev = $('vol-preview');
+      const prevRows = $('vol-preview-rows');
+      if (volModalTiers.length === 0) {
+        prev.style.display = 'none';
+        return;
+      }
+      prev.style.display = 'block';
+      const base = volModalTiers[0].unitPrice;
+      prevRows.innerHTML = volModalTiers.map(t => {
+        const total = t.unitPrice * t.minQty;
+        const saving = t.unitPrice < base
+          ? `<span class="savings"> –${Math.round((1 - t.unitPrice / base) * 100)}%</span>`
+          : '';
+        return `<div class="prow"><span>${t.minQty} st</span><span>${total.toLocaleString('sv')} kr${saving}</span></div>`;
+      }).join('');
+    }
+
+    function validateVolTiers(tiers) {
+      if (!Array.isArray(tiers) || tiers.length === 0) return null;
+      if (tiers.length > 10) return 'Max 10 nivåer';
+      if (tiers[0].minQty !== 1) return 'Första nivån måste ha minQty:1';
+      let last = 0;
+      for (let i = 0; i < tiers.length; i++) {
+        const t = tiers[i];
+        if (!Number.isInteger(t.minQty) || t.minQty < 1) return `Nivå ${i+1}: minQty måste vara heltal ≥ 1`;
+        if (!Number.isInteger(t.unitPrice) || t.unitPrice < 0) return `Nivå ${i+1}: unitPrice måste vara heltal ≥ 0`;
+        if (t.minQty <= last) return `Nivå ${i+1}: minQty (${t.minQty}) måste vara större än föregående (${last})`;
+        last = t.minQty;
+      }
+      return null;
+    }
+
+    $('vol-modal-close').addEventListener('click', closeVolModal);
+    $('vol-modal-cancel').addEventListener('click', closeVolModal);
+    // Klick utanför modal-rutan stänger den
+    $('vol-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeVolModal();
+    });
+
+    $('vol-add-tier').addEventListener('click', () => {
+      const last = volModalTiers[volModalTiers.length - 1] || { minQty: 1, unitPrice: 0 };
+      // Förslag: dubbla minQty, sänk priset 10%
+      const newMinQty = last.minQty < 2 ? 2 : last.minQty * 2;
+      const newPrice = Math.max(0, Math.round(last.unitPrice * 0.9));
+      volModalTiers.push({ minQty: newMinQty, unitPrice: newPrice });
+      renderVolTiers();
+    });
+
+    $('vol-modal-remove').addEventListener('click', () => {
+      if (!confirm('Ta bort volymrabatt helt från denna produkt? Produktkortet kommer bara visa basspriset.')) return;
+      // Sätt pending.volumePricing = [] (tom array = signal till backend att radera fältet)
+      const pend = pending.get(volModalPath) || {};
+      pend.volumePricing = [];
+      pending.set(volModalPath, pend);
+      closeVolModal();
+      renderTable();
+      updateToolbar();
+    });
+
+    $('vol-modal-save').addEventListener('click', () => {
+      const err = validateVolTiers(volModalTiers);
+      if (err) {
+        $('vol-error').textContent = err;
+        $('vol-error').style.display = 'block';
+        return;
+      }
+      // Spara i pending — endast om värdena faktiskt skiljer sig från original
+      const section = fileData.sections.find(s => s.key === activeSection);
+      const idx = parseInt(volModalPath.split('.').pop(), 10);
+      const product = section.products[idx];
+      const original = product.volumePricing || [];
+      const isSame = JSON.stringify(original) === JSON.stringify(volModalTiers);
+      const pend = pending.get(volModalPath) || {};
+      if (isSame) {
+        delete pend.volumePricing;
+      } else {
+        pend.volumePricing = JSON.parse(JSON.stringify(volModalTiers));
+      }
+      const hasKeys = Object.keys(pend).filter(k => k !== 'errors').length > 0;
+      if (!hasKeys) {
+        pending.delete(volModalPath);
+      } else {
+        pending.set(volModalPath, pend);
+      }
+      closeVolModal();
+      renderTable();
+      updateToolbar();
+    });
+
+    // ─── Ny produkt-modal ─────────────────────────────────
+    let newModalVolTiers = [];
+
+    $('new-product-btn').addEventListener('click', openNewModal);
+
+    function openNewModal() {
+      if (!fileData) return;
+      const section = fileData.sections.find(s => s.key === activeSection);
+      if (!section) return;
+
+      // Reset fält
+      $('new-artno').value = '';
+      $('new-slug').value = '';
+      $('new-name').value = '';
+      $('new-price').value = '';
+      $('new-priceNote').value = '/dygn';
+      $('new-description').value = '';
+      $('new-image').value = '';
+      $('new-includes').value = '';
+      $('new-vol-toggle').checked = false;
+      $('new-vol-section').style.display = 'none';
+      newModalVolTiers = [];
+      $('new-error').style.display = 'none';
+
+      $('new-modal-title').textContent = `+ Ny produkt i "${section.label}"`;
+      $('new-modal').classList.add('open');
+      setTimeout(() => $('new-artno').focus(), 50);
+    }
+
+    function closeNewModal() {
+      $('new-modal').classList.remove('open');
+    }
+
+    $('new-modal-close').addEventListener('click', closeNewModal);
+    $('new-modal-cancel').addEventListener('click', closeNewModal);
+    $('new-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeNewModal();
+    });
+
+    $('new-vol-toggle').addEventListener('change', (e) => {
+      const on = e.target.checked;
+      $('new-vol-section').style.display = on ? 'block' : 'none';
+      if (on && newModalVolTiers.length === 0) {
+        const basePrice = parseInt($('new-price').value, 10) || 0;
+        newModalVolTiers = [{ minQty: 1, unitPrice: basePrice }];
+        renderNewVolTiers();
+      }
+    });
+
+    function renderNewVolTiers() {
+      const wrap = $('new-vol-tiers');
+      wrap.innerHTML = newModalVolTiers.map((t, i) => `
+        <div class="vol-tier" data-idx="${i}">
+          <span class="tnum">${i + 1}.</span>
+          <input type="number" data-nvt="minQty" value="${t.minQty}" min="1" step="1" ${i === 0 ? 'disabled' : ''} />
+          <input type="number" data-nvt="unitPrice" value="${t.unitPrice}" min="0" step="1" />
+          <button class="rm-btn" data-nrm="${i}" ${i === 0 ? 'disabled' : ''}>×</button>
+        </div>
+      `).join('');
+      wrap.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const tier = e.target.closest('.vol-tier');
+          const idx = parseInt(tier.dataset.idx, 10);
+          const field = e.target.dataset.nvt;
+          const v = parseInt(e.target.value, 10);
+          if (Number.isFinite(v)) newModalVolTiers[idx][field] = v;
+          updateNewVolValidation();
+        });
+      });
+      wrap.querySelectorAll('.rm-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.dataset.nrm, 10);
+          newModalVolTiers.splice(idx, 1);
+          renderNewVolTiers();
+        });
+      });
+      updateNewVolValidation();
+    }
+
+    function updateNewVolValidation() {
+      const err = validateVolTiers(newModalVolTiers);
+      const errEl = $('new-vol-error');
+      if (err) {
+        errEl.textContent = err;
+        errEl.style.display = 'block';
+      } else {
+        errEl.style.display = 'none';
+      }
+    }
+
+    $('new-vol-add-tier').addEventListener('click', () => {
+      const last = newModalVolTiers[newModalVolTiers.length - 1] || { minQty: 1, unitPrice: 0 };
+      const newMinQty = last.minQty < 2 ? 2 : last.minQty * 2;
+      const newPrice = Math.max(0, Math.round(last.unitPrice * 0.9));
+      newModalVolTiers.push({ minQty: newMinQty, unitPrice: newPrice });
+      renderNewVolTiers();
+    });
+
+    // Sync new-price → new vol tier 0 om volym är på
+    $('new-price').addEventListener('input', () => {
+      if ($('new-vol-toggle').checked && newModalVolTiers[0]) {
+        const v = parseInt($('new-price').value, 10);
+        if (Number.isFinite(v)) {
+          newModalVolTiers[0].unitPrice = v;
+          renderNewVolTiers();
+        }
+      }
+    });
+
+    $('new-modal-save').addEventListener('click', () => {
+      const errs = [];
+      const artno = $('new-artno').value.trim().toUpperCase();
+      const slug  = $('new-slug').value.trim().toLowerCase();
+      const name  = $('new-name').value.trim();
+      const priceStr = $('new-price').value.trim();
+      const priceNote = $('new-priceNote').value.trim() || '/dygn';
+      const description = $('new-description').value.trim();
+      const image = $('new-image').value.trim();
+      const includesRaw = $('new-includes').value.trim();
+
+      if (!artno) errs.push('Artno krävs');
+      else if (!/^[A-Z0-9-]+$/.test(artno)) errs.push('Artno: bara versaler/siffror/bindestreck');
+
+      if (!slug) errs.push('Slug krävs');
+      else if (!/^[a-z0-9-]+$/.test(slug)) errs.push('Slug: bara a-z, siffror, bindestreck');
+
+      if (!name) errs.push('Namn krävs');
+      else if (name.length > 200) errs.push('Namn max 200 tecken');
+
+      const price = parseInt(priceStr, 10);
+      if (!Number.isInteger(price) || price < 0) errs.push('Pris måste vara heltal ≥ 0');
+
+      if (description.length > 2000) errs.push('Beskrivning max 2000 tecken');
+
+      // Kolla unika artno mot fileData + pendingAdditions
+      const allArtnos = collectArtnos(fileData.data);
+      for (const a of pendingAdditions) {
+        if (a.product.artno) allArtnos.add(a.product.artno);
+      }
+      if (allArtnos.has(artno)) errs.push(`Artno "${artno}" finns redan`);
+
+      // Volymrabatt
+      let volumePricing = null;
+      if ($('new-vol-toggle').checked) {
+        const ve = validateVolTiers(newModalVolTiers);
+        if (ve) errs.push(`Volymrabatt: ${ve}`);
+        else if (newModalVolTiers.length > 0) volumePricing = JSON.parse(JSON.stringify(newModalVolTiers));
+      }
+
+      if (errs.length) {
+        $('new-error').textContent = errs.join('; ');
+        $('new-error').style.display = 'block';
+        return;
+      }
+
+      // Bygg produktobjekt
+      const product = { artno, slug, name, price };
+      if (priceNote && priceNote !== '/dygn') product.priceNote = priceNote;
+      else product.priceNote = '/dygn'; // alltid med så det syns
+      if (description) product.description = description;
+      if (image) product.image = image;
+      if (includesRaw) {
+        product.includes = includesRaw.split('\n').map(s => s.trim()).filter(Boolean);
+      }
+      if (volumePricing) product.volumePricing = volumePricing;
+      product.alt = name; // alt = name som default
+
+      // Hitta sectionPath (basePath)
+      const section = fileData.sections.find(s => s.key === activeSection);
+      pendingAdditions.push({
+        sectionPath: section.basePath,
+        sectionKey:  section.key,
+        product
+      });
+
+      // Lägg till i lokal data så det syns direkt i tabellen
+      section.products.push(product);
+
+      closeNewModal();
+      renderTable();
+      updateToolbar();
+    });
+
+    function collectArtnos(obj, acc) {
+      acc = acc || new Set();
+      if (Array.isArray(obj)) {
+        for (const x of obj) collectArtnos(x, acc);
+      } else if (obj && typeof obj === 'object') {
+        if (obj.artno) acc.add(obj.artno);
+        for (const k of Object.keys(obj)) collectArtnos(obj[k], acc);
+      }
+      return acc;
+    }
+
     // ─── Spara ─────────────────────────────────────────────
     $('save-btn').addEventListener('click', async () => {
-      if (pending.size === 0) return;
+      if (pending.size === 0 && pendingAdditions.length === 0) return;
 
-      // Bygg changes-array
+      // Bygg changes-array (inkl. volumePricing)
       const changes = [];
       for (const [path, pend] of pending.entries()) {
         const fields = {};
-        for (const k of ['name', 'price', 'description']) {
+        for (const k of ['name', 'price', 'description', 'volumePricing']) {
           if (k in pend) fields[k] = pend[k];
         }
         if (Object.keys(fields).length > 0) {
@@ -954,16 +1710,28 @@
         }
       }
 
-      if (changes.length === 0) return;
-      if (!confirm(`Spara och committa ${changes.length} ändring${changes.length === 1 ? '' : 'ar'} till GitHub? Netlify rebuildar automatiskt (~2 min).`)) return;
+      // Additions
+      const additions = pendingAdditions.map(a => ({
+        sectionPath: a.sectionPath,
+        product:     a.product
+      }));
+
+      const totalOps = changes.length + additions.length;
+      if (totalOps === 0) return;
+
+      const desc = [];
+      if (additions.length) desc.push(`${additions.length} ny${additions.length === 1 ? '' : 'a'} produkt${additions.length === 1 ? '' : 'er'}`);
+      if (changes.length) desc.push(`${changes.length} ändring${changes.length === 1 ? '' : 'ar'}`);
+      if (!confirm(`Spara och committa ${desc.join(' + ')} till GitHub? Netlify rebuildar automatiskt (~2 min).`)) return;
 
       $('save-btn').disabled = true;
       $('save-btn').textContent = 'Sparar…';
 
       const r = await apiPost('/.netlify/functions/admin-products-update', {
-        fil:     activeFil,
-        sha:     fileData.sha,
-        changes
+        fil:       activeFil,
+        sha:       fileData.sha,
+        changes,
+        additions
       });
 
       $('save-btn').textContent = 'Spara ändringar';
@@ -975,6 +1743,7 @@
         // Hämta om
         await loadFile(activeFil);
         pending.clear();
+        pendingAdditions = [];
         return;
       }
       if (!r.ok) {
@@ -993,14 +1762,27 @@
         for (const c of r.body.changes) {
           const target = getByPath(fileData.data, c.path);
           if (target && typeof target === 'object') {
-            Object.assign(target, c.after);
+            for (const [k, v] of Object.entries(c.after)) {
+              // Hantera radering av volumePricing
+              if (k === 'volumePricing' && (v === null || (Array.isArray(v) && v.length === 0))) {
+                delete target[k];
+              } else {
+                target[k] = v;
+              }
+            }
           }
         }
       }
+      // Additions är redan applicerade lokalt — bara nollställ pending
+      pendingAdditions = [];
       pending.clear();
       lastKnownSha = (r.body.commitSha || '').slice(0, 7);
       fileData.sha = r.body.newSha;
-      toast('ok', 'Sparat', `${r.body.changedCount} ändring${r.body.changedCount === 1 ? '' : 'ar'} committat (${lastKnownSha}). Netlify rebuildar nu.`);
+      // Bygg sammanfattning
+      const sumParts = [];
+      if (r.body.addedCount) sumParts.push(`${r.body.addedCount} ny${r.body.addedCount === 1 ? '' : 'a'}`);
+      if (r.body.changedCount) sumParts.push(`${r.body.changedCount} ändring${r.body.changedCount === 1 ? '' : 'ar'}`);
+      toast('ok', 'Sparat', `${sumParts.join(' + ')} committat (${lastKnownSha}). Netlify rebuildar nu.`);
       renderTable();
       // Trigga omedelbar deploy-poll
       pollDeployStatus();

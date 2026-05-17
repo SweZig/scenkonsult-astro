@@ -58,7 +58,87 @@ function validateField(key, value) {
     if (value.length > 2000) return `description max 2000 tecken`;
     return null;
   }
-  return `okänt fält: ${key} (v1 stödjer name, price, description)`;
+  if (key === 'volumePricing') {
+    // null/undefined/[] = ta bort volymrabatt
+    if (value === null || value === undefined) return null;
+    if (!Array.isArray(value)) return `volumePricing måste vara en array`;
+    if (value.length === 0) return null; // tom array = ta bort
+    if (value.length > 10) return `max 10 tiers i volymtrappan`;
+    let lastMinQty = 0;
+    for (let i = 0; i < value.length; i++) {
+      const t = value[i];
+      if (!t || typeof t !== 'object') return `tier ${i+1}: måste vara objekt`;
+      if (typeof t.minQty !== 'number' || !Number.isInteger(t.minQty) || t.minQty < 1) {
+        return `tier ${i+1}: minQty måste vara heltal ≥ 1`;
+      }
+      if (typeof t.unitPrice !== 'number' || !Number.isFinite(t.unitPrice) || t.unitPrice < 0 || t.unitPrice > 1_000_000) {
+        return `tier ${i+1}: unitPrice måste vara tal 0–1 000 000`;
+      }
+      if (!Number.isInteger(t.unitPrice)) {
+        return `tier ${i+1}: unitPrice ska vara heltal (kr)`;
+      }
+      if (t.minQty <= lastMinQty) {
+        return `tier ${i+1}: minQty (${t.minQty}) måste vara större än föregående (${lastMinQty})`;
+      }
+      lastMinQty = t.minQty;
+    }
+    if (value[0].minQty !== 1) {
+      return `första tier måste ha minQty:1 (basspriset)`;
+    }
+    return null;
+  }
+  if (key === 'priceNote') {
+    if (typeof value !== 'string') return `priceNote måste vara text`;
+    if (value.length > 30) return `priceNote max 30 tecken`;
+    return null;
+  }
+  if (key === 'slug') {
+    if (typeof value !== 'string') return `slug måste vara text`;
+    if (!/^[a-z0-9-]+$/.test(value)) return `slug får bara innehålla a-z, 0-9, bindestreck`;
+    if (value.length > 100) return `slug max 100 tecken`;
+    return null;
+  }
+  if (key === 'artno') {
+    if (typeof value !== 'string') return `artno måste vara text`;
+    if (!/^[A-Z0-9-]+$/.test(value)) return `artno får bara innehålla A-Z, 0-9, bindestreck`;
+    if (value.length > 50) return `artno max 50 tecken`;
+    return null;
+  }
+  if (key === 'image') {
+    if (typeof value !== 'string') return `image måste vara text`;
+    if (value.length > 300) return `image-path max 300 tecken`;
+    return null;
+  }
+  if (key === 'includes') {
+    if (!Array.isArray(value)) return `includes måste vara array`;
+    if (value.length > 20) return `max 20 punkter i includes`;
+    for (let i = 0; i < value.length; i++) {
+      if (typeof value[i] !== 'string') return `includes[${i}]: måste vara text`;
+      if (value[i].length > 200) return `includes[${i}]: max 200 tecken`;
+    }
+    return null;
+  }
+  return `okänt fält: ${key} (stödjer name, price, description, volumePricing, priceNote, slug, artno, image, includes)`;
+}
+
+// ── Validera komplett ny produkt ─────────────────────────────
+function validateNewProduct(obj, isVolumePricingSection) {
+  if (!obj || typeof obj !== 'object') return 'produkt måste vara objekt';
+
+  const required = ['artno', 'name', 'slug', 'price'];
+  for (const r of required) {
+    if (!(r in obj)) return `fältet "${r}" är obligatoriskt`;
+  }
+
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'alt' || k === 'category' || k === 'persons' || k === 'monteringMin') {
+      // Tillåtna fält utan strikt validering
+      continue;
+    }
+    const e = validateField(k, v);
+    if (e) return `${k}: ${e}`;
+  }
+  return null;
 }
 
 // ── Navigera dot-path i objekt ───────────────────────────────
@@ -88,12 +168,15 @@ exports.handler = async (event) => {
     return err('Ogiltig JSON i body', 400);
   }
 
-  const { fil, sha, changes } = body;
+  const { fil, sha, changes, additions } = body;
   const path = ALLOWED_FILES[fil];
   if (!path) return err(`Ogiltig fil: ${fil}`, 400);
   if (!sha || typeof sha !== 'string') return err('sha krävs (optimistic lock)', 400);
-  if (!Array.isArray(changes) || changes.length === 0) return err('Inga ändringar att spara', 400);
-  if (changes.length > 100) return err('För många ändringar i ett anrop (max 100)', 400);
+  const _changes   = Array.isArray(changes)   ? changes   : [];
+  const _additions = Array.isArray(additions) ? additions : [];
+  if (_changes.length === 0 && _additions.length === 0) return err('Inga ändringar eller tillägg att spara', 400);
+  if (_changes.length > 100) return err('För många ändringar i ett anrop (max 100)', 400);
+  if (_additions.length > 20) return err('För många nya produkter i ett anrop (max 20)', 400);
 
   const token = process.env.GITHUB_TOKEN;
   if (!token) return err('GITHUB_TOKEN saknas i Netlify env', 500);
@@ -145,8 +228,10 @@ exports.handler = async (event) => {
 
   const errors = [];
   const applied = [];
+  const addedProducts = [];
 
-  for (const ch of changes) {
+  // ── 3a. Applicera changes ──────────────────────────────────
+  for (const ch of _changes) {
     if (!ch || typeof ch.path !== 'string' || !ch.fields || typeof ch.fields !== 'object') {
       errors.push({ path: ch?.path || '(saknas)', error: 'Felaktigt change-format' });
       continue;
@@ -172,9 +257,63 @@ exports.handler = async (event) => {
     const before = {};
     for (const [k, v] of Object.entries(ch.fields)) {
       before[k] = target[k];
-      target[k] = v;
+      // Special: tom array eller null på volumePricing = ta bort fältet
+      if (k === 'volumePricing' && (v === null || (Array.isArray(v) && v.length === 0))) {
+        delete target[k];
+      } else {
+        target[k] = v;
+      }
     }
     applied.push({ path: ch.path, before, after: { ...ch.fields } });
+  }
+
+  // ── 3b. Applicera additions (CREATE) ────────────────────
+  for (let i = 0; i < _additions.length; i++) {
+    const add = _additions[i];
+    if (!add || typeof add.sectionPath !== 'string' || !add.product || typeof add.product !== 'object') {
+      errors.push({ path: `additions[${i}]`, error: 'Felaktigt addition-format (kräver sectionPath + product)' });
+      continue;
+    }
+
+    // Validera ny produkt
+    const validErr = validateNewProduct(add.product);
+    if (validErr) {
+      errors.push({ path: `additions[${i}]`, error: validErr });
+      continue;
+    }
+
+    // Hitta målarrayen
+    const target = getByPath(data, add.sectionPath);
+    if (!Array.isArray(target)) {
+      errors.push({ path: `additions[${i}]`, error: `Sektionen ${add.sectionPath} är inte en array` });
+      continue;
+    }
+
+    // Kolla artno-unikhet (i hela filen, inte bara sektionen)
+    const newArtno = add.product.artno;
+    let duplicateFound = false;
+    function checkArtno(obj) {
+      if (Array.isArray(obj)) {
+        for (const x of obj) checkArtno(x);
+      } else if (obj && typeof obj === 'object') {
+        if (obj.artno === newArtno) duplicateFound = true;
+        for (const k of Object.keys(obj)) checkArtno(obj[k]);
+      }
+    }
+    checkArtno(data);
+    if (duplicateFound) {
+      errors.push({ path: `additions[${i}]`, error: `Artno "${newArtno}" finns redan i filen` });
+      continue;
+    }
+
+    // Lägg till
+    target.push(add.product);
+    addedProducts.push({
+      sectionPath: add.sectionPath,
+      artno:       newArtno,
+      name:        add.product.name,
+      newPath:     `${add.sectionPath}.${target.length - 1}`
+    });
   }
 
   if (errors.length) {
@@ -186,16 +325,23 @@ exports.handler = async (event) => {
     };
   }
 
-  if (applied.length === 0) {
+  if (applied.length === 0 && addedProducts.length === 0) {
     return err('Inga giltiga ändringar att spara', 400);
   }
 
   // ── 4. Kontrollera att något faktiskt ändrades ────────────
-  // (Om alla fält redan hade nya värdet, skippa commit)
+  // (Om alla fält redan hade nya värdet, skippa commit — men bara om inga adds)
   const realChanges = applied.filter(a =>
-    Object.entries(a.after).some(([k, v]) => a.before[k] !== v)
+    Object.entries(a.after).some(([k, v]) => {
+      const before = a.before[k];
+      // Jämför JSON-stringify för objekt/arrayer
+      if (typeof v === 'object' || typeof before === 'object') {
+        return JSON.stringify(before) !== JSON.stringify(v);
+      }
+      return before !== v;
+    })
   );
-  if (realChanges.length === 0) {
+  if (realChanges.length === 0 && addedProducts.length === 0) {
     return ok({ ok: true, noChanges: true, message: 'Inga faktiska ändringar — inget att committa.' });
   }
 
@@ -204,15 +350,25 @@ exports.handler = async (event) => {
   const newContentB64 = Buffer.from(newContent, 'utf8').toString('base64');
 
   // Bygg commit-meddelande
-  const summary = realChanges.length === 1
-    ? `admin: uppdaterar 1 produkt i ${fil}.json`
-    : `admin: uppdaterar ${realChanges.length} produkter i ${fil}.json`;
+  const totalOps = realChanges.length + addedProducts.length;
+  const parts = [];
+  if (addedProducts.length > 0) {
+    parts.push(addedProducts.length === 1 ? '1 ny produkt' : `${addedProducts.length} nya produkter`);
+  }
+  if (realChanges.length > 0) {
+    parts.push(realChanges.length === 1 ? '1 ändring' : `${realChanges.length} ändringar`);
+  }
+  const summary = `admin: ${parts.join(' + ')} i ${fil}.json`;
 
-  const bodyLines = realChanges.slice(0, 20).map(c => {
+  const bodyLines = [];
+  for (const a of addedProducts.slice(0, 10)) {
+    bodyLines.push(`+ ${a.sectionPath}: ${a.artno} ${a.name}`);
+  }
+  for (const c of realChanges.slice(0, 20)) {
     const fields = Object.keys(c.after).join(', ');
-    return `- ${c.path}: ${fields}`;
-  });
-  if (realChanges.length > 20) bodyLines.push(`- ... och ${realChanges.length - 20} till`);
+    bodyLines.push(`~ ${c.path}: ${fields}`);
+  }
+  if (totalOps > bodyLines.length) bodyLines.push(`... och ${totalOps - bodyLines.length} till`);
 
   const commitMessage = `${summary}\n\n${bodyLines.join('\n')}`;
 
@@ -259,7 +415,9 @@ exports.handler = async (event) => {
       commitSha:    result.commit?.sha,
       commitUrl:    result.commit?.html_url,
       changedCount: realChanges.length,
-      changes:      realChanges
+      addedCount:   addedProducts.length,
+      changes:      realChanges,
+      additions:    addedProducts
     });
   } catch (e) {
     return err(`GitHub PUT error: ${e.message}`, 500);

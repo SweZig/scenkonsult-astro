@@ -15,6 +15,7 @@ interface Props {
   specs?: string[];
   videoSrc?: string;
   quantityPrices?: { qty: string; price: number }[];
+  volumePricing?: { minQty: number; unitPrice: number }[];
   dimensionTable?: { label: string; value: string; highlight?: boolean }[];
   wide?: boolean;
   category?: string;
@@ -23,8 +24,18 @@ interface Props {
   forceLeverans?: string;
   monteringMin?: number;
 }
-const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, dimensionTable, wide = false, category = 'Produkt', monteringMin, manualUrl, bulky = false, forceLeverans } = Astro.props;
+const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, volumePricing, dimensionTable, wide = false, category = 'Produkt', monteringMin, manualUrl, bulky = false, forceLeverans } = Astro.props;
 const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+// Auto-mappa volumePricing → quantityPrices om quantityPrices saknas
+// Detta gör att produktkortet automatiskt visar volymtrappa när volumePricing
+// läggs till i JSON-datan (t.ex. via admin/produkter)
+const _autoQtyPrices = (!quantityPrices && volumePricing && volumePricing.length > 0)
+  ? volumePricing.map(t => ({
+      qty: `${t.minQty} st`,
+      price: t.unitPrice * t.minQty
+    }))
+  : quantityPrices;
 
 // YouTube-detektering — stödjer https://youtu.be/ID, youtube.com/watch?v=ID, youtube.com/embed/ID
 const _ytMatch = videoSrc ? String(videoSrc).match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{11})/) : null;
@@ -44,7 +55,7 @@ const productJson = JSON.stringify({
   artno:     artno ?? '',
   desc:      (specs ?? []).join('||'),
   rows:      [
-    ...(quantityPrices ? [{ label: 'Volympriser', rows: quantityPrices.map(qp => `${qp.qty} – ${qp.price.toLocaleString('sv')} kr`) }] : []),
+    ...(_autoQtyPrices ? [{ label: 'Volympriser', rows: _autoQtyPrices.map(qp => `${qp.qty} – ${qp.price.toLocaleString('sv')} kr`) }] : []),
     ...(dimensionTable ? [{ label: 'Mått & kapacitet', rows: dimensionTable.map(r => `${r.label}: ${r.value}`) }] : []),
   ],
   price:     typeof price === 'number' ? price : 0,
@@ -118,9 +129,9 @@ const productJson = JSON.stringify({
     )}
     <p class="text-gray-400 text-sm leading-relaxed mb-3" itemprop="description">{description}</p>
 
-    {quantityPrices && quantityPrices.length > 0 && (
+    {_autoQtyPrices && _autoQtyPrices.length > 0 && (
       <div class="bg-brand-dark/60 rounded-xl p-3 mb-3 text-xs space-y-1">
-        {quantityPrices.map(qp => (
+        {_autoQtyPrices.map(qp => (
           <div class="flex justify-between">
             <span class="text-gray-400">{qp.qty}</span>
             <span class="text-white font-semibold">
