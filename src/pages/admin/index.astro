@@ -5,6 +5,7 @@
 import quoteCatalogData from '../../data/quote-catalog.json';
 import scenesData from '../../data/scenes.json';
 import ledData from '../../data/led-paneler.json';
+import tjansterData from '../../data/tjanster.json';
 
 // Förbered data för admin-konfiguratorerna (klient-side använder window-globals)
 // Scen: modules (3 ytor), tak-paket från scenes.products[*].config.tak,
@@ -27,6 +28,21 @@ const _scenAdminConfig = {
 const _ledAdminConfig = {
   paneler: ledData.paneler || [],
   tillbehor: ledData.tillbehor || {},
+};
+
+// Frakt + montering från tjanster.json (samma källa som kund-cart använder)
+const _fraktAdminConfig = {
+  leverans: tjansterData.leverans || {},
+  selection_rules: tjansterData.leverans?.selection_rules || [],
+};
+
+const _monteringAdminConfig = {
+  artno: tjansterData.montering?.artno || 'SK-TJN-0001',
+  name:  tjansterData.montering?.label || 'Montering & demontering',
+  prisPerTimme: tjansterData.montering?.prisPerTimme || 600,
+  minDebiteringMin: tjansterData.montering?.minDebiteringMin || 15,
+  obligatoriskOverM2: tjansterData.montering?.obligatoriskOverM2 ?? 16,
+  description: tjansterData.montering?.description || '',
 };
 ---
 <!DOCTYPE html>
@@ -978,10 +994,12 @@ const _ledAdminConfig = {
       #detail-panel { width: 100vw; }
     }
   </style>
-  <script is:inline define:vars={{ quoteCatalog: quoteCatalogData, scenConfig: _scenAdminConfig, ledConfig: _ledAdminConfig }}>
-    window.__ADMIN_QUOTE_CATALOG__ = quoteCatalog;
-    window.__ADMIN_SCEN_CONFIG__   = scenConfig;
-    window.__ADMIN_LED_CONFIG__    = ledConfig;
+  <script is:inline define:vars={{ quoteCatalog: quoteCatalogData, scenConfig: _scenAdminConfig, ledConfig: _ledAdminConfig, fraktConfig: _fraktAdminConfig, monteringConfig: _monteringAdminConfig }}>
+    window.__ADMIN_QUOTE_CATALOG__   = quoteCatalog;
+    window.__ADMIN_SCEN_CONFIG__     = scenConfig;
+    window.__ADMIN_LED_CONFIG__      = ledConfig;
+    window.__ADMIN_FRAKT_CONFIG__    = fraktConfig;
+    window.__ADMIN_MONTERING_CONFIG__= monteringConfig;
   </script>
 </head>
 <body>
@@ -1091,7 +1109,7 @@ const _ledAdminConfig = {
 
 <!-- ── OFFERT-MODAL ──────────────────────────────────────────── -->
 <div class="modal-overlay" id="quote-overlay">
-  <div class="modal" style="max-width:640px">
+  <div class="modal" style="max-width:920px">
     <div class="modal-head">
       <div class="modal-title">✉ Skicka offert till kund</div>
       <button class="panel-close" id="quote-close">✕</button>
@@ -1152,10 +1170,12 @@ const _ledAdminConfig = {
 
       <!-- Konfigurator-knappar -->
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
+        <button class="btn-action" onclick="document.getElementById('quote-picker-row').style.display = document.getElementById('quote-picker-row').style.display === 'none' ? 'grid' : 'none'" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)" title="Visa/dölj traditionell kategori-väljare">▾ Kategori-väljare</button>
         <button class="btn-action" onclick="adminScenConfigOpen()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">🎭 Konfigurera scen</button>
         <button class="btn-action" onclick="adminLedConfigOpen()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">📺 Konfigurera LED-vägg</button>
+        <button class="btn-action" onclick="adminFraktConfigOpen()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">🚚 Frakt</button>
+        <button class="btn-action" onclick="adminMonteringConfigOpen()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">🔧 Montering</button>
         <button class="btn-action" onclick="quoteAddCustomRow()" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);background:rgba(196,181,244,0.06)">✏ Fritext-rad</button>
-        <button class="btn-action" onclick="document.getElementById('quote-picker-row').style.display = document.getElementById('quote-picker-row').style.display === 'none' ? 'grid' : 'none'" style="font-size:0.78rem;padding:0.35rem 0.8rem;border-color:rgba(255,255,255,0.18);color:rgba(255,255,255,0.6);background:transparent" title="Visa/dölj traditionell kategori-väljare">▾ Kategori-väljare</button>
       </div>
 
       <!-- Scen-konfigurator (kollapsad som standard) -->
@@ -1231,6 +1251,54 @@ const _ledAdminConfig = {
         </div>
         <div id="led-cfg-preview" style="background:rgba(0,0,0,0.25);border-radius:6px;padding:0.6rem 0.75rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.78);font-family:'Space Grotesk',sans-serif"></div>
         <button onclick="adminLedConfigAdd()" class="btn-action btn-success" style="width:100%;padding:0.5rem;font-size:0.85rem">Lägg till rader i offerten</button>
+      </div>
+
+      <!-- Frakt-konfigurator (kollapsad som standard) -->
+      <div id="admin-frakt-config" style="display:none;background:rgba(196,181,244,0.05);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem;margin-bottom:0.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem">
+          <strong style="color:rgba(196,181,244,0.95);font-size:0.85rem">🚚 Lägg till frakt</strong>
+          <button onclick="adminFraktConfigClose()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.2rem;cursor:pointer;padding:0 0.3rem">×</button>
+        </div>
+        <div id="frakt-cfg-rec" style="background:rgba(196,181,244,0.08);border-left:3px solid rgba(196,181,244,0.5);padding:0.5rem 0.7rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.8);font-family:'Space Grotesk',sans-serif"></div>
+        <div style="margin-bottom:0.6rem">
+          <label class="form-label" style="font-size:0.72rem">Leveranstyp</label>
+          <select id="frakt-cfg-type" onchange="adminFraktConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem"></select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.6rem">
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Resor</label>
+            <select id="frakt-cfg-trip" onchange="adminFraktConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+              <option value="retur">Tur &amp; retur (kund får leverans + upphämtning)</option>
+              <option value="enkel">Enkelresa (kund hämtar eller lämnar själv)</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Pris (kan justeras)</label>
+            <input type="number" id="frakt-cfg-price" min="0" step="1" value="0" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+        </div>
+        <button onclick="adminFraktConfigAdd()" class="btn-action btn-success" style="width:100%;padding:0.5rem;font-size:0.85rem">Lägg till frakt-rad</button>
+      </div>
+
+      <!-- Montering-konfigurator (kollapsad som standard) -->
+      <div id="admin-montering-config" style="display:none;background:rgba(196,181,244,0.05);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem;margin-bottom:0.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem">
+          <strong style="color:rgba(196,181,244,0.95);font-size:0.85rem">🔧 Lägg till montering &amp; demontering</strong>
+          <button onclick="adminMonteringConfigClose()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.2rem;cursor:pointer;padding:0 0.3rem">×</button>
+        </div>
+        <div id="mon-cfg-rule" style="background:rgba(196,181,244,0.08);border-left:3px solid rgba(196,181,244,0.5);padding:0.5rem 0.7rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.8);font-family:'Space Grotesk',sans-serif"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.6rem">
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Antal timmar (kan vara decimal)</label>
+            <input type="number" id="mon-cfg-hours" min="0.25" step="0.25" value="2" oninput="adminMonteringConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.72rem">Antal personer</label>
+            <input type="number" id="mon-cfg-pers" min="1" step="1" value="1" oninput="adminMonteringConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
+          </div>
+        </div>
+        <div id="mon-cfg-preview" style="background:rgba(0,0,0,0.25);border-radius:6px;padding:0.6rem 0.75rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.78);font-family:'Space Grotesk',sans-serif"></div>
+        <button onclick="adminMonteringConfigAdd()" class="btn-action btn-success" style="width:100%;padding:0.5rem;font-size:0.85rem">Lägg till monterings-rad</button>
       </div>
 
       <!-- Traditionell kategori/sub/produkt-väljare (dold som standard) -->
@@ -5718,6 +5786,8 @@ function adminScenConfigOpen() {
     (cfg.tak || []).map(t => `<option value="${t.artno}" data-price="${t.price}" data-name="${t.name.replace(/"/g,'&quot;')}">${t.name} — ${(t.price||0).toLocaleString('sv')} kr/dygn</option>`).join('');
   panel.style.display = 'block';
   document.getElementById('admin-led-config').style.display = 'none';
+  const fc = document.getElementById('admin-frakt-config'); if (fc) fc.style.display = 'none';
+  const mc = document.getElementById('admin-montering-config'); if (mc) mc.style.display = 'none';
   adminScenConfigUpdate();
 }
 
@@ -5759,11 +5829,13 @@ function adminScenConfigUpdate() {
 
   // Räkna ut rader
   const mc = _scenModuleCount(w, d, surface);
+  const area = w * d;
   let modSubtotal = mc * modPrice;
   let trappSubtotal = 0;
   let takSubtotal = 0;
   const lines = [];
 
+  lines.push(`<div style="font-size:0.82rem;color:rgba(196,181,244,0.95);font-weight:700;margin-bottom:0.35rem">📐 ${w} × ${d} m = ${area} m²</div>`);
   lines.push(`${mc} × ${modName} (${(modPrice||0).toLocaleString('sv')} kr) = <strong style="color:#c4b5f4">${(modSubtotal||0).toLocaleString('sv')} kr</strong>`);
 
   if (trapp > 0) {
@@ -5865,6 +5937,8 @@ function adminLedConfigOpen() {
   ).join('');
   panel.style.display = 'block';
   document.getElementById('admin-scen-config').style.display = 'none';
+  const fc = document.getElementById('admin-frakt-config'); if (fc) fc.style.display = 'none';
+  const mc = document.getElementById('admin-montering-config'); if (mc) mc.style.display = 'none';
   adminLedConfigUpdate();
 }
 
@@ -5909,13 +5983,14 @@ function adminLedConfigUpdate() {
 
   const total = panelSubtotal + procPrice + mountPrice;
   const dimStr = `${(actualW_mm/1000).toFixed(2).replace(/\.?0+$/,'')}×${(actualH_mm/1000).toFixed(2).replace(/\.?0+$/,'')} m`;
+  const m2 = ((actualW_mm * actualH_mm) / 1000000).toFixed(2).replace(/\.?0+$/,'');
 
   preview.innerHTML = `
+    <div style="font-size:0.82rem;color:rgba(196,181,244,0.95);font-weight:700;margin-bottom:0.35rem">📐 ${dimStr} = ${m2} m² · ${(totalPixels/1e6).toFixed(2)} Mpx</div>
     <div>${totalPanels} × ${panelName} = <strong style="color:#c4b5f4">${(panelSubtotal||0).toLocaleString('sv')} kr</strong></div>
     <div>1 × ${proc?.name || 'Processor'} = <strong style="color:#c4b5f4">${procPrice.toLocaleString('sv')} kr</strong></div>
     <div>1 × ${mountRow?.name || ''} (${cols} kolumner) = <strong style="color:#c4b5f4">${mountPrice.toLocaleString('sv')} kr</strong></div>
-    <div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.1);font-size:0.72rem;color:rgba(255,255,255,0.55)">${cols}×${rows} = ${totalPanels} paneler · ${dimStr} · ${(totalPixels/1e6).toFixed(2)} Mpx</div>
-    <div><strong style="color:white">Totalt: ${(total||0).toLocaleString('sv')} kr/dygn</strong> <span style="color:rgba(255,255,255,0.5);font-size:0.7rem">exkl. transport/montering</span></div>
+    <div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.1)"><strong style="color:white">Totalt: ${(total||0).toLocaleString('sv')} kr/dygn</strong> <span style="color:rgba(255,255,255,0.5);font-size:0.7rem">exkl. transport/montering</span></div>
   `;
 }
 
@@ -5981,6 +6056,199 @@ function adminLedConfigAdd() {
   toast?.(`✓ Lade till 3 rader (LED-vägg ${cols}×${rows})`);
 }
 
+// ─────────────────────────────────────────────────────────────
+// FRAKT-KONFIGURATOR i admin
+// Läser leverans-alternativ från tjanster.json. Föreslår fordon
+// baserat på selection_rules (samma logik som kund-cart, fast utan
+// bulkyCount eftersom admin manuellt väljer).
+// ─────────────────────────────────────────────────────────────
+function _fraktAnalyzeQuote() {
+  // Analysera quoteItems för att föreslå fraktalternativ. Räkna:
+  //  - antal scen-rader (SK-SCN-*)
+  //  - antal LED-paneler (qty från SK-BLD-LED-P*)
+  //  - om någon rad är ett 'Concert', 'Line Array' (line array kräver lastbil)
+  //  - bulkyCount-uppskattning
+  let scenRows = 0, ledPanels = 0, hasLineArray = false, hasTak = false;
+  for (const it of quoteItems) {
+    const id = (it.id || it.artno || '').toUpperCase();
+    const name = (it.name || '').toUpperCase();
+    if (id.startsWith('SK-SCN-MOD') || id.startsWith('SK-SCN-0')) scenRows++;
+    if (id.startsWith('SK-SCN-TAK') || name.includes('SCENTAK')) hasTak = true;
+    if (id.startsWith('SK-BLD-LED-P')) ledPanels += (it.qty || 1);
+    if (name.includes('LINE ARRAY') || name.includes('CONCERT')) hasLineArray = true;
+  }
+  return { scenRows, ledPanels, hasLineArray, hasTak };
+}
+
+function _fraktRecommendKey(analysis) {
+  // Heuristik baserat på selection_rules-anda:
+  //  - LED-paneler eller tak eller line array → lastbil
+  //  - 2+ scen-rader eller skrymmande gods → storbil_slap
+  //  - 1 scen-rad → skrymmande
+  //  - inget bulky → standard
+  if (analysis.hasLineArray || analysis.hasTak || analysis.ledPanels > 0) return 'lastbil';
+  if (analysis.scenRows >= 2) return 'storbil_slap';
+  if (analysis.scenRows >= 1) return 'skrymmande';
+  return 'standard';
+}
+
+function adminFraktConfigOpen() {
+  const panel = document.getElementById('admin-frakt-config');
+  if (!panel) return;
+  // Stäng andra paneler
+  document.getElementById('admin-scen-config').style.display = 'none';
+  document.getElementById('admin-led-config').style.display = 'none';
+  document.getElementById('admin-montering-config').style.display = 'none';
+
+  const cfg = window.__ADMIN_FRAKT_CONFIG__ || {};
+  const lev = cfg.leverans || {};
+  // Bygg dropdown från alla giltiga leveransalternativ (utöver _comment etc.)
+  const opts = [];
+  for (const [key, item] of Object.entries(lev)) {
+    if (!item || typeof item !== 'object' || !item.artno) continue;
+    opts.push({ key, artno: item.artno, label: item.label || key, pris: item.pris || 0, enkel: item.enkel });
+  }
+
+  // Rekommendation
+  const analysis = _fraktAnalyzeQuote();
+  const recKey = _fraktRecommendKey(analysis);
+  const recItem = opts.find(o => o.key === recKey);
+  const recEl = document.getElementById('frakt-cfg-rec');
+  if (recItem) {
+    const parts = [];
+    if (analysis.scenRows > 0) parts.push(`${analysis.scenRows} scen-rad${analysis.scenRows > 1 ? 'er' : ''}`);
+    if (analysis.ledPanels > 0) parts.push(`${analysis.ledPanels} LED-paneler`);
+    if (analysis.hasTak) parts.push('tak');
+    if (analysis.hasLineArray) parts.push('Line Array');
+    const basis = parts.length ? parts.join(', ') : 'inga skrymmande produkter';
+    recEl.innerHTML = `💡 <strong>Förslag baserat på offert (${basis}):</strong> ${recItem.label} — ${recItem.pris.toLocaleString('sv')} kr`;
+  } else {
+    recEl.innerHTML = `💡 Välj leveranstyp manuellt nedan.`;
+  }
+
+  // Bygg select
+  const sel = document.getElementById('frakt-cfg-type');
+  sel.innerHTML = opts.map(o =>
+    `<option value="${o.key}" data-artno="${o.artno}" data-label="${o.label.replace(/"/g,'&quot;')}" data-pris="${o.pris}" data-enkel-artno="${o.enkel?.artno || ''}" data-enkel-label="${(o.enkel?.label || '').replace(/"/g,'&quot;')}" data-enkel-pris="${o.enkel?.pris || ''}" ${o.key === recKey ? 'selected' : ''}>${o.label} — ${o.pris.toLocaleString('sv')} kr</option>`
+  ).join('');
+
+  panel.style.display = 'block';
+  adminFraktConfigUpdate();
+}
+
+function adminFraktConfigClose() {
+  document.getElementById('admin-frakt-config').style.display = 'none';
+}
+
+function adminFraktConfigUpdate() {
+  const sel = document.getElementById('frakt-cfg-type');
+  const trip = document.getElementById('frakt-cfg-trip').value;
+  const opt  = sel.options[sel.selectedIndex];
+  if (!opt) return;
+  const priceField = document.getElementById('frakt-cfg-price');
+  // Sätt pris baserat på vald typ + enkel/retur
+  if (trip === 'enkel' && opt.dataset.enkelPris) {
+    priceField.value = opt.dataset.enkelPris;
+  } else {
+    priceField.value = opt.dataset.pris || 0;
+  }
+}
+
+function adminFraktConfigAdd() {
+  const sel = document.getElementById('frakt-cfg-type');
+  const trip = document.getElementById('frakt-cfg-trip').value;
+  const opt  = sel.options[sel.selectedIndex];
+  if (!opt) return;
+  const priceField = document.getElementById('frakt-cfg-price');
+  const price = parseInt(priceField.value) || 0;
+
+  // Använd enkel-artno om trip='enkel' och det finns
+  const useEnkel = trip === 'enkel' && opt.dataset.enkelArtno;
+  const artno = useEnkel ? opt.dataset.enkelArtno : opt.dataset.artno;
+  const label = useEnkel ? opt.dataset.enkelLabel : opt.dataset.label;
+
+  quoteItems.push({
+    id:    artno,
+    name:  label,
+    price: price,
+    qty:   1,
+    category: 'Leverans',
+    type: 'service',
+  });
+  quoteRenderTable();
+  adminFraktConfigClose();
+  toast?.(`✓ Lade till frakt-rad: ${label}`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// MONTERING-KONFIGURATOR i admin
+// 600 kr/tim, minimum 15 min, kan multiplicieras med antal personer.
+// Demontering räknas normalt 2× monteringstiden i kund-cart men i
+// admin specar admin direkt totaltiden (montering + demontering).
+// ─────────────────────────────────────────────────────────────
+function adminMonteringConfigOpen() {
+  const panel = document.getElementById('admin-montering-config');
+  if (!panel) return;
+  document.getElementById('admin-scen-config').style.display = 'none';
+  document.getElementById('admin-led-config').style.display = 'none';
+  document.getElementById('admin-frakt-config').style.display = 'none';
+
+  const cfg = window.__ADMIN_MONTERING_CONFIG__ || {};
+  const ruleEl = document.getElementById('mon-cfg-rule');
+  ruleEl.innerHTML = `💡 <strong>Regel:</strong> ${cfg.prisPerTimme || 600} kr/tim, minimum ${cfg.minDebiteringMin || 15} min. Total tid = montering + demontering.`;
+
+  panel.style.display = 'block';
+  adminMonteringConfigUpdate();
+}
+
+function adminMonteringConfigClose() {
+  document.getElementById('admin-montering-config').style.display = 'none';
+}
+
+function adminMonteringConfigUpdate() {
+  const cfg = window.__ADMIN_MONTERING_CONFIG__ || {};
+  const hours = parseFloat(document.getElementById('mon-cfg-hours').value) || 0;
+  const pers = parseInt(document.getElementById('mon-cfg-pers').value) || 1;
+  const prisPerTim = cfg.prisPerTimme || 600;
+
+  const preview = document.getElementById('mon-cfg-preview');
+  if (hours <= 0) {
+    preview.innerHTML = `<span style="color:rgba(255,255,255,0.5)">Ange antal timmar</span>`;
+    return;
+  }
+
+  const totalHours = hours * pers;
+  const totalPris = Math.round(totalHours * prisPerTim);
+  preview.innerHTML = `
+    <div>${pers} pers × ${hours} tim × ${prisPerTim} kr/tim</div>
+    <div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.1)"><strong style="color:white">Totalt: ${totalPris.toLocaleString('sv')} kr</strong> (${totalHours} debiterade timmar)</div>
+  `;
+}
+
+function adminMonteringConfigAdd() {
+  const cfg = window.__ADMIN_MONTERING_CONFIG__ || {};
+  const hours = parseFloat(document.getElementById('mon-cfg-hours').value) || 0;
+  const pers = parseInt(document.getElementById('mon-cfg-pers').value) || 1;
+  const prisPerTim = cfg.prisPerTimme || 600;
+  if (hours <= 0) return;
+
+  const totalHours = hours * pers;
+  const totalPris = Math.round(totalHours * prisPerTim);
+  const labelExtra = pers > 1 ? ` (${pers} pers × ${hours} tim)` : ` (${hours} tim)`;
+
+  quoteItems.push({
+    id:    cfg.artno || 'SK-TJN-0001',
+    name:  (cfg.name || 'Montering & demontering') + labelExtra,
+    price: totalPris,
+    qty:   1,
+    category: 'Tjänster',
+    type: 'service',
+  });
+  quoteRenderTable();
+  adminMonteringConfigClose();
+  toast?.(`✓ Lade till monterings-rad: ${totalPris.toLocaleString('sv')} kr`);
+}
+
 // Window-exponering för admin-konfigurator-funktioner
 window.quoteSearchInput   = quoteSearchInput;
 window.quoteSearchKey     = quoteSearchKey;
@@ -5993,6 +6261,14 @@ window.adminLedConfigOpen    = adminLedConfigOpen;
 window.adminLedConfigClose   = adminLedConfigClose;
 window.adminLedConfigUpdate  = adminLedConfigUpdate;
 window.adminLedConfigAdd     = adminLedConfigAdd;
+window.adminFraktConfigOpen    = adminFraktConfigOpen;
+window.adminFraktConfigClose   = adminFraktConfigClose;
+window.adminFraktConfigUpdate  = adminFraktConfigUpdate;
+window.adminFraktConfigAdd     = adminFraktConfigAdd;
+window.adminMonteringConfigOpen    = adminMonteringConfigOpen;
+window.adminMonteringConfigClose   = adminMonteringConfigClose;
+window.adminMonteringConfigUpdate  = adminMonteringConfigUpdate;
+window.adminMonteringConfigAdd     = adminMonteringConfigAdd;
 </script>
 
 </body>
