@@ -50,6 +50,20 @@ const INJ_FRAKT_RULES = scenData.fraktByArea || [
 ];
 
 const INJ_MONTERING_MIN_PER_MODULE = 10;
+
+// ──────────────────────────────────────────────────────────────────
+// Frakt-priser + montering-pris för "+ Montering X kr & transport Y kr"-noten
+// (samma mönster som LED-vägg-sidan, konkreta siffror per paket)
+// ──────────────────────────────────────────────────────────────────
+const _lev = tjanster.leverans || {};
+const INJ_LEVERANS_BY_KEY = Object.fromEntries(
+  ['storbil', 'storbil_slap', 'lastbil'].map(k => {
+    const o = _lev[k] || {};
+    return [k, { name: o.label || k, pris: o.pris || 0 }];
+  })
+);
+const INJ_MONTERING_PRICE_PER_HOUR = (tjanster.montering && tjanster.montering.prisPerTimme) || 600;
+const INJ_MONTERING_ROUND_TO_MIN = 30;
 ---
 
 <article
@@ -194,13 +208,13 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
           <span data-paket-cart-label>Lägg i varukorg</span>
         </button>
       </div>
-      <p class="paket-price-note">Exkl. transport &amp; montering — tillkommer separat</p>
+      <p class="paket-frakt-note" data-paket-frakt-note></p>
     </div>
     <p class="paket-warning" data-paket-warning hidden></p>
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_FRAKT_RULES, INJ_MONTERING_MIN_PER_MODULE }}>
+<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_FRAKT_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -239,6 +253,34 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
       if (area <= rule.maxArea) return rule.fordon;
     }
     return INJ_FRAKT_RULES[INJ_FRAKT_RULES.length - 1]?.fordon || 'lastbil';
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Montering + transport-not — "+ Montering X kr (Y h) & transport Z kr ..."
+  // Identiskt mönster som LED-vägg-sidan: monteringstid avrundad uppåt till
+  // närmaste 30 min, kostnad = h × prisPerTimme.
+  // ──────────────────────────────────────────────────────────────────
+  function computeMonteringMin(modCount, takMonteringMin) {
+    // Modul-rad: modCount × 10 min × 2 (montering + demontering)
+    let total = modCount * MODULE_MONTERING_MIN * 2;
+    // Tak (om paketet har) — också × 2 för montering+demontering
+    if (takMonteringMin) total += takMonteringMin * 2;
+    // Avrunda upp till närmaste 30 min
+    const step = INJ_MONTERING_ROUND_TO_MIN;
+    return Math.ceil(total / step) * step;
+  }
+
+  function formatHours(min) {
+    const h = min / 60;
+    // Hela timmar utan decimal, annars 1 decimal med komma (sv-format)
+    if (Number.isInteger(h)) return h + ' h';
+    return h.toFixed(1).replace('.', ',') + ' h';
+  }
+
+  function computeFraktDetails(area, forceLeverans) {
+    const key = forceLeverans || getRecommendedFrakt(area);
+    const lev = INJ_LEVERANS_BY_KEY[key] || INJ_LEVERANS_BY_KEY.storbil;
+    return { key, name: lev.name, pris: lev.pris };
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -357,6 +399,7 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
     const cartBtn = card.querySelector('[data-paket-add]');
     const cartLabel = card.querySelector('[data-paket-cart-label]');
     const warning = card.querySelector('[data-paket-warning]');
+    const fraktNoteEl = card.querySelector('[data-paket-frakt-note]');
 
     function update() {
       const price = computePrice(cfg, surface, stairs, height);
@@ -389,6 +432,29 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
       }
 
       if (heightDisplay) heightDisplay.textContent = height + ' cm';
+
+      // Frakt-note: "+ Montering X kr (Y h) & transport Z kr (Fordon) tillkommer i kassan"
+      // Krävs-paket: matter-of-fact ("+ ...")
+      // Tillägg-paket: optional ("Vid leverans: + ...")
+      if (fraktNoteEl) {
+        if (price === null) {
+          fraktNoteEl.textContent = '';
+        } else {
+          const mc = moduleCount(cfg.width, cfg.depth, surface);
+          const area = cfg.width * cfg.depth;
+          const takMonteringMin = cfg.tak ? (cfg.tak.monteringMin || 0) : 0;
+          const monteringMin = computeMonteringMin(mc, takMonteringMin);
+          const monteringKr = Math.round((monteringMin / 60) * INJ_MONTERING_PRICE_PER_HOUR);
+          const frakt = computeFraktDetails(area, cfg.forceLeverans);
+          const transport = card.dataset.paketTransport;
+          const prefix = transport === 'krävs' ? '+ ' : 'Vid leverans: + ';
+          fraktNoteEl.textContent =
+            prefix +
+            'Montering ' + fmt(monteringKr) + ' (' + formatHours(monteringMin) + ') ' +
+            '& transport ' + fmt(frakt.pris) + ' (' + frakt.name + ') ' +
+            'tillkommer i kassan';
+        }
+      }
 
       // Pressed-states
       card.querySelectorAll('[data-yta]').forEach(b => {
@@ -592,7 +658,8 @@ const INJ_MONTERING_MIN_PER_MODULE = 10;
   .paket-price { display: flex; align-items: baseline; gap: 0.25rem; line-height: 1; }
   .paket-price-num { color: #c4b5f4; font-weight: 800; font-size: 1.25rem; }
   .paket-price-suffix { color: rgba(255,255,255,0.45); font-size: 0.78rem; }
-  .paket-price-note { color: rgba(255,255,255,0.5); font-size: 0.72rem; font-style: italic; margin: 0; line-height: 1.4; }
+  .paket-frakt-note { color: rgba(255,255,255,0.45); font-size: 0.7rem; line-height: 1.4; margin: 0.4rem 0 0; font-style: normal; }
+  .paket-frakt-note:empty { display: none; }
 
   .paket-cart-btn { background: #c4b5f4; color: #0c0a24; border: 0; padding: 0.55rem 0.9rem; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Space Grotesk', sans-serif; }
   .paket-cart-btn:hover:not(:disabled) { background: #e2dcfb; }
