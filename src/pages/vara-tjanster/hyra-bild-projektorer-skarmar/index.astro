@@ -6,6 +6,7 @@ import ProductCard from '../../../components/ProductCard.astro';
 import CartButton from '../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import bildData from '../../../data/bild.json';
+import _tjansterData from '../../../data/tjanster.json';
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -242,7 +243,7 @@ const faqSchema = {
       marginBottom="1.5rem"
     />
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {bildData.services?.map((svc: any) => (
+      {_tjansterData.services?.filter((s:any) => s.categories?.includes('bild')).map((svc: any) => (
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
           <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
             <img src={svc.image} alt={svc.alt ?? svc.name} width="800" height="665" loading="lazy"

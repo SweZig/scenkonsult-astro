@@ -153,25 +153,31 @@ def take(rows):
             out.append(r)
     return out
 
-# Personal — services från ljud.json + ljus.json (deduplicerat)
+# Personal — services från tjanster.json.services (centraliserat efter konsolidering)
+# Filtrera på 'ljud' eller 'ljus' i categories[]
 personal = []
-for src_file in (ljud, ljus):
-    for s in src_file.get('services', []):
+for s in frakt.get('services', []):
+    cats = s.get('categories', [])
+    if 'ljud' in cats or 'ljus' in cats:
         personal.append(svc_from_service(s))
-# Lägg också till tillagg (t.ex. Tekniker SK-TJN-0002)
+# Lägg också till tillagg (legacy fallback — tjanster.json.tillagg används av varukorgens
+# checkbox-UI, har egen struktur). SK-TJN-0002 finns redan i services ovan men tillagg
+# kan ha andra poster i framtiden.
 for t in frakt.get('tillagg', []):
-    personal.append({
-        'id': t.get('artno',''), 'artno': t.get('artno','').strip(),
-        'slug': t.get('id', t.get('artno','')),
-        'name': t.get('label',''),
-        'price': t.get('pris', 0), 'image': '',
-        'desc': t.get('description',''),
-        'type': 'service',
-    })
+    artno = t.get('artno','').strip()
+    if artno and artno not in {p.get('artno','') for p in personal}:
+        personal.append({
+            'id': artno, 'artno': artno,
+            'slug': t.get('id', artno),
+            'name': t.get('label',''),
+            'price': t.get('pris', 0), 'image': '',
+            'desc': t.get('description',''),
+            'type': 'service',
+        })
 personal = take(personal)
 
-# Foto/Video — services från bild.json
-foto_video = take([svc_from_service(s) for s in bild.get('services', [])])
+# Foto/Video — services med 'bild' i categories[]
+foto_video = take([svc_from_service(s) for s in frakt.get('services', []) if 'bild' in s.get('categories', [])])
 
 # DJ-spel — equipment-rader markerade som tjänster
 dj_spel = take([svc_from_service(p) for p in dj_svc_eq])

@@ -786,13 +786,28 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     for (const p of (_djJson.packages ?? [])) {
       cat[p.artno] = { desc: p.includes?.join(', ') || '', cat: 'DJ-paket', link: '/vara-tjanster/hyra-dj/', includes: p.includes || [], artno: p.artno || '', image: p.image || '' };
     }
-    // Ljud — tekniker
-    add(_ljudJson.services, 'Tjänster', '/vara-tjanster/hyra-ljud/live/');
+    // Tjänster — centraliserade i tjanster.json.services (efter konsolidering 2026-05-17)
+    // Tidigare låg tjänsterna utspridda i ljud.services, ljus.services, bild.services
+    // Filtrering per kategori sker i respektive produktsida via categories[]-flagga.
+    // Varukorgens katalog behöver alla tjänster — länken pekar till en lämplig
+    // hyra-sida baserat på primärkategori i artno-prefixet.
+    for (const svc of (frakt.services ?? [])) {
+      let link = '/vara-tjanster/';
+      if (svc.artno?.startsWith('SK-BLD-')) link = '/vara-tjanster/hyra-bild-projektorer-skarmar/';
+      else if (svc.categories?.includes('ljud')) link = '/vara-tjanster/hyra-ljud/live/';
+      else if (svc.categories?.includes('ljus')) link = '/vara-tjanster/hyra-ljus/fardiga-paket/';
+      cat[svc.artno] = {
+        desc:     svc.description || '',
+        cat:      'Tjänster',
+        link,
+        includes: svc.includes || [],
+        artno:    svc.artno || '',
+        image:    svc.image || ''
+      };
+    }
     // Bild
     add(_bildJson.products,  'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
     add(_bildJson.tillbehor, 'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
-    // Bild — tekniker
-    add(_bildJson.services, 'Tjänster', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
     // Frakt & tjänster — leverans, montering, tillägg, fakturaavgift
     const _addService = (id, artno, label, desc, price) => {
       const entry = { desc, cat: 'Tjänster', link: '/', includes: [], artno: artno || '', image: '', price: price || 0 };

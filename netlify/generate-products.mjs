@@ -22,6 +22,7 @@ const ljus   = readJson('ljus.json');
 const dj     = readJson('dj.json');
 const bild   = readJson('bild.json');
 const karaoke = readJson('karaoke.json');
+const tjanster = readJson('tjanster.json');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -97,8 +98,8 @@ Object.values(dj.equipment || {}).forEach(p => {
   if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
 });
 
-// Ljud — tekniker/tjänster
-(ljud.services || []).forEach(p => {
+// Tjänster — centraliserade i tjanster.json.services (efter konsolidering)
+(tjanster.services || []).forEach(p => {
   if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
 });
 
@@ -220,15 +221,17 @@ sects.push('KARAOKE-PAKET → /vara-tjanster/hyra-karaoke/');
 });
 sects.push('');
 
-// TEKNIKER & TJÄNSTER
-if (ljud.services?.length) {
+// TEKNIKER & TJÄNSTER (centraliserade i tjanster.json.services efter konsolidering)
+const _svcLjud = (tjanster.services || []).filter(s => s.categories?.includes('ljud'));
+const _svcBild = (tjanster.services || []).filter(s => s.categories?.includes('bild'));
+if (_svcLjud.length) {
   sects.push('TEKNIKER/TJÄNSTER LJUD → /vara-tjanster/hyra-ljud/live/');
-  ljud.services.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
+  _svcLjud.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
   sects.push('');
 }
-if (bild.services?.length) {
+if (_svcBild.length) {
   sects.push('TEKNIKER/TJÄNSTER BILD → /vara-tjanster/hyra-bild-projektorer-skarmar/');
-  bild.services.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
+  _svcBild.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
   sects.push('');
 }
 
