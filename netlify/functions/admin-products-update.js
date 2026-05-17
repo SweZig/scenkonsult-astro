@@ -31,6 +31,7 @@ const ALLOWED_FILES = {
   scenes:  'src/data/scenes.json',
   bild:    'src/data/bild.json',
   el:      'src/data/el.json',
+  karaoke: 'src/data/karaoke.json',
   tjanster:'src/data/tjanster.json',
   site:    'src/data/site.json'
 };
