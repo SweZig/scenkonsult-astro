@@ -23,6 +23,18 @@ const dj     = readJson('dj.json');
 const bild   = readJson('bild.json');
 const karaoke = readJson('karaoke.json');
 const tjanster = readJson('tjanster.json');
+const el     = readJson('el.json');
+
+// El-tillbehör (konsoliderat i el.json 2026):
+//   ingen 'categories'-flagga = visas på BÅDA (ljud + ljus)
+//   categories=['ljud']       = endast Ljudtillbehör
+//   categories=['ljus']       = endast Ljustillbehör
+function _elFor(category) {
+  return (el.products || []).filter(p => {
+    const cats = p.categories;
+    return !cats || cats.includes(category);
+  });
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -282,7 +294,7 @@ QUOTE_CAT['Ljudtillbehör'] = { sub: {
   'Mikrofoner':        (ljud.mikrofoner||[]).filter(p=>p.artno||p.slug).map(qp),
   'Kabel & tillbehör': (ljud.tillbehor_mikrofon||[]).filter(p=>p.artno||p.slug).map(qp),
   'Övriga tillbehör':  (ljud.tillbehor_ljud||[]).filter(p=>p.artno||p.slug).map(qp),
-  'El-tillbehör':      (ljud.tillbehor_el||[]).filter(p=>p.artno||p.slug).map(qp),
+  'El-tillbehör':      _elFor('ljud').filter(p=>p.artno||p.slug).map(qp),
 }};
 
 // Ljus (paket + effekter)
@@ -298,7 +310,7 @@ QUOTE_CAT['Ljustillbehör'] = { sub: {
   'DMX-styrning':    (ljus.dmx?.tillbehor||[]).filter(p=>p.artno||p.slug).map(qp),
   'Stativ & fästen': (ljus.stativ?.tillbehor||[]).filter(p=>p.artno||p.slug).map(qp),
   'Rök förbrukning': (ljus.rok?.tillbehor||[]).filter(p=>p.artno||p.slug).map(qp),
-  'El-tillbehör':    (ljus.el||[]).filter(p=>p.artno||p.slug).map(qp),
+  'El-tillbehör':    _elFor('ljus').filter(p=>p.artno||p.slug).map(qp),
 }};
 
 // DJ

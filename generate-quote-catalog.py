@@ -26,6 +26,19 @@ bild   = load('bild.json')
 dj     = load('dj.json')
 karaoke = load('karaoke.json')
 frakt  = load('tjanster.json')
+el     = load('el.json')
+
+# El-tillbehör (konsoliderat i el.json 2026):
+#   ingen 'categories'-flagga = visas på BÅDA (ljud + ljus)
+#   categories=['ljud']       = endast Ljudtillbehör
+#   categories=['ljus']       = endast Ljustillbehör
+def _el_for(category):
+    out = []
+    for p in el.get('products', []):
+        cats = p.get('categories')
+        if not cats or category in cats:
+            out.append(p)
+    return out
 
 # ── Generiska helpers ────────────────────────────────────────────────────────
 def prod(p, item_type='product'):
@@ -92,7 +105,7 @@ catalog['Ljudtillbehör'] = {'sub': {
                          if p.get('artno') or p.get('slug')],
     'Övriga tillbehör': [prod(p) for p in ljud.get('tillbehor_ljud',[])
                          if p.get('artno') or p.get('slug')],
-    'El-tillbehör':     [prod(p) for p in ljud.get('tillbehor_el',[])
+    'El-tillbehör':     [prod(p) for p in _el_for('ljud')
                          if p.get('artno') or p.get('slug')],
 }}
 
@@ -112,7 +125,7 @@ catalog['Ljustillbehör'] = {'sub': {
                         if p.get('artno') or p.get('slug')],
     'Rök förbrukning': [prod(p) for p in ljus.get('rok',{}).get('tillbehor',[])
                         if p.get('artno') or p.get('slug')],
-    'El-tillbehör':    [prod(p) for p in ljus.get('el',[])
+    'El-tillbehör':    [prod(p) for p in _el_for('ljus')
                         if p.get('artno') or p.get('slug')],
 }}
 
