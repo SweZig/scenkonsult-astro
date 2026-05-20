@@ -303,6 +303,18 @@ const _monteringAdminConfig = {
       font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
       background: var(--surface2); padding: 2px 10px; border-radius: 99px;
     }
+    .pb-search {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.6rem 0.875rem; color: var(--text); font-family: inherit; font-size: 0.95rem;
+      min-width: 280px; flex: 1 1 280px; max-width: 480px;
+    }
+    .pb-search:focus { outline: none; border-color: var(--brand-lav); }
+    .pb-search::-webkit-search-cancel-button {
+      -webkit-appearance: none; appearance: none;
+      width: 18px; height: 18px;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='rgba(255,255,255,0.5)'><path d='M10 8.586L4.707 3.293 3.293 4.707 8.586 10l-5.293 5.293 1.414 1.414L10 11.414l5.293 5.293 1.414-1.414L11.414 10l5.293-5.293-1.414-1.414L10 8.586z'/></svg>");
+      background-repeat: no-repeat; background-position: center; cursor: pointer;
+    }
     .pb-controls { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
     .pb-status-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; }
     .pb-list {
@@ -1184,6 +1196,7 @@ const _monteringAdminConfig = {
       #kanban-view-toggle { align-self: flex-end; }
 
       /* Telefonbok-anpassningar */
+      .pb-search { width: 100%; max-width: none; min-width: 0; min-height: 44px; font-size: 1rem; }
       .pb-controls { width: 100%; flex-direction: column; align-items: stretch; gap: 0.5rem; }
       #pb-sort-group { width: 100%; }
       #pb-sort-group .wsort-btn { flex: 1; min-height: 44px; font-size: 0.85rem; }
@@ -1435,6 +1448,7 @@ const _monteringAdminConfig = {
   <div class="view" id="view-phonebook">
     <div class="pb-header">
       <div class="pb-title">Telefonbok <span class="pb-count" id="pb-count"></span></div>
+      <input type="search" id="pb-search" class="pb-search" placeholder="🔍 Sök på namn, företag eller telefonnummer..." autocomplete="off" />
       <div class="pb-controls">
         <div class="waiting-sort" id="pb-sort-group">
           <button class="wsort-btn active" data-pb-sort="alpha">A–Ö</button>
@@ -2417,18 +2431,29 @@ function htmlEscape(s) {
   ));
 }
 
+// Normalisera telefonnummer för sökning/matchning.
+// Tar bort allt utom siffror. Normaliserar +46/0046 till 0.
+function normalizePhone(s) {
+  if (!s) return '';
+  let digits = String(s).replace(/\D/g, '');
+  // +46 / 0046 / 0046 → 0
+  if (digits.startsWith('0046')) digits = '0' + digits.slice(4);
+  else if (digits.startsWith('46') && digits.length >= 11) digits = '0' + digits.slice(2);
+  return digits;
+}
+
 function renderPhonebook() {
   const list = $('pb-list');
   if (!list) return;
 
   // Filter på status
-  const filtered = carts.filter(c => _pbStatuses.has(c.status));
+  let filtered = carts.filter(c => _pbStatuses.has(c.status));
 
   // Dedup på telefonnummer (eller email om phone saknas).
   // Senast uppdaterad cart vinner per unik kund.
   const seen = new Map();
   for (const c of filtered) {
-    const key = ((c.customer_phone || '').replace(/\s/g, '') || c.customer_email || c.id || '').toLowerCase();
+    const key = (normalizePhone(c.customer_phone) || (c.customer_email || '').toLowerCase() || c.id || '');
     if (!key) continue;
     const existing = seen.get(key);
     if (!existing || new Date(c.updated_at || c.created_at) > new Date(existing.updated_at || existing.created_at)) {
@@ -2436,6 +2461,23 @@ function renderPhonebook() {
     }
   }
   let entries = Array.from(seen.values());
+
+  // Sökning på namn, företag eller telefonnummer
+  const searchRaw = ($('pb-search')?.value || '').trim();
+  if (searchRaw) {
+    const searchLower = searchRaw.toLowerCase();
+    const searchDigits = normalizePhone(searchRaw);
+    entries = entries.filter(c => {
+      if ((c.customer_name || '').toLowerCase().includes(searchLower)) return true;
+      if ((c.customer_company || '').toLowerCase().includes(searchLower)) return true;
+      if ((c.customer_email || '').toLowerCase().includes(searchLower)) return true;
+      if (searchDigits) {
+        const phoneDigits = normalizePhone(c.customer_phone);
+        if (phoneDigits && phoneDigits.includes(searchDigits)) return true;
+      }
+      return false;
+    });
+  }
 
   // Sortering
   const statusOrder = { new: 1, waiting: 2, confirmed: 3, fakturerad: 4 };
@@ -2455,7 +2497,9 @@ function renderPhonebook() {
   if (cntEl) cntEl.textContent = entries.length ? `(${entries.length})` : '';
 
   if (entries.length === 0) {
-    list.innerHTML = '<div class="empty-col">Inga kunder att visa</div>';
+    list.innerHTML = searchRaw
+      ? `<div class="empty-col">Ingen kund matchar "${htmlEscape(searchRaw)}"</div>`
+      : '<div class="empty-col">Inga kunder att visa</div>';
     return;
   }
 
@@ -2526,6 +2570,9 @@ document.addEventListener('click', e => {
   const pbCard = e.target.closest('.pb-card');
   if (pbCard) openDetail(pbCard.dataset.id);
 });
+
+// Sökruta — re-rendera vid input
+$('pb-search')?.addEventListener('input', renderPhonebook);
 
 // ── MARKERA KUNDMEDDELANDEN SOM LÄSTA ─────────────────────────
 async function markAdminRead(cartId) {
