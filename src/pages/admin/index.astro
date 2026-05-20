@@ -184,6 +184,40 @@ const _monteringAdminConfig = {
     }
     .btn-sm:hover { border-color: var(--brand-lav); color: var(--text); }
 
+    /* Hamburger-knapp + drawer (dolda på desktop, synliga på mobil) */
+    .topbar-burger {
+      display: none;
+      width: 44px; height: 44px; padding: 10px;
+      background: transparent; border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; flex-direction: column; justify-content: space-around;
+    }
+    .topbar-burger span {
+      display: block; height: 2px; background: var(--text); border-radius: 1px;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+    .topbar-burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .topbar-burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .topbar-burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .topbar-drawer {
+      position: fixed; top: 60px; right: 0; width: min(320px, 85vw); max-height: calc(100vh - 60px);
+      background: var(--surface); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      border-radius: 0 0 0 12px; padding: 1rem; z-index: 99;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      box-shadow: -8px 8px 32px rgba(0,0,0,0.4);
+      overflow-y: auto;
+    }
+    .topbar-drawer .btn-sm,
+    .topbar-drawer .nav-btn,
+    .topbar-drawer .unread-badge {
+      width: 100%; min-height: 48px; padding: 0.75rem 1rem; font-size: 0.95rem;
+      display: flex; align-items: center; justify-content: flex-start; gap: 0.5rem;
+      box-sizing: border-box;
+    }
+    .topbar-drawer .unread-badge { background: var(--red); color: #fff; }
+    .topbar-backdrop {
+      position: fixed; inset: 60px 0 0 0; background: rgba(0,0,0,0.5); z-index: 98;
+    }
+
     /* ── VIEWS ─────────────────────────────────────────── */
     .view { display: none; flex: 1; padding: 1.5rem; }
     .view.active { display: block; }
@@ -215,7 +249,10 @@ const _monteringAdminConfig = {
     .kanban-col:has(.s-cancelled)  { border-left-color: var(--red);   }
     .kanban-col-header {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
+      position: sticky; top: 60px; z-index: 5;
+      background: var(--surface); margin-left: -0.75rem; margin-right: -0.75rem; margin-top: -0.75rem;
+      border-radius: 12px 12px 0 0;
     }
     .col-title { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
     .col-count {
@@ -993,6 +1030,21 @@ const _monteringAdminConfig = {
       .kanban-board { grid-template-columns: 1fr; }
       #detail-panel { width: 100vw; }
 
+      /* Topbar mobil: knapparna flyttas in i hamburger-drawer */
+      .topbar-right { display: none; }
+      .topbar-burger { display: flex; }
+      .topbar { padding: 0 1rem; }
+      .topbar-nav .nav-btn { padding: 0.5rem 0.65rem; font-size: 0.82rem; }
+
+      /* Touch-targets: minst 44px höga klickbara element */
+      .btn-sm { min-height: 44px; padding: 0.6rem 1rem; font-size: 0.85rem; }
+      .nav-btn { min-height: 44px; padding: 0.6rem 1rem; font-size: 0.9rem; }
+      .filter-input { min-height: 44px; padding: 0.6rem 0.875rem; font-size: 0.95rem; }
+      .panel-close { min-width: 44px; min-height: 44px; }
+      .cal-nav-btn { min-height: 44px; padding: 0.65rem 1rem; }
+      /* Stepper-knappar (antalsjustering) på mobil */
+      .stepper-btn { min-width: 36px; min-height: 36px; }
+
       /* Formulär-rows stackas på mobil */
       .form-row { grid-template-columns: 1fr; }
 
@@ -1127,7 +1179,7 @@ const _monteringAdminConfig = {
         <button class="nav-btn" data-view="calendar">📅 Kalender</button>
       </div>
     </div>
-    <div class="topbar-right">
+    <div class="topbar-right" id="topbar-actions">
       <span class="unread-badge" id="global-unread">0 nya</span>
       <button class="btn-sm" id="new-quote-btn" style="border-color:var(--brand-lav);color:var(--brand-lav)">✉ Ny manuell offert</button>
       <button class="btn-sm" id="refresh-btn">↻ Uppdatera</button>
@@ -1137,7 +1189,12 @@ const _monteringAdminConfig = {
       <a href="/admin/produkter/" class="btn-sm" style="text-decoration:none;border-color:rgba(196,181,244,0.4);color:#c4b5f4" title="Redigera produkter (namn, pris, beskrivning)">📦 Produkter</a>
       <button class="btn-sm" id="logout-btn">Logga ut</button>
     </div>
+    <button class="topbar-burger" id="topbar-burger" aria-label="Öppna meny" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+  <div class="topbar-drawer" id="topbar-drawer" hidden></div>
+  <div class="topbar-backdrop" id="topbar-backdrop" hidden></div>
 
   <!-- ── KANBAN VIEW ──────────────────────────────────────── -->
   <div class="view active" id="view-kanban">
@@ -1596,16 +1653,20 @@ function noDateFlag(c) {
 }
 
 // ── AUTH ──────────────────────────────────────────────────────
+const ADMIN_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 dagar (rolling)
+
 function checkAuth() {
   // Försök sessionStorage (samma flik) först, sedan localStorage (korsfliks-token)
   let t = sessionStorage.getItem('sk_admin_token');
   if (!t) {
     try {
       const ls = JSON.parse(localStorage.getItem('sk_admin_mode') || '{}');
-      const TTL = 8 * 60 * 60 * 1000;
-      if (ls.token && ls.ts && (Date.now() - ls.ts) < TTL) {
+      if (ls.token && ls.ts && (Date.now() - ls.ts) < ADMIN_TOKEN_TTL_MS) {
         t = ls.token;
         sessionStorage.setItem('sk_admin_token', t); // cachelagra för fliken
+        // Rolling refresh: skriv tillbaka med ny ts så att 30-dagars-fönstret
+        // räknas från senaste användning, inte första inloggning
+        localStorage.setItem('sk_admin_mode', JSON.stringify({ ts: Date.now(), token: t }));
       }
     } catch {}
   }
@@ -1648,7 +1709,58 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     const view = btn.dataset.view;
     $(`view-${view}`).classList.add('active');
     if (view === 'calendar') renderCalendar();
+    // Stäng drawer om öppen (mobile)
+    closeBurgerDrawer();
   });
+});
+
+// ── HAMBURGER MENY (mobil) ────────────────────────────────────
+// Bygger om drawer varje gång den öppnas så att t.ex. unread-badge alltid
+// reflekterar aktuell status. Klick på drawer-knapp proxas via .click() till
+// originalet i topbar-right, så alla event-handlers är intakta.
+function buildBurgerDrawer() {
+  const drawer = $('topbar-drawer');
+  drawer.innerHTML = '';
+  const actions = $('topbar-actions');
+  Array.from(actions.children).forEach(orig => {
+    // Hoppa över unread-badge om den är dold (0 nya)
+    if (orig.classList.contains('unread-badge') && getComputedStyle(orig).display === 'none') return;
+    const clone = orig.cloneNode(true);
+    clone.removeAttribute('id'); // id-collision-skydd
+    if (clone.tagName === 'BUTTON') {
+      clone.addEventListener('click', e => {
+        e.preventDefault();
+        closeBurgerDrawer();
+        orig.click();
+      });
+    } else {
+      // Anchor → låt browsern hantera, men stäng drawer
+      clone.addEventListener('click', closeBurgerDrawer);
+    }
+    drawer.appendChild(clone);
+  });
+}
+function openBurgerDrawer() {
+  buildBurgerDrawer();
+  $('topbar-drawer').hidden = false;
+  $('topbar-backdrop').hidden = false;
+  $('topbar-burger').setAttribute('aria-expanded', 'true');
+}
+function closeBurgerDrawer() {
+  $('topbar-drawer').hidden = true;
+  $('topbar-backdrop').hidden = true;
+  $('topbar-burger').setAttribute('aria-expanded', 'false');
+}
+$('topbar-burger')?.addEventListener('click', () => {
+  const open = $('topbar-burger').getAttribute('aria-expanded') === 'true';
+  if (open) closeBurgerDrawer(); else openBurgerDrawer();
+});
+$('topbar-backdrop')?.addEventListener('click', closeBurgerDrawer);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('topbar-drawer') && !$('topbar-drawer').hidden) closeBurgerDrawer();
+});
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 600 && $('topbar-drawer') && !$('topbar-drawer').hidden) closeBurgerDrawer();
 });
 
 // ── API ───────────────────────────────────────────────────────
