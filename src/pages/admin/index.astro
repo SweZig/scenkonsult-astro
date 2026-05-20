@@ -252,14 +252,18 @@ const _monteringAdminConfig = {
     .filter-date-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
     .filter-date-label .filter-date { min-width: 130px; }
     .filter-reset { flex-shrink: 0; }
-    /* iOS: visa ÅÅÅÅ-MM-DD i grått när date-input är tom (placeholder fungerar
-       inte på date-inputs, så vi gråmarkerar datetime-edit-fälten istället) */
-    .filter-date:invalid::-webkit-datetime-edit-text,
-    .filter-date:invalid::-webkit-datetime-edit-year-field,
-    .filter-date:invalid::-webkit-datetime-edit-month-field,
-    .filter-date:invalid::-webkit-datetime-edit-day-field {
+    /* iOS-fix: <input type=date> visar ingen placeholder när tom.
+       Wrap-span med overlay-text som JS togglar via .is-empty-klass. */
+    .filter-date-wrap { position: relative; display: inline-block; }
+    .filter-date-ph {
+      position: absolute;
+      left: 0.875rem; top: 50%; transform: translateY(-50%);
       color: rgba(240, 238, 255, 0.4);
+      pointer-events: none;
+      font-size: 0.875rem; font-family: inherit;
+      display: none;
     }
+    .filter-date-wrap.is-empty .filter-date-ph { display: block; }
     /* iOS: tvinga date-input att respektera container-bredd (native styling
        sätter annars en inneboende min-width som spräcker layouten) */
     .filter-date {
@@ -1095,11 +1099,13 @@ const _monteringAdminConfig = {
         min-width: 0;
       }
       /* På mobil: ta bort 130px-min-width och låt filter-date fylla hela label */
+      .filter-date-wrap { width: 100%; display: block; }
       .filter-date-label .filter-date {
         width: 100%;
         min-width: 0;
         display: block;
       }
+      .filter-date-ph { font-size: 0.95rem; }
       .filter-reset { grid-column: 1 / -1; width: 100%; }
       #kanban-view-toggle { align-self: flex-end; }
 
@@ -1264,11 +1270,17 @@ const _monteringAdminConfig = {
         <div class="filter-date-group">
           <label class="filter-date-label">
             <span>Från</span>
-            <input class="filter-input filter-date" type="date" id="filter-from" required />
+            <span class="filter-date-wrap">
+              <input class="filter-input filter-date" type="date" id="filter-from" />
+              <span class="filter-date-ph" aria-hidden="true">ÅÅÅÅ-MM-DD</span>
+            </span>
           </label>
           <label class="filter-date-label">
             <span>Till</span>
-            <input class="filter-input filter-date" type="date" id="filter-to" required />
+            <span class="filter-date-wrap">
+              <input class="filter-input filter-date" type="date" id="filter-to" />
+              <span class="filter-date-ph" aria-hidden="true">ÅÅÅÅ-MM-DD</span>
+            </span>
           </label>
           <button type="button" class="btn-sm filter-reset" id="filter-reset" title="Nollställ alla filter">↺ Nollställ</button>
         </div>
@@ -1985,11 +1997,27 @@ function getFilteredCarts() {
   $(id).addEventListener('input', renderKanban);
 });
 
+// iOS-fix: visa "ÅÅÅÅ-MM-DD"-overlay när date-input är tom.
+// Togglar .is-empty på .filter-date-wrap baserat på input.value.
+function syncDateEmptyState(input) {
+  const wrap = input.closest('.filter-date-wrap');
+  if (wrap) wrap.classList.toggle('is-empty', !input.value);
+}
+['filter-from','filter-to'].forEach(id => {
+  const inp = $(id);
+  if (!inp) return;
+  syncDateEmptyState(inp); // initial state
+  inp.addEventListener('input',  () => syncDateEmptyState(inp));
+  inp.addEventListener('change', () => syncDateEmptyState(inp));
+});
+
 // Nollställ alla filter
 $('filter-reset')?.addEventListener('click', () => {
   $('filter-search').value = '';
   $('filter-from').value = '';
   $('filter-to').value = '';
+  syncDateEmptyState($('filter-from'));
+  syncDateEmptyState($('filter-to'));
   renderKanban();
 });
 
