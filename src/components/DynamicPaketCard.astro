@@ -253,11 +253,12 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     return { count20: c20, count10: c10 };
   }
 
-  // "Säkerhetspaket" för paketkort: räcken på bak + sidor utan trappa.
-  // - 0 trappor → fram + bak + 2 sidor
-  // - 1 trappa  → bak + 2 sidor (trappa antas på fram)
-  // - 2 trappor → 2 sidor (trappor på fram + bak)
-  // Returnerar { count20, count10, totalPrice }.
+  // "Säkerhetspaket" för paketkort: skyddsräcken på bak + sidor utan trappa
+  // PLUS räcken på själva trapporna (SK-SCN-ACC-0008, 200 kr × antal trappor).
+  // - 0 trappor → fram + bak + 2 sidor, 0 trapp-räcken
+  // - 1 trappa  → bak + 2 sidor (trappa antas på fram) + 1 trapp-räcke-par
+  // - 2 trappor → 2 sidor (trappor på fram + bak) + 2 trapp-räcke-par
+  // Returnerar { count20, count10, stairRailCount, totalPrice }.
   function computeRailPack(width, depth, stairs) {
     const sides = [];
     if (stairs === 0) sides.push(width, width, depth, depth);
@@ -269,8 +270,9 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       c20 += p.count20;
       c10 += p.count10;
     });
-    const total = c20 * RAIL_2M.price + c10 * RAIL_1M.price;
-    return { count20: c20, count10: c10, totalPrice: total };
+    const stairRailCount = stairs; // ett par räcken per trappa, 200 kr/styck
+    const total = c20 * RAIL_2M.price + c10 * RAIL_1M.price + stairRailCount * 200;
+    return { count20: c20, count10: c10, stairRailCount, totalPrice: total };
   }
 
   function moduleCount(w, d, surface) {
@@ -518,7 +520,18 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         b.setAttribute('aria-pressed', String(parseInt(b.dataset.height)) === String(height) ? 'true' : 'false');
       });
       const railBtn = card.querySelector('[data-paket-rail]');
-      if (railBtn) railBtn.setAttribute('aria-pressed', rail ? 'true' : 'false');
+      if (railBtn) {
+        railBtn.setAttribute('aria-pressed', rail ? 'true' : 'false');
+        // Dynamisk tooltip som beskriver exakt vad säkerhetspaketet innehåller
+        const pack = computeRailPack(cfg.width, cfg.depth, stairs);
+        const railSegTxt = pack.count20 > 0 || pack.count10 > 0
+          ? `skyddsräcken (${pack.count20}×2m${pack.count10 > 0 ? ' + ' + pack.count10 + '×1m' : ''}) längs ${stairs === 0 ? 'alla 4 sidor' : stairs === 1 ? 'bak + båda sidor' : 'båda sidor'}`
+          : 'skyddsräcken';
+        const stairRailTxt = pack.stairRailCount > 0
+          ? ` + räcken till ${pack.stairRailCount} trappa${pack.stairRailCount > 1 ? 'or' : ''}`
+          : '';
+        railBtn.title = `Säkerhetspaket: ${railSegTxt}${stairRailTxt} — totalt ${fmt(pack.totalPrice)}`;
+      }
 
       if (svgEl) drawPaketSvg(svgEl, cfg, surface, stairs);
     }
@@ -625,6 +638,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       }
 
       // Säkerhetspaket — skyddsräcken på bak + sidor utan trappa
+      // + räcken till trapporna (om trappor valda)
       if (rail) {
         const pack = computeRailPack(cfg.width, cfg.depth, stairs);
         if (pack.count20 > 0) {
@@ -644,6 +658,16 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
             name: `${RAIL_1M.name} — ${paketName}`,
             price: RAIL_1M.price,
             qty: pack.count10,
+            category: 'Scen tillbehör',
+          });
+        }
+        if (pack.stairRailCount > 0) {
+          window.skCart.add({
+            id: 'SK-SCN-ACC-0008',
+            artno: 'SK-SCN-ACC-0008',
+            name: `Räcke till scentrapp (40/60 cm) — ${paketName}`,
+            price: 200,
+            qty: pack.stairRailCount,
             category: 'Scen tillbehör',
           });
         }
