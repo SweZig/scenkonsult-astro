@@ -154,6 +154,10 @@ const configData = {
           <label class="cfg-pill"><input type="radio" name="stairCount" value="2" /><span>2</span></label>
         </div>
         <div id="cfg-stair-placement" class="cfg-stair-placement"></div>
+        <label class="cfg-stair-rail" id="cfg-stair-rail-row" hidden>
+          <input type="checkbox" id="cfg-stair-rail" />
+          <span>Lägg till räcke till trappan — <strong>200 kr/trappa</strong> (2 räcken per trappa, ett på vardera sida)</span>
+        </label>
       </fieldset>
 
       <fieldset class="cfg-step">
@@ -253,6 +257,7 @@ const configData = {
       height: 60,
       stairCount: 1,
       stairPositions: ['fram'],
+      stairRail: false,
       skirtMode: 'none',
       skirt: { fram: false, vanster: false, hoger: false, bak: false },
       railMode: 'none',
@@ -359,6 +364,15 @@ const configData = {
             category: 'Scen',
           });
         });
+        if (state.stairRail) {
+          lines.push({
+            artno: 'SK-SCN-ACC-0008',
+            name: `${prefix} Räcke till scentrapp (40/60 cm)`,
+            price: 200,
+            qty: state.stairCount,
+            category: 'Scen',
+          });
+        }
       }
 
       if (state.skirtMode === 'custom') {
@@ -629,8 +643,22 @@ const configData = {
 
     function renderStairPlacement() {
       const wrap = document.getElementById('cfg-stair-placement');
+      const railRow = document.getElementById('cfg-stair-rail-row');
       if (!wrap) return;
       const n = state.stairCount;
+      // Toggle räcke-checkbox baserat på antal trappor
+      if (railRow) {
+        if (n === 0) {
+          railRow.hidden = true;
+          if (state.stairRail) {
+            state.stairRail = false;
+            const cb = document.getElementById('cfg-stair-rail');
+            if (cb) cb.checked = false;
+          }
+        } else {
+          railRow.hidden = false;
+        }
+      }
       if (n === 0) { wrap.innerHTML = ''; return; }
       let html = '<p class="cfg-hint cfg-hint-block">Placering:</p>';
       for (let i = 0; i < n; i++) {
@@ -882,6 +910,13 @@ const configData = {
         render();
       });
     });
+    const stairRailCheckbox = document.getElementById('cfg-stair-rail');
+    if (stairRailCheckbox) {
+      stairRailCheckbox.addEventListener('change', e => {
+        state.stairRail = e.target.checked;
+        render();
+      });
+    }
     document.querySelectorAll('input[name="skirtMode"]').forEach(el => {
       el.addEventListener('change', e => {
         state.skirtMode = e.target.value;
@@ -1082,6 +1117,10 @@ const configData = {
 .cfg-side-disabled:hover { border-color: rgba(255,255,255,0.1) !important; }
 
 .cfg-stair-placement { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.45rem; }
+.cfg-stair-rail { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.55rem 0.8rem; background: rgba(196,181,244,0.05); border: 1px solid rgba(196,181,244,0.2); border-radius: 8px; margin-top: 0.7rem; font-size: 0.85rem; color: rgba(255,255,255,0.85); }
+.cfg-stair-rail input { accent-color: #c4b5f4; flex-shrink: 0; }
+.cfg-stair-rail strong { color: #c4b5f4; font-weight: 700; }
+.cfg-stair-rail[hidden] { display: none; }
 .cfg-stair-row { display: flex; align-items: center; gap: 0.7rem; }
 .cfg-stair-num { color: rgba(255,255,255,0.78); font-size: 0.86rem; font-weight: 600; min-width: 80px; }
 .cfg-select { background: #0c0a24 !important; color: white !important; color-scheme: dark; border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; padding: 0.4rem 0.6rem; font-size: 0.9rem; flex: 1; }

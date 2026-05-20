@@ -43,6 +43,14 @@ const INJ_TRAPP_BY_HEIGHT = {
   60: _trapp60 ? { artno: _trapp60.artno, name: _trapp60.name, price: _trapp60.price } : null,
 };
 
+// Skyddsräcken — slå upp via artno (för auto-beräkning av säkerhetspaket)
+const _rail2m = _tillbehor.find(t => t.artno === 'SK-SCN-ACC-0007');
+const _rail1m = _tillbehor.find(t => t.artno === 'SK-SCN-ACC-0006');
+const INJ_RAIL_SEGMENTS = {
+  '2m': _rail2m ? { artno: _rail2m.artno, name: _rail2m.name, price: _rail2m.price } : { artno: 'SK-SCN-ACC-0007', name: 'Skyddsräcke 2,0 m', price: 280 },
+  '1m': _rail1m ? { artno: _rail1m.artno, name: _rail1m.name, price: _rail1m.price } : { artno: 'SK-SCN-ACC-0006', name: 'Skyddsräcke 1,0 m', price: 140 },
+};
+
 const INJ_FRAKT_RULES = scenData.fraktByArea || [
   { maxArea: 16, fordon: 'storbil' },
   { maxArea: 24, fordon: 'storbil_slap' },
@@ -157,6 +165,13 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
             aria-pressed={n === cfg.defaultStairCount ? 'true' : 'false'}
           >{n}</button>
         ))}
+        <button
+          type="button"
+          class="paket-pill paket-pill-rail"
+          data-paket-rail
+          aria-pressed="false"
+          title="Lägg till skyddsräcken — auto-beräknas för bak + sidor utan trappa"
+        >+ Räcken</button>
       </div>
     </div>
 
@@ -214,7 +229,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_FRAKT_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
+<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_FRAKT_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -222,9 +237,41 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   const MOD_ARTNO = Object.fromEntries(Object.entries(INJ_MOD_BY_KEY).map(([k,v]) => [k, v.artno]));
   const MOD_NAMES = Object.fromEntries(Object.entries(INJ_MOD_BY_KEY).map(([k,v]) => [k, v.name]));
   const TRAPP = INJ_TRAPP_BY_HEIGHT;
+  const RAIL_2M = INJ_RAIL_SEGMENTS['2m'];
+  const RAIL_1M = INJ_RAIL_SEGMENTS['1m'];
   const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
 
   function fmt(n) { return Math.round(n).toLocaleString('sv-SE') + ' kr'; }
+
+  // Packa räcken: greedy 2m först, sedan 1m. Sidor < 1m → inget räcke.
+  function packRail(meters) {
+    if (meters < 1) return { count20: 0, count10: 0 };
+    let remaining = meters;
+    let c20 = 0, c10 = 0;
+    while (remaining >= 2 - 0.001) { c20++; remaining -= 2; }
+    while (remaining >= 1 - 0.001) { c10++; remaining -= 1; }
+    return { count20: c20, count10: c10 };
+  }
+
+  // "Säkerhetspaket" för paketkort: räcken på bak + sidor utan trappa.
+  // - 0 trappor → fram + bak + 2 sidor
+  // - 1 trappa  → bak + 2 sidor (trappa antas på fram)
+  // - 2 trappor → 2 sidor (trappor på fram + bak)
+  // Returnerar { count20, count10, totalPrice }.
+  function computeRailPack(width, depth, stairs) {
+    const sides = [];
+    if (stairs === 0) sides.push(width, width, depth, depth);
+    else if (stairs === 1) sides.push(width, depth, depth);
+    else sides.push(depth, depth);
+    let c20 = 0, c10 = 0;
+    sides.forEach(len => {
+      const p = packRail(len);
+      c20 += p.count20;
+      c10 += p.count10;
+    });
+    const total = c20 * RAIL_2M.price + c10 * RAIL_1M.price;
+    return { count20: c20, count10: c10, totalPrice: total };
+  }
 
   function moduleCount(w, d, surface) {
     const area = w * d;
@@ -237,13 +284,16 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     return (w % 2 === 0) || (d % 2 === 0);
   }
 
-  function computePrice(cfg, surface, stairs, height) {
+  function computePrice(cfg, surface, stairs, height, rail) {
     if (!isSurfaceValid(cfg.width, cfg.depth, surface)) return null;
     const mc = moduleCount(cfg.width, cfg.depth, surface);
     const useHeight = height ?? cfg.defaultHeight;
     const stairPrice = TRAPP[useHeight]?.price || 0;
     let price = mc * MOD_PRICE[surface] + stairs * stairPrice;
     if (cfg.tak) price += cfg.tak.price;
+    if (rail) {
+      price += computeRailPack(cfg.width, cfg.depth, stairs).totalPrice;
+    }
     return price;
   }
 
@@ -391,6 +441,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     let surface = cfg.defaultSurface;
     let stairs = cfg.defaultStairCount;
     let height = cfg.defaultHeight;
+    let rail = false;
 
     const svgEl = card.querySelector('[data-paket-svg]');
     const priceExcl = card.querySelector('[data-paket-price-excl]');
@@ -402,7 +453,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     const fraktNoteEl = card.querySelector('[data-paket-frakt-note]');
 
     function update() {
-      const price = computePrice(cfg, surface, stairs, height);
+      const price = computePrice(cfg, surface, stairs, height, rail);
 
       // Disable invalid surfaces
       card.querySelectorAll('[data-yta]').forEach(b => {
@@ -466,6 +517,8 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       card.querySelectorAll('[data-height]').forEach(b => {
         b.setAttribute('aria-pressed', String(parseInt(b.dataset.height)) === String(height) ? 'true' : 'false');
       });
+      const railBtn = card.querySelector('[data-paket-rail]');
+      if (railBtn) railBtn.setAttribute('aria-pressed', rail ? 'true' : 'false');
 
       if (svgEl) drawPaketSvg(svgEl, cfg, surface, stairs);
     }
@@ -489,6 +542,13 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         update();
       });
     });
+    const railBtn = card.querySelector('[data-paket-rail]');
+    if (railBtn) {
+      railBtn.addEventListener('click', () => {
+        rail = !rail;
+        update();
+      });
+    }
 
     cartBtn?.addEventListener('click', () => {
       if (!window.skCart || cartBtn.disabled) return;
@@ -559,6 +619,31 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
             name: `${t.name} — ${paketName}`,
             price: t.price,
             qty: stairs,
+            category: 'Scen tillbehör',
+          });
+        }
+      }
+
+      // Säkerhetspaket — skyddsräcken på bak + sidor utan trappa
+      if (rail) {
+        const pack = computeRailPack(cfg.width, cfg.depth, stairs);
+        if (pack.count20 > 0) {
+          window.skCart.add({
+            id: RAIL_2M.artno,
+            artno: RAIL_2M.artno,
+            name: `${RAIL_2M.name} — ${paketName}`,
+            price: RAIL_2M.price,
+            qty: pack.count20,
+            category: 'Scen tillbehör',
+          });
+        }
+        if (pack.count10 > 0) {
+          window.skCart.add({
+            id: RAIL_1M.artno,
+            artno: RAIL_1M.artno,
+            name: `${RAIL_1M.name} — ${paketName}`,
+            price: RAIL_1M.price,
+            qty: pack.count10,
             category: 'Scen tillbehör',
           });
         }
@@ -652,6 +737,8 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   .paket-pill:hover:not(:disabled) { border-color: rgba(196,181,244,0.4); color: white; }
   .paket-pill[aria-pressed="true"] { background: #c4b5f4; color: #0c0a24; border-color: #c4b5f4; }
   .paket-pill-disabled, .paket-pill:disabled { opacity: 0.3; cursor: not-allowed; }
+  .paket-pill-rail { border-style: dashed; border-color: rgba(196,181,244,0.35); margin-left: auto; }
+  .paket-pill-rail[aria-pressed="true"] { border-style: solid; }
 
   .paket-bottom { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.85rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); }
   .paket-bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
