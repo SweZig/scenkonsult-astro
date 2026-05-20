@@ -1288,7 +1288,7 @@ const _monteringAdminConfig = {
       <div class="kanban-title">Orderöversikt</div>
       <div class="kanban-filters">
         <input class="filter-input" id="filter-search" placeholder="🔍 Sök kund..." style="width:180px" />
-        <button type="button" class="filter-pill" id="filter-unread-btn" aria-pressed="false" title="Visa bara carts med olästa kundmeddelanden">
+        <button type="button" class="filter-pill" id="filter-unread-btn" aria-pressed="false" title="Visa carts som behöver uppmärksamhet: kunden har inte öppnat offerten ELLER det finns olästa kundmeddelanden">
           📬 Oläst<span class="filter-pill-count" id="filter-unread-count" hidden></span>
         </button>
         <div class="filter-date-group">
@@ -2005,6 +2005,14 @@ async function loadCarts() {
 }
 
 // ── KANBAN ────────────────────────────────────────────────────
+// "Oläst" = endera (a) admin har olästa kundmeddelanden eller
+//          (b) kunden har inte öppnat sin offert än
+function isCartUnread(c) {
+  const adminHasUnread = (c.unread_count || 0) > 0;
+  const customerNotRead = ['waiting','confirmed','fakturerad'].includes(c.status) && !c.last_read_customer;
+  return adminHasUnread || customerNotRead;
+}
+
 function getFilteredCarts() {
   const search = $('filter-search').value.toLowerCase().trim();
   const from   = $('filter-from').value;
@@ -2013,7 +2021,7 @@ function getFilteredCarts() {
     if (search && !((c.customer_name || '').toLowerCase().includes(search) || (c.id || '').toLowerCase().includes(search))) return false;
     if (from && c.event_date && c.event_date < from) return false;
     if (to   && c.event_date && c.event_date > to)   return false;
-    if (_unreadFilter && !(c.unread_count > 0)) return false;
+    if (_unreadFilter && !isCartUnread(c)) return false;
     return true;
   });
 }
@@ -2032,7 +2040,7 @@ function setUnreadFilter(on) {
 // knappen är dock alltid klickbar (att filtrera till tomt resultat
 // är OK — användaren ser direkt att inget oläst finns).
 function updateUnreadFilterBadge() {
-  const cnt = carts.filter(c => (c.unread_count || 0) > 0).length;
+  const cnt = carts.filter(isCartUnread).length;
   const badge = $('filter-unread-count');
   if (badge) {
     badge.textContent = cnt;
