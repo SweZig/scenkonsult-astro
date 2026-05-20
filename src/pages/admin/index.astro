@@ -247,6 +247,27 @@ const _monteringAdminConfig = {
       padding: 0.5rem 0.875rem; color: var(--text); font-family: inherit; font-size: 0.875rem;
     }
     .filter-input:focus { outline: none; border-color: var(--brand-lav); }
+    /* Oläst-filter toggle-pill */
+    .filter-pill {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.5rem 0.875rem; color: var(--text-muted); font-family: inherit; font-size: 0.875rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .filter-pill:hover:not(:disabled) { border-color: var(--brand-lav); color: var(--text); }
+    .filter-pill:disabled { opacity: 0.5; cursor: not-allowed; }
+    .filter-pill[aria-pressed="true"] {
+      background: var(--brand-lav); color: #0c0a24; border-color: var(--brand-lav); font-weight: 600;
+    }
+    .filter-pill-count {
+      background: var(--red); color: #fff; border-radius: 99px;
+      padding: 1px 6px; font-size: 0.7rem; font-weight: 700; min-width: 18px; text-align: center;
+      line-height: 1.3;
+    }
+    .filter-pill[aria-pressed="true"] .filter-pill-count {
+      background: rgba(12,10,36,0.25); color: #0c0a24;
+    }
+    .filter-pill-count[hidden] { display: none; }
     /* Datum-grupp: Från + Till med labels så fälten inte är "tomma rutor" på mobil */
     .filter-date-group { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
     .filter-date-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
@@ -1084,6 +1105,7 @@ const _monteringAdminConfig = {
       /* Kanban-filter stack: sök full bredd, datum 50/50, reset full bredd */
       .kanban-filters { width: 100%; flex-direction: column; align-items: stretch; }
       #filter-search { width: 100% !important; }
+      .filter-pill { width: 100%; justify-content: center; min-height: 44px; font-size: 0.95rem; }
       .filter-date-group {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1267,6 +1289,9 @@ const _monteringAdminConfig = {
       <div class="kanban-title">Orderöversikt</div>
       <div class="kanban-filters">
         <input class="filter-input" id="filter-search" placeholder="🔍 Sök kund..." style="width:180px" />
+        <button type="button" class="filter-pill" id="filter-unread-btn" aria-pressed="false" title="Visa bara carts med olästa kundmeddelanden">
+          📬 Oläst<span class="filter-pill-count" id="filter-unread-count" hidden></span>
+        </button>
         <div class="filter-date-group">
           <label class="filter-date-label">
             <span>Från</span>
@@ -1989,9 +2014,41 @@ function getFilteredCarts() {
     if (search && !((c.customer_name || '').toLowerCase().includes(search) || (c.id || '').toLowerCase().includes(search))) return false;
     if (from && c.event_date && c.event_date < from) return false;
     if (to   && c.event_date && c.event_date > to)   return false;
+    if (_unreadFilter && !(c.unread_count > 0)) return false;
     return true;
   });
 }
+
+// ── OLÄST-FILTER ──────────────────────────────────────────────
+let _unreadFilter = false;
+
+function setUnreadFilter(on) {
+  _unreadFilter = !!on;
+  const btn = $('filter-unread-btn');
+  if (btn) btn.setAttribute('aria-pressed', _unreadFilter ? 'true' : 'false');
+  renderKanban();
+}
+
+// Uppdaterar räknaren bredvid "Oläst" och auto-stänger av filtret
+// om det inte längre finns några olästa.
+function updateUnreadFilterBadge() {
+  const cnt = carts.filter(c => (c.unread_count || 0) > 0).length;
+  const badge = $('filter-unread-count');
+  const btn = $('filter-unread-btn');
+  if (badge) {
+    badge.textContent = cnt;
+    badge.hidden = cnt === 0;
+  }
+  if (btn) {
+    btn.disabled = cnt === 0;
+    if (cnt === 0 && _unreadFilter) setUnreadFilter(false);
+  }
+}
+
+$('filter-unread-btn')?.addEventListener('click', () => {
+  if ($('filter-unread-btn').disabled) return;
+  setUnreadFilter(!_unreadFilter);
+});
 
 ['filter-search','filter-from','filter-to'].forEach(id => {
   $(id).addEventListener('input', renderKanban);
@@ -2018,6 +2075,7 @@ $('filter-reset')?.addEventListener('click', () => {
   $('filter-to').value = '';
   syncDateEmptyState($('filter-from'));
   syncDateEmptyState($('filter-to'));
+  setUnreadFilter(false);
   renderKanban();
 });
 
@@ -2190,6 +2248,7 @@ function cartCardCompact(c) {
 function renderKanban() {
   // Filtrera bort reservationsrader
   carts = carts.filter(c => !c.id?.startsWith('SK-RESERVE-') && c.customer_name !== '[Reserverat fakturanummer]');
+  updateUnreadFilterBadge();
   const filtered = getFilteredCarts();
   const cols = ['new','waiting','confirmed','fakturerad','completed','cancelled'];
   const board = $('kanban-board');
@@ -5135,16 +5194,6 @@ function _byConfirmedAsc(a, b) {
   return new Date(a.confirmed_at || a.updated_at || a.created_at)
        - new Date(b.confirmed_at || b.updated_at || b.created_at);
 }
-// Oläst-sortering: carts med oläst kommer först (flest oläst överst),
-// sedan tie-break på senast uppdaterad. Carts utan oläst hamnar sist.
-function _byUnreadDesc(a, b) {
-  const ua = a.unread_count || 0;
-  const ub = b.unread_count || 0;
-  if (ua > 0 && ub === 0) return -1;
-  if (ub > 0 && ua === 0) return 1;
-  if (ua !== ub) return ub - ua;
-  return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
-}
 
 const COLUMN_SORTS = {
   waiting: {
@@ -5153,7 +5202,6 @@ const COLUMN_SORTS = {
       urgency: { label: 'Brådast',    fn: (a,b) => urgencyScore(b) - urgencyScore(a) },
       event:   { label: 'Eventdatum', fn: _byEventDateAsc },
       sent:    { label: 'Äldst',      fn: _byUpdatedAsc },
-      unread:  { label: 'Oläst',      fn: _byUnreadDesc },
     },
   },
   confirmed: {
