@@ -241,12 +241,17 @@ const _monteringAdminConfig = {
       margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
     }
     .kanban-title { font-size: 1.4rem; font-weight: 700; }
-    .kanban-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .kanban-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
     .filter-input {
       background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
       padding: 0.5rem 0.875rem; color: var(--text); font-family: inherit; font-size: 0.875rem;
     }
     .filter-input:focus { outline: none; border-color: var(--brand-lav); }
+    /* Datum-grupp: Från + Till med labels så fälten inte är "tomma rutor" på mobil */
+    .filter-date-group { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .filter-date-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+    .filter-date-label .filter-date { min-width: 130px; }
+    .filter-reset { flex-shrink: 0; }
 
     .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
     .kanban-col {
@@ -1058,6 +1063,26 @@ const _monteringAdminConfig = {
       /* Stepper-knappar (antalsjustering) på mobil */
       .stepper-btn { min-width: 36px; min-height: 36px; }
 
+      /* Kanban-filter stack: sök full bredd, datum 50/50, reset full bredd */
+      .kanban-filters { width: 100%; flex-direction: column; align-items: stretch; }
+      #filter-search { width: 100% !important; }
+      .filter-date-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      .filter-date-label {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.2rem;
+        font-size: 0.72rem;
+        white-space: normal;
+      }
+      .filter-date-label .filter-date { width: 100%; min-width: 0; }
+      .filter-reset { grid-column: 1 / -1; width: 100%; }
+      #kanban-view-toggle { align-self: flex-end; }
+
       /* Formulär-rows stackas på mobil */
       .form-row { grid-template-columns: 1fr; }
 
@@ -1216,8 +1241,17 @@ const _monteringAdminConfig = {
       <div class="kanban-title">Orderöversikt</div>
       <div class="kanban-filters">
         <input class="filter-input" id="filter-search" placeholder="🔍 Sök kund..." style="width:180px" />
-        <input class="filter-input" type="date" id="filter-from" title="Event från" />
-        <input class="filter-input" type="date" id="filter-to"   title="Event till" />
+        <div class="filter-date-group">
+          <label class="filter-date-label">
+            <span>Från</span>
+            <input class="filter-input filter-date" type="date" id="filter-from" />
+          </label>
+          <label class="filter-date-label">
+            <span>Till</span>
+            <input class="filter-input filter-date" type="date" id="filter-to" />
+          </label>
+          <button type="button" class="btn-sm filter-reset" id="filter-reset" title="Nollställ alla filter">↺ Nollställ</button>
+        </div>
         <div id="kanban-view-toggle" style="display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0">
           <button onclick="setKanbanView('compact')" id="kv-compact"
             style="padding:4px 10px;font-size:0.72rem;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:var(--brand-lav);color:#0c0a24;transition:background 0.1s">Kompakt</button>
@@ -1929,6 +1963,14 @@ function getFilteredCarts() {
 
 ['filter-search','filter-from','filter-to'].forEach(id => {
   $(id).addEventListener('input', renderKanban);
+});
+
+// Nollställ alla filter
+$('filter-reset')?.addEventListener('click', () => {
+  $('filter-search').value = '';
+  $('filter-from').value = '';
+  $('filter-to').value = '';
+  renderKanban();
 });
 
 function urgencyScore(c) {
