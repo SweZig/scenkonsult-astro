@@ -254,8 +254,7 @@ const _monteringAdminConfig = {
       cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;
       transition: all 0.15s; white-space: nowrap;
     }
-    .filter-pill:hover:not(:disabled) { border-color: var(--brand-lav); color: var(--text); }
-    .filter-pill:disabled { opacity: 0.5; cursor: not-allowed; }
+    .filter-pill:hover { border-color: var(--brand-lav); color: var(--text); }
     .filter-pill[aria-pressed="true"] {
       background: var(--brand-lav); color: #0c0a24; border-color: var(--brand-lav); font-weight: 600;
     }
@@ -2029,24 +2028,19 @@ function setUnreadFilter(on) {
   renderKanban();
 }
 
-// Uppdaterar räknaren bredvid "Oläst" och auto-stänger av filtret
-// om det inte längre finns några olästa.
+// Uppdaterar räknaren bredvid "Oläst". Räknaren döljs när 0,
+// knappen är dock alltid klickbar (att filtrera till tomt resultat
+// är OK — användaren ser direkt att inget oläst finns).
 function updateUnreadFilterBadge() {
   const cnt = carts.filter(c => (c.unread_count || 0) > 0).length;
   const badge = $('filter-unread-count');
-  const btn = $('filter-unread-btn');
   if (badge) {
     badge.textContent = cnt;
     badge.hidden = cnt === 0;
   }
-  if (btn) {
-    btn.disabled = cnt === 0;
-    if (cnt === 0 && _unreadFilter) setUnreadFilter(false);
-  }
 }
 
 $('filter-unread-btn')?.addEventListener('click', () => {
-  if ($('filter-unread-btn').disabled) return;
   setUnreadFilter(!_unreadFilter);
 });
 
