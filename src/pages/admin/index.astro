@@ -1505,6 +1505,30 @@ const _monteringAdminConfig = {
 let TOKEN = '';
 let carts = [];
 let currentCart = null;
+
+// ── DIRTY-TRACKING I DETALJPANELEN ────────────────────────────
+// Sätts till true när användaren ändrar något i Info/Produkter/Faktura.
+// Vid flikbyte eller stäng-panel varnar vi om osparade ändringar.
+let panelDirty = false;
+function markPanelDirty()  { panelDirty = true; }
+function clearPanelDirty() { panelDirty = false; }
+// Bind: lyssna globalt på input/change i panel-body — sätt dirty om
+// händelsen kommer från ett redigerbart fält i panelen
+document.addEventListener('input', e => {
+  const inPanel = e.target.closest?.('#panel-body');
+  if (!inPanel) return;
+  // Hoppa över chat — där sparas via Skicka-knapp, inte via Spara
+  if (e.target.closest('.chat-input-wrap')) return;
+  // Hoppa över "Anmärkningar (intern)" som har egen spara-knapp men
+  // det skadar inte om den också flaggas — vi behåller den enkel:
+  panelDirty = true;
+});
+document.addEventListener('change', e => {
+  const inPanel = e.target.closest?.('#panel-body');
+  if (!inPanel) return;
+  if (e.target.closest('.chat-input-wrap')) return;
+  panelDirty = true;
+});
 let currentMessages = [];
 let currentAudit = [];
 let activeTab = 'info';
@@ -1692,6 +1716,25 @@ async function api(path, opts = {}) {
 }
 
 // ── LOAD CARTS ────────────────────────────────────────────────
+// ── currentCart-synk efter modifiering ────────────────────────
+// Efter varje admin-spara måste vi hämta hela cart-objektet på nytt
+// från servern, annars hamnar lokala fält i otakt med databasen.
+// Detta löser bl.a. att return_date "ändras tillbaka" och att
+// anmärkningar (_note) försvinner från Produkter-fliken.
+async function refreshCurrentCart() {
+  if (!currentCart?.id) return;
+  try {
+    const { ok, data } = await api(`admin-carts?id=${currentCart.id}`);
+    if (ok && data?.cart) {
+      currentCart     = data.cart;
+      currentMessages = data.messages || currentMessages;
+      currentAudit    = data.audit_log || currentAudit;
+    }
+  } catch (e) {
+    console.warn('REFRESH_CURRENT_CART: kunde inte synka', e.message);
+  }
+}
+
 async function loadCarts() {
   const { ok, data, netError } = await api('admin-carts');
   if (!ok) {
@@ -2111,6 +2154,13 @@ function cartCardHTML(c) {
 
 // ── DETAIL PANEL ──────────────────────────────────────────────
 async function openDetail(cartId) {
+  // Om föregående panel hade osparade ändringar, varna innan vi byter
+  if (panelDirty && currentCart && currentCart.id !== cartId) {
+    if (!confirm('Du har osparade ändringar i den öppna ordern. Lämna ändå?\n\nOK = lämna utan att spara\nAvbryt = stanna kvar')) {
+      return;
+    }
+  }
+  clearPanelDirty();
   currentCart = null;
   currentMessages = [];
   currentAudit = [];
@@ -2161,7 +2211,16 @@ function renderPanelTabs() {
   document.querySelectorAll('.panel-tab').forEach(tab => {
     tab.classList.toggle('active', tab.dataset.tab === activeTab);
     tab.onclick = () => {
-      activeTab = tab.dataset.tab;
+      const newTab = tab.dataset.tab;
+      if (newTab === activeTab) return;
+      // Varna om osparade ändringar finns i nuvarande flik
+      if (panelDirty) {
+        if (!confirm('Du har osparade ändringar i denna flik. Lämna ändå?\n\nOK = lämna utan att spara\nAvbryt = stanna kvar')) {
+          return;
+        }
+      }
+      clearPanelDirty();
+      activeTab = newTab;
       if (activeTab === 'chat') markAdminRead(currentCart?.id);
       renderPanelTabs();
       renderTab(activeTab);
@@ -2200,14 +2259,14 @@ function renderTab(tab) {
   if (tab === 'chat')     renderChatTab();
   if (tab === 'log')      body.innerHTML = renderLogTab();
 
+  // Nollställ dirty-flaggan — vi har just renderat färska värden från currentCart.
+  // Eventuella ändringar EFTER detta sätter flaggan igen via input/change-lyssnarna.
+  // Vi nollställer på nästa tick så att eventuella programmatiska input-events
+  // (t.ex. setSelectionRange, value-tilldelning) inte triggar dirty direkt.
+  setTimeout(clearPanelDirty, 0);
+
   // Bind status change
   if (tab === 'info') {
-    // Auto-fyll datum-till om det är tomt och datum-från finns
-    const fromEl = document.getElementById('edit-date');
-    const toEl   = document.getElementById('edit-return-date');
-    if (fromEl?.value && toEl && !toEl.value) {
-      adminAutoReturnDate(fromEl.value);
-    }
     $('status-select')?.addEventListener('change', async e => {
       const newStatus = e.target.value;
       if (!confirm(`Ändra status till "${STATUS_LABELS[newStatus]?.label}"?`)) {
@@ -2286,26 +2345,10 @@ function renderTab(tab) {
       };
       const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
       if (ok) {
-        Object.assign(currentCart, {
-          customer_name:    updates.customer_name,
-          customer_email:   updates.customer_email,
-          customer_phone:   updates.customer_phone,
-          event_date:       updates.event_date,
-          event_location:   updates.event_location,
-          customer_type:    updates.customer_type,
-          customer_address: updates.customer_address,
-          customer_orgnr:   updates.customer_orgnr,
-          customer_company: updates.customer_company,
-          customer_ref:     updates.customer_ref,
-          delivery_time:    updates.delivery_time,
-          return_time:      updates.return_time,
-          invoice_email:    updates.invoice_email,
-          use_invoice_email: updates.use_invoice_email,
-          cc_email:         updates.cc_email,
-          guests_count:     updates.guests_count,
-          delivery_mode:    updates.delivery_mode,
-          referral_source:  updates.referral_source,
-        });
+        // Synka HELA cart från servern — undviker att enskilda fält
+        // (t.ex. return_date) hamnar i otakt med databasen vid flikbyte.
+        await refreshCurrentCart();
+        clearPanelDirty();
         $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
         toast('Kunduppgifter sparade!');
         loadCarts();
@@ -2320,7 +2363,7 @@ function renderTab(tab) {
         method: 'POST',
         body: JSON.stringify({ cart_id: currentCart.id, notes_admin: notes })
       });
-      if (ok) { currentCart.notes_admin = notes; toast('Anteckning sparad!'); }
+      if (ok) { currentCart.notes_admin = notes; clearPanelDirty(); toast('Anteckning sparad!'); }
       else toast('Kunde inte spara', 'error');
     });
   }
@@ -2330,6 +2373,37 @@ function renderTab(tab) {
     $('chat-input')?.addEventListener('keydown', e => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendMessage();
     });
+    // ── Emoji-picker ─────────────────────────────────────────
+    const emojiBtn   = document.getElementById('chat-emoji-btn');
+    const emojiPanel = document.getElementById('chat-emoji-panel');
+    if (emojiBtn && emojiPanel) {
+      emojiBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'block' : 'none';
+      });
+      // Klick utanför stänger pickern
+      document.addEventListener('click', e => {
+        if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
+          emojiPanel.style.display = 'none';
+        }
+      });
+      // Klick på en emoji infogar vid markörens position
+      emojiPanel.querySelectorAll('.chat-emoji-pick').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const input = $('chat-input');
+          if (!input) return;
+          const emoji = btn.dataset.emoji || '';
+          const start = input.selectionStart ?? input.value.length;
+          const end   = input.selectionEnd   ?? input.value.length;
+          input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+          // Behåll markören efter den infogade emojin
+          const newPos = start + emoji.length;
+          input.focus();
+          input.setSelectionRange(newPos, newPos);
+          // Stäng inte pickern — användaren kan vilja lägga flera
+        });
+      });
+    }
     // Snabbmalls-knappar — fyller textarea med fördefinierad text som admin kan redigera
     document.querySelectorAll('.chat-template-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -2472,8 +2546,10 @@ async function prodSave() {
     body: JSON.stringify({ cart_id: currentCart.id, items, total_excl })
   });
   if (ok) {
-    currentCart.items = items;
-    currentCart.total_excl = total_excl;
+    // Synka HELA cart från servern — säkerställer att _note (Anmärkningar)
+    // och övriga fält stämmer med databasen vid efterföljande flikbyten.
+    await refreshCurrentCart();
+    clearPanelDirty();
     if (status) { status.textContent = '✓ Sparat'; status.style.color = 'var(--green)'; }
     setTimeout(() => { if (status) status.textContent = ''; }, 3000);
     toast('Produkter uppdaterade!');
@@ -3424,13 +3500,44 @@ function renderChatTab() {
       <button type="button" class="chat-template-manage-btn" id="chat-templates-manage" title="Hantera mallar — lägg till, redigera eller ta bort">⚙️ Hantera</button>
     </div>`;
 
+  // Emoji-bibliotek — kategoriserade emojis relevanta för Scenkonsults verksamhet
+  const EMOJI_CATEGORIES = {
+    'Smileys': ['😀','😃','😄','😁','😊','😂','🤣','😅','😉','😍','🥰','😎','🤔','😇','🙂','😌','🤩','🥳','😴','🙃'],
+    'Händer':  ['👍','👌','🙏','👏','🤝','💪','👋','✌️','🤞','🤙','✋','🫶','👀','💯','✅','❌','⚠️','❤️','🔥','✨'],
+    'Event':   ['🎉','🎊','🎁','🎂','🥂','🍾','🎈','🎀','🌟','⭐','🎯','🎪','🏆','💎','🎭','🎨','📸','🍻','🥳','🎓'],
+    'Musik':   ['🎵','🎶','🎤','🎧','🎸','🥁','🎹','🎺','🎷','🎻','🎼','📻','🔊','🔈','🎙️','💿','📀','🪕','🪘','🎚️'],
+    'Ljus':    ['💡','🔦','🕯️','🌟','✨','⚡','🔆','💫','🌈','🎆','🎇','🔥','☀️','🌙','💥','🌠','🪩','🟣','🟡','🟢'],
+    'Logistik':['🚚','📦','📅','🕐','✉️','📞','📍','🏢','🛠️','🔧','🔌','🪜','📋','📝','💰','💵','💳','🧾','📊','🗓️'],
+  };
+
+  const emojiHTML = `
+    <div class="chat-emoji-wrap" style="position:relative">
+      <button type="button" id="chat-emoji-btn" title="Lägg till emoji"
+        style="background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.25);border-radius:8px;padding:5px 10px;font-size:1.05rem;cursor:pointer;color:#f0eeff;line-height:1">
+        😊
+      </button>
+      <div id="chat-emoji-panel" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;z-index:100;width:320px;max-height:340px;overflow-y:auto;background:#221f50;border:1px solid rgba(196,181,244,0.35);border-radius:10px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
+        ${Object.entries(EMOJI_CATEGORIES).map(([cat, list]) => `
+          <div style="margin-bottom:8px">
+            <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.6);margin-bottom:4px;font-weight:600">${cat}</div>
+            <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px">
+              ${list.map(e => `<button type="button" class="chat-emoji-pick" data-emoji="${e}" style="background:transparent;border:none;font-size:1.15rem;padding:4px;cursor:pointer;border-radius:4px;line-height:1" onmouseover="this.style.background='rgba(196,181,244,0.18)'" onmouseout="this.style.background='transparent'">${e}</button>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+
   body.innerHTML = `
     ${msgsHTML}
     <div class="section-label">Nytt meddelande till kund</div>
     <div class="chat-input-wrap">
       ${templatesHTML}
       <textarea class="chat-textarea" id="chat-input" placeholder="Skriv ett meddelande… (Ctrl+Enter för att skicka)"></textarea>
-      <button class="chat-send-btn" id="chat-send-btn">Skicka till kund →</button>
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+        ${emojiHTML}
+        <button class="chat-send-btn" id="chat-send-btn" style="flex:1;margin-left:8px">Skicka till kund →</button>
+      </div>
     </div>`;
 
   // Scroll to bottom
@@ -5289,6 +5396,10 @@ async function sendQuote() {
         currentCart.status = 'waiting';
       }
       await loadCarts();
+      // Synka currentCart från servern — annars saknar Produkter-fliken den
+      // nya _note (Anmärkningar) som backend just sparat i items-arrayen.
+      await refreshCurrentCart();
+      clearPanelDirty();
       // Synka noten till prod-note om panelen är öppen
       if (sentNote && currentCart) {
         const noteEl = $('prod-note');
@@ -5320,6 +5431,12 @@ document.addEventListener('keydown', e => {
 });
 
 function closePanel() {
+  if (panelDirty) {
+    if (!confirm('Du har osparade ändringar. Stäng ändå?\n\nOK = stäng utan att spara\nAvbryt = stanna kvar')) {
+      return;
+    }
+  }
+  clearPanelDirty();
   $('detail-overlay').classList.remove('open');
   $('detail-panel').classList.remove('open');
   currentCart = null;
