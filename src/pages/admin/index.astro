@@ -204,10 +204,11 @@ const _monteringAdminConfig = {
       position: fixed; top: 60px; right: 0; width: min(320px, 85vw); max-height: calc(100vh - 60px);
       background: var(--surface); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
       border-radius: 0 0 0 12px; padding: 1rem; z-index: 99;
-      display: flex; flex-direction: column; gap: 0.5rem;
+      display: none; flex-direction: column; gap: 0.5rem;
       box-shadow: -8px 8px 32px rgba(0,0,0,0.4);
       overflow-y: auto;
     }
+    .topbar-drawer.is-open { display: flex; }
     .topbar-drawer .btn-sm,
     .topbar-drawer .nav-btn,
     .topbar-drawer .unread-badge {
@@ -226,7 +227,9 @@ const _monteringAdminConfig = {
     }
     .topbar-backdrop {
       position: fixed; inset: 60px 0 0 0; background: rgba(0,0,0,0.5); z-index: 98;
+      display: none;
     }
+    .topbar-backdrop.is-open { display: block; }
 
     /* ── VIEWS ─────────────────────────────────────────── */
     .view { display: none; flex: 1; padding: 1.5rem; }
@@ -1204,8 +1207,8 @@ const _monteringAdminConfig = {
       <span></span><span></span><span></span>
     </button>
   </div>
-  <div class="topbar-drawer" id="topbar-drawer" hidden></div>
-  <div class="topbar-backdrop" id="topbar-backdrop" hidden></div>
+  <div class="topbar-drawer" id="topbar-drawer"></div>
+  <div class="topbar-backdrop" id="topbar-backdrop"></div>
 
   <!-- ── KANBAN VIEW ──────────────────────────────────────── -->
   <div class="view active" id="view-kanban">
@@ -1763,13 +1766,13 @@ function buildBurgerDrawer() {
 }
 function openBurgerDrawer() {
   buildBurgerDrawer();
-  $('topbar-drawer').hidden = false;
-  $('topbar-backdrop').hidden = false;
+  $('topbar-drawer').classList.add('is-open');
+  $('topbar-backdrop').classList.add('is-open');
   $('topbar-burger').setAttribute('aria-expanded', 'true');
 }
 function closeBurgerDrawer() {
-  $('topbar-drawer').hidden = true;
-  $('topbar-backdrop').hidden = true;
+  $('topbar-drawer').classList.remove('is-open');
+  $('topbar-backdrop').classList.remove('is-open');
   $('topbar-burger').setAttribute('aria-expanded', 'false');
 }
 $('topbar-burger')?.addEventListener('click', e => {
@@ -1779,10 +1782,10 @@ $('topbar-burger')?.addEventListener('click', e => {
 });
 $('topbar-backdrop')?.addEventListener('click', closeBurgerDrawer);
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && $('topbar-drawer') && !$('topbar-drawer').hidden) closeBurgerDrawer();
+  if (e.key === 'Escape' && $('topbar-drawer')?.classList.contains('is-open')) closeBurgerDrawer();
 });
 window.addEventListener('resize', () => {
-  if (window.innerWidth > 600 && $('topbar-drawer') && !$('topbar-drawer').hidden) closeBurgerDrawer();
+  if (window.innerWidth > 600 && $('topbar-drawer')?.classList.contains('is-open')) closeBurgerDrawer();
 });
 
 // ── LADDA OM SIDAN (hård reload — använd när cache fastnat eller efter deploy)
