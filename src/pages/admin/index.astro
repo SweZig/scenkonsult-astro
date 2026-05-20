@@ -190,10 +190,12 @@ const _monteringAdminConfig = {
       width: 44px; height: 44px; padding: 10px;
       background: transparent; border: 1px solid var(--border); border-radius: 8px;
       cursor: pointer; flex-direction: column; justify-content: space-around;
+      touch-action: manipulation; /* iOS: ta bort 300ms tap-delay */
     }
     .topbar-burger span {
       display: block; height: 2px; background: var(--text); border-radius: 1px;
       transition: transform 0.2s, opacity 0.2s;
+      pointer-events: none; /* iOS: säkra att span aldrig fångar tap istället för button */
     }
     .topbar-burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
     .topbar-burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
@@ -214,6 +216,14 @@ const _monteringAdminConfig = {
       box-sizing: border-box;
     }
     .topbar-drawer .unread-badge { background: var(--red); color: #fff; }
+    .topbar-drawer-close {
+      justify-content: center !important;
+      background: var(--surface2) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
     .topbar-backdrop {
       position: fixed; inset: 60px 0 0 0; background: rgba(0,0,0,0.5); z-index: 98;
     }
@@ -1183,6 +1193,7 @@ const _monteringAdminConfig = {
       <span class="unread-badge" id="global-unread">0 nya</span>
       <button class="btn-sm" id="new-quote-btn" style="border-color:var(--brand-lav);color:var(--brand-lav)">✉ Ny manuell offert</button>
       <button class="btn-sm" id="refresh-btn">↻ Uppdatera</button>
+      <button class="btn-sm" id="reload-btn" title="Ladda om hela appen (hård reload — använd efter en deploy eller om något hängt sig)">⟳ Ladda om sidan</button>
       <a href="https://scenkonsult.se" target="_blank" class="btn-sm" style="text-decoration:none;">↗ Sajten</a>
       <a href="/Scenkonsult_Produktkatalog.xlsx" target="_blank" download class="btn-sm" style="text-decoration:none;" title="Ladda ner aktuell produktkatalog (genereras vid varje deploy)">📊 Katalog</a>
       <a href="/admin/sven/" class="btn-sm" style="text-decoration:none;border-color:rgba(196,181,244,0.4);color:#c4b5f4">🤖 Sven</a>
@@ -1721,6 +1732,16 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 function buildBurgerDrawer() {
   const drawer = $('topbar-drawer');
   drawer.innerHTML = '';
+
+  // Explicit stäng-knapp överst i drawer — backup om burger-toggle inte
+  // fungerar i iOS-PWA av nån anledning
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn-sm topbar-drawer-close';
+  closeBtn.type = 'button';
+  closeBtn.innerHTML = '✕ Stäng meny';
+  closeBtn.addEventListener('click', closeBurgerDrawer);
+  drawer.appendChild(closeBtn);
+
   const actions = $('topbar-actions');
   Array.from(actions.children).forEach(orig => {
     // Hoppa över unread-badge om den är dold (0 nya)
@@ -1751,7 +1772,8 @@ function closeBurgerDrawer() {
   $('topbar-backdrop').hidden = true;
   $('topbar-burger').setAttribute('aria-expanded', 'false');
 }
-$('topbar-burger')?.addEventListener('click', () => {
+$('topbar-burger')?.addEventListener('click', e => {
+  e.stopPropagation();
   const open = $('topbar-burger').getAttribute('aria-expanded') === 'true';
   if (open) closeBurgerDrawer(); else openBurgerDrawer();
 });
@@ -1761,6 +1783,15 @@ document.addEventListener('keydown', e => {
 });
 window.addEventListener('resize', () => {
   if (window.innerWidth > 600 && $('topbar-drawer') && !$('topbar-drawer').hidden) closeBurgerDrawer();
+});
+
+// ── LADDA OM SIDAN (hård reload — använd när cache fastnat eller efter deploy)
+$('reload-btn')?.addEventListener('click', () => {
+  // location.reload() hämtar färsk version från servern (om browser-cache tillåter).
+  // På iOS-PWA där cache ibland är envis: skicka även en cache-bust query string.
+  const url = new URL(location.href);
+  url.searchParams.set('_t', Date.now());
+  location.href = url.toString();
 });
 
 // ── API ───────────────────────────────────────────────────────
