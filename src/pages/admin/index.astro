@@ -252,6 +252,20 @@ const _monteringAdminConfig = {
     .filter-date-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
     .filter-date-label .filter-date { min-width: 130px; }
     .filter-reset { flex-shrink: 0; }
+    /* iOS: visa ÅÅÅÅ-MM-DD i grått när date-input är tom (placeholder fungerar
+       inte på date-inputs, så vi gråmarkerar datetime-edit-fälten istället) */
+    .filter-date:invalid::-webkit-datetime-edit-text,
+    .filter-date:invalid::-webkit-datetime-edit-year-field,
+    .filter-date:invalid::-webkit-datetime-edit-month-field,
+    .filter-date:invalid::-webkit-datetime-edit-day-field {
+      color: rgba(240, 238, 255, 0.4);
+    }
+    /* iOS: tvinga date-input att respektera container-bredd (native styling
+       sätter annars en inneboende min-width som spräcker layouten) */
+    .filter-date {
+      -webkit-appearance: none;
+      appearance: none;
+    }
 
     .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
     .kanban-col {
@@ -1078,8 +1092,14 @@ const _monteringAdminConfig = {
         gap: 0.2rem;
         font-size: 0.72rem;
         white-space: normal;
+        min-width: 0;
       }
-      .filter-date-label .filter-date { width: 100%; min-width: 0; }
+      /* På mobil: ta bort 130px-min-width och låt filter-date fylla hela label */
+      .filter-date-label .filter-date {
+        width: 100%;
+        min-width: 0;
+        display: block;
+      }
       .filter-reset { grid-column: 1 / -1; width: 100%; }
       #kanban-view-toggle { align-self: flex-end; }
 
@@ -1244,11 +1264,11 @@ const _monteringAdminConfig = {
         <div class="filter-date-group">
           <label class="filter-date-label">
             <span>Från</span>
-            <input class="filter-input filter-date" type="date" id="filter-from" />
+            <input class="filter-input filter-date" type="date" id="filter-from" required />
           </label>
           <label class="filter-date-label">
             <span>Till</span>
-            <input class="filter-input filter-date" type="date" id="filter-to" />
+            <input class="filter-input filter-date" type="date" id="filter-to" required />
           </label>
           <button type="button" class="btn-sm filter-reset" id="filter-reset" title="Nollställ alla filter">↺ Nollställ</button>
         </div>
