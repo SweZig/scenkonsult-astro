@@ -292,6 +292,59 @@ const _monteringAdminConfig = {
     }
 
     .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
+
+    /* ── TELEFONBOK ──────────────────────────────────────── */
+    .pb-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .pb-title { font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .pb-count {
+      font-size: 0.85rem; font-weight: 500; color: var(--text-muted);
+      background: var(--surface2); padding: 2px 10px; border-radius: 99px;
+    }
+    .pb-controls { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+    .pb-status-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .pb-list {
+      display: grid; gap: 0.6rem;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    .pb-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 0.9rem 1rem; display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 1rem; cursor: pointer; transition: border-color 0.15s;
+    }
+    .pb-card:hover { border-color: var(--brand-lav); }
+    .pb-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+    .pb-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+    .pb-company { font-size: 0.85rem; color: var(--text-muted); }
+    .pb-phone {
+      color: var(--brand-lav); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 0.75rem; background: rgba(196,181,244,0.1);
+      border: 1px solid rgba(196,181,244,0.25); border-radius: 8px;
+      align-self: flex-start; min-height: 40px; box-sizing: border-box;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .pb-phone:hover { background: rgba(196,181,244,0.2); border-color: rgba(196,181,244,0.45); }
+    .pb-phone-empty { color: var(--text-muted); font-size: 0.85rem; font-style: italic; }
+    .pb-meta {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem;
+      flex-shrink: 0; text-align: right;
+    }
+    .pb-status-badge {
+      font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 99px;
+      background: var(--surface2); white-space: nowrap;
+    }
+    .pb-event { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+    .pb-group-heading {
+      grid-column: 1 / -1;
+      font-size: 0.85rem; font-weight: 700; color: var(--brand-lav);
+      padding: 0.5rem 0 0.3rem; border-bottom: 1px solid rgba(196,181,244,0.2);
+      margin-top: 0.5rem;
+    }
+    .pb-group-heading:first-child { margin-top: 0; }
+    .pb-list .empty-col { grid-column: 1 / -1; }
     .kanban-col {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 12px; padding: 0.75rem; min-height: 180px;
@@ -1130,6 +1183,17 @@ const _monteringAdminConfig = {
       .filter-reset { grid-column: 1 / -1; width: 100%; }
       #kanban-view-toggle { align-self: flex-end; }
 
+      /* Telefonbok-anpassningar */
+      .pb-controls { width: 100%; flex-direction: column; align-items: stretch; gap: 0.5rem; }
+      #pb-sort-group { width: 100%; }
+      #pb-sort-group .wsort-btn { flex: 1; min-height: 44px; font-size: 0.85rem; }
+      .pb-status-filters { width: 100%; }
+      .pb-status-filters .filter-pill { flex: 1 1 calc(50% - 0.2rem); min-height: 44px; justify-content: center; font-size: 0.85rem; }
+      .pb-list { grid-template-columns: 1fr; }
+      .pb-card { flex-direction: column; gap: 0.6rem; padding: 0.8rem; }
+      .pb-meta { flex-direction: row; align-items: center; align-self: flex-start; text-align: left; flex-wrap: wrap; }
+      .pb-phone { width: 100%; justify-content: center; }
+
       /* Formulär-rows stackas på mobil */
       .form-row { grid-template-columns: 1fr; }
 
@@ -1261,6 +1325,7 @@ const _monteringAdminConfig = {
       <div class="topbar-brand">⚙ Admin</div>
       <div class="topbar-nav">
         <button class="nav-btn active" data-view="kanban">📋 Ordrar</button>
+        <button class="nav-btn" data-view="phonebook">📞 Telefonbok</button>
         <button class="nav-btn" data-view="calendar">📅 Kalender</button>
       </div>
     </div>
@@ -1363,6 +1428,29 @@ const _monteringAdminConfig = {
       <button class="btn-action" id="cal-feed-copy">📋 Kopiera</button>
       <button class="btn-action" id="cal-feed-open" title="Öppna i webbläsare">↗ Öppna</button>
       <a class="btn-action" id="cal-feed-help" href="#" style="text-decoration:none;color:var(--text-muted)" title="Lägg till i Google/iCloud/Outlook">❓ Hjälp</a>
+    </div>
+  </div>
+
+  <!-- ── TELEFONBOK VIEW ──────────────────────────────────── -->
+  <div class="view" id="view-phonebook">
+    <div class="pb-header">
+      <div class="pb-title">Telefonbok <span class="pb-count" id="pb-count"></span></div>
+      <div class="pb-controls">
+        <div class="waiting-sort" id="pb-sort-group">
+          <button class="wsort-btn active" data-pb-sort="alpha">A–Ö</button>
+          <button class="wsort-btn" data-pb-sort="event">Eventdatum</button>
+          <button class="wsort-btn" data-pb-sort="status">Status</button>
+        </div>
+        <div class="pb-status-filters" id="pb-status-filters">
+          <button class="filter-pill" data-pb-status="new"        aria-pressed="true">📥 Inkommen</button>
+          <button class="filter-pill" data-pb-status="waiting"    aria-pressed="true">✉ Offert</button>
+          <button class="filter-pill" data-pb-status="confirmed"  aria-pressed="true">✅ Bekräftad</button>
+          <button class="filter-pill" data-pb-status="fakturerad" aria-pressed="true">📨 Fakturerad</button>
+        </div>
+      </div>
+    </div>
+    <div class="pb-list" id="pb-list">
+      <div class="loading-center"><div class="spinner"></div></div>
     </div>
   </div>
 
@@ -1812,7 +1900,8 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.add('active');
     const view = btn.dataset.view;
     $(`view-${view}`).classList.add('active');
-    if (view === 'calendar') renderCalendar();
+    if (view === 'calendar')  renderCalendar();
+    if (view === 'phonebook') renderPhonebook();
     // Stäng drawer om öppen (mobile)
     closeBurgerDrawer();
   });
@@ -2000,7 +2089,8 @@ async function loadCarts() {
     badge.style.display = 'none';
   }
   renderKanban();
-  if ($('view-calendar').classList.contains('active')) renderCalendar();
+  if ($('view-calendar').classList.contains('active'))  renderCalendar();
+  if ($('view-phonebook').classList.contains('active')) renderPhonebook();
   checkReminderQueue();
 }
 
@@ -2316,6 +2406,126 @@ function renderKanban() {
     if (card) openDetail(card.dataset.id);
   };
 }
+
+// ── TELEFONBOK ────────────────────────────────────────────────
+let _pbSort = 'alpha'; // 'alpha' | 'event' | 'status'
+let _pbStatuses = new Set(['new','waiting','confirmed','fakturerad']);
+
+function htmlEscape(s) {
+  return String(s ?? '').replace(/[&<>"']/g, ch => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]
+  ));
+}
+
+function renderPhonebook() {
+  const list = $('pb-list');
+  if (!list) return;
+
+  // Filter på status
+  const filtered = carts.filter(c => _pbStatuses.has(c.status));
+
+  // Dedup på telefonnummer (eller email om phone saknas).
+  // Senast uppdaterad cart vinner per unik kund.
+  const seen = new Map();
+  for (const c of filtered) {
+    const key = ((c.customer_phone || '').replace(/\s/g, '') || c.customer_email || c.id || '').toLowerCase();
+    if (!key) continue;
+    const existing = seen.get(key);
+    if (!existing || new Date(c.updated_at || c.created_at) > new Date(existing.updated_at || existing.created_at)) {
+      seen.set(key, c);
+    }
+  }
+  let entries = Array.from(seen.values());
+
+  // Sortering
+  const statusOrder = { new: 1, waiting: 2, confirmed: 3, fakturerad: 4 };
+  if (_pbSort === 'alpha') {
+    entries.sort((a, b) => (a.customer_name || '').localeCompare(b.customer_name || '', 'sv'));
+  } else if (_pbSort === 'event') {
+    entries.sort(_byEventDateAsc);
+  } else if (_pbSort === 'status') {
+    entries.sort((a, b) =>
+      (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99)
+      || (a.customer_name || '').localeCompare(b.customer_name || '', 'sv')
+    );
+  }
+
+  // Räknare i headern
+  const cntEl = $('pb-count');
+  if (cntEl) cntEl.textContent = entries.length ? `(${entries.length})` : '';
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="empty-col">Inga kunder att visa</div>';
+    return;
+  }
+
+  // Vid sortering på status: lägg in grupp-rubriker mellan blocken
+  let html = '';
+  let prevStatus = null;
+  for (const c of entries) {
+    if (_pbSort === 'status' && c.status !== prevStatus) {
+      const s = STATUS_LABELS[c.status];
+      html += `<div class="pb-group-heading">${s.icon} ${s.label}</div>`;
+      prevStatus = c.status;
+    }
+    html += pbCardHTML(c);
+  }
+  list.innerHTML = html;
+}
+
+function pbCardHTML(c) {
+  const name = htmlEscape(c.customer_name || '(saknar namn)');
+  const company = c.customer_company
+    ? `<div class="pb-company">${htmlEscape(c.customer_company)}</div>`
+    : '';
+  const phoneRaw = (c.customer_phone || '').trim();
+  const phoneStrip = phoneRaw.replace(/[\s\-()]/g, '');
+  const phoneHtml = phoneStrip
+    ? `<a href="tel:${htmlEscape(phoneStrip)}" class="pb-phone" onclick="event.stopPropagation()">📞 ${htmlEscape(phoneRaw)}</a>`
+    : '<span class="pb-phone-empty">📞 saknas</span>';
+  const s = STATUS_LABELS[c.status];
+  const statusBadge = `<span class="pb-status-badge ${s.cls}">${s.icon} ${s.label}</span>`;
+  const event = c.event_date
+    ? `<span class="pb-event">📅 ${c.event_date}</span>`
+    : '';
+  return `
+    <div class="pb-card" data-id="${c.id}">
+      <div class="pb-info">
+        <div class="pb-name">${name}</div>
+        ${company}
+        ${phoneHtml}
+      </div>
+      <div class="pb-meta">
+        ${statusBadge}
+        ${event}
+      </div>
+    </div>`;
+}
+
+// Event-delegation för telefonbok-vyn
+document.addEventListener('click', e => {
+  const sortBtn = e.target.closest('[data-pb-sort]');
+  if (sortBtn) {
+    _pbSort = sortBtn.dataset.pbSort;
+    document.querySelectorAll('[data-pb-sort]').forEach(b =>
+      b.classList.toggle('active', b.dataset.pbSort === _pbSort)
+    );
+    renderPhonebook();
+    return;
+  }
+  const statusBtn = e.target.closest('[data-pb-status]');
+  if (statusBtn) {
+    const s = statusBtn.dataset.pbStatus;
+    if (_pbStatuses.has(s)) _pbStatuses.delete(s);
+    else _pbStatuses.add(s);
+    statusBtn.setAttribute('aria-pressed', _pbStatuses.has(s) ? 'true' : 'false');
+    renderPhonebook();
+    return;
+  }
+  // Klick på kort öppnar detalj (telefonlänken har egen stopPropagation)
+  const pbCard = e.target.closest('.pb-card');
+  if (pbCard) openDetail(pbCard.dataset.id);
+});
 
 // ── MARKERA KUNDMEDDELANDEN SOM LÄSTA ─────────────────────────
 async function markAdminRead(cartId) {
