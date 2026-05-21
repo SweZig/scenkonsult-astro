@@ -6,7 +6,16 @@ export default defineConfig({
   site: 'https://scenkonsult.se',
   integrations: [
     tailwind(),
-    sitemap(),
+    sitemap({
+      // Exkludera privata/admin-sidor från sitemap
+      // (de har också noindex + robots.txt-Disallow, men sitemap-närvaro
+      // gör att de hamnar i GSC "Discovered – currently not indexed" som skräp)
+      filter: (page) =>
+        !page.includes('/admin/') &&
+        !page.includes('/order/') &&
+        !page.includes('/sign/') &&
+        !page.includes('/tack/'),
+    }),
   ],
   // Trailing slash = always → matchar WordPress-URLs exakt
   trailingSlash: 'always',
