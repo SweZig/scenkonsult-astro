@@ -594,11 +594,11 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       }
 
       // Modul-rad.
-      // - bulky: sätts från JSON-flaggan paket.bulky (oavsett transport)
-      // - requiresAssembly: ALLTID satt på scen-moduler (även tillägg-paket).
-      //   Driver auto-bock av montering i varukorgen så att kunden aktivt
-      //   måste bocka ur om hen vill montera själv vid självhämtning.
-      // - forceLeverans: bara om paketet kräver transport (vehicle-picker)
+      // - bulky: sätts från JSON-flaggan paket.bulky (oavsett transport) —
+      //   används av fraktregeln "bulkyCount >= 1 → Bil med släp" när
+      //   kunden VÄLJER leverans. Triggar INTE auto-bock av leverans i varukorgen.
+      // - requiresAssembly + forceLeverans: bara om paketet kräver transport.
+      //   Dessa flaggor är "transport krävs"-signaler och triggar auto-bock.
       const modItem = {
         id: MOD_ARTNO[surface],
         artno: MOD_ARTNO[surface],
@@ -607,22 +607,22 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         qty: mc,
         category: 'Scen',
         monteringMin: MODULE_MONTERING_MIN, // alltid satt så att monteringspriset blir rätt om kunden bockar i
-        requiresAssembly: true,             // alltid satt så att montering auto-bockas in i varukorgen
       };
       if (isBulky) {
         modItem.bulky = true;
       }
-      if (isKravs && lev) {
-        modItem.forceLeverans = lev;
+      if (isKravs) {
+        modItem.requiresAssembly = true;
+        if (lev) modItem.forceLeverans = lev;
       }
       window.skCart.add(modItem);
       // Säkerställ flaggor även om itemet redan fanns i cart (merge-bug-skydd)
-      const modFlags = {
-        monteringMin: MODULE_MONTERING_MIN,
-        requiresAssembly: true,
-      };
+      const modFlags = { monteringMin: MODULE_MONTERING_MIN };
       if (isBulky) modFlags.bulky = true;
-      if (isKravs && lev) modFlags.forceLeverans = lev;
+      if (isKravs) {
+        modFlags.requiresAssembly = true;
+        if (lev) modFlags.forceLeverans = lev;
+      }
       applyFlagsTo(modItem.id, modFlags);
 
       // Trapp-rader (om kunden valt > 0) — använd vald höjd, inte cfg.defaultHeight

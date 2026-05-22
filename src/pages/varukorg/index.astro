@@ -1591,19 +1591,25 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     });
   })();
   // Auto-select av leverans + montering baserat på cart-items.
-  // STRIKTA regler — endast explicita flaggor från komponenterna styr.
-  // För scen: paket/konfigurator sätter bulky:true + requiresAssembly:true
-  //           + forceLeverans när transport krävs (Large+, XL, tak-paket eller
-  //           konfiguration ≥16 m²). Mindre paket sätter inte dessa flaggor.
-  // För andra kategorier: bulky/requiresAssembly följer respektive produkts
-  //   inneboende egenskaper i JSON-data.
+  // STRIKTA regler — endast EXPLICITA "transport krävs"-flaggor styr auto-bock.
+  //
+  // SEMANTISK SKILLNAD:
+  // - bulky: EGENSKAP (för fraktregeln "bulkyCount >= 1 → bil med släp" som
+  //   används NÄR kunden valt leverans). Triggar INTE auto-bock — kunden kan
+  //   hämta själv om hen vill.
+  // - forceLeverans / requiresBakgavel: KRAV (transport måste ske). Triggar auto-bock.
+  // - requiresAssembly: KRAV (montering måste ske). Triggar auto-bock.
+  //
+  // För scen: paket/konfigurator sätter requiresAssembly + forceLeverans bara
+  // när transport='krävs' (Large+, XL, tak-paket eller konfiguration ≥16 m²).
+  // Mindre paket (Small–Medium++) har bara bulky → kunden måste aktivt välja
+  // leverans + montering i varukorgen om hen vill ha det.
   function autoSelectServices() {
     const cart = getCart();
     if (!cart.length) return;
 
-    // Leverans
+    // Leverans — bara explicita transport-krav triggar auto-bock
     const needsDelivery = cart.some(i =>
-      i.bulky === true ||
       (typeof i.forceLeverans === 'string' && i.forceLeverans) ||
       i.requiresBakgavel === true
     );
