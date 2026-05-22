@@ -12,11 +12,12 @@ const railSegments = (scenData.tillbehor || []).filter(t =>
   ['SK-SCN-ACC-0006', 'SK-SCN-ACC-0007'].includes(t.artno)
 );
 
-const fraktOptions = {
-  storbil: tjanster.leverans?.storbil,
-  storbil_slap: tjanster.leverans?.storbil_slap,
-  lastbil: tjanster.leverans?.lastbil,
-};
+// Alla leverans-nycklar så selection_rules kan slå upp valfri.
+const _levMeta = new Set(['label', 'description', 'zon', 'selection_rules']);
+const fraktOptions = Object.fromEntries(
+  Object.entries(tjanster.leverans || {})
+    .filter(([k, v]) => !_levMeta.has(k) && v && typeof v === 'object' && v.id)
+);
 
 // ──────────────────────────────────────────────────────────────────
 // JSON-first lookups som tidigare var hårdkodade i klient-JS
@@ -35,11 +36,7 @@ const INJ_MODULE_BY_KEY = Object.fromEntries(
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
 const INJ_SKIRT_PRICE_PER_METER = skirt?.pricePerMeter || 24.75;
-const INJ_FRAKT_RULES = scenData.fraktByArea || [
-  { maxArea: 16, fordon: 'storbil' },
-  { maxArea: 24, fordon: 'storbil_slap' },
-  { maxArea: 9999, fordon: 'lastbil' },
-];
+const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
 const configData = {
   modules,
@@ -236,7 +233,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_FRAKT_RULES }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SELECTION_RULES }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -300,12 +297,23 @@ const configData = {
 
     function getRecommendedFrakt() {
       if (!isDimValid()) return null;
-      const area = state.width * state.depth;
-      if (area === 0) return null;
-      for (const rule of INJ_FRAKT_RULES) {
-        if (area <= rule.maxArea) return rule.fordon;
+      const mc = moduleCount();
+      if (mc === 0) return null;
+      // Simulera samma selection_rules-logik som varukorgen.
+      // I konfiguratorn finns inget tak — bara moduler. bulkyCount = modCount.
+      const bulkyCount = mc;
+      for (const rule of INJ_SELECTION_RULES) {
+        if (rule.if === 'anyItemForces') {
+          // Ej tillämpbart i standalone-konfiguratorn
+          continue;
+        } else if (rule.if === 'bulkyCount') {
+          const min = rule.min || 1;
+          if (bulkyCount >= min && FRAKT_DATA[rule.use]) return rule.use;
+        } else if (rule.if === 'default') {
+          return rule.use;
+        }
       }
-      return INJ_FRAKT_RULES[INJ_FRAKT_RULES.length - 1]?.fordon || 'lastbil';
+      return 'storbil_slap';
     }
 
     // state.frakt är 'none' eller 'auto' — vehicle bestäms av getRecommendedFrakt().

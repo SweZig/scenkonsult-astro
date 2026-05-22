@@ -51,24 +51,20 @@ const INJ_RAIL_SEGMENTS = {
   '1m': _rail1m ? { artno: _rail1m.artno, name: _rail1m.name, price: _rail1m.price } : { artno: 'SK-SCN-ACC-0006', name: 'Skyddsräcke 1,0 m', price: 140 },
 };
 
-const INJ_FRAKT_RULES = scenData.fraktByArea || [
-  { maxArea: 16, fordon: 'storbil' },
-  { maxArea: 24, fordon: 'storbil_slap' },
-  { maxArea: 9999, fordon: 'lastbil' },
-];
+const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
 const INJ_MONTERING_MIN_PER_MODULE = 10;
 
 // ──────────────────────────────────────────────────────────────────
 // Frakt-priser + montering-pris för "+ Montering X kr & transport Y kr"-noten
-// (samma mönster som LED-vägg-sidan, konkreta siffror per paket)
+// Innehåller alla leverans-nycklar så selection_rules kan slå upp valfri.
 // ──────────────────────────────────────────────────────────────────
 const _lev = tjanster.leverans || {};
+const _LEV_META = new Set(['label', 'description', 'zon', 'selection_rules']);
 const INJ_LEVERANS_BY_KEY = Object.fromEntries(
-  ['storbil', 'storbil_slap', 'lastbil'].map(k => {
-    const o = _lev[k] || {};
-    return [k, { name: o.label || k, pris: o.pris || 0 }];
-  })
+  Object.entries(_lev)
+    .filter(([k, v]) => !_LEV_META.has(k) && v && typeof v === 'object' && v.id)
+    .map(([k, v]) => [k, { name: v.label || k, pris: v.pris || 0 }])
 );
 const INJ_MONTERING_PRICE_PER_HOUR = (tjanster.montering && tjanster.montering.prisPerTimme) || 600;
 const INJ_MONTERING_ROUND_TO_MIN = 30;
@@ -229,7 +225,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_FRAKT_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
+<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SELECTION_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -299,12 +295,24 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     return price;
   }
 
-  function getRecommendedFrakt(area) {
-    if (!area || area === 0) return null;
-    for (const rule of INJ_FRAKT_RULES) {
-      if (area <= rule.maxArea) return rule.fordon;
+  // Simulera samma selection_rules-logik som varukorgen, men för ett ensamt
+  // paket. modCount = antal modul-rader (qty), hasTak = om paketet har tak.
+  // Alla scen-moduler är bulky=true → bidrar 1 per modul till bulkyCount.
+  // Tak räknas som +1 ytterligare bulky-rad.
+  function getRecommendedFrakt(modCount, hasTak) {
+    const bulkyCount = (modCount || 0) + (hasTak ? 1 : 0);
+    for (const rule of INJ_SELECTION_RULES) {
+      if (rule.if === 'anyItemForces') {
+        // Ej tillämpbart för standalone paket-kort (hanteras av forceLeverans-arg)
+        continue;
+      } else if (rule.if === 'bulkyCount') {
+        const min = rule.min || 1;
+        if (bulkyCount >= min && INJ_LEVERANS_BY_KEY[rule.use]) return rule.use;
+      } else if (rule.if === 'default') {
+        return rule.use;
+      }
     }
-    return INJ_FRAKT_RULES[INJ_FRAKT_RULES.length - 1]?.fordon || 'lastbil';
+    return 'standard';
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -329,9 +337,9 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     return h.toFixed(1).replace('.', ',') + ' h';
   }
 
-  function computeFraktDetails(area, forceLeverans) {
-    const key = forceLeverans || getRecommendedFrakt(area);
-    const lev = INJ_LEVERANS_BY_KEY[key] || INJ_LEVERANS_BY_KEY.storbil;
+  function computeFraktDetails(modCount, hasTak, forceLeverans) {
+    const key = forceLeverans || getRecommendedFrakt(modCount, hasTak);
+    const lev = INJ_LEVERANS_BY_KEY[key] || INJ_LEVERANS_BY_KEY.storbil_slap || INJ_LEVERANS_BY_KEY.standard;
     return { key, name: lev.name, pris: lev.pris };
   }
 
@@ -494,11 +502,10 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
           fraktNoteEl.textContent = '';
         } else {
           const mc = moduleCount(cfg.width, cfg.depth, surface);
-          const area = cfg.width * cfg.depth;
           const takMonteringMin = cfg.tak ? (cfg.tak.monteringMin || 0) : 0;
           const monteringMin = computeMonteringMin(mc, takMonteringMin);
           const monteringKr = Math.round((monteringMin / 60) * INJ_MONTERING_PRICE_PER_HOUR);
-          const frakt = computeFraktDetails(area, cfg.forceLeverans);
+          const frakt = computeFraktDetails(mc, !!cfg.tak, cfg.forceLeverans);
           const transport = card.dataset.paketTransport;
           const prefix = transport === 'krävs' ? '+ ' : 'Vid leverans: + ';
           fraktNoteEl.textContent =
@@ -566,7 +573,6 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     cartBtn?.addEventListener('click', () => {
       if (!window.skCart || cartBtn.disabled) return;
       const mc = moduleCount(cfg.width, cfg.depth, surface);
-      const area = cfg.width * cfg.depth;
       const transport = card.dataset.paketTransport;
       const isKravs = transport === 'krävs';
       // bulky läses från JSON-flaggan paket.bulky (data-paket-bulky="1") — INTE
@@ -576,7 +582,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       const isBulky = card.dataset.paketBulky === '1';
       // Krävs: forceLeverans (override eller auto-rekommenderat fordon)
       // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
-      const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(area)) : null;
+      const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(mc, !!cfg.tak)) : null;
 
       // skCart.add merger qty på existing item-id men SÄTTER INTE flaggor på en
       // existerande rad. För att flaggor (bulky/requiresAssembly/forceLeverans/
