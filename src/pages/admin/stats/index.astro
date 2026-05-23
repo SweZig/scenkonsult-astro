@@ -222,28 +222,31 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ── Auth (matchar /admin/sven/) ───────────────────────────────────────
+// ── Auth (matchar /admin/ — klartext-lösenord, ingen hashning) ────────
 const ADMIN_KEY = 'sk_admin_token';
 let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
 
-async function sha256hex(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+async function tryLogin(pw) {
+  try {
+    const res = await fetch('/api/admin-auth?_=' + Date.now(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return !!j.ok;
+  } catch (e) {
+    return false;
+  }
 }
 
 document.getElementById('pw-btn').onclick = async () => {
   const pw = document.getElementById('pw-input').value.trim();
   if (!pw) return;
-  const hash = await sha256hex(pw);
-  const res = await fetch('/api/admin-auth?_=' + Date.now(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-    body: JSON.stringify({ token: hash }),
-  }).catch(() => null);
-  const okResp = res && (await res.json().catch(() => ({}))).ok;
+  const okResp = await tryLogin(pw);
   if (okResp) {
-    adminToken = hash;
-    sessionStorage.setItem(ADMIN_KEY, hash);
+    adminToken = pw;
+    sessionStorage.setItem(ADMIN_KEY, pw);
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     init();
@@ -255,12 +258,8 @@ document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key
 
 // Om redan inloggad — försök auto-logga in
 if (adminToken) {
-  fetch('/api/admin-auth?_=' + Date.now(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-    body: JSON.stringify({ token: adminToken }),
-  }).then(r => r.json()).then(j => {
-    if (j && j.ok) {
+  tryLogin(adminToken).then(okResp => {
+    if (okResp) {
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
       init();
@@ -268,7 +267,7 @@ if (adminToken) {
       sessionStorage.removeItem(ADMIN_KEY);
       adminToken = '';
     }
-  }).catch(() => {});
+  });
 }
 
 // ── State ─────────────────────────────────────────────────────────────
