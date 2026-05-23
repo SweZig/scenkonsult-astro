@@ -310,7 +310,7 @@ async function fetchStats(period) {
     }
   } catch (e) {}
 
-  const url = `/api/stats-ga4?period=${period}&compare=1&_=${Date.now()}`;
+  const url = `/.netlify/functions/stats-ga4?period=${period}&compare=1&_=${Date.now()}`;
   const res = await fetch(url, {
     headers: { 'Authorization': 'Bearer ' + adminToken, 'Cache-Control': 'no-cache' },
   });
