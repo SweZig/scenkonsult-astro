@@ -189,9 +189,13 @@ function htmlWrapper(bodyHtml) {
 <body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
 <tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-<tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
-  <img src="${MAIL_LOGO_URL}" alt="Scenkonsult Norden" width="130" style="display:block;margin:0 auto 10px;height:auto;" />
-  <p style="margin:0;color:rgba(255,255,255,0.65);font-size:13px;">Ljud &middot; Ljus &middot; Scen &middot; DJ &mdash; Stockholm sedan 1986</p>
+<tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:28px 32px 22px;text-align:center;">
+  <!-- Text-baserad brand (synlig även när bilder är blockerade) -->
+  <h1 style="margin:0 0 6px;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;line-height:1.05;letter-spacing:0.02em;color:#ffffff;">Scenkonsult Norden</h1>
+  <p style="margin:0;color:#c4b5f4;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.18em;">Ljud &middot; Ljus &middot; Scen &middot; DJ</p>
+  <p style="margin:8px 0 0;color:rgba(255,255,255,0.55);font-size:11px;letter-spacing:0.04em;">Stockholm sedan 1986 &middot; <a href="https://scenkonsult.se" style="color:rgba(255,255,255,0.55);text-decoration:none;">scenkonsult.se</a></p>
+  <!-- Logo (komplement — visas när bilder tillåts, men ej kritiskt) -->
+  <img src="${MAIL_LOGO_URL}" alt="" width="90" style="display:block;margin:14px auto 0;height:auto;opacity:0.85;" />
 </td></tr>
 <tr><td style="background:#ffffff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">${bodyHtml}</td></tr>
 <tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:18px 32px;text-align:center;">

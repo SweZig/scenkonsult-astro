@@ -237,10 +237,75 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     padding: 0.75rem 1.25rem;
     border-top: 1px solid rgba(255,255,255,0.06);
     background: rgba(196,181,244,0.04);
+    flex-wrap: wrap;
   }
-  .order-time-item { display: flex; flex-direction: column; gap: 1px; }
+  .order-time-item { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
   .order-time-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing:0.07em; color: rgba(255,255,255,0.60); }
   .order-time-value { font-size: 0.88rem; font-weight: 600; color: #f0eeff; }
+
+  /* Leverans- / hämtningsblock */
+  .order-delivery {
+    display: flex;
+    gap: 0.875rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    align-items: flex-start;
+  }
+  .order-delivery-pickup { background: rgba(74,222,128,0.07); border-left: 3px solid rgba(74,222,128,0.55); }
+  .order-delivery-truck  { background: rgba(96,165,250,0.07); border-left: 3px solid rgba(96,165,250,0.55); }
+  .order-delivery-tbd    { background: rgba(251,191,36,0.07); border-left: 3px solid rgba(251,191,36,0.55); }
+  .odel-icon { font-size: 1.55rem; flex-shrink: 0; line-height: 1.2; }
+  .odel-body { flex: 1; min-width: 0; }
+  .odel-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #fff;
+    margin-bottom: 0.25rem;
+  }
+  .odel-text {
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.72);
+    line-height: 1.55;
+    margin-bottom: 0.7rem;
+  }
+  .odel-addr {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.55rem;
+  }
+  .odel-addr-label {
+    display: block;
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.60);
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+  .odel-addr-link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: #f0eeff;
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+  .odel-addr-link strong { color: #f0eeff; font-weight: 700; }
+  .odel-addr-arrow {
+    color: #c4b5f4;
+    font-size: 0.75rem;
+    margin-top: 0.15rem;
+    font-weight: 600;
+  }
+  .odel-addr-link:hover .odel-addr-arrow { text-decoration: underline; }
+  .odel-note {
+    font-size: 0.76rem;
+    color: rgba(255,255,255,0.60);
+    line-height: 1.55;
+    font-style: italic;
+  }
 
   /* Totals box */
   .order-totals {
@@ -418,13 +483,15 @@ import orderCatalog from '../../data/order-catalog-flat.json';
 
     <!-- Chatt -->
     <div class="section">
-      <div class="section-head">Meddelanden <span id="unreadBadge" style="display:none;background:#f87171;color:#fff;border-radius:99px;padding:1px 7px;font-size:0.7rem;margin-left:6px;font-weight:700;text-transform:none;letter-spacing:0"></span></div>
+      <div class="section-head">💬 Skicka meddelande till oss <span id="unreadBadge" style="display:none;background:#f87171;color:#fff;border-radius:99px;padding:1px 7px;font-size:0.7rem;margin-left:6px;font-weight:700;text-transform:none;letter-spacing:0"></span></div>
       <div class="section-body">
+        <p style="margin:0 0 1rem;color:rgba(255,255,255,0.65);font-size:0.85rem;line-height:1.55">Använd gärna meddelanderutan nedan för frågor, ändringar eller övriga önskemål — så samlas all kommunikation kring just denna order här. Vi svarar oftast inom en timme på vardagar.</p>
         <div class="chat-messages" id="chatMessages">
           <div class="chat-empty">Inga meddelanden ännu.</div>
         </div>
         <div class="chat-input-wrap">
-          <textarea class="chat-textarea" id="chatInput" placeholder="Skriv ett meddelande till Scenkonsult…"></textarea>
+          <label for="chatInput" style="font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:0.06em">Skriv ditt meddelande</label>
+          <textarea class="chat-textarea" id="chatInput" placeholder="Skriv en fråga eller ett önskemål till Scenkonsult Norden…"></textarea>
           <button class="chat-send-btn" id="chatSendBtn">Skicka meddelande →</button>
         </div>
       </div>
@@ -451,7 +518,7 @@ const STATUS = {
   new:         { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
   open:        { icon: '📬', label: 'Förfrågan mottagen',  desc: 'Vi har tagit emot din förfrågan och återkommer inom kort.',                   cls: 's-open'      },
   proposal:    { icon: '📤', label: 'Offert skickad',      desc: 'Vi har skickat ett offert — se produkter och priser nedan.',                  cls: 's-proposal'  },
-  waiting:     { icon: '⏳', label: 'Offert klar',         desc: 'Offerten är klar — granska detaljerna nedan och hör av dig om du har frågor.', cls: 's-waiting'   },
+  waiting:     { icon: '⏳', label: 'Offert klar',         desc: 'Gå igenom uppgifterna nedan. Om allt stämmer kan ni bekräfta ordern direkt med knappen längst ner — annars hör gärna av er via meddelanderutan.', cls: 's-waiting'   },
   confirmed:   { icon: '✅', label: 'Order bekräftad',     desc: 'Ordern är bekräftad av Scenkonsult Norden.',                                  cls: 's-confirmed' },
   fakturerad:  { icon: '🧾', label: 'Faktura skickad',     desc: 'En faktura har skickats till din e-post. Välkommen på eventet!',              cls: 's-fakturerad'},
   completed:   { icon: '🏁', label: 'Avslutad — tack!',    desc: 'Eventet är genomfört och betalningen är registrerad. Tack för förtroendet!',  cls: 's-completed' },
@@ -526,18 +593,40 @@ function openOrderProductModal(item) {
   if (!window.skModalOpen) return;
   const info   = _lookupOrderProduct(item);
   const imgSrc = _getOrderImg(item);
+
+  // Bygg info-rader (för scen-paket: yta, mått, kapacitet, transport)
+  const rows = [];
+  const specRows = [];
+  if (info.size)       specRows.push(`<span style="color:rgba(255,255,255,.55)">📐 Yta:</span> <strong style="color:#fff">${info.size}</strong>`);
+  if (info.dimensions) specRows.push(`<span style="color:rgba(255,255,255,.55)">📏 Mått:</span> <strong style="color:#fff">${info.dimensions}</strong>`);
+  if (info.capacity)   specRows.push(`<span style="color:rgba(255,255,255,.55)">👥 Plats för:</span> <strong style="color:#fff">${info.capacity}</strong>`);
+  if (info.transport === 'krävs') {
+    specRows.push(`<span style="color:rgba(255,255,255,.55)">🚚 Transport:</span> <strong style="color:#fbbf24">krävs (tillkommer)</strong>`);
+  } else if (info.transport === 'tillägg') {
+    specRows.push(`<span style="color:rgba(255,255,255,.55)">🚚 Transport:</span> <strong style="color:#fff">tillkommer som tillägg</strong>`);
+  }
+  if (specRows.length) rows.push({ label: 'Specifikation', rows: specRows });
+
+  if (info.useCase) {
+    rows.push({ label: 'Bra för', rows: [info.useCase], fullWidth: true });
+  }
+
+  // Includes → specs-lista med ▸ (modalens befintliga rendering)
+  const includesStr = (info.includes || []).join('||');
+
   window.skModalOpen({
     name:      item.name,
     artno:     item.artno || info.artno || '',
-    desc:      info.desc || '',
-    rows:      [],
+    descText:  info.desc || '',         // fri beskrivning paragraph
+    desc:      includesStr,             // specs-lista (||-separerat)
+    rows:      rows,
     price:     item.price,
-    priceNote: '/dygn',
+    priceNote: info.priceNote || '/dygn',
     category:  item.category || info.catName || '',
     cartId:    '',
     images:    imgSrc ? [imgSrc] : [],
     videos:    [],
-    persons:   '',
+    persons:   info.tagline || '',
     hideCart:  true,
   });
 }
@@ -793,7 +882,54 @@ function renderOrder(c) {
         <span class="order-time-label">📅 Återlämning</span>
         <span class="order-time-value">${fmtDate(retDate)} kl ${rtTime}</span>
       </div>
-      ${c.event_location ? `<div class="order-time-item"><span class="order-time-label">📍 Plats</span><span class="order-time-value">${c.event_location}</span></div>` : ''}
+      ${c.event_location ? `<div class="order-time-item"><span class="order-time-label">📍 Eventplats</span><span class="order-time-value">${c.event_location}</span></div>` : ''}
+    </div>`;
+  }
+
+  // ── Leverans- / hämtningsblock (tydlig adress + beskrivning) ──
+  const dm = c.delivery_mode;
+  if (dm === 'self_pickup') {
+    html += `<div class="order-delivery order-delivery-pickup">
+      <div class="odel-icon">📦</div>
+      <div class="odel-body">
+        <div class="odel-title">Självhämtning</div>
+        <div class="odel-text">Ni hämtar och lämnar tillbaka utrustningen själva hos oss.</div>
+        <div class="odel-addr">
+          <span class="odel-addr-label">Adress för hämtning &amp; återlämning</span>
+          <a class="odel-addr-link" href="https://maps.google.com/?q=Grimstagatan+164,+162+58+V%C3%A4llingby" target="_blank" rel="noopener">
+            <strong>Grimstagatan 164, 162 58 Vällingby</strong>
+            <span class="odel-addr-arrow">↗ Visa på karta</span>
+          </a>
+        </div>
+        <div class="odel-note">Ring 072-448 10 00 strax innan ni kommer så har vi allt klart.</div>
+      </div>
+    </div>`;
+  } else if (dm === 'delivery') {
+    html += `<div class="order-delivery order-delivery-truck">
+      <div class="odel-icon">🚚</div>
+      <div class="odel-body">
+        <div class="odel-title">Vi levererar &amp; hämtar tillbaka</div>
+        <div class="odel-text">Vår personal kör ut utrustningen till er på utlämningstiden och hämtar den vid återlämningen.</div>
+        <div class="odel-addr">
+          <span class="odel-addr-label">Leveransadress</span>
+          ${c.event_location
+            ? `<a class="odel-addr-link" href="https://maps.google.com/?q=${encodeURIComponent(c.event_location)}" target="_blank" rel="noopener">
+                 <strong>${c.event_location}</strong>
+                 <span class="odel-addr-arrow">↗ Visa på karta</span>
+               </a>`
+            : `<strong style="color:#fbbf24">Adress ej angiven — vänligen meddela oss i chatten nedan.</strong>`}
+        </div>
+        <div class="odel-note">Vi ringer 30 min innan ankomst. Fri leveransbil ingår inom Storstockholm för mindre uppdrag — större paket faktureras enligt offert.</div>
+      </div>
+    </div>`;
+  } else if (c.event_date) {
+    // Leveranssätt ännu inte valt — visa neutral prompt
+    html += `<div class="order-delivery order-delivery-tbd">
+      <div class="odel-icon">❓</div>
+      <div class="odel-body">
+        <div class="odel-title">Leveranssätt — meddela oss gärna</div>
+        <div class="odel-text">Vill ni hämta själva hos oss på Grimstagatan 164 i Vällingby, eller önskar ni att vi kör ut utrustningen? Skriv i meddelanderutan nedan.</div>
+      </div>
     </div>`;
   }
 
@@ -847,11 +983,23 @@ function renderMessages() {
 
 function renderConfirmBox(c) {
   const total = (c.items||[]).filter(i=>!i._note).reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+  // Leveranssätt-rad i sammanfattningen
+  const dmLine = (() => {
+    if (c.delivery_mode === 'self_pickup') {
+      return `<br>Hämtas av er på <strong style="color:#fff">Grimstagatan 164, Vällingby</strong>`;
+    } else if (c.delivery_mode === 'delivery') {
+      return c.event_location
+        ? `<br>Levereras av oss till <strong style="color:#fff">${c.event_location}</strong>`
+        : `<br><strong style="color:#fbbf24">Leverans — adress meddelas i chatten</strong>`;
+    }
+    return '';
+  })();
   return `
     <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08)">
-      <div style="color:rgba(255,255,255,0.9);font-size:0.95rem;font-weight:600;margin-bottom:0.75rem">
+      <div style="color:rgba(255,255,255,0.9);font-size:0.95rem;font-weight:600;margin-bottom:0.5rem">
         Bekräfta din order
       </div>
+      <p style="color:rgba(255,255,255,0.6);font-size:0.83rem;line-height:1.55;margin:0 0 0.85rem">Granska uppgifterna ovan. När allt ser rätt ut — bocka i hyresvillkoren och tryck på knappen nedan så registreras ordern direkt hos oss.</p>
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.6">
         ${(() => {
           const _prod = (c.items||[]).filter(i => !i._note && !['Tjänster','Tillägg'].includes(i.category) && !(i.id&&i.id.startsWith('fakturaavgift')));
@@ -865,9 +1013,10 @@ function renderConfirmBox(c) {
           const dateStr = c.event_date ? `${fmtDate(c.event_date)} kl ${dlTime}` : null;
           const retStr  = retDate ? `${fmtDate(retDate)} kl ${rtTime}` : null;
           return `Ordern avser <strong style="color:#fff">${parts.join(' och ') || 'produkter'}</strong>`
-            + (c.event_location ? ` till <strong style="color:#fff">${c.event_location}</strong>` : '')
+            + (c.event_location ? ` för event på <strong style="color:#fff">${c.event_location}</strong>` : '')
             + (dateStr ? `.<br>Utlämning <strong style="color:#fff">${dateStr}</strong>` : '')
             + (retStr  ? ` · Återlämning <strong style="color:#fff">${retStr}</strong>` : '')
+            + dmLine
             + `.<br>Totalt <strong style="color:#c4b5f4">${Math.round(total*1.25).toLocaleString('sv-SE')} kr inkl. moms</strong>.`;
         })()}
       </div>

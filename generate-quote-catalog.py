@@ -45,7 +45,7 @@ def prod(p, item_type='product'):
     """Hyresprodukt-format (bil/scen/ljud-paket m.fl.)."""
     artno = (p.get('artno') or '').strip()
     slug  = p.get('slug') or p.get('id','')
-    return {
+    out = {
         'id':    artno or slug,
         'artno': artno,
         'slug':  slug,
@@ -55,6 +55,12 @@ def prod(p, item_type='product'):
         'desc':  p.get('description') or p.get('desc') or '',
         'type':  p.get('type', item_type),
     }
+    # Extra-fält för modal-visning (scen, ljus etc) — bara om de finns
+    for k in ('tagline','size','dimensions','capacity','useCase','transport','includes','features','priceNote'):
+        v = p.get(k)
+        if v:
+            out[k] = v
+    return out
 
 def svc_from_service(s):
     """Konvertera ett services-array-objekt (ljud/ljus/bild) till tjänsterad."""
@@ -271,6 +277,11 @@ def add_flat(prods, cat_name):
             'catName': cat_name,
             'type':    p.get('type','product'),
         }
+        # Passa igenom extra-fält för modal-visning på ordersidan
+        for k in ('tagline','size','dimensions','capacity','useCase','transport','includes','features','priceNote'):
+            v = p.get(k)
+            if v:
+                entry[k] = v
         if artno:
             order_catalog[artno] = entry
         if slug and slug != artno:
