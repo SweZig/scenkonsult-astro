@@ -63,7 +63,7 @@ exports.handler = async (event) => {
 
 <tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:28px 32px;text-align:center">
   <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="120" style="display:block;margin:0 auto 10px;height:auto">
-  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:13px">Ljud · Ljus · Scen · DJ — Stockholm sedan 1986</p>
+  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:13px">Ljud · Ljus · Scen · Bild — Stockholm sedan 1986</p>
 </td></tr>
 
 <tr><td style="background:#fff;padding:36px 32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8">
