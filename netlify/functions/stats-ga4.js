@@ -275,7 +275,14 @@ exports.handler = async (event) => {
       fetchedAt: new Date().toISOString(),
     });
   } catch (e) {
-    console.error('STATS_GA4', e?.message || e);
+    // Logga så mycket detaljer som möjligt — Google-fel innehåller ofta
+    // mer info i e.response.data än i e.message
+    console.error('STATS_GA4 error message:', e?.message || e);
+    if (e?.response?.data) {
+      console.error('STATS_GA4 Google response:', JSON.stringify(e.response.data));
+    }
+    if (e?.code) console.error('STATS_GA4 code:', e.code);
+    if (e?.stack) console.error('STATS_GA4 stack:', e.stack.split('\n').slice(0, 5).join(' | '));
     return err(`GA4-hämtning misslyckades: ${e?.message || 'okänt fel'}`, 500);
   }
 };
