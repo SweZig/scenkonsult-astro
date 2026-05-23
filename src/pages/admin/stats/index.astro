@@ -235,7 +235,7 @@ document.getElementById('pw-btn').onclick = async () => {
   const pw = document.getElementById('pw-input').value;
   if (!pw) return;
   const hash = await sha256hex(pw);
-  const res = await fetch('/.netlify/functions/admin-auth?_=' + Date.now(), {
+  const res = await fetch('/api/admin-auth?_=' + Date.now(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
     body: JSON.stringify({ token: hash }),
@@ -255,7 +255,7 @@ document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key
 
 // Om redan inloggad — försök auto-logga in
 if (adminToken) {
-  fetch('/.netlify/functions/admin-auth?_=' + Date.now(), {
+  fetch('/api/admin-auth?_=' + Date.now(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
     body: JSON.stringify({ token: adminToken }),
@@ -311,7 +311,7 @@ async function fetchStats(period) {
     }
   } catch (e) {}
 
-  const url = `/.netlify/functions/stats-ga4?period=${period}&compare=1&_=${Date.now()}`;
+  const url = `/api/stats-ga4?period=${period}&compare=1&_=${Date.now()}`;
   const res = await fetch(url, {
     headers: { 'Authorization': 'Bearer ' + adminToken, 'Cache-Control': 'no-cache' },
   });
