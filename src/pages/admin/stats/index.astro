@@ -232,7 +232,7 @@ async function sha256hex(str) {
 }
 
 document.getElementById('pw-btn').onclick = async () => {
-  const pw = document.getElementById('pw-input').value;
+  const pw = document.getElementById('pw-input').value.trim();
   if (!pw) return;
   const hash = await sha256hex(pw);
   const res = await fetch('/api/admin-auth?_=' + Date.now(), {
