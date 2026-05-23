@@ -195,6 +195,12 @@ exports.handler = async (event) => {
       if (body.referral_source !== undefined) updates.referral_source = body.referral_source || null;
       if (body.pickup_admin_note !== undefined) updates.pickup_admin_note = body.pickup_admin_note || null;
 
+      // Manuell markering "kund har läst offerten" (när admin vet via annan kanal)
+      if (body.last_read_customer !== undefined) {
+        const v = body.last_read_customer;
+        updates.last_read_customer = (v && typeof v === 'string') ? v : null;
+      }
+
       // Statusändring
       if (body.status !== undefined) {
         const ALLOWED = ['new', 'waiting', 'confirmed', 'cancelled', 'fakturerad', 'completed'];

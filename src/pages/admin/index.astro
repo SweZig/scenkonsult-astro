@@ -1895,9 +1895,54 @@ function doLogin() {
 function showApp() {
   $('login-screen').style.display = 'none';
   $('app').style.display = 'flex';
+  _liftConfigPanelsToBody();
   loadCarts();
   loadChatTemplates();
   startRefreshTimer();
+}
+
+// Lyfter de fyra config-panelerna ur quote-overlay (där de bor i HTML)
+// till document.body som modal-paneler. Då fungerar de både från quote-modalen
+// och från Produkter-fliken på kundkortet. Idempotent — kollar parentNode.
+function _liftConfigPanelsToBody() {
+  const ids = ['admin-scen-config','admin-led-config','admin-frakt-config','admin-montering-config'];
+  // Skapa gemensam backdrop som visas när någon panel är öppen
+  if (!document.getElementById('admin-config-backdrop')) {
+    const bd = document.createElement('div');
+    bd.id = 'admin-config-backdrop';
+    bd.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(6,4,22,.78);z-index:8800;backdrop-filter:blur(2px)';
+    bd.addEventListener('click', () => {
+      // Stäng alla paneler vid backdrop-klick
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      bd.style.display = 'none';
+    });
+    document.body.appendChild(bd);
+  }
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el.parentNode === document.body) return;
+    // Modal-styling: centrerad, fixed, högt z-index
+    el.style.position    = 'fixed';
+    el.style.top         = '50%';
+    el.style.left        = '50%';
+    el.style.transform   = 'translate(-50%,-50%)';
+    el.style.maxWidth    = '480px';
+    el.style.width       = 'calc(100vw - 2rem)';
+    el.style.maxHeight   = '90vh';
+    el.style.overflowY   = 'auto';
+    el.style.zIndex      = '8900';
+    el.style.boxShadow   = '0 12px 40px rgba(0,0,0,.6)';
+    document.body.appendChild(el);
+  });
+}
+
+// Visa/dölj backdrop tillsammans med config-panel
+function _showConfigBackdrop(show) {
+  const bd = document.getElementById('admin-config-backdrop');
+  if (bd) bd.style.display = show ? 'block' : 'none';
 }
 
 $('logout-btn').addEventListener('click', () => {
@@ -2746,14 +2791,23 @@ async function openDetail(cartId) {
 function renderPanelTabs() {
   document.querySelectorAll('.panel-tab').forEach(tab => {
     tab.classList.toggle('active', tab.dataset.tab === activeTab);
-    tab.onclick = () => {
+    tab.onclick = async () => {
       const newTab = tab.dataset.tab;
       if (newTab === activeTab) return;
-      // Varna om osparade ändringar finns i nuvarande flik
+      // Vid osparade ändringar: 3-val (Spara först | Lämna utan | Avbryt)
+      // Annars förlorar admin ändringar som senare ska synkroniseras till offert/mail.
       if (panelDirty) {
-        if (!confirm('Du har osparade ändringar i denna flik. Lämna ändå?\n\nOK = lämna utan att spara\nAvbryt = stanna kvar')) {
-          return;
+        const choice = await askDirtyChoice();
+        if (choice === 'cancel')      return;
+        if (choice === 'save') {
+          const saved = await saveDirtyTabIfPossible();
+          if (!saved) {
+            // Spara misslyckades — stanna kvar så admin kan rätta
+            toast('Kunde inte spara — flikbyte avbrutet', 'error');
+            return;
+          }
         }
+        // 'discard' faller igenom
       }
       clearPanelDirty();
       activeTab = newTab;
@@ -2761,6 +2815,76 @@ function renderPanelTabs() {
       renderPanelTabs();
       renderTab(activeTab);
     };
+  });
+}
+
+// 3-vals dialog för osparade ändringar.
+// Returnerar 'save' | 'discard' | 'cancel'.
+function askDirtyChoice() {
+  return new Promise(resolve => {
+    // Bygg overlay inline för att slippa modal-infrastruktur
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(6,4,22,.78);display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px)';
+    wrap.innerHTML = `
+      <div style="background:#1a1740;border:1px solid rgba(196,181,244,.25);border-radius:14px;padding:1.5rem;max-width:420px;width:100%;color:#f0eeff;box-shadow:0 12px 40px rgba(0,0,0,.6)">
+        <div style="font-size:1.4rem;margin-bottom:.5rem">⚠ Osparade ändringar</div>
+        <p style="color:rgba(255,255,255,.72);font-size:.9rem;line-height:1.55;margin:0 0 1.2rem">
+          Du har gjort ändringar i denna flik som inte är sparade. Vad vill du göra?
+        </p>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <button data-action="save" style="background:#c4b5f4;color:#0c0a24;border:none;border-radius:8px;padding:.7rem 1rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit">
+            💾 Spara först &amp; byt flik
+          </button>
+          <button data-action="discard" style="background:rgba(255,255,255,.06);color:#f0eeff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:.7rem 1rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit">
+            Lämna utan att spara
+          </button>
+          <button data-action="cancel" style="background:transparent;color:rgba(255,255,255,.55);border:1px solid transparent;border-radius:8px;padding:.6rem 1rem;font-size:.85rem;cursor:pointer;font-family:inherit">
+            Avbryt — stanna kvar
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.addEventListener('click', e => {
+      const a = e.target.closest('[data-action]');
+      if (!a && e.target !== wrap) return;
+      const action = a ? a.dataset.action : 'cancel';
+      wrap.remove();
+      resolve(action);
+    });
+  });
+}
+
+// Försök spara aktuell flik (Info, Produkter etc) och returnera true vid framgång.
+// Hittar rätt spara-knapp och klickar den programmatiskt så befintlig logik körs.
+async function saveDirtyTabIfPossible() {
+  if (activeTab === 'info') {
+    const btn = document.getElementById('save-info-btn');
+    if (btn && !btn.disabled) {
+      btn.click();
+      // Vänta tills knappen är klar (textinnehåll går tillbaka)
+      await _waitForButton(btn, '💾 Spara kunduppgifter', 6000);
+      return !panelDirty;
+    }
+  }
+  if (activeTab === 'products') {
+    await prodSave();
+    return !panelDirty;
+  }
+  // Andra flikar har egen logik — fall tillbaka på discard
+  return true;
+}
+
+function _waitForButton(btn, targetText, maxMs = 5000) {
+  return new Promise(resolve => {
+    const start = Date.now();
+    const tick = () => {
+      if (btn.textContent.includes(targetText) || !btn.disabled || Date.now() - start > maxMs) {
+        resolve();
+      } else {
+        setTimeout(tick, 80);
+      }
+    };
+    setTimeout(tick, 80);
   });
 }
 
@@ -3334,7 +3458,12 @@ function renderInfoTab() {
     <div class="info-grid">
       <div class="info-field"><div class="info-field-label">Skapad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.created_at)}</div></div>
       <div class="info-field"><div class="info-field-label">Uppdaterad</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.updated_at)}</div></div>
-      <div class="info-field"><div class="info-field-label">Kund senast aktiv</div><div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.last_read_customer)}</div></div>
+      <div class="info-field"><div class="info-field-label">Kund senast aktiv</div>
+        ${c.last_read_customer
+          ? `<div class="info-field-value" style="font-size:0.8rem">${fmtTime(c.last_read_customer)}</div>`
+          : `<div style="font-size:0.78rem;color:var(--amber);margin-bottom:4px">⚠ Kunden har inte öppnat offerten</div>
+             <button onclick="markCustomerAsReadManually()" class="btn-action" style="font-size:0.72rem;padding:0.3rem 0.6rem;color:rgba(196,181,244,0.85);border-color:rgba(196,181,244,0.3);background:transparent" title="Markera offerten som läst av kund — tar bort 'Oläst'-flaggan på detta kort">✓ Markera som läst</button>`
+        }</div>
       <div class="info-field"><div class="info-field-label">Utgår</div><div class="info-field-value" style="font-size:0.8rem;color:${c.expires_at ? 'var(--amber)' : 'var(--green)'}">${c.expires_at ? fmtDate(c.expires_at) : '♾ Bekräftad'}</div></div>
     </div>
 
@@ -3536,6 +3665,28 @@ function renderProductsTab() {
     </table>
     <div style="margin-top:10px">
       <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:rgba(196,181,244,0.5);margin-bottom:4px">Lägg till produkt</div>
+
+      <!-- Snabbsök produkt eller artno -->
+      <div style="position:relative;margin-bottom:0.5rem">
+        <input id="prod-search" type="text" placeholder="🔍 Snabbsök produkt eller artno (t.ex. 'subwoofer' eller 'SK-LJD-MIK-0014')"
+          autocomplete="off"
+          onfocus="prodSearchSetTarget();quoteSearchInput(this.value)"
+          oninput="prodSearchSetTarget();quoteSearchInput(this.value)"
+          onkeydown="prodSearchSetTarget();quoteSearchKey(event)"
+          onblur="setTimeout(() => { const r = document.getElementById('prod-search-results'); if (r) r.style.display = 'none'; }, 200)"
+          style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(196,181,244,0.35);border-radius:8px;padding:0.5rem 0.7rem;font-family:inherit;font-size:0.82rem">
+        <div id="prod-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1640;border:1px solid rgba(196,181,244,0.3);border-radius:8px;margin-top:4px;max-height:340px;overflow-y:auto;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,0.4)"></div>
+      </div>
+
+      <!-- Konfigurator-knappar (samma som offert-modalen) -->
+      <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.5rem">
+        <button class="btn-action" onclick="prodOpenScenConfig()" style="font-size:0.74rem;padding:0.32rem 0.65rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">🎭 Konfigurera scen</button>
+        <button class="btn-action" onclick="prodOpenLedConfig()" style="font-size:0.74rem;padding:0.32rem 0.65rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">📺 LED-vägg</button>
+        <button class="btn-action" onclick="prodOpenFraktConfig()" style="font-size:0.74rem;padding:0.32rem 0.65rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">🚚 Frakt</button>
+        <button class="btn-action" onclick="prodOpenMonteringConfig()" style="font-size:0.74rem;padding:0.32rem 0.65rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">🔧 Montering</button>
+      </div>
+
+      <div style="font-size:0.66rem;color:rgba(255,255,255,0.45);margin-bottom:6px;font-style:italic">eller välj manuellt:</div>
       <select id="prod-cat-sel" onchange="prodPickCat()"
         style="width:100%;font-size:0.82rem;padding:6px 8px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px dashed var(--border-lav);border-radius:8px">
         <option value="">— välj kategori —</option>
@@ -3675,7 +3826,19 @@ function prodUpdateSvc() {
 }
 
 async function prodSaveAndSendOffer() {
+  // Om Info-fliken (eller annan) har osparade ändringar — fråga först.
+  // Annars riskerar admin att skicka offert med gamla datum/plats/kontakt.
+  if (panelDirty) {
+    const choice = await askDirtyChoice();
+    if (choice === 'cancel') return;
+    if (choice === 'save') {
+      const saved = await saveDirtyTabIfPossible();
+      if (!saved) { toast('Kunde inte spara — avbryter', 'error'); return; }
+    }
+    clearPanelDirty();
+  }
   await prodSave();
+  // refreshCurrentCart kördes i prodSave — currentCart är nu synkad med DB
   openQuoteModalForCart(currentCart);
 }
 
@@ -5642,6 +5805,7 @@ let quoteItems = []; // { id, name, price, qty }
 let _quoteIsNewOrder = false; // true = ny order (ej knuten till befintlig cart)
 
 function openQuoteModal(prefill) {
+  _configTarget = 'quote';  // återställ target — denna modal jobbar mot quoteItems
   _quoteIsNewOrder = (prefill === null); // null = ny manuell order
   quoteItems = [];
   $('qc-name').value     = prefill?.customer_name || '';
@@ -6425,6 +6589,30 @@ async function invDownloadPdf() {
 window.prodDownloadOrderPdf = prodDownloadOrderPdf;
 window.invDownloadPdf       = invDownloadPdf;
 
+// ── MARKERA OFFERT SOM LÄST AV KUND (manuell override) ────────
+// Används när admin vet att kunden sett offerten via annan kanal (telefon,
+// vidarebefordrat mail etc.) men last_read_customer inte är satt automatiskt.
+// Tar bort 'Oläst'-flaggan på kortet i kanban.
+async function markCustomerAsReadManually() {
+  if (!currentCart?.id) return;
+  if (!confirm('Markera offerten som läst av kund?\n\nDetta tar bort "Oläst"-flaggan på detta kort. Använd när du vet att kunden sett offerten via annan kanal (telefon, vidarebefordrat mail etc).')) return;
+  const nowIso = new Date().toISOString();
+  const { ok } = await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: currentCart.id, last_read_customer: nowIso }),
+  });
+  if (ok) {
+    currentCart.last_read_customer = nowIso;
+    await refreshCurrentCart();
+    renderTab('info');
+    renderKanban();
+    updateUnreadFilterBadge();
+    toast('✓ Markerad som läst av kund');
+  } else {
+    toast('Kunde inte uppdatera', 'error');
+  }
+}
+
 window.prodQty         = prodQty;
 window.prodDelete      = prodDelete;
 window.prodAddRow      = prodAddRow;
@@ -6438,6 +6626,7 @@ window.prodPickSub         = prodPickSub;
 window.prodPickerAdd       = prodPickerAdd;
 window.prodUpdateSvc       = prodUpdateSvc;
 window.prodSaveAndSendOffer= prodSaveAndSendOffer;
+window.markCustomerAsReadManually = markCustomerAsReadManually;
 window.invMarkPaid         = invMarkPaid;
 window.invUnmarkPaid       = invUnmarkPaid;
 window.invResend           = invResend;
@@ -6485,6 +6674,50 @@ function _quoteInsertHardware(item) {
   else quoteItems.splice(svcStart, 0, item);
 }
 
+// ─────────────────────────────────────────────────────────────
+// TARGET-CONTEXT för konfiguratorer + sök
+// Vid 'quote' (default) jobbar config/sök mot quoteItems (Ny manuell offert-modalen).
+// Vid 'productsTab' jobbar de mot currentCart.items (kundkortets Produkter-flik).
+// Sätts av "öppna config från produkter-fliken"-knapparna och nollställs när
+// quote-modalen öppnas.
+// ─────────────────────────────────────────────────────────────
+let _configTarget = 'quote';
+
+function _commitTargetItem(item) {
+  if (_configTarget === 'productsTab') {
+    // Skriv direkt på currentCart.items + uppdatera DOM via renderTab.
+    // prodGetItems() läser DOM så vi måste synka items till DOM först
+    // (renderTab('products') gör detta).
+    const items = (typeof prodGetItems === 'function')
+      ? prodGetItems()
+      : (currentCart.items || []);
+    const isSvc = _quoteIsSvc(item);
+    if (isSvc) {
+      items.push(item);
+    } else {
+      const svcStart = items.findIndex(_quoteIsSvc);
+      if (svcStart === -1) items.push(item);
+      else items.splice(svcStart, 0, item);
+    }
+    currentCart.items = items;
+    renderTab('products');
+    markPanelDirty();
+  } else {
+    // Default: quote-modalen
+    if (_quoteIsSvc(item)) {
+      quoteItems.push(item);
+    } else {
+      _quoteInsertHardware(item);
+    }
+    quoteRenderTable();
+  }
+}
+
+function _targetRender() {
+  if (_configTarget === 'productsTab') renderTab('products');
+  else quoteRenderTable();
+}
+
 function _buildQuoteSearchIndex() {
   if (_quoteSearchFlat) return _quoteSearchFlat;
   const flat = [];
@@ -6507,8 +6740,17 @@ function _buildQuoteSearchIndex() {
   return flat;
 }
 
+// Helper: vilken results-box som ska användas baserat på var sökfältet finns.
+// Vi väljer baserat på _configTarget istället för DOM-discovery för enkelhet.
+function _searchResultsBoxId() {
+  return _configTarget === 'productsTab' ? 'prod-search-results' : 'qp-search-results';
+}
+function _searchInputId() {
+  return _configTarget === 'productsTab' ? 'prod-search' : 'qp-search';
+}
+
 function quoteSearchInput(query) {
-  const resBox = document.getElementById('qp-search-results');
+  const resBox = document.getElementById(_searchResultsBoxId());
   if (!resBox) return;
   const q = (query || '').trim().toLowerCase();
   if (!q) {
@@ -6545,37 +6787,56 @@ function quoteSearchInput(query) {
 
 function quoteSearchKey(e) {
   if (e.key === 'Escape') {
-    document.getElementById('qp-search-results').style.display = 'none';
+    document.getElementById(_searchResultsBoxId()).style.display = 'none';
     e.target.blur();
   } else if (e.key === 'Enter') {
     e.preventDefault();
-    const resBox = document.getElementById('qp-search-results');
+    const resBox = document.getElementById(_searchResultsBoxId());
     if (resBox?._hits?.length) quoteSearchPick(0);
   }
 }
 
+// Sätt target före search (anropas från focus/input på prod-search)
+function prodSearchSetTarget() { _configTarget = 'productsTab'; }
+function quoteSearchSetTarget() { _configTarget = 'quote'; }
+
 function quoteSearchPick(idx) {
-  const resBox = document.getElementById('qp-search-results');
+  const resBox = document.getElementById(_searchResultsBoxId());
   const hits = resBox?._hits;
   if (!hits || !hits[idx]) return;
   const p = hits[idx];
   // Klassificera som tjänst eller hårdvara
   const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
   const isSvc = SVC_CATALOG_KEYS.includes(p._cat) || SVC_IDS.has(p.id);
-  const existing = quoteItems.find(i => i.id === p.id && !i.custom);
+
+  // Hitta befintlig rad i aktiv target-array och öka qty om träff
+  const targetItems = _configTarget === 'productsTab'
+    ? ((typeof prodGetItems === 'function') ? prodGetItems() : (currentCart.items || []))
+    : quoteItems;
+  const existing = targetItems.find(i => i.id === p.id && !i.custom);
   if (existing) {
     existing.qty++;
-  } else {
-    const newItem = { id: p.id, name: p.name, price: p.price || 0, qty: 1, category: isSvc ? 'Tjänster' : '', type: isSvc ? 'service' : 'product' };
-    if (isSvc) {
-      quoteItems.push(newItem);     // tjänster sist
+    if (_configTarget === 'productsTab') {
+      currentCart.items = targetItems;
+      renderTab('products');
+      markPanelDirty();
     } else {
-      _quoteInsertHardware(newItem); // hårdvara före första tjänst
+      quoteRenderTable();
     }
+  } else {
+    _commitTargetItem({
+      id: p.id,
+      name: p.name,
+      price: p.price || 0,
+      qty: 1,
+      category: isSvc ? 'Tjänster' : '',
+      type: isSvc ? 'service' : 'product',
+    });
   }
-  quoteRenderTable();
-  // Töm sökfältet och göm dropdown
-  const inp = document.getElementById('qp-search');
+
+  // Töm sökfältet och göm dropdown (samma element-ID i båda contexterna)
+  const inpId = _configTarget === 'productsTab' ? 'prod-search' : 'qp-search';
+  const inp = document.getElementById(inpId);
   if (inp) { inp.value = ''; inp.focus(); }
   resBox.style.display = 'none';
 }
@@ -6630,6 +6891,7 @@ function adminScenConfigOpen() {
 
 function adminScenConfigClose() {
   document.getElementById('admin-scen-config').style.display = 'none';
+  _showConfigBackdrop(false);
 }
 
 function adminScenConfigUpdate() {
@@ -6717,7 +6979,7 @@ function adminScenConfigAdd() {
   const prefix = `[Scen ${w}×${d}·${height}cm]`;
 
   // 1) Plattforms-rad
-  _quoteInsertHardware({
+  _commitTargetItem({
     id:    modArtno,
     name:  `${prefix} ${modName}`,
     price: modPrice,
@@ -6730,7 +6992,7 @@ function adminScenConfigAdd() {
   if (trapp > 0) {
     const trappRow = (cfg.trappor || []).find(t => t.height === height);
     if (trappRow) {
-      _quoteInsertHardware({
+      _commitTargetItem({
         id:    trappRow.artno,
         name:  `${prefix} ${trappRow.name}`,
         price: trappRow.price,
@@ -6744,7 +7006,7 @@ function adminScenConfigAdd() {
   // 3) Tak-rad (om vald)
   if (takVal) {
     const takOpt = document.getElementById('scen-cfg-tak').options[document.getElementById('scen-cfg-tak').selectedIndex];
-    _quoteInsertHardware({
+    _commitTargetItem({
       id:    takVal,
       name:  `${prefix} ${takOpt.dataset.name}`,
       price: parseFloat(takOpt.dataset.price) || 0,
@@ -6754,7 +7016,7 @@ function adminScenConfigAdd() {
     });
   }
 
-  quoteRenderTable();
+  _targetRender();
   adminScenConfigClose();
   toast?.(`✓ Lade till ${trapp > 0 ? '2–3' : '1–2'} rader (Scen ${w}×${d}·${height}cm)`);
 }
@@ -6781,6 +7043,7 @@ function adminLedConfigOpen() {
 
 function adminLedConfigClose() {
   document.getElementById('admin-led-config').style.display = 'none';
+  _showConfigBackdrop(false);
 }
 
 function adminLedConfigUpdate() {
@@ -6851,7 +7114,7 @@ function adminLedConfigAdd() {
   const dimStr = `${(actualW_mm/1000).toFixed(2).replace(/\.?0+$/,'')}×${(actualH_mm/1000).toFixed(2).replace(/\.?0+$/,'')} m`;
 
   // 1) Panel-rad
-  _quoteInsertHardware({
+  _commitTargetItem({
     id:    panelArtno + '__' + cols + 'x' + rows,
     name:  `${panelName} — ${cols}×${rows} = ${totalPanels} st · ${dimStr}`,
     price: panelPrice,
@@ -6865,7 +7128,7 @@ function adminLedConfigAdd() {
   const plarge = cfg.tillbehor?.processor_large;
   const proc = (totalPixels <= (psmall?.max_pixels || 2600000)) ? psmall : plarge;
   if (proc) {
-    _quoteInsertHardware({
+    _commitTargetItem({
       id:    proc.artno,
       name:  proc.name,
       price: proc.price_per_day_excl,
@@ -6878,7 +7141,7 @@ function adminLedConfigAdd() {
   // 3) Mount (ground/tross)
   const mountRow = mount === 'tross' ? cfg.tillbehor?.tross : cfg.tillbehor?.rigg;
   if (mountRow) {
-    _quoteInsertHardware({
+    _commitTargetItem({
       id:    mountRow.artno + '__' + cols + 'kol',
       name:  `${mountRow.name} (${cols} kolumner)`,
       price: (mountRow.price_per_column || 0) * cols,
@@ -6888,7 +7151,7 @@ function adminLedConfigAdd() {
     });
   }
 
-  quoteRenderTable();
+  _targetRender();
   adminLedConfigClose();
   toast?.(`✓ Lade till 3 rader (LED-vägg ${cols}×${rows})`);
 }
@@ -6900,13 +7163,16 @@ function adminLedConfigAdd() {
 // bulkyCount eftersom admin manuellt väljer).
 // ─────────────────────────────────────────────────────────────
 function _fraktAnalyzeQuote() {
-  // Analysera quoteItems för att föreslå fraktalternativ. Räkna:
+  // Analysera target-items för att föreslå fraktalternativ. Räkna:
   //  - antal scen-rader (SK-SCN-*)
   //  - antal LED-paneler (qty från SK-BLD-LED-P*)
   //  - om någon rad är ett 'Concert', 'Line Array' (line array kräver lastbil)
   //  - bulkyCount-uppskattning
+  const items = _configTarget === 'productsTab'
+    ? ((typeof prodGetItems === 'function') ? prodGetItems() : (currentCart.items || []))
+    : quoteItems;
   let scenRows = 0, ledPanels = 0, hasLineArray = false, hasTak = false;
-  for (const it of quoteItems) {
+  for (const it of items) {
     const id = (it.id || it.artno || '').toUpperCase();
     const name = (it.name || '').toUpperCase();
     if (id.startsWith('SK-SCN-MOD') || id.startsWith('SK-SCN-0')) scenRows++;
@@ -6970,11 +7236,13 @@ function adminFraktConfigOpen() {
   ).join('');
 
   panel.style.display = 'block';
+  _showConfigBackdrop(true);
   adminFraktConfigUpdate();
 }
 
 function adminFraktConfigClose() {
   document.getElementById('admin-frakt-config').style.display = 'none';
+  _showConfigBackdrop(false);
 }
 
 function adminFraktConfigUpdate() {
@@ -7004,7 +7272,7 @@ function adminFraktConfigAdd() {
   const artno = useEnkel ? opt.dataset.enkelArtno : opt.dataset.artno;
   const label = useEnkel ? opt.dataset.enkelLabel : opt.dataset.label;
 
-  quoteItems.push({
+  _commitTargetItem({
     id:    artno,
     name:  label,
     price: price,
@@ -7012,7 +7280,6 @@ function adminFraktConfigAdd() {
     category: 'Leverans',
     type: 'service',
   });
-  quoteRenderTable();
   adminFraktConfigClose();
   toast?.(`✓ Lade till frakt-rad: ${label}`);
 }
@@ -7035,11 +7302,13 @@ function adminMonteringConfigOpen() {
   ruleEl.innerHTML = `💡 <strong>Regel:</strong> ${cfg.prisPerTimme || 600} kr/tim, minimum ${cfg.minDebiteringMin || 15} min. Total tid = montering + demontering.`;
 
   panel.style.display = 'block';
+  _showConfigBackdrop(true);
   adminMonteringConfigUpdate();
 }
 
 function adminMonteringConfigClose() {
   document.getElementById('admin-montering-config').style.display = 'none';
+  _showConfigBackdrop(false);
 }
 
 function adminMonteringConfigUpdate() {
@@ -7073,7 +7342,7 @@ function adminMonteringConfigAdd() {
   const totalPris = Math.round(totalHours * prisPerTim);
   const labelExtra = pers > 1 ? ` (${pers} pers × ${hours} tim)` : ` (${hours} tim)`;
 
-  quoteItems.push({
+  _commitTargetItem({
     id:    cfg.artno || 'SK-TJN-0001',
     name:  (cfg.name || 'Montering & demontering') + labelExtra,
     price: totalPris,
@@ -7081,7 +7350,6 @@ function adminMonteringConfigAdd() {
     category: 'Tjänster',
     type: 'service',
   });
-  quoteRenderTable();
   adminMonteringConfigClose();
   toast?.(`✓ Lade till monterings-rad: ${totalPris.toLocaleString('sv')} kr`);
 }
@@ -7090,6 +7358,19 @@ function adminMonteringConfigAdd() {
 window.quoteSearchInput   = quoteSearchInput;
 window.quoteSearchKey     = quoteSearchKey;
 window.quoteSearchPick    = quoteSearchPick;
+window.prodSearchSetTarget = prodSearchSetTarget;
+window.quoteSearchSetTarget = quoteSearchSetTarget;
+
+// Wrappers för Produkter-fliken: sätter target='productsTab' innan
+// config-modalen öppnas, så _commitTargetItem skriver till currentCart.items.
+function prodOpenScenConfig()      { _configTarget = 'productsTab'; adminScenConfigOpen(); }
+function prodOpenLedConfig()       { _configTarget = 'productsTab'; adminLedConfigOpen(); }
+function prodOpenFraktConfig()     { _configTarget = 'productsTab'; adminFraktConfigOpen(); }
+function prodOpenMonteringConfig() { _configTarget = 'productsTab'; adminMonteringConfigOpen(); }
+window.prodOpenScenConfig      = prodOpenScenConfig;
+window.prodOpenLedConfig       = prodOpenLedConfig;
+window.prodOpenFraktConfig     = prodOpenFraktConfig;
+window.prodOpenMonteringConfig = prodOpenMonteringConfig;
 window.adminScenConfigOpen   = adminScenConfigOpen;
 window.adminScenConfigClose  = adminScenConfigClose;
 window.adminScenConfigUpdate = adminScenConfigUpdate;
