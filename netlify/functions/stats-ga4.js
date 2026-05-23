@@ -17,40 +17,43 @@
 //   }
 //
 // Auth:  Authorization: Bearer <ADMIN_TOKEN>
-// Env:   GA4_SA_KEY (base64-encoded service account JSON)
-//        GA4_PROPERTY_ID (default '417375423' om ej satt)
+// Env:   GA4_OAUTH_CLIENT_ID, GA4_OAUTH_CLIENT_SECRET, GA4_OAUTH_REFRESH_TOKEN
+//        (skapas via scripts/get-ga4-refresh-token.mjs)
+//        GA4_PROPERTY_ID (default '417375423')
 
 'use strict';
 const { isAdmin, ok, err, preflight } = require('./_lib');
-const { JWT } = require('google-auth-library');
+const { OAuth2Client } = require('google-auth-library');
 
 // ── Access token cache (varar tills funktionen kallrestartas) ───────────
 let _cachedToken = null;
 let _cachedTokenExpiry = 0;
+let _oauthClient = null;
 
 async function getAccessToken() {
   const now = Date.now();
   if (_cachedToken && now < _cachedTokenExpiry - 60_000) return _cachedToken;
 
-  const b64 = process.env.GA4_SA_KEY;
-  if (!b64) throw new Error('GA4_SA_KEY saknas i env');
+  const clientId     = process.env.GA4_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.GA4_OAUTH_CLIENT_SECRET;
+  const refreshToken = process.env.GA4_OAUTH_REFRESH_TOKEN;
 
-  let creds;
-  try {
-    creds = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'));
-  } catch (e) {
-    throw new Error('GA4_SA_KEY är inte giltig base64-encoded JSON');
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error('GA4 OAuth env-vars saknas (GA4_OAUTH_CLIENT_ID / GA4_OAUTH_CLIENT_SECRET / GA4_OAUTH_REFRESH_TOKEN)');
   }
 
-  const jwtClient = new JWT({
-    email: creds.client_email,
-    key: creds.private_key,
-    scopes: ['https://www.googleapis.com/auth/analytics.readonly'],
-  });
+  if (!_oauthClient) {
+    _oauthClient = new OAuth2Client(clientId, clientSecret);
+    _oauthClient.setCredentials({ refresh_token: refreshToken });
+  }
 
-  const tokenResp = await jwtClient.authorize();
-  _cachedToken = tokenResp.access_token;
-  _cachedTokenExpiry = tokenResp.expiry_date || (now + 3600_000);
+  // getAccessToken auto-refreshar via refresh_token
+  const { token } = await _oauthClient.getAccessToken();
+  if (!token) throw new Error('OAuth getAccessToken returnerade null — refresh_token kan vara förbrukad eller återkallad');
+
+  _cachedToken = token;
+  // Access tokens lever 1h. Sätt expiry 55 min för säker marginal.
+  _cachedTokenExpiry = now + 55 * 60 * 1000;
   return _cachedToken;
 }
 

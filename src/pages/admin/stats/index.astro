@@ -333,8 +333,8 @@ function showError(message) {
       <strong>Kunde inte hämta data från GA4</strong><br>
       ${message}<br><br>
       Vanliga orsaker:<br>
-      • Service Account-nyckeln (<code>GA4_SA_KEY</code>) saknas eller är fel i Netlify env<br>
-      • Service Account har inte fått behörighet på GA4 property <code>417375423</code><br>
+      • OAuth-env vars saknas i Netlify (<code>GA4_OAUTH_CLIENT_ID</code>, <code>GA4_OAUTH_CLIENT_SECRET</code>, <code>GA4_OAUTH_REFRESH_TOKEN</code>)<br>
+      • Refresh token är återkallad eller utgången — kör om <code>scripts/get-ga4-refresh-token.mjs</code> lokalt<br>
       • GA4 Data API inte aktiverat i Google Cloud-projektet
     </div>`;
 }
