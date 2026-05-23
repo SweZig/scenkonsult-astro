@@ -594,30 +594,67 @@ function openOrderProductModal(item) {
   const info   = _lookupOrderProduct(item);
   const imgSrc = _getOrderImg(item);
 
-  // Bygg info-rader (för scen-paket: yta, mått, kapacitet, transport)
+  // ── Bygg info-rader för alla kategorier ──
   const rows = [];
   const specRows = [];
+
+  // Scen-specifika fält
   if (info.size)       specRows.push(`<span style="color:rgba(255,255,255,.55)">📐 Yta:</span> <strong style="color:#fff">${info.size}</strong>`);
   if (info.dimensions) specRows.push(`<span style="color:rgba(255,255,255,.55)">📏 Mått:</span> <strong style="color:#fff">${info.dimensions}</strong>`);
   if (info.capacity)   specRows.push(`<span style="color:rgba(255,255,255,.55)">👥 Plats för:</span> <strong style="color:#fff">${info.capacity}</strong>`);
+
+  // Ljud/ljus/dj-fält (persons är "20–80 pers.")
+  if (info.persons && !info.capacity) {
+    specRows.push(`<span style="color:rgba(255,255,255,.55)">👥 Räcker för:</span> <strong style="color:#fff">${info.persons}</strong>`);
+  }
+
+  // Montering (ljud/ljus-paket)
+  if (info.monteringMin) {
+    specRows.push(`<span style="color:rgba(255,255,255,.55)">⏱️ Montering:</span> <strong style="color:#fff">~${info.monteringMin} min</strong>`);
+  }
+
+  // Transport (scen)
   if (info.transport === 'krävs') {
     specRows.push(`<span style="color:rgba(255,255,255,.55)">🚚 Transport:</span> <strong style="color:#fbbf24">krävs (tillkommer)</strong>`);
   } else if (info.transport === 'tillägg') {
     specRows.push(`<span style="color:rgba(255,255,255,.55)">🚚 Transport:</span> <strong style="color:#fff">tillkommer som tillägg</strong>`);
+  } else if (info.bulky === true) {
+    // Bulky-flagga för ljud/ljus utan explicit transport-fält
+    specRows.push(`<span style="color:rgba(255,255,255,.55)">📦 Skrymmande:</span> <strong style="color:#fff">större bil krävs</strong>`);
   }
+
   if (specRows.length) rows.push({ label: 'Specifikation', rows: specRows });
 
+  // Scen-userCase: full bredd
   if (info.useCase) {
     rows.push({ label: 'Bra för', rows: [info.useCase], fullWidth: true });
   }
 
-  // Includes → specs-lista med ▸ (modalens befintliga rendering)
-  const includesStr = (info.includes || []).join('||');
+  // Volymrabatt (ljus-effekter)
+  if (Array.isArray(info.volumePricing) && info.volumePricing.length > 1) {
+    const vpRows = info.volumePricing.map(v =>
+      `<span style="color:rgba(255,255,255,.55)">Från ${v.minQty} st:</span> <strong style="color:#c4b5f4">${v.unitPrice} kr/st</strong>`
+    );
+    rows.push({ label: 'Volymrabatt', rows: vpRows });
+  }
+
+  // Manual-länk om finns (för kund-referens)
+  if (info.manualUrl) {
+    rows.push({
+      label: 'Produktmanual',
+      rows: [`<a href="${info.manualUrl}" target="_blank" rel="noopener" style="color:#c4b5f4;text-decoration:underline;font-size:11.5px">📄 Öppna manual (PDF) ↗</a>`],
+      fullWidth: true,
+    });
+  }
+
+  // Includes/specs → specs-lista med ▸ (modalens befintliga rendering via desc-prop)
+  const itemSpecs = info.includes || info.specs || [];
+  const includesStr = itemSpecs.join('||');
 
   window.skModalOpen({
     name:      item.name,
     artno:     item.artno || info.artno || '',
-    descText:  info.desc || '',         // fri beskrivning paragraph
+    descText:  info.desc || '',         // fri beskrivning som paragraph
     desc:      includesStr,             // specs-lista (||-separerat)
     rows:      rows,
     price:     item.price,
@@ -919,7 +956,7 @@ function renderOrder(c) {
                </a>`
             : `<strong style="color:#fbbf24">Adress ej angiven — vänligen meddela oss i chatten nedan.</strong>`}
         </div>
-        <div class="odel-note">Vi ringer 30 min innan ankomst. Fri leveransbil ingår inom Storstockholm för mindre uppdrag — större paket faktureras enligt offert.</div>
+        <div class="odel-note">Vi ringer 30 min innan ankomst. Leveranskostnaden specificeras i offerten ovan.</div>
       </div>
     </div>`;
   } else if (c.event_date) {

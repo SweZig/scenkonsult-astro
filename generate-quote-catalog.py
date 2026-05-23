@@ -55,10 +55,16 @@ def prod(p, item_type='product'):
         'desc':  p.get('description') or p.get('desc') or '',
         'type':  p.get('type', item_type),
     }
-    # Extra-fält för modal-visning (scen, ljus etc) — bara om de finns
-    for k in ('tagline','size','dimensions','capacity','useCase','transport','includes','features','priceNote'):
+    # Extra-fält för modal-visning — passas igenom bara om de finns
+    #   Scen:  tagline, size, dimensions, capacity, useCase, transport
+    #   Ljud/ljus/dj/bild: persons, includes/specs, monteringMin, manualUrl, bulky
+    #   Ljus-effekter: volumePricing (volymrabatt)
+    for k in ('tagline','size','dimensions','capacity','useCase','transport',
+              'persons','includes','specs','features',
+              'monteringMin','manualUrl','bulky','volumePricing',
+              'priceNote','section'):
         v = p.get(k)
-        if v:
+        if v is not None and v != '' and v != [] and v != {}:
             out[k] = v
     return out
 
@@ -278,9 +284,12 @@ def add_flat(prods, cat_name):
             'type':    p.get('type','product'),
         }
         # Passa igenom extra-fält för modal-visning på ordersidan
-        for k in ('tagline','size','dimensions','capacity','useCase','transport','includes','features','priceNote'):
+        for k in ('tagline','size','dimensions','capacity','useCase','transport',
+                  'persons','includes','specs','features',
+                  'monteringMin','manualUrl','bulky','volumePricing',
+                  'priceNote','section'):
             v = p.get(k)
-            if v:
+            if v is not None and v != '' and v != [] and v != {}:
                 entry[k] = v
         if artno:
             order_catalog[artno] = entry
