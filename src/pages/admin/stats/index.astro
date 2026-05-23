@@ -1,0 +1,556 @@
+---
+// /admin/stats/ — Trafik & SEO-dashboard (GA4 v1)
+// Hämtar via /.netlify/functions/stats-ga4 (server-side, dolda credentials).
+// GSC + Google Ads adderas i kommande faser.
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Statistik — Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+    .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
+    .topbar a:hover { color: #c4b5f4; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem; }
+
+    /* Period-toggle */
+    .period-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .period-row .label { font-size: 0.78rem; color: rgba(255,255,255,0.60); }
+    .pill-row { display: flex; gap: 4px; }
+    .pill { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 20px; color: rgba(255,255,255,0.60); font-size: 0.78rem; padding: 4px 14px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .pill:hover { border-color: rgba(196,181,244,0.4); color: rgba(196,181,244,0.85); }
+    .pill.active { background: rgba(196,181,244,0.15); border-color: #c4b5f4; color: #c4b5f4; font-weight: 600; }
+    .meta { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.40); font-family: monospace; }
+
+    /* KPI-rad */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
+    .kpi-card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.9rem 1.1rem; }
+    .kpi-lbl { font-size: 0.7rem; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+    .kpi-val { font-size: 1.85rem; font-weight: 800; color: #c4b5f4; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .kpi-delta { font-size: 0.75rem; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .delta-up   { color: #6ee7b7; }
+    .delta-down { color: #fca5a5; }
+    .delta-flat { color: rgba(255,255,255,0.45); }
+
+    /* Sektion */
+    .section { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+    .sec-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.85rem; }
+    .sec-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(196,181,244,0.6); }
+    .sec-sub { font-size: 0.7rem; color: rgba(255,255,255,0.45); }
+
+    /* Linjediagram-wrap (Chart.js) */
+    .chart-wrap { position: relative; width: 100%; height: 240px; }
+
+    /* Två-kolumns under */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Donut + legend */
+    .donut-wrap { display: flex; gap: 1rem; align-items: center; }
+    .donut-canvas { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+    .legend { display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; flex: 1; }
+    .legend-row { display: flex; justify-content: space-between; align-items: center; }
+    .legend-left { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend-val { font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.7); font-size: 0.75rem; }
+
+    /* Tabell */
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { font-size: 0.7rem; color: rgba(196,181,244,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .tbl th.num { text-align: right; }
+    .tbl td { padding: 7px 8px; font-size: 0.83rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    .tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tr:hover td { background: rgba(196,181,244,0.04); }
+    .path-cell { font-family: 'Source Sans 3', system-ui, sans-serif; color: rgba(255,255,255,0.85); max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .path-cell a { color: rgba(196,181,244,0.7); text-decoration: none; }
+    .path-cell a:hover { color: #c4b5f4; text-decoration: underline; }
+    .muted { color: rgba(255,255,255,0.45); }
+
+    /* Top-queries lista */
+    .qlist { display: flex; flex-direction: column; gap: 0.5rem; }
+    .qrow { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.85rem; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+    .qrow:last-child { border-bottom: none; }
+
+    /* Loading + error */
+    .loading { padding: 1.5rem; text-align: center; color: rgba(196,181,244,0.55); font-size: 0.85rem; }
+    .error-banner { background: rgba(248,113,113,0.10); border: 1px solid rgba(248,113,113,0.30); border-radius: 10px; padding: 0.9rem 1.1rem; margin-bottom: 1rem; color: #fca5a5; font-size: 0.85rem; }
+    .error-banner strong { color: #fca5a5; }
+    .error-banner code { background: rgba(0,0,0,0.30); padding: 1px 6px; border-radius: 4px; font-size: 0.78rem; }
+    .placeholder-box { background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.08); border-radius: 10px; padding: 1rem 1.2rem; color: rgba(255,255,255,0.45); font-size: 0.8rem; line-height: 1.5; }
+    .placeholder-box strong { color: rgba(196,181,244,0.7); }
+
+    /* Auth-skärm */
+    #auth-screen { position: fixed; inset: 0; background: #0c0a24; display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; text-align: center; }
+    .auth-box h2 { color: #c4b5f4; margin-bottom: 1.25rem; font-size: 1.1rem; }
+    .auth-input { width: 100%; background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 8px; padding: 0.6rem 0.875rem; color: #f0eeff; font-size: 0.9rem; margin-bottom: 0.75rem; font-family: inherit; }
+    .auth-btn { width: 100%; background: #c4b5f4; color: #0c0a24; font-weight: 700; border: none; border-radius: 8px; padding: 0.65rem; cursor: pointer; font-size: 0.9rem; font-family: inherit; }
+    .auth-err { color: #f87171; font-size: 0.8rem; margin-top: 0.5rem; min-height: 20px; }
+  </style>
+</head>
+<body>
+
+<!-- Auth-skärm -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>📈 Statistik</h2>
+    <input type="password" class="auth-input" id="pw-input" placeholder="Adminlösenord" autocomplete="current-password">
+    <button class="auth-btn" id="pw-btn">Logga in</button>
+    <div class="auth-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="topbar">
+    <a href="/admin/">← Admin</a>
+    <h1>📈 Statistik</h1>
+    <div class="topbar-right">
+      <span class="meta" id="last-updated"></span>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- Period-toggle -->
+    <div class="period-row">
+      <span class="label">Period:</span>
+      <div class="pill-row" id="period-pills">
+        <button class="pill" data-period="7">7 dagar</button>
+        <button class="pill active" data-period="28">28 dagar</button>
+        <button class="pill" data-period="90">90 dagar</button>
+      </div>
+      <span class="meta" id="period-range">–</span>
+    </div>
+
+    <div id="error-zone"></div>
+
+    <!-- KPI-rad -->
+    <div class="kpi-row" id="kpi-row">
+      <div class="kpi-card"><div class="kpi-lbl">Sessioner</div><div class="kpi-val" id="kpi-sessions">–</div><div class="kpi-delta delta-flat" id="kpi-sessions-delta">&nbsp;</div></div>
+      <div class="kpi-card"><div class="kpi-lbl">Sidvisningar</div><div class="kpi-val" id="kpi-pageviews">–</div><div class="kpi-delta delta-flat" id="kpi-pageviews-delta">&nbsp;</div></div>
+      <div class="kpi-card"><div class="kpi-lbl">Användare</div><div class="kpi-val" id="kpi-users">–</div><div class="kpi-delta delta-flat" id="kpi-users-delta">&nbsp;</div></div>
+      <div class="kpi-card"><div class="kpi-lbl">Konverteringar</div><div class="kpi-val" id="kpi-conv">–</div><div class="kpi-delta delta-flat" id="kpi-conv-delta">&nbsp;</div></div>
+      <div class="kpi-card"><div class="kpi-lbl">Engagemang</div><div class="kpi-val" id="kpi-engage">–</div><div class="kpi-delta delta-flat" id="kpi-engage-sub">&nbsp;</div></div>
+    </div>
+
+    <!-- Tidsserie -->
+    <div class="section">
+      <div class="sec-head">
+        <span class="sec-title">Sessioner per dag</span>
+        <span class="sec-sub" id="trend-sub">denna period vs föregående lika långa</span>
+      </div>
+      <div class="chart-wrap"><canvas id="trafficChart"></canvas></div>
+    </div>
+
+    <!-- Trafik per sida -->
+    <div class="section">
+      <div class="sec-head">
+        <span class="sec-title">Trafik per sida</span>
+        <span class="sec-sub">topp 30 — sorterat på sessioner</span>
+      </div>
+      <table class="tbl" id="pages-tbl">
+        <thead>
+          <tr>
+            <th>Sökväg</th>
+            <th class="num">Sess.</th>
+            <th class="num">Sidvisn.</th>
+            <th class="num">Användare</th>
+            <th class="num">Engagemang</th>
+            <th class="num">Konv.</th>
+          </tr>
+        </thead>
+        <tbody id="pages-tbody">
+          <tr><td colspan="6" class="loading">Laddar…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Två-kolumns: kanaler + planerad GSC/Ads -->
+    <div class="grid-2">
+      <div class="section">
+        <div class="sec-head">
+          <span class="sec-title">Trafikkällor</span>
+          <span class="sec-sub">GA4 channel groups</span>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut-canvas"><canvas id="channelChart"></canvas></div>
+          <div class="legend" id="channel-legend"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head">
+          <span class="sec-title">Sökord (GSC)</span>
+          <span class="sec-sub">kommer i fas 2</span>
+        </div>
+        <div class="placeholder-box">
+          <strong>Search Console-integration är planerad nästa fas.</strong><br>
+          När den landar visas här de mest besökta sökorden från Google-sök
+          med antal klick, visningar och genomsnittsposition. Joinas på
+          sökväg mot trafiktabellen ovan för "ranking vs konvertering"-insikt.
+        </div>
+      </div>
+    </div>
+
+    <!-- Google Ads placeholder -->
+    <div class="section">
+      <div class="sec-head">
+        <span class="sec-title">Google Ads</span>
+        <span class="sec-sub">kommer i fas 3 — väntar på Developer Token</span>
+      </div>
+      <div class="placeholder-box">
+        Google Ads-integrationen kräver Developer Token (1–3 arbetsdagars
+        granskning hos Google) + OAuth2-flöde (ej Service Account).
+        Sätts in när konv/månad &gt; 15 och justerar bidstrategin motiverar
+        kostnads-/konverterings-data per landningssida. Under tiden:
+        <a href="https://ads.google.com/aw/overview?ocid=20679801278" target="_blank" rel="noopener" style="color:#c4b5f4">öppna Google Ads-dashboard →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── Auth (matchar /admin/sven/) ───────────────────────────────────────
+const ADMIN_KEY = 'sk_admin_token';
+let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
+
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+document.getElementById('pw-btn').onclick = async () => {
+  const pw = document.getElementById('pw-input').value;
+  if (!pw) return;
+  const hash = await sha256hex(pw);
+  const res = await fetch('/.netlify/functions/admin-auth', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: hash }),
+  }).catch(() => null);
+  const okResp = res && (await res.json().catch(() => ({}))).ok;
+  if (okResp) {
+    adminToken = hash;
+    sessionStorage.setItem(ADMIN_KEY, hash);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('pw-err').textContent = 'Fel lösenord';
+  }
+};
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
+
+// Om redan inloggad — försök auto-logga in
+if (adminToken) {
+  fetch('/.netlify/functions/admin-auth', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: adminToken }),
+  }).then(r => r.json()).then(j => {
+    if (j && j.ok) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      init();
+    } else {
+      sessionStorage.removeItem(ADMIN_KEY);
+      adminToken = '';
+    }
+  }).catch(() => {});
+}
+
+// ── State ─────────────────────────────────────────────────────────────
+let currentPeriod = parseInt(sessionStorage.getItem('sk_stats_period') || '28', 10);
+let trafficChart  = null;
+let channelChart  = null;
+
+const CACHE_KEY_PREFIX = 'sk-stats-cache-';
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 min
+
+function fmtNum(n) {
+  if (n === null || n === undefined) return '–';
+  return new Intl.NumberFormat('sv-SE').format(Math.round(n));
+}
+function fmtPct(n) {
+  if (n === null || n === undefined || !Number.isFinite(n)) return '–';
+  return n.toFixed(1).replace('.', ',') + ' %';
+}
+function setDelta(elId, deltaPct) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (deltaPct === null || deltaPct === undefined || !Number.isFinite(deltaPct)) {
+    el.textContent = '\u00a0';
+    el.className = 'kpi-delta delta-flat';
+    return;
+  }
+  const arrow = deltaPct > 0 ? '↑' : deltaPct < 0 ? '↓' : '→';
+  el.textContent = `${arrow} ${Math.abs(deltaPct).toFixed(1).replace('.', ',')} % vs föregående`;
+  el.className = 'kpi-delta ' + (deltaPct > 0 ? 'delta-up' : deltaPct < 0 ? 'delta-down' : 'delta-flat');
+}
+
+// ── Fetch + cache ─────────────────────────────────────────────────────
+async function fetchStats(period) {
+  const cacheKey = CACHE_KEY_PREFIX + period;
+  try {
+    const raw = sessionStorage.getItem(cacheKey);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      if (Date.now() - obj.t < CACHE_TTL_MS) return obj.data;
+    }
+  } catch (e) {}
+
+  const url = `/.netlify/functions/stats-ga4?period=${period}&compare=1`;
+  const res = await fetch(url, {
+    headers: { 'Authorization': 'Bearer ' + adminToken },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let msg = `Status ${res.status}`;
+    try { msg = JSON.parse(text).error || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), data }));
+  } catch (e) {}
+  return data;
+}
+
+function showError(message) {
+  const zone = document.getElementById('error-zone');
+  zone.innerHTML = `
+    <div class="error-banner">
+      <strong>Kunde inte hämta data från GA4</strong><br>
+      ${message}<br><br>
+      Vanliga orsaker:<br>
+      • Service Account-nyckeln (<code>GA4_SA_KEY</code>) saknas eller är fel i Netlify env<br>
+      • Service Account har inte fått behörighet på GA4 property <code>417375423</code><br>
+      • GA4 Data API inte aktiverat i Google Cloud-projektet
+    </div>`;
+}
+
+function clearError() {
+  document.getElementById('error-zone').innerHTML = '';
+}
+
+// ── Render ────────────────────────────────────────────────────────────
+function render(data) {
+  // Period-range
+  document.getElementById('period-range').textContent = `${data.period.start} → ${data.period.end}`;
+  document.getElementById('last-updated').textContent =
+    'uppdaterad ' + new Date(data.fetchedAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+
+  // KPI
+  document.getElementById('kpi-sessions').textContent  = fmtNum(data.summary.sessions);
+  document.getElementById('kpi-pageviews').textContent = fmtNum(data.summary.pageviews);
+  document.getElementById('kpi-users').textContent     = fmtNum(data.summary.users);
+  document.getElementById('kpi-conv').textContent      = fmtNum(data.summary.conversions);
+  document.getElementById('kpi-engage').textContent    = fmtPct(data.summary.engagementRate);
+  setDelta('kpi-sessions-delta',  data.summary.deltaSessions);
+  setDelta('kpi-pageviews-delta', data.summary.deltaPageviews);
+  setDelta('kpi-users-delta',     data.summary.deltaUsers);
+  setDelta('kpi-conv-delta',      data.summary.deltaConversions);
+  document.getElementById('kpi-engage-sub').textContent = `andel engagerade sessioner`;
+
+  // Tidsserie
+  renderTrafficChart(data.daily);
+
+  // Sidor
+  renderPagesTable(data.pages);
+
+  // Kanaler
+  renderChannels(data.channels);
+}
+
+function renderTrafficChart(daily) {
+  const ctx = document.getElementById('trafficChart');
+  if (trafficChart) trafficChart.destroy();
+  const labels = daily.map(d => {
+    const dt = new Date(d.date);
+    return dt.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
+  });
+  const sessions = daily.map(d => d.sessions);
+  const compare  = daily.map(d => d.compareSessions);
+
+  trafficChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Denna period',
+          data: sessions,
+          borderColor: '#c4b5f4',
+          backgroundColor: 'rgba(196,181,244,0.10)',
+          borderWidth: 2,
+          tension: 0.32,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          fill: true,
+        },
+        {
+          label: 'Föregående period',
+          data: compare,
+          borderColor: 'rgba(255,255,255,0.40)',
+          borderDash: [5, 4],
+          borderWidth: 1,
+          tension: 0.32,
+          pointRadius: 0,
+          pointHoverRadius: 3,
+          fill: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { color: 'rgba(255,255,255,0.6)', font: { size: 11, family: 'Space Grotesk' }, boxWidth: 18, boxHeight: 2, padding: 14 }
+        },
+        tooltip: {
+          backgroundColor: '#0c0a24',
+          borderColor: 'rgba(196,181,244,0.3)',
+          borderWidth: 1,
+          titleColor: '#c4b5f4',
+          bodyColor: '#f0eeff',
+          padding: 10,
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: 'rgba(255,255,255,0.45)', font: { size: 10 }, maxRotation: 0, autoSkipPadding: 16 },
+          grid: { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: 'rgba(255,255,255,0.45)', font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,0.05)' },
+        }
+      }
+    }
+  });
+}
+
+function renderPagesTable(pages) {
+  const tbody = document.getElementById('pages-tbody');
+  if (!pages || !pages.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:1rem">Ingen data för perioden</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pages.map(p => {
+    const safePath = p.path.replace(/</g, '&lt;');
+    const href = p.path.startsWith('/') ? `https://scenkonsult.se${p.path}` : '#';
+    return `
+      <tr>
+        <td class="path-cell" title="${safePath}"><a href="${href}" target="_blank" rel="noopener">${safePath || '/'}</a></td>
+        <td class="num">${fmtNum(p.sessions)}</td>
+        <td class="num">${fmtNum(p.pageviews)}</td>
+        <td class="num">${fmtNum(p.users)}</td>
+        <td class="num">${fmtPct(p.engagementRate)}</td>
+        <td class="num">${p.conversions > 0 ? fmtNum(p.conversions) : '<span class="muted">0</span>'}</td>
+      </tr>`;
+  }).join('');
+}
+
+function renderChannels(channels) {
+  if (channelChart) channelChart.destroy();
+  if (!channels || !channels.length) {
+    document.getElementById('channel-legend').innerHTML = '<div class="muted" style="font-size:0.8rem">Ingen data</div>';
+    return;
+  }
+
+  // Färgpalett: lavendel → mörkare violet → teal → amber → grå
+  const palette = ['#c4b5f4', '#7c3aed', '#5dcaa5', '#facc15', '#94a3b8', '#fb923c', '#60a5fa'];
+
+  const labels = channels.map(c => c.channel);
+  const data   = channels.map(c => c.sessions);
+  const total  = data.reduce((a, b) => a + b, 0) || 1;
+
+  channelChart = new Chart(document.getElementById('channelChart'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: labels.map((_, i) => palette[i % palette.length]),
+        borderColor: '#1e1850',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0c0a24',
+          borderColor: 'rgba(196,181,244,0.3)',
+          borderWidth: 1,
+          titleColor: '#c4b5f4',
+          bodyColor: '#f0eeff',
+          callbacks: {
+            label: (ctx) => `${ctx.label}: ${fmtNum(ctx.parsed)} (${((ctx.parsed / total) * 100).toFixed(1)} %)`,
+          }
+        }
+      }
+    }
+  });
+
+  const legend = document.getElementById('channel-legend');
+  legend.innerHTML = channels.map((c, i) => {
+    const color = palette[i % palette.length];
+    const pct = (c.sessions / total) * 100;
+    return `
+      <div class="legend-row">
+        <div class="legend-left">
+          <span class="legend-dot" style="background:${color}"></span>
+          <span>${c.channel}</span>
+        </div>
+        <span class="legend-val">${fmtNum(c.sessions)} · ${pct.toFixed(1).replace('.', ',')} %</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Init + period-toggle ──────────────────────────────────────────────
+async function load(period) {
+  clearError();
+  document.getElementById('pages-tbody').innerHTML = '<tr><td colspan="6" class="loading">Laddar…</td></tr>';
+  try {
+    const data = await fetchStats(period);
+    render(data);
+  } catch (e) {
+    showError(e.message || 'Okänt fel');
+  }
+}
+
+function init() {
+  // Markera rätt pill från sessionStorage
+  document.querySelectorAll('#period-pills .pill').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.period, 10) === currentPeriod);
+    b.addEventListener('click', () => {
+      currentPeriod = parseInt(b.dataset.period, 10);
+      sessionStorage.setItem('sk_stats_period', String(currentPeriod));
+      document.querySelectorAll('#period-pills .pill').forEach(x => x.classList.toggle('active', x === b));
+      load(currentPeriod);
+    });
+  });
+  load(currentPeriod);
+}
+</script>
+</body>
+</html>
