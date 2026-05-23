@@ -1745,7 +1745,12 @@ const _monteringAdminConfig = {
 <div id="detail-panel">
   <div class="panel-header">
     <div class="panel-title" id="panel-title">Varukorg</div>
-    <button class="panel-close" id="panel-close">✕</button>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      <button id="panel-mark-read-btn" onclick="markCartAsReadFull()"
+        style="display:none;background:rgba(196,181,244,0.12);border:1px solid rgba(196,181,244,0.4);color:#c4b5f4;border-radius:8px;padding:0.4rem 0.75rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"
+        title="Tar bort 'Oläst'-flaggan från detta kort">✓ Markera som läst</button>
+      <button class="panel-close" id="panel-close">✕</button>
+    </div>
   </div>
   <div class="panel-tabs">
     <button class="panel-tab active" data-tab="info">ℹ Info</button>
@@ -2773,6 +2778,7 @@ async function openDetail(cartId) {
   if (hasUnread) markAdminRead(currentCart.id);
 
   $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
+  updatePanelMarkReadBtn();
   // Add quick-action links to header
   const existingQuick = document.getElementById('panel-quick');
   if (existingQuick) existingQuick.remove();
@@ -6198,6 +6204,8 @@ function closePanel() {
   clearPanelDirty();
   $('detail-overlay').classList.remove('open');
   $('detail-panel').classList.remove('open');
+  const markBtn = document.getElementById('panel-mark-read-btn');
+  if (markBtn) markBtn.style.display = 'none';
   currentCart = null;
 }
 
@@ -6594,23 +6602,57 @@ window.invDownloadPdf       = invDownloadPdf;
 // vidarebefordrat mail etc.) men last_read_customer inte är satt automatiskt.
 // Tar bort 'Oläst'-flaggan på kortet i kanban.
 async function markCustomerAsReadManually() {
+  // Delegera till den fullständiga funktionen som täcker båda fallen
+  return markCartAsReadFull();
+}
+
+// Markera ett kort som "läst" — täcker BÅDA orsaker till 'Oläst'-flagga:
+//   (a) admin har olästa kundmeddelanden  → markAdminRead sätter unread_count=0
+//   (b) kunden har inte öppnat offerten   → sätter last_read_customer=now()
+// Knappen finns i panel-header (alltid synlig när isCartUnread=true) och
+// som komplement i Info-flikens 'Kund senast aktiv'-fält.
+async function markCartAsReadFull() {
   if (!currentCart?.id) return;
-  if (!confirm('Markera offerten som läst av kund?\n\nDetta tar bort "Oläst"-flaggan på detta kort. Använd när du vet att kunden sett offerten via annan kanal (telefon, vidarebefordrat mail etc).')) return;
-  const nowIso = new Date().toISOString();
-  const { ok } = await api('cart-update', {
-    method: 'POST',
-    body: JSON.stringify({ cart_id: currentCart.id, last_read_customer: nowIso }),
-  });
-  if (ok) {
-    currentCart.last_read_customer = nowIso;
-    await refreshCurrentCart();
-    renderTab('info');
-    renderKanban();
-    updateUnreadFilterBadge();
-    toast('✓ Markerad som läst av kund');
-  } else {
-    toast('Kunde inte uppdatera', 'error');
+  if (!confirm('Markera detta kort som läst?\n\nTar bort "Oläst"-flaggan på kanban-kortet:\n• Om kunden inte öppnat offerten markeras den som öppnad\n• Olästa kundmeddelanden markeras som lästa\n\nAnvänd när du vet att kunden hört av sig via annan kanal (telefon, vidarebefordrat mail etc).')) return;
+
+  const tasks = [];
+
+  // (b) Sätt last_read_customer om null
+  if (!currentCart.last_read_customer) {
+    const nowIso = new Date().toISOString();
+    tasks.push(
+      api('cart-update', {
+        method: 'POST',
+        body: JSON.stringify({ cart_id: currentCart.id, last_read_customer: nowIso }),
+      }).then(({ ok }) => { if (ok) currentCart.last_read_customer = nowIso; })
+    );
   }
+
+  // (a) Markera olästa kundmeddelanden som lästa
+  if ((currentCart.unread_count || 0) > 0) {
+    tasks.push(markAdminRead(currentCart.id));
+  }
+
+  if (!tasks.length) {
+    toast('Inget att markera — kortet är redan läst');
+    return;
+  }
+
+  await Promise.all(tasks);
+  await refreshCurrentCart();
+  renderTab(activeTab);
+  renderKanban();
+  updateUnreadFilterBadge();
+  updatePanelMarkReadBtn();
+  toast('✓ Markerad som läst');
+}
+
+// Visar/döljer 'Markera som läst'-knappen i panel-header baserat på
+// om aktuellt kort är flaggat som oläst.
+function updatePanelMarkReadBtn() {
+  const btn = document.getElementById('panel-mark-read-btn');
+  if (!btn) return;
+  btn.style.display = (currentCart && isCartUnread(currentCart)) ? '' : 'none';
 }
 
 window.prodQty         = prodQty;
@@ -6627,6 +6669,7 @@ window.prodPickerAdd       = prodPickerAdd;
 window.prodUpdateSvc       = prodUpdateSvc;
 window.prodSaveAndSendOffer= prodSaveAndSendOffer;
 window.markCustomerAsReadManually = markCustomerAsReadManually;
+window.markCartAsReadFull         = markCartAsReadFull;
 window.invMarkPaid         = invMarkPaid;
 window.invUnmarkPaid       = invUnmarkPaid;
 window.invResend           = invResend;
