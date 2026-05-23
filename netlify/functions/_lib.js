@@ -194,7 +194,7 @@ function htmlWrapper(bodyHtml) {
   <img src="${MAIL_LOGO_URL}" alt="" width="64" style="display:block;margin:0 auto 12px;height:auto;opacity:0.9;" />
   <!-- Text-baserad brand (synlig även när bilder är blockerade) -->
   <h1 style="margin:0 0 5px;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;line-height:1.1;letter-spacing:0.015em;color:#ffffff;">Scenkonsult Norden</h1>
-  <p style="margin:0;color:#c4b5f4;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;">Ljud &middot; Ljus &middot; Scen &middot; Bild</p>
+  <p style="margin:0;color:#c4b5f4;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;">Scen &middot; Ljud &middot; Bild &middot; Ljus &middot; DJ</p>
   <p style="margin:6px 0 0;color:rgba(255,255,255,0.5);font-size:10.5px;letter-spacing:0.03em;">Stockholm sedan 1986 &middot; <a href="https://scenkonsult.se" style="color:rgba(255,255,255,0.5);text-decoration:none;">scenkonsult.se</a></p>
 </td></tr>
 <tr><td style="background:#ffffff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">${bodyHtml}</td></tr>

@@ -281,7 +281,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
 <tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 <tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
   <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="90" style="display:block;margin:0 auto 10px;height:auto;" />
-  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;">Ljud · Ljus · Scen · Bild — Stockholm sedan 1986</p>
+  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;">Scen · Ljud · Bild · Ljus · DJ — Stockholm sedan 1986</p>
 </td></tr>
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber}</h2>
@@ -324,7 +324,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
 <tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 <tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;">
   <img src="${LOGO_URL}" alt="Scenkonsult Norden" width="90" style="display:block;margin:0 auto 10px;height:auto;" />
-  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;">Ljud · Ljus · Scen · Bild — Stockholm sedan 1986</p>
+  <p style="margin:0;color:rgba(255,255,255,0.6);font-size:12px;">Scen · Ljud · Bild · Ljus · DJ — Stockholm sedan 1986</p>
 </td></tr>
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber} — skickad</h2>
