@@ -82,15 +82,17 @@
     /* Tabell */
     .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .tbl th { font-size: 0.7rem; color: rgba(196,181,244,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .tbl th.num { text-align: right; }
+    .tbl th.num { text-align: center; }
     .tbl td { padding: 9px 12px; font-size: 0.83rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
-    .tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .tbl td.num { text-align: center; font-variant-numeric: tabular-nums; }
     .tbl tr:last-child td { border-bottom: none; }
     .tbl tr:hover td { background: rgba(196,181,244,0.04); }
     .path-cell { font-family: 'Source Sans 3', system-ui, sans-serif; color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .path-cell a { color: rgba(196,181,244,0.7); text-decoration: none; }
     .path-cell a:hover { color: #c4b5f4; text-decoration: underline; }
     .muted { color: rgba(255,255,255,0.45); }
+    .kpi-card.dim { opacity: 0.45; }
+    .kpi-card .kpi-filter-note { font-size: 0.62rem; color: rgba(196,181,244,0.55); margin-top: 3px; font-style: italic; }
 
     /* Top-queries lista */
     .qlist { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -354,7 +356,7 @@ let channelChart  = null;
 let activeChannels = null;  // Set<string> eller null = alla
 let lastPayload    = null;  // sista hämtade datan — för re-render vid filter-byte
 
-const CACHE_KEY_PREFIX = 'sk-stats-cache-v3-';
+const CACHE_KEY_PREFIX = 'sk-stats-cache-v4-';
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 min
 
 // Kanalfärger — matchar donut-paletten
@@ -507,17 +509,8 @@ function render(payload) {
     for (const c of ga4.channels) if (!activeChannels.has(c.channel)) activeChannels.add(c.channel);
   }
 
-  // KPI (alltid total, inte filtrerat)
-  document.getElementById('kpi-sessions').textContent  = fmtNum(ga4.summary.sessions);
-  document.getElementById('kpi-pageviews').textContent = fmtNum(ga4.summary.pageviews);
-  document.getElementById('kpi-users').textContent     = fmtNum(ga4.summary.users);
-  document.getElementById('kpi-conv').textContent      = fmtNum(ga4.summary.conversions);
-  document.getElementById('kpi-engage').textContent    = fmtPct(ga4.summary.engagementRate);
-  setDelta('kpi-sessions-delta',  ga4.summary.deltaSessions);
-  setDelta('kpi-pageviews-delta', ga4.summary.deltaPageviews);
-  setDelta('kpi-users-delta',     ga4.summary.deltaUsers);
-  setDelta('kpi-conv-delta',      ga4.summary.deltaConversions);
-  document.getElementById('kpi-engage-sub').textContent = `andel engagerade sessioner`;
+  // KPI (total eller filtrerad — hanteras av renderKPI)
+  renderKPI();
 
   // Kanal-chips
   renderChannelChips(ga4.channels);
@@ -543,12 +536,67 @@ function render(payload) {
   if (payload.gscError) showGscError(payload.gscError);
 }
 
+// KPI-rendering — visar total eller filtrerad summa beroende på kanal-filter.
+// totalUsers + engagementRate är inte summerbara per kanal, så vid filter
+// visas de dimmed med "(totalt)"-not.
+function renderKPI() {
+  if (!lastPayload || !lastPayload.ga4) return;
+  const ga4 = lastPayload.ga4;
+  const allChannels = new Set((ga4.dailyByChannel || []).map(r => r.channel));
+  const filterActive = allChannels.size > 0 && activeChannels.size < allChannels.size;
+
+  let sessions, pageviews, conversions;
+  if (filterActive) {
+    sessions = 0; pageviews = 0; conversions = 0;
+    for (const r of ga4.dailyByChannel) {
+      if (!activeChannels.has(r.channel)) continue;
+      sessions    += r.sessions;
+      pageviews   += r.pageviews;
+      conversions += r.conversions;
+    }
+  } else {
+    sessions    = ga4.summary.sessions;
+    pageviews   = ga4.summary.pageviews;
+    conversions = ga4.summary.conversions;
+  }
+
+  document.getElementById('kpi-sessions').textContent  = fmtNum(sessions);
+  document.getElementById('kpi-pageviews').textContent = fmtNum(pageviews);
+  document.getElementById('kpi-conv').textContent      = fmtNum(conversions);
+  // Användare + engagemang är icke-summerbara → visas alltid totalt
+  document.getElementById('kpi-users').textContent  = fmtNum(ga4.summary.users);
+  document.getElementById('kpi-engage').textContent = fmtPct(ga4.summary.engagementRate);
+
+  // Delta-rader: bara meningsfulla utan filter (jämför med föregående period)
+  if (filterActive) {
+    ['kpi-sessions-delta','kpi-pageviews-delta','kpi-conv-delta'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = 'filtrerat — ej jämfört'; el.className = 'kpi-delta delta-flat'; }
+    });
+  } else {
+    setDelta('kpi-sessions-delta',  ga4.summary.deltaSessions);
+    setDelta('kpi-pageviews-delta', ga4.summary.deltaPageviews);
+    setDelta('kpi-conv-delta',      ga4.summary.deltaConversions);
+  }
+  setDelta('kpi-users-delta', filterActive ? null : ga4.summary.deltaUsers);
+  document.getElementById('kpi-engage-sub').textContent =
+    filterActive ? 'totalt (ej filtrerbart)' : 'andel engagerade sessioner';
+
+  // Dim icke-filtrerbara KPI:er när filter är aktivt
+  document.querySelectorAll('.kpi-card').forEach((card, idx) => {
+    // Index: 0=Sess, 1=Pageviews, 2=Users, 3=Conv, 4=Engage
+    const dim = filterActive && (idx === 2 || idx === 4);
+    card.classList.toggle('dim', dim);
+  });
+}
+
 // Re-render delar som påverkas av kanal-filtret
 function renderFilteredViews() {
   if (!lastPayload || !lastPayload.ga4) return;
   const ga4 = lastPayload.ga4;
   const gsc = lastPayload.gsc;
 
+  renderKPI();
   renderTrafficChart(ga4.daily, ga4.dailyByChannel || []);
   renderPagesTable(ga4.pages, ga4.pagesByChannel || [], gsc?.pages || []);
 }
@@ -680,6 +728,13 @@ function renderTrafficChart(daily, dailyByChannel) {
           titleColor: '#c4b5f4',
           bodyColor: '#f0eeff',
           padding: 10,
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              if (v === null || v === undefined) return `${ctx.dataset.label}: –`;
+              return `${ctx.dataset.label}: ${fmtNum(v)} sessioner`;
+            }
+          }
         }
       },
       scales: {

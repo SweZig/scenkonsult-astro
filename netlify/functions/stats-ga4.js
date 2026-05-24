@@ -157,12 +157,16 @@ exports.handler = async (event) => {
         limit: 10,
       }, token),
 
-      // 5. Daily-by-channel — för kanal-filter på tidsserien
+      // 5. Daily-by-channel — för kanal-filter på tidsserien + filtrerad KPI
       // (current period only — jämförelse hade dubblat datavolymen)
       runReport(propertyId, {
         dateRanges: [{ startDate, endDate }],
         dimensions: [{ name: 'date' }, { name: 'sessionDefaultChannelGroup' }],
-        metrics: [{ name: 'sessions' }],
+        metrics: [
+          { name: 'sessions' },
+          { name: 'screenPageViews' },
+          { name: 'conversions' },
+        ],
         orderBys: [{ dimension: { dimensionName: 'date' }, desc: false }],
         limit: 1000,
       }, token),
@@ -263,8 +267,8 @@ exports.handler = async (event) => {
     }));
 
     // ── Parse Daily by channel ──
-    // Format: array av { date, channel, sessions } — frontend
-    // grupperar och filtrerar baserat på aktiverade kanaler.
+    // Format: array av { date, channel, sessions, pageviews, conversions }
+    // — frontend filtrerar baserat på aktiva kanaler.
     const dailyByChannel = (dailyByChannelReport.rows || []).map(r => {
       const dateRaw = pickDim(r, 0);
       const dateStr = dateRaw.length === 8
@@ -274,6 +278,8 @@ exports.handler = async (event) => {
         date: dateStr,
         channel: pickDim(r, 1) || '(unknown)',
         sessions: pickNum(r, 0),
+        pageviews: pickNum(r, 1),
+        conversions: pickNum(r, 2),
       };
     });
 
