@@ -17,35 +17,7 @@ const { supabase, isAdmin, ok, err, preflight, logAudit, sendEmail, MAIL_FROM } 
 const { buildPickupReminderEmail } = require('./_pickup-reminder-mail');
 const { ensureShortToken } = require('./_short-token');
 const { getPickupSms } = require('./_pickup-sms');
-
-const ELKS_URL = 'https://api.46elks.com/a1/SMS';
-
-async function sendSms(to, message) {
-  const user = process.env.ELKS_API_USER;
-  const pass = process.env.ELKS_API_PASSWORD;
-  if (!user || !pass) return { ok: false, error: 'ELKS-nycklar saknas' };
-  const from = process.env.ELKS_FROM || 'Scenkonsult';
-  let phone = String(to).replace(/\s/g, '').replace(/^0/, '+46');
-  if (!phone.startsWith('+')) phone = '+46' + phone;
-  try {
-    const body = new URLSearchParams({ from, to: phone, message });
-    const res = await fetch(ELKS_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
-        'Content-Type':  'application/x-www-form-urlencoded',
-      },
-      body: body.toString(),
-    });
-    const text = await res.text();
-    if (!res.ok) return { ok: false, error: `46elks HTTP ${res.status}: ${text.slice(0, 200)}` };
-    let parsed;
-    try { parsed = JSON.parse(text); } catch { parsed = { id: 'unknown' }; }
-    return { ok: true, smsId: parsed.id || parsed.smsId };
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-}
+const { sendSms } = require('./_sms');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();

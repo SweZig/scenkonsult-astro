@@ -12,43 +12,7 @@ const { supabase, sendEmail, logAudit, MAIL_FROM } = require('./_lib');
 const { buildPickupReminderEmail } = require('./_pickup-reminder-mail');
 const { ensureShortToken } = require('./_short-token');
 const { getPickupSms } = require('./_pickup-sms');
-
-const ELKS_URL = 'https://api.46elks.com/a1/SMS';
-
-// Skickar SMS via 46elks. Returnerar { ok, error?, smsId? }.
-async function sendSms(to, message) {
-  const user = process.env.ELKS_API_USER;
-  const pass = process.env.ELKS_API_PASSWORD;
-  if (!user || !pass) {
-    return { ok: false, error: 'ELKS-nycklar saknas' };
-  }
-  const from = process.env.ELKS_FROM || 'Scenkonsult';
-
-  // Normalisera telefonnummer till +46-format
-  let phone = String(to).replace(/\s/g, '').replace(/^0/, '+46');
-  if (!phone.startsWith('+')) phone = '+46' + phone;
-
-  try {
-    const body = new URLSearchParams({ from, to: phone, message });
-    const res = await fetch(ELKS_URL, {
-      method:  'POST',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
-        'Content-Type':  'application/x-www-form-urlencoded',
-      },
-      body: body.toString(),
-    });
-    const text = await res.text();
-    if (!res.ok) {
-      return { ok: false, error: `46elks HTTP ${res.status}: ${text.slice(0, 200)}` };
-    }
-    let parsed;
-    try { parsed = JSON.parse(text); } catch { parsed = { id: 'unknown' }; }
-    return { ok: true, smsId: parsed.id || parsed.smsId };
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-}
+const { sendSms } = require('./_sms');
 
 // Cron i UTC. Båda triggas, men bara en kör skarpt — den andra exitar snabbt.
 //   sommartid (CEST = UTC+2): 17:00 UTC = 19:00 SE  → kör skarpt
