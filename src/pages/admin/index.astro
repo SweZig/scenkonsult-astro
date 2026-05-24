@@ -5246,7 +5246,8 @@ async function adminSendPickupLink(c) {
       if (sent) {
         const via = data?.sms_sent ? 'SMS' : 'mail';
         const to  = data?.sms_sent ? (data?.to_phone || c.customer_phone) : (data?.to_email || c.customer_email);
-        toast(`Förberedelse-länk skickad via ${via} till ${to} ✓`);
+        const fromInfo = data?.sms_sent && data?.sms_from ? ` (avs: ${data.sms_from})` : '';
+        toast(`Förberedelse-länk skickad via ${via} till ${to}${fromInfo} ✓`);
         currentCart.pickup_reminder_sent_at = new Date().toISOString();
         if (data?.sms_sent)   currentCart.prepared_via = 'sms';
         else if (data?.email_sent) currentCart.prepared_via = 'email';

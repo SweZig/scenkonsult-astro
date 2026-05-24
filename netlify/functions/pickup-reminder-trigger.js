@@ -68,6 +68,8 @@ exports.handler = async (event) => {
     let emailSent = false;
     let preparedVia = null;
     let smsError = null;
+    let smsFrom = null;
+    let smsId = null;
 
     // ── SMS-försök ────────────────────────────────────────────────────────
     if (tryS) {
@@ -76,8 +78,10 @@ exports.handler = async (event) => {
       if (smsRes.ok) {
         smsSent = true;
         preparedVia = 'sms';
+        smsFrom = smsRes.from;
+        smsId = smsRes.smsId;
         await logAudit(db, cart_id, 'admin', 'pickup_reminder_sms', {
-          to: cart.customer_phone, sms_id: smsRes.smsId,
+          to: cart.customer_phone, sms_id: smsRes.smsId, from: smsRes.from,
         });
       } else {
         smsError = smsRes.error;
@@ -118,6 +122,8 @@ exports.handler = async (event) => {
       email_sent:  emailSent,
       to_phone:    smsSent ? cart.customer_phone : null,
       to_email:    emailSent ? cart.customer_email : null,
+      sms_from:    smsFrom,
+      sms_id:      smsId,
       sms_error:   smsError,
       short_token: shortToken,
     });
