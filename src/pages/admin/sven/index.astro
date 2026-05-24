@@ -169,27 +169,29 @@
 </div>
 
 <script>
-// ── Auth ──────────────────────────────────────────────────────────────────────
+// ── Auth (klartext-lösenord, matchar /admin/) ────────────────────────────────
 const ADMIN_KEY = 'sk_admin_token';
 let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
 
-async function sha256hex(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+async function tryLogin(pw) {
+  try {
+    const res = await fetch('/api/admin-auth?_=' + Date.now(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return !!j.ok;
+  } catch (e) { return false; }
 }
 
 document.getElementById('pw-btn').onclick = async () => {
-  const pw = document.getElementById('pw-input').value;
+  const pw = document.getElementById('pw-input').value.trim();
   if (!pw) return;
-  const hash = await sha256hex(pw);
-  const res = await fetch('/.netlify/functions/admin-auth', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: hash }),
-  }).catch(() => null);
-  const ok = res && (await res.json().catch(() => ({}))).ok;
+  const ok = await tryLogin(pw);
   if (ok) {
-    adminToken = hash;
-    sessionStorage.setItem(ADMIN_KEY, hash);
+    adminToken = pw;
+    sessionStorage.setItem(ADMIN_KEY, pw);
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     init();
@@ -274,9 +276,52 @@ function setFilter(f) {
 }
 
 function filteredLogs() {
-  if (filter === 'real')  return allLogs.filter(l => !l.is_chip);
-  if (filter === 'chips') return allLogs.filter(l => l.is_chip);
-  return allLogs;
+  const base = (filter === 'real')  ? allLogs.filter(l => !l.is_chip)
+             : (filter === 'chips') ? allLogs.filter(l => l.is_chip)
+             : allLogs;
+  return dedupBySession(base);
+}
+
+// Gruppera meddelanden per session_id — en rad per konversation.
+// "Subject" = första frågan i konversationen. Tid = senaste aktivitet.
+// Lägger till _msgCount så vi kan visa en badge i tabellen.
+// Meddelanden utan session_id lämnas orörda (en rad per stycken).
+function dedupBySession(logs) {
+  // logs är sorterade DESC (nyaste först)
+  const sessionMap = new Map(); // sid → { msgs: [] }
+  const noSession  = [];
+
+  for (const l of logs) {
+    if (!l.session_id) {
+      noSession.push(l);
+      continue;
+    }
+    if (!sessionMap.has(l.session_id)) {
+      sessionMap.set(l.session_id, []);
+    }
+    sessionMap.get(l.session_id).push(l);
+  }
+
+  const sessionRows = [];
+  for (const [sid, msgs] of sessionMap) {
+    // msgs är i DESC ordning (nyaste först)
+    const newest = msgs[0];
+    const oldest = msgs[msgs.length - 1];
+    sessionRows.push({
+      ...newest,                         // använd nyaste meta (page, customer_type)
+      message: oldest.message,           // visa första frågan som "ämne"
+      reply_preview: oldest.reply_preview,
+      created_at: newest.created_at,     // tid = senaste aktivitet
+      _msgCount: msgs.length,
+      _firstAt: oldest.created_at,
+      _lastAt:  newest.created_at,
+    });
+  }
+
+  // Kombinera + sortera efter senaste aktivitet DESC
+  const combined = [...sessionRows, ...noSession];
+  combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return combined;
 }
 
 function renderTable() {
@@ -291,16 +336,21 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = slice.map(l => `
+  tbody.innerHTML = slice.map(l => {
+    const msgBadge = l._msgCount > 1
+      ? `<span style="display:inline-block;background:rgba(196,181,244,0.15);color:#c4b5f4;font-size:0.65rem;padding:1px 6px;border-radius:9px;margin-left:6px;vertical-align:middle;font-weight:600">${l._msgCount}</span>`
+      : '';
+    return `
     <tr ${l.session_id ? `data-session="${l.session_id}" onclick="openThread('${l.session_id}')"` : ''} title="${l.session_id ? 'Klicka för hela konversationen' : ''}">
       <td style="color:rgba(255,255,255,0.60);font-size:0.78rem;white-space:nowrap">${fmtTime(l.created_at)}</td>
       <td>
-        <div>${escapeHtml(l.message || '–')}</div>
+        <div>${escapeHtml(l.message || '–')}${msgBadge}</div>
         ${l.reply_preview ? `<div class="reply-preview">↳ ${escapeHtml(l.reply_preview).substring(0,140)}…</div>` : ''}
       </td>
       <td>${typeTag(l.customer_type)}</td>
       <td><span class="page-tag">${(l.page_url||'–').replace('/vara-tjanster','').replace('/for/','/')}</span></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   const total = logs.length;
   const pages = Math.ceil(total / PAGE_SIZE);

@@ -106,7 +106,7 @@ exports.handler = async (event) => {
       ? [{ startDate, endDate }, { startDate: compareStart, endDate: compareEnd }]
       : [{ startDate, endDate }];
 
-    const [summaryReport, dailyReport, pagesReport, channelsReport] = await Promise.all([
+    const [summaryReport, dailyReport, pagesReport, channelsReport, dailyByChannelReport, pagesByChannelReport] = await Promise.all([
       // 1. Summary — totaler för perioden (+ jämförelse)
       runReport(propertyId, {
         dateRanges: ranges,
@@ -119,16 +119,18 @@ exports.handler = async (event) => {
         ],
       }, token),
 
-      // 2. Daily — sessions/pageviews per dag (+ jämförelse)
+      // 2. Daily — sessions/pageviews/users/conversions per dag (+ jämförelse)
       runReport(propertyId, {
         dateRanges: ranges,
         dimensions: [{ name: 'date' }],
         metrics: [
           { name: 'sessions' },
           { name: 'screenPageViews' },
+          { name: 'totalUsers' },
+          { name: 'conversions' },
         ],
         orderBys: [{ dimension: { dimensionName: 'date' }, desc: false }],
-        limit: 200,
+        limit: 400,
       }, token),
 
       // 3. Pages — top 30 sidor sorterat på sessions
@@ -153,6 +155,31 @@ exports.handler = async (event) => {
         metrics: [{ name: 'sessions' }],
         orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
         limit: 10,
+      }, token),
+
+      // 5. Daily-by-channel — för kanal-filter på tidsserien
+      // (current period only — jämförelse hade dubblat datavolymen)
+      runReport(propertyId, {
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: 'date' }, { name: 'sessionDefaultChannelGroup' }],
+        metrics: [{ name: 'sessions' }],
+        orderBys: [{ dimension: { dimensionName: 'date' }, desc: false }],
+        limit: 1000,
+      }, token),
+
+      // 6. Pages-by-channel — för kanal-filter på sidtabellen
+      // top 50 sidor × upp till ~8 kanaler = ~400 rader max
+      runReport(propertyId, {
+        dateRanges: [{ startDate, endDate }],
+        dimensions: [{ name: 'pagePath' }, { name: 'sessionDefaultChannelGroup' }],
+        metrics: [
+          { name: 'sessions' },
+          { name: 'screenPageViews' },
+          { name: 'totalUsers' },
+          { name: 'conversions' },
+        ],
+        orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+        limit: 500,
       }, token),
     ]);
 
@@ -195,6 +222,8 @@ exports.handler = async (event) => {
       target.set(dateStr, {
         sessions: pickNum(r, 0),
         pageviews: pickNum(r, 1),
+        users: pickNum(r, 2),
+        conversions: pickNum(r, 3),
       });
     }
     // Bygg array i kronologisk ordning. Jämförelseperiodens dagar
@@ -211,6 +240,8 @@ exports.handler = async (event) => {
         date: k,
         sessions: c.sessions,
         pageviews: c.pageviews,
+        users: c.users,
+        conversions: c.conversions,
         compareSessions: p ? p.sessions : null,
       });
     }
@@ -231,6 +262,32 @@ exports.handler = async (event) => {
       sessions: pickNum(r, 0),
     }));
 
+    // ── Parse Daily by channel ──
+    // Format: array av { date, channel, sessions } — frontend
+    // grupperar och filtrerar baserat på aktiverade kanaler.
+    const dailyByChannel = (dailyByChannelReport.rows || []).map(r => {
+      const dateRaw = pickDim(r, 0);
+      const dateStr = dateRaw.length === 8
+        ? `${dateRaw.slice(0,4)}-${dateRaw.slice(4,6)}-${dateRaw.slice(6,8)}`
+        : dateRaw;
+      return {
+        date: dateStr,
+        channel: pickDim(r, 1) || '(unknown)',
+        sessions: pickNum(r, 0),
+      };
+    });
+
+    // ── Parse Pages by channel ──
+    // Format: array av { path, channel, sessions, pageviews, users, conversions }
+    const pagesByChannel = (pagesByChannelReport.rows || []).map(r => ({
+      path: pickDim(r, 0),
+      channel: pickDim(r, 1) || '(unknown)',
+      sessions: pickNum(r, 0),
+      pageviews: pickNum(r, 1),
+      users: pickNum(r, 2),
+      conversions: pickNum(r, 3),
+    }));
+
     return ok({
       period: {
         days: periodDays,
@@ -241,7 +298,9 @@ exports.handler = async (event) => {
       },
       summary,
       daily,
+      dailyByChannel,
       pages,
+      pagesByChannel,
       channels,
       fetchedAt: new Date().toISOString(),
     });

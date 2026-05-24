@@ -31,6 +31,24 @@
     .pill.active { background: rgba(196,181,244,0.15); border-color: #c4b5f4; color: #c4b5f4; font-weight: 600; }
     .meta { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.40); font-family: monospace; }
 
+    /* Tabs */
+    .tab-row { display: flex; gap: 4px; margin-bottom: 1rem; border-bottom: 1px solid rgba(196,181,244,0.15); }
+    .tab-btn { background: transparent; border: none; color: rgba(255,255,255,0.60); padding: 10px 18px; cursor: pointer; font-size: 0.85rem; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+    .tab-btn:hover { color: rgba(196,181,244,0.85); }
+    .tab-btn.active { color: #c4b5f4; border-bottom-color: #c4b5f4; font-weight: 600; }
+
+    /* Kanal-filter */
+    .channel-filter-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .channel-filter-row .label { font-size: 0.78rem; color: rgba(255,255,255,0.60); white-space: nowrap; }
+    .channel-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+    .ch-chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; color: rgba(255,255,255,0.50); font-size: 0.73rem; padding: 3px 11px; cursor: pointer; transition: all 0.15s; font-family: inherit; display: flex; align-items: center; gap: 6px; }
+    .ch-chip:hover { color: rgba(255,255,255,0.85); border-color: rgba(196,181,244,0.40); }
+    .ch-chip.on { color: #f0eeff; background: rgba(196,181,244,0.10); border-color: rgba(196,181,244,0.45); }
+    .ch-chip .ch-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; opacity: 0.4; transition: opacity 0.15s; }
+    .ch-chip.on .ch-dot { opacity: 1; }
+    .chip-toggle-all { background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; color: rgba(255,255,255,0.50); font-size: 0.72rem; padding: 3px 10px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .chip-toggle-all:hover { color: rgba(196,181,244,0.85); border-color: rgba(196,181,244,0.40); }
+
     /* KPI-rad */
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
     .kpi-card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.9rem 1.1rem; }
@@ -134,23 +152,41 @@
 
     <div id="error-zone"></div>
 
-    <!-- KPI-rad -->
-    <div class="kpi-row" id="kpi-row">
-      <div class="kpi-card"><div class="kpi-lbl">Sessioner</div><div class="kpi-val" id="kpi-sessions">–</div><div class="kpi-delta delta-flat" id="kpi-sessions-delta">&nbsp;</div></div>
-      <div class="kpi-card"><div class="kpi-lbl">Sidvisningar</div><div class="kpi-val" id="kpi-pageviews">–</div><div class="kpi-delta delta-flat" id="kpi-pageviews-delta">&nbsp;</div></div>
-      <div class="kpi-card"><div class="kpi-lbl">Användare</div><div class="kpi-val" id="kpi-users">–</div><div class="kpi-delta delta-flat" id="kpi-users-delta">&nbsp;</div></div>
-      <div class="kpi-card"><div class="kpi-lbl">Konverteringar</div><div class="kpi-val" id="kpi-conv">–</div><div class="kpi-delta delta-flat" id="kpi-conv-delta">&nbsp;</div></div>
-      <div class="kpi-card"><div class="kpi-lbl">Engagemang</div><div class="kpi-val" id="kpi-engage">–</div><div class="kpi-delta delta-flat" id="kpi-engage-sub">&nbsp;</div></div>
+    <!-- Tabs -->
+    <div class="tab-row">
+      <button class="tab-btn active" data-tab="overview">📊 Översikt</button>
+      <button class="tab-btn" data-tab="weekly">🗓️ Vecka för vecka</button>
     </div>
 
-    <!-- Tidsserie -->
-    <div class="section">
-      <div class="sec-head">
-        <span class="sec-title">Sessioner per dag</span>
-        <span class="sec-sub" id="trend-sub">denna period vs föregående lika långa</span>
+    <!-- ═══════════ ÖVERSIKT-VYN ═══════════ -->
+    <div id="tab-overview" class="tab-content">
+
+      <!-- KPI-rad -->
+      <div class="kpi-row" id="kpi-row">
+        <div class="kpi-card"><div class="kpi-lbl">Sessioner</div><div class="kpi-val" id="kpi-sessions">–</div><div class="kpi-delta delta-flat" id="kpi-sessions-delta">&nbsp;</div></div>
+        <div class="kpi-card"><div class="kpi-lbl">Sidvisningar</div><div class="kpi-val" id="kpi-pageviews">–</div><div class="kpi-delta delta-flat" id="kpi-pageviews-delta">&nbsp;</div></div>
+        <div class="kpi-card"><div class="kpi-lbl">Användare</div><div class="kpi-val" id="kpi-users">–</div><div class="kpi-delta delta-flat" id="kpi-users-delta">&nbsp;</div></div>
+        <div class="kpi-card"><div class="kpi-lbl">Konverteringar</div><div class="kpi-val" id="kpi-conv">–</div><div class="kpi-delta delta-flat" id="kpi-conv-delta">&nbsp;</div></div>
+        <div class="kpi-card"><div class="kpi-lbl">Engagemang</div><div class="kpi-val" id="kpi-engage">–</div><div class="kpi-delta delta-flat" id="kpi-engage-sub">&nbsp;</div></div>
       </div>
-      <div class="chart-wrap"><canvas id="trafficChart"></canvas></div>
-    </div>
+
+      <!-- Kanal-filter -->
+      <div class="channel-filter-row">
+        <span class="label">Trafikkällor:</span>
+        <div class="channel-chips" id="channel-chips">
+          <!-- chips renderas av JS -->
+        </div>
+        <button class="chip-toggle-all" id="chip-toggle-all" title="Markera/avmarkera alla">Alla</button>
+      </div>
+
+      <!-- Tidsserie -->
+      <div class="section">
+        <div class="sec-head">
+          <span class="sec-title">Sessioner per dag</span>
+          <span class="sec-sub" id="trend-sub">denna period vs föregående lika långa</span>
+        </div>
+        <div class="chart-wrap"><canvas id="trafficChart"></canvas></div>
+      </div>
 
     <!-- Trafik per sida -->
     <div class="section">
@@ -200,20 +236,47 @@
       </div>
     </div>
 
-    <!-- Google Ads placeholder -->
-    <div class="section">
-      <div class="sec-head">
-        <span class="sec-title">Google Ads</span>
-        <span class="sec-sub">kommer i fas 3 — väntar på Developer Token</span>
+      <!-- Google Ads placeholder -->
+      <div class="section">
+        <div class="sec-head">
+          <span class="sec-title">Google Ads</span>
+          <span class="sec-sub">kommer i fas 3 — väntar på Developer Token</span>
+        </div>
+        <div class="placeholder-box">
+          Google Ads-integrationen kräver Developer Token (1–3 arbetsdagars
+          granskning hos Google) + OAuth2-flöde (ej Service Account).
+          Sätts in när konv/månad &gt; 15 och justerar bidstrategin motiverar
+          kostnads-/konverterings-data per landningssida. Under tiden:
+          <a href="https://ads.google.com/aw/overview?ocid=20679801278" target="_blank" rel="noopener" style="color:#c4b5f4">öppna Google Ads-dashboard →</a>
+        </div>
       </div>
-      <div class="placeholder-box">
-        Google Ads-integrationen kräver Developer Token (1–3 arbetsdagars
-        granskning hos Google) + OAuth2-flöde (ej Service Account).
-        Sätts in när konv/månad &gt; 15 och justerar bidstrategin motiverar
-        kostnads-/konverterings-data per landningssida. Under tiden:
-        <a href="https://ads.google.com/aw/overview?ocid=20679801278" target="_blank" rel="noopener" style="color:#c4b5f4">öppna Google Ads-dashboard →</a>
+
+    </div><!-- /tab-overview -->
+
+    <!-- ═══════════ VECKA FÖR VECKA-VYN ═══════════ -->
+    <div id="tab-weekly" class="tab-content" style="display:none">
+      <div class="section">
+        <div class="sec-head">
+          <span class="sec-title">Vecka för vecka</span>
+          <span class="sec-sub">ISO-veckor — sessioner, användare, konverteringar</span>
+        </div>
+        <table class="tbl" id="weekly-tbl">
+          <thead>
+            <tr>
+              <th>Vecka</th>
+              <th>Datumintervall</th>
+              <th class="num">Sessioner</th>
+              <th class="num">Användare</th>
+              <th class="num">Sidvisn.</th>
+              <th class="num">Konv.</th>
+            </tr>
+          </thead>
+          <tbody id="weekly-tbody">
+            <tr><td colspan="6" class="loading">Laddar…</td></tr>
+          </tbody>
+        </table>
       </div>
-    </div>
+    </div><!-- /tab-weekly -->
 
   </div>
 </div>
@@ -270,11 +333,48 @@ if (adminToken) {
 
 // ── State ─────────────────────────────────────────────────────────────
 let currentPeriod = parseInt(sessionStorage.getItem('sk_stats_period') || '28', 10);
+let currentTab    = sessionStorage.getItem('sk_stats_tab') || 'overview';
 let trafficChart  = null;
 let channelChart  = null;
+let activeChannels = null;  // Set<string> eller null = alla
+let lastPayload    = null;  // sista hämtade datan — för re-render vid filter-byte
 
-const CACHE_KEY_PREFIX = 'sk-stats-cache-v2-';
+const CACHE_KEY_PREFIX = 'sk-stats-cache-v3-';
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 min
+
+// Kanalfärger — matchar donut-paletten
+const CHANNEL_PALETTE = ['#c4b5f4', '#7c3aed', '#5dcaa5', '#facc15', '#94a3b8', '#fb923c', '#60a5fa', '#f472b6', '#34d399'];
+const channelColor = (name, allChannels) => {
+  const idx = allChannels.indexOf(name);
+  return CHANNEL_PALETTE[idx % CHANNEL_PALETTE.length];
+};
+
+// ── ISO-vecka (svenska veckonummer) ──────────────────────────────────
+// ISO 8601: vecka börjar måndag, vecka 1 = veckan med 4 jan (= veckan
+// med första torsdagen). Identisk med "svensk vecka".
+function isoWeek(date) {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return { year: d.getUTCFullYear(), week: weekNum };
+}
+function isoWeekKey(date) {
+  const { year, week } = isoWeek(date);
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+// Måndag i en ISO-vecka
+function mondayOfIsoWeek(year, week) {
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Day = jan4.getUTCDay() || 7;
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - jan4Day + 1 + (week - 1) * 7);
+  return monday;
+}
+function fmtDateShort(d) {
+  return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
+}
 
 function fmtNum(n) {
   if (n === null || n === undefined) return '–';
@@ -375,15 +475,24 @@ function clearError() {
 
 // ── Render ────────────────────────────────────────────────────────────
 function render(payload) {
+  lastPayload = payload;  // spara för re-render vid filter-byte
   const ga4 = payload.ga4;
-  const gsc = payload.gsc;     // kan vara null om GSC failat
+  const gsc = payload.gsc;
 
   // Period-range
   document.getElementById('period-range').textContent = `${ga4.period.start} → ${ga4.period.end}`;
   document.getElementById('last-updated').textContent =
     'uppdaterad ' + new Date(ga4.fetchedAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
 
-  // KPI
+  // Initiera activeChannels första gången — alla aktiva som default
+  if (activeChannels === null) {
+    activeChannels = new Set(ga4.channels.map(c => c.channel));
+  } else {
+    // Lägg till eventuellt nya kanaler som dykt upp efter period-byte
+    for (const c of ga4.channels) if (!activeChannels.has(c.channel)) activeChannels.add(c.channel);
+  }
+
+  // KPI (alltid total, inte filtrerat)
   document.getElementById('kpi-sessions').textContent  = fmtNum(ga4.summary.sessions);
   document.getElementById('kpi-pageviews').textContent = fmtNum(ga4.summary.pageviews);
   document.getElementById('kpi-users').textContent     = fmtNum(ga4.summary.users);
@@ -395,16 +504,16 @@ function render(payload) {
   setDelta('kpi-conv-delta',      ga4.summary.deltaConversions);
   document.getElementById('kpi-engage-sub').textContent = `andel engagerade sessioner`;
 
-  // Tidsserie (GA4)
-  renderTrafficChart(ga4.daily);
+  // Kanal-chips
+  renderChannelChips(ga4.channels);
 
-  // Sidor (GA4 + GSC join)
-  renderPagesTable(ga4.pages, gsc?.pages || []);
+  // Filtrerade vyer
+  renderFilteredViews();
 
-  // Kanaler (GA4)
+  // Kanaler-donut (alltid total fördelning)
   renderChannels(ga4.channels);
 
-  // Sökord (GSC) — visar info-meddelande om GSC failat
+  // Sökord (GSC)
   if (gsc) {
     renderQueries(gsc.queries);
   } else {
@@ -412,19 +521,90 @@ function render(payload) {
       '<div class="muted" style="font-size:0.8rem">Sökord ej tillgängliga — se varning ovan</div>';
   }
 
-  // GSC-fel separat banner (icke-kritisk)
+  // Weekly-vyn
+  renderWeekly(ga4.daily);
+
+  // GSC-fel separat banner
   if (payload.gscError) showGscError(payload.gscError);
 }
 
-function renderTrafficChart(daily) {
+// Re-render delar som påverkas av kanal-filtret
+function renderFilteredViews() {
+  if (!lastPayload || !lastPayload.ga4) return;
+  const ga4 = lastPayload.ga4;
+  const gsc = lastPayload.gsc;
+
+  renderTrafficChart(ga4.daily, ga4.dailyByChannel || []);
+  renderPagesTable(ga4.pages, ga4.pagesByChannel || [], gsc?.pages || []);
+}
+
+// ── Kanal-chips ──────────────────────────────────────────────────────
+function renderChannelChips(channels) {
+  const wrap = document.getElementById('channel-chips');
+  const allNames = channels.map(c => c.channel);
+  wrap.innerHTML = channels.map(c => {
+    const on = activeChannels.has(c.channel);
+    const color = channelColor(c.channel, allNames);
+    return `<button class="ch-chip ${on ? 'on' : ''}" data-channel="${c.channel.replace(/"/g, '&quot;')}"
+              title="${fmtNum(c.sessions)} sessioner">
+        <span class="ch-dot" style="background:${color}"></span>${c.channel}
+      </button>`;
+  }).join('');
+
+  wrap.querySelectorAll('.ch-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.channel;
+      if (activeChannels.has(name)) activeChannels.delete(name);
+      else activeChannels.add(name);
+      btn.classList.toggle('on');
+      renderFilteredViews();
+    });
+  });
+
+  // Toggle-all-knapp
+  const toggleBtn = document.getElementById('chip-toggle-all');
+  toggleBtn.onclick = () => {
+    if (activeChannels.size === allNames.length) {
+      activeChannels.clear();
+    } else {
+      activeChannels = new Set(allNames);
+    }
+    renderChannelChips(channels);
+    renderFilteredViews();
+  };
+}
+
+function renderTrafficChart(daily, dailyByChannel) {
   const ctx = document.getElementById('trafficChart');
   if (trafficChart) trafficChart.destroy();
+
+  // Bestäm om filter är aktivt (alla kanaler aktiva = inget filter)
+  const allChannels = new Set(dailyByChannel.map(r => r.channel));
+  const filterActive = activeChannels.size < allChannels.size;
+
   const labels = daily.map(d => {
     const dt = new Date(d.date);
     return dt.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
   });
-  const sessions = daily.map(d => d.sessions);
-  const compare  = daily.map(d => d.compareSessions);
+
+  let sessions;
+  if (filterActive) {
+    // Aggregera dailyByChannel per dag, bara aktiva kanaler
+    const byDate = new Map();
+    for (const r of dailyByChannel) {
+      if (!activeChannels.has(r.channel)) continue;
+      byDate.set(r.date, (byDate.get(r.date) || 0) + r.sessions);
+    }
+    sessions = daily.map(d => byDate.get(d.date) || 0);
+  } else {
+    sessions = daily.map(d => d.sessions);
+  }
+  const compare = daily.map(d => d.compareSessions);
+
+  // Uppdatera sub-text för att markera filterläge
+  document.getElementById('trend-sub').textContent = filterActive
+    ? `filtrerat på ${activeChannels.size}/${allChannels.size} kanaler · jämförelse visas totalt`
+    : 'denna period vs föregående lika långa';
 
   trafficChart = new Chart(ctx, {
     type: 'line',
@@ -432,7 +612,7 @@ function renderTrafficChart(daily) {
       labels,
       datasets: [
         {
-          label: 'Denna period',
+          label: filterActive ? 'Valda kanaler' : 'Denna period',
           data: sessions,
           borderColor: '#c4b5f4',
           backgroundColor: 'rgba(196,181,244,0.10)',
@@ -443,8 +623,8 @@ function renderTrafficChart(daily) {
           fill: true,
         },
         {
-          label: 'Föregående period',
-          data: compare,
+          label: filterActive ? 'Totalt' : 'Föregående period',
+          data: filterActive ? daily.map(d => d.sessions) : compare,
           borderColor: 'rgba(255,255,255,0.40)',
           borderDash: [5, 4],
           borderWidth: 1,
@@ -481,7 +661,7 @@ function renderTrafficChart(daily) {
         },
         y: {
           beginAtZero: true,
-          ticks: { color: 'rgba(255,255,255,0.45)', font: { size: 10 } },
+          ticks: { color: 'rgba(255,255,255,0.45)', font: { size: 10 }, },
           grid: { color: 'rgba(255,255,255,0.05)' },
         }
       }
@@ -489,20 +669,40 @@ function renderTrafficChart(daily) {
   });
 }
 
-function renderPagesTable(pages, gscPages) {
+function renderPagesTable(pagesTotal, pagesByChannel, gscPages) {
   const tbody = document.getElementById('pages-tbody');
+
+  // Bestäm filterläge
+  const allChannels = new Set(pagesByChannel.map(r => r.channel));
+  const filterActive = allChannels.size > 0 && activeChannels.size < allChannels.size;
+
+  let pages;
+  if (filterActive) {
+    // Aggregera pagesByChannel per path, bara aktiva kanaler
+    const agg = new Map();
+    for (const r of pagesByChannel) {
+      if (!activeChannels.has(r.channel)) continue;
+      const e = agg.get(r.path) || { path: r.path, sessions: 0, pageviews: 0, users: 0, conversions: 0, engagementRate: 0 };
+      e.sessions    += r.sessions;
+      e.pageviews   += r.pageviews;
+      e.users       += r.users;
+      e.conversions += r.conversions;
+      agg.set(r.path, e);
+    }
+    pages = Array.from(agg.values()).sort((a, b) => b.sessions - a.sessions).slice(0, 30);
+  } else {
+    pages = pagesTotal;
+  }
+
   if (!pages || !pages.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:1rem">Ingen data för perioden</td></tr>';
     return;
   }
 
-  // Bygg lookup-map: pagePath → gsc-rad
-  // Normalisera båda till samma format (trailing slash strippas) för säker join
+  // GSC-lookup
   const stripSlash = (s) => (s && s !== '/' && s.endsWith('/')) ? s.slice(0, -1) : s;
   const gscMap = new Map();
-  for (const g of (gscPages || [])) {
-    gscMap.set(stripSlash(g.path || ''), g);
-  }
+  for (const g of (gscPages || [])) gscMap.set(stripSlash(g.path || ''), g);
 
   tbody.innerHTML = pages.map(p => {
     const safePath = p.path.replace(/</g, '&lt;');
@@ -539,6 +739,65 @@ function renderQueries(queries) {
         <span style="color:rgba(255,255,255,0.85);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%" title="${safeQ}">${safeQ}</span>
         <span class="legend-val">${fmtNum(q.clicks)} klick · ${posTxt}</span>
       </div>`;
+  }).join('');
+}
+
+// ── Weekly-vy: aggregera daily per ISO-vecka ───────────────────────────
+function renderWeekly(daily) {
+  const tbody = document.getElementById('weekly-tbody');
+  if (!daily || !daily.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:1rem">Ingen data för perioden</td></tr>';
+    return;
+  }
+
+  // Bucketing per ISO-vecka
+  const buckets = new Map(); // key 'YYYY-Www' → { year, week, sessions, users, pageviews, conversions, firstDate, lastDate }
+  for (const d of daily) {
+    const dt = new Date(d.date + 'T00:00:00Z');
+    const { year, week } = isoWeek(dt);
+    const key = `${year}-W${String(week).padStart(2, '0')}`;
+    const e = buckets.get(key) || {
+      year, week, key,
+      sessions: 0, users: 0, pageviews: 0, conversions: 0,
+      firstDate: dt, lastDate: dt,
+    };
+    e.sessions    += d.sessions || 0;
+    e.users       += d.users || 0;
+    e.pageviews   += d.pageviews || 0;
+    e.conversions += d.conversions || 0;
+    if (dt < e.firstDate) e.firstDate = dt;
+    if (dt > e.lastDate)  e.lastDate  = dt;
+    buckets.set(key, e);
+  }
+
+  // Sortera nyaste vecka först
+  const rows = Array.from(buckets.values()).sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return b.week - a.week;
+  });
+
+  // Hitta nuvarande ISO-vecka för att markera
+  const nowIso = isoWeek(new Date());
+  const nowKey = `${nowIso.year}-W${String(nowIso.week).padStart(2, '0')}`;
+
+  tbody.innerHTML = rows.map(r => {
+    // Visa måndag–söndag oavsett vilka dagar som ligger i bucket (perioden kan
+    // delvis täcka en vecka — då räknar siffrorna bara på dagarna i perioden)
+    const monday = mondayOfIsoWeek(r.year, r.week);
+    const sunday = new Date(monday); sunday.setUTCDate(monday.getUTCDate() + 6);
+    const partial = (r.firstDate > monday) || (r.lastDate < sunday);
+    const range = `${fmtDateShort(r.firstDate)} – ${fmtDateShort(r.lastDate)}` +
+                  (partial ? ' <span class="muted" style="font-size:0.7rem">(del av vecka)</span>' : '');
+    const isCurrent = r.key === nowKey;
+    return `
+      <tr ${isCurrent ? 'style="background:rgba(196,181,244,0.06)"' : ''}>
+        <td><strong style="color:#c4b5f4">v.${r.week}</strong> <span class="muted" style="font-size:0.75rem">${r.year}</span>${isCurrent ? ' <span style="font-size:0.65rem;color:#c4b5f4;background:rgba(196,181,244,0.15);padding:1px 6px;border-radius:8px;margin-left:4px">nu</span>' : ''}</td>
+        <td style="color:rgba(255,255,255,0.65);font-size:0.8rem">${range}</td>
+        <td class="num">${fmtNum(r.sessions)}</td>
+        <td class="num">${fmtNum(r.users)}</td>
+        <td class="num">${fmtNum(r.pageviews)}</td>
+        <td class="num">${r.conversions > 0 ? fmtNum(r.conversions) : '<span class="muted">0</span>'}</td>
+      </tr>`;
   }).join('');
 }
 
@@ -606,6 +865,7 @@ function renderChannels(channels) {
 async function load(period) {
   clearError();
   document.getElementById('pages-tbody').innerHTML = '<tr><td colspan="7" class="loading">Laddar…</td></tr>';
+  document.getElementById('weekly-tbody').innerHTML = '<tr><td colspan="6" class="loading">Laddar…</td></tr>';
   try {
     const data = await fetchStats(period);
     render(data);
@@ -614,17 +874,33 @@ async function load(period) {
   }
 }
 
+function setTab(tab) {
+  currentTab = tab;
+  sessionStorage.setItem('sk_stats_tab', tab);
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('tab-overview').style.display = (tab === 'overview') ? '' : 'none';
+  document.getElementById('tab-weekly').style.display   = (tab === 'weekly')   ? '' : 'none';
+}
+
 function init() {
-  // Markera rätt pill från sessionStorage
+  // Period-toggle
   document.querySelectorAll('#period-pills .pill').forEach(b => {
     b.classList.toggle('active', parseInt(b.dataset.period, 10) === currentPeriod);
     b.addEventListener('click', () => {
       currentPeriod = parseInt(b.dataset.period, 10);
       sessionStorage.setItem('sk_stats_period', String(currentPeriod));
       document.querySelectorAll('#period-pills .pill').forEach(x => x.classList.toggle('active', x === b));
+      // Behåll filter mellan period-byten — om kanalerna ändras hanteras det i render()
       load(currentPeriod);
     });
   });
+
+  // Tab-toggle
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.addEventListener('click', () => setTab(b.dataset.tab));
+  });
+  setTab(currentTab);
+
   load(currentPeriod);
 }
 </script>
