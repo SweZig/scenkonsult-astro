@@ -1811,6 +1811,81 @@ let TOKEN = '';
 let carts = [];
 let currentCart = null;
 
+// ── PANEL-POLLING ─────────────────────────────────────────────
+// Pollar aktuell cart var 5 sek när panelen är öppen så ändringar
+// (t.ex. kund signerar i bakgrunden) syns utan manuell uppdatering.
+// Skippar om tab är hidden eller om admin har osparade ändringar.
+let panelPollInterval = null;
+const PANEL_POLL_MS = 5000;
+
+function startPanelPolling() {
+  stopPanelPolling();
+  panelPollInterval = setInterval(pollCurrentCart, PANEL_POLL_MS);
+}
+
+function stopPanelPolling() {
+  if (panelPollInterval) {
+    clearInterval(panelPollInterval);
+    panelPollInterval = null;
+  }
+}
+
+async function pollCurrentCart() {
+  if (!currentCart || !currentCart.id) return;
+  if (document.hidden) return;     // Skippa när tab är inaktiv
+  if (panelDirty)     return;       // Skippa om admin skriver i textarea etc
+
+  try {
+    const { ok, data } = await api(`admin-carts?id=${encodeURIComponent(currentCart.id)}`);
+    if (!ok || !data?.cart) return;
+
+    const fresh = data.cart;
+
+    // Fält som triggar UI-uppdatering
+    const watchFields = [
+      'pickup_signed_at',
+      'pickup_confirmed_at',
+      'pickup_reminder_sent_at',
+      'pickup_signature',
+      'pickup_id_photo',
+      'pickup_method',
+      'pickup_proxy_name',
+      'pickup_proxy_phone',
+      'delivery_recipient_method',
+      'delivery_recipient_name',
+      'delivery_recipient_phone',
+      'id_photo_ai_result',
+      'status',
+      'updated_at',
+    ];
+
+    const changed = watchFields.some(f => {
+      const a = JSON.stringify(currentCart[f] ?? null);
+      const b = JSON.stringify(fresh[f] ?? null);
+      return a !== b;
+    });
+
+    if (changed) {
+      currentCart = fresh;
+      if (data.messages) currentMessages = data.messages;
+      if (data.audit_log) currentAudit = data.audit_log;
+      // Re-rendera vyer (info-tabben + footer + lista)
+      if (typeof renderTab === 'function') renderTab(activeTab || 'info');
+      if (typeof renderPanelFooter === 'function') renderPanelFooter();
+      loadCarts();
+    }
+  } catch (e) {
+    // Tyst — försök igen om 5 sek
+    console.warn('Panel-poll:', e.message);
+  }
+}
+
+// Stoppa polling när tab blir hidden (sparar API-anrop)
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopPanelPolling();
+  else if (currentCart && currentCart.id) startPanelPolling();
+});
+
 // ── DIRTY-TRACKING I DETALJPANELEN ────────────────────────────
 // Sätts till true när användaren ändrar något i Info/Produkter/Faktura.
 // Vid flikbyte eller stäng-panel varnar vi om osparade ändringar.
@@ -2795,6 +2870,9 @@ async function openDetail(cartId) {
   // Markera alla olästa kundmeddelanden som lästa när admin öppnar kortet
   const hasUnread = currentMessages.some(m => m.sender === 'customer' && !m.read_at);
   if (hasUnread) markAdminRead(currentCart.id);
+
+  // Starta auto-polling så vi ser ändringar (t.ex. kund signerar i bakgrunden)
+  startPanelPolling();
 
   $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
   updatePanelMarkReadBtn();
@@ -6353,6 +6431,7 @@ function closePanel() {
     }
   }
   clearPanelDirty();
+  stopPanelPolling();
   $('detail-overlay').classList.remove('open');
   $('detail-panel').classList.remove('open');
   const markBtn = document.getElementById('panel-mark-read-btn');
