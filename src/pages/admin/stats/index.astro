@@ -82,9 +82,9 @@
     /* Tabell */
     .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .tbl th { font-size: 0.7rem; color: rgba(196,181,244,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .tbl th.num { text-align: center; }
+    .tbl th.num { text-align: left; }
     .tbl td { padding: 9px 12px; font-size: 0.83rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
-    .tbl td.num { text-align: center; font-variant-numeric: tabular-nums; }
+    .tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
     .tbl tr:last-child td { border-bottom: none; }
     .tbl tr:hover td { background: rgba(196,181,244,0.04); }
     .path-cell { font-family: 'Source Sans 3', system-ui, sans-serif; color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -677,47 +677,63 @@ function renderTrafficChart(daily, dailyByChannel) {
   }
   const compare = daily.map(d => d.compareSessions);
 
+  // Har vi någon faktisk jämförelsedata att visa? (kan vara null + 0 från GA4)
+  const hasCompareData = compare.some(v => v !== null && v !== undefined && v > 0);
+
   // Uppdatera sub-text för att markera filterläge
   document.getElementById('trend-sub').textContent = filterActive
     ? `filtrerat på ${activeChannels.size}/${allChannels.size} kanaler · jämförelse visas totalt`
-    : 'denna period vs föregående lika långa';
+    : (hasCompareData ? 'denna period vs föregående lika långa' : 'denna period');
+
+  // Bygg datasets — andra dataset (jämförelse/totalt) bara om relevant
+  const datasets = [{
+    label: filterActive ? 'Valda kanaler' : 'Denna period',
+    data: sessions,
+    borderColor: '#c4b5f4',
+    backgroundColor: 'rgba(196,181,244,0.10)',
+    borderWidth: 2,
+    tension: 0.32,
+    pointRadius: 0,
+    pointHoverRadius: 4,
+    fill: true,
+  }];
+  if (filterActive) {
+    datasets.push({
+      label: 'Totalt (alla kanaler)',
+      data: daily.map(d => d.sessions),
+      borderColor: 'rgba(255,255,255,0.40)',
+      borderDash: [5, 4],
+      borderWidth: 1,
+      tension: 0.32,
+      pointRadius: 0,
+      pointHoverRadius: 3,
+      fill: false,
+    });
+  } else if (hasCompareData) {
+    datasets.push({
+      label: 'Föregående period',
+      data: compare,
+      borderColor: 'rgba(255,255,255,0.40)',
+      borderDash: [5, 4],
+      borderWidth: 1,
+      tension: 0.32,
+      pointRadius: 0,
+      pointHoverRadius: 3,
+      fill: false,
+      spanGaps: false,  // hoppa över null-punkter
+    });
+  }
 
   trafficChart = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: filterActive ? 'Valda kanaler' : 'Denna period',
-          data: sessions,
-          borderColor: '#c4b5f4',
-          backgroundColor: 'rgba(196,181,244,0.10)',
-          borderWidth: 2,
-          tension: 0.32,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          fill: true,
-        },
-        {
-          label: filterActive ? 'Totalt' : 'Föregående period',
-          data: filterActive ? daily.map(d => d.sessions) : compare,
-          borderColor: 'rgba(255,255,255,0.40)',
-          borderDash: [5, 4],
-          borderWidth: 1,
-          tension: 0.32,
-          pointRadius: 0,
-          pointHoverRadius: 3,
-          fill: false,
-        }
-      ]
-    },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: {
-          display: true,
+          display: datasets.length > 1,
           position: 'bottom',
           labels: { color: 'rgba(255,255,255,0.6)', font: { size: 11, family: 'Space Grotesk' }, boxWidth: 18, boxHeight: 2, padding: 14 }
         },
@@ -729,10 +745,12 @@ function renderTrafficChart(daily, dailyByChannel) {
           bodyColor: '#f0eeff',
           padding: 10,
           callbacks: {
+            // Använd dataset.data[i] istället för ctx.parsed.y — den senare
+            // konverterar null till 0 vilket lurar oss.
             label: (ctx) => {
-              const v = ctx.parsed.y;
-              if (v === null || v === undefined) return `${ctx.dataset.label}: –`;
-              return `${ctx.dataset.label}: ${fmtNum(v)} sessioner`;
+              const raw = ctx.dataset.data[ctx.dataIndex];
+              if (raw === null || raw === undefined) return `${ctx.dataset.label}: –`;
+              return `${ctx.dataset.label}: ${fmtNum(raw)} sessioner`;
             }
           }
         }
