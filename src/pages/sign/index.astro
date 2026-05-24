@@ -245,9 +245,8 @@
       <div class="success-sub" id="prepared-sub" style="margin-bottom:1rem">Vi aktiverar din kvittens när vi träffas vid utlämningen.</div>
       <div id="prepared-summary" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:0.75rem 1rem;margin-top:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.85);text-align:left"></div>
       <p style="margin:1rem 0 0;font-size:0.78rem;color:rgba(255,255,255,0.55)">
-        Vill du ändra något? Tryck knappen nedan så öppnar vi formuläret igen.
+        Behöver du ändra något? Ring oss på <a href="tel:0724481000" style="color:#c4b5f4;text-decoration:none">072-448 10 00</a>.
       </p>
-      <button id="reopen-btn" style="margin-top:0.75rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);padding:0.55rem 1.25rem;border-radius:8px;font-size:0.82rem;cursor:pointer">↻ Ändra mina uppgifter</button>
     </div>
   </div>
 
@@ -574,24 +573,6 @@
       document.getElementById('error-msg').textContent = e.message;
     }
   }
-
-  // "Ändra mina uppgifter" — kund vill korrigera innan utlämning
-  document.getElementById('reopen-btn')?.addEventListener('click', async () => {
-    if (!confirm('Vill du börja om förberedelsen? Din nuvarande signatur och legitimation tas bort.')) return;
-    try {
-      const res = await fetch('/.netlify/functions/sign-reopen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart_id: cartId, token: cartToken }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || 'Kunde inte återställa');
-      // Ladda om sidan
-      loadOrder();
-    } catch (e) {
-      alert('Kunde inte återställa: ' + e.message);
-    }
-  });
 
   // ── Submit ────────────────────────────────────────────────────
   document.getElementById('submit-btn').addEventListener('click', async () => {
