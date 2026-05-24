@@ -41,12 +41,10 @@
     .channel-filter-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
     .channel-filter-row .label { font-size: 0.78rem; color: rgba(255,255,255,0.60); white-space: nowrap; }
     .channel-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
-    .ch-chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; color: rgba(255,255,255,0.50); font-size: 0.73rem; padding: 3px 11px; cursor: pointer; transition: all 0.15s; font-family: inherit; display: flex; align-items: center; gap: 6px; }
-    .ch-chip:hover { color: rgba(255,255,255,0.85); border-color: rgba(196,181,244,0.40); }
-    .ch-chip.on { color: #f0eeff; background: rgba(196,181,244,0.10); border-color: rgba(196,181,244,0.45); }
-    .ch-chip .ch-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; opacity: 0.4; transition: opacity 0.15s; }
-    .ch-chip.on .ch-dot { opacity: 1; }
-    .chip-toggle-all { background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; color: rgba(255,255,255,0.50); font-size: 0.72rem; padding: 3px 10px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .ch-chip { border-radius: 16px; font-size: 0.73rem; padding: 4px 11px; cursor: pointer; transition: all 0.15s; font-family: inherit; display: flex; align-items: center; gap: 6px; border-width: 1px; border-style: solid; }
+    .ch-chip:hover { opacity: 0.85; }
+    .ch-chip .ch-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; transition: opacity 0.15s; }
+    .chip-toggle-all { background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; color: rgba(255,255,255,0.55); font-size: 0.72rem; padding: 4px 10px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
     .chip-toggle-all:hover { color: rgba(196,181,244,0.85); border-color: rgba(196,181,244,0.40); }
 
     /* KPI-rad */
@@ -82,14 +80,14 @@
     .legend-val { font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.7); font-size: 0.75rem; }
 
     /* Tabell */
-    .tbl { width: 100%; border-collapse: collapse; }
-    .tbl th { font-size: 0.7rem; color: rgba(196,181,244,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .tbl th { font-size: 0.7rem; color: rgba(196,181,244,0.55); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
     .tbl th.num { text-align: right; }
-    .tbl td { padding: 7px 8px; font-size: 0.83rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    .tbl td { padding: 9px 12px; font-size: 0.83rem; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
     .tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
     .tbl tr:last-child td { border-bottom: none; }
     .tbl tr:hover td { background: rgba(196,181,244,0.04); }
-    .path-cell { font-family: 'Source Sans 3', system-ui, sans-serif; color: rgba(255,255,255,0.85); max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .path-cell { font-family: 'Source Sans 3', system-ui, sans-serif; color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .path-cell a { color: rgba(196,181,244,0.7); text-decoration: none; }
     .path-cell a:hover { color: #c4b5f4; text-decoration: underline; }
     .muted { color: rgba(255,255,255,0.45); }
@@ -195,6 +193,15 @@
         <span class="sec-sub">topp 30 — GA4-sessioner joinas med GSC-klick</span>
       </div>
       <table class="tbl" id="pages-tbl">
+        <colgroup>
+          <col>
+          <col style="width:80px">
+          <col style="width:80px">
+          <col style="width:70px">
+          <col style="width:80px">
+          <col style="width:65px">
+          <col style="width:70px">
+        </colgroup>
         <thead>
           <tr>
             <th>Sökväg</th>
@@ -261,6 +268,14 @@
           <span class="sec-sub">ISO-veckor — sessioner, användare, konverteringar</span>
         </div>
         <table class="tbl" id="weekly-tbl">
+          <colgroup>
+            <col style="width:110px">
+            <col>
+            <col style="width:95px">
+            <col style="width:95px">
+            <col style="width:95px">
+            <col style="width:80px">
+          </colgroup>
           <thead>
             <tr>
               <th>Vecka</th>
@@ -539,15 +554,27 @@ function renderFilteredViews() {
 }
 
 // ── Kanal-chips ──────────────────────────────────────────────────────
+// Hex-helper: konvertera #RRGGBB + opacity (0-1) till rgba()-sträng
+function hexToRgba(hex, alpha) {
+  const m = hex.replace('#', '').match(/.{2}/g);
+  if (!m || m.length !== 3) return hex;
+  const [r, g, b] = m.map(x => parseInt(x, 16));
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function renderChannelChips(channels) {
   const wrap = document.getElementById('channel-chips');
   const allNames = channels.map(c => c.channel);
   wrap.innerHTML = channels.map(c => {
     const on = activeChannels.has(c.channel);
     const color = channelColor(c.channel, allNames);
+    const style = on
+      ? `background:${hexToRgba(color,0.18)};border-color:${hexToRgba(color,0.65)};color:#fff;`
+      : `background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.10);color:rgba(255,255,255,0.40);`;
     return `<button class="ch-chip ${on ? 'on' : ''}" data-channel="${c.channel.replace(/"/g, '&quot;')}"
-              title="${fmtNum(c.sessions)} sessioner">
-        <span class="ch-dot" style="background:${color}"></span>${c.channel}
+              style="${style}"
+              title="${fmtNum(c.sessions)} sessioner — klicka för att toggla">
+        <span class="ch-dot" style="background:${color};opacity:${on ? 1 : 0.35}"></span>${c.channel}
       </button>`;
   }).join('');
 
@@ -556,13 +583,14 @@ function renderChannelChips(channels) {
       const name = btn.dataset.channel;
       if (activeChannels.has(name)) activeChannels.delete(name);
       else activeChannels.add(name);
-      btn.classList.toggle('on');
+      renderChannelChips(channels);  // re-render chips för att uppdatera färger
       renderFilteredViews();
     });
   });
 
   // Toggle-all-knapp
   const toggleBtn = document.getElementById('chip-toggle-all');
+  toggleBtn.textContent = (activeChannels.size === allNames.length) ? 'Inga' : 'Alla';
   toggleBtn.onclick = () => {
     if (activeChannels.size === allNames.length) {
       activeChannels.clear();
