@@ -28,7 +28,12 @@ const { OAuth2Client } = require('google-auth-library');
 // ── Access token cache (varar tills funktionen kallrestartas) ───────────
 let _cachedToken = null;
 let _cachedTokenExpiry = 0;
-let _oauthClient = null;
+
+function maskValue(v, prefix = 6, suffix = 4) {
+  if (!v) return '(saknas)';
+  if (v.length <= prefix + suffix) return v.length + ' tecken';
+  return `${v.slice(0, prefix)}…${v.slice(-suffix)} (${v.length} tecken)`;
+}
 
 async function getAccessToken() {
   const now = Date.now();
@@ -42,13 +47,16 @@ async function getAccessToken() {
     throw new Error('GA4 OAuth env-vars saknas (GA4_OAUTH_CLIENT_ID / GA4_OAUTH_CLIENT_SECRET / GA4_OAUTH_REFRESH_TOKEN)');
   }
 
-  if (!_oauthClient) {
-    _oauthClient = new OAuth2Client(clientId, clientSecret);
-    _oauthClient.setCredentials({ refresh_token: refreshToken });
-  }
+  // Debug-logg — maskerade värden för verifiering av env-vars
+  console.log('GA4_AUTH client_id:', maskValue(clientId));
+  console.log('GA4_AUTH client_secret:', maskValue(clientSecret));
+  console.log('GA4_AUTH refresh_token:', maskValue(refreshToken));
 
-  // getAccessToken auto-refreshar via refresh_token
-  const { token } = await _oauthClient.getAccessToken();
+  // Skapa ny client per anrop — env-vars kan ha uppdaterats sedan kallstart
+  const oauthClient = new OAuth2Client(clientId, clientSecret);
+  oauthClient.setCredentials({ refresh_token: refreshToken });
+
+  const { token } = await oauthClient.getAccessToken();
   if (!token) throw new Error('OAuth getAccessToken returnerade null — refresh_token kan vara förbrukad eller återkallad');
 
   _cachedToken = token;
