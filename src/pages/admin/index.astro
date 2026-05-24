@@ -3458,21 +3458,21 @@ function renderInfoTab() {
         : c.pickup_reminder_sent_at ? `
         <div style="display:flex;align-items:center;gap:0.5rem;color:var(--brand-lav);font-weight:600;margin-bottom:0.25rem">
           <span>📨</span>
-          <span>Förberedelsemail skickat — kund har inte börjat</span>
+          <span>Förberedelse-länk skickad — kund har inte börjat</span>
         </div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Skickat ${fmtTime(c.pickup_reminder_sent_at)}</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Skickat ${fmtTime(c.pickup_reminder_sent_at)}${c.prepared_via ? ` via ${c.prepared_via === 'sms' ? 'SMS' : 'mail'}` : ''}</div>
         `
         : (c.event_date && c.event_date === new Date().toLocaleDateString('sv-SE')) ? `
         <div style="display:flex;align-items:center;gap:0.5rem;color:var(--amber);font-weight:600;margin-bottom:0.25rem">
           <span>⚠</span>
-          <span>Utlämning idag — förberedelsemail ej skickat</span>
+          <span>Utlämning idag — förberedelse-länk ej skickad</span>
         </div>
         <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Skicka manuellt via knappen i panelens fot</div>
         `
         : `
         <div style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.65);margin-bottom:0.25rem">
           <span>🕐</span>
-          <span>Förberedelsemail schemalagt</span>
+          <span>Förberedelse-länk schemalagd</span>
         </div>
         <div style="font-size:0.78rem;color:rgba(255,255,255,0.55)">Skickas automatiskt kl 19:00 kvällen innan utlämning${c.event_date ? ` (${new Date(c.event_date+'T00:00:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})})` : ''}</div>
         `
@@ -5224,30 +5224,43 @@ async function adminSendPickupLink(c) {
   // Kopiera länk alltid
   navigator.clipboard.writeText(url).catch(()=>{});
 
-  if (c.customer_email) {
+  // SMS-först eller mail — bestäms av backend (channel='auto')
+  const hasPhone = !!c.customer_phone;
+  const hasEmail = !!c.customer_email;
+  if (hasPhone || hasEmail) {
     const wasSent = !!c.pickup_reminder_sent_at;
+    const prevChannel = c.prepared_via === 'sms' ? 'SMS' : (c.prepared_via === 'email' ? 'mail' : 'länk');
+    const targetDesc = hasPhone && hasEmail
+      ? `SMS till ${c.customer_phone}, mail som fallback till ${c.customer_email}`
+      : hasPhone
+        ? `SMS till ${c.customer_phone}`
+        : `mail till ${c.customer_email}`;
     const promptMsg = wasSent
-      ? `Skicka NY påminnelse till ${c.customer_email}? (Förberedelsemail har redan skickats ${new Date(c.pickup_reminder_sent_at).toLocaleString('sv-SE')})`
-      : `Skicka förberedelsemail till ${c.customer_email}?\n\nKunden får en länk för att förbereda signatur och legitimation. Kvittensen aktiveras först när du motkvitterar vid utlämningen.`;
+      ? `Skicka NY påminnelse?\n\n${targetDesc}\n\n(${prevChannel === 'SMS' ? 'SMS' : 'Förberedelse-länk'} skickades senast ${new Date(c.pickup_reminder_sent_at).toLocaleString('sv-SE')})`
+      : `Skicka förberedelse-länk?\n\n${targetDesc}\n\nKunden får en länk för att förbereda signatur och legitimation. Kvittensen aktiveras först när du motkvitterar vid utlämningen.`;
     if (confirm(promptMsg)) {
       const { ok: sent, data } = await api('pickup-reminder-trigger', {
         method: 'POST',
         body: JSON.stringify({ cart_id: c.id })
       });
       if (sent) {
-        toast(`Förberedelsemail skickat till ${c.customer_email} ✓`);
+        const via = data?.sms_sent ? 'SMS' : 'mail';
+        const to  = data?.sms_sent ? (data?.to_phone || c.customer_phone) : (data?.to_email || c.customer_email);
+        toast(`Förberedelse-länk skickad via ${via} till ${to} ✓`);
         currentCart.pickup_reminder_sent_at = new Date().toISOString();
+        if (data?.sms_sent)   currentCart.prepared_via = 'sms';
+        else if (data?.email_sent) currentCart.prepared_via = 'email';
         loadCarts();
         renderPanelFooter();
         if (typeof renderTab === 'function') renderTab('info');
       } else {
-        toast(data?.error || 'E-postfel', 'error');
+        toast(data?.error || 'Utskick misslyckades', 'error');
       }
       return;
     }
   }
-  // Inget mail — länk kopierad
-  toast('Förberedelse-länk kopierad till urklipp! (Kunden saknar e-post)');
+  // Varken telefon eller mail — länk kopierad
+  toast('Förberedelse-länk kopierad till urklipp! (Kunden saknar telefon och e-post)');
 }
 
 // Modal: granska kundens förberedelse + motkvittera
@@ -5451,7 +5464,7 @@ function renderPanelFooter() {
     makeBtn('💬 Skicka SMS', '', () => adminSendSms(c));
   }
 
-  // Utlämning — flerstegs-flöde (förberedelsemail → förberedd → motkvittens)
+  // Utlämning — flerstegs-flöde (förberedelse-länk → förberedd → motkvittens)
   if (['confirmed','fakturerad','completed'].includes(c.status) && c.cart_token) {
     if (c.pickup_confirmed_at) {
       // Helt klart
@@ -5460,11 +5473,11 @@ function renderPanelFooter() {
       // Kund har förberett — admin behöver motkvittera
       makeBtn('✅ Granska & motkvittera', 'btn-success', () => adminOpenPickupConfirm(c));
     } else if (c.pickup_reminder_sent_at) {
-      // Mail skickat, kund har inte börjat
+      // Länk skickad, kund har inte börjat
       makeBtn('📩 Skicka påminnelse', '', () => adminSendPickupLink(c));
     } else {
-      // Inget mail skickat ännu (auto-mailas 08:00 dag X om event_date = idag)
-      makeBtn('📦 Skicka förberedelsemail nu', 'btn-success', () => adminSendPickupLink(c));
+      // Inget skickat ännu (auto kl 19:00 kvällen innan utlämning)
+      makeBtn('📦 Skicka förberedelse-länk nu', 'btn-success', () => adminSendPickupLink(c));
     }
   }
 }
