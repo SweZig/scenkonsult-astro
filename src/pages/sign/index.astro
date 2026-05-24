@@ -484,6 +484,7 @@
         <span id="photo-label-text">Tryck för att ta eller välja foto</span>
       </label>
       <img id="photo-preview" class="photo-preview" style="display:none">
+      <div id="ai-feedback" style="display:none;margin-top:0.5rem;padding:0.7rem 0.9rem;border-radius:8px;font-size:0.82rem;line-height:1.4"></div>
     </div>
 
     <div class="nav-buttons">
@@ -720,6 +721,71 @@
     document.getElementById('photo-label-text').textContent = '✓ Foto tillagt — tryck för att byta';
 
     updateNextButtons();
+
+    // ── AI-verifiering (soft check) ─────────────────────────────────────
+    const feedback = document.getElementById('ai-feedback');
+    feedback.style.display = 'block';
+    feedback.style.background = 'rgba(196,181,244,0.06)';
+    feedback.style.border = '1px solid rgba(196,181,244,0.2)';
+    feedback.style.color = 'rgba(255,255,255,0.72)';
+    feedback.innerHTML = '⏳ Verifierar bilden...';
+
+    try {
+      const res = await fetch('/.netlify/functions/verify-id-photo', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ cart_id: cartId, token: cartToken, image_data: state.photoData }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.result) {
+        // Fel vid AI — visa neutralt meddelande, blockera inte kund
+        feedback.style.background = 'rgba(255,255,255,0.04)';
+        feedback.style.border = '1px solid rgba(255,255,255,0.1)';
+        feedback.style.color = 'rgba(255,255,255,0.6)';
+        feedback.innerHTML = 'ℹ AI-verifiering tillfälligt otillgänglig — admin granskar bilden vid utlämning.';
+        return;
+      }
+
+      const r = data.result;
+      const typeLabel = {
+        'korkort': 'körkort',
+        'id-kort': 'ID-kort',
+        'pass': 'pass',
+        'annat': 'okänd dokumenttyp',
+      }[r.type] || r.type;
+      const confidencePct = Math.round((r.confidence || 0) * 100);
+
+      // Tre nivåer av feedback
+      if (r.is_id && r.confidence >= 0.75 && (!r.issues || r.issues.length === 0)) {
+        // Grön — bra
+        feedback.style.background = 'rgba(34,197,94,0.08)';
+        feedback.style.border = '1px solid rgba(34,197,94,0.3)';
+        feedback.style.color = '#86efac';
+        feedback.innerHTML = `✓ <strong>Verifierat som ${typeLabel}</strong> (${confidencePct}% säker)`;
+      } else if (r.is_id && r.confidence >= 0.5) {
+        // Gul — godkänd men varningar
+        feedback.style.background = 'rgba(251,191,36,0.08)';
+        feedback.style.border = '1px solid rgba(251,191,36,0.3)';
+        feedback.style.color = '#fcd34d';
+        const issueTxt = (r.issues && r.issues.length)
+          ? `Bildkvalitet: ${r.issues.map(i => i.replace(/_/g, ' ')).join(', ')}.`
+          : '';
+        feedback.innerHTML = `⚠ <strong>Identifierad som ${typeLabel}</strong> men bilden kunde vara bättre. ${issueTxt} Du kan ladda nytt foto eller fortsätta — admin granskar vid utlämning.`;
+      } else {
+        // Röd — verkar inte vara leg
+        feedback.style.background = 'rgba(239,68,68,0.08)';
+        feedback.style.border = '1px solid rgba(239,68,68,0.35)';
+        feedback.style.color = '#fca5a5';
+        const reasonTxt = r.reason ? ` ${r.reason}.` : '';
+        feedback.innerHTML = `⚠ <strong>Detta ser inte ut som legitimation.</strong>${reasonTxt} Du kan fortsätta ändå men admin behöver granska vid utlämning. Tips: ladda upp körkort, ID-kort eller pass.`;
+      }
+    } catch (err) {
+      console.error('AI-verifiering misslyckades:', err);
+      feedback.style.background = 'rgba(255,255,255,0.04)';
+      feedback.style.border = '1px solid rgba(255,255,255,0.1)';
+      feedback.style.color = 'rgba(255,255,255,0.6)';
+      feedback.innerHTML = 'ℹ AI-verifiering tillfälligt otillgänglig — admin granskar bilden vid utlämning.';
+    }
   });
 
   // ════════════════════════════════════════════════════════════════════════

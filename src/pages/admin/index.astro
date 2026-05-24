@@ -3447,6 +3447,7 @@ function renderInfoTab() {
           ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
           ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : ''}
         </div>
+        ${renderIdPhotoAiBadge(c.id_photo_ai_result)}
         <button onclick="adminResetPickup()" style="margin-top:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit" title="Tar bort signatur, leg-foto och motkvittering så att kund kan signera igen">🔄 Nollställ förberedelse (för testning)</button>
         `
         : c.pickup_signed_at ? `
@@ -3461,6 +3462,7 @@ function renderInfoTab() {
           ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
           ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : '<span style="font-size:0.72rem;color:rgba(255,255,255,0.55);align-self:center">Inget leg-foto</span>'}
         </div>
+        ${renderIdPhotoAiBadge(c.id_photo_ai_result)}
         <button onclick="adminResetPickup()" style="margin-top:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit" title="Tar bort signatur och leg-foto så att kund kan signera igen via samma länk">🔄 Nollställ förberedelse (för testning)</button>
         `
         : c.pickup_reminder_sent_at ? `
@@ -5273,6 +5275,48 @@ async function adminSendPickupLink(c) {
 }
 
 // Modal: granska kundens förberedelse + motkvittera
+// ── AI-verifiering: rendera badge för leg-foto ─────────────────────────
+function renderIdPhotoAiBadge(result) {
+  if (!result || typeof result !== 'object') return '';
+  const isId = result.is_id === true;
+  const conf = typeof result.confidence === 'number' ? result.confidence : 0;
+  const confPct = Math.round(conf * 100);
+  const typeLabel = {
+    'korkort': 'körkort',
+    'id-kort': 'ID-kort',
+    'pass': 'pass',
+    'annat': 'okänd typ',
+  }[result.type] || (result.type || 'okänd');
+
+  let icon, color, bg, border, text;
+  if (isId && conf >= 0.75 && (!result.issues || result.issues.length === 0)) {
+    icon   = '✓';
+    color  = '#86efac';
+    bg     = 'rgba(34,197,94,0.08)';
+    border = 'rgba(34,197,94,0.25)';
+    text   = `<strong>AI-verifierat:</strong> ${typeLabel} (${confPct}%)`;
+  } else if (isId && conf >= 0.5) {
+    icon   = '⚠';
+    color  = '#fcd34d';
+    bg     = 'rgba(251,191,36,0.08)';
+    border = 'rgba(251,191,36,0.3)';
+    const issueTxt = (result.issues && result.issues.length)
+      ? ` · ${result.issues.map(i => i.replace(/_/g, ' ')).join(', ')}`
+      : '';
+    text   = `<strong>AI: ${typeLabel} (${confPct}%)</strong>${issueTxt} — verifiera vid utlämning`;
+  } else {
+    icon   = '⚠';
+    color  = '#fca5a5';
+    bg     = 'rgba(239,68,68,0.08)';
+    border = 'rgba(239,68,68,0.3)';
+    const reasonTxt = result.reason ? ` — ${String(result.reason).replace(/</g, '&lt;')}` : '';
+    text   = `<strong>AI: Verkar inte vara legitimation (${confPct}%)</strong>${reasonTxt}`;
+  }
+
+  return `<div style="margin-top:0.5rem;padding:0.45rem 0.7rem;background:${bg};border:1px solid ${border};border-left:3px solid ${color};border-radius:4px;font-size:0.74rem;color:${color};line-height:1.4"><span style="margin-right:0.3rem">${icon}</span>${text}</div>`;
+}
+window.renderIdPhotoAiBadge = renderIdPhotoAiBadge;
+
 // ── Lightbox för att förstora bilder (signatur, leg-foto) ──────────────
 function openImageLightbox(src, title = '') {
   const overlay = document.createElement('div');
