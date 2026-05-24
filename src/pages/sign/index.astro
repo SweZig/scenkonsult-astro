@@ -1,13 +1,23 @@
 ---
 // src/pages/sign/index.astro
-// Utlämningskvittens — kund signerar och fotar legitimation
+// Utlämningskvittens — multi-step förberedelse-flöde (v3, Batch 3b).
+// Kunden förbereder signatur, leg-foto och anger ev. bud/kontaktperson INNAN
+// utlämningen. Vid själva utlämningen aktiverar admin kvittensen.
+//
+// Flöde:
+//   1. Intro    — översikt av order + datum/tid/plats
+//   2. Bekräfta — 2 kryssrutor (beställare + ansvarig)
+//   3. Vem      — själv eller bud (pickup) / annan kontaktperson (delivery)
+//   4. Foto     — leg-foto (obligatoriskt)
+//   5. Signera  — canvas-signatur
+//   6. Klar     — submit + success
 ---
 <!DOCTYPE html>
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Kvittens — Scenkonsult Norden</title>
+  <title>Förbered din utlämning — Scenkonsult Norden</title>
   <meta name="robots" content="noindex">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,603 +30,1022 @@
     .wrap {
       max-width: 480px;
       margin: 0 auto;
-      padding: 1.25rem 1rem 3rem;
+      padding: 1.25rem 1rem 4rem;
     }
     .logo-bar {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-    .logo-bar img { height: 36px; }
-    .logo-bar span {
-      font-size: 0.8rem;
-      color: rgba(255,255,255,0.60);
+    .logo-bar img { height: 32px; width: auto }
+    .logo-bar span { font-size: 0.78rem; color: rgba(255,255,255,0.6); letter-spacing: 0.05em }
+
+    /* ── Progress bar ─────────────────────────────────────────────────── */
+    .progress {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 1.5rem;
     }
-    h1 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
+    .progress-step {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      transition: background 0.2s;
     }
-    .sub {
-      font-size: 0.85rem;
+    .progress-step.active   { background: #c4b5f4 }
+    .progress-step.done     { background: #86efac }
+
+    .step-counter {
+      font-size: 0.72rem;
       color: rgba(255,255,255,0.5);
-      margin-bottom: 1.5rem;
-    }
-    .order-box {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.875rem;
-      line-height: 1.7;
-      color: rgba(255,255,255,0.75);
-    }
-    .order-box strong { color: #fff; }
-    .order-box .ref {
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.60);
-      font-family: monospace;
-      margin-top: 0.5rem;
-    }
-    /* Section labels */
-    .section-label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: rgba(196,181,244,0.8);
+      text-transform: uppercase;
       margin-bottom: 0.5rem;
     }
 
-    /* Signature canvas */
+    /* ── Steg-innehåll ────────────────────────────────────────────────── */
+    .step { display: none }
+    .step.active { display: block }
+
+    h1 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.75rem;
+      font-weight: normal;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+    .lead {
+      color: rgba(255,255,255,0.72);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Info-kort ────────────────────────────────────────────────────── */
+    .order-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .order-box strong { color: #fff }
+    .order-box .ref {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      letter-spacing: 0.05em;
+    }
+    .order-box .meta-line {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.35rem;
+    }
+    .order-box .meta-line .ico { color: #c4b5f4; flex-shrink: 0; width: 16px }
+
+    /* ── Kryssrutor (steg 2) ──────────────────────────────────────────── */
+    .check-card {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 1rem 1.1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .check-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(196,181,244,0.3) }
+    .check-card.checked { background: rgba(196,181,244,0.08); border-color: rgba(196,181,244,0.4) }
+    .check-card input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      margin-top: 1px;
+    }
+    .check-card input[type="checkbox"]:checked {
+      background: #c4b5f4;
+      border-color: #c4b5f4;
+    }
+    .check-card input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px; top: 1px;
+      width: 6px; height: 12px;
+      border: solid #0c0a24;
+      border-width: 0 2.5px 2.5px 0;
+      transform: rotate(45deg);
+    }
+    .check-card .label {
+      flex: 1;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.92);
+      line-height: 1.4;
+    }
+
+    /* ── Radio-kort (steg 3) ──────────────────────────────────────────── */
+    .radio-card {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 1rem 1.1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .radio-card:hover { background: rgba(255,255,255,0.06) }
+    .radio-card.selected { background: rgba(196,181,244,0.08); border-color: rgba(196,181,244,0.5) }
+    .radio-card input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      margin-top: 1px;
+    }
+    .radio-card input[type="radio"]:checked { border-color: #c4b5f4 }
+    .radio-card input[type="radio"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 3px; top: 3px;
+      width: 12px; height: 12px;
+      background: #c4b5f4;
+      border-radius: 50%;
+    }
+    .radio-card .content { flex: 1 }
+    .radio-card .title { font-weight: 600; color: #fff; margin-bottom: 0.15rem; font-size: 0.95rem }
+    .radio-card .sub { font-size: 0.82rem; color: rgba(255,255,255,0.6); line-height: 1.4 }
+
+    /* ── Conditional fält ─────────────────────────────────────────────── */
+    .conditional-fields {
+      display: none;
+      margin: 0.5rem 0 0.75rem;
+      padding: 1rem 1.1rem;
+      background: rgba(196,181,244,0.05);
+      border-left: 3px solid #c4b5f4;
+      border-radius: 0 8px 8px 0;
+    }
+    .conditional-fields.visible { display: block }
+    .conditional-fields .field-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.02em;
+    }
+    .conditional-fields input {
+      width: 100%;
+      padding: 0.65rem 0.8rem;
+      background: rgba(18,15,45,0.98);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+      color-scheme: dark;
+    }
+    .conditional-fields input:focus {
+      outline: none;
+      border-color: #c4b5f4;
+      background: rgba(196,181,244,0.06);
+    }
+    .conditional-fields .hint {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.5;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Foto-uppladdning ─────────────────────────────────────────────── */
+    .photo-section { margin-bottom: 1rem }
+    .photo-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.75rem 1rem;
+      background: rgba(255,255,255,0.04);
+      border: 2px dashed rgba(255,255,255,0.2);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: rgba(255,255,255,0.75);
+      font-size: 0.9rem;
+    }
+    .photo-label:hover { border-color: rgba(196,181,244,0.4); background: rgba(196,181,244,0.04) }
+    .photo-label.has-photo { border-color: #86efac; background: rgba(34,197,94,0.08); color: #86efac }
+    .photo-label.has-photo:hover { background: rgba(34,197,94,0.12) }
+    .photo-preview {
+      width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #0c0a24;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Signatur ─────────────────────────────────────────────────────── */
     .sig-wrap {
       position: relative;
-      border: 2px solid rgba(196,181,244,0.3);
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.15);
       border-radius: 12px;
-      background: rgba(255,255,255,0.03);
       overflow: hidden;
       margin-bottom: 0.5rem;
-      touch-action: none;
     }
-    .sig-wrap canvas {
+    canvas {
       display: block;
       width: 100%;
-      cursor: crosshair;
+      height: 180px;
+      touch-action: none;
     }
     .sig-placeholder {
       position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 6px;
-      color: rgba(255,255,255,0.55);
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,0.3);
       font-size: 0.85rem;
       pointer-events: none;
       transition: opacity 0.2s;
     }
-    .sig-placeholder svg { opacity: 0.3; }
-    .sig-actions {
+    .sig-toolbar {
       display: flex;
-      justify-content: flex-end;
-      margin-bottom: 1.5rem;
-    }
-    .btn-clear {
-      background: none;
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.5);
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    /* ID photo */
-    .photo-section { margin-bottom: 1.75rem; }
-    .photo-label {
-      background: rgba(255,255,255,0.04);
-      border: 1px dashed rgba(255,255,255,0.15);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 1.25rem;
-      cursor: pointer;
-      text-align: center;
-      color: rgba(255,255,255,0.5);
-      font-size: 0.875rem;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .photo-label:active { background: rgba(255,255,255,0.06); }
-    .photo-label svg { opacity: 0.5; }
-    .photo-preview {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(196,181,244,0.3);
-      display: none;
-      margin-top: 0.75rem;
-    }
-    .photo-check {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: #4ade80;
-      margin-top: 0.5rem;
-    }
-    #photo-input { display: none; }
-
-    /* Note */
-    .optional-note {
       font-size: 0.78rem;
-      color: rgba(255,255,255,0.60);
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-
-    /* Submit */
-    #submit-btn {
-      width: 100%;
-      padding: 1rem;
-      background: #c4b5f4;
-      color: #0c0a24;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-    #submit-btn:disabled { opacity: 0.45; cursor: default; }
-    #submit-btn:not(:disabled):active { opacity: 0.8; }
-
-    /* States */
-    #loading-state, #success-state, #error-state { display: none; }
-    .success-card {
-      text-align: center;
-      padding: 2rem 1rem;
-    }
-    .success-icon { font-size: 3.5rem; margin-bottom: 0.75rem; }
-    .success-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .success-sub { font-size: 0.875rem; color: rgba(255,255,255,0.5); }
-    .error-card {
-      background: rgba(239,68,68,0.08);
-      border: 1px solid rgba(239,68,68,0.2);
-      border-radius: 12px;
-      padding: 1rem;
-      color: #fca5a5;
-      font-size: 0.875rem;
+      color: rgba(255,255,255,0.55);
       margin-bottom: 1rem;
     }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid rgba(196,181,244,0.2);
-      border-top-color: #c4b5f4;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 2rem auto;
+    .clear-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.75);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .clear-btn:hover { background: rgba(255,255,255,0.08) }
+
+    /* ── Navigationsknappar ───────────────────────────────────────────── */
+    .nav-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .btn-back, .btn-next {
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-back {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7);
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.06) }
+    .btn-next {
+      flex: 1;
+      background: #c4b5f4;
+      color: #0c0a24;
+    }
+    .btn-next:hover:not(:disabled) { background: #e2dcfb }
+    .btn-next:disabled {
+      background: rgba(196,181,244,0.25);
+      color: rgba(12,10,36,0.6);
+      cursor: not-allowed;
+    }
+
+    /* ── States (loading/success/error/prepared) ──────────────────────── */
+    .state-card {
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+    .state-icon { font-size: 3.5rem; margin-bottom: 1rem }
+    .state-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem }
+    .state-sub { color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem }
+    .summary-card {
+      text-align: left;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.85);
+    }
+    .summary-card .row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+    .summary-card .row .check { color: #86efac; flex-shrink: 0 }
+
+    .info-banner {
+      background: rgba(196,181,244,0.08);
+      border: 1px solid rgba(196,181,244,0.2);
+      border-radius: 8px;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+    .info-banner strong { color: #c4b5f4 }
   </style>
 </head>
 <body>
+
 <div class="wrap">
-
-  <!-- Logo -->
   <div class="logo-bar">
-    <img src="/logo-white.png" alt="Scenkonsult Norden" onerror="this.style.display='none'">
-    <span>Utlämningskvittens</span>
+    <img src="/logo-white.png" alt="Scenkonsult">
+    <span>FÖRBEREDELSE</span>
   </div>
 
-  <!-- Loading -->
-  <div id="loading-state">
-    <div class="spinner"></div>
-    <p style="text-align:center;color:rgba(255,255,255,0.60);font-size:0.85rem">Laddar order…</p>
+  <!-- Progress bar -->
+  <div id="progress-container">
+    <div class="progress" id="progress-bar"></div>
+    <div class="step-counter" id="step-counter">Steg 1 av 5</div>
   </div>
 
-  <!-- Error -->
-  <div id="error-state">
-    <div class="error-card" id="error-msg">Något gick fel.</div>
-    <a href="/" style="color:#c4b5f4;font-size:0.875rem">← Tillbaka</a>
-  </div>
-
-  <!-- Success: kvittens FULLT bekräftad (admin har motkvitterat) -->
-  <div id="success-state">
-    <div class="success-card">
-      <div class="success-icon">✅</div>
-      <div class="success-title">Kvittens bekräftad!</div>
-      <div class="success-sub" id="success-ref">Tack för ditt förtroende.</div>
+  <!-- ── Steg 1: Intro ────────────────────────────────────────────────── -->
+  <section class="step active" data-step="1">
+    <h1 id="intro-h1">Förbered din utlämning</h1>
+    <p class="lead" id="intro-lead">Det här går snabbt — du fyller i några uppgifter nu så är vi klara på plats.</p>
+    <div class="order-box" id="order-box"></div>
+    <div class="info-banner">
+      ℹ <strong>Detta är förberedelse</strong> — kvittensen blir bindande först när vi bekräftar utlämningen på plats. Du riskerar inget genom att fylla i detta nu.
     </div>
-  </div>
+    <div class="nav-buttons">
+      <button class="btn-next" data-next>Sätt igång →</button>
+    </div>
+  </section>
 
-  <!-- Prepared: kund har förberett, väntar på admin-bekräftelse vid utlämning -->
-  <div id="prepared-state" style="display:none">
-    <div class="success-card" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25)">
-      <div class="success-icon">⏳</div>
-      <div class="success-title" style="color:#86efac">Förberedelsen är klar!</div>
-      <div class="success-sub" id="prepared-sub" style="margin-bottom:1rem">Vi aktiverar din kvittens när vi träffas vid utlämningen.</div>
-      <div id="prepared-summary" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:0.75rem 1rem;margin-top:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.85);text-align:left"></div>
-      <p style="margin:1rem 0 0;font-size:0.78rem;color:rgba(255,255,255,0.55)">
+  <!-- ── Steg 2: Bekräfta ─────────────────────────────────────────────── -->
+  <section class="step" data-step="2">
+    <h1>Bekräfta som beställare</h1>
+    <p class="lead">Bekräfta att det är du som är beställare och har koll på ordern.</p>
+
+    <label class="check-card" id="check-card-1">
+      <input type="checkbox" id="confirm-1">
+      <span class="label">Jag är beställaren — det är min order och jag har själv beställt den.</span>
+    </label>
+
+    <label class="check-card" id="check-card-2">
+      <input type="checkbox" id="confirm-2">
+      <span class="label">Du som beställare är alltid ansvarig för utrustningen, oavsett vem som hämtar eller använder den.</span>
+    </label>
+
+    <div class="nav-buttons">
+      <button class="btn-back" data-back>← Tillbaka</button>
+      <button class="btn-next" data-next disabled>Fortsätt →</button>
+    </div>
+  </section>
+
+  <!-- ── Steg 3: Vem hämtar / tar emot ────────────────────────────────── -->
+  <section class="step" data-step="3">
+    <h1 id="who-h1">Vem hämtar utrustningen?</h1>
+    <p class="lead" id="who-lead">Du kan skicka någon i ditt ställe om du inte själv kan vara på plats.</p>
+
+    <label class="radio-card selected" id="who-self">
+      <input type="radio" name="who" value="self" checked>
+      <div class="content">
+        <div class="title" id="who-self-title">Jag hämtar själv</div>
+        <div class="sub" id="who-self-sub">Du är på plats vid utlämningen.</div>
+      </div>
+    </label>
+
+    <label class="radio-card" id="who-other">
+      <input type="radio" name="who" value="other">
+      <div class="content">
+        <div class="title" id="who-other-title">Bud hämtar åt mig</div>
+        <div class="sub" id="who-other-sub">Kollega, vän, granne eller annan person du litar på.</div>
+      </div>
+    </label>
+
+    <div class="conditional-fields" id="proxy-fields">
+      <p class="field-label" id="proxy-name-label">Personens namn</p>
+      <input type="text" id="proxy-name" placeholder="För- och efternamn" autocomplete="off">
+      <p class="field-label">Mobilnummer</p>
+      <input type="tel" id="proxy-phone" placeholder="07XX XXX XX XX" autocomplete="off">
+      <p class="hint" id="proxy-hint">Vi kontaktar numret om det skulle bli något problem på plats. Jag är fortsatt ansvarig för utrustningen.</p>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-back" data-back>← Tillbaka</button>
+      <button class="btn-next" data-next>Fortsätt →</button>
+    </div>
+  </section>
+
+  <!-- ── Steg 4: Foto ─────────────────────────────────────────────────── -->
+  <section class="step" data-step="4">
+    <h1>Lägg upp foto på leg</h1>
+    <p class="lead">Vi behöver verifiera identiteten vid utlämningen. Ta ett tydligt foto av körkort eller ID-kort.</p>
+
+    <div class="photo-section">
+      <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+      <label class="photo-label" id="photo-label" for="photo-input">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="6" width="18" height="13" rx="2"/>
+          <circle cx="12" cy="12.5" r="3.5"/>
+          <path d="M8 6l2-3h4l2 3"/>
+        </svg>
+        <span id="photo-label-text">Tryck för att ta eller välja foto</span>
+      </label>
+      <img id="photo-preview" class="photo-preview" style="display:none">
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-back" data-back>← Tillbaka</button>
+      <button class="btn-next" data-next disabled>Fortsätt →</button>
+    </div>
+  </section>
+
+  <!-- ── Steg 5: Signera ─────────────────────────────────────────────── -->
+  <section class="step" data-step="5">
+    <h1>Signera</h1>
+    <p class="lead">Rita din underskrift nedan med fingret eller en penna.</p>
+
+    <div class="sig-wrap" id="sig-wrap">
+      <canvas id="sig-canvas"></canvas>
+      <div class="sig-placeholder" id="sig-placeholder">Rita här ↑</div>
+    </div>
+    <div class="sig-toolbar">
+      <span>Signaturen sparas när du går vidare</span>
+      <button class="clear-btn" id="clear-btn">Rensa</button>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-back" data-back>← Tillbaka</button>
+      <button class="btn-next" id="submit-btn" disabled>Klar — kvittera →</button>
+    </div>
+  </section>
+
+  <!-- ── States ───────────────────────────────────────────────────────── -->
+  <section class="step" data-step="loading">
+    <div class="state-card">
+      <div class="state-icon">⏳</div>
+      <div class="state-title">Laddar order...</div>
+    </div>
+  </section>
+
+  <section class="step" data-step="error">
+    <div class="state-card">
+      <div class="state-icon">⚠️</div>
+      <div class="state-title">Något gick fel</div>
+      <div class="state-sub" id="error-msg">Kunde inte ladda order.</div>
+      <a href="tel:0724481000" class="btn-next" style="display:inline-block;text-decoration:none;margin-top:0.5rem">📞 Ring 072-448 10 00</a>
+    </div>
+  </section>
+
+  <section class="step" data-step="prepared">
+    <div class="state-card">
+      <div class="state-icon" style="color:#86efac">✓</div>
+      <div class="state-title" style="color:#86efac">Förberedelsen är klar!</div>
+      <div class="state-sub" id="prepared-sub">Vi aktiverar din kvittens när vi träffas vid utlämningen.</div>
+      <div class="summary-card" id="prepared-summary"></div>
+      <p style="margin:1.25rem 0 0;font-size:0.78rem;color:rgba(255,255,255,0.55)">
         Behöver du ändra något? Ring oss på <a href="tel:0724481000" style="color:#c4b5f4;text-decoration:none">072-448 10 00</a>.
       </p>
     </div>
-  </div>
+  </section>
 
-  <!-- Main form -->
-  <div id="main-state" style="display:none">
-    <h1 id="sign-h1">Förbered din utlämning</h1>
-    <p class="sub" id="order-sub">Förbered din digitala signatur och legitimation. Kvittensen aktiveras när vi träffas vid utlämningen.</p>
-
-    <div id="info-panel" style="background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.25);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1.25rem;font-size:0.85rem;line-height:1.55;color:rgba(255,255,255,0.85)">
-      ℹ <strong style="color:#c4b5f4">Detta är förberedelse</strong> — kvittensen blir inte juridiskt bindande förrän vi tillsammans bekräftar att all utrustning lämnats över korrekt. Du riskerar inget genom att fylla i detta nu.
+  <section class="step" data-step="success">
+    <div class="state-card">
+      <div class="state-icon" style="color:#86efac">🎉</div>
+      <div class="state-title" style="color:#86efac">Allt klart!</div>
+      <div class="state-sub" id="success-ref">Utlämningen är bekräftad. Ha ett bra event!</div>
     </div>
-
-    <div class="order-box" id="order-box">
-      <div class="spinner"></div>
-    </div>
-
-    <!-- Signature -->
-    <div class="section-label">Din signatur</div>
-    <div class="sig-wrap" id="sig-wrap">
-      <canvas id="sig-canvas" height="180"></canvas>
-      <div class="sig-placeholder" id="sig-placeholder">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M3 21c1.5 0 3-1.5 6-3l9-9a2.121 2.121 0 0 0-3-3l-9 9c-1.5 3-3 4.5-3 6z"/>
-        </svg>
-        Signera här med fingret
-      </div>
-    </div>
-    <div class="sig-actions">
-      <button class="btn-clear" id="clear-btn">✕ Rensa</button>
-    </div>
-
-    <!-- ID photo -->
-    <div class="photo-section">
-      <div class="section-label">Legitimation <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.60)"></span></div>
-      <label class="photo-label" for="photo-input" id="photo-label">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="2" y="7" width="20" height="14" rx="2"/>
-          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-          <circle cx="12" cy="13" r="3"/>
-        </svg>
-        Ta foto på körkort eller ID-kort (obligatoriskt)
-      </label>
-      <input type="file" id="photo-input" accept="image/*" capture="environment">
-      <img id="photo-preview" class="photo-preview" alt="Legitimation">
-      <div class="photo-check" id="photo-check">
-        <span>✓</span> Foto tillagt
-      </div>
-    </div>
-
-    <button id="submit-btn" disabled>Signera och kvittera →</button>
-  </div>
+  </section>
 
 </div>
 
 <script>
-  // ── URL-parametrar ────────────────────────────────────────────
-  const params    = new URLSearchParams(location.search);
-  const cartId    = params.get('cart');
+  // ════════════════════════════════════════════════════════════════════════
+  // State + initialisering
+  // ════════════════════════════════════════════════════════════════════════
+  const params = new URLSearchParams(location.search);
+  const cartId = params.get('cart');
   const cartToken = params.get('token');
 
-  // ── State ─────────────────────────────────────────────────────
-  let hasSig     = false;
-  let photoData  = null; // base64 JPEG
+  const state = {
+    currentStep: 1,
+    totalSteps: 5,
+    cart: null,
+    isDelivery: false,
+    confirm1: false,
+    confirm2: false,
+    whoMethod: 'self',  // 'self' | 'other'
+    proxyName: '',
+    proxyPhone: '',
+    photoData: null,
+    signatureData: null,
+    hasSig: false,
+  };
 
-  // ── Canvas signature pad ──────────────────────────────────────
-  const canvas    = document.getElementById('sig-canvas');
-  const ctx       = canvas.getContext('2d');
-  const sigWrap   = document.getElementById('sig-wrap');
-  const placeholder = document.getElementById('sig-placeholder');
+  // ════════════════════════════════════════════════════════════════════════
+  // Step navigation
+  // ════════════════════════════════════════════════════════════════════════
+  function showStep(stepKey) {
+    document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+    const target = document.querySelector(`[data-step="${stepKey}"]`);
+    if (target) target.classList.add('active');
 
-  // dprRatio bevarar internt koordinatsystem 1:1 med CSS-pixlar via ctx.scale,
-  // medan canvas.width ökar för skarp rendering på HiDPI-skärmar.
-  let dprRatio = 1;
+    // Visa progress bar bara för steg 1-5
+    const numStep = Number(stepKey);
+    const progressContainer = document.getElementById('progress-container');
+    if (numStep >= 1 && numStep <= 5) {
+      state.currentStep = numStep;
+      progressContainer.style.display = 'block';
+      renderProgress();
+    } else {
+      progressContainer.style.display = 'none';
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderProgress() {
+    const bar = document.getElementById('progress-bar');
+    bar.innerHTML = '';
+    for (let i = 1; i <= state.totalSteps; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'progress-step';
+      if (i < state.currentStep) dot.classList.add('done');
+      else if (i === state.currentStep) dot.classList.add('active');
+      bar.appendChild(dot);
+    }
+    document.getElementById('step-counter').textContent = `Steg ${state.currentStep} av ${state.totalSteps}`;
+  }
+
+  function nextStep() {
+    if (state.currentStep < state.totalSteps) {
+      showStep(String(state.currentStep + 1));
+      onEnterStep(state.currentStep);
+    }
+  }
+
+  function prevStep() {
+    if (state.currentStep > 1) {
+      showStep(String(state.currentStep - 1));
+    }
+  }
+
+  function onEnterStep(step) {
+    // Aktivera/inaktivera nästa-knappar baserat på state
+    if (step === 5) {
+      // Säkerställ att canvas är initialiserad när vi når signering
+      initCanvas();
+    }
+    updateNextButtons();
+  }
+
+  function updateNextButtons() {
+    // Steg 2: båda kryssrutor måste vara klickade
+    const btn2 = document.querySelector('[data-step="2"] [data-next]');
+    if (btn2) btn2.disabled = !(state.confirm1 && state.confirm2);
+
+    // Steg 3: om "other" valt, kräv namn + telefon
+    const btn3 = document.querySelector('[data-step="3"] [data-next]');
+    if (btn3) {
+      if (state.whoMethod === 'self') btn3.disabled = false;
+      else btn3.disabled = !(state.proxyName.trim() && state.proxyPhone.trim());
+    }
+
+    // Steg 4: foto måste finnas
+    const btn4 = document.querySelector('[data-step="4"] [data-next]');
+    if (btn4) btn4.disabled = !state.photoData;
+
+    // Steg 5 (submit): signatur måste finnas
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) submitBtn.disabled = !state.hasSig;
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Steg 2: Kryssrutor
+  // ════════════════════════════════════════════════════════════════════════
+  document.getElementById('confirm-1').addEventListener('change', e => {
+    state.confirm1 = e.target.checked;
+    document.getElementById('check-card-1').classList.toggle('checked', e.target.checked);
+    updateNextButtons();
+  });
+  document.getElementById('confirm-2').addEventListener('change', e => {
+    state.confirm2 = e.target.checked;
+    document.getElementById('check-card-2').classList.toggle('checked', e.target.checked);
+    updateNextButtons();
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Steg 3: Vem hämtar
+  // ════════════════════════════════════════════════════════════════════════
+  document.querySelectorAll('input[name="who"]').forEach(radio => {
+    radio.addEventListener('change', e => {
+      state.whoMethod = e.target.value;
+      document.getElementById('who-self').classList.toggle('selected', e.target.value === 'self');
+      document.getElementById('who-other').classList.toggle('selected', e.target.value === 'other');
+      document.getElementById('proxy-fields').classList.toggle('visible', e.target.value === 'other');
+      updateNextButtons();
+    });
+  });
+  document.getElementById('proxy-name').addEventListener('input', e => {
+    state.proxyName = e.target.value;
+    updateNextButtons();
+  });
+  document.getElementById('proxy-phone').addEventListener('input', e => {
+    state.proxyPhone = e.target.value;
+    updateNextButtons();
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Steg 4: Foto-uppladdning
+  // ════════════════════════════════════════════════════════════════════════
+  document.getElementById('photo-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Komprimera bilden till max 1200px
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    await new Promise(r => img.onload = r);
+
+    const canvas = document.createElement('canvas');
+    const MAX = 1200;
+    let w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+      else       { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    state.photoData = canvas.toDataURL('image/jpeg', 0.7);
+
+    const preview = document.getElementById('photo-preview');
+    preview.src = state.photoData;
+    preview.style.display = 'block';
+
+    const label = document.getElementById('photo-label');
+    label.classList.add('has-photo');
+    document.getElementById('photo-label-text').textContent = '✓ Foto tillagt — tryck för att byta';
+
+    updateNextButtons();
+  });
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Steg 5: Canvas signatur (med DPR-stöd)
+  // ════════════════════════════════════════════════════════════════════════
+  const canvas = document.getElementById('sig-canvas');
+  const ctx = canvas.getContext('2d');
+  const sigWrap = document.getElementById('sig-wrap');
+  const sigPlaceholder = document.getElementById('sig-placeholder');
+  let dpr = 1;
+  let canvasInitialized = false;
 
   function initCanvas() {
+    if (canvasInitialized) return;
+    fitCanvas();
+    canvasInitialized = true;
+  }
+
+  function fitCanvas() {
     const w = sigWrap.clientWidth;
-    if (w < 10) {
-      // Layout inte klar ännu — försök igen i nästa frame
-      requestAnimationFrame(initCanvas);
-      return;
-    }
-    const h = 180;
-    dprRatio = Math.max(1, window.devicePixelRatio || 1);
-    canvas.width  = Math.round(w * dprRatio);
-    canvas.height = Math.round(h * dprRatio);
+    if (w < 10) { requestAnimationFrame(fitCanvas); return; }
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = Math.round(w * dpr);
+    canvas.height = Math.round(180 * dpr);
     canvas.style.width  = w + 'px';
-    canvas.style.height = h + 'px';
-    ctx.setTransform(dprRatio, 0, 0, dprRatio, 0, 0); // 1 ctx-enhet = 1 CSS-px
+    canvas.style.height = '180px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.strokeStyle = '#c4b5f4';
-    ctx.lineWidth   = 2.5;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
   }
-  // Vänta tills DOM är fullt renderat
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCanvas);
-  } else {
-    requestAnimationFrame(initCanvas);
-  }
+
   window.addEventListener('resize', () => {
-    // Bevara existerande ritning vid resize
-    const tmp = document.createElement('canvas');
-    tmp.width = canvas.width; tmp.height = canvas.height;
-    tmp.getContext('2d').drawImage(canvas, 0, 0);
-    initCanvas();
-    if (hasSig) {
+    if (!canvasInitialized) return;
+    // Bevara existerande signatur över resize
+    const snapshot = document.createElement('canvas');
+    snapshot.width = canvas.width;
+    snapshot.height = canvas.height;
+    snapshot.getContext('2d').drawImage(canvas, 0, 0);
+    fitCanvas();
+    if (state.hasSig) {
       ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // rita rå
-      ctx.drawImage(tmp, 0, 0, canvas.width, canvas.height);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(snapshot, 0, 0, canvas.width, canvas.height);
       ctx.restore();
     }
   });
 
   let drawing = false, lastX = 0, lastY = 0;
 
-  function getPos(e) {
+  function pos(e) {
     const r = canvas.getBoundingClientRect();
-    // Pointer/touch/mouse events har alla clientX/clientY direkt
-    const cx = e.clientX != null ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-    const cy = e.clientY != null ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
-    return [cx - r.left, cy - r.top];
+    const x = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
+    const y = e.clientY ?? (e.touches?.[0]?.clientY ?? 0);
+    return [x - r.left, y - r.top];
   }
 
-  function startDraw(e) {
+  function down(e) {
     e.preventDefault();
     drawing = true;
-    [lastX, lastY] = getPos(e);
-    placeholder.style.opacity = '0';
-    // Rita en prick så enstaka klick också syns
+    [lastX, lastY] = pos(e);
+    sigPlaceholder.style.opacity = '0';
     ctx.beginPath();
-    ctx.arc(lastX, lastY, 1.25, 0, Math.PI * 2);
+    ctx.arc(lastX, lastY, 1.25, 0, 2 * Math.PI);
     ctx.fillStyle = '#c4b5f4';
     ctx.fill();
-    hasSig = true;
-    updateSubmit();
-    // Capture pointer så vi får events även om muspekaren lämnar canvas
+    state.hasSig = true;
+    updateNextButtons();
     if (e.pointerId != null && canvas.setPointerCapture) {
       try { canvas.setPointerCapture(e.pointerId); } catch {}
     }
   }
-  function draw(e) {
+
+  function move(e) {
     if (!drawing) return;
     e.preventDefault();
-    const [x, y] = getPos(e);
+    const [x, y] = pos(e);
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
     ctx.stroke();
     [lastX, lastY] = [x, y];
-    hasSig = true;
-    updateSubmit();
+    state.hasSig = true;
+    updateNextButtons();
   }
-  function stopDraw(e) {
+
+  function up(e) {
     drawing = false;
-    if (e && e.pointerId != null && canvas.releasePointerCapture) {
+    if (e?.pointerId != null && canvas.releasePointerCapture) {
       try { canvas.releasePointerCapture(e.pointerId); } catch {}
     }
   }
 
-  // Pointer Events fungerar för mus + touch + penna och är mest robust
   if (window.PointerEvent) {
-    canvas.addEventListener('pointerdown', startDraw);
-    canvas.addEventListener('pointermove', draw);
-    canvas.addEventListener('pointerup',   stopDraw);
-    canvas.addEventListener('pointercancel', stopDraw);
+    canvas.addEventListener('pointerdown', down);
+    canvas.addEventListener('pointermove', move);
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', up);
   } else {
-    // Fallback för äldre browsers
-    canvas.addEventListener('touchstart', startDraw, { passive: false });
-    canvas.addEventListener('touchmove',  draw,      { passive: false });
-    canvas.addEventListener('touchend',   stopDraw);
-    canvas.addEventListener('mousedown',  startDraw);
-    canvas.addEventListener('mousemove',  draw);
-    canvas.addEventListener('mouseup',    stopDraw);
-    canvas.addEventListener('mouseleave', stopDraw);
+    canvas.addEventListener('touchstart', down, { passive: false });
+    canvas.addEventListener('touchmove',  move, { passive: false });
+    canvas.addEventListener('touchend',   up);
+    canvas.addEventListener('mousedown',  down);
+    canvas.addEventListener('mousemove',  move);
+    canvas.addEventListener('mouseup',    up);
+    canvas.addEventListener('mouseleave', up);
   }
 
   document.getElementById('clear-btn').addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    hasSig = false;
-    placeholder.style.opacity = '1';
-    updateSubmit();
+    state.hasSig = false;
+    sigPlaceholder.style.opacity = '1';
+    updateNextButtons();
   });
 
-  // ── Camera / photo ────────────────────────────────────────────
-  document.getElementById('photo-input').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Komprimera foto till max ~200KB
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    await new Promise(r => img.onload = r);
-
-    const cvs = document.createElement('canvas');
-    const MAX_DIM = 1200;
-    let w = img.width, h = img.height;
-    if (w > MAX_DIM || h > MAX_DIM) {
-      if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
-      else        { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
-    }
-    cvs.width = w; cvs.height = h;
-    cvs.getContext('2d').drawImage(img, 0, 0, w, h);
-    photoData = cvs.toDataURL('image/jpeg', 0.7);
-
-    const preview = document.getElementById('photo-preview');
-    preview.src = photoData;
-    preview.style.display = 'block';
-    document.getElementById('photo-check').style.display = 'flex';
-    document.getElementById('photo-label').innerHTML = `
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
-      <span style="color:#4ade80;font-size:0.85rem">Foto tillagt — tryck för att byta</span>`;
-  });
-
-  // ── Submit enable/disable ────────────────────────────────────
-  function updateSubmit() {
-    document.getElementById('submit-btn').disabled = !hasSig;
-  }
-
-  // ── Load order ────────────────────────────────────────────────
-  function show(id) {
-    ['loading-state','error-state','success-state','prepared-state','main-state'].forEach(s => {
-      document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  // ════════════════════════════════════════════════════════════════════════
+  // Navigation-knappar
+  // ════════════════════════════════════════════════════════════════════════
+  document.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      nextStep();
     });
-  }
+  });
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', prevStep);
+  });
 
-  async function loadOrder() {
-    if (!cartId || !cartToken) {
-      show('error-state');
-      document.getElementById('error-msg').textContent = 'Ogiltig länk. Kontrollera att du öppnat rätt länk.';
-      return;
-    }
-    show('loading-state');
-
-    try {
-      const res  = await fetch(`/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`);
-      const text = await res.text();
-      let data;
-      try { data = JSON.parse(text); } catch(e) {
-        throw new Error('Ogiltigt svar från servern: ' + text.slice(0, 100));
-      }
-      if (!res.ok || data.error) throw new Error(data.error || 'Kunde inte ladda order');
-
-      const cart = data.cart;
-      if (!cart) throw new Error('Kunde inte ladda order');
-
-      // Läge 1: Admin har motkvitterat → fullständig success
-      if (cart.pickup_confirmed_at) {
-        show('success-state');
-        const d = new Date(cart.pickup_confirmed_at).toLocaleString('sv-SE');
-        document.getElementById('success-ref').textContent =
-          `Vi bekräftade utlämningen ${d}. Ordernr: ${cart.id}`;
-        return;
-      }
-
-      // Läge 2: Kunden har förberett, väntar på admin-bekräftelse
-      if (cart.pickup_signed_at) {
-        const dateStr = cart.event_date
-          ? new Date(cart.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' })
-          : null;
-        const timeStr = cart.delivery_time || '13:00';
-        document.getElementById('prepared-sub').textContent =
-          dateStr ? `Vi ses ${dateStr} kl ${timeStr}.` : 'Vi aktiverar din kvittens när vi träffas vid utlämningen.';
-        const items = (cart.items || []).filter(i => !i._note && i.name);
-        const sigDate = new Date(cart.pickup_signed_at).toLocaleDateString('sv-SE');
-        document.getElementById('prepared-summary').innerHTML = `
-          <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem">
-            <span style="color:#86efac">✓</span>
-            <span>Signatur förberedd ${sigDate}</span>
-          </div>
-          ${cart.pickup_id_photo ? `
-          <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem">
-            <span style="color:#86efac">✓</span>
-            <span>Legitimation uppladdad</span>
-          </div>` : ''}
-          <div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.8rem;color:rgba(255,255,255,0.6)">
-            ${items.length} ${items.length === 1 ? 'artikel' : 'artiklar'} · Order ${cart.id}
-          </div>`;
-        show('prepared-state');
-        return;
-      }
-
-      // Läge 3: Kund ska förbereda — visa formuläret
-      const isDelivery = cart.delivery_mode === 'delivery';
-      const modeWord     = isDelivery ? 'leverans' : 'utlämning';
-      const modeWordCap  = isDelivery ? 'Leverans' : 'Utlämning';
-
-      // Anpassa header och info-panel utifrån leveransläge
-      document.getElementById('sign-h1').textContent = `Förbered din ${modeWord}`;
-      document.getElementById('order-sub').textContent =
-        `Förbered din digitala signatur och legitimation. Kvittensen aktiveras när vi träffas vid ${modeWord}en.`;
-      document.getElementById('info-panel').innerHTML =
-        `ℹ <strong style="color:#c4b5f4">Detta är förberedelse</strong> — kvittensen blir inte juridiskt bindande förrän vi tillsammans bekräftar att all utrustning lämnats över korrekt. Du riskerar inget genom att fylla i detta nu.`;
-
-      // Visa orderbox
-      const items  = (cart.items || []).filter(i => !i._note && i.name);
-      const prodRows = items.slice(0,5).map(i =>
-        `<div style="display:flex;justify-content:space-between"><span>${i.name}</span><span style="color:rgba(255,255,255,0.60)">×${i.qty||1}</span></div>`
-      ).join('');
-      const more = items.length > 5 ? `<div style="color:rgba(255,255,255,0.60);font-size:0.8rem">+${items.length-5} till…</div>` : '';
-
-      const dateStr = cart.event_date
-        ? new Date(cart.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' })
-        : null;
-      const timeStr = cart.delivery_time || '13:00';
-      const placeLabel = isDelivery
-        ? (cart.event_location ? cart.event_location : 'Adress saknas — kontakta oss')
-        : 'Grimstagatan 164, 162 58 Vällingby';
-      const timeNote = isDelivery
-        ? `<div style="margin-top:0.4rem;font-size:0.75rem;color:rgba(255,255,255,0.55);font-style:italic">Tiden är ungefärlig — vi kontaktar dig om förseningen blir mer än 30 min.</div>`
-        : '';
-
-      document.getElementById('order-box').innerHTML = `
-        <strong>${cart.customer_name || 'Kund'}</strong> ${isDelivery ? 'får leverans' : 'hämtar'}
-        ${dateStr ? `<strong>${dateStr} kl ${timeStr}</strong>` : 'utrustning'}.<br>
-        <span style="color:rgba(255,255,255,0.60)">${placeLabel}</span>${timeNote}
-        <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06)">${prodRows}${more}</div>
-        <div class="ref">${cart.id}</div>`;
-
-      show('main-state');
-    } catch (e) {
-      show('error-state');
-      document.getElementById('error-msg').textContent = e.message;
-    }
-  }
-
-  // ── Submit ────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════
+  // Submit
+  // ════════════════════════════════════════════════════════════════════════
   document.getElementById('submit-btn').addEventListener('click', async () => {
-    if (!hasSig) return;
+    if (!state.hasSig) return;
 
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Sparar…';
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Sparar…';
 
     try {
-      // Exportera i CSS-pixel-resolution (även om internt canvas är HiDPI)
-      // för att hålla filstorleken under sign-submit's 512KB-gräns
+      // Exportera signatur i CSS-pixel-resolution (under 512KB-gränsen)
       const exportW = parseInt(canvas.style.width)  || canvas.width;
       const exportH = parseInt(canvas.style.height) || canvas.height;
       const exportCanvas = document.createElement('canvas');
       exportCanvas.width  = exportW;
       exportCanvas.height = exportH;
       exportCanvas.getContext('2d').drawImage(canvas, 0, 0, exportW, exportH);
-      const sigData = exportCanvas.toDataURL('image/png');
+      state.signatureData = exportCanvas.toDataURL('image/png');
+
+      // Bygg payload med proxy/recipient-fält
+      const payload = {
+        cart_id: cartId,
+        token: cartToken,
+        signature_data: state.signatureData,
+        id_photo_data: state.photoData,
+      };
+
+      if (state.isDelivery) {
+        payload.delivery_recipient_method = state.whoMethod === 'other' ? 'other' : 'self';
+        if (state.whoMethod === 'other') {
+          payload.delivery_recipient_name = state.proxyName.trim();
+          payload.delivery_recipient_phone = state.proxyPhone.trim();
+        }
+      } else {
+        payload.pickup_method = state.whoMethod === 'other' ? 'proxy' : 'self';
+        if (state.whoMethod === 'other') {
+          payload.pickup_proxy_name = state.proxyName.trim();
+          payload.pickup_proxy_phone = state.proxyPhone.trim();
+        }
+      }
 
       const res = await fetch('/.netlify/functions/sign-submit', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          cart_id:        cartId,
-          token:          cartToken,
-          signature_data: sigData,
-          id_photo_data:  photoData || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || `Fel ${res.status}`);
 
-      show('success-state');
-      document.getElementById('success-ref').textContent =
-        `Ordernr ${cartId} är kvitterat. Ha ett bra event!`;
+      // Visa prepared-state (förberedelsen klar)
+      showPreparedState();
     } catch (e) {
-      show('error-state');
+      showStep('error');
       document.getElementById('error-msg').textContent = e.message;
     }
   });
 
+  function showPreparedState() {
+    const c = state.cart;
+    const eventDate = c.event_date ? new Date(c.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' }) : null;
+    const timeStr = c.delivery_time || (state.isDelivery ? '09:00' : '13:00');
+    document.getElementById('prepared-sub').textContent = eventDate ? `Vi ses ${eventDate} kl ${timeStr}.` : 'Vi aktiverar din kvittens när vi träffas vid utlämningen.';
+
+    const items = (c.items || []).filter(i => !i._note && i.name);
+    let summary = `
+      <div class="row"><span class="check">✓</span><span>Signatur registrerad</span></div>
+      ${state.photoData ? '<div class="row"><span class="check">✓</span><span>Legitimation uppladdad</span></div>' : ''}
+      <div class="row"><span class="check">✓</span><span>Bekräftelse som beställare</span></div>
+    `;
+    if (state.whoMethod === 'other') {
+      const who = state.isDelivery ? 'kontaktperson' : 'bud';
+      summary += `<div class="row"><span class="check">✓</span><span>${who.charAt(0).toUpperCase() + who.slice(1)}: ${state.proxyName}</span></div>`;
+    }
+    summary += `<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.8rem;color:rgba(255,255,255,0.6)">${items.length} ${items.length === 1 ? 'artikel' : 'artiklar'} · Order ${c.id}</div>`;
+    document.getElementById('prepared-summary').innerHTML = summary;
+
+    showStep('prepared');
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Ladda order
+  // ════════════════════════════════════════════════════════════════════════
+  async function loadOrder() {
+    if (!cartId || !cartToken) {
+      showStep('error');
+      document.getElementById('error-msg').textContent = 'Ogiltig länk. Kontrollera att du öppnat rätt länk.';
+      return;
+    }
+
+    showStep('loading');
+
+    try {
+      const res = await fetch(`/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`);
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch (e) { throw new Error('Ogiltigt svar från servern: ' + text.slice(0, 100)); }
+      if (!res.ok || data.error) throw new Error(data.error || 'Kunde inte ladda order');
+
+      const cart = data.cart;
+      if (!cart) throw new Error('Kunde inte ladda order');
+
+      state.cart = cart;
+      state.isDelivery = cart.delivery_mode === 'delivery';
+
+      // Om admin redan motkvitterat: visa success och stopp
+      if (cart.pickup_confirmed_at) {
+        const t = new Date(cart.pickup_confirmed_at).toLocaleString('sv-SE');
+        document.getElementById('success-ref').textContent = `Vi bekräftade utlämningen ${t}. Ordernr: ${cart.id}`;
+        showStep('success');
+        return;
+      }
+
+      // Om kund redan förberett: visa prepared-state och stopp
+      if (cart.pickup_signed_at) {
+        const eventDate = cart.event_date ? new Date(cart.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' }) : null;
+        const timeStr = cart.delivery_time || (state.isDelivery ? '09:00' : '13:00');
+        document.getElementById('prepared-sub').textContent = eventDate ? `Vi ses ${eventDate} kl ${timeStr}.` : 'Vi aktiverar din kvittens när vi träffas vid utlämningen.';
+
+        const items = (cart.items || []).filter(i => !i._note && i.name);
+        const r = new Date(cart.pickup_signed_at).toLocaleDateString('sv-SE');
+        let summary = `
+          <div class="row"><span class="check">✓</span><span>Signatur förberedd ${r}</span></div>
+          ${cart.pickup_id_photo ? '<div class="row"><span class="check">✓</span><span>Legitimation uppladdad</span></div>' : ''}
+        `;
+        if (cart.pickup_method === 'proxy' && cart.pickup_proxy_name) {
+          summary += `<div class="row"><span class="check">✓</span><span>Bud: ${cart.pickup_proxy_name}</span></div>`;
+        }
+        if (cart.delivery_recipient_method === 'other' && cart.delivery_recipient_name) {
+          summary += `<div class="row"><span class="check">✓</span><span>Kontaktperson: ${cart.delivery_recipient_name}</span></div>`;
+        }
+        summary += `<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.8rem;color:rgba(255,255,255,0.6)">${items.length} ${items.length === 1 ? 'artikel' : 'artiklar'} · Order ${cart.id}</div>`;
+        document.getElementById('prepared-summary').innerHTML = summary;
+
+        showStep('prepared');
+        return;
+      }
+
+      // Bygg multi-step UI baserat på delivery_mode
+      adaptUiForMode();
+      renderOrderBox();
+      showStep('1');
+    } catch (e) {
+      showStep('error');
+      document.getElementById('error-msg').textContent = e.message;
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // Anpassa text för pickup vs delivery
+  // ════════════════════════════════════════════════════════════════════════
+  function adaptUiForMode() {
+    if (state.isDelivery) {
+      document.title = 'Förbered din leverans — Scenkonsult Norden';
+      document.getElementById('intro-h1').textContent = 'Förbered din leverans';
+      document.getElementById('intro-lead').textContent = 'Det här går snabbt — du fyller i några uppgifter nu så är vi klara på plats vid leverans.';
+      document.getElementById('who-h1').textContent = 'Vem tar emot leveransen?';
+      document.getElementById('who-lead').textContent = 'Du kan låta någon annan ta emot leveransen om du inte själv kan vara på plats.';
+      document.getElementById('who-self-title').textContent = 'Jag tar emot själv';
+      document.getElementById('who-self-sub').textContent = 'Du är på plats när vi anländer.';
+      document.getElementById('who-other-title').textContent = 'Annan kontaktperson tar emot';
+      document.getElementById('who-other-sub').textContent = 'Kollega, vän, granne eller annan person du litar på.';
+      document.getElementById('proxy-name-label').textContent = 'Kontaktpersonens namn';
+      document.getElementById('proxy-hint').textContent = 'Vi kontaktar numret om något händer på vägen eller om vi inte hittar fram. Jag är fortsatt ansvarig för utrustningen.';
+    }
+    // Pickup-versionen är default i HTML — ingen ändring behövs
+  }
+
+  function renderOrderBox() {
+    const c = state.cart;
+    const eventDate = c.event_date ? new Date(c.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' }) : null;
+    const timeStr = c.delivery_time || (state.isDelivery ? '09:00' : '13:00');
+    const location = state.isDelivery
+      ? (c.event_location || 'Adress saknas — kontakta oss')
+      : 'Grimstagatan 164, 162 58 Vällingby';
+    const timeDisclaimer = state.isDelivery
+      ? '<div style="margin-top:0.5rem;font-size:0.75rem;color:rgba(255,255,255,0.55);font-style:italic">Tiden är ungefärlig — vi kontaktar dig om förseningen blir mer än 30 min.</div>'
+      : '';
+
+    const items = (c.items || []).filter(i => !i._note && i.name);
+    const itemsHtml = items.slice(0, 5).map(i => `<div style="display:flex;justify-content:space-between;font-size:0.85rem"><span>${i.name}</span><span style="color:rgba(255,255,255,0.6)">×${i.qty || 1}</span></div>`).join('');
+    const moreItems = items.length > 5 ? `<div style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-top:0.3rem">+${items.length - 5} till…</div>` : '';
+
+    document.getElementById('order-box').innerHTML = `
+      <div class="meta-line"><span class="ico">📅</span><div><strong>${eventDate || 'Datum saknas'}</strong> kl ${timeStr}</div></div>
+      <div class="meta-line"><span class="ico">📍</span><div>${location}</div></div>
+      ${timeDisclaimer}
+      <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06)">${itemsHtml}${moreItems}</div>
+      <div class="ref">${c.id}</div>
+    `;
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
   // Start
+  // ════════════════════════════════════════════════════════════════════════
   loadOrder();
 </script>
+
 </body>
 </html>
