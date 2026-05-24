@@ -3443,6 +3443,11 @@ function renderInfoTab() {
           <span>Kvittens aktiverad ${fmtTime(c.pickup_confirmed_at)}</span>
         </div>
         ${c.pickup_admin_note ? `<div style="margin-top:0.5rem;padding:0.5rem 0.7rem;background:rgba(251,191,36,0.06);border-left:2px solid rgba(251,191,36,0.5);border-radius:4px;font-size:0.78rem;color:rgba(255,255,255,0.78);font-style:italic">📝 ${c.pickup_admin_note.replace(/</g,'&lt;')}</div>` : ''}
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem">
+          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
+          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : ''}
+        </div>
+        <button onclick="adminResetPickup()" style="margin-top:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit" title="Tar bort signatur, leg-foto och motkvittering så att kund kan signera igen">🔄 Nollställ förberedelse (för testning)</button>
         `
         : c.pickup_signed_at ? `
         <div style="display:flex;align-items:center;gap:0.5rem;color:var(--green);font-weight:600;margin-bottom:0.5rem">
@@ -3450,10 +3455,13 @@ function renderInfoTab() {
           <span>Kund förberedd — klar att motkvittera</span>
         </div>
         <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Förberedde ${fmtTime(c.pickup_signed_at)} · IP: ${c.pickup_sign_ip||'–'}</div>
+        ${c.pickup_method === 'proxy' && c.pickup_proxy_name ? `<div style="margin-top:0.4rem;padding:0.5rem 0.7rem;background:rgba(196,181,244,0.06);border-left:2px solid rgba(196,181,244,0.5);border-radius:4px;font-size:0.78rem"><strong style="color:#c4b5f4">Bud:</strong> ${c.pickup_proxy_name.replace(/</g,'&lt;')} · ${(c.pickup_proxy_phone||'').replace(/</g,'&lt;')}</div>` : ''}
+        ${c.delivery_recipient_method === 'other' && c.delivery_recipient_name ? `<div style="margin-top:0.4rem;padding:0.5rem 0.7rem;background:rgba(196,181,244,0.06);border-left:2px solid rgba(196,181,244,0.5);border-radius:4px;font-size:0.78rem"><strong style="color:#c4b5f4">Kontaktperson:</strong> ${c.delivery_recipient_name.replace(/</g,'&lt;')} · ${(c.delivery_recipient_phone||'').replace(/</g,'&lt;')}</div>` : ''}
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem">
-          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:pointer" onclick="adminOpenPickupConfirm(currentCart)" title="Klicka för att motkvittera">` : ''}
-          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:pointer" onclick="adminOpenPickupConfirm(currentCart)" title="Legitimation">` : '<span style="font-size:0.72rem;color:rgba(255,255,255,0.55);align-self:center">Inget leg-foto</span>'}
+          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
+          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : '<span style="font-size:0.72rem;color:rgba(255,255,255,0.55);align-self:center">Inget leg-foto</span>'}
         </div>
+        <button onclick="adminResetPickup()" style="margin-top:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit" title="Tar bort signatur och leg-foto så att kund kan signera igen via samma länk">🔄 Nollställ förberedelse (för testning)</button>
         `
         : c.pickup_reminder_sent_at ? `
         <div style="display:flex;align-items:center;gap:0.5rem;color:var(--brand-lav);font-weight:600;margin-bottom:0.25rem">
@@ -5265,6 +5273,71 @@ async function adminSendPickupLink(c) {
 }
 
 // Modal: granska kundens förberedelse + motkvittera
+// ── Lightbox för att förstora bilder (signatur, leg-foto) ──────────────
+function openImageLightbox(src, title = '') {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;cursor:zoom-out;overscroll-behavior:contain;backdrop-filter:blur(4px)';
+  overlay.innerHTML = `
+    <div style="position:relative;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;align-items:center;gap:0.75rem;cursor:default" onclick="event.stopPropagation()">
+      ${title ? `<div style="color:rgba(255,255,255,0.85);font-size:0.9rem;font-weight:600;letter-spacing:0.02em;text-align:center">${title}</div>` : ''}
+      <img src="${src}" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:10px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.6)" />
+      <button style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:0.55rem 1.5rem;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:inherit" onclick="this.closest('[data-lightbox]')?.remove()">✕ Stäng</button>
+    </div>
+  `;
+  overlay.setAttribute('data-lightbox', '1');
+  overlay.addEventListener('click', () => overlay.remove());
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      overlay.remove();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+  document.body.appendChild(overlay);
+}
+window.openImageLightbox = openImageLightbox;
+
+// ── Nollställ förberedelse (admin-testning) ────────────────────────────
+async function adminResetPickup() {
+  const c = currentCart;
+  if (!c) return;
+  const items = [];
+  if (c.pickup_signature)     items.push('• Signatur');
+  if (c.pickup_id_photo)      items.push('• Leg-foto');
+  if (c.pickup_method)        items.push('• Hämtnings-metod (själv/bud)');
+  if (c.pickup_proxy_name)    items.push(`• Bud: ${c.pickup_proxy_name}`);
+  if (c.delivery_recipient_name) items.push(`• Kontaktperson: ${c.delivery_recipient_name}`);
+  if (c.pickup_confirmed_at)  items.push('• Admin-motkvittering');
+  if (c.pickup_admin_note)    items.push('• Admin-anteckning');
+  const itemsList = items.length ? '\n\n' + items.join('\n') : '';
+
+  if (!confirm(`⚠️ NOLLSTÄLL FÖRBEREDELSEN?${itemsList}\n\nKunden kan signera igen via SAMMA länk — URL:en ändras inte och inga nya SMS skickas.\n\nDenna åtgärd kan inte ångras.`)) return;
+
+  const { ok: success, data } = await api('admin-reset-pickup', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: c.id })
+  });
+
+  if (success) {
+    toast('🔄 Förberedelsen nollställd — kund kan signera igen via samma länk');
+    // Nollställ lokalt så panelen uppdateras direkt
+    Object.assign(currentCart, {
+      pickup_signature: null, pickup_signed_at: null, pickup_sign_ip: null,
+      pickup_id_photo: null, pickup_method: null,
+      pickup_proxy_name: null, pickup_proxy_phone: null, pickup_proxy_id_verified_at: null,
+      delivery_recipient_method: null, delivery_recipient_name: null,
+      delivery_recipient_phone: null, delivery_recipient_id_verified_at: null,
+      pickup_confirmed_at: null, pickup_admin_note: null,
+    });
+    loadCarts();
+    renderPanelFooter();
+    if (typeof renderTab === 'function') renderTab('info');
+  } else {
+    toast(data?.error || 'Kunde inte nollställa', 'error');
+  }
+}
+window.adminResetPickup = adminResetPickup;
+
 function adminOpenPickupConfirm(c) {
   const overlay = document.createElement('div');
   overlay.id = 'pickup-confirm-overlay';
@@ -5298,12 +5371,12 @@ function adminOpenPickupConfirm(c) {
 
         <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Kundens signatur</div>
         ${c.pickup_signature
-          ? `<img src="${c.pickup_signature}" style="width:100%;max-height:160px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem">`
+          ? `<img src="${c.pickup_signature}" style="width:100%;max-height:160px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">`
           : '<div style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-style:italic;margin-bottom:1rem">Saknas</div>'}
 
         <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Legitimation</div>
         ${c.pickup_id_photo
-          ? `<img src="${c.pickup_id_photo}" style="width:100%;max-height:200px;object-fit:contain;background:#0c0a24;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem">`
+          ? `<img src="${c.pickup_id_photo}" style="width:100%;max-height:200px;object-fit:contain;background:#0c0a24;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem;cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">`
           : '<div style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-style:italic;margin-bottom:1rem">Inget legitimationsfoto uppladdat</div>'}
 
         <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Utlämning</div>
