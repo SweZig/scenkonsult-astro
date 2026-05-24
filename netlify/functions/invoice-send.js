@@ -7,6 +7,7 @@
 // 5. Uppdaterar invoice_sent_at + status → fakturerad
 
 const { supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingFee } = require('./_lib');
+const { getVillkor } = require('./_invoice-villkor');
 const PDFDocument = require('pdfkit');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
@@ -211,37 +212,19 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
        .text('Tack för ditt förtroende! Frågor? Ring 072-448 10 00 eller maila info@scenkonsult.se',
              50, ry + 8, { width: W, align: 'center' });
 
-    // ── Sida 2: Hyresvillkor §1–§9 ─────────────────────────────────────────────
+    // ── Sida 2: Hyresvillkor — anpassade efter kundtyp (B2C/B2B) ─────────────
     doc.addPage();
+
+    const { villkor, heading, subhead } = getVillkor(cart);
 
     // Header sida 2
     doc.rect(0, 0, 595, 50).fill(NAVY);
     doc.fillColor('#ffffff').fontSize(13).font('Helvetica-Bold')
-       .text('Allmänna hyresvillkor', 50, 16);
+       .text(heading, 50, 16);
     doc.fillColor('rgba(255,255,255,0.55)').fontSize(8).font('Helvetica')
-       .text('Scenkonsult Norden / Sigvardsson Consulting Group AB  ·  Gäller från 2025-01-01', 50, 34);
+       .text(subhead, 50, 34);
 
     let vy = 68;
-    const villkor = [
-      ['1. Hyresperiod',
-       'Normal hyresperiod är 22 timmar — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Längre hyresperioder mot tillägg. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
-      ['2. Bokning och betalning',
-       'Bokning är bindande, bekräftas skriftligen. Bokningar inom 72 timmar kräver förskottsbetalning. En bokningsavgift om 49 kr (exkl. moms) tillkommer för att täcka betalnings- och administrativa kostnader. Dröjsmålsränta debiteras vid sen betalning (referensränta + 8 %).'],
-      ['3. Avbokning och ändring',
-       'Mer än 7 dagar före: Kostnadsfritt. 3–7 dagar: 50 % återbetalas. Färre än 3 dagar: Ingen återbetalning. Byte av datum/utrustning är kostnadsfritt om tillgängligt. DJ-bokningar: mer än 60 dagar gratis; 30–60 dagar 50 %; färre än 30 dagar fullt pris. Avbokning ska göras skriftligen.'],
-      ['4. Ansvar och försäkring',
-       'Hyrestagaren ansvarar för utrustningen från hämtning till godkänd återlämning. Vidareuthyrning är inte tillåten. Scenkonsult Norden har ingen försäkring som täcker skada eller stöld under hyresperioden — hyrestagaren är skyldig att ha giltig allriskförsäkring eller företagsförsäkring för utrustningen. Utan giltigt försäkringsskydd är hyrestagaren betalningsskyldig för hela återanskaffningsvärdet.'],
-      ['5. Leverans och hämtning',
-       'Utrustningen kan hämtas på vår depå eller levereras mot tillägg (pris per körning tur & retur). Hyrestagaren ansvarar för att behörig person finns på plats. Extra körningspris kan debiteras om leverans omöjliggörs av hyrestagaren.'],
-      ['6. Montering och teknik',
-       'Enklare utrustning levereras för självmontering. Scenpaket Large och uppåt kräver alltid professionell montering och demontering av vår personal, prissatt separat. LED-skärmar och komplex ljusutrustning kräver tekniker (offerteras separat). Monteringstjänst debiteras per påbörjad 15-minutersperiod à 150 kr exkl. moms (600 kr/tim).'],
-      ['7. Fel och reklamation',
-       'Fel vid hämtning/leverans anmäls omedelbart — senast innan evenemanget startar. Scenkonsult Norden avhjälper felet, erbjuder ersättningsutrustning eller återbetalar aktuell del. Reklamation efter återlämning utan anmärkning godtas normalt inte.'],
-      ['8. Force majeure',
-       'Scenkonsult Norden är fri från ansvar vid hinder utanför vår kontroll (extremväder, trafikolycka, strejk, myndighetsbeslut). Vid omöjlig leverans återbetalas erlagd hyra i sin helhet.'],
-      ['9. Tvister',
-       'Tvister löses i första hand genom dialog. I annat fall avgörs de i Stockholms tingsrätt med tillämpning av svensk lag. Konsumenter har alltid rätt att vända sig till ARN.'],
-    ];
 
     villkor.forEach(([title, text]) => {
       if (vy > 748) return; // Hoppa om vi riskerar att krocka med footer
