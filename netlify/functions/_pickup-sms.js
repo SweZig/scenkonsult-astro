@@ -25,10 +25,13 @@ function getPickupSms(cart, shortToken) {
   const timeStr = cart.delivery_time || (isDelivery ? '09:00' : '13:00');
   const url = `scenkonsult.se/u/${shortToken}`;
 
+  // Telefonnummer utelämnas medvetet — kunden har det i bokningsbekräftelse
+  // och i förberedelse-länken. Att ha det här ökar risken för felklick
+  // (klick på telefon istället för URL).
   if (isDelivery) {
-    return `${greeting} Vi levererar utrustningen imorgon ca kl ${timeStr}. Förbered leveransen så går det snabbt på plats: ${url} Frågor: ${PHONE_DISPLAY}`;
+    return `${greeting} Vi levererar utrustningen imorgon ca kl ${timeStr}. Förbered leveransen så går det snabbt på plats: ${url}`;
   } else {
-    return `${greeting} Hyresperioden börjar imorgon kl ${timeStr}. Förbered utlämningen så går det snabbt på plats: ${url} Frågor: ${PHONE_DISPLAY}`;
+    return `${greeting} Hyresperioden börjar imorgon kl ${timeStr}. Förbered utlämningen så går det snabbt på plats: ${url}`;
   }
 }
 
