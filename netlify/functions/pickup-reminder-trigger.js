@@ -1,14 +1,51 @@
 // netlify/functions/pickup-reminder-trigger.js
-// Manuellt utskick av förberedelsemail från admin-panelen.
-// POST { cart_id } + Bearer ADMIN_TOKEN
+// Manuellt utskick av förberedelse-länken från admin-panelen.
+// POST { cart_id, channel? } + Bearer ADMIN_TOKEN
 //
-// Detta är samma mailmall som scheduled-pickup-reminder. Skillnaden är att
-// admin trycker på en knapp i admin-panelen (för same-day-bookings, missade
-// auto-utskick, eller om kunden bett om en ny länk).
+// Samma logik som scheduled-pickup-reminder: SMS-först, mail-fallback.
+//
+// channel-parameter (valfri):
+//   'auto'  (default) — SMS om telefon finns, annars/vid fel mail
+//   'sms'             — bara SMS (fel om telefon saknas)
+//   'email'           — bara mail (fel om email saknas)
+//
+// Används av admin-panelen för same-day-bookings, missade auto-utskick,
+// eller om kunden bett om en ny länk.
 
 'use strict';
 const { supabase, isAdmin, ok, err, preflight, logAudit, sendEmail, MAIL_FROM } = require('./_lib');
 const { buildPickupReminderEmail } = require('./_pickup-reminder-mail');
+const { ensureShortToken } = require('./_short-token');
+const { getPickupSms } = require('./_pickup-sms');
+
+const ELKS_URL = 'https://api.46elks.com/a1/SMS';
+
+async function sendSms(to, message) {
+  const user = process.env.ELKS_API_USER;
+  const pass = process.env.ELKS_API_PASSWORD;
+  if (!user || !pass) return { ok: false, error: 'ELKS-nycklar saknas' };
+  const from = process.env.ELKS_FROM || 'Scenkonsult';
+  let phone = String(to).replace(/\s/g, '').replace(/^0/, '+46');
+  if (!phone.startsWith('+')) phone = '+46' + phone;
+  try {
+    const body = new URLSearchParams({ from, to: phone, message });
+    const res = await fetch(ELKS_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
+        'Content-Type':  'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    });
+    const text = await res.text();
+    if (!res.ok) return { ok: false, error: `46elks HTTP ${res.status}: ${text.slice(0, 200)}` };
+    let parsed;
+    try { parsed = JSON.parse(text); } catch { parsed = { id: 'unknown' }; }
+    return { ok: true, smsId: parsed.id || parsed.smsId };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
@@ -24,37 +61,94 @@ exports.handler = async (event) => {
     return err('Ogiltig JSON', 400);
   }
 
-  const { cart_id } = body;
+  const { cart_id, channel = 'auto' } = body;
   if (!cart_id) return err('cart_id krävs', 400);
+  if (!['auto', 'sms', 'email'].includes(channel)) {
+    return err('channel måste vara auto, sms eller email', 400);
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return err('Mailkonfiguration saknas', 500);
 
   const db = supabase();
   try {
     const { data: cart, error } = await db.from('carts')
-      .select('id, customer_name, customer_email, cart_token, event_date, event_location, items, status, delivery_time, customer_company, delivery_mode')
+      .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, customer_company, delivery_mode, pickup_short_token, prepared_via')
       .eq('id', cart_id)
       .single();
 
     if (error || !cart) return err('Varukorg hittades ej', 404);
-    if (!cart.customer_email) return err('Kunden har ingen e-postadress', 400);
     if (!cart.cart_token) return err('Cart saknar token', 400);
 
-    const { html, text, subject } = buildPickupReminderEmail(cart);
-    await sendEmail(apiKey, {
-      from:     MAIL_FROM,
-      to:       cart.customer_email,
-      subject,
-      html,
-      text,
-      reply_to: 'info@scenkonsult.se',
+    // Säkerställ kort URL-token
+    const shortToken = await ensureShortToken(db, cart);
+    cart.pickup_short_token = shortToken;
+
+    // Bestäm utskickskanal
+    const tryS  = (channel === 'auto' || channel === 'sms')   && !!cart.customer_phone;
+    const tryE  = (channel === 'auto' || channel === 'email') && !!cart.customer_email;
+
+    if (channel === 'sms'   && !cart.customer_phone) return err('Kunden saknar telefon', 400);
+    if (channel === 'email' && !cart.customer_email) return err('Kunden saknar e-postadress', 400);
+    if (!tryS && !tryE)                              return err('Inga utskickskanaler tillgängliga', 400);
+    if (tryE && !apiKey)                             return err('Mailkonfiguration saknas (RESEND_API_KEY)', 500);
+
+    let smsSent = false;
+    let emailSent = false;
+    let preparedVia = null;
+    let smsError = null;
+
+    // ── SMS-försök ────────────────────────────────────────────────────────
+    if (tryS) {
+      const message = getPickupSms(cart, shortToken);
+      const smsRes = await sendSms(cart.customer_phone, message);
+      if (smsRes.ok) {
+        smsSent = true;
+        preparedVia = 'sms';
+        await logAudit(db, cart_id, 'admin', 'pickup_reminder_sms', {
+          to: cart.customer_phone, sms_id: smsRes.smsId,
+        });
+      } else {
+        smsError = smsRes.error;
+      }
+    }
+
+    // ── Mail-försök (fallback om SMS misslyckades, eller om channel=email) ─
+    const shouldMail = (channel === 'email') || (channel === 'auto' && !smsSent && tryE);
+    if (shouldMail) {
+      const { html, text, subject } = buildPickupReminderEmail(cart);
+      await sendEmail(apiKey, {
+        from:     MAIL_FROM,
+        to:       cart.customer_email,
+        subject,
+        html,
+        text,
+        reply_to: 'info@scenkonsult.se',
+      });
+      emailSent = true;
+      preparedVia = smsSent ? 'sms' : 'email';
+      await logAudit(db, cart_id, 'admin', 'pickup_reminder_email', {
+        to: cart.customer_email, fallback_after_sms: !smsSent && !!cart.customer_phone,
+      });
+    }
+
+    if (!smsSent && !emailSent) {
+      return err(`Utskick misslyckades. SMS-fel: ${smsError || 'inte försökt'}`, 500);
+    }
+
+    await db.update('carts', {
+      pickup_reminder_sent_at: new Date().toISOString(),
+      prepared_via:            preparedVia,
+    }, 'id', cart_id);
+
+    return ok({
+      sent:        true,
+      sms_sent:    smsSent,
+      email_sent:  emailSent,
+      to_phone:    smsSent ? cart.customer_phone : null,
+      to_email:    emailSent ? cart.customer_email : null,
+      sms_error:   smsError,
+      short_token: shortToken,
     });
-
-    await db.update('carts', { pickup_reminder_sent_at: new Date().toISOString() }, 'id', cart_id);
-    await logAudit(db, cart_id, 'admin', 'pickup_reminder_sent', { to: cart.customer_email, scheduled: false });
-
-    return ok({ sent: true, to: cart.customer_email });
   } catch (e) {
     console.error('PICKUP_REMINDER_TRIGGER_ERROR:', e.message);
     return err(e.message || 'Serverfel', 500);

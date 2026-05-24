@@ -31,7 +31,9 @@ function buildPickupReminderEmail(cart) {
   const rel = dateRelation(cart.event_date); // 'tomorrow' | 'today' | 'other'
 
   const firstName = (cart.customer_name || '').split(' ')[0] || 'Hej';
-  const signUrl   = `https://scenkonsult.se/sign/?cart=${cart.id}&token=${cart.cart_token}`;
+  const signUrl   = cart.pickup_short_token
+    ? `https://scenkonsult.se/u/${cart.pickup_short_token}`
+    : `https://scenkonsult.se/sign/?cart=${cart.id}&token=${cart.cart_token}`;
 
   const dateStr = cart.event_date
     ? new Date(cart.event_date + 'T00:00:00').toLocaleDateString('sv-SE',
