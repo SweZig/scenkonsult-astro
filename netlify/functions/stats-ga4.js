@@ -23,47 +23,10 @@
 
 'use strict';
 const { isAdmin, ok, err, preflight } = require('./_lib');
-const { OAuth2Client } = require('google-auth-library');
+const { getGoogleAccessToken } = require('./_google-oauth');
 
-// ── Access token cache (varar tills funktionen kallrestartas) ───────────
-let _cachedToken = null;
-let _cachedTokenExpiry = 0;
-
-function maskValue(v, prefix = 6, suffix = 4) {
-  if (!v) return '(saknas)';
-  if (v.length <= prefix + suffix) return v.length + ' tecken';
-  return `${v.slice(0, prefix)}…${v.slice(-suffix)} (${v.length} tecken)`;
-}
-
-async function getAccessToken() {
-  const now = Date.now();
-  if (_cachedToken && now < _cachedTokenExpiry - 60_000) return _cachedToken;
-
-  const clientId     = process.env.GA4_OAUTH_CLIENT_ID;
-  const clientSecret = process.env.GA4_OAUTH_CLIENT_SECRET;
-  const refreshToken = process.env.GA4_OAUTH_REFRESH_TOKEN;
-
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error('GA4 OAuth env-vars saknas (GA4_OAUTH_CLIENT_ID / GA4_OAUTH_CLIENT_SECRET / GA4_OAUTH_REFRESH_TOKEN)');
-  }
-
-  // Debug-logg — maskerade värden för verifiering av env-vars
-  console.log('GA4_AUTH client_id:', maskValue(clientId));
-  console.log('GA4_AUTH client_secret:', maskValue(clientSecret));
-  console.log('GA4_AUTH refresh_token:', maskValue(refreshToken));
-
-  // Skapa ny client per anrop — env-vars kan ha uppdaterats sedan kallstart
-  const oauthClient = new OAuth2Client(clientId, clientSecret);
-  oauthClient.setCredentials({ refresh_token: refreshToken });
-
-  const { token } = await oauthClient.getAccessToken();
-  if (!token) throw new Error('OAuth getAccessToken returnerade null — refresh_token kan vara förbrukad eller återkallad');
-
-  _cachedToken = token;
-  // Access tokens lever 1h. Sätt expiry 55 min för säker marginal.
-  _cachedTokenExpiry = now + 55 * 60 * 1000;
-  return _cachedToken;
-}
+// ── Access token cache (delas via _google-oauth.js) ─────────────────────
+// getGoogleAccessToken() återanvänder samma OAuth-flöde för GSC också.
 
 // ── runReport mot GA4 Data API ──────────────────────────────────────────
 async function runReport(propertyId, body, accessToken) {
@@ -136,7 +99,7 @@ exports.handler = async (event) => {
   const propertyId = process.env.GA4_PROPERTY_ID || '417375423';
 
   try {
-    const token = await getAccessToken();
+    const token = await getGoogleAccessToken();
 
     // Parallella anrop — separata reports för att hålla varje query enkel
     const ranges = wantCompare

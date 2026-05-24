@@ -156,7 +156,7 @@
     <div class="section">
       <div class="sec-head">
         <span class="sec-title">Trafik per sida</span>
-        <span class="sec-sub">topp 30 — sorterat på sessioner</span>
+        <span class="sec-sub">topp 30 — GA4-sessioner joinas med GSC-klick</span>
       </div>
       <table class="tbl" id="pages-tbl">
         <thead>
@@ -164,13 +164,14 @@
             <th>Sökväg</th>
             <th class="num">Sess.</th>
             <th class="num">Sidvisn.</th>
-            <th class="num">Användare</th>
-            <th class="num">Engagemang</th>
+            <th class="num" title="Användare (GA4)">Anv.</th>
+            <th class="num" title="Klick från Google-sök (Search Console)">GSC klick</th>
+            <th class="num" title="Genomsnittsposition i sökresultaten">Pos.</th>
             <th class="num">Konv.</th>
           </tr>
         </thead>
         <tbody id="pages-tbody">
-          <tr><td colspan="6" class="loading">Laddar…</td></tr>
+          <tr><td colspan="7" class="loading">Laddar…</td></tr>
         </tbody>
       </table>
     </div>
@@ -191,13 +192,10 @@
       <div class="section">
         <div class="sec-head">
           <span class="sec-title">Sökord (GSC)</span>
-          <span class="sec-sub">kommer i fas 2</span>
+          <span class="sec-sub">topp 25 — klick · visn. · pos.</span>
         </div>
-        <div class="placeholder-box">
-          <strong>Search Console-integration är planerad nästa fas.</strong><br>
-          När den landar visas här de mest besökta sökorden från Google-sök
-          med antal klick, visningar och genomsnittsposition. Joinas på
-          sökväg mot trafiktabellen ovan för "ranking vs konvertering"-insikt.
+        <div id="queries-zone" class="qlist">
+          <div class="muted" style="font-size:0.8rem">Laddar…</div>
         </div>
       </div>
     </div>
@@ -300,6 +298,21 @@ function setDelta(elId, deltaPct) {
 }
 
 // ── Fetch + cache ─────────────────────────────────────────────────────
+// Hämtar GA4 + GSC parallellt. Returnerar { ga4, gsc, gscError } där gsc
+// kan vara null om bara GSC failat (GA4 är obligatorisk för KPI/grafer).
+async function fetchEndpoint(url) {
+  const res = await fetch(url, {
+    headers: { 'Authorization': 'Bearer ' + adminToken, 'Cache-Control': 'no-cache' },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let msg = `Status ${res.status}`;
+    try { msg = JSON.parse(text).error || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
 async function fetchStats(period) {
   const cacheKey = CACHE_KEY_PREFIX + period;
   try {
@@ -310,21 +323,27 @@ async function fetchStats(period) {
     }
   } catch (e) {}
 
-  const url = `/.netlify/functions/stats-ga4?period=${period}&compare=1&_=${Date.now()}`;
-  const res = await fetch(url, {
-    headers: { 'Authorization': 'Bearer ' + adminToken, 'Cache-Control': 'no-cache' },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    let msg = `Status ${res.status}`;
-    try { msg = JSON.parse(text).error || msg; } catch (e) {}
-    throw new Error(msg);
-  }
-  const data = await res.json();
+  const cb = Date.now();
+  const ga4Url = `/.netlify/functions/stats-ga4?period=${period}&compare=1&_=${cb}`;
+  const gscUrl = `/.netlify/functions/stats-gsc?period=${period}&_=${cb}`;
+
+  // GA4 är kritisk → fail i sin helhet om den failar
+  // GSC är komplement → samla felet men släpp ej igenom
+  const [ga4, gscSettled] = await Promise.all([
+    fetchEndpoint(ga4Url),
+    fetchEndpoint(gscUrl).then(d => ({ ok: true, data: d }))
+                          .catch(e => ({ ok: false, error: e?.message || String(e) })),
+  ]);
+
+  const out = {
+    ga4,
+    gsc: gscSettled.ok ? gscSettled.data : null,
+    gscError: gscSettled.ok ? null : gscSettled.error,
+  };
   try {
-    sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), data }));
+    sessionStorage.setItem(cacheKey, JSON.stringify({ t: Date.now(), data: out }));
   } catch (e) {}
-  return data;
+  return out;
 }
 
 function showError(message) {
@@ -340,37 +359,61 @@ function showError(message) {
     </div>`;
 }
 
+function showGscError(message) {
+  const zone = document.getElementById('error-zone');
+  zone.insertAdjacentHTML('beforeend', `
+    <div class="error-banner" style="border-color:rgba(250,204,21,0.30);background:rgba(250,204,21,0.06);color:#fde68a">
+      <strong style="color:#fde68a">GSC-data kunde inte hämtas</strong> (GA4-data visas ändå)<br>
+      ${message}<br>
+      Kontrollera att Search Console API är aktiverat och att <code>per.sigvardsson@gmail.com</code> har behörighet på property <code>sc-domain:scenkonsult.se</code>.
+    </div>`);
+}
+
 function clearError() {
   document.getElementById('error-zone').innerHTML = '';
 }
 
 // ── Render ────────────────────────────────────────────────────────────
-function render(data) {
+function render(payload) {
+  const ga4 = payload.ga4;
+  const gsc = payload.gsc;     // kan vara null om GSC failat
+
   // Period-range
-  document.getElementById('period-range').textContent = `${data.period.start} → ${data.period.end}`;
+  document.getElementById('period-range').textContent = `${ga4.period.start} → ${ga4.period.end}`;
   document.getElementById('last-updated').textContent =
-    'uppdaterad ' + new Date(data.fetchedAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+    'uppdaterad ' + new Date(ga4.fetchedAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
 
   // KPI
-  document.getElementById('kpi-sessions').textContent  = fmtNum(data.summary.sessions);
-  document.getElementById('kpi-pageviews').textContent = fmtNum(data.summary.pageviews);
-  document.getElementById('kpi-users').textContent     = fmtNum(data.summary.users);
-  document.getElementById('kpi-conv').textContent      = fmtNum(data.summary.conversions);
-  document.getElementById('kpi-engage').textContent    = fmtPct(data.summary.engagementRate);
-  setDelta('kpi-sessions-delta',  data.summary.deltaSessions);
-  setDelta('kpi-pageviews-delta', data.summary.deltaPageviews);
-  setDelta('kpi-users-delta',     data.summary.deltaUsers);
-  setDelta('kpi-conv-delta',      data.summary.deltaConversions);
+  document.getElementById('kpi-sessions').textContent  = fmtNum(ga4.summary.sessions);
+  document.getElementById('kpi-pageviews').textContent = fmtNum(ga4.summary.pageviews);
+  document.getElementById('kpi-users').textContent     = fmtNum(ga4.summary.users);
+  document.getElementById('kpi-conv').textContent      = fmtNum(ga4.summary.conversions);
+  document.getElementById('kpi-engage').textContent    = fmtPct(ga4.summary.engagementRate);
+  setDelta('kpi-sessions-delta',  ga4.summary.deltaSessions);
+  setDelta('kpi-pageviews-delta', ga4.summary.deltaPageviews);
+  setDelta('kpi-users-delta',     ga4.summary.deltaUsers);
+  setDelta('kpi-conv-delta',      ga4.summary.deltaConversions);
   document.getElementById('kpi-engage-sub').textContent = `andel engagerade sessioner`;
 
-  // Tidsserie
-  renderTrafficChart(data.daily);
+  // Tidsserie (GA4)
+  renderTrafficChart(ga4.daily);
 
-  // Sidor
-  renderPagesTable(data.pages);
+  // Sidor (GA4 + GSC join)
+  renderPagesTable(ga4.pages, gsc?.pages || []);
 
-  // Kanaler
-  renderChannels(data.channels);
+  // Kanaler (GA4)
+  renderChannels(ga4.channels);
+
+  // Sökord (GSC) — visar info-meddelande om GSC failat
+  if (gsc) {
+    renderQueries(gsc.queries);
+  } else {
+    document.getElementById('queries-zone').innerHTML =
+      '<div class="muted" style="font-size:0.8rem">Sökord ej tillgängliga — se varning ovan</div>';
+  }
+
+  // GSC-fel separat banner (icke-kritisk)
+  if (payload.gscError) showGscError(payload.gscError);
 }
 
 function renderTrafficChart(daily) {
@@ -446,24 +489,56 @@ function renderTrafficChart(daily) {
   });
 }
 
-function renderPagesTable(pages) {
+function renderPagesTable(pages, gscPages) {
   const tbody = document.getElementById('pages-tbody');
   if (!pages || !pages.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:1rem">Ingen data för perioden</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:1rem">Ingen data för perioden</td></tr>';
     return;
   }
+
+  // Bygg lookup-map: pagePath → gsc-rad
+  // Normalisera båda till samma format (trailing slash strippas) för säker join
+  const stripSlash = (s) => (s && s !== '/' && s.endsWith('/')) ? s.slice(0, -1) : s;
+  const gscMap = new Map();
+  for (const g of (gscPages || [])) {
+    gscMap.set(stripSlash(g.path || ''), g);
+  }
+
   tbody.innerHTML = pages.map(p => {
     const safePath = p.path.replace(/</g, '&lt;');
     const href = p.path.startsWith('/') ? `https://scenkonsult.se${p.path}` : '#';
+    const gsc = gscMap.get(stripSlash(p.path)) || null;
+    const gscClicks = gsc ? fmtNum(gsc.clicks) : '<span class="muted">–</span>';
+    const gscPos    = gsc && gsc.position > 0
+      ? `<span title="Snittposition · CTR ${gsc.ctr.toFixed(1).replace('.',',')} %">${gsc.position.toFixed(1).replace('.',',')}</span>`
+      : '<span class="muted">–</span>';
     return `
       <tr>
         <td class="path-cell" title="${safePath}"><a href="${href}" target="_blank" rel="noopener">${safePath || '/'}</a></td>
         <td class="num">${fmtNum(p.sessions)}</td>
         <td class="num">${fmtNum(p.pageviews)}</td>
         <td class="num">${fmtNum(p.users)}</td>
-        <td class="num">${fmtPct(p.engagementRate)}</td>
+        <td class="num">${gscClicks}</td>
+        <td class="num">${gscPos}</td>
         <td class="num">${p.conversions > 0 ? fmtNum(p.conversions) : '<span class="muted">0</span>'}</td>
       </tr>`;
+  }).join('');
+}
+
+function renderQueries(queries) {
+  const zone = document.getElementById('queries-zone');
+  if (!queries || !queries.length) {
+    zone.innerHTML = '<div class="muted" style="font-size:0.8rem">Ingen sökordsdata för perioden</div>';
+    return;
+  }
+  zone.innerHTML = queries.map(q => {
+    const safeQ = (q.query || '').replace(/</g, '&lt;');
+    const posTxt = q.position > 0 ? `#${q.position.toFixed(1).replace('.', ',')}` : '–';
+    return `
+      <div class="qrow">
+        <span style="color:rgba(255,255,255,0.85);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%" title="${safeQ}">${safeQ}</span>
+        <span class="legend-val">${fmtNum(q.clicks)} klick · ${posTxt}</span>
+      </div>`;
   }).join('');
 }
 
@@ -530,7 +605,7 @@ function renderChannels(channels) {
 // ── Init + period-toggle ──────────────────────────────────────────────
 async function load(period) {
   clearError();
-  document.getElementById('pages-tbody').innerHTML = '<tr><td colspan="6" class="loading">Laddar…</td></tr>';
+  document.getElementById('pages-tbody').innerHTML = '<tr><td colspan="7" class="loading">Laddar…</td></tr>';
   try {
     const data = await fetchStats(period);
     render(data);
