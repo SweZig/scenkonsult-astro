@@ -955,14 +955,14 @@
       if (!res.ok || data.error) throw new Error(data.error || `Fel ${res.status}`);
 
       // Visa prepared-state (förberedelsen klar)
-      showPreparedState();
+      showPreparedState(data);
     } catch (e) {
       showStep('error');
       document.getElementById('error-msg').textContent = e.message;
     }
   });
 
-  function showPreparedState() {
+  function showPreparedState(submitData) {
     const c = state.cart;
     const eventDate = c.event_date ? new Date(c.event_date + 'T00:00:00').toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' }) : null;
     const timeStr = c.delivery_time || (state.isDelivery ? '09:00' : '13:00');
@@ -976,7 +976,14 @@
     `;
     if (state.whoMethod === 'other') {
       const who = state.isDelivery ? 'kontaktperson' : 'bud';
+      const firstName = (state.proxyName || '').trim().split(/\s+/)[0] || state.proxyName;
       summary += `<div class="row"><span class="check">✓</span><span>${who.charAt(0).toUpperCase() + who.slice(1)}: ${state.proxyName}</span></div>`;
+      // SMS-status till bud/mottagare
+      if (submitData && submitData.proxy_sms_sent === true) {
+        summary += `<div class="row"><span class="check">✓</span><span>${firstName} har fått ett SMS med info</span></div>`;
+      } else if (submitData && submitData.proxy_sms_sent === false) {
+        summary += `<div class="row" style="color:#fbbf24"><span>⚠</span><span>SMS till ${firstName} kunde inte skickas — meddela dem gärna själv.</span></div>`;
+      }
     }
     summary += `<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.8rem;color:rgba(255,255,255,0.6)">${items.length} ${items.length === 1 ? 'artikel' : 'artiklar'} · Order ${c.id}</div>`;
     document.getElementById('prepared-summary').innerHTML = summary;

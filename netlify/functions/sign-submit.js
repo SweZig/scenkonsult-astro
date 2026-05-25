@@ -7,6 +7,21 @@
 
 'use strict';
 const { supabase, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
+const { sendSms } = require('./_sms');
+
+// ─── Hjälpare för SMS-text ─────────────────────────────────────────────
+function getFirstName(fullName) {
+  const first = String(fullName || '').trim().split(/\s+/)[0];
+  return first || 'där';
+}
+function formatWeekday(dateStr) {
+  if (!dateStr) return null;
+  try {
+    const d = new Date(String(dateStr) + 'T00:00:00');
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('sv-SE', { weekday: 'long', timeZone: 'Europe/Stockholm' });
+  } catch (_) { return null; }
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
@@ -72,7 +87,7 @@ exports.handler = async (event) => {
   try {
     const { data: cart, error } = await db
       .from('carts')
-      .select('id, status, cart_token, customer_name, pickup_signed_at, delivery_mode')
+      .select('id, status, cart_token, customer_name, pickup_signed_at, delivery_mode, event_date, delivery_time, event_location')
       .eq('id', cart_id)
       .eq('cart_token', token)
       .single();
@@ -114,6 +129,34 @@ exports.handler = async (event) => {
 
     await db.update('carts', updates, 'id', cart_id);
 
+    // ─── SMS till bud/mottagare (om angivet) ──────────────────────────────
+    // Skickas direkt efter att beställaren signerat förberedelsen så att
+    // budet/mottagaren får förvarning om att de förväntas på plats.
+    // Fel i SMS-utskicket får INTE misslyckas hela kvittensen — bara loggas.
+    let proxySmsResult = null;
+    try {
+      const customerFirst = getFirstName(cart.customer_name);
+      const weekday = formatWeekday(cart.event_date);
+
+      if (pickup_method === 'proxy' && pickup_proxy_phone) {
+        const proxyFirst = getFirstName(pickup_proxy_name);
+        const time = cart.delivery_time || '13:00';
+        const when = weekday ? `${weekday} ${time}` : `enligt avtal kl ${time}`;
+        const msg = `Hej ${proxyFirst}! ${customerFirst} har angett dig som hämtare av utrustning hos Scenkonsult. Hämtning ${when}, Grimstagatan 164, Vällingby. Glöm inte att ta med giltig legitimation`;
+        proxySmsResult = await sendSms(pickup_proxy_phone, msg);
+      } else if (delivery_recipient_method === 'other' && delivery_recipient_phone) {
+        const recipFirst = getFirstName(delivery_recipient_name);
+        const time = cart.delivery_time || '09:00';
+        const when = weekday ? `${weekday} ca ${time}` : `enligt avtal, ca kl ${time}`;
+        const address = cart.event_location || '(adress enligt avtal)';
+        const msg = `Hej ${recipFirst}! ${customerFirst} har angett dig som mottagare av utrustning hos Scenkonsult. Leverans sker ${when}, ${address}. Glöm inte att du behöver kunna visa giltig legitimation`;
+        proxySmsResult = await sendSms(delivery_recipient_phone, msg);
+      }
+    } catch (smsErr) {
+      console.error('PROXY_SMS_ERROR:', smsErr.message);
+      proxySmsResult = { ok: false, error: smsErr.message };
+    }
+
     await logAudit(db, cart_id, 'customer', 'pickup_signed', {
       ip,
       has_id_photo:               !!id_photo_data,
@@ -121,9 +164,17 @@ exports.handler = async (event) => {
       delivery_recipient_method:  delivery_recipient_method || null,
       has_proxy:                  pickup_method === 'proxy',
       has_recipient:              delivery_recipient_method === 'other',
+      proxy_sms_sent:             proxySmsResult ? proxySmsResult.ok : false,
+      proxy_sms_error:            proxySmsResult && !proxySmsResult.ok ? proxySmsResult.error : null,
     });
 
-    return ok({ signed: true, cart_id, signed_at: updates.pickup_signed_at });
+    return ok({
+      signed:           true,
+      cart_id,
+      signed_at:        updates.pickup_signed_at,
+      proxy_sms_sent:   proxySmsResult ? proxySmsResult.ok : null,
+      proxy_sms_error:  proxySmsResult && !proxySmsResult.ok ? proxySmsResult.error : null,
+    });
   } catch (e) {
     console.error('SIGN_SUBMIT_ERROR:', e.message);
     return err('Serverfel', 500);
