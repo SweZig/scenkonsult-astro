@@ -2263,12 +2263,14 @@ async function loadCarts() {
 }
 
 // ── KANBAN ────────────────────────────────────────────────────
-// "Oläst" = endera (a) admin har olästa kundmeddelanden eller
-//          (b) kunden har inte öppnat sin offert än
+// "Oläst" = endera (a) admin har olästa kundmeddelanden, (b) kunden har inte
+//          öppnat sin offert än, eller (c) kund har förberett utlämning men
+//          admin har ännu inte motkvitterat (kräver action från admin)
 function isCartUnread(c) {
-  const adminHasUnread = (c.unread_count || 0) > 0;
-  const customerNotRead = ['waiting','confirmed','fakturerad'].includes(c.status) && !c.last_read_customer;
-  return adminHasUnread || customerNotRead;
+  const adminHasUnread     = (c.unread_count || 0) > 0;
+  const customerNotRead    = ['waiting','confirmed','fakturerad'].includes(c.status) && !c.last_read_customer;
+  const pickupNeedsConfirm = !!c.pickup_signed_at && !c.pickup_confirmed_at;
+  return adminHasUnread || customerNotRead || pickupNeedsConfirm;
 }
 
 function getFilteredCarts() {
@@ -2477,6 +2479,9 @@ function cartCardCompact(c) {
   const noDateB  = noDateFlag(c);
   const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
+  const preparedPill = (c.pickup_signed_at && !c.pickup_confirmed_at)
+    ? `<span class="unread-pill" style="background:rgba(196,181,244,0.15);border-color:rgba(196,181,244,0.5);color:#c4b5f4" title="Kund har förberett utlämning — väntar din motkvittering">✍ Förberedd</span>`
+    : '';
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
   const loc      = c.event_location ? `· ${c.event_location}` : '';
   // Permanent-radera-knapp endast på cancelled-kort
@@ -2496,6 +2501,7 @@ function cartCardCompact(c) {
         ${pBadge}
         ${rBadge}
         ${unread}
+        ${preparedPill}
       </div>
       <div class="cc-row2">
         <span>${evTxt}${loc ? ' ' + loc : ''}</span>
@@ -4435,7 +4441,8 @@ function renderLogTab() {
     'message_sent':       { icon: '💬', label: 'Meddelande skickat', color: 'var(--text-muted)' },
     'reminder_sent':      { icon: '⏰', label: 'Påminnelse skickad till kund', color: 'var(--amber)', highlight: true },
     'status_change':      { icon: '🔄', label: 'Status ändrad', color: 'var(--amber)' },
-    'pickup_signed':      { icon: '✍️', label: 'Utlämning kvitterad', color: 'var(--green)' },
+    'pickup_signed':      { icon: '✍️', label: 'Kund förberedde utlämning',  color: 'var(--brand-lav)', highlight: true },
+    'pickup_confirmed':   { icon: '✅', label: 'Utlämning genomförd (motkvitterad)', color: 'var(--green)', highlight: true },
     'pickup_email_sent':  { icon: '📧', label: 'Utlämningslänk skickad via mail', color: 'var(--text-muted)' },
     'sms_sent':           { icon: '💬', label: 'SMS skickat', color: 'var(--text-muted)' },
     'invoice_created':    { icon: '🧾', label: 'Faktura skapad', color: 'var(--amber)' },
@@ -7059,7 +7066,8 @@ const ACTIVITY_EVENT_LABELS = {
   'message_sent':               { icon: '💬', label: 'Meddelande skickat',                      color: 'rgba(255,255,255,.65)' },
   'reminder_sent':              { icon: '⏰', label: 'Påminnelse skickad',                      color: 'var(--amber)' },
   'status_change':              { icon: '🔄', label: 'Status ändrad',                           color: 'var(--amber)' },
-  'pickup_signed':              { icon: '✍️', label: 'Utlämning kvitterad',                    color: 'var(--green)' },
+  'pickup_signed':              { icon: '✍️', label: 'Kund förberedde utlämning',                color: 'var(--brand-lav)' },
+  'pickup_confirmed':           { icon: '✅', label: 'Utlämning genomförd (motkvitterad)',       color: 'var(--green)' },
   'pickup_email_sent':          { icon: '📧', label: 'Utlämningslänk skickad',                  color: 'rgba(255,255,255,.55)' },
   'sms_sent':                   { icon: '📱', label: 'SMS skickat',                             color: 'rgba(255,255,255,.55)' },
   'invoice_created':            { icon: '🧾', label: 'Faktura skapad',                          color: 'var(--amber)' },
@@ -7175,8 +7183,11 @@ function _activityEventRow(e) {
     }
   }
   const actorLabel = e.actor === 'customer' ? 'Kund' : e.actor === 'admin' ? 'Vi' : 'System';
+  // pickup_signed-events öppnar 'info'-fliken där utlämningsrutan + "Genomför
+  // utlämning"-knappen finns. Övriga events går till loggen som tidigare.
+  const targetTab = e.event_type === 'pickup_signed' ? 'info' : 'log';
   return `
-    <div onclick="openFromActivity('${e.cart_id}','log')"
+    <div onclick="openFromActivity('${e.cart_id}','${targetTab}')"
          style="padding:0.7rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .12s"
          onmouseover="this.style.background='rgba(196,181,244,.06)'"
          onmouseout="this.style.background='transparent'">

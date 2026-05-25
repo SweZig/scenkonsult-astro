@@ -25,7 +25,7 @@ exports.handler = async (event) => {
   const db = supabase();
   try {
     const wantMessages = ['all','messages','unread'].includes(filter);
-    const wantEvents   = ['all','events'].includes(filter);
+    const wantEvents   = ['all','events','unread'].includes(filter);
 
     const tasks = [];
 
@@ -42,13 +42,16 @@ exports.handler = async (event) => {
     }
 
     if (wantEvents) {
-      tasks.push(
-        db.from('audit_log')
-          .select('id, cart_id, actor, event_type, payload, created_at')
-          .order('created_at', { ascending: false })
-          .limit(lim)
-          .then(r => ({ kind: 'audit', data: r.data || [], error: r.error }))
-      );
+      // För 'unread': bara pickup_signed-events (kund förberedde, kräver motkvittering).
+      // De filtreras nedan så bara de som ENNU EJ motkvitterats visas.
+      let q = db.from('audit_log')
+        .select('id, cart_id, actor, event_type, payload, created_at')
+        .order('created_at', { ascending: false })
+        .limit(lim);
+      if (filter === 'unread') {
+        q = q.eq('event_type', 'pickup_signed');
+      }
+      tasks.push(q.then(r => ({ kind: 'audit', data: r.data || [], error: r.error })));
     }
 
     const results = await Promise.all(tasks);
@@ -92,25 +95,36 @@ exports.handler = async (event) => {
     items.sort((x, y) => (new Date(y.created_at)).getTime() - (new Date(x.created_at)).getTime());
     const top = items.slice(0, lim);
 
-    // Berika med kunddata (en query för alla cart_ids)
+    // Berika med kunddata (en query för alla cart_ids).
+    // Hämta även pickup_confirmed_at för att kunna filtrera bort
+    // pickup_signed-events där admin redan motkvitterat.
     const cartIds = [...new Set(top.map(i => i.cart_id))].filter(Boolean);
     let cartsById = {};
     if (cartIds.length) {
       const { data: carts } = await db.from('carts')
-        .select('id, customer_name, customer_company, status')
+        .select('id, customer_name, customer_company, status, pickup_confirmed_at')
         .in('id', cartIds);
       for (const c of (carts || [])) cartsById[c.id] = c;
     }
 
-    const enriched = top.map(i => {
-      const c = cartsById[i.cart_id] || {};
-      return {
-        ...i,
-        customer_name:    c.customer_name    || null,
-        customer_company: c.customer_company || null,
-        cart_status:      c.status           || null,
-      };
-    });
+    const enriched = top
+      .filter(i => {
+        // pickup_signed-events är bara "olästa" om admin INTE redan motkvitterat
+        if (i.kind === 'event' && i.event_type === 'pickup_signed') {
+          const c = cartsById[i.cart_id];
+          if (c && c.pickup_confirmed_at) return false;
+        }
+        return true;
+      })
+      .map(i => {
+        const c = cartsById[i.cart_id] || {};
+        return {
+          ...i,
+          customer_name:    c.customer_name    || null,
+          customer_company: c.customer_company || null,
+          cart_status:      c.status           || null,
+        };
+      });
 
     return ok({ items: enriched });
   } catch (e) {
