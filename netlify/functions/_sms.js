@@ -34,9 +34,24 @@ async function sendSms(to, message) {
   // vara felsatt (tel-nr istället för namn) — samma mönster som sms-fallback.js.
   const FROM_NAME = 'Scenkonsult';
 
-  // Normalisera telefonnummer till +46-format
-  let phone = String(to || '').replace(/\s/g, '').replace(/^0/, '+46');
-  if (!phone.startsWith('+')) phone = '+46' + phone;
+  // Normalisera telefonnummer till +46-format.
+  // Tar bort ALLA icke-siffror utom inledande +, så input som "070-123 45 67"
+  // eller "(0)70 123 45 67" hanteras korrekt.
+  let phone = String(to || '').trim();
+  const hadPlus = phone.startsWith('+');
+  phone = phone.replace(/\D/g, ''); // behåll bara siffror
+  if (!phone) {
+    return { ok: false, error: 'Ogiltigt telefonnummer (tomt efter normalisering)', from: FROM_NAME, to };
+  }
+  if (hadPlus) {
+    phone = '+' + phone;
+  } else if (phone.startsWith('0')) {
+    phone = '+46' + phone.slice(1);
+  } else if (phone.startsWith('46')) {
+    phone = '+' + phone;
+  } else {
+    phone = '+46' + phone;
+  }
 
   const body = new URLSearchParams({
     from:    FROM_NAME,
