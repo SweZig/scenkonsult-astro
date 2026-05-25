@@ -29,10 +29,10 @@ async function sendSms(to, message) {
     return { ok: false, error: '46elks-nycklar saknas (ELKS_API_USER / ELKS_API_PASSWORD)' };
   }
 
-  // Avsändare — alfanumerisk (t.ex. "Scenkonsult") kräver förregistrering hos 46elks.
-  // Förvarning: 'Scenkonsult' är max 11 tecken, vilket är GSM-7-gränsen för alfanumeriska
-  // sender ID. Längre namn faller tillbaka på telefonnummer hos operatörerna.
-  const FROM_NAME = process.env.ELKS_FROM || 'Scenkonsult';
+  // Avsändare — alfanumerisk (max 11 tecken, GSM-7). Kräver förregistrering
+  // hos 46elks. Hårdkodat eftersom env-varen ELKS_FROM tidigare visade sig
+  // vara felsatt (tel-nr istället för namn) — samma mönster som sms-fallback.js.
+  const FROM_NAME = 'Scenkonsult';
 
   // Normalisera telefonnummer till +46-format
   let phone = String(to || '').replace(/\s/g, '').replace(/^0/, '+46');

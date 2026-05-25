@@ -7,10 +7,11 @@
 const { supabase, isAdmin, ok, err, preflight, logAudit } = require('./_lib');
 
 const ELKS_URL  = 'https://api.46elks.com/a1/SMS';
-// Avsändare: sätt ELKS_FROM i Netlify env-vars.
-// Använd ett telefonnummer du äger hos 46elks (t.ex. +46...)
-// OBS: Alfanumeriska namn (t.ex. "Scenkonsult") kräver förregistrering hos 46elks.
-const FROM_NAME = process.env.ELKS_FROM || 'Scenkonsult';
+// Avsändare — hårdkodad alfanumerisk (max 11 tecken, GSM-7).
+// Kräver förregistrering hos 46elks. Hårdkodat eftersom env-varen ELKS_FROM
+// tidigare visade sig vara felsatt (tel-nr istället för namn) — samma mönster
+// som sms-fallback.js och _sms.js.
+const FROM_NAME = 'Scenkonsult';
 
 async function sendSms(to, message) {
   const user = process.env.ELKS_API_USER;
