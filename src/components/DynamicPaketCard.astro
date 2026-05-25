@@ -6,7 +6,12 @@ import tjanster from '../data/tjanster.json';
 
 const { paket } = Astro.props;
 const cfg = paket.config;
-const useFoto = !!paket.image;
+// Foto används ENDAST för tak-paket (medium-plus-tak, large-plus-tak) —
+// konfiguratorns 2D-SVG kan rita scenytan men inte taket. Övriga paket
+// renderas alltid med SVG-skiss (yta/trappor uppdateras live när kunden
+// väljer). JSON-fältet `paket.image` finns kvar för offert-modal,
+// JSON-LD-schema och kategori-sidor (festival, bröllop, guider).
+const useFoto = !!cfg.tak && !!paket.image;
 
 const SURFACE_LABELS = {
   '1x2-slat':    'Slät 1×2',
