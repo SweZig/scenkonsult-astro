@@ -3549,6 +3549,7 @@ function renderInfoTab() {
           <span>Förberedelse-länk skickad — kund har inte börjat</span>
         </div>
         <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Skickat ${fmtTime(c.pickup_reminder_sent_at)}${c.prepared_via ? ` via ${c.prepared_via === 'sms' ? 'SMS' : 'mail'}` : ''}</div>
+        <button onclick="adminResetPickup({clearReminder:true})" style="margin-top:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit" title="Nollställer påminnelse-stämpeln så att cron kan skicka SMS-länken igen vid nästa körning (samma URL gäller)">🔄 Nollställ pågående länk (för testning)</button>
         `
         : (c.event_date && c.event_date === new Date().toLocaleDateString('sv-SE')) ? `
         <div style="display:flex;align-items:center;gap:0.5rem;color:var(--amber);font-weight:600;margin-bottom:0.25rem">
@@ -5420,28 +5421,36 @@ function openImageLightbox(src, title = '') {
 window.openImageLightbox = openImageLightbox;
 
 // ── Nollställ förberedelse (admin-testning) ────────────────────────────
-async function adminResetPickup() {
+async function adminResetPickup(options = {}) {
+  const { clearReminder = false } = options;
   const c = currentCart;
   if (!c) return;
   const items = [];
-  if (c.pickup_signature)     items.push('• Signatur');
-  if (c.pickup_id_photo)      items.push('• Leg-foto');
-  if (c.pickup_method)        items.push('• Hämtnings-metod (själv/bud)');
-  if (c.pickup_proxy_name)    items.push(`• Bud: ${c.pickup_proxy_name}`);
+  if (c.pickup_signature)        items.push('• Signatur');
+  if (c.pickup_id_photo)         items.push('• Leg-foto');
+  if (c.pickup_method)           items.push('• Hämtnings-metod (själv/bud)');
+  if (c.pickup_proxy_name)       items.push(`• Bud: ${c.pickup_proxy_name}`);
   if (c.delivery_recipient_name) items.push(`• Kontaktperson: ${c.delivery_recipient_name}`);
-  if (c.pickup_confirmed_at)  items.push('• Admin-motkvittering');
-  if (c.pickup_admin_note)    items.push('• Admin-anteckning');
+  if (c.pickup_confirmed_at)     items.push('• Admin-motkvittering');
+  if (c.pickup_admin_note)       items.push('• Admin-anteckning');
+  if (clearReminder && c.pickup_reminder_sent_at) items.push('• Påminnelse-stämpel (cron kan skicka igen)');
   const itemsList = items.length ? '\n\n' + items.join('\n') : '';
 
-  if (!confirm(`⚠️ NOLLSTÄLL FÖRBEREDELSEN?${itemsList}\n\nKunden kan signera igen via SAMMA länk — URL:en ändras inte och inga nya SMS skickas.\n\nDenna åtgärd kan inte ångras.`)) return;
+  const confirmMsg = clearReminder
+    ? `⚠️ NOLLSTÄLL PÅGÅENDE LÄNK?${itemsList}\n\nPåminnelse-stämpeln tas bort så att cron-jobbet (eller manuell trigger) kan skicka SMS-länken igen. Samma /u/<token>-URL gäller fortfarande.\n\nDenna åtgärd kan inte ångras.`
+    : `⚠️ NOLLSTÄLL FÖRBEREDELSEN?${itemsList}\n\nKunden kan signera igen via SAMMA länk — URL:en ändras inte och inga nya SMS skickas.\n\nDenna åtgärd kan inte ångras.`;
+
+  if (!confirm(confirmMsg)) return;
 
   const { ok: success, data } = await api('admin-reset-pickup', {
     method: 'POST',
-    body: JSON.stringify({ cart_id: c.id })
+    body: JSON.stringify({ cart_id: c.id, clear_reminder: clearReminder })
   });
 
   if (success) {
-    toast('🔄 Förberedelsen nollställd — kund kan signera igen via samma länk');
+    toast(clearReminder
+      ? '🔄 Pågående länk nollställd — cron kan skicka igen vid nästa körning'
+      : '🔄 Förberedelsen nollställd — kund kan signera igen via samma länk');
     // Nollställ lokalt så panelen uppdateras direkt
     Object.assign(currentCart, {
       pickup_signature: null, pickup_signed_at: null, pickup_sign_ip: null,
@@ -5451,6 +5460,10 @@ async function adminResetPickup() {
       delivery_recipient_phone: null, delivery_recipient_id_verified_at: null,
       pickup_confirmed_at: null, pickup_admin_note: null,
     });
+    if (clearReminder) {
+      currentCart.pickup_reminder_sent_at = null;
+      currentCart.prepared_via            = null;
+    }
     loadCarts();
     renderPanelFooter();
     if (typeof renderTab === 'function') renderTab('info');

@@ -1,12 +1,16 @@
 // netlify/functions/admin-reset-pickup.js
 // Nollställer förberedelsedata på ett cart — för testning/admin-användning.
-// POST { cart_id } + Bearer ADMIN_TOKEN
+// POST { cart_id, clear_reminder? } + Bearer ADMIN_TOKEN
 //
 // Tar bort alla förberedelse- och motkvitterings-fält så att kund (eller admin)
 // kan börja om processen. Bevarar dock:
 //   - cart_token        (kund behöver inte ny länk)
 //   - pickup_short_token (SAMMA /u/<token>-URL fungerar fortfarande)
-//   - pickup_reminder_sent_at (inga nya SMS skickas)
+//   - pickup_reminder_sent_at (inga nya SMS skickas) — om clear_reminder=false
+//
+// Vid clear_reminder=true nollställs även pickup_reminder_sent_at + prepared_via
+// så att cron/manuell trigger kan skicka SMS-länken igen. Användbart för att
+// testa cron-utskicket utan att skapa nya carts.
 //
 // Detta är admin-only och kräver ADMIN_TOKEN — en mer permanent ersättning
 // för den borttagna sign-reopen.js som var cart_token-skyddad.
@@ -28,14 +32,14 @@ exports.handler = async (event) => {
     return err('Ogiltig JSON', 400);
   }
 
-  const { cart_id } = body;
+  const { cart_id, clear_reminder } = body;
   if (!cart_id) return err('cart_id krävs', 400);
 
   const db = supabase();
   try {
     // Verifiera cart finns + läs nuvarande state för audit-loggning
     const { data: cart, error } = await db.from('carts')
-      .select('id, pickup_signed_at, pickup_confirmed_at')
+      .select('id, pickup_signed_at, pickup_confirmed_at, pickup_reminder_sent_at')
       .eq('id', cart_id)
       .single();
     if (error || !cart) return err('Cart hittades inte', 404);
@@ -60,19 +64,31 @@ exports.handler = async (event) => {
       pickup_admin_note:                 null,
     };
 
+    // Opt-in: nollställ även påminnelse-stämpeln så cron/manuell trigger kan
+    // skicka SMS/mail igen vid nästa körning. Default = false så befintliga
+    // reset-knappar behåller sitt icke-destruktiva beteende (samma URL gäller,
+    // inga nya SMS skickas).
+    if (clear_reminder) {
+      updates.pickup_reminder_sent_at = null;
+      updates.prepared_via            = null;
+    }
+
     await db.update('carts', updates, 'id', cart_id);
 
     await logAudit(db, cart_id, 'admin', 'pickup_reset', {
-      had_signed:    !!cart.pickup_signed_at,
-      had_confirmed: !!cart.pickup_confirmed_at,
-      reason:        'admin_reset',
+      had_signed:        !!cart.pickup_signed_at,
+      had_confirmed:     !!cart.pickup_confirmed_at,
+      had_reminder:      !!cart.pickup_reminder_sent_at,
+      cleared_reminder:  !!clear_reminder,
+      reason:            'admin_reset',
     });
 
     return ok({
-      reset:           true,
+      reset:             true,
       cart_id,
-      had_signed:      !!cart.pickup_signed_at,
-      had_confirmed:   !!cart.pickup_confirmed_at,
+      had_signed:        !!cart.pickup_signed_at,
+      had_confirmed:     !!cart.pickup_confirmed_at,
+      cleared_reminder:  !!clear_reminder,
     });
   } catch (e) {
     console.error('PICKUP_RESET_ERROR:', e.message);
