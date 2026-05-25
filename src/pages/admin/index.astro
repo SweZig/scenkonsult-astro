@@ -5460,6 +5460,207 @@ async function adminResetPickup() {
 }
 window.adminResetPickup = adminResetPickup;
 
+// ─── Samlad utlämnings-modal ──────────────────────────────────────────────
+// Tre kontextuella val: (A) Verifiera & motkvittera om kund förberett,
+// (B) Skicka SMS-länk till kund nu, (C) Signera på admin-enhet (öppna /sign/
+// i ny tab och räck över enheten). Rekommenderat val visas först visuellt.
+function adminOpenHandover(c) {
+  const overlay = document.createElement('div');
+  overlay.id = 'handover-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(12,10,36,0.85);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem';
+
+  const isPrepared = !!c.pickup_signed_at;
+  const sigDate    = c.pickup_signed_at ? new Date(c.pickup_signed_at).toLocaleString('sv-SE') : null;
+  const isDelivery = c.delivery_mode === 'delivery';
+  const hasReminder = !!c.pickup_reminder_sent_at;
+  const hasPhone = !!c.customer_phone;
+  const hasEmail = !!c.customer_email;
+  const hasContact = hasPhone || hasEmail;
+
+  // Status-banner överst
+  const statusBanner = isPrepared
+    ? `<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.88rem;color:#86efac;display:flex;align-items:center;gap:0.5rem">
+         <span style="font-size:1.1rem">✓</span>
+         <span><strong>Kunden har förberett</strong> ${sigDate} — du kan verifiera och motkvittera nu.</span>
+       </div>`
+    : `<div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.88rem;color:rgba(251,191,36,0.95);display:flex;align-items:center;gap:0.5rem">
+         <span style="font-size:1.1rem">⏳</span>
+         <span><strong>Kunden har inte förberett ännu.</strong> Välj hur du vill samla in signatur och legitimation.</span>
+       </div>`;
+
+  // Korten — varje val har titel, beskrivning, knapp och recommended-flag
+  const cards = [
+    {
+      key: 'verify',
+      icon: '✅',
+      title: 'Verifiera & motkvittera',
+      desc: isPrepared
+        ? 'Granska kundens leg-foto och signatur. När du bekräftar aktiveras kvittensen som juridiskt bindande och PDF-kvitto skickas till kunden.'
+        : 'Tillgängligt när kunden har förberett. Bjud kunden att förbereda via SMS-länk eller på din enhet först.',
+      btnLabel: 'Granska & motkvittera →',
+      btnAction: 'verify',
+      disabled: !isPrepared,
+      recommended: isPrepared,
+    },
+    {
+      key: 'sms',
+      icon: '📱',
+      title: hasReminder ? 'Skicka påminnelse-SMS' : 'Skicka förberedelse-länk',
+      desc: hasContact
+        ? `Kunden får ${hasPhone ? `SMS till ${c.customer_phone}` : `mail till ${c.customer_email}`}${hasPhone && hasEmail ? ' (mail som fallback)' : ''} med länk för att signera på sin egen telefon. När det är klart kan du motkvittera.`
+        : 'Kunden saknar både telefon och e-post i ordern — fyll i kontaktuppgifter på info-fliken först.',
+      btnLabel: hasReminder ? 'Skicka påminnelse' : 'Skicka länk nu',
+      btnAction: 'sms',
+      disabled: !hasContact,
+      recommended: !isPrepared && hasContact && !hasReminder,
+    },
+    {
+      key: 'device',
+      icon: '💻',
+      title: 'Signera på min enhet',
+      desc: 'Öppnar förberedelse-flödet i en ny flik. Räck över enheten till kunden — de signerar direkt här och du kan motkvittera så fort de är klara.',
+      btnLabel: 'Öppna i ny flik →',
+      btnAction: 'device',
+      disabled: false,
+      recommended: !isPrepared && (!hasContact || hasReminder),
+    },
+  ];
+
+  // Sortera: rekommenderade först
+  cards.sort((a, b) => Number(b.recommended) - Number(a.recommended));
+
+  const cardsHtml = cards.map(card => {
+    const baseStyle = card.disabled
+      ? 'opacity:0.45;cursor:not-allowed;background:rgba(255,255,255,0.025);border-color:rgba(255,255,255,0.08)'
+      : card.recommended
+        ? 'background:rgba(196,181,244,0.06);border-color:rgba(196,181,244,0.35);box-shadow:0 4px 18px rgba(196,181,244,0.08)'
+        : 'background:rgba(255,255,255,0.025);border-color:rgba(255,255,255,0.1)';
+    const badge = card.recommended
+      ? `<div style="position:absolute;top:-9px;left:1rem;background:#c4b5f4;color:#1e1850;font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;padding:2px 8px;border-radius:10px">Rekommenderat</div>`
+      : '';
+    const btnStyle = card.disabled
+      ? 'background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);cursor:not-allowed'
+      : card.recommended
+        ? 'background:#c4b5f4;border:none;color:#1e1850;cursor:pointer;font-weight:700'
+        : 'background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;cursor:pointer';
+    return `
+      <div class="handover-card" data-action="${card.btnAction}" ${card.disabled ? 'data-disabled="1"' : ''} style="position:relative;border-radius:12px;border:1px solid;padding:1rem 1.1rem;margin-bottom:0.85rem;transition:all 0.15s;${baseStyle}">
+        ${badge}
+        <div style="display:flex;gap:0.8rem;align-items:flex-start">
+          <div style="font-size:1.5rem;line-height:1;margin-top:0.1rem">${card.icon}</div>
+          <div style="flex:1">
+            <div style="font-weight:700;color:#fff;font-size:0.95rem;margin-bottom:0.3rem">${card.title}</div>
+            <div style="font-size:0.82rem;color:rgba(255,255,255,0.65);line-height:1.5;margin-bottom:0.7rem">${card.desc}</div>
+            <button class="handover-btn" data-action="${card.btnAction}" ${card.disabled ? 'disabled' : ''} style="padding:0.45rem 0.95rem;border-radius:8px;font-size:0.82rem;${btnStyle}">${card.btnLabel}</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(180deg,#1e1850 0%,#15103d 100%);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);border:1px solid rgba(196,181,244,0.2)">
+      <div style="padding:1.1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2">🚚 Genomför ${isDelivery ? 'leverans' : 'utlämning'}</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:0.15rem">Order ${c.id} · ${c.customer_name || '–'}</div>
+        </div>
+        <button id="ho-close" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.7);width:32px;height:32px;border-radius:8px;font-size:1.1rem;cursor:pointer">✕</button>
+      </div>
+
+      <div style="overflow-y:auto;padding:1.25rem;flex:1">
+        ${statusBanner}
+        ${cardsHtml}
+        <div id="ho-result" style="display:none;margin-top:0.5rem;padding:0.85rem 1rem;border-radius:10px;font-size:0.85rem;line-height:1.55"></div>
+      </div>
+
+      <div style="padding:0.85rem 1.25rem;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:flex-end">
+        <button id="ho-cancel" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);padding:0.55rem 1.1rem;border-radius:8px;font-size:0.85rem;cursor:pointer">Stäng</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => { overlay.remove(); document.body.style.overflow = ''; };
+  overlay.querySelector('#ho-close').onclick = close;
+  overlay.querySelector('#ho-cancel').onclick = close;
+  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+
+  const resultBox = overlay.querySelector('#ho-result');
+  const showResult = (html, kind = 'info') => {
+    const palette = {
+      ok:    { bg: 'rgba(34,197,94,0.08)',  bd: 'rgba(34,197,94,0.3)',  col: '#86efac' },
+      err:   { bg: 'rgba(239,68,68,0.08)',  bd: 'rgba(239,68,68,0.3)',  col: '#fca5a5' },
+      info:  { bg: 'rgba(196,181,244,0.06)',bd: 'rgba(196,181,244,0.25)',col:'#e2dcfb' },
+    }[kind] || { bg: 'rgba(255,255,255,0.05)', bd: 'rgba(255,255,255,0.15)', col: '#fff' };
+    resultBox.style.display = 'block';
+    resultBox.style.background = palette.bg;
+    resultBox.style.border = `1px solid ${palette.bd}`;
+    resultBox.style.color = palette.col;
+    resultBox.innerHTML = html;
+  };
+
+  // ─── Knapp-handlers ────────────────────────────────────────────────────
+  overlay.querySelectorAll('.handover-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      if (btn.disabled) return;
+      const action = btn.dataset.action;
+
+      if (action === 'verify') {
+        // Stäng handover, öppna pickup-confirm-modalen direkt
+        close();
+        adminOpenPickupConfirm(c);
+        return;
+      }
+
+      if (action === 'sms') {
+        const origText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '⏳ Skickar…';
+        try {
+          const { ok: sent, data } = await api('pickup-reminder-trigger', {
+            method: 'POST',
+            body: JSON.stringify({ cart_id: c.id }),
+          });
+          if (sent) {
+            const via = data?.sms_sent ? 'SMS' : 'mail';
+            const to  = data?.sms_sent ? (data?.to_phone || c.customer_phone) : (data?.to_email || c.customer_email);
+            const fromInfo = data?.sms_sent && data?.sms_from ? ` (avs: ${data.sms_from})` : '';
+            showResult(`✓ Förberedelse-länk skickad via <strong>${via}</strong> till ${to}${fromInfo}. När kunden signerat dyker statusen upp ovan automatiskt — välj sedan <em>Verifiera & motkvittera</em>.`, 'ok');
+            // Uppdatera state så vi inte måste stänga modalen
+            currentCart.pickup_reminder_sent_at = new Date().toISOString();
+            if (data?.sms_sent)        currentCart.prepared_via = 'sms';
+            else if (data?.email_sent) currentCart.prepared_via = 'email';
+            toast(`Förberedelse-länk skickad via ${via} ✓`);
+            loadCarts();
+            renderPanelFooter();
+            if (typeof renderTab === 'function') renderTab('info');
+            btn.textContent = '✓ Skickat';
+          } else {
+            showResult(`✗ Utskick misslyckades: ${data?.error || 'Okänt fel'}`, 'err');
+            btn.disabled = false;
+            btn.textContent = origText;
+          }
+        } catch (err) {
+          showResult(`✗ Tekniskt fel: ${err.message}`, 'err');
+          btn.disabled = false;
+          btn.textContent = origText;
+        }
+        return;
+      }
+
+      if (action === 'device') {
+        const url = `https://scenkonsult.se/sign/?cart=${c.id}&token=${c.cart_token}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+        showResult(`📱 Fliken är öppnad. Räck över enheten till kunden så de kan signera. När de är klara kommer status uppdateras automatiskt här (auto-uppdatering var 5:e sekund) — välj sedan <em>Verifiera & motkvittera</em>.`, 'info');
+        return;
+      }
+    };
+  });
+}
+window.adminOpenHandover = adminOpenHandover;
+
 function adminOpenPickupConfirm(c) {
   const overlay = document.createElement('div');
   overlay.id = 'pickup-confirm-overlay';
@@ -5660,20 +5861,15 @@ function renderPanelFooter() {
     makeBtn('💬 Skicka SMS', '', () => adminSendSms(c));
   }
 
-  // Utlämning — flerstegs-flöde (förberedelse-länk → förberedd → motkvittens)
+  // Utlämning — samlad modal "Genomför utlämning" med tre kontextuella val
   if (['confirmed','fakturerad','completed'].includes(c.status) && c.cart_token) {
     if (c.pickup_confirmed_at) {
-      // Helt klart
+      // Helt klart — visa kvittens
       makeBtn('📋 Visa kvittens', '', () => adminShowPickup(c));
-    } else if (c.pickup_signed_at) {
-      // Kund har förberett — admin behöver motkvittera
-      makeBtn('✅ Granska & motkvittera', 'btn-success', () => adminOpenPickupConfirm(c));
-    } else if (c.pickup_reminder_sent_at) {
-      // Länk skickad, kund har inte börjat
-      makeBtn('📩 Skicka påminnelse', '', () => adminSendPickupLink(c));
     } else {
-      // Inget skickat ännu (auto kl 19:00 kvällen innan utlämning)
-      makeBtn('📦 Skicka förberedelse-länk nu', 'btn-success', () => adminSendPickupLink(c));
+      // Inte motkvitterat än — öppna samlad handover-modal
+      // Modalen visar status + 3 val: verifiera/SMS-länk/admin-enhet
+      makeBtn('🚚 Genomför utlämning', 'btn-success', () => adminOpenHandover(c));
     }
   }
 }
