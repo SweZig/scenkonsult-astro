@@ -6,7 +6,7 @@
 //
 // Flöde:
 //   1. Intro    — översikt av order + datum/tid/plats
-//   2. Bekräfta — 2 kryssrutor (beställare + ansvarig)
+//   2. Bekräfta — 1 kryssruta (beställare + ansvarig)
 //   3. Vem      — själv eller bud (pickup) / annan kontaktperson (delivery)
 //   4. Foto     — leg-foto (obligatoriskt)
 //   5. Signera  — canvas-signatur
@@ -402,7 +402,7 @@
   <!-- ── Steg 1: Intro ────────────────────────────────────────────────── -->
   <section class="step active" data-step="1">
     <h1 id="intro-h1">Förbered din utlämning</h1>
-    <p class="lead" id="intro-lead">Det här går snabbt — du fyller i några uppgifter nu så är vi klara på plats.</p>
+    <p class="lead" id="intro-lead">Förbered uppgifter som gör att din kommande utlämning går smidigare.</p>
     <div class="order-box" id="order-box"></div>
     <div class="info-banner">
       ℹ <strong>Detta är förberedelse</strong> — kvittensen blir bindande först när vi bekräftar utlämningen på plats. Du riskerar inget genom att fylla i detta nu.
@@ -419,12 +419,7 @@
 
     <label class="check-card" id="check-card-1">
       <input type="checkbox" id="confirm-1">
-      <span class="label">Jag är beställaren — det är min order och jag har själv beställt den.</span>
-    </label>
-
-    <label class="check-card" id="check-card-2">
-      <input type="checkbox" id="confirm-2">
-      <span class="label">Du som beställare är alltid ansvarig för utrustningen, oavsett vem som hämtar eller använder den.</span>
+      <span class="label">Jag bekräftar härmed att jag är beställare och ansvarar för utrustningen under hyresperioden.</span>
     </label>
 
     <div class="nav-buttons">
@@ -566,7 +561,6 @@
     cart: null,
     isDelivery: false,
     confirm1: false,
-    confirm2: false,
     whoMethod: 'self',  // 'self' | 'other'
     proxyName: '',
     proxyPhone: '',
@@ -633,9 +627,9 @@
   }
 
   function updateNextButtons() {
-    // Steg 2: båda kryssrutor måste vara klickade
+    // Steg 2: kryssrutan måste vara klickad
     const btn2 = document.querySelector('[data-step="2"] [data-next]');
-    if (btn2) btn2.disabled = !(state.confirm1 && state.confirm2);
+    if (btn2) btn2.disabled = !state.confirm1;
 
     // Steg 3: om "other" valt, kräv namn + telefon
     const btn3 = document.querySelector('[data-step="3"] [data-next]');
@@ -654,16 +648,11 @@
   }
 
   // ════════════════════════════════════════════════════════════════════════
-  // Steg 2: Kryssrutor
+  // Steg 2: Kryssruta
   // ════════════════════════════════════════════════════════════════════════
   document.getElementById('confirm-1').addEventListener('change', e => {
     state.confirm1 = e.target.checked;
     document.getElementById('check-card-1').classList.toggle('checked', e.target.checked);
-    updateNextButtons();
-  });
-  document.getElementById('confirm-2').addEventListener('change', e => {
-    state.confirm2 = e.target.checked;
-    document.getElementById('check-card-2').classList.toggle('checked', e.target.checked);
     updateNextButtons();
   });
 
@@ -1070,7 +1059,7 @@
     if (state.isDelivery) {
       document.title = 'Förbered din leverans — Scenkonsult Norden';
       document.getElementById('intro-h1').textContent = 'Förbered din leverans';
-      document.getElementById('intro-lead').textContent = 'Det här går snabbt — du fyller i några uppgifter nu så är vi klara på plats vid leverans.';
+      document.getElementById('intro-lead').textContent = 'Förbered uppgifter som gör att din kommande leverans går smidigare.';
       document.getElementById('who-h1').textContent = 'Vem tar emot leveransen?';
       document.getElementById('who-lead').textContent = 'Du kan låta någon annan ta emot leveransen om du inte själv kan vara på plats.';
       document.getElementById('who-self-title').textContent = 'Jag tar emot själv';
