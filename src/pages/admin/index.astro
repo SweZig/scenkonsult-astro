@@ -3252,11 +3252,43 @@ function prodQty(idx, delta) {
   const newVal = Math.max(1, (parseInt(input.value) || 1) + delta);
   input.value = newVal;
   prodUpdateSum(idx);
+  // input.value = X via JS triggar inte 'input'-event → panelDirty sätts inte
+  // automatiskt. Synca items + markera dirty manuellt så ändringen överlever
+  // flikbyte och tab-switch-skyddet kickar in.
+  if (typeof currentCart === 'object' && currentCart) {
+    currentCart.items = prodGetItems();
+  }
+  if (typeof markPanelDirty === 'function') markPanelDirty();
 }
 
 function prodDelete(idx) {
-  const row = document.querySelector(`[data-idx="${idx}"]`)?.closest('tr');
-  if (row) { row.remove(); prodUpdateSum(-1); }
+  // Scope:a selektorn till prod-tbody så vi inte träffar fel element
+  // (t.ex. qp-search-hit-divar eller andra data-idx i DOM:en).
+  const tbody = document.getElementById('prod-tbody');
+  if (!tbody) return;
+  const row = tbody.querySelector(`tr.prod-row[data-idx="${idx}"]`);
+  if (!row) return;
+  row.remove();
+  // Synca currentCart.items från DOM så ett efterföljande renderTab('products')
+  // inte återskapar den borttagna raden. Utan denna sync upplevs det som att
+  // "X-klicket inte gör något" — raden kommer tillbaka vid flikbyte/re-render.
+  if (typeof currentCart === 'object' && currentCart) {
+    currentCart.items = prodGetItems();
+  }
+  // Räkna om totaler via vilken kvarvarande rad som helst (prodUpdateSum(-1)
+  // returnerar early och uppdaterar inte summeringen).
+  const remaining = tbody.querySelector('.prod-row');
+  if (remaining) {
+    prodUpdateSum(remaining.dataset.idx);
+  } else {
+    // Inga rader kvar — nolla totalerna manuellt
+    ['prod-summary-excl','prod-summary-vat','prod-summary-incl'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '0 kr';
+    });
+  }
+  // Markera dirty så tab-switch-skyddet kickar in OCH save-knappen aktiveras
+  if (typeof markPanelDirty === 'function') markPanelDirty();
 }
 
 function prodAddRow() {
