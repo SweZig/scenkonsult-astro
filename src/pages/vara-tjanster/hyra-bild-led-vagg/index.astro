@@ -1,6 +1,8 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
+import TrossPromoBanner from '../../../components/TrossPromoBanner.astro';
 import ledData from '../../../data/led-paneler.json';
 import tjansterData from '../../../data/tjanster.json';
 
@@ -56,6 +58,17 @@ const faqSchema = {
 
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:1180px;margin:0 auto;">
+
+      <!-- KAMPANJ: Färdig LED-vägg på tross (delad komponent TrossPromoBanner) -->
+      <section style="margin-bottom:3.5rem;">
+        <SectionHeader
+          eyebrow="Kampanj"
+          h2="Färdig LED-vägg på tross"
+          lead="Vill du ha en komplett, driftklar lösning istället för att bygga själv? Hyr vår LED-vägg på trossystem — allt inkluderat."
+          marginBottom="1.5rem"
+        />
+        <TrossPromoBanner />
+      </section>
 
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <!-- PANEL-JÄMFÖRELSE — visa kabinettstorlek + paneltyper överst     -->
