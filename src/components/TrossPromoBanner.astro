@@ -157,7 +157,9 @@ const inkl = (n: number) => Math.round(n * 1.25);
             priceNote: '/dygn',
             category: 'LED-vägg',
             image: row.image || FALLBACK_IMG,
-            bulky: false,
+            bulky: !!row.bulky,
+            forceLeverans: row.forceLeverans || undefined,
+            assemblyMinutesTotal: row.assemblyMinutesTotal || undefined,
             qty: row.qty || 1,
           });
         });
