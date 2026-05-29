@@ -513,11 +513,17 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
           const frakt = computeFraktDetails(mc, !!cfg.tak, cfg.forceLeverans);
           const transport = card.dataset.paketTransport;
           const prefix = transport === 'krävs' ? '+ ' : 'Vid leverans: + ';
-          fraktNoteEl.textContent =
+          const mE = fmt(monteringKr), mI = fmt(Math.round(monteringKr * 1.25));
+          const tE = fmt(frakt.pris),  tI = fmt(Math.round(frakt.pris * 1.25));
+          fraktNoteEl.innerHTML =
             prefix +
-            'Montering & demontering ' + fmt(monteringKr) + ' (' + formatHours(monteringMin) + ') ' +
-            '& transport ' + fmt(frakt.pris) + ' (' + frakt.name + ') ' +
-            'tillkommer i kassan';
+            'Montering &amp; demontering ' +
+            '<span><span class="sk-price-excl">' + mE + '</span><span class="sk-price-incl hidden">' + mI + '</span></span>' +
+            ' (' + formatHours(monteringMin) + ') ' +
+            '&amp; transport ' +
+            '<span><span class="sk-price-excl">' + tE + '</span><span class="sk-price-incl hidden">' + tI + '</span></span>' +
+            ' (' + frakt.name + ') tillkommer i kassan';
+          if (window.skApplyVat) window.skApplyVat();
         }
       }
 

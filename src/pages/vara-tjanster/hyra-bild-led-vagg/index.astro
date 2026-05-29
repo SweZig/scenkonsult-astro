@@ -1335,7 +1335,15 @@ const faqSchema = {
           const monteringHLabel = Number.isInteger(monteringH) ? monteringH + ' h' : monteringH.toFixed(1).replace('.', ',') + ' h';
           const noteEl = card.querySelector('[data-paket-frakt-note]');
           if (noteEl) {
-            noteEl.innerHTML = '+ Montering &amp; demontering ' + fmtKr(monteringKr) + ' (' + monteringHLabel + ') &amp; transport ' + fmtKr(leverans.pris) + ' (' + leverans.name + ') tillkommer i kassan';
+            const mE = fmtKr(monteringKr), mI = fmtKr(Math.round(monteringKr * 1.25));
+            const lE = fmtKr(leverans.pris), lI = fmtKr(Math.round(leverans.pris * 1.25));
+            noteEl.innerHTML =
+              '+ Montering &amp; demontering ' +
+              '<span><span class="sk-price-excl">' + mE + '</span><span class="sk-price-incl hidden">' + mI + '</span></span>' +
+              ' (' + monteringHLabel + ') &amp; transport ' +
+              '<span><span class="sk-price-excl">' + lE + '</span><span class="sk-price-incl hidden">' + lI + '</span></span>' +
+              ' (' + leverans.name + ') tillkommer i kassan';
+            if (window.skApplyVat) window.skApplyVat();
           }
 
           // SVG — uppdatera med FYSISKA dimensioner (inte cols/rows direkt)
