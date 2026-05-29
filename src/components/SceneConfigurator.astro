@@ -35,6 +35,7 @@ const INJ_MODULE_BY_KEY = Object.fromEntries(
 
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
+const INJ_MONTERING_MIN_PER_MODULE = (typeof tjanster.montering?.minPerModul === 'number') ? tjanster.montering.minPerModul : 7.5;
 const INJ_SKIRT_PRICE_PER_METER = skirt?.pricePerMeter || 24.75;
 const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
@@ -233,7 +234,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SELECTION_RULES }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_SKIRT_PRICE_PER_METER, INJ_SELECTION_RULES }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -271,6 +272,7 @@ const configData = {
     const FRAKT_LABELS = { storbil: 'Stor bil', storbil_slap: 'Stor bil + släp', lastbil: 'Lätt lastbil' };
     const SKIRT_PRICE_PER_METER = INJ_SKIRT_PRICE_PER_METER;
     const MONTERING_PRICE_PER_HOUR = INJ_MONTERING_PRICE_PER_HOUR;
+    const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
     const OBLIG_OVER_M2 = INJ_OBLIG_OVER_M2;
 
     function getStairForHeight(h) {
@@ -422,7 +424,7 @@ const configData = {
       }
 
       if (state.installation) {
-        const totalMin = modCount * 10 * 2;
+        const totalMin = modCount * MODULE_MONTERING_MIN * 2;
         const hours = Math.round(totalMin / 60 * 4) / 4;
         const monteringPris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
         lines.push({
@@ -777,7 +779,7 @@ const configData = {
       const installCb = document.getElementById('cfg-installation');
       const installLabel = document.getElementById('cfg-installation-label');
       const installHint = document.getElementById('cfg-installation-hint');
-      const minutes = moduleCount() * 10 * 2;
+      const minutes = moduleCount() * MODULE_MONTERING_MIN * 2;
       const hours = Math.round(minutes / 60 * 4) / 4;
       const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
 
@@ -808,7 +810,7 @@ const configData = {
           if (state.installation) {
             installHint.textContent = `Tillkommer separat: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}).`;
           } else {
-            installHint.textContent = 'Vi monterar och demonterar åt dig — 10 min/modul × 2. Pris timdebiteras (600 kr/tim). Tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering.';
+            installHint.textContent = `Vi monterar och demonterar åt dig — ${MODULE_MONTERING_MIN} min/modul × 2. Pris timdebiteras (600 kr/tim). Tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering.`;
           }
         }
       }
@@ -1019,7 +1021,7 @@ const configData = {
         if (isPlatform) {
           item.bulky = true;
           if (state.installation) {
-            item.monteringMin = 10;
+            item.monteringMin = MODULE_MONTERING_MIN;
             item.requiresAssembly = true;
           }
           if (state.frakt === 'auto') {

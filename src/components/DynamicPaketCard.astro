@@ -58,7 +58,7 @@ const INJ_RAIL_SEGMENTS = {
 
 const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
-const INJ_MONTERING_MIN_PER_MODULE = 10;
+const INJ_MONTERING_MIN_PER_MODULE = (tjanster.montering && typeof tjanster.montering.minPerModul === 'number') ? tjanster.montering.minPerModul : 7.5;
 
 // ──────────────────────────────────────────────────────────────────
 // Frakt-priser + montering-pris för "+ Montering X kr & transport Y kr"-noten
