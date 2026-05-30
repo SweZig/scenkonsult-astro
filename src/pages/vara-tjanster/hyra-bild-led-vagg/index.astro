@@ -18,8 +18,6 @@ const faq = ledData.faq;
 // Härledda värden för rubriker (synkat med led-paneler.json)
 const minPanelPris = Math.min(...paneler.map((p: any) => p.price_per_day_excl));
 const minPanelPrisInkl = Math.round(minPanelPris * 1.25);
-const riggPris = ledData.tillbehor.rigg.price_per_day_excl;
-const trossPris = ledData.tillbehor.tross.price_per_day_excl;
 const fmtKr = (n: number) => new Intl.NumberFormat('sv-SE').format(n) + ' kr';
 
 const faqSchema = {
@@ -51,7 +49,7 @@ const faqSchema = {
     chips={[
       { html: `Från <span class="sk-price-excl">${fmtKr(minPanelPris)}</span><span class="sk-price-incl hidden">${fmtKr(minPanelPrisInkl)}</span> / kabinett / dygn` },
       "Indoor & outdoor (IP65)",
-      `Ground support ${fmtKr(riggPris)}/dygn`,
+      "Ground support eller trosslösning",
       "Leverans i Storstockholm",
     ]}
   />
@@ -59,10 +57,10 @@ const faqSchema = {
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:1180px;margin:0 auto;">
 
-      <!-- KAMPANJ: Färdig LED-vägg på tross (delad komponent TrossPromoBanner) -->
+      <!-- ALL-INCLUSIVE: Färdig LED-vägg på tross (delad komponent TrossPromoBanner) -->
       <section style="margin-bottom:3.5rem;">
         <SectionHeader
-          eyebrow="Kampanj"
+          eyebrow="All-inclusive"
           h2="Färdig LED-vägg på tross"
           lead="Vill du ha en komplett, driftklar lösning istället för att bygga själv? Hyr vår LED-vägg på trossystem — allt inkluderat."
           marginBottom="1.5rem"
@@ -371,8 +369,8 @@ const faqSchema = {
           <div>
             <span style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.55rem;">Upphängning</span>
             <div id="led-mount-tabs" role="tablist" style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;background:#221f50;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.25rem;max-width:480px;">
-              <button type="button" role="tab" aria-selected="true" data-mount="ground" class="led-mount-btn active" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:#c4b5f4;color:#0c0a24;border:none;border-radius:6px;cursor:pointer;">Ground support <span style="opacity:0.6;font-size:0.72rem;">· {fmtKr(riggPris)}</span></button>
-              <button type="button" role="tab" aria-selected="false" data-mount="tross" class="led-mount-btn" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:transparent;color:#f0eeff;border:none;border-radius:6px;cursor:pointer;">Trosslösning <span style="opacity:0.6;font-size:0.72rem;">· +{fmtKr(trossPris)}</span></button>
+              <button type="button" role="tab" aria-selected="true" data-mount="ground" class="led-mount-btn active" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:#c4b5f4;color:#0c0a24;border:none;border-radius:6px;cursor:pointer;">Ground support</button>
+              <button type="button" role="tab" aria-selected="false" data-mount="tross" class="led-mount-btn" style="padding:0.55rem 0.5rem;font-size:0.8rem;font-family:'Space Grotesk',sans-serif;font-weight:600;background:transparent;color:#f0eeff;border:none;border-radius:6px;cursor:pointer;">Trosslösning</button>
             </div>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:1.25rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.06);align-items:center;">
