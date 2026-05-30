@@ -33,6 +33,14 @@ function supabase() {
         neq(col, val) { _filter.push(`${col}=neq.${encodeURIComponent(val)}`); return builder; },
         is(col, val)  { _filter.push(`${col}=is.${val}`); return builder; },
         not(col, op, val) { _filter.push(`${col}=not.${op}.${encodeURIComponent(val)}`); return builder; },
+        in(col, vals) {
+          if (!Array.isArray(vals) || vals.length === 0) return builder;
+          // PostgREST-format: col=in.(val1,val2). Värden kommaseparerade, encoded.
+          // Citera värden så kommatecken i värdena inte tolkas som separator.
+          const list = vals.map(v => `"${String(v).replace(/"/g, '\\"')}"`).join(',');
+          _filter.push(`${col}=in.(${encodeURIComponent(list).replace(/%2C/g, ',')})`);
+          return builder;
+        },
         order(col, opts = {}) { _order = `${col}.${opts.ascending === false ? 'desc' : 'asc'}`; return builder; },
         limit(n) { _limit = n; return builder; },
 
