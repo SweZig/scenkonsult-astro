@@ -645,11 +645,33 @@ async function init() {
   await Promise.all([loadStats(), loadLogs()]);
 }
 
+// Polling var 10:e sekund så nya betyg/loggar/chattar dyker upp utan
+// manuell siduppdatering. Pausar när fliken är inaktiv (visibilitychange)
+// för att spara API-anrop.
+let _svenPollTimer = null;
+function startPolling() {
+  stopPolling();
+  _svenPollTimer = setInterval(() => {
+    // Stoppa om tråd-modalen är öppen — vi vill inte uppdatera mitt i läsning
+    const modalOpen = document.getElementById('thread-modal')?.classList.contains('open');
+    if (modalOpen || document.hidden) return;
+    loadStats();
+    loadLogs();
+  }, 10000);
+}
+function stopPolling() {
+  if (_svenPollTimer) { clearInterval(_svenPollTimer); _svenPollTimer = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopPolling();
+  else if (adminToken) startPolling();
+});
+
 // Auto-login om token finns
 if (adminToken) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
-  init();
+  init().then(startPolling);
 }
 </script>
 </body>
