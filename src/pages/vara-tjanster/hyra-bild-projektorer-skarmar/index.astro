@@ -8,6 +8,7 @@ import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import TrossPromoBanner from '../../../components/TrossPromoBanner.astro';
 import bildData from '../../../data/bild.json';
 import _tjansterData from '../../../data/tjanster.json';
+import _ljusData from '../../../data/ljus.json';
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -239,6 +240,9 @@ const faqSchema = {
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {bildData.tillbehor.map(t => (
         <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.desc} category="Projektor tillbehör" artno={t.artno} slug={t.slug}  />
+      ))}
+      {(_ljusData.stativ?.tillbehor?.filter((p:any) => p.artno === 'SK-LJS-STV-ACC-0006') ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? ''} category="Projektor tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/st/dygn'} />
       ))}
     </div>
   </section>
