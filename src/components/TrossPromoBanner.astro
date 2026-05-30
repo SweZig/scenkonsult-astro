@@ -52,10 +52,12 @@ const inkl = (n: number) => Math.round(n * 1.25);
     </ul>
     <div class="tross-promo-foot">
       <div class="tross-promo-price">
-        <span class="tross-price-old">
-          <span class="sk-price-excl">{p.priceOrd.toLocaleString('sv')}&nbsp;kr</span>
-          <span class="sk-price-incl hidden">{inkl(p.priceOrd).toLocaleString('sv')}&nbsp;kr</span>
-        </span>
+        {p.priceOrd && (
+          <span class="tross-price-old">
+            <span class="sk-price-excl">{p.priceOrd.toLocaleString('sv')}&nbsp;kr</span>
+            <span class="sk-price-incl hidden">{inkl(p.priceOrd).toLocaleString('sv')}&nbsp;kr</span>
+          </span>
+        )}
         <span class="tross-price-now">
           <span class="sk-price-excl">{p.price.toLocaleString('sv')}&nbsp;kr</span>
           <span class="sk-price-incl hidden">{inkl(p.price).toLocaleString('sv')}&nbsp;kr</span>
@@ -155,8 +157,8 @@ const inkl = (n: number) => Math.round(n * 1.25);
             artno: row.artno,
             name: row.name,
             price: row.price,
-            priceNote: '/dygn',
-            category: 'LED-vägg',
+            priceNote: row.priceNote !== undefined ? row.priceNote : '/dygn',
+            category: row.category || 'LED-vägg',
             image: row.image || FALLBACK_IMG,
             bulky: !!row.bulky,
             forceLeverans: row.forceLeverans || undefined,
