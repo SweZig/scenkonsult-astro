@@ -702,22 +702,32 @@ const faqSchema = {
           priceLines.push({ label: TILL.tross.name, value: mountCost, sub: `${r.cols} kolumner × ${TILL.tross.price_per_column} kr`, key: 'mount', group: 'hardvara' });
         }
 
-        // Dynamisk monteringstid: 6 tim grund + 10 min per panel.
-        // Avrundad uppåt till närmaste halvtimme (för rena timpriser i offerter).
+        // Dynamisk monteringstid (Alt B):
+        //   2 × ground_tross + (install + demount) × paneler + config_min
+        //   ground_tross = small om area ≤ tröskel, annars large
+        //   Avrundas uppåt till närmaste round_to_min.
         let monteringHours = 0;
         let monteringCost = 0;
         if (inclMontering.checked) {
-          const rawMin = 6 * 60 + 10 * totalPanels;       // grund + 10 min/panel
-          const roundedMin = Math.ceil(rawMin / 30) * 30;  // upp till närmaste halvtimme
+          const M = TILL.montering;
+          const area_m2_local = (r.actualW * r.actualH) / 1_000_000;
+          const groundTross = area_m2_local <= M.ground_tross_threshold_m2
+            ? M.ground_tross_min_small
+            : M.ground_tross_min_large;
+          const rawMin = 2 * groundTross
+                       + (M.min_per_panel_install + M.min_per_panel_demount) * totalPanels
+                       + M.config_min;
+          const roundedMin = Math.ceil(rawMin / M.round_to_min) * M.round_to_min;
           monteringHours = roundedMin / 60;
-          monteringCost = TILL.montering.price_per_hour_excl * monteringHours;
+          monteringCost = M.price_per_hour_excl * monteringHours;
           const hoursLabel = Number.isInteger(monteringHours)
             ? `${monteringHours} tim`
             : `${monteringHours.toFixed(1).replace('.', ',')} tim`;
+          const sizeLabel = area_m2_local <= M.ground_tross_threshold_m2 ? 'liten' : 'större';
           priceLines.push({
-            label: TILL.montering.name,
+            label: M.name,
             value: monteringCost,
-            sub: `${hoursLabel} (6 tim + 10 min × ${totalPanels})`,
+            sub: `${hoursLabel} (rigg ${sizeLabel} ×2 + ${M.min_per_panel_install}+${M.min_per_panel_demount} min × ${totalPanels} paneler + ${M.config_min} min config)`,
             key: 'montering',
             group: 'tillkommer',
           });
@@ -1249,7 +1259,7 @@ const faqSchema = {
   </script>
 
   <!-- Cart-handler + dynamisk prisuppdatering för Färdiga paket -->
-  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "panel_w_mm": 500, "panel_h_mm": 1000, "image": "/images/bild/pp_bld_led_500x1000.webp"}}, INJ_RULES: { montering: { grund_min: 360, min_per_panel: 10, round_to_min: 30, pris_per_h: 600 }, ground_per_kolumn: 250, tross_per_kolumn: 450, tröskel_m2: 7, leverans_under: 'storbil_slap', leverans_över: 'lastbil' }, INJ_LEV: LEVERANSER }}>
+  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "panel_w_mm": 500, "panel_h_mm": 1000, "image": "/images/bild/pp_bld_led_500x1000.webp"}}, INJ_RULES: { montering: ledData.tillbehor.montering, ground_per_kolumn: ledData.tillbehor.rigg.price_per_column, tross_per_kolumn: ledData.tillbehor.tross.price_per_column, tröskel_m2: ledData.tillbehor.leverans_regel['tröskel_m2'], leverans_under: ledData.tillbehor.leverans_regel.under_eller_lika, leverans_över: ledData.tillbehor.leverans_regel['över'] }, INJ_LEV: LEVERANSER }}>
     (function () {
       'use strict';
 
@@ -1273,9 +1283,15 @@ const faqSchema = {
         return PROC.large;
       }
 
-      function calcMonteringMin(totalPanels) {
-        const raw = R.montering.grund_min + R.montering.min_per_panel * totalPanels;
-        return Math.ceil(raw / R.montering.round_to_min) * R.montering.round_to_min;
+      function calcMonteringMin(totalPanels, area_m2) {
+        const M = R.montering;
+        const groundTross = area_m2 <= M.ground_tross_threshold_m2
+          ? M.ground_tross_min_small
+          : M.ground_tross_min_large;
+        const raw = 2 * groundTross
+                  + (M.min_per_panel_install + M.min_per_panel_demount) * totalPanels
+                  + M.config_min;
+        return Math.ceil(raw / M.round_to_min) * M.round_to_min;
       }
 
       function pickLeverans(area_m2) {
@@ -1312,9 +1328,9 @@ const faqSchema = {
           const total = panelCost + mountCost + proc.price;
 
           // Frakt + montering (visas bara som info-text)
-          const monteringMin = calcMonteringMin(totalPanels);
+          const monteringMin = calcMonteringMin(totalPanels, area_m2);
           const monteringH = monteringMin / 60;
-          const monteringKr = (monteringMin / 60) * R.montering.pris_per_h;
+          const monteringKr = (monteringMin / 60) * R.montering.price_per_hour_excl;
           const leverans = pickLeverans(area_m2);
 
           // DOM-uppdatering
@@ -1437,7 +1453,7 @@ const faqSchema = {
             const physH_mm = v.rows * panel.panel_h_mm;
             const area_m2 = (physW_mm * physH_mm) / 1_000_000;
             const leverans = pickLeverans(area_m2);
-            const monteringMin = calcMonteringMin(v.totalPanels);
+            const monteringMin = calcMonteringMin(v.totalPanels, area_m2);
             const dim = card.dataset.paketDim;
             const size = card.dataset.paketSize;
 

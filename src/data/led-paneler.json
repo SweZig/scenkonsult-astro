@@ -359,10 +359,16 @@
       "name": "Tekniker/montering",
       "price_per_hour_excl": 600,
       "description": "Scenengineer på plats för montering, drift och rivning.",
-      "grund_min": 360,
-      "min_per_panel": 10,
+      "ground_tross_min_small": 45,
+      "ground_tross_min_large": 90,
+      "ground_tross_threshold_m2": 7,
+      "min_per_panel_install": 7.5,
+      "min_per_panel_demount": 5,
+      "config_min": 60,
       "round_to_min": 30,
-      "_regel": "Total min = grund_min + (min_per_panel × antal_paneler), avrundas upp till närmaste round_to_min. Pris = total_h × price_per_hour_excl."
+      "_regel": "total_min = 2×ground_tross + (min_per_panel_install + min_per_panel_demount) × paneler + config_min. ground_tross = small om yta ≤ threshold_m2, annars large. Avrundas upp till närmaste round_to_min. Pris = total_h × price_per_hour_excl.",
+      "_deprecated_grund_min": 360,
+      "_deprecated_min_per_panel": 10
     },
     "flightcase": {
       "_comment": "Flightcases hanteras automatiskt baserat på antal kabinett — visas i specifikation, läggs ej i varukorg (transporten räknas separat).",
