@@ -87,6 +87,7 @@ Ljus rök/pyro:/vara-tjanster/hyra-ljus/rok-pyro/
 Ljus stativ:  /vara-tjanster/hyra-ljus/stativ-tross/
 DJ:           /vara-tjanster/hyra-dj/
 Projektor:    /vara-tjanster/hyra-bild-projektorer-skarmar/
+LED-vägg:     /vara-tjanster/hyra-bild-led-vagg/
 Moving heads: /vara-tjanster/hyra-ljus/moving-heads/
 PA-anläggning:/vara-tjanster/hyra-ljud/pa-anlaggning/
 Kolumnhögtalare:/vara-tjanster/hyra-ljud/kolumnhogtalare/
