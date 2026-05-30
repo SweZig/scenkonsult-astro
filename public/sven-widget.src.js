@@ -367,19 +367,27 @@
         window.location.href = '/varukorg/';
       }
 
-      function formatMsg(rawText) {
-        // Extrahera och ta bort [CART:id1,id2] innan escaping
-        let cartIds = [];
+      function formatMsg(rawText, extras = null) {
+        // CART och FORWARD kan komma från två källor:
+        // 1) backend-svarets extras-objekt (preferred — sven-chat returnerar dem
+        //    som separata fält när det är ett färskt LLM-svar)
+        // 2) extraktion ur texten (fallback — för historik från localStorage där
+        //    bara textstrukturen finns kvar, eller om extras inte skickats med)
+        let cartIds = (extras && Array.isArray(extras.cartIds)) ? [...extras.cartIds] : [];
+        let forwardType = (extras && extras.forwardTag) || null;
+
+        // Extrahera och ta bort [CART:id1,id2] innan escaping (fallback eller
+        // när backend skickat taggen i texten av historiska skäl)
         let text = rawText.replace(/\[CART:([^\]]+)\]/g, (_, ids) => {
-          cartIds = ids.split(',').map(s => s.trim()).filter(Boolean);
+          if (cartIds.length === 0) {
+            cartIds = ids.split(',').map(s => s.trim()).filter(Boolean);
+          }
           return ''; // ta bort taggen från texten
         }).trim();
 
-        // Extrahera och ta bort [FORWARD:type] (backend strippar normalt men vi
-        // hanterar fallet om frontend råkar få in en otvättad text också)
-        let forwardType = null;
+        // Extrahera och ta bort [FORWARD:type] (fallback om extras saknar den)
         text = text.replace(/\[FORWARD:(offert|ring|fraga)\]/gi, (_, t) => {
-          forwardType = t.toLowerCase();
+          if (!forwardType) forwardType = t.toLowerCase();
           return '';
         }).trim();
 
@@ -433,10 +441,10 @@
       }
 
       // ── BUBBLOR ────────────────────────────────────────
-      function addBubble(role, text, silent = false) {
+      function addBubble(role, text, silent = false, extras = null) {
         const div = document.createElement("div");
         div.className = "sven-bubble " + role;
-        div.innerHTML = formatMsg(text);
+        div.innerHTML = formatMsg(text, extras);
         msgs.appendChild(div);
         msgs.scrollTop = msgs.scrollHeight;
         setTimeout(autoExpandWindow, 50);
@@ -582,7 +590,7 @@
           const data = await res.json();
           const reply = data.reply || "Något gick fel, försök igen.";
 
-          addBubble("bot", reply);
+          addBubble("bot", reply, false, { forwardTag: data.forwardTag, cartIds: data.cartIds });
           history.push({ role: "assistant", content: reply });
           saveSession();
 
