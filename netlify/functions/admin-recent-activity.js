@@ -25,7 +25,7 @@ exports.handler = async (event) => {
   const db = supabase();
   try {
     const wantMessages = ['all','messages','unread'].includes(filter);
-    const wantEvents   = ['all','events','unread'].includes(filter);
+    const wantEvents   = ['all','events','unread','sven'].includes(filter);
 
     const tasks = [];
 
@@ -44,13 +44,15 @@ exports.handler = async (event) => {
     if (wantEvents) {
       // För 'unread': pickup_signed (kund förberedde, kräver motkvittering)
       // OCH sven_forward_created (Sven-ärenden där admin inte hanterat status).
-      // De filtreras nedan så bara obesvarade visas.
+      // För 'sven': bara sven_forward_created (alla, oavsett status).
       let q = db.from('audit_log')
         .select('id, cart_id, actor, event_type, payload, created_at')
         .order('created_at', { ascending: false })
         .limit(lim);
       if (filter === 'unread') {
         q = q.in('event_type', ['pickup_signed', 'sven_forward_created']);
+      } else if (filter === 'sven') {
+        q = q.eq('event_type', 'sven_forward_created');
       }
       tasks.push(q.then(r => ({ kind: 'audit', data: r.data || [], error: r.error })));
     }
@@ -118,8 +120,9 @@ exports.handler = async (event) => {
             const c = cartsById[i.cart_id];
             if (c && c.pickup_confirmed_at) return false;
           }
-          // sven_forward_created: dölj om status ändrats från 'new' (hanterat)
-          if (i.event_type === 'sven_forward_created') {
+          // sven_forward_created: dölj BARA i 'unread'-läget om status ändrats
+          // från 'new' (= hanterat). I 'all'/'events'/'sven' visas alla.
+          if (i.event_type === 'sven_forward_created' && filter === 'unread') {
             const c = cartsById[i.cart_id];
             if (c && c.status && c.status !== 'new') return false;
           }

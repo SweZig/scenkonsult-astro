@@ -1801,6 +1801,7 @@ const _monteringAdminConfig = {
     <button data-activity-filter="messages" onclick="setActivityFilter('messages')" class="activity-filter-btn">💬 Meddelanden</button>
     <button data-activity-filter="unread"   onclick="setActivityFilter('unread')"   class="activity-filter-btn">📬 Olästa</button>
     <button data-activity-filter="events"   onclick="setActivityFilter('events')"   class="activity-filter-btn">📋 Händelser</button>
+    <button data-activity-filter="sven"     onclick="setActivityFilter('sven')"     class="activity-filter-btn" style="border-color:rgba(196,181,244,0.4)">🤖 Sven</button>
   </div>
   <div id="activity-body" style="flex:1;overflow-y:auto;padding:0.5rem 0"></div>
 </div>
@@ -7237,7 +7238,10 @@ async function loadRecentActivity() {
   }
   const items = data?.items || data?.messages || []; // bakåtkompat med gammalt fält
   if (!items.length) {
-    body.innerHTML = '<div style="padding:2rem;text-align:center;color:rgba(255,255,255,.4);font-size:0.85rem">Inget att visa</div>';
+    const emptyMsg = _activityFilter === 'sven'
+      ? 'Inga Sven-ärenden ännu.<br><span style="font-size:0.75rem;opacity:0.7">När en kund klickar Svens "Be Scenkonsult kontakta mig"-knapp dyker ärendet upp här.</span>'
+      : 'Inget att visa';
+    body.innerHTML = `<div style="padding:2rem;text-align:center;color:rgba(255,255,255,.4);font-size:0.85rem;line-height:1.6">${emptyMsg}</div>`;
     return;
   }
   body.innerHTML = items.map(i => i.kind === 'event' ? _activityEventRow(i) : _activityMessageRow(i)).join('');
@@ -7294,6 +7298,20 @@ function _activityEventRow(e) {
       detail = parts.join(' · ');
     }
   }
+
+  // Specialdetalj för Sven-events: visa forward-typ + status
+  let svenBadges = '';
+  if (e.event_type === 'sven_forward_created') {
+    const typeLabels = { offert: '✉ Offert', ring: '📞 Uppringning', fraga: '❓ Fråga' };
+    const fwdLabel = typeLabels[e.sven_forward_type] || 'Sven-ärende';
+    const isHandled = e.cart_status && e.cart_status !== 'new';
+    const statusBadge = isHandled
+      ? `<span style="display:inline-block;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.55);font-size:0.65rem;padding:1px 7px;border-radius:9px;line-height:1.4;margin-left:6px">✓ Hanterad</span>`
+      : `<span style="display:inline-block;background:rgba(196,181,244,0.18);border:1px solid rgba(196,181,244,0.4);color:#c4b5f4;font-size:0.65rem;font-weight:700;padding:1px 7px;border-radius:9px;line-height:1.4;margin-left:6px">Öppen</span>`;
+    svenBadges = `<span style="display:inline-block;color:#c4b5f4;font-size:0.7rem;font-weight:600">${fwdLabel}</span>${statusBadge}`;
+    detail = '';  // Ersätt detail med badges för Sven-events
+  }
+
   const actorLabel = e.actor === 'customer' ? 'Kund' : e.actor === 'admin' ? 'Vi' : 'System';
   // pickup_signed och sven_forward_created öppnar 'info'-fliken där bannern +
   // åtgärdsknappen finns. Övriga events går till loggen som tidigare.
@@ -7307,9 +7325,9 @@ function _activityEventRow(e) {
         <div style="font-weight:600;font-size:.88rem;color:#f0eeff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${cust.replace(/</g,'&lt;')}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.45);white-space:nowrap">${timeStr}</div>
       </div>
-      <div style="display:flex;gap:.5rem;font-size:.78rem;color:${meta.color};line-height:1.4">
+      <div style="display:flex;gap:.5rem;font-size:.78rem;color:${meta.color};line-height:1.4;align-items:center;flex-wrap:wrap">
         <span style="white-space:nowrap">${meta.icon} ${meta.label}</span>
-        ${detail ? `<span style="color:rgba(255,255,255,.5);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${String(detail).replace(/</g,'&lt;')}</span>` : ''}
+        ${svenBadges || (detail ? `<span style="color:rgba(255,255,255,.5);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${String(detail).replace(/</g,'&lt;')}</span>` : '')}
       </div>
       <div style="font-size:.66rem;color:rgba(255,255,255,.3);margin-top:3px;font-family:monospace">${cartIdShort} · ${actorLabel}</div>
     </div>`;
