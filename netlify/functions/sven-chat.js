@@ -49,6 +49,28 @@ Din uppgift: Hjälp besökare hitta rätt utrustning, visa korrekta priser och g
 - Håll svar till max 3–4 meningar eller en kort punktlista
 - Inkludera ALLTID klickbara markdown-länkar när du nämner en produkt eller sida
 
+═══ DINA GRÄNSER — DETTA KAN DU INTE GÖRA (VIKTIGT) ═══
+Du är en chatbot på sajten. Du har INGEN åtkomst till mail, telefon, kalender eller administrativa system. Du kan ALDRIG:
+- Skicka offert, prisuppgift eller bekräftelse till kunden
+- Maila eller ringa kunden
+- Boka in datum eller reservera utrustning
+- Skapa, ändra eller följa upp ordrar
+
+Säg ALDRIG fraser som:
+- "Jag skickar offert/prisuppgift till dig"
+- "Offerten skickas till dig inom kort"
+- "Jag mailar dig" / "Jag ringer dig"
+- "Återkommer per mail/inom kort"
+- "Jag fixar det" / "Jag bokar"
+
+Om kunden ger dig sina kontaktuppgifter (mail, telefon, adress) eller verkar vänta på offert:
+1. Tacka för informationen.
+2. Förklara att du är en chatbot som inte kan skicka offerter själv.
+3. Hänvisa till [offertformuläret](/bokningssida/) ELLER ring 072-448 10 00 (vardagar 09:00–17:00).
+4. Tipsa om att lägga produkterna i varukorgen med [CART:...]-taggen — då följer allt med när kunden klickar "Maila offertförfrågan".
+
+Exempel på rätt svar när kunden ger mail+telefon: "Tack för uppgifterna, Tim! Men jag är en chatbot och kan tyvärr inte skicka offerter själv. För att få en konkret offert: fyll i [offertformuläret](/bokningssida/) — då får du svar samma dag. Eller ring 072-448 10 00 vardagar 09:00–17:00, så hjälper en människa dig direkt."
+
 ═══ MOMS-LOGIK (VIKTIG) ═══
 Om du INTE vet kundtypen — fråga TIDIGT: "Är det för ett företag, som privatperson eller för en förening/organisation?"
 
@@ -74,40 +96,78 @@ CART-ID-LISTA (namn → cart-id → pris exkl. moms):
 ${CART_ID_LISTA}
 
 ═══ PRODUKT-URLARNA (använd alltid i markdown-länk) ═══
+— Scen
 Scen:         /vara-tjanster/hyra-scen/
+
+— Ljud
 Ljud (hub):   /vara-tjanster/hyra-ljud/
 Ljud Event:   /vara-tjanster/hyra-ljud/event/
 Ljud Live:    /vara-tjanster/hyra-ljud/live/
 Ljud Portable:/vara-tjanster/hyra-ljud/portable/
 Ljud Music:   /vara-tjanster/hyra-ljud/music/
+PA-anläggning:/vara-tjanster/hyra-ljud/pa-anlaggning/
+Kolumnhögtalare:/vara-tjanster/hyra-ljud/kolumnhogtalare/
+
+— Bild
+Bild (hub):   /vara-tjanster/hyra-bild/
+Projektor:    /vara-tjanster/hyra-bild-projektorer-skarmar/
+LED-vägg:     /vara-tjanster/hyra-bild-led-vagg/
+
+— Ljus
 Ljus (hub):   /vara-tjanster/hyra-ljus/
 Ljus paket:   /vara-tjanster/hyra-ljus/fardiga-paket/
 Ljus effekter:/vara-tjanster/hyra-ljus/ljuseffekter/
 Ljus rök/pyro:/vara-tjanster/hyra-ljus/rok-pyro/
 Ljus stativ:  /vara-tjanster/hyra-ljus/stativ-tross/
-DJ:           /vara-tjanster/hyra-dj/
-Projektor:    /vara-tjanster/hyra-bild-projektorer-skarmar/
-LED-vägg:     /vara-tjanster/hyra-bild-led-vagg/
 Moving heads: /vara-tjanster/hyra-ljus/moving-heads/
-PA-anläggning:/vara-tjanster/hyra-ljud/pa-anlaggning/
-Kolumnhögtalare:/vara-tjanster/hyra-ljud/kolumnhogtalare/
+
+— DJ & specialtjänster
+DJ:           /vara-tjanster/hyra-dj/
+Karaoke:      /vara-tjanster/hyra-karaoke/
 Konferens AV: /vara-tjanster/konferens-av/
-Offert/bokning:/bokningssida/
-Kontakt:      /kontakt/
-Varukorg:     /varukorg/
-Svens Kunskapsskola: /svens-kunskapsskola/
-Guider:       /for/guider/
+
+— För ditt event (passar olika tillfällen)
+Bröllop:      /for/brollop/
+Företagsfest: /for/foretagsfest/
+Konferens:    /for/konferens/
+Festival:     /for/festival/
+Studentflak:  /for/studentflak/
+
+— Guider (för djupare läsning)
+Guider (hub): /for/guider/
 Guide PA-system:/for/guider/hyra-pa-system/
 Guide uplights:/for/guider/hyra-uplights/
 Guide rökmaskin:/for/guider/hyra-rokmaskin/
+Guide rökvätska:/for/guider/rokvatska-guide/
 Guide mikrofon:/for/guider/hyra-tradlos-mikrofon/
 Guide projektor:/for/guider/hyra-projektor-pris/
 Guide scen pris:/for/guider/hyra-scen-pris/
-Guide konferens:/for/guider/konferens-av-checklista/
+Guide hur stor scen:/for/guider/hur-stor-scen/
+Guide hur stor PA:/for/guider/hur-stor-pa/
+Guide ljud utomhus:/for/guider/ljud-utomhus/
+Guide ljud företagsfest:/for/guider/ljud-foretagsfest/
+Guide ljussättning:/for/guider/ljussattning-tips/
+Guide DJ eller band:/for/guider/dj-eller-liveband/
+Guide LED-vägg kalkyl:/for/guider/led-vagg-kalkylator/
+Guide vad kostar det:/for/guider/vad-kostar-det/
+Guide Numark/Denon/Rane:/for/guider/varfor-numark-denon-rane/
+Guide checklista event:/for/guider/checklista-event/
+Guide konferens AV:/for/guider/konferens-av-checklista/
 Guide bröllop ljud:/for/guider/ljud-brollop/
 Guide bröllop ljus:/for/guider/ljus-brollop/
 Guide bröllop DJ:/for/guider/dj-brollop-pris/
 Guide studentflak:/for/guider/studentflak-checklista/
+
+— Övrigt
+Offert/bokning:/bokningssida/
+Kontakt:      /kontakt/
+Varukorg:     /varukorg/
+Om oss:       /om-oss/
+Referenser:   /referenser/
+FAQ:          /vara-vanligaste-fragor-faq/
+Hyresvillkor företag:/hyresvillkor/foretag/
+Hyresvillkor privat:/hyresvillkor/privatperson/
+Svens Kunskapsskola: /svens-kunskapsskola/
 
 ═══ SVENS KUNSKAPSSKOLA — VIDEOGUIDER ═══
 Du har spelat in en serie videoguider som heter "Svens Kunskapsskola". Tipsa aktivt om dessa när en kund verkar osäker på teknik, kontakter eller hur uthyrning fungerar.
@@ -209,6 +269,129 @@ function buildSystemPrompt(customerType) {
   return SYSTEM_PROMPT + suffix;
 }
 
+// ── LÖFTESDETEKTOR + ADMIN-NOTIFIKATION ────────────────────────────────────
+// Om Sven trots system-promptens gränser lovar något som kräver mänsklig
+// uppföljning (skicka offert, mail, ringa, etc) — skicka ett varningsmail
+// till info@scenkonsult.se så att SweZig kan agera innan kunden hör av sig.
+const PROMISE_PATTERNS = [
+  /(?:jag|vi)\s+(?:skickar|sänder|mailar|sender|skickar\s+iväg)\s+(?:\w+\s+){0,3}?(?:offert|prisuppgift|bekräftelse|kvitto|sammanställning|prisförslag)/i,
+  /(?:jag|vi)\s+mailar\s+(?:dig|er|till\s+dig|till\s+er)/i,
+  /(?:jag|vi)\s+ringer\s+(?:dig|er|tillbaka|upp|på\s+\d)/i,
+  /(?:jag|vi)\s+återkommer\s+(?:per\s+mail|via\s+mail|inom\s+kort|med\s+(?:en\s+)?offert|snart|imorgon|idag)/i,
+  /(?:offert(?:en)?|prisuppgift(?:en)?)\s+(?:skickas|kommer|skickar\s+jag|skickas\s+till\s+dig|är\s+på\s+väg)/i,
+  /hör\s+av\s+mig\s+(?:per\s+mail|via\s+mail|inom\s+kort|snart|imorgon)/i,
+  /(?:jag|vi)\s+fixar\s+(?:offert|bokning|en\s+offert|en\s+bokning)/i,
+  /(?:jag|vi)\s+(?:bokar|reserverar)\s+(?:in|åt\s+dig|datumet)/i,
+];
+
+function detectPromise(reply) {
+  for (const pat of PROMISE_PATTERNS) {
+    const m = reply.match(pat);
+    if (m) return m[0];
+  }
+  return null;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
+}
+
+async function notifyAdminPromise({ promise, sessionId, pageUrl, customerType, history, reply }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) { console.warn('SVEN_PROMISE: RESEND_API_KEY saknas'); return; }
+
+  // Bygg konversationshistorik (sista 8 meddelandena)
+  const tail = (history || []).slice(-8);
+  const histHtml = tail.map(m => {
+    const who = m.role === 'user' ? 'Kund' : 'Sven';
+    const color = m.role === 'user' ? '#1e1850' : '#7a6dc7';
+    const content = escapeHtml(typeof m.content === 'string' ? m.content : JSON.stringify(m.content));
+    return `<div style="margin:8px 0;padding:10px 14px;background:${m.role==='user'?'#f4f4f7':'#efeaf9'};border-left:3px solid ${color};border-radius:4px;">
+      <div style="font-size:11px;font-weight:700;color:${color};text-transform:uppercase;margin-bottom:4px;">${who}</div>
+      <div style="font-size:14px;color:#222;white-space:pre-wrap;">${content}</div>
+    </div>`;
+  }).join('');
+
+  const replySafe = escapeHtml(reply);
+  const sessionLink = sessionId
+    ? `https://scenkonsult.se/admin/sven/?session=${encodeURIComponent(sessionId)}`
+    : 'https://scenkonsult.se/admin/sven/';
+
+  const html = `<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"><title>Sven har lovat något</title></head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
+<tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+  <tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;color:#fff;">
+    <div style="font-size:22px;font-weight:700;">🚨 Sven har lovat något</div>
+    <div style="font-size:13px;opacity:0.85;margin-top:6px;">Kunden förväntar sig mänsklig uppföljning</div>
+  </td></tr>
+  <tr><td style="background:#fff3cd;padding:14px 32px;border-bottom:1px solid #ffe69c;">
+    <div style="font-size:13px;color:#664d03;"><strong>Detekterad fras:</strong> "${escapeHtml(promise)}"</div>
+  </td></tr>
+  <tr><td style="background:#fff;padding:24px 32px;">
+    <div style="font-size:13px;color:#666;margin-bottom:4px;">Senaste svaret från Sven:</div>
+    <div style="padding:12px 14px;background:#efeaf9;border-left:3px solid #7a6dc7;border-radius:4px;font-size:14px;color:#222;white-space:pre-wrap;margin-bottom:24px;">${replySafe}</div>
+
+    <div style="font-size:13px;color:#666;margin-bottom:4px;">Konversationshistorik (sista 8 meddelandena):</div>
+    ${histHtml}
+
+    <div style="margin-top:24px;padding:14px;background:#f4f4f7;border-radius:6px;font-size:13px;color:#555;">
+      <div><strong>Sida:</strong> ${escapeHtml(pageUrl || '(okänd)')}</div>
+      <div><strong>Kundtyp:</strong> ${escapeHtml(customerType || '(ej satt)')}</div>
+      <div><strong>Session-ID:</strong> ${escapeHtml(sessionId || '(saknas)')}</div>
+    </div>
+
+    <div style="margin-top:24px;text-align:center;">
+      <a href="${sessionLink}" style="display:inline-block;background:#1e1850;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:700;">Öppna konversationen i admin →</a>
+    </div>
+  </td></tr>
+  <tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:16px 32px;text-align:center;color:rgba(255,255,255,0.7);font-size:11px;">
+    Detta mail skickades automatiskt av Sven-chatbotens löftesdetektor.
+  </td></tr>
+</table></td></tr></table></body></html>`;
+
+  const text = `🚨 SVEN HAR LOVAT NÅGOT — kontrollera och följ upp.
+
+Detekterad fras: "${promise}"
+
+Senaste svar från Sven:
+${reply}
+
+Konversation (sista 8 meddelanden):
+${tail.map(m => `[${m.role === 'user' ? 'KUND' : 'SVEN'}] ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n\n')}
+
+Sida: ${pageUrl || '(okänd)'}
+Kundtyp: ${customerType || '(ej satt)'}
+Session-ID: ${sessionId || '(saknas)'}
+
+Öppna i admin: ${sessionLink}
+`;
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Scenkonsult Sven <hej@scenkonsult.se>',
+        to: ['info@scenkonsult.se'],
+        subject: `🚨 Sven har lovat: "${promise.substring(0, 60)}"`,
+        html, text,
+      }),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('SVEN_PROMISE_MAIL_FAIL:', res.status, errText);
+    } else {
+      console.log('SVEN_PROMISE_NOTIFIED:', { promise, sessionId });
+    }
+  } catch (e) {
+    console.error('SVEN_PROMISE_MAIL_ERROR:', e.message);
+  }
+}
+
+
 export default async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -296,6 +479,22 @@ export default async (req) => {
     if (chipsMatch) {
       try { chips = JSON.parse(chipsMatch[1]); } catch {}
       reply = rawReply.replace(/\nCHIPS:\[.*?\]\s*$/s, "").trim();
+    }
+
+    // Löftesdetektor: skicka notifikation till admin om Sven lovat något
+    // som kräver mänsklig uppföljning. Fire-and-forget — vi väntar inte.
+    const promise = detectPromise(reply);
+    if (promise) {
+      // Inte await — låt mailet skickas i bakgrunden medan vi returnerar
+      // svaret till kunden direkt.
+      notifyAdminPromise({
+        promise,
+        sessionId,
+        pageUrl,
+        customerType,
+        history: trimmed,
+        reply,
+      }).catch(e => console.error('SVEN_PROMISE_BG_ERROR:', e.message));
     }
 
     // Logga till console + Supabase
