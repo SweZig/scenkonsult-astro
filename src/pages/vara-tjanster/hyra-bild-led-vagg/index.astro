@@ -324,11 +324,11 @@ const faqSchema = {
           <div data-input="meter" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
             <div>
               <label for="led-w-m" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Önskad bredd (meter)</label>
-              <input id="led-w-m" type="number" step="0.1" min="0.5" max="30" value="4.0" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
+              <input id="led-w-m" type="number" step="0.5" min="0.5" max="30" value="4.0" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
             </div>
             <div>
               <label for="led-h-m" style="display:block;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">Önskad höjd (meter)</label>
-              <input id="led-h-m" type="number" step="0.1" min="0.5" max="15" value="2.5" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
+              <input id="led-h-m" type="number" step="0.5" min="0.5" max="15" value="2.5" style="width:100%;background:#221f50;color:#f0eeff;color-scheme:dark;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem 0.85rem;font-size:0.95rem;font-family:inherit;" />
             </div>
           </div>
 
@@ -1158,6 +1158,20 @@ const faqSchema = {
       // Visuella toggles
       optStage.addEventListener('change', () => { showStage = optStage.checked; render(); });
       optAudience.addEventListener('change', () => { showAudience = optAudience.checked; render(); });
+
+      // Snap-format för bredd/höjd: tvinga 0,5-stegning + alltid 1 decimal i visningen
+      // (HTML number-input strippar trailing zero, så "4.0" visas som "4" utan denna fix).
+      // Registreras FÖRE render-listener nedan så att render() läser det justerade värdet.
+      function snapToHalfM(el) {
+        const n = parseFloat(el.value);
+        if (isNaN(n)) return;
+        const snapped = Math.round(n * 2) / 2;
+        el.value = snapped.toFixed(1);
+      }
+      [wM, hM].forEach(el => el.addEventListener('change', () => snapToHalfM(el)));
+      // Initial formatering så att default-värdena visas med en decimal (4,0 / 2,5)
+      snapToHalfM(wM);
+      snapToHalfM(hM);
 
       // Input-förändringar
       [panelSel, wM, hM, diag, ratio, cols, rows, inclMontering, inclProcessor].forEach(el => {
