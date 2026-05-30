@@ -44,6 +44,24 @@
     .filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 0.78rem; padding: 4px 12px; cursor: pointer; transition: all 0.15s; }
     .filter-btn.active { background: rgba(196,181,244,0.15); border-color: #c4b5f4; color: #c4b5f4; }
     .filter-btn:hover { border-color: rgba(196,181,244,0.4); color: rgba(196,181,244,0.8); }
+    .stat-card.is-rating { display: flex; align-items: center; gap: 0.875rem; }
+    .stat-card.is-rating .stat-meta { font-size: 0.7rem; color: rgba(255,255,255,0.55); margin-top: 4px; }
+    .stat-rating-stars { font-size: 1.5rem; letter-spacing: 0.05em; line-height: 1; color: #fbbf24; text-shadow: 0 0 12px rgba(251,191,36,0.35); }
+    .stat-rating-stars .empty { color: rgba(255,255,255,0.18); text-shadow: none; }
+
+    /* Inline-badges för rating + indikatorer i tabellradern */
+    .row-badges { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; }
+    .row-rating { display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; border-radius: 9px; font-size: 0.7rem; font-weight: 700; line-height: 1.4; }
+    .row-rating.r5 { background: rgba(34,197,94,0.18); color: #86efac; }
+    .row-rating.r4 { background: rgba(132,204,22,0.18); color: #bef264; }
+    .row-rating.r3 { background: rgba(251,191,36,0.18); color: #fde047; }
+    .row-rating.r2 { background: rgba(249,115,22,0.18); color: #fdba74; }
+    .row-rating.r1 { background: rgba(239,68,68,0.18); color: #fca5a5; }
+    .row-flag-forward { display: inline-block; background: rgba(196,181,244,0.18); border: 1px solid rgba(196,181,244,0.4); color: #c4b5f4; font-size: 0.65rem; font-weight: 700; padding: 1px 7px; border-radius: 9px; line-height: 1.4; }
+    .row-flag-promise { display: inline-block; background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.4); color: #fdba74; font-size: 0.65rem; font-weight: 700; padding: 1px 7px; border-radius: 9px; line-height: 1.4; }
+    .row-msgcount { display: inline-block; background: rgba(196,181,244,0.15); color: #c4b5f4; font-size: 0.65rem; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
+
+    .filter-btn small { opacity: 0.7; margin-left: 4px; font-weight: 400; }
     .reply-preview { font-size: 0.75rem; color: rgba(255,255,255,0.60); margin-top: 3px; font-style: italic; }
     #auth-screen { position: fixed; inset: 0; background: #0c0a24; display: flex; align-items: center; justify-content: center; z-index: 999; }
     .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; text-align: center; }
@@ -78,8 +96,20 @@
     .bubble-q { background: #0c0a24; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px 12px 12px 2px; padding: 0.7rem 0.95rem; font-size: 0.88rem; color: #f0eeff; line-height: 1.5; max-width: 85%; white-space: pre-wrap; word-break: break-word; }
     .bubble-q.is-chip { background: rgba(196,181,244,0.06); font-style: italic; color: rgba(255,255,255,0.72); }
     .bubble-q-label { font-size: 0.65rem; color: rgba(196,181,244,0.55); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; padding: 0 0.25rem; }
-    .bubble-a { background: rgba(196,181,244,0.08); border: 1px solid rgba(196,181,244,0.18); border-radius: 12px 12px 2px 12px; padding: 0.7rem 0.95rem; font-size: 0.85rem; color: rgba(255,255,255,0.85); line-height: 1.5; max-width: 85%; margin-left: auto; white-space: pre-wrap; word-break: break-word; font-style: italic; }
+    .bubble-a { background: rgba(196,181,244,0.08); border: 1px solid rgba(196,181,244,0.18); border-radius: 12px 12px 2px 12px; padding: 0.7rem 0.95rem; font-size: 0.85rem; color: rgba(255,255,255,0.92); line-height: 1.5; max-width: 85%; margin-left: auto; white-space: pre-wrap; word-break: break-word; }
     .bubble-a-label { font-size: 0.65rem; color: rgba(196,181,244,0.55); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; padding: 0 0.25rem; text-align: right; }
+    .bubble-a .tag-cart, .bubble-a .tag-forward { display: inline-block; background: rgba(196,181,244,0.18); border: 1px solid rgba(196,181,244,0.35); color: #c4b5f4; font-size: 0.7rem; font-weight: 600; padding: 1px 7px; border-radius: 6px; margin: 0 2px; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .bubble-a .tag-forward { background: rgba(196,181,244,0.28); }
+    .modal-banner { padding: 0.7rem 1rem; border-radius: 10px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; }
+    .modal-banner.is-rating { background: rgba(196,181,244,0.08); border: 1px solid rgba(196,181,244,0.25); }
+    .modal-banner.is-forward { background: rgba(196,181,244,0.10); border: 1px solid rgba(196,181,244,0.4); color: #e2dcfb; }
+    .modal-banner.is-promise { background: rgba(251,146,60,0.10); border: 1px solid rgba(251,146,60,0.4); color: #fdba74; }
+    .modal-banner-stars { font-size: 1.4rem; letter-spacing: 0.06em; line-height: 1; }
+    .modal-banner-stars.r5 { color: #86efac; }
+    .modal-banner-stars.r4 { color: #bef264; }
+    .modal-banner-stars.r3 { color: #fde047; }
+    .modal-banner-stars.r2 { color: #fdba74; }
+    .modal-banner-stars.r1 { color: #fca5a5; }
     .modal-empty { padding: 2rem; text-align: center; color: rgba(255,255,255,0.6); font-size: 0.85rem; }
     .modal-loading { padding: 2rem; text-align: center; color: rgba(196,181,244,0.5); font-size: 0.85rem; }
   </style>
@@ -109,7 +139,14 @@
       <div class="stat-card"><div class="stat-val" id="s-week">–</div><div class="stat-lbl">Senaste 7 dagar</div></div>
       <div class="stat-card"><div class="stat-val" id="s-month">–</div><div class="stat-lbl">Senaste 30 dagar</div></div>
       <div class="stat-card"><div class="stat-val" id="s-avg">–</div><div class="stat-lbl">Snitt/dag (30 d)</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-rating">–</div><div class="stat-lbl">Snittbetyg ★</div></div>
+      <div class="stat-card is-rating">
+        <div>
+          <div class="stat-val" id="s-rating">–</div>
+          <div class="stat-lbl">Snittbetyg</div>
+          <div class="stat-meta" id="s-rating-meta"></div>
+        </div>
+        <div class="stat-rating-stars" id="s-rating-stars">☆☆☆☆☆</div>
+      </div>
     </div>
 
     <!-- Dagligt diagram -->
@@ -125,6 +162,10 @@
         <button class="filter-btn active" data-filter="real" onclick="setFilter('real')">Specifika frågor</button>
         <button class="filter-btn" data-filter="all" onclick="setFilter('all')">Alla meddelanden</button>
         <button class="filter-btn" data-filter="chips" onclick="setFilter('chips')">Chips/knappar</button>
+        <button class="filter-btn" data-filter="rated" onclick="setFilter('rated')">Med betyg <small id="ct-rated"></small></button>
+        <button class="filter-btn" data-filter="lowrated" onclick="setFilter('lowrated')">Lågt betyg <small id="ct-low"></small></button>
+        <button class="filter-btn" data-filter="forward" onclick="setFilter('forward')">🤖 Sven-ärenden <small id="ct-fwd"></small></button>
+        <button class="filter-btn" data-filter="promise" onclick="setFilter('promise')">⚠ Otaggade löften <small id="ct-pr"></small></button>
         <select id="type-filter" style="background:#0c0a24;border:1px solid rgba(255,255,255,0.1);border-radius:20px;color:rgba(255,255,255,0.6);font-size:0.78rem;padding:4px 10px;cursor:pointer" onchange="loadLogs()">
           <option value="">Alla kundtyper</option>
           <option value="company">Företag</option>
@@ -242,7 +283,22 @@ async function loadStats() {
   document.getElementById('s-week').textContent   = data.week   ?? '0';
   document.getElementById('s-month').textContent  = data.month  ?? '0';
   document.getElementById('s-avg').textContent    = data.avg    ?? '0';
-  document.getElementById('s-rating').textContent = data.rating ? data.rating.toFixed(1) : '–';
+
+  // Rating-kort: värde, stjärnor och antal bedömningar
+  const rEl = document.getElementById('s-rating');
+  const rMeta = document.getElementById('s-rating-meta');
+  const rStars = document.getElementById('s-rating-stars');
+  if (data.rating && data.ratingCount > 0) {
+    rEl.textContent = data.rating.toFixed(1);
+    rMeta.textContent = `${data.ratingCount} bedömning${data.ratingCount === 1 ? '' : 'ar'} (30 d)`;
+    const full = Math.round(data.rating);
+    rStars.innerHTML = '★'.repeat(full) + '<span class="empty">' + '★'.repeat(5 - full) + '</span>';
+  } else {
+    rEl.textContent = '–';
+    rMeta.textContent = 'Inga bedömningar än';
+    rStars.innerHTML = '<span class="empty">★★★★★</span>';
+  }
+
   renderChart(data.daily || []);
 }
 
@@ -315,6 +371,7 @@ async function loadLogs() {
   page = 0;
   document.getElementById('q-loading').style.display = 'none';
   document.getElementById('q-table').style.display = 'table';
+  updateFilterCounts();
   renderTable();
 }
 
@@ -326,10 +383,32 @@ function setFilter(f) {
 }
 
 function filteredLogs() {
-  const base = (filter === 'real')  ? allLogs.filter(l => !l.is_chip)
-             : (filter === 'chips') ? allLogs.filter(l => l.is_chip)
-             : allLogs;
-  return dedupBySession(base);
+  // Bas-loggar för "rated/lowrated/forward/promise" filtreras EFTER session-dedup
+  // eftersom de aggregeras på sessionsnivå.
+  let base;
+  if (filter === 'real')       base = allLogs.filter(l => !l.is_chip);
+  else if (filter === 'chips') base = allLogs.filter(l => l.is_chip);
+  else                          base = allLogs;
+  const sessions = dedupBySession(base);
+
+  if (filter === 'rated')    return sessions.filter(s => s._rating);
+  if (filter === 'lowrated') return sessions.filter(s => s._rating && s._rating <= 2);
+  if (filter === 'forward')  return sessions.filter(s => s._forwardTag);
+  if (filter === 'promise')  return sessions.filter(s => s._promiseDetected);
+  return sessions;
+}
+
+// Uppdatera badge-räknare på filterknappar
+function updateFilterCounts() {
+  const sessions = dedupBySession(allLogs);
+  const rated = sessions.filter(s => s._rating).length;
+  const low   = sessions.filter(s => s._rating && s._rating <= 2).length;
+  const fwd   = sessions.filter(s => s._forwardTag).length;
+  const pr    = sessions.filter(s => s._promiseDetected).length;
+  document.getElementById('ct-rated').textContent = rated ? `(${rated})` : '';
+  document.getElementById('ct-low').textContent   = low ? `(${low})` : '';
+  document.getElementById('ct-fwd').textContent   = fwd ? `(${fwd})` : '';
+  document.getElementById('ct-pr').textContent    = pr ? `(${pr})` : '';
 }
 
 // Gruppera meddelanden per session_id — en rad per konversation.
@@ -357,6 +436,12 @@ function dedupBySession(logs) {
     // msgs är i DESC ordning (nyaste först)
     const newest = msgs[0];
     const oldest = msgs[msgs.length - 1];
+
+    // Aggregera flaggor/rating på sessionsnivå
+    const rating = msgs.find(m => m.rating !== null && m.rating !== undefined)?.rating ?? null;
+    const forwardTag = msgs.find(m => m.forward_tag)?.forward_tag ?? null;
+    const promiseDetected = msgs.some(m => m.promise_detected);
+
     sessionRows.push({
       ...newest,                         // använd nyaste meta (page, customer_type)
       message: oldest.message,           // visa första frågan som "ämne"
@@ -365,6 +450,9 @@ function dedupBySession(logs) {
       _msgCount: msgs.length,
       _firstAt: oldest.created_at,
       _lastAt:  newest.created_at,
+      _rating: rating,
+      _forwardTag: forwardTag,
+      _promiseDetected: promiseDetected,
     });
   }
 
@@ -388,13 +476,29 @@ function renderTable() {
 
   tbody.innerHTML = slice.map(l => {
     const msgBadge = l._msgCount > 1
-      ? `<span style="display:inline-block;background:rgba(196,181,244,0.15);color:#c4b5f4;font-size:0.65rem;padding:1px 6px;border-radius:9px;margin-left:6px;vertical-align:middle;font-weight:600">${l._msgCount}</span>`
+      ? `<span class="row-msgcount">${l._msgCount}</span>`
       : '';
+
+    // Bygg badges (rating + forward + promise) som visas inline efter ämnet
+    const badges = [];
+    if (l._rating) {
+      const r = l._rating;
+      badges.push(`<span class="row-rating r${r}" title="Kunden gav ${r} av 5 stjärnor">${'★'.repeat(r)}<span style="opacity:0.3">${'★'.repeat(5-r)}</span></span>`);
+    }
+    if (l._forwardTag) {
+      const labels = { offert: 'Offert', ring: 'Uppringning', fraga: 'Fråga' };
+      badges.push(`<span class="row-flag-forward" title="Sven skapade ärende: ${labels[l._forwardTag]}">🤖 ${labels[l._forwardTag]}</span>`);
+    }
+    if (l._promiseDetected) {
+      badges.push(`<span class="row-flag-promise" title="Sven lovade något utan att tagga FORWARD">⚠ Otaggat löfte</span>`);
+    }
+    const badgesHtml = badges.length ? `<span class="row-badges">${badges.join('')}</span>` : '';
+
     return `
     <tr ${l.session_id ? `data-session="${l.session_id}" onclick="openThread('${l.session_id}')"` : ''} title="${l.session_id ? 'Klicka för hela konversationen' : ''}">
       <td style="color:rgba(255,255,255,0.60);font-size:0.78rem;white-space:nowrap">${fmtTime(l.created_at)}</td>
       <td>
-        <div>${escapeHtml(l.message || '–')}${msgBadge}</div>
+        <div>${escapeHtml(l.message || '–')}${msgBadge}${badgesHtml}</div>
         ${l.reply_preview ? `<div class="reply-preview">↳ ${escapeHtml(l.reply_preview).substring(0,140)}…</div>` : ''}
       </td>
       <td>${typeTag(l.customer_type)}</td>
@@ -436,11 +540,17 @@ async function openThread(sessionId) {
     return;
   }
 
-  // Metadata: kundtyp + sida + antal meddelanden + första tidpunkten
+  // Metadata + aggregat
   const first = thread[0];
   const last  = thread[thread.length - 1];
   const minutes = Math.round((new Date(last.created_at) - new Date(first.created_at)) / 60000);
   const pages = [...new Set(thread.map(t => t.page_url).filter(Boolean))];
+
+  // Aggregera flaggor från hela tråden
+  const rating = thread.find(t => t.rating !== null && t.rating !== undefined)?.rating ?? null;
+  const forwardTag = thread.find(t => t.forward_tag)?.forward_tag ?? null;
+  const promiseDetected = thread.some(t => t.promise_detected);
+
   meta.innerHTML = [
     `<span><strong>${thread.length}</strong> meddelanden</span>`,
     `<span>Kundtyp: ${typeTag(first.customer_type)}</span>`,
@@ -450,18 +560,62 @@ async function openThread(sessionId) {
     `<span style="color:rgba(255,255,255,0.4);font-family:monospace;font-size:0.65rem">${sessionId}</span>`,
   ].filter(Boolean).join(' · ');
 
-  body.innerHTML = thread.map(t => `
+  // Banners överst i body — rating, forward, promise
+  const banners = [];
+  if (rating) {
+    banners.push(`<div class="modal-banner is-rating">
+      <span class="modal-banner-stars r${rating}">${'★'.repeat(rating)}<span style="opacity:0.25">${'★'.repeat(5-rating)}</span></span>
+      <span><strong>${rating} av 5 stjärnor</strong> — kunden betygsatte konversationen</span>
+    </div>`);
+  }
+  if (forwardTag) {
+    const fwdLabels = { offert: '✉ Offert', ring: '📞 Uppringning', fraga: '❓ Fråga' };
+    banners.push(`<div class="modal-banner is-forward">
+      <span style="font-size:1.2rem">🤖</span>
+      <span>Sven skapade ärende: <strong>${fwdLabels[forwardTag] || forwardTag}</strong> — kunden klickade FORWARD-knappen</span>
+    </div>`);
+  }
+  if (promiseDetected) {
+    banners.push(`<div class="modal-banner is-promise">
+      <span style="font-size:1.2rem">⚠</span>
+      <span>Sven lovade något <strong>utan att tagga FORWARD</strong> — kontrollera om uppföljning behövs</span>
+    </div>`);
+  }
+
+  // Rendera trådbubblor. Format Svens svar:
+  //   [CART:...] → 🛒 pill
+  //   [FORWARD:type] → 🤖 pill
+  body.innerHTML = banners.join('') + thread.map(t => {
+    let svenHtml = '';
+    if (t.reply_preview) {
+      const formatted = formatSvenReply(t.reply_preview);
+      svenHtml = `
+        <div class="bubble-a-label" style="margin-top:0.6rem">Sven</div>
+        <div class="bubble-a">${formatted}</div>`;
+    }
+    return `
     <div class="bubble-row">
-      <div class="bubble-time">${fmtTime(t.created_at)}${t.is_chip ? ' · 💬 chip-svar' : ''}</div>
+      <div class="bubble-time">${fmtTime(t.created_at)}${t.is_chip ? ' · 💬 chip-svar' : ''}${t.rating ? ` · ⭐ ${t.rating}/5` : ''}${t.forward_tag ? ` · 🤖 FORWARD:${t.forward_tag}` : ''}${t.promise_detected ? ' · ⚠ otaggat löfte' : ''}</div>
       <div class="bubble-q-label">Kund</div>
       <div class="bubble-q ${t.is_chip ? 'is-chip' : ''}">${escapeHtml(t.message || '–')}</div>
-      ${t.reply_preview ? `
-        <div class="bubble-a-label" style="margin-top:0.6rem">Sven</div>
-        <div class="bubble-a">${escapeHtml(t.reply_preview)}</div>
-      ` : ''}
-    </div>`).join('');
+      ${svenHtml}
+    </div>`;
+  }).join('');
 
   body.scrollTop = 0;
+}
+
+// Renderar Svens svarstext: escapar, tar bort CHIPS-rader (extra säkerhet om
+// någon gammal logg har dem kvar) och färgkodar [CART]/[FORWARD]-taggar.
+function formatSvenReply(text) {
+  // Ta bort ev. trailing CHIPS-rad om historisk data har den (nya inläggen
+  // har strippats redan i backend men ev. gamla rader kan ha den kvar)
+  let cleaned = String(text || '').replace(/\s*(?:\n)?\s*CHIPS:\s*\[[\s\S]*?\]\s*$/i, '').trim();
+  let html = escapeHtml(cleaned);
+  // Färgkoda taggar
+  html = html.replace(/\[CART:([^\]]+)\]/g, (_, ids) => `<span class="tag-cart" title="Sven la till produkter i varukorgen">🛒 CART:${escapeHtml(ids)}</span>`);
+  html = html.replace(/\[FORWARD:(offert|ring|fraga)\]/gi, (_, t) => `<span class="tag-forward" title="Sven taggade för admin-uppföljning">🤖 FORWARD:${t}</span>`);
+  return html;
 }
 
 function closeThread(e) {

@@ -25,6 +25,49 @@ async function logToSupabase(data) {
   }
 }
 
+// Spara kundens betyg på senaste loggraden för sessionen.
+// Tidigare loggades bara till console — nu hamnar betyget i sven_logs.rating
+// så det syns i admin-panelens översikt + sessionsmodal.
+async function saveRatingToSupabase(sessionId, stars) {
+  if (!sessionId) return;
+  const sbUrl = process.env.SUPABASE_URL;
+  const sbKey = process.env.SUPABASE_SERVICE_KEY;
+  if (!sbUrl || !sbKey) { console.warn('SVEN_RATING: Supabase env saknas'); return; }
+
+  try {
+    // 1) Hitta senaste loggradens id för denna session
+    const sel = await fetch(
+      `${sbUrl}/rest/v1/sven_logs?select=id&session_id=eq.${encodeURIComponent(sessionId)}&order=created_at.desc&limit=1`,
+      { headers: { 'apikey': sbKey, 'Authorization': 'Bearer ' + sbKey } }
+    );
+    if (!sel.ok) { console.warn('SVEN_RATING_SEL_FAIL:', sel.status); return; }
+    const rows = await sel.json();
+    if (!rows.length) { console.warn('SVEN_RATING: ingen logg-rad för session', sessionId); return; }
+
+    // 2) PATCH:a rating på den raden
+    const upd = await fetch(
+      `${sbUrl}/rest/v1/sven_logs?id=eq.${rows[0].id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': sbKey,
+          'Authorization': 'Bearer ' + sbKey,
+        },
+        body: JSON.stringify({ rating: stars }),
+      }
+    );
+    if (!upd.ok) {
+      const txt = await upd.text();
+      console.warn('SVEN_RATING_PATCH_FAIL:', upd.status, txt);
+    } else {
+      console.log('SVEN_RATING_SAVED:', { sessionId, stars });
+    }
+  } catch (e) {
+    console.warn('SVEN_RATING_ERR:', e.message);
+  }
+}
+
 // Chip-detektion: korta förinställda svar filtreras bort
 function isChip(msg) {
   if (!msg || msg.length > 40) return false;
@@ -362,6 +405,9 @@ export default async (req) => {
     const pool = RATING_RESPONSES[stars];
     const comment = pool[Math.floor(Math.random() * pool.length)];
     logEvent({ type: "rating", stars, sessionId, messageCount: messageCount || 0 });
+    // Spara till Supabase så admin kan se det. Fire-and-forget — vi väntar inte
+    // utan returnerar svaret till kunden direkt.
+    saveRatingToSupabase(sessionId, stars).catch(e => console.warn('RATING_BG:', e.message));
     return new Response(JSON.stringify({ comment }), {
       status: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },

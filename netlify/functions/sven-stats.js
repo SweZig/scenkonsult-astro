@@ -20,7 +20,7 @@ exports.handler = async (event) => {
     // ── Statistik ──────────────────────────────────────────────────────────
     // Alla loggar senaste 30 dagar
     const { data: rows30 } = await db.from('sven_logs')
-      .select('created_at, is_chip, customer_type')
+      .select('created_at, is_chip, customer_type, rating, forward_tag, promise_detected')
       .not('message', 'is', null);
 
     const all30  = (rows30 || []).filter(r => r.created_at >= d30);
@@ -45,13 +45,23 @@ exports.handler = async (event) => {
     });
     const daily = Object.entries(dayCounts).map(([date, count]) => ({ date, count }));
 
-    // Betygssnitt från ratings (loggas separat som type=rating — hämta från console ej DB ännu)
-    const rating = null;
+    // Betygssnitt + fördelning (30 dagar)
+    const ratings30 = all30.filter(r => r.rating !== null && r.rating !== undefined);
+    const ratingCount = ratings30.length;
+    const rating = ratingCount > 0
+      ? ratings30.reduce((sum, r) => sum + r.rating, 0) / ratingCount
+      : null;
+    const ratingDist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    ratings30.forEach(r => { if (ratingDist[r.rating] !== undefined) ratingDist[r.rating]++; });
+
+    // Antal FORWARD-taggade ärenden + antal upptäckta-utan-tagg-löften (30 dagar)
+    const forwardCount = all30.filter(r => r.forward_tag).length;
+    const promiseCount = all30.filter(r => r.promise_detected).length;
 
     if (body.getLogs) {
       // ── Senaste 200 loggar för frågtabellen ───────────────────────────────
       let q = db.from('sven_logs')
-        .select('id, created_at, message, reply_preview, is_chip, customer_type, page_url, session_id, message_idx')
+        .select('id, created_at, message, reply_preview, is_chip, customer_type, page_url, session_id, message_idx, rating, forward_tag, promise_detected')
         .order('created_at', { ascending: false })
         .limit(200);
 
@@ -60,13 +70,13 @@ exports.handler = async (event) => {
       }
 
       const { data: logs } = await q;
-      return ok({ today, week, month, avg, rating, daily, logs: logs || [] });
+      return ok({ today, week, month, avg, rating, ratingCount, ratingDist, forwardCount, promiseCount, daily, logs: logs || [] });
     }
 
     if (body.getThread && body.session_id) {
       // ── Hela konversationen för en session ────────────────────────────────
       const { data: thread, error: tErr } = await db.from('sven_logs')
-        .select('id, created_at, message, reply_preview, is_chip, customer_type, page_url, session_id, message_idx')
+        .select('id, created_at, message, reply_preview, is_chip, customer_type, page_url, session_id, message_idx, rating, forward_tag, promise_detected')
         .eq('session_id', body.session_id)
         .order('message_idx', { ascending: true })
         .order('created_at', { ascending: true })
@@ -78,7 +88,7 @@ exports.handler = async (event) => {
       return ok({ thread: thread || [] });
     }
 
-    return ok({ today, week, month, avg, rating, daily });
+    return ok({ today, week, month, avg, rating, ratingCount, ratingDist, forwardCount, promiseCount, daily });
 
   } catch (e) {
     console.error('SVEN_STATS_ERR:', e.message);
