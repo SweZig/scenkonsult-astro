@@ -557,9 +557,12 @@
             const res = await fetch("/api/sven-chat", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "rate", stars, sessionId, messageCount: history.length }),
+              body: JSON.stringify({ action: "rate", stars, sessionId, messageCount: history.length, customerType, pageUrl: window.location.pathname }),
             });
             const data = await res.json();
+            if (data.saved === 'failed') {
+              console.warn('SVEN: rating ej sparad i DB', data);
+            }
             if (data.comment) addBubble("bot", data.comment);
           } catch {
             addBubble("bot", "Betyget noterat. (Sven noterade det i sin mentala dagbok och stirrade ut i tomma intet en stund.)");

@@ -25,14 +25,16 @@ async function logToSupabase(data) {
   }
 }
 
-// Spara kundens betyg på senaste loggraden för sessionen.
-// Tidigare loggades bara till console — nu hamnar betyget i sven_logs.rating
-// så det syns i admin-panelens översikt + sessionsmodal.
-async function saveRatingToSupabase(sessionId, stars) {
-  if (!sessionId) return;
+// Spara kundens betyg. Strategi:
+//   1) Hitta senaste loggraden för sessionen → PATCH:a rating
+//   2) Om ingen rad finns (kunden betygsatte utan att skicka meddelande)
+//      → INSERT ny rad med rating + session_id som standalone-betyg
+// Returnerar 'patched' | 'inserted' | 'failed' så vi får synlig diagnos.
+async function saveRatingToSupabase(sessionId, stars, opts = {}) {
+  if (!sessionId) return 'failed';
   const sbUrl = process.env.SUPABASE_URL;
   const sbKey = process.env.SUPABASE_SERVICE_KEY;
-  if (!sbUrl || !sbKey) { console.warn('SVEN_RATING: Supabase env saknas'); return; }
+  if (!sbUrl || !sbKey) { console.warn('SVEN_RATING: Supabase env saknas'); return 'failed'; }
 
   try {
     // 1) Hitta senaste loggradens id för denna session
@@ -40,31 +42,69 @@ async function saveRatingToSupabase(sessionId, stars) {
       `${sbUrl}/rest/v1/sven_logs?select=id&session_id=eq.${encodeURIComponent(sessionId)}&order=created_at.desc&limit=1`,
       { headers: { 'apikey': sbKey, 'Authorization': 'Bearer ' + sbKey } }
     );
-    if (!sel.ok) { console.warn('SVEN_RATING_SEL_FAIL:', sel.status); return; }
+    if (!sel.ok) {
+      console.warn('SVEN_RATING_SEL_FAIL:', sel.status, await sel.text());
+      return 'failed';
+    }
     const rows = await sel.json();
-    if (!rows.length) { console.warn('SVEN_RATING: ingen logg-rad för session', sessionId); return; }
 
-    // 2) PATCH:a rating på den raden
-    const upd = await fetch(
-      `${sbUrl}/rest/v1/sven_logs?id=eq.${rows[0].id}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': sbKey,
-          'Authorization': 'Bearer ' + sbKey,
-        },
-        body: JSON.stringify({ rating: stars }),
+    if (rows.length > 0) {
+      // 2a) PATCH:a rating på senaste raden
+      const upd = await fetch(
+        `${sbUrl}/rest/v1/sven_logs?id=eq.${rows[0].id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': sbKey,
+            'Authorization': 'Bearer ' + sbKey,
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({ rating: stars }),
+        }
+      );
+      if (!upd.ok) {
+        const txt = await upd.text();
+        console.warn('SVEN_RATING_PATCH_FAIL:', upd.status, txt);
+        return 'failed';
       }
-    );
-    if (!upd.ok) {
-      const txt = await upd.text();
-      console.warn('SVEN_RATING_PATCH_FAIL:', upd.status, txt);
+      console.log('SVEN_RATING_PATCHED:', { sessionId, stars, rowId: rows[0].id });
+      return 'patched';
     } else {
-      console.log('SVEN_RATING_SAVED:', { sessionId, stars });
+      // 2b) Ingen befintlig rad — INSERT en standalone-betygsrad
+      const ins = await fetch(
+        `${sbUrl}/rest/v1/sven_logs`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': sbKey,
+            'Authorization': 'Bearer ' + sbKey,
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            session_id:    sessionId,
+            rating:        stars,
+            message:       '(endast betyg)',
+            reply_preview: null,
+            is_chip:       false,
+            customer_type: opts.customerType || null,
+            page_url:      opts.pageUrl || null,
+            message_idx:   opts.messageCount || 0,
+          }),
+        }
+      );
+      if (!ins.ok) {
+        const txt = await ins.text();
+        console.warn('SVEN_RATING_INSERT_FAIL:', ins.status, txt);
+        return 'failed';
+      }
+      console.log('SVEN_RATING_INSERTED:', { sessionId, stars });
+      return 'inserted';
     }
   } catch (e) {
     console.warn('SVEN_RATING_ERR:', e.message);
+    return 'failed';
   }
 }
 
@@ -405,10 +445,14 @@ export default async (req) => {
     const pool = RATING_RESPONSES[stars];
     const comment = pool[Math.floor(Math.random() * pool.length)];
     logEvent({ type: "rating", stars, sessionId, messageCount: messageCount || 0 });
-    // Spara till Supabase så admin kan se det. Fire-and-forget — vi väntar inte
-    // utan returnerar svaret till kunden direkt.
-    saveRatingToSupabase(sessionId, stars).catch(e => console.warn('RATING_BG:', e.message));
-    return new Response(JSON.stringify({ comment }), {
+    // Vi awaitar nu så vi kan returnera status till frontend. Tidigare var
+    // detta fire-and-forget vilket gjorde tysta fel osynliga.
+    const saveResult = await saveRatingToSupabase(sessionId, stars, {
+      customerType,
+      pageUrl,
+      messageCount,
+    });
+    return new Response(JSON.stringify({ comment, saved: saveResult }), {
       status: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
