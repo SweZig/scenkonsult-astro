@@ -2263,14 +2263,17 @@ async function loadCarts() {
 }
 
 // ── KANBAN ────────────────────────────────────────────────────
-// "Oläst" = endera (a) admin har olästa kundmeddelanden, (b) kunden har inte
-//          öppnat sin offert än, eller (c) kund har förberett utlämning men
-//          admin har ännu inte motkvitterat (kräver action från admin)
+// "Oläst" = endera (a) admin har olästa kundmeddelanden eller
+//          (b) kunden har inte öppnat sin offert än.
+// Förberedd-status räknas EJ som oläst — det är ett tillstånd, inte ett
+// meddelande. Adminavi går via mail till info@scenkonsult.se istället
+// (skickas en gång per cart från sign-submit.js, låst via
+// prepared_email_sent_at). Lavendel-pillen "✍ Förberedd" på kortet
+// kommer från pickupBadge() och kvarstår som visuell statusmarkör.
 function isCartUnread(c) {
-  const adminHasUnread     = (c.unread_count || 0) > 0;
-  const customerNotRead    = ['waiting','confirmed','fakturerad'].includes(c.status) && !c.last_read_customer;
-  const pickupNeedsConfirm = !!c.pickup_signed_at && !c.pickup_confirmed_at;
-  return adminHasUnread || customerNotRead || pickupNeedsConfirm;
+  const adminHasUnread  = (c.unread_count || 0) > 0;
+  const customerNotRead = ['waiting','confirmed','fakturerad'].includes(c.status) && !c.last_read_customer;
+  return adminHasUnread || customerNotRead;
 }
 
 function getFilteredCarts() {
@@ -2479,9 +2482,7 @@ function cartCardCompact(c) {
   const noDateB  = noDateFlag(c);
   const sentTxt  = sentDays === 0 ? 'Idag' : sentDays === 1 ? 'Igår' : `${sentDays}d sedan`;
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
-  const preparedPill = (c.pickup_signed_at && !c.pickup_confirmed_at)
-    ? `<span class="unread-pill" style="background:rgba(196,181,244,0.15);border-color:rgba(196,181,244,0.5);color:#c4b5f4" title="Kund har förberett utlämning — väntar din motkvittering">✍ Förberedd</span>`
-    : '';
+  // (Tidigare extra "✍ Förberedd"-pill borttagen — pBadge ovan visar samma status.)
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
   const loc      = c.event_location ? `· ${c.event_location}` : '';
   // Permanent-radera-knapp endast på cancelled-kort
@@ -2501,7 +2502,6 @@ function cartCardCompact(c) {
         ${pBadge}
         ${rBadge}
         ${unread}
-        ${preparedPill}
       </div>
       <div class="cc-row2">
         <span>${evTxt}${loc ? ' ' + loc : ''}</span>

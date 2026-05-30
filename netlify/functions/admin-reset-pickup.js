@@ -62,6 +62,8 @@ exports.handler = async (event) => {
       // Admins motkvittering
       pickup_confirmed_at:               null,
       pickup_admin_note:                 null,
+      // Adminavi-låset (så ny förberedelse genererar nytt mail)
+      prepared_email_sent_at:            null,
     };
 
     // Opt-in: nollställ även påminnelse-stämpeln så cron/manuell trigger kan
