@@ -253,6 +253,12 @@
         } else if (newH < win.offsetHeight - tolerance) {
           win.style.height = Math.max(newH, minH) + 'px';
         }
+
+        // Säkerställ att senaste meddelandet syns efter att höjden ändrats —
+        // när Svens svar är långt kan scrollTop hamna fel efter resize.
+        // Två steg för att fånga både snabb och fördröjd layoutuppdatering.
+        msgArea.scrollTop = msgArea.scrollHeight;
+        requestAnimationFrame(() => { msgArea.scrollTop = msgArea.scrollHeight; });
       }
 
       // Synka moms-toggle med kundtyp från Sven
@@ -572,6 +578,9 @@
         else if (/\bförening\b|\borgani/i.test(msg)) { customerType = "org"; syncVat("excl"); }
 
         input.value = "";
+        // Återställ textarea-höjd efter skick — annars sitter den utdragen
+        input.style.height = '';
+        delete input.dataset.userHeight;
         chips.innerHTML = "";
         addBubble("user", msg);
         history.push({ role: "user", content: msg });
@@ -680,7 +689,22 @@
 
       sendBtn.addEventListener("click", () => sendMessage(input.value));
       input.addEventListener("keydown", e => {
+        // Enter skickar, Shift+Enter ger ny rad (textarea-beteende).
         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input.value); }
+      });
+      // Auto-grow medan kunden skriver — högst 200px, sen scrollar textareas själv.
+      // Användaren kan fortfarande dra för att göra större manuellt (CSS: resize: vertical).
+      input.addEventListener("input", () => {
+        // Respektera om användaren dragit större — gå inte under den höjden
+        const userResized = parseInt(input.dataset.userHeight || '0', 10);
+        input.style.height = 'auto';
+        const want = Math.min(input.scrollHeight, 200);
+        input.style.height = Math.max(want, userResized || 38) + 'px';
+      });
+      // Spara manuell drag-höjd så vi inte tar bort den vid nästa input-event
+      input.addEventListener("mouseup", () => {
+        const h = input.offsetHeight;
+        if (h > 38) input.dataset.userHeight = h;
       });
 
       // Unread badge efter 8 sek om chatten inte öppnats
