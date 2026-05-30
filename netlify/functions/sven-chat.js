@@ -498,15 +498,18 @@ export default async (req) => {
     }
 
     // Logga till console + Supabase
-    const msgText = lastUser.substring(0, 500);
+    // Tidigare trunkerades både kund-meddelande (500 tkn) och Svens svar
+    // (300 tkn) vid lagring vilket gjorde admin-tråden ofullständig.
+    // Nu lagras allt — Supabase TEXT-kolumner har ingen praktisk gräns.
+    // Console-loggen får dock kortare versioner för att inte spamma Functions log.
     logEvent({ type: "message", sessionId, customerType, messageCount: trimmed.length,
-      userMessage: msgText, replyPreview: reply.substring(0, 200) });
+      userMessage: lastUser.substring(0, 200), replyPreview: reply.substring(0, 200) });
     await logToSupabase({
       session_id:    sessionId || null,
       customer_type: customerType || null,
-      message:       msgText,
-      reply_preview: reply.substring(0, 300),
-      is_chip:       isChip(msgText),
+      message:       lastUser,
+      reply_preview: reply,
+      is_chip:       isChip(lastUser),
       page_url:      pageUrl || null,
       message_idx:   trimmed.length,
     });
