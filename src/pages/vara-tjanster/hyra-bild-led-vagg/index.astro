@@ -1159,19 +1159,35 @@ const faqSchema = {
       optStage.addEventListener('change', () => { showStage = optStage.checked; render(); });
       optAudience.addEventListener('change', () => { showAudience = optAudience.checked; render(); });
 
-      // Snap-format för bredd/höjd: tvinga 0,5-stegning + alltid 1 decimal i visningen
+      // Snap-format för bredd/höjd: tvinga stegning + alltid 1 decimal i visningen
       // (HTML number-input strippar trailing zero, så "4.0" visas som "4" utan denna fix).
+      // Bredd-stegning är alltid 0,5 m (alla paneler är 500 mm breda).
+      // Höjd-stegning är paneltyp-medveten: panel.ph / 1000 (indoor 500→0,5 m, outdoor 1000→1,0 m).
       // Registreras FÖRE render-listener nedan så att render() läser det justerade värdet.
-      function snapToHalfM(el) {
+      function snapStep(el, stepM) {
         const n = parseFloat(el.value);
         if (isNaN(n)) return;
-        const snapped = Math.round(n * 2) / 2;
+        const snapped = Math.round(n / stepM) * stepM;
         el.value = snapped.toFixed(1);
       }
-      [wM, hM].forEach(el => el.addEventListener('change', () => snapToHalfM(el)));
+      function heightStepM() {
+        const p = getPanel();
+        return p && p.ph ? p.ph / 1000 : 0.5;
+      }
+      // Synka HTML step-attribut på höjd-input när panel byts
+      // (styr pil-stegning + browser-validering)
+      function syncHeightStep() {
+        const s = heightStepM();
+        hM.step = String(s);
+        snapStep(hM, s);
+      }
+      wM.addEventListener('change', () => snapStep(wM, 0.5));
+      hM.addEventListener('change', () => snapStep(hM, heightStepM()));
+      panelSel.addEventListener('change', syncHeightStep);
       // Initial formatering så att default-värdena visas med en decimal (4,0 / 2,5)
-      snapToHalfM(wM);
-      snapToHalfM(hM);
+      // och height-step är korrekt synkat mot vald panel
+      snapStep(wM, 0.5);
+      syncHeightStep();
 
       // Input-förändringar
       [panelSel, wM, hM, diag, ratio, cols, rows, inclMontering, inclProcessor].forEach(el => {
