@@ -2814,17 +2814,27 @@ function cartCardHTML(c) {
     ? `<button class="cart-card-delete-btn" onclick="event.stopPropagation(); deleteCancelledCart('${c.id}')" title="Radera permanent">🗑</button>`
     : '';
 
+  // Sven-badge: lavendel pill när source='sven' — visar att ärendet är
+  // skapat via Svens [FORWARD]-knapp och INTE genom kundens vanliga
+  // offertformulär. Mindre verifierad data — kolla snapshoten i notes_admin.
+  let svenBadge = '';
+  if (c.source === 'sven') {
+    const typeLabels = { offert: '✉ Offert', ring: '📞 Uppringning', fraga: '❓ Fråga' };
+    const tLabel = typeLabels[c.sven_forward_type] || 'Sven-ärende';
+    svenBadge = `<span style="background:rgba(196,181,244,0.18);border:1px solid rgba(196,181,244,0.45);color:#c4b5f4;font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:0.02em;display:inline-flex;align-items:center;gap:3px" title="Skapad via Svens chatbot — ${tLabel}">🤖 ${tLabel}</span>`;
+  }
+
   return `
     <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative;${cardExtraStyle}">
       ${delBtn}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-        <div class="cart-card-name" style="margin:0">${c.customer_name || 'Okänd kund'}</div>
+        <div class="cart-card-name" style="margin:0">${c.customer_name || (c.source === 'sven' ? 'Sven-ärende — kund okänd' : 'Okänd kund')}</div>
         ${intentBadge}
       </div>
       ${daysFlag}
-      ${(reqB || paidB || overdueB || noDateB) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${reqB}${overdueB}${noDateB}${paidB}</div>` : ''}
+      ${(reqB || paidB || overdueB || noDateB || svenBadge) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${svenBadge}${reqB}${overdueB}${noDateB}${paidB}</div>` : ''}
       ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
-      <div class="cart-card-sub">${c.customer_email || ''}</div>
+      <div class="cart-card-sub">${c.customer_email || (c.source === 'sven' ? '(kontaktuppgifter saknas — se chattlogg)' : '')}</div>
       ${bounceBadge}
       <div class="cart-card-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
@@ -3403,8 +3413,33 @@ function renderInfoTab() {
       </div>`;
   }
 
+  // Sven-banner: ärende skapat via Svens [FORWARD]-knapp. Visar typ + länk
+  // till hela chattloggen så admin kan läsa konversationen som ledde hit.
+  let svenBanner = '';
+  if (c.source === 'sven') {
+    const typeMap = {
+      offert: { icon: '✉', label: 'Kunden vill få en offert', advice: 'Läs chattloggen för att förstå behovet. Kontaktuppgifter saknas — du behöver eventuellt fråga kunden eller leta efter mail/telefon i konversationen.' },
+      ring:   { icon: '📞', label: 'Kunden vill bli uppringd', advice: 'Telefonnummer ska finnas i chattloggen — annars finns det inget sätt att nå kunden. Kolla noterna nedan.' },
+      fraga:  { icon: '❓', label: 'Kunden har en fråga', advice: 'Sven kunde inte besvara frågan själv. Läs konversationen och avgör om mail, telefon eller varukorg är rätt nästa steg.' },
+    };
+    const meta = typeMap[c.sven_forward_type] || { icon: '🤖', label: 'Sven-ärende', advice: 'Granska konversationen i chattloggen.' };
+    const sessionLink = c.sven_session_id
+      ? `<a href="/admin/sven/?session=${encodeURIComponent(c.sven_session_id)}" target="_blank" style="color:#c4b5f4;text-decoration:underline;font-weight:600">Öppna hela chatten ↗</a>`
+      : '<span style="color:rgba(255,255,255,0.5)">(ingen session — chattlogg ej tillgänglig)</span>';
+    svenBanner = `
+      <div style="background:rgba(196,181,244,0.10);border:1px solid rgba(196,181,244,0.45);border-radius:10px;padding:14px 16px;margin-bottom:14px;color:#e2dcfb">
+        <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.95rem;margin-bottom:4px">
+          <span style="font-size:1.1rem">🤖</span>
+          <span>${meta.icon} ${meta.label} — skapat via Sven</span>
+        </div>
+        <div style="font-size:0.83rem;line-height:1.55;color:rgba(255,255,255,0.78);margin-top:6px">${meta.advice}</div>
+        <div style="margin-top:8px;font-size:0.83rem">${sessionLink}</div>
+      </div>`;
+  }
+
   return `
     ${bounceBanner}
+    ${svenBanner}
     <div class="section-label">Status</div>
     <div class="status-row">
       <select class="status-select" id="status-select" style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;padding-right:2.25rem">

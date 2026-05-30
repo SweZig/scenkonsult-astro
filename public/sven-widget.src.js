@@ -370,9 +370,17 @@
       function formatMsg(rawText) {
         // Extrahera och ta bort [CART:id1,id2] innan escaping
         let cartIds = [];
-        const text = rawText.replace(/\[CART:([^\]]+)\]/g, (_, ids) => {
+        let text = rawText.replace(/\[CART:([^\]]+)\]/g, (_, ids) => {
           cartIds = ids.split(',').map(s => s.trim()).filter(Boolean);
           return ''; // ta bort taggen från texten
+        }).trim();
+
+        // Extrahera och ta bort [FORWARD:type] (backend strippar normalt men vi
+        // hanterar fallet om frontend råkar få in en otvättad text också)
+        let forwardType = null;
+        text = text.replace(/\[FORWARD:(offert|ring|fraga)\]/gi, (_, t) => {
+          forwardType = t.toLowerCase();
+          return '';
         }).trim();
 
         let html = escHtml(text)
@@ -401,6 +409,26 @@
             </div>`;
           }
         }
+
+        // Rendera FORWARD-knapp om Sven taggat ärendet
+        if (forwardType) {
+          const labels = {
+            offert: 'Be Scenkonsult skicka offert →',
+            ring:   'Be Scenkonsult ringa mig →',
+            fraga:  'Be Scenkonsult kontakta mig om detta →',
+          };
+          const lbl = labels[forwardType] || labels.fraga;
+          // Skicka med cartIds som data så servern kan ta med dem i ärendet
+          const cartIdsJson = JSON.stringify(cartIds);
+          html += `<div style="margin-top:10px">
+              <button class="sven-forward-btn" data-type="${forwardType}" data-cart-ids='${cartIdsJson}'
+                style="background:rgba(196,181,244,0.18);color:#fff;border:1px solid rgba(196,181,244,0.6);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.3">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                ${escHtml(lbl)}
+              </button>
+            </div>`;
+        }
+
         return html;
       }
 
@@ -582,6 +610,64 @@
           const ids = JSON.parse(btn.dataset.ids || "[]");
           if (ids.length > 0) svenAddCartAndGo(ids);
         } catch {}
+      });
+
+      // Klick på Svens "Be Scenkonsult kontakta mig"-knapp (FORWARD-knapp)
+      msgs.addEventListener("click", async e => {
+        const btn = e.target.closest(".sven-forward-btn");
+        if (!btn) return;
+        if (btn.dataset.sent === "1") return; // klick-skydd
+        const forwardType = btn.dataset.type;
+        let cartIdHints = [];
+        try { cartIdHints = JSON.parse(btn.dataset.cartIds || "[]"); } catch {}
+
+        // Bygg items från SVEN_PRODUCTS för cart-ID-tipsen
+        const items = cartIdHints
+          .map(id => SVEN_PRODUCTS[id] ? { id, ...SVEN_PRODUCTS[id] } : null)
+          .filter(Boolean);
+
+        btn.dataset.sent = "1";
+        btn.disabled = true;
+        const originalLabel = btn.innerHTML;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Skickas…';
+
+        try {
+          const res = await fetch("/.netlify/functions/sven-forward", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              forward_type:  forwardType,
+              session_id:    sessionId,
+              history:       history,
+              items,
+              page_url:      window.location.pathname,
+              customer_type: customerType,
+            }),
+          });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+
+          // Ersätt knappen med en bekräftelse-bubbla
+          btn.style.background = "rgba(196,181,244,0.35)";
+          btn.style.borderColor = "rgba(196,181,244,0.9)";
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Ärendet är skickat!';
+
+          // Lägg in ett kort tackbubble från Sven
+          const confirmText = forwardType === "ring"
+            ? "Klart! Scenkonsult ringer dig så snart de kan. Du behöver inte göra något mer just nu."
+            : forwardType === "fraga"
+            ? "Klart! Ärendet är registrerat och en människa tittar på det. Vi hör av oss inom kort."
+            : "Klart! Offerten är på väg — Scenkonsult återkommer per mail så snart de kollat detaljerna.";
+          addBubble("bot", confirmText);
+          history.push({ role: "assistant", content: confirmText });
+          saveSession();
+        } catch (err) {
+          btn.dataset.sent = "";
+          btn.disabled = false;
+          btn.innerHTML = originalLabel;
+          addBubble("bot", "Hm, kunde inte skicka ärendet just nu. Försök igen om en stund eller ring oss på [072-448 10 00](tel:+46724481000).");
+          console.error("SVEN_FORWARD_CLICK_ERROR:", err);
+        }
       });
 
       sendBtn.addEventListener("click", () => sendMessage(input.value));

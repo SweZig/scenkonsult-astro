@@ -49,27 +49,28 @@ Din uppgift: Hjälp besökare hitta rätt utrustning, visa korrekta priser och g
 - Håll svar till max 3–4 meningar eller en kort punktlista
 - Inkludera ALLTID klickbara markdown-länkar när du nämner en produkt eller sida
 
-═══ DINA GRÄNSER — DETTA KAN DU INTE GÖRA (VIKTIGT) ═══
-Du är en chatbot på sajten. Du har INGEN åtkomst till mail, telefon, kalender eller administrativa system. Du kan ALDRIG:
-- Skicka offert, prisuppgift eller bekräftelse till kunden
-- Maila eller ringa kunden
-- Boka in datum eller reservera utrustning
-- Skapa, ändra eller följa upp ordrar
+═══ DINA GRÄNSER & VERKTYG ═══
+Du är en chatbot på sajten. Du kan INTE själv skicka mail, ringa, boka eller skapa offerter — men du har TVÅ verktyg för att överlämna till en människa:
 
-Säg ALDRIG fraser som:
-- "Jag skickar offert/prisuppgift till dig"
-- "Offerten skickas till dig inom kort"
-- "Jag mailar dig" / "Jag ringer dig"
-- "Återkommer per mail/inom kort"
-- "Jag fixar det" / "Jag bokar"
+VERKTYG 1: [CART:cart-id1,cart-id2] — lägger produkter i kundens varukorg
+VERKTYG 2: [FORWARD:typ] — skapar ett ärende i admin-panelen så att Scenkonsult kontaktar kunden
 
-Om kunden ger dig sina kontaktuppgifter (mail, telefon, adress) eller verkar vänta på offert:
-1. Tacka för informationen.
-2. Förklara att du är en chatbot som inte kan skicka offerter själv.
-3. Hänvisa till [offertformuläret](/bokningssida/) ELLER ring 072-448 10 00 (vardagar 09:00–17:00).
-4. Tipsa om att lägga produkterna i varukorgen med [CART:...]-taggen — då följer allt med när kunden klickar "Maila offertförfrågan".
+Använd [FORWARD:...] när kunden:
+- Ger dig sina kontaktuppgifter (mail, telefon, adress) och förväntar uppföljning
+- Explicit ber dig "skicka offert" / "ringa mig" / "kontakta mig"
+- Har en fråga som kräver mänsklig bedömning (komplex setup, ovanlig önskan, datum-kollision)
 
-Exempel på rätt svar när kunden ger mail+telefon: "Tack för uppgifterna, Tim! Men jag är en chatbot och kan tyvärr inte skicka offerter själv. För att få en konkret offert: fyll i [offertformuläret](/bokningssida/) — då får du svar samma dag. Eller ring 072-448 10 00 vardagar 09:00–17:00, så hjälper en människa dig direkt."
+Tre giltiga typer:
+- [FORWARD:offert] — kunden vill ha offert via mail
+- [FORWARD:ring]   — kunden vill bli uppringd
+- [FORWARD:fraga]  — fråga som kräver mänsklig hantering
+
+Hur det funkar för kunden: När du taggar [FORWARD:...] visas en lavendelknapp i chatten med texten "Be Scenkonsult kontakta mig om detta →". Kunden klickar för att bekräfta — då skapas ärendet i admin. Om kunden inte klickar händer ingenting. Du behöver alltså INTE be om bekräftelse — knappen är bekräftelsen.
+
+Du kan kombinera [FORWARD] med [CART] i samma svar — då följer produkterna med i ärendet:
+"Här är min rekommendation: Live, Large och 12+4-mixer. Vill du att jag skickar över detta så Scenkonsult återkommer med offert? [CART:ljd-liv-0003,ljd-mix-0006] [FORWARD:offert]"
+
+VIKTIGT: Lova ALDRIG att DU mailar/ringer/skickar offert. Säg istället "Vill du att Scenkonsult kontaktar dig?" eller "Klicka knappen så får du svar inom kort". Det är knappen som lovar — inte du.
 
 ═══ MOMS-LOGIK (VIKTIG) ═══
 Om du INTE vet kundtypen — fråga TIDIGT: "Är det för ett företag, som privatperson eller för en förening/organisation?"
@@ -298,99 +299,22 @@ function escapeHtml(s) {
   );
 }
 
-async function notifyAdminPromise({ promise, sessionId, pageUrl, customerType, history, reply }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) { console.warn('SVEN_PROMISE: RESEND_API_KEY saknas'); return; }
-
-  // Bygg konversationshistorik (sista 8 meddelandena)
-  const tail = (history || []).slice(-8);
-  const histHtml = tail.map(m => {
-    const who = m.role === 'user' ? 'Kund' : 'Sven';
-    const color = m.role === 'user' ? '#1e1850' : '#7a6dc7';
-    const content = escapeHtml(typeof m.content === 'string' ? m.content : JSON.stringify(m.content));
-    return `<div style="margin:8px 0;padding:10px 14px;background:${m.role==='user'?'#f4f4f7':'#efeaf9'};border-left:3px solid ${color};border-radius:4px;">
-      <div style="font-size:11px;font-weight:700;color:${color};text-transform:uppercase;margin-bottom:4px;">${who}</div>
-      <div style="font-size:14px;color:#222;white-space:pre-wrap;">${content}</div>
-    </div>`;
-  }).join('');
-
-  const replySafe = escapeHtml(reply);
-  const sessionLink = sessionId
-    ? `https://scenkonsult.se/admin/sven/?session=${encodeURIComponent(sessionId)}`
-    : 'https://scenkonsult.se/admin/sven/';
-
-  const html = `<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"><title>Sven har lovat något</title></head>
-<body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;padding:32px 16px;">
-<tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-  <tr><td style="background:#1e1850;border-radius:12px 12px 0 0;padding:24px 32px;text-align:center;color:#fff;">
-    <div style="font-size:22px;font-weight:700;">🚨 Sven har lovat något</div>
-    <div style="font-size:13px;opacity:0.85;margin-top:6px;">Kunden förväntar sig mänsklig uppföljning</div>
-  </td></tr>
-  <tr><td style="background:#fff3cd;padding:14px 32px;border-bottom:1px solid #ffe69c;">
-    <div style="font-size:13px;color:#664d03;"><strong>Detekterad fras:</strong> "${escapeHtml(promise)}"</div>
-  </td></tr>
-  <tr><td style="background:#fff;padding:24px 32px;">
-    <div style="font-size:13px;color:#666;margin-bottom:4px;">Senaste svaret från Sven:</div>
-    <div style="padding:12px 14px;background:#efeaf9;border-left:3px solid #7a6dc7;border-radius:4px;font-size:14px;color:#222;white-space:pre-wrap;margin-bottom:24px;">${replySafe}</div>
-
-    <div style="font-size:13px;color:#666;margin-bottom:4px;">Konversationshistorik (sista 8 meddelandena):</div>
-    ${histHtml}
-
-    <div style="margin-top:24px;padding:14px;background:#f4f4f7;border-radius:6px;font-size:13px;color:#555;">
-      <div><strong>Sida:</strong> ${escapeHtml(pageUrl || '(okänd)')}</div>
-      <div><strong>Kundtyp:</strong> ${escapeHtml(customerType || '(ej satt)')}</div>
-      <div><strong>Session-ID:</strong> ${escapeHtml(sessionId || '(saknas)')}</div>
-    </div>
-
-    <div style="margin-top:24px;text-align:center;">
-      <a href="${sessionLink}" style="display:inline-block;background:#1e1850;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:700;">Öppna konversationen i admin →</a>
-    </div>
-  </td></tr>
-  <tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:16px 32px;text-align:center;color:rgba(255,255,255,0.7);font-size:11px;">
-    Detta mail skickades automatiskt av Sven-chatbotens löftesdetektor.
-  </td></tr>
-</table></td></tr></table></body></html>`;
-
-  const text = `🚨 SVEN HAR LOVAT NÅGOT — kontrollera och följ upp.
-
-Detekterad fras: "${promise}"
-
-Senaste svar från Sven:
-${reply}
-
-Konversation (sista 8 meddelanden):
-${tail.map(m => `[${m.role === 'user' ? 'KUND' : 'SVEN'}] ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n\n')}
-
-Sida: ${pageUrl || '(okänd)'}
-Kundtyp: ${customerType || '(ej satt)'}
-Session-ID: ${sessionId || '(saknas)'}
-
-Öppna i admin: ${sessionLink}
-`;
-
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: 'Scenkonsult Sven <hej@scenkonsult.se>',
-        to: ['info@scenkonsult.se'],
-        subject: `🚨 Sven har lovat: "${promise.substring(0, 60)}"`,
-        html, text,
-      }),
-    });
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error('SVEN_PROMISE_MAIL_FAIL:', res.status, errText);
-    } else {
-      console.log('SVEN_PROMISE_NOTIFIED:', { promise, sessionId });
-    }
-  } catch (e) {
-    console.error('SVEN_PROMISE_MAIL_ERROR:', e.message);
-  }
+// Extrahera [FORWARD:type]-tagg från Svens svar. Returnerar 'offert'|'ring'|'fraga'|null.
+const FORWARD_RE = /\[FORWARD:(offert|ring|fraga)\]/i;
+function extractForwardTag(reply) {
+  const m = reply.match(FORWARD_RE);
+  return m ? m[1].toLowerCase() : null;
+}
+function stripForwardTag(reply) {
+  return reply.replace(/\s*\[FORWARD:[a-z]+\]\s*/gi, ' ').replace(/\s{2,}/g, ' ').trim();
 }
 
+// Extrahera [CART:id1,id2]-IDs från svaret (utan att ta bort taggen — frontend gör det)
+function extractCartIds(reply) {
+  const m = reply.match(/\[CART:([^\]]+)\]/i);
+  if (!m) return [];
+  return m[1].split(',').map(s => s.trim()).filter(Boolean);
+}
 
 export default async (req) => {
   if (req.method === "OPTIONS") {
@@ -481,20 +405,21 @@ export default async (req) => {
       reply = rawReply.replace(/\nCHIPS:\[.*?\]\s*$/s, "").trim();
     }
 
-    // Löftesdetektor: skicka notifikation till admin om Sven lovat något
-    // som kräver mänsklig uppföljning. Fire-and-forget — vi väntar inte.
-    const promise = detectPromise(reply);
-    if (promise) {
-      // Inte await — låt mailet skickas i bakgrunden medan vi returnerar
-      // svaret till kunden direkt.
-      notifyAdminPromise({
-        promise,
-        sessionId,
-        pageUrl,
-        customerType,
-        history: trimmed,
-        reply,
-      }).catch(e => console.error('SVEN_PROMISE_BG_ERROR:', e.message));
+    // Extrahera [FORWARD:type] från Svens svar — frontend renderar då en knapp
+    const forwardTag = extractForwardTag(reply);
+    if (forwardTag) {
+      reply = stripForwardTag(reply);  // Ta bort taggen från text som visas
+    }
+    // [CART:...]-taggen lämnas kvar i texten — frontend hanterar den separat
+    const cartIds = extractCartIds(reply);
+
+    // Säkerhetsnät: regex-detektor flaggar löften som Sven gjorde UTAN att
+    // tagga [FORWARD]. Tyst loggning till sven_logs.promise_detected.
+    // Inga mail — kanban är notiskanalen.
+    const detectedPromise = detectPromise(reply);
+    const promiseDetected = !!detectedPromise && !forwardTag;
+    if (promiseDetected) {
+      console.warn('SVEN_PROMISE_UNTAGGED:', { phrase: detectedPromise, sessionId });
     }
 
     // Logga till console + Supabase
@@ -503,18 +428,21 @@ export default async (req) => {
     // Nu lagras allt — Supabase TEXT-kolumner har ingen praktisk gräns.
     // Console-loggen får dock kortare versioner för att inte spamma Functions log.
     logEvent({ type: "message", sessionId, customerType, messageCount: trimmed.length,
-      userMessage: lastUser.substring(0, 200), replyPreview: reply.substring(0, 200) });
+      userMessage: lastUser.substring(0, 200), replyPreview: reply.substring(0, 200),
+      forwardTag, promiseDetected });
     await logToSupabase({
-      session_id:    sessionId || null,
-      customer_type: customerType || null,
-      message:       lastUser,
-      reply_preview: reply,
-      is_chip:       isChip(lastUser),
-      page_url:      pageUrl || null,
-      message_idx:   trimmed.length,
+      session_id:        sessionId || null,
+      customer_type:     customerType || null,
+      message:           lastUser,
+      reply_preview:     reply,
+      is_chip:           isChip(lastUser),
+      page_url:          pageUrl || null,
+      message_idx:       trimmed.length,
+      forward_tag:       forwardTag,
+      promise_detected:  promiseDetected,
     });
 
-    return new Response(JSON.stringify({ reply, chips }), {
+    return new Response(JSON.stringify({ reply, chips, forwardTag, cartIds }), {
       status: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
