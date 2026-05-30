@@ -212,13 +212,19 @@ ${PRODUKTER_OCH_PRISER}
 - Deposition: Normalt ingen.
 
 ═══ CHIPS (VIKTIGT — GÖR ALLTID) ═══
-Avsluta VARJE svar med en ny rad som börjar exakt så här:
+Avsluta VARJE svar med en HELT EGEN sista rad som börjar exakt så här (inget mellanrum efter kolon):
 CHIPS:["chip1","chip2","chip3"]
+
+Detta är ALLTID den absolut sista raden i ditt svar — efter eventuell [CART:...] och [FORWARD:...].
+Rätt ordning på sista raderna:
+  ...din text...
+  [CART:cart-id1,cart-id2] [FORWARD:offert]
+  CHIPS:["chip1","chip2","chip3"]
 
 Välj 2–4 chips som är logiska nästa steg för kunden. Exempel:
 - Om du rekommenderat en produkt: ["Lägg i varukorgen", "Se hela scensidan", "Jag vill ha ljud också"]
 - Om kunden frågat om pris generellt: ["Ljud för mitt event", "Scen för bandet", "Jag behöver ljus också"]
-- Om kunden verkar köpredo: ["Gå till offertformulär", "Lägg i varukorgen", "Ring oss nu"]
+- Om kunden verkar köpredo: ["Skicka mig offert", "Lägg i varukorgen", "Ring mig"]
 - Om kunden frågat om leverans/praktiskt: ["Vad kostar frakt?", "Kan ni montera?", "Hur bokar jag?"]
 - Undvik chips som upprepar det kunden just frågat.
 - Chips ska vara korta, max 5–6 ord, handlingsinriktade.`;
@@ -306,7 +312,9 @@ function extractForwardTag(reply) {
   return m ? m[1].toLowerCase() : null;
 }
 function stripForwardTag(reply) {
-  return reply.replace(/\s*\[FORWARD:[a-z]+\]\s*/gi, ' ').replace(/\s{2,}/g, ' ').trim();
+  // Ersätt taggen med inget — behåll omgivande whitespace inkl. newlines
+  // så att CHIPS-regexen (som kräver \n före) fortfarande matchar.
+  return reply.replace(/\[FORWARD:[a-z]+\]/gi, '').replace(/[ \t]+\n/g, '\n').trim();
 }
 
 // Extrahera [CART:id1,id2]-IDs från svaret (utan att ta bort taggen — frontend gör det)
@@ -395,21 +403,28 @@ export default async (req) => {
 
     const data = await apiRes.json();
     const rawReply = data.content?.[0]?.text ?? "Sven verkar ha gått och lagt sig.";
-    
-    // Extrahera chips från svaret (sista raden CHIPS:[...])
-    let reply = rawReply;
-    let chips = [];
-    const chipsMatch = rawReply.match(/\nCHIPS:(\[.*?\])\s*$/s);
-    if (chipsMatch) {
-      try { chips = JSON.parse(chipsMatch[1]); } catch {}
-      reply = rawReply.replace(/\nCHIPS:\[.*?\]\s*$/s, "").trim();
-    }
 
-    // Extrahera [FORWARD:type] från Svens svar — frontend renderar då en knapp
+    // STEG 1: Extrahera och ta bort [FORWARD:type] från svaret.
+    // Görs FÖRST eftersom Sven ibland sätter FORWARD efter CHIPS-raden,
+    // vilket annars skulle göra att CHIPS-regexen (som kräver slutet av
+    // strängen) inte matchar.
+    let reply = rawReply;
     const forwardTag = extractForwardTag(reply);
     if (forwardTag) {
-      reply = stripForwardTag(reply);  // Ta bort taggen från text som visas
+      reply = stripForwardTag(reply);
     }
+
+    // STEG 2: Extrahera chips från svaret. Tolerar:
+    //   • Valfri whitespace efter "CHIPS:" före "["
+    //   • Trailing whitespace/newlines efter "]"
+    //   • LLM glömmer ibland newline före — så vi accepterar både `\n` och radens början
+    let chips = [];
+    const chipsMatch = reply.match(/(?:^|\n)\s*CHIPS:\s*(\[[\s\S]*?\])\s*$/);
+    if (chipsMatch) {
+      try { chips = JSON.parse(chipsMatch[1]); } catch {}
+      reply = reply.replace(/(?:^|\n)\s*CHIPS:\s*\[[\s\S]*?\]\s*$/, "").trim();
+    }
+
     // [CART:...]-taggen lämnas kvar i texten — frontend hanterar den separat
     const cartIds = extractCartIds(reply);
 
