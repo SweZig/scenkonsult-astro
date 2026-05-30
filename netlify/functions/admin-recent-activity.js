@@ -42,14 +42,15 @@ exports.handler = async (event) => {
     }
 
     if (wantEvents) {
-      // För 'unread': bara pickup_signed-events (kund förberedde, kräver motkvittering).
-      // De filtreras nedan så bara de som ENNU EJ motkvitterats visas.
+      // För 'unread': pickup_signed (kund förberedde, kräver motkvittering)
+      // OCH sven_forward_created (Sven-ärenden där admin inte hanterat status).
+      // De filtreras nedan så bara obesvarade visas.
       let q = db.from('audit_log')
         .select('id, cart_id, actor, event_type, payload, created_at')
         .order('created_at', { ascending: false })
         .limit(lim);
       if (filter === 'unread') {
-        q = q.eq('event_type', 'pickup_signed');
+        q = q.in('event_type', ['pickup_signed', 'sven_forward_created']);
       }
       tasks.push(q.then(r => ({ kind: 'audit', data: r.data || [], error: r.error })));
     }
@@ -98,21 +99,30 @@ exports.handler = async (event) => {
     // Berika med kunddata (en query för alla cart_ids).
     // Hämta även pickup_confirmed_at för att kunna filtrera bort
     // pickup_signed-events där admin redan motkvitterat.
+    // Och status + source för att filtrera bort sven_forward_created
+    // där status redan ändrats från 'new' (= hanterat).
     const cartIds = [...new Set(top.map(i => i.cart_id))].filter(Boolean);
     let cartsById = {};
     if (cartIds.length) {
       const { data: carts } = await db.from('carts')
-        .select('id, customer_name, customer_company, status, pickup_confirmed_at')
+        .select('id, customer_name, customer_company, status, source, sven_forward_type, pickup_confirmed_at')
         .in('id', cartIds);
       for (const c of (carts || [])) cartsById[c.id] = c;
     }
 
     const enriched = top
       .filter(i => {
-        // pickup_signed-events är bara "olästa" om admin INTE redan motkvitterat
-        if (i.kind === 'event' && i.event_type === 'pickup_signed') {
-          const c = cartsById[i.cart_id];
-          if (c && c.pickup_confirmed_at) return false;
+        if (i.kind === 'event') {
+          // pickup_signed: dölj om admin redan motkvitterat
+          if (i.event_type === 'pickup_signed') {
+            const c = cartsById[i.cart_id];
+            if (c && c.pickup_confirmed_at) return false;
+          }
+          // sven_forward_created: dölj om status ändrats från 'new' (hanterat)
+          if (i.event_type === 'sven_forward_created') {
+            const c = cartsById[i.cart_id];
+            if (c && c.status && c.status !== 'new') return false;
+          }
         }
         return true;
       })
@@ -123,6 +133,8 @@ exports.handler = async (event) => {
           customer_name:    c.customer_name    || null,
           customer_company: c.customer_company || null,
           cart_status:      c.status           || null,
+          cart_source:      c.source           || null,
+          sven_forward_type: c.sven_forward_type || null,
         };
       });
 

@@ -44,9 +44,10 @@
     .filter-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: rgba(255,255,255,0.6); font-size: 0.78rem; padding: 4px 12px; cursor: pointer; transition: all 0.15s; }
     .filter-btn.active { background: rgba(196,181,244,0.15); border-color: #c4b5f4; color: #c4b5f4; }
     .filter-btn:hover { border-color: rgba(196,181,244,0.4); color: rgba(196,181,244,0.8); }
-    .stat-card.is-rating { display: flex; align-items: center; gap: 0.875rem; }
-    .stat-card.is-rating .stat-meta { font-size: 0.7rem; color: rgba(255,255,255,0.55); margin-top: 4px; }
-    .stat-rating-stars { font-size: 1.5rem; letter-spacing: 0.05em; line-height: 1; color: #fbbf24; text-shadow: 0 0 12px rgba(251,191,36,0.35); }
+    .stat-card.is-rating { display: flex; flex-direction: column; gap: 0.35rem; }
+    .stat-card.is-rating .stat-val { margin-bottom: 0; }
+    .stat-card.is-rating .stat-meta { font-size: 0.7rem; color: rgba(255,255,255,0.55); }
+    .stat-rating-stars { font-size: 1.1rem; letter-spacing: 0.08em; line-height: 1; color: #fbbf24; text-shadow: 0 0 12px rgba(251,191,36,0.35); margin-top: 0.25rem; }
     .stat-rating-stars .empty { color: rgba(255,255,255,0.18); text-shadow: none; }
 
     /* Inline-badges för rating + indikatorer i tabellradern */
@@ -143,9 +144,9 @@
         <div>
           <div class="stat-val" id="s-rating">–</div>
           <div class="stat-lbl">Snittbetyg</div>
-          <div class="stat-meta" id="s-rating-meta"></div>
         </div>
         <div class="stat-rating-stars" id="s-rating-stars">☆☆☆☆☆</div>
+        <div class="stat-meta" id="s-rating-meta">Inga bedömningar än</div>
       </div>
     </div>
 

@@ -1378,7 +1378,7 @@ const _monteringAdminConfig = {
       <div class="kanban-title">Orderöversikt</div>
       <div class="kanban-filters">
         <input class="filter-input" id="filter-search" placeholder="🔍 Sök kund..." style="width:180px" />
-        <button type="button" class="filter-pill" id="filter-unread-btn" aria-pressed="false" title="Visa carts som behöver uppmärksamhet: kunden har inte öppnat offerten ELLER det finns olästa kundmeddelanden">
+        <button type="button" class="filter-pill" id="filter-unread-btn" aria-pressed="false" title="Visa carts som behöver uppmärksamhet: kunden har inte öppnat offerten, olästa kundmeddelanden, ELLER nya Sven-ärenden">
           📬 Oläst<span class="filter-pill-count" id="filter-unread-count" hidden></span>
         </button>
         <div class="filter-date-group">
@@ -2273,7 +2273,11 @@ async function loadCarts() {
 function isCartUnread(c) {
   const adminHasUnread  = (c.unread_count || 0) > 0;
   const customerNotRead = ['waiting','confirmed','fakturerad'].includes(c.status) && !c.last_read_customer;
-  return adminHasUnread || customerNotRead;
+  // Sven-ärenden (skapade via Svens [FORWARD]-knapp) räknas som olästa så
+  // länge admin inte rört dem (= status fortfarande 'new'). Så snart status
+  // ändras (waiting/confirmed/cancelled) räknas det som hanterat.
+  const svenPending = c.source === 'sven' && c.status === 'new';
+  return adminHasUnread || customerNotRead || svenPending;
 }
 
 function getFilteredCarts() {
@@ -3426,6 +3430,13 @@ function renderInfoTab() {
     const sessionLink = c.sven_session_id
       ? `<a href="/admin/sven/?session=${encodeURIComponent(c.sven_session_id)}" target="_blank" style="color:#c4b5f4;text-decoration:underline;font-weight:600">Öppna hela chatten ↗</a>`
       : '<span style="color:rgba(255,255,255,0.5)">(ingen session — chattlogg ej tillgänglig)</span>';
+    // Visa "✓ Markera som hanterad"-knapp endast när status är 'new'.
+    // Klick → cancelled + audit-event så Sven-ärendet försvinner från oläst-räknaren
+    // utan att skapa en falsk offert. För riktiga ärenden ändras status manuellt
+    // via dropdownen (waiting/confirmed/etc) vilket också räknas som hanterat.
+    const dismissBtn = c.status === 'new'
+      ? `<button onclick="dismissSvenForward('${c.id}')" style="margin-top:10px;background:rgba(196,181,244,0.18);color:#c4b5f4;border:1px solid rgba(196,181,244,0.45);font-size:0.78rem;padding:6px 14px;border-radius:7px;cursor:pointer;font-weight:600">✓ Markera som hanterad</button>`
+      : '';
     svenBanner = `
       <div style="background:rgba(196,181,244,0.10);border:1px solid rgba(196,181,244,0.45);border-radius:10px;padding:14px 16px;margin-bottom:14px;color:#e2dcfb">
         <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:0.95rem;margin-bottom:4px">
@@ -3434,6 +3445,7 @@ function renderInfoTab() {
         </div>
         <div style="font-size:0.83rem;line-height:1.55;color:rgba(255,255,255,0.78);margin-top:6px">${meta.advice}</div>
         <div style="margin-top:8px;font-size:0.83rem">${sessionLink}</div>
+        ${dismissBtn}
       </div>`;
   }
 
@@ -6028,6 +6040,37 @@ async function deleteCancelledCart(cartId) {
 }
 window.deleteCancelledCart = deleteCancelledCart;
 
+// ── MARKERA SVEN-ÄRENDE SOM HANTERAT ─────────────────────────
+// Avfärdar ett Sven-ärende som inte ska resultera i offert (t.ex. när admin
+// ringt klart, kunden var spam, eller ärendet löste sig av sig självt).
+// Sätter status → 'cancelled' så ärendet försvinner från oläst-räknaren
+// utan att synas som en falsk offert i pipelinen.
+// Vid riktig uppföljning ändras status manuellt till 'waiting'/'confirmed' istället.
+async function dismissSvenForward(cartId) {
+  const c = currentCart && currentCart.id === cartId ? currentCart : carts.find(x => x.id === cartId);
+  if (!c) { toast('Kunde inte hitta ärendet', 'error'); return; }
+  if (c.source !== 'sven') { toast('Detta är inte ett Sven-ärende', 'error'); return; }
+  if (!confirm('Markera Sven-ärendet som hanterat?\n\nDet försvinner från olästa-räknaren men finns kvar i historiken.\n\nOK = markera hanterat\nAvbryt = behåll som öppet')) return;
+
+  const { ok, data } = await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: cartId, status: 'cancelled' })
+  });
+  if (ok) {
+    if (currentCart && currentCart.id === cartId) currentCart.status = 'cancelled';
+    toast('Sven-ärende markerat som hanterat ✓');
+    loadCarts();
+    if (currentCart && currentCart.id === cartId) {
+      renderTab('info');
+      renderPanelFooter();
+    }
+  } else {
+    console.error('SVEN_DISMISS_FAIL:', cartId, data);
+    toast(data?.error || 'Kunde inte markera ärendet', 'error');
+  }
+}
+window.dismissSvenForward = dismissSvenForward;
+
 // ── KLONA KUND TILL NY OFFERT ──────────────────────────────────
 // Återanvänder kundinfo (namn, email, telefon, företag, plats osv) men
 // lämnar datum, tider, produkter och anmärkning tomma. När admin klickar
@@ -7127,6 +7170,8 @@ let _activityFilter = 'all'; // 'all' | 'messages' | 'unread' | 'events'
 // Återanvänd EVENT_LABELS från renderLogTab — definiera här som standalone-kopia
 // så aktivitets-drawern inte kräver att Logg-fliken renderats.
 const ACTIVITY_EVENT_LABELS = {
+  'sven_forward_created':       { icon: '🤖', label: 'Sven skapade ärende — kunden klickade FORWARD', color: '#c4b5f4' },
+  'sven_forward_dismissed':     { icon: '✓',  label: 'Sven-ärende avfärdat (åtgärdat)',             color: 'rgba(255,255,255,.55)' },
   'offer_opened_first':         { icon: '👁️', label: 'Kunden öppnade offerten (första gången)', color: 'var(--brand-lav)' },
   'offer_opened':               { icon: '👁',  label: 'Kunden öppnade offerten igen',           color: 'rgba(196,181,244,.6)' },
   'messages_read':              { icon: '✓✓', label: 'Kunden läste meddelanden',                color: 'rgba(255,255,255,.55)' },
@@ -7250,9 +7295,9 @@ function _activityEventRow(e) {
     }
   }
   const actorLabel = e.actor === 'customer' ? 'Kund' : e.actor === 'admin' ? 'Vi' : 'System';
-  // pickup_signed-events öppnar 'info'-fliken där utlämningsrutan + "Genomför
-  // utlämning"-knappen finns. Övriga events går till loggen som tidigare.
-  const targetTab = e.event_type === 'pickup_signed' ? 'info' : 'log';
+  // pickup_signed och sven_forward_created öppnar 'info'-fliken där bannern +
+  // åtgärdsknappen finns. Övriga events går till loggen som tidigare.
+  const targetTab = ['pickup_signed', 'sven_forward_created'].includes(e.event_type) ? 'info' : 'log';
   return `
     <div onclick="openFromActivity('${e.cart_id}','${targetTab}')"
          style="padding:0.7rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .12s"
