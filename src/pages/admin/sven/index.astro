@@ -645,7 +645,7 @@ async function init() {
   await Promise.all([loadStats(), loadLogs()]);
 }
 
-// Polling var 10:e sekund så nya betyg/loggar/chattar dyker upp utan
+// Polling var 10:e minut så nya betyg/loggar/chattar dyker upp utan
 // manuell siduppdatering. Pausar när fliken är inaktiv (visibilitychange)
 // för att spara API-anrop.
 let _svenPollTimer = null;
@@ -657,7 +657,7 @@ function startPolling() {
     if (modalOpen || document.hidden) return;
     loadStats();
     loadLogs();
-  }, 10000);
+  }, 10 * 60 * 1000); // 10 min
 }
 function stopPolling() {
   if (_svenPollTimer) { clearInterval(_svenPollTimer); _svenPollTimer = null; }
