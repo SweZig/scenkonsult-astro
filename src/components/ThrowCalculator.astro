@@ -1,0 +1,282 @@
+---
+// ThrowCalculator.astro
+// Kalkylator för kastavstånd mellan projektor och duk.
+// Två lägen: bildstorlek → avstånd, och avstånd → bildstorlek.
+// Datadrivet: throwRatio {min,max,aspect} kommer från bild.json per projektor.
+//
+// Användning på produktkort/sida:
+//   <ThrowCalculator name={p.name} artno={p.artno} throwRatio={p.throwRatio} />
+//
+// Renderar en diskret knapp; modalen lyfts till document.body vid klick
+// (undviker overflow/stacking-problem inuti produktkort).
+
+interface ThrowRatio { min: number; max: number; aspect?: string }
+interface Props {
+  name: string;
+  artno?: string;
+  throwRatio?: ThrowRatio;
+  variant?: 'link' | 'button';
+}
+const { name, artno = '', throwRatio, variant = 'link' } = Astro.props;
+
+// Rendera inget om projektorn saknar throwRatio
+const tr = throwRatio;
+---
+{tr && (
+  <button
+    type="button"
+    class="sk-tc-open"
+    data-tc-name={name}
+    data-tc-artno={artno}
+    data-tc-min={tr.min}
+    data-tc-max={tr.max}
+    data-tc-aspect={tr.aspect ?? '16:9'}
+    class:list={[
+      variant === 'link'
+        ? 'inline-flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-brand-orange transition-colors mt-1 w-fit'
+        : 'inline-flex items-center gap-2 bg-brand-dark/60 hover:bg-brand-dark border border-white/10 hover:border-brand-orange/40 text-gray-300 hover:text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors w-full justify-center'
+    ]}
+    aria-label={`Beräkna avstånd och bildstorlek för ${name}`}
+  >
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+      <path d="M3 7h18"/><path d="M3 7v10"/><path d="M21 7v10"/><path d="M3 17h18"/><path d="M7 7v3"/><path d="M11 7v3"/><path d="M15 7v3"/><path d="M19 7v3"/>
+    </svg>
+    Beräkna avstånd & bildstorlek
+  </button>
+)}
+
+<style is:global>
+  /* Throw calculator modal — lyft till body */
+  .sk-tc-backdrop{
+    position:fixed; inset:0; z-index:8800;
+    background:rgba(5,4,15,0.78); backdrop-filter:blur(3px);
+    display:flex; align-items:center; justify-content:center; padding:1rem;
+    opacity:0; transition:opacity .15s ease;
+  }
+  .sk-tc-backdrop.sk-tc-show{ opacity:1; }
+  .sk-tc-modal{
+    position:relative; z-index:8900;
+    width:100%; max-width:480px; max-height:90vh; overflow-y:auto;
+    background:#1e1850; border:1px solid rgba(196,181,244,0.25);
+    border-radius:1rem; padding:1.5rem;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    transform:translateY(8px); transition:transform .15s ease;
+  }
+  .sk-tc-backdrop.sk-tc-show .sk-tc-modal{ transform:translateY(0); }
+  .sk-tc-close{
+    position:absolute; top:1rem; right:1rem; width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    border-radius:8px; color:rgba(255,255,255,0.7); cursor:pointer; font-size:1.1rem; line-height:1;
+    transition:background .15s, color .15s;
+  }
+  .sk-tc-close:hover{ background:rgba(255,255,255,0.12); color:#fff; }
+  .sk-tc-title{ font-family:'DM Serif Display',serif; color:#fff; font-size:1.35rem; margin:0 0 0.25rem; padding-right:2.5rem; }
+  .sk-tc-sub{ color:rgba(255,255,255,0.55); font-size:0.8rem; margin:0 0 1.25rem; }
+  .sk-tc-tabs{ display:flex; gap:0.5rem; margin-bottom:1.25rem; }
+  .sk-tc-tab{
+    flex:1; padding:0.6rem 0.5rem; font-size:0.8rem; font-weight:600;
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+    border-radius:0.6rem; color:rgba(255,255,255,0.6); cursor:pointer;
+    transition:all .15s; text-align:center;
+  }
+  .sk-tc-tab.sk-tc-active{ background:rgba(196,181,244,0.15); border-color:rgba(196,181,244,0.5); color:#c4b5f4; }
+  .sk-tc-field{ margin-bottom:1.25rem; }
+  .sk-tc-label{ display:block; font-size:0.78rem; color:rgba(255,255,255,0.6); margin-bottom:0.5rem; }
+  .sk-tc-row{ display:flex; align-items:center; gap:0.75rem; }
+  .sk-tc-range{ flex:1; accent-color:#c4b5f4; }
+  .sk-tc-val{ min-width:78px; text-align:right; font-weight:700; color:#fff; font-size:0.95rem; }
+  .sk-tc-dims{ font-size:0.72rem; color:rgba(255,255,255,0.4); margin-top:0.5rem; }
+  .sk-tc-cards{ display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem; }
+  .sk-tc-card{ background:rgba(12,10,36,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:0.75rem; padding:1rem; }
+  .sk-tc-card-lbl{ font-size:0.72rem; color:rgba(255,255,255,0.5); margin:0 0 0.35rem; }
+  .sk-tc-card-val{ font-size:1.5rem; font-weight:800; color:#c4b5f4; margin:0; line-height:1; }
+  .sk-tc-warn{
+    display:none; font-size:0.76rem; color:#fbbf24; background:rgba(251,191,36,0.1);
+    border:1px solid rgba(251,191,36,0.25); border-radius:0.6rem; padding:0.6rem 0.75rem; margin-top:0.5rem;
+  }
+  .sk-tc-warn.sk-tc-show-warn{ display:block; }
+  .sk-tc-note{ font-size:0.72rem; color:rgba(255,255,255,0.4); line-height:1.5; margin-top:0.75rem; }
+  /* Färgschema för range-input på mörk botten */
+  .sk-tc-modal input[type=range]{ color-scheme:dark; }
+</style>
+
+<script>
+  (function () {
+    const ASPECT = { '16:9': 16/9, '16:10': 16/10, '4:3': 4/3 };
+
+    function geom(diagCm, ratio) {
+      // diagonal → bredd, höjd för givet bildförhållande (ratio = w/h)
+      const h = diagCm / Math.sqrt(ratio * ratio + 1);
+      const w = h * ratio;
+      return { w, h };
+    }
+    function diagFromWidth(wCm, ratio) {
+      const h = wCm / ratio;
+      return Math.sqrt(wCm * wCm + h * h);
+    }
+    function fmt(cm) {
+      if (cm >= 100) return (cm / 100).toFixed(2) + ' m';
+      return Math.round(cm) + ' cm';
+    }
+    function fmtDiag(cm) {
+      const inch = cm / 2.54;
+      return Math.round(cm) + ' cm (' + Math.round(inch) + '″)';
+    }
+
+    let backdrop = null;
+
+    function buildModal(d) {
+      const name = d.name, artno = d.artno;
+      const trMin = parseFloat(d.min), trMax = parseFloat(d.max);
+      const aspectKey = d.aspect || '16:9';
+      const ratio = ASPECT[aspectKey] || ASPECT['16:9'];
+
+      const bd = document.createElement('div');
+      bd.className = 'sk-tc-backdrop';
+      bd.innerHTML = `
+        <div class="sk-tc-modal" role="dialog" aria-modal="true" aria-label="Kastavståndskalkylator">
+          <button class="sk-tc-close" aria-label="Stäng">✕</button>
+          <h3 class="sk-tc-title">Avstånd & bildstorlek</h3>
+          <p class="sk-tc-sub">${name}${artno ? ' · ' + artno : ''} · ${aspectKey} · kastförh. ${trMin}–${trMax}:1</p>
+
+          <div class="sk-tc-tabs">
+            <button class="sk-tc-tab sk-tc-active" data-mode="size2dist">Jag har en duk</button>
+            <button class="sk-tc-tab" data-mode="dist2size">Jag har ett avstånd</button>
+          </div>
+
+          <!-- LÄGE A: bildstorlek → avstånd -->
+          <div class="sk-tc-pane" data-pane="size2dist">
+            <div class="sk-tc-field">
+              <label class="sk-tc-label">Bilddiagonal</label>
+              <div class="sk-tc-row">
+                <input type="range" class="sk-tc-range" data-r="diag" min="100" max="500" value="200" step="5">
+                <span class="sk-tc-val" data-o="diag">200 cm</span>
+              </div>
+              <p class="sk-tc-dims" data-o="dims-a"></p>
+            </div>
+            <div class="sk-tc-cards">
+              <div class="sk-tc-card">
+                <p class="sk-tc-card-lbl">Närmast (max zoom)</p>
+                <p class="sk-tc-card-val" data-o="dmin">—</p>
+              </div>
+              <div class="sk-tc-card">
+                <p class="sk-tc-card-lbl">Längst bort (min zoom)</p>
+                <p class="sk-tc-card-val" data-o="dmax">—</p>
+              </div>
+            </div>
+            <p class="sk-tc-note">Placera projektorn någonstans i intervallet och justera zoomringen så bilden fyller duken.</p>
+          </div>
+
+          <!-- LÄGE B: avstånd → bildstorlek -->
+          <div class="sk-tc-pane" data-pane="dist2size" style="display:none">
+            <div class="sk-tc-field">
+              <label class="sk-tc-label">Avstånd projektor → duk</label>
+              <div class="sk-tc-row">
+                <input type="range" class="sk-tc-range" data-r="dist" min="100" max="1200" value="400" step="10">
+                <span class="sk-tc-val" data-o="dist">4.00 m</span>
+              </div>
+            </div>
+            <div class="sk-tc-cards">
+              <div class="sk-tc-card">
+                <p class="sk-tc-card-lbl">Minsta bild (min zoom)</p>
+                <p class="sk-tc-card-val" data-o="smin">—</p>
+              </div>
+              <div class="sk-tc-card">
+                <p class="sk-tc-card-lbl">Största bild (max zoom)</p>
+                <p class="sk-tc-card-val" data-o="smax">—</p>
+              </div>
+            </div>
+            <div class="sk-tc-warn" data-o="warn"></div>
+            <p class="sk-tc-note">Bilden kan justeras inom detta spann med zoomringen. Värdena utgår från projektorns kastförhållande.</p>
+          </div>
+        </div>`;
+
+      const modal = bd.querySelector('.sk-tc-modal');
+      const q = (sel) => modal.querySelector(sel);
+
+      // --- LÄGE A beräkning ---
+      const diagR = q('[data-r="diag"]');
+      function updA() {
+        const diag = parseFloat(diagR.value);
+        const g = geom(diag, ratio);
+        q('[data-o="diag"]').textContent = fmtDiag(diag);
+        q('[data-o="dims-a"]').textContent = 'Bredd ' + Math.round(g.w) + ' cm · Höjd ' + Math.round(g.h) + ' cm';
+        // avstånd = bredd × throw ratio
+        q('[data-o="dmin"]').textContent = fmt(g.w * trMin);
+        q('[data-o="dmax"]').textContent = fmt(g.w * trMax);
+      }
+      diagR.addEventListener('input', updA);
+
+      // --- LÄGE B beräkning ---
+      const distR = q('[data-r="dist"]');
+      function updB() {
+        const dist = parseFloat(distR.value); // cm
+        q('[data-o="dist"]').textContent = (dist / 100).toFixed(2) + ' m';
+        // bredd = avstånd / throw ratio  → min zoom (max ratio) ger minsta bild
+        const wMin = dist / trMax;
+        const wMax = dist / trMin;
+        const diagMin = diagFromWidth(wMin, ratio);
+        const diagMax = diagFromWidth(wMax, ratio);
+        q('[data-o="smin"]').textContent = fmtDiag(diagMin);
+        q('[data-o="smax"]').textContent = fmtDiag(diagMax);
+
+        // Varning: utanför rimligt duk-intervall (projektorerna anges typ 60–200")
+        const warn = q('[data-o="warn"]');
+        const minInch = diagMin / 2.54, maxInch = diagMax / 2.54;
+        const LO = 60, HI = 200;
+        if (maxInch < LO) {
+          warn.textContent = 'Avståndet är kort — även vid max zoom blir bilden under ' + LO + '″. Flytta projektorn längre bort för en större bild.';
+          warn.classList.add('sk-tc-show-warn');
+        } else if (minInch > HI) {
+          warn.textContent = 'Avståndet är långt — bilden blir över ' + HI + '″ även vid min zoom. Kontrollera ljusstyrka och dukstorlek, eller flytta projektorn närmare.';
+          warn.classList.add('sk-tc-show-warn');
+        } else {
+          warn.classList.remove('sk-tc-show-warn');
+        }
+      }
+      distR.addEventListener('input', updB);
+
+      // --- Tab-växling ---
+      modal.querySelectorAll('.sk-tc-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const mode = tab.getAttribute('data-mode');
+          modal.querySelectorAll('.sk-tc-tab').forEach(t => t.classList.toggle('sk-tc-active', t === tab));
+          modal.querySelectorAll('.sk-tc-pane').forEach(p => {
+            p.style.display = (p.getAttribute('data-pane') === mode) ? '' : 'none';
+          });
+        });
+      });
+
+      // --- Stäng ---
+      function close() {
+        bd.classList.remove('sk-tc-show');
+        setTimeout(() => { bd.remove(); backdrop = null; document.removeEventListener('keydown', onKey); }, 160);
+      }
+      function onKey(e) { if (e.key === 'Escape') close(); }
+      bd.querySelector('.sk-tc-close').addEventListener('click', close);
+      bd.addEventListener('click', (e) => { if (e.target === bd) close(); });
+      document.addEventListener('keydown', onKey);
+
+      updA(); updB();
+      return bd;
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.sk-tc-open');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (backdrop) backdrop.remove();
+      backdrop = buildModal({
+        name:   btn.getAttribute('data-tc-name'),
+        artno:  btn.getAttribute('data-tc-artno'),
+        min:    btn.getAttribute('data-tc-min'),
+        max:    btn.getAttribute('data-tc-max'),
+        aspect: btn.getAttribute('data-tc-aspect'),
+      });
+      document.body.appendChild(backdrop);
+      requestAnimationFrame(() => backdrop.classList.add('sk-tc-show'));
+    });
+  })();
+</script>

@@ -8,7 +8,7 @@ const acc   = bildData.tillbehor as any[];
 const dukar = (bildData.dukar ?? []) as any[];
 const bp = (artno: string) => [...prods,...acc,...dukar].find(p => p.artno === artno)?.price ?? 0;
 
-const projXGA  = prods.find(p => p.artno === 'SK-BLD-0001');
+const projEntry = prods.find(p => p.artno === 'SK-BLD-0014');
 const projFHD  = prods.find(p => p.artno === 'SK-BLD-0002');
 const projUHD  = prods.find(p => p.artno === 'SK-BLD-0007');
 const skarm65  = prods.find(p => p.artno === 'SK-BLD-0003');
@@ -17,7 +17,7 @@ const skarm85  = prods.find(p => p.artno === 'SK-BLD-0005');
 
 // Pristabell-rader (i frontmatter för att undvika Astro-parser-konflikt med \" inom JSX)
 const tabellRader = [
-  { name: 'Projektor XGA',           pass: 'Presentationer, enklare bilder',      artno: 'SK-BLD-0001' },
+  { name: 'Projektor Full HD (smart)', pass: 'Presentationer, streaming, events',    artno: 'SK-BLD-0014' },
   { name: 'Projektor Full HD',        pass: 'Konferens, events, filmsvisning',     artno: 'SK-BLD-0002' },
   { name: 'Projektor 4K UHD',         pass: 'Klarar dagsljus, premium-bild',       artno: 'SK-BLD-0007' },
   { name: '65" Skärm (4K UHD)',      pass: 'Konferensrum, 10–30 pers.',           artno: 'SK-BLD-0003' },
@@ -34,7 +34,7 @@ const faqSchema = {
   "@type": "FAQPage",
   "mainEntity": [
     { "@type": "Question", "name": "Vad kostar det att hyra en projektor?", "acceptedAnswer": { "@type": "Answer", "text":
-      "En XGA-projektor kostar " + bp('SK-BLD-0001') + " kr/dygn, en Full HD-projektor " + bp('SK-BLD-0002') + " kr/dygn och en 4K UHD-projektor " + bp('SK-BLD-0007') + " kr/dygn. Projektorduk (100\") tillkommer med " + bp('SK-BLD-ACC-0002') + " kr/dygn. Leverans i hela Storstockholm."
+      "En smart Full HD-projektor kostar från " + bp('SK-BLD-0014') + " kr/dygn, en ljusstark Full HD-projektor " + bp('SK-BLD-0002') + " kr/dygn och en 4K UHD-projektor " + bp('SK-BLD-0007') + " kr/dygn. Projektorduk (100\") tillkommer med " + bp('SK-BLD-ACC-0002') + " kr/dygn. Leverans i hela Storstockholm."
     } },
     { "@type": "Question", "name": "Projektor eller skärm — vilket ska man välja?", "acceptedAnswer": { "@type": "Answer", "text":
       "En projektor ger flexibel bildstorlek (60–300\") och passar stora rum och mörka lokaler. Skärmar är skarpare i dagljus och passar konferensrum — vi har 65\" (" + bp('SK-BLD-0003') + " kr/dygn), 75\" (" + bp('SK-BLD-0004') + " kr/dygn) och 85\" (" + bp('SK-BLD-0005') + " kr/dygn). Tumregel: projektor för 50+ åskådare, skärm för 10–50 åskådare."
@@ -49,7 +49,7 @@ const faqSchema = {
 ---
 <Layout
   title="Hyra Projektor Stockholm — Pris & Guide 2026 | Scenkonsult"
-  description="Vad kostar det att hyra projektor i Stockholm? XGA från 299 kr/dygn, Full HD från 399 kr/dygn, 4K UHD från 899 kr/dygn. Skärmar 65–85 tum 4K UHD. Guide till projektor vs skärm, dukar och HDMI. Leverans i Storstockholm."
+  description="Vad kostar det att hyra projektor i Stockholm? Full HD från 499 kr/dygn, ljusstark Full HD 399 kr/dygn, 4K UHD från 899 kr/dygn. Skärmar 65–85 tum 4K UHD. Guide till projektor vs skärm, dukar och HDMI. Leverans i Storstockholm."
   schemaExtra={faqSchema}
 >
   <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
@@ -141,7 +141,7 @@ const faqSchema = {
     <section style="margin-bottom:3rem;">
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Välj utrustning</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <ProductCard artno={projXGA.artno} name={projXGA.name} price={projXGA.price} priceNote="/dygn" image={projXGA.image} alt={projXGA.name} description={projXGA.description} specs={projXGA.includes ?? []} category="Projektor" />
+        <ProductCard artno={projEntry.artno} name={projEntry.name} price={projEntry.price} priceNote="/dygn" image={projEntry.image} alt={projEntry.name} description={projEntry.description} specs={projEntry.includes ?? []} category="Projektor" />
         <ProductCard artno={projFHD.artno} name={projFHD.name} price={projFHD.price} priceNote="/dygn" image={projFHD.image} alt={projFHD.name} description={projFHD.description} specs={projFHD.includes ?? []} category="Projektor" />
         <ProductCard artno={projUHD.artno} name={projUHD.name} price={projUHD.price} priceNote="/dygn" image={projUHD.image} alt={projUHD.name} description={projUHD.description} specs={projUHD.includes ?? []} category="Projektor" />
         <ProductCard artno={skarm65.artno} name={skarm65.name} price={skarm65.price} priceNote="/dygn" image={skarm65.image} alt={skarm65.name} description={skarm65.description} specs={skarm65.includes ?? []} category="Skärm" />
