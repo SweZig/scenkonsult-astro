@@ -3211,7 +3211,7 @@ function renderTab(tab) {
 }
 
 // ── PRODUKTREDIGERING ─────────────────────────────────────────
-const SVC_IDS_ALL = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+const SVC_IDS_ALL = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
 function prodGetItems() {
   // Read current values from DOM inputs
   const rows = document.querySelectorAll('#prod-tbody .prod-row');
@@ -6394,7 +6394,7 @@ function openQuoteModal(prefill) {
   $('quote-send-btn').textContent = '✉ Skicka offert';
 
   // Pre-fill items from existing cart
-  const SVC_IDS_PREFILL = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+  const SVC_IDS_PREFILL = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
   if (prefill?.items?.length) {
     prefill.items.filter(i => !i._note).forEach(i => {
       const cat = i.category || (SVC_IDS_PREFILL.has(i.id) ? 'Tjänster' : '');
@@ -6498,7 +6498,7 @@ function quotePickerAdd() {
   const price    = parseInt(opt.dataset.price) || 0;
   const id       = opt.value;
   const selCat   = $('qp-cat')?.value || '';
-  const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+  const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
   const isSvc    = SVC_CATALOG_KEYS.includes(selCat) || SVC_IDS.has(id);
 
   // Om samma produkt redan finns, öka antal
@@ -6511,7 +6511,7 @@ function quotePickerAdd() {
     } else {
       // Produkter insertas före första tjänst
       const svcStart = quoteItems.findIndex(i => SVC_CATALOG_KEYS.includes(i._cat || '') || 
-        ['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','faktura'].some(s => i.id === s));
+        ['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','faktura'].some(s => i.id === s));
       if (svcStart === -1) quoteItems.push(newItem);
       else quoteItems.splice(svcStart, 0, newItem);
     }
@@ -7612,7 +7612,7 @@ function quoteSearchPick(idx) {
   if (!hits || !hits[idx]) return;
   const p = hits[idx];
   // Klassificera som tjänst eller hårdvara
-  const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49']);
+  const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
   const isSvc = SVC_CATALOG_KEYS.includes(p._cat) || SVC_IDS.has(p.id);
 
   // Hitta befintlig rad i aktiv target-array och öka qty om träff
