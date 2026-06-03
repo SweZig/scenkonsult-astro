@@ -293,6 +293,7 @@ ${PRODUKTER_OCH_PRISER}
 - Leverans: Hela Storstockholm.
 - Akutbokning: Möjligt — ring 072-448 10 00.
 - Deposition: Normalt ingen.
+- Betalsätt: Privatpersoner betalar via Swish, förskottsfaktura eller med kort vid hämtning. Företag faktureras normalt (5–30 dagars kredit) — men företag som saknar kreditmöjlighet kan också betala med kort vid hämtning. Vid kortbetalning tar vi de flesta betalkort på marknaden: Visa, Mastercard, Maestro och American Express, samt Apple Pay och Google Pay. Bokningsavgift 49 kr (exkl. moms) tillkommer.
 
 ═══ CHIPS (VIKTIGT — GÖR ALLTID) ═══
 Avsluta VARJE svar med en HELT EGEN sista rad som börjar exakt så här (inget mellanrum efter kolon):
