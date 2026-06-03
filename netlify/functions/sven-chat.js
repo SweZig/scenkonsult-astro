@@ -1,4 +1,4 @@
-import { CART_ID_LISTA, PRODUKTER_OCH_PRISER } from './_products-generated.js';
+import { CART_ID_LISTA, PRODUKTER_OCH_PRISER, SVEN_FACTS } from './_products-generated.js';
 
 // ── Supabase-loggning ──────────────────────────────────────────────────────
 async function logToSupabase(data) {
@@ -210,7 +210,10 @@ DJ:           /vara-tjanster/hyra-dj/
 Karaoke:      /vara-tjanster/hyra-karaoke/
 Konferens AV: /vara-tjanster/konferens-av/
 
+Alla tjänster (hub): /vara-tjanster/
+
 — För ditt event (passar olika tillfällen)
+Event-hub:    /for/
 Bröllop:      /for/brollop/
 Företagsfest: /for/foretagsfest/
 Konferens:    /for/konferens/
@@ -249,8 +252,12 @@ Varukorg:     /varukorg/
 Om oss:       /om-oss/
 Referenser:   /referenser/
 FAQ:          /vara-vanligaste-fragor-faq/
+Hyresvillkor (hub):/hyresvillkor/
 Hyresvillkor företag:/hyresvillkor/foretag/
 Hyresvillkor privat:/hyresvillkor/privatperson/
+Integritetspolicy:/personuppgiftpolicy/
+Eventlokaler i Stockholm:/guide-till-eventlokaler-i-stockholm/
+Guide minnesvärda fester:/den-ultimata-guiden-till-minnesvarda-fester/
 Svens Kunskapsskola: /svens-kunskapsskola/
 
 ═══ SVENS KUNSKAPSSKOLA — VIDEOGUIDER ═══
@@ -280,20 +287,10 @@ Hela samlingen: [Svens Kunskapsskola](/svens-kunskapsskola/)
 
 Länkformat: [Scenpaket Medium](/vara-tjanster/hyra-scen/) — alltid med produktnamn som länktext.
 
-═══ KONTAKTINFO ═══
-Tel: 072-448 10 00 (vardagar 09:00–17:00, jour vid pågående uthyrning)
-Adress: Grimstagatan 164, 162 58 Vällingby
-
 ═══ PRODUKTER & PRISER (alla EXKL. moms) ═══
 
 ${PRODUKTER_OCH_PRISER}
-═══ VANLIGA FRÅGOR ═══
-- Hyresperiod: hämtning kl 13, återlämning dagen efter kl 11. Flexibelt vid behov.
-- Självinstallation: Ja, alltid. Montering tillval: 600 kr/tim.
-- Leverans: Hela Storstockholm.
-- Akutbokning: Möjligt — ring 072-448 10 00.
-- Deposition: Normalt ingen.
-- Betalsätt: Privatpersoner betalar via Swish, förskottsfaktura eller med kort vid hämtning. Företag faktureras normalt (5–30 dagars kredit) — men företag som saknar kreditmöjlighet kan också betala med kort vid hämtning. Vid kortbetalning tar vi de flesta betalkort på marknaden: Visa, Mastercard, Maestro och American Express, samt Apple Pay och Google Pay. Bokningsavgift 49 kr (exkl. moms) tillkommer.
+${SVEN_FACTS}
 
 ═══ CHIPS (VIKTIGT — GÖR ALLTID) ═══
 Avsluta VARJE svar med en HELT EGEN sista rad som börjar exakt så här (inget mellanrum efter kolon):

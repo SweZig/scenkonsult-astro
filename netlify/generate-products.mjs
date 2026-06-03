@@ -24,6 +24,7 @@ const bild   = readJson('bild.json');
 const karaoke = readJson('karaoke.json');
 const tjanster = readJson('tjanster.json');
 const el     = readJson('el.json');
+const site   = readJson('site.json');
 
 // El-tillbehör (konsoliderat i el.json 2026):
 //   ingen 'categories'-flagga = visas på BÅDA (ljud + ljus)
@@ -358,6 +359,75 @@ QUOTE_CAT['Eigen rad'] = { products: [{id:'custom',artno:'',name:'Ange benämnin
 const QUOTE_CATALOG_JS = JSON.stringify(QUOTE_CAT);
 const qcCount = Object.values(QUOTE_CAT).reduce((n,v)=>n+(v.products?.length||0)+Object.values(v.sub||{}).reduce((m,a)=>m+a.length,0),0);
 
+// ── SVEN_FACTS ────────────────────────────────────────────────────────────────
+// Auto-genererat faktablock för Sven-chatboten (sven-chat.js).
+// Källor: site.json (kontakt + FAQ) och tjanster.json (frakt + montering).
+// Syfte: hålla Svens fakta/FAQ i synk med sajten på samma sätt som produkterna,
+// så att ändringar i site.json/tjanster.json automatiskt når Sven utan handredigering.
+const svenFacts = [];
+
+// Kontaktuppgifter — från site.json.company (källa: sajtens strukturerade data)
+const _co = site.company || {};
+const _addr = _co.address || {};
+const _hours = (_co.openingHours || '').replace('Mo-Fr', 'vardagar').replace(/-/g, '–');
+svenFacts.push('═══ KONTAKTINFO ═══');
+if (_co.phone) svenFacts.push(`Tel: ${_co.phone}${_hours ? ` (${_hours}, jour vid pågående uthyrning)` : ''}`);
+if (_co.email) svenFacts.push(`E-post: ${_co.email}`);
+if (_addr.street) svenFacts.push(`Adress: ${_addr.street}, ${_addr.postalCode || ''} ${_addr.city || ''}`.replace(/\s+/g, ' ').trim());
+svenFacts.push('Serviceområde: Hela Storstockholm.');
+svenFacts.push('');
+
+// FRAKT & LEVERANS — alla fordon dynamiskt från tjanster.json.leverans (samma mönster som quote-catalog)
+svenFacts.push('═══ FRAKT & LEVERANS ═══');
+svenFacts.push('Vi kör ut och hämtar upp utrustningen. Pris avser tur & retur (enkelresa = halva, kund hämtar/lämnar själv). Transport ingår ALDRIG i hyrespriset — det tillkommer alltid. Priser gäller inom Storstockholm; längre transporter offereras separat.');
+svenFacts.push('Rätt fordon väljs automatiskt utifrån hur skrymmande varukorgen är. Fordonsalternativ (pris tur & retur / enkelresa, exkl. moms):');
+Object.entries(tjanster.leverans || {})
+  .filter(([k,v]) => !_LEV_META.has(k) && v && typeof v === 'object' && v.pris)
+  .forEach(([k,v]) => {
+    const enkel = v.enkelresa ? ` / ${fmtPrice(v.enkelresa)} enkel` : '';
+    svenFacts.push(`- ${v.label.replace(/\s*\(tur & retur\)/i,'')}: ${fmtPrice(v.pris)} t&r${enkel}`);
+  });
+svenFacts.push('Säg priserna ungefärligt och hänvisa till att exakt frakt bekräftas i offerten utifrån adress och produktval.');
+svenFacts.push('');
+
+// MONTERING — från tjanster.json.montering
+const _mont = tjanster.montering || {};
+svenFacts.push('═══ MONTERING & TEKNIK ═══');
+svenFacts.push('Enklare utrustning levereras för självmontering — det går alltid bra att montera själv.');
+if (_mont.prisPerTimme) svenFacts.push(`Montering & demontering som tillval: ${fmtPrice(_mont.prisPerTimme)}/tim (debiteras per påbörjad 15-minutersperiod à ${fmtPrice(Math.round(_mont.prisPerTimme/4))}).`);
+svenFacts.push('Större scenpaket (Large och uppåt), LED-skärmar och komplex ljusutrustning kräver montering/tekniker — prissätts separat.');
+svenFacts.push('');
+
+// HYRESPERIOD & HELG
+svenFacts.push('═══ HYRESPERIOD ═══');
+svenFacts.push('Normal hyresperiod är 22 timmar — hämtning kl 13:00, återlämning kl 11:00 dagen efter. Flexibelt vid behov, längre perioder mot tillägg.');
+svenFacts.push('Helg: hyr du på fredagen kan du ofta behålla utrustningen till måndag och betala bara ETT dygn — men det förutsätter att produkten inte är bokad av någon annan under helgen. Vi är flexibla när det går, men lova inget; hänvisa till tillgänglighet.');
+svenFacts.push('');
+
+// BETALSÄTT — speglar site.json FAQ "Vilka betalsätt accepterar ni?"
+svenFacts.push('═══ BETALSÄTT ═══');
+const _payFaq = (site.faq || []).find(f => /betalsätt|betalning|betala/i.test(f.q || ''));
+if (_payFaq) {
+  svenFacts.push(_payFaq.a.replace(/<[^>]+>/g, ''));
+} else {
+  svenFacts.push('Privatpersoner betalar via Swish, förskottsfaktura eller med kort vid hämtning. Företag faktureras normalt (5–30 dagars kredit) men kan kort-betala vid hämtning om kredit saknas. Vi tar de flesta betalkort: Visa, Mastercard, Maestro, Amex, samt Apple Pay och Google Pay.');
+}
+svenFacts.push('Bokningsavgift 49 kr (exkl. moms) tillkommer per order.');
+svenFacts.push('');
+
+// ÖVRIGA VANLIGA FRÅGOR — resterande FAQ från site.json (utom betalning som täcks ovan)
+svenFacts.push('═══ ÖVRIGA VANLIGA FRÅGOR (från sajtens FAQ) ═══');
+(site.faq || [])
+  .filter(f => f.q && f.a && !/betalsätt|betalning/i.test(f.q))
+  .forEach(f => {
+    const a = f.a.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    svenFacts.push(`F: ${f.q}`);
+    svenFacts.push(`S: ${a}`);
+  });
+
+const SVEN_FACTS = svenFacts.join('\n');
+
+
 // ── Skriv ut-fil ──────────────────────────────────────────────────────────────
 
 const output = `// AUTOGENERERAD — redigera inte manuellt
@@ -367,6 +437,7 @@ const output = `// AUTOGENERERAD — redigera inte manuellt
 export const CART_ID_LISTA = ${JSON.stringify(CART_ID_LISTA)};
 export const PRODUKTER_OCH_PRISER = ${JSON.stringify(PRODUKTER_OCH_PRISER)};
 export const QUOTE_CATALOG = ${QUOTE_CATALOG_JS};
+export const SVEN_FACTS = ${JSON.stringify(SVEN_FACTS)};
 `;
 
 fs.writeFileSync(OUT, output, 'utf8');
@@ -374,4 +445,4 @@ fs.writeFileSync(OUT, output, 'utf8');
 
 const cartCount = cartLines.length;
 const prodCount = sects.filter(l => l.startsWith('-')).length;
-console.log(`✅ _products-generated.js: ${cartCount} cart-IDs, ${prodCount} produktrader, ${qcCount} poster i QUOTE_CATALOG`);
+console.log(`✅ _products-generated.js: ${cartCount} cart-IDs, ${prodCount} produktrader, ${qcCount} poster i QUOTE_CATALOG, ${svenFacts.length} rader i SVEN_FACTS`);
