@@ -4007,24 +4007,6 @@ function prodAddFreeRow(isService) {
   renderTab('products');
 }
 
-function prodUpdateSvc() {
-  // Remove existing service rows, add back selected ones
-  const items = prodGetItems().filter(i => !['lev-standard','lev-skrymmande','lev-lastbil','lev-standard-e','montering','fakturaavgift',
-    'lev-standard-e','lev-skrymmande-e','lev-lastbil-e'].some(sid => i.id === sid || i.id === sid + '-e'));
-  
-  const addSvc = (selId) => {
-    const sel = document.getElementById(selId);
-    if (!sel || !sel.value) return;
-    const [name, price, id] = sel.value.split('|');
-    if (name && price) items.push({ id, name, price: parseInt(price), qty: 1, category: 'Tjänster' });
-  };
-  addSvc('svc-leverans');
-  addSvc('svc-montering');
-  addSvc('svc-faktura');
-  currentCart.items = items;
-  renderTab('products');
-}
-
 async function prodSaveAndSendOffer() {
   // Om Info-fliken (eller annan) har osparade ändringar — fråga först.
   // Annars riskerar admin att skicka offert med gamla datum/plats/kontakt.
@@ -7429,7 +7411,6 @@ window.prodAddFreeRow      = prodAddFreeRow;
 window.prodPickCat         = prodPickCat;
 window.prodPickSub         = prodPickSub;
 window.prodPickerAdd       = prodPickerAdd;
-window.prodUpdateSvc       = prodUpdateSvc;
 window.prodSaveAndSendOffer= prodSaveAndSendOffer;
 window.markCustomerAsReadManually = markCustomerAsReadManually;
 window.markCartAsReadFull         = markCartAsReadFull;
