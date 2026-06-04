@@ -169,21 +169,11 @@ const faqSchema = {
     </div>
   </section>
 
-  <!-- ÖVRIGA TILLBEHÖR LJUD -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Övriga tillbehör</h2>
-    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {(_ljudData.tillbehor_ljud ?? []).filter((p:any) => !p.categories || p.categories.includes('portable')).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Ljud tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
-      ))}
-    </div>
-  </section>
-
   <!-- EL-TILLBEHÖR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {(_elData.products ?? []).map((p: any) => (
+      {(_elData.products ?? []).filter((p:any) => !['SK-EL-0001','SK-EL-0002','SK-EL-0005'].includes(p.artno)).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
       ))}
       {(_ljusData.rok?.tillbehor?.filter((p:any) => ['SK-LJS-ROK-ACC-0001','SK-LJS-ROK-ACC-0002'].includes(p.artno)) ?? []).map((p: any) => (
