@@ -104,6 +104,7 @@ catalog['Scentillbehör'] = {'products': [prod(p) for p in scenes.get('tillbehor
 # ── Ljud (paket + mixers) ─────────────────────────────────────────────────────
 catalog['Ljud'] = {'sub': {
     'Portable': [prod(p) for p in ljud.get('portable',{}).get('products',[])],
+    'Kolumnhögtalare (utan mik)': [prod(p) for p in ljud.get('kolumnNoMic',[])],
     'Event':    [prod(p) for p in ljud.get('event',{}).get('products',[])],
     'Music':    [prod(p) for p in ljud.get('music',{}).get('products',[])],
     'Live':     [prod(p) for p in ljud.get('live',{}).get('products',[])],

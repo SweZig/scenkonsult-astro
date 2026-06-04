@@ -71,6 +71,10 @@ scenes.products.forEach(p => {
     if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
   });
 });
+// Ljud: kolumnhögtalare utan mik (no-mic varianter)
+(ljud.kolumnNoMic || []).forEach(p => {
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+});
 (ljud.mixers || []).forEach(p => {
   if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
 });
@@ -169,6 +173,9 @@ sects.push('');
 // LJUD PORTABELT
 sects.push('LJUD PORTABELT → /vara-tjanster/hyra-ljud/portable/');
 (ljud.portable?.products || []).forEach(p => {
+  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
+});
+(ljud.kolumnNoMic || []).forEach(p => {
   if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
 sects.push('');
@@ -284,6 +291,7 @@ QUOTE_CAT['Scentillbehör'] = { products: (scenes.tillbehor||scenes.accessories|
 // Ljud (paket + mixers)
 QUOTE_CAT['Ljud'] = { sub: {
   'Portable': (ljud.portable?.products||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Kolumnhögtalare (utan mik)': (ljud.kolumnNoMic||[]).filter(p=>p.slug&&p.price).map(qp),
   'Event':    (ljud.event?.products||[]).filter(p=>p.slug&&p.price).map(qp),
   'Music':    (ljud.music?.products||[]).filter(p=>p.slug&&p.price).map(qp),
   'Live':     (ljud.live?.products||[]).filter(p=>p.slug&&p.price).map(qp),

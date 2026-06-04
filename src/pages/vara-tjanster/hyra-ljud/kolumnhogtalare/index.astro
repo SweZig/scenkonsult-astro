@@ -3,20 +3,22 @@ import Layout from '../../../../layouts/Layout.astro';
 import ModernHero from '../../../../components/ModernHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
-import ljudData from '../../../../data/ljud.json';
+import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
+import _ljudData from '../../../../data/ljud.json';
+import _elData from '../../../../data/el.json';
+import _ljusData from '../../../../data/ljus.json';
+import _tjansterData from '../../../../data/tjanster.json';
 
-// Plocka ut kolumnhögtalare från portable-serien
-const allPortable = ljudData.portable.products;
-const columnSpeakers = allPortable.filter(p =>
-  p.description?.toLowerCase().includes('kolumn') ||
-  p.name?.toLowerCase().includes('medium') ||
-  p.name?.toLowerCase().includes('large')
+// ── Produkter: no-mic-kolumner (egen array, läcker aldrig till portable) ──
+const kolumner = _ljudData.kolumnNoMic ?? [];
+const singelKolumner = kolumner.filter((p:any) => !p.name.includes('Duo'));
+const duoKolumner    = kolumner.filter((p:any) =>  p.name.includes('Duo'));
+
+const _upgPrices: Record<string,number> = Object.fromEntries(
+  (_ljudData.tillbehor_mikrofon||[])
+    .filter((p:any) => p.artno?.startsWith('SK-LJD-UPG'))
+    .map((p:any) => [p.artno, p.price])
 );
-
-// Singel-kolumner
-const singelKolumner = columnSpeakers.filter(p => !p.name.includes('Duo'));
-// Duo-kolumner
-const duoKolumner = columnSpeakers.filter(p => p.name.includes('Duo'));
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -25,7 +27,7 @@ const faqSchema = {
     {
       "@type": "Question",
       "name": "Vad är en kolumnhögtalare och vad passar den till?",
-      "acceptedAnswer": { "@type": "Answer", "text": "En kolumnhögtalare är ett smalt PA-system med bred, jämn ljudspridning. Diskreta stativlösa design passar konferenser, bröllop och event där utseendet spelar roll." }
+      "acceptedAnswer": { "@type": "Answer", "text": "En kolumnhögtalare är ett smalt PA-system med bred, jämn ljudspridning. Diskret stativlös design passar konferenser, bröllop och event där utseendet spelar roll." }
     },
     {
       "@type": "Question",
@@ -34,13 +36,18 @@ const faqSchema = {
     },
     {
       "@type": "Question",
+      "name": "Ingår mikrofon i kolumnhögtalarna?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Dessa paket levereras utan mikrofon, vilket håller priset nere. Behöver du tala eller sjunga lägger du enkelt till en trådlös handmikrofon eller headset som tillval — eller väljer någon av våra mikrofoner längre ned på sidan." }
+    },
+    {
+      "@type": "Question",
       "name": "Vad kostar det att hyra kolumnhögtalare i Stockholm?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kolumnhögtalare hyrs från 799 kr/dygn (singel) för upp till 80 personer. Duo-system (2 kolumner) kostar 1 499–2 299 kr/dygn och täcker upp till 200 personer. Transport tillkommer." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Kolumnhögtalare utan mikrofon hyrs från 699 kr/dygn (singel). Duo-system (2 kolumner) kostar 1 299–2 199 kr/dygn och täcker upp till 240 personer. Transport tillkommer." }
     },
     {
       "@type": "Question",
       "name": "Har ni kolumnhögtalare som liknar Bose L1?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi hyr ut Alto TS108C, Alto TS112C och LD Systems Maui 28 G2. Professionella alternativ med inbyggd förstärkare, Bluetooth och app-styrning. Från 799 kr/dygn." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi hyr ut Alto TS108C, Alto TS112C och LD Systems Maui 28 G2. Professionella alternativ med inbyggd förstärkare, Bluetooth och app-styrning. Från 699 kr/dygn." }
     },
     {
       "@type": "Question",
@@ -51,8 +58,8 @@ const faqSchema = {
 };
 ---
 <Layout
-  title="Hyr Kolumnhögtalare Stockholm — Diskret & Elegant PA från 799 kr | Scenkonsult"
-  description="Hyr kolumnhögtalare i Stockholm från 799 kr/dygn. Alto och LD Systems — smal, diskret design för konferens, bröllop och event. Stockholms största utbud. Leverans i hela Storstockholm."
+  title="Hyr Kolumnhögtalare Stockholm — Diskret & Elegant PA från 699 kr | Scenkonsult"
+  description="Hyr kolumnhögtalare i Stockholm från 699 kr/dygn. Alto och LD Systems — smal, diskret design för konferens, bröllop och event. Stockholms största utbud. Leverans i hela Storstockholm."
   schemaExtra={faqSchema}
 >
 
@@ -60,15 +67,14 @@ const faqSchema = {
     eyebrow="Ljud · Kolumnhögtalare"
     h1="Hyra kolumnhögtalare i"
     h1Accent="Stockholm"
-    intro="Hyr kolumnhögtalare i Stockholm — smal, diskret design som låter bra utan att synas. Perfekt för konferens, bröllop och event där utseendet spelar roll. Alto och LD Systems från 799 kr/dygn."
+    intro="Hyr kolumnhögtalare i Stockholm — smal, diskret design som låter bra utan att synas. Perfekt för konferens, bröllop och event där utseendet spelar roll. Paketen levereras utan mikrofon för ett lägre pris — lägg till mik som tillval om du behöver. Alto och LD Systems från 699 kr/dygn."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
-      { label: "Portabelt ljud", href: "/vara-tjanster/hyra-ljud/portable/" },
       { label: "Kolumnhögtalare" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">799&nbsp;kr</span><span class="sk-price-incl hidden">999&nbsp;kr</span> / dygn' },
+      { html: 'Från <span class="sk-price-excl">699&nbsp;kr</span><span class="sk-price-incl hidden">874&nbsp;kr</span> / dygn' },
       "Stockholms största utbud",
       "Alto & LD Systems",
       "Bluetooth & inbyggd mixer",
@@ -113,14 +119,71 @@ const faqSchema = {
             "Ni behöver maximalt antal decibel",
             "Utomhus med stort avstånd till publiken",
             "Liveband med trummor och gitarr",
-            "Fler än 200 personer",
+            "Fler än 240 personer",
             "Ni behöver separata subwoofers",
             "Festival eller stor scenproduktion"
           ].map(i => <li class="flex gap-2"><span class="text-brand-orange shrink-0">→</span>{i}</li>)}
         </ul>
       </div>
     </div>
-    <p class="text-gray-400 text-sm mt-4 text-center">Osäker på vad som passar? <a href="/kontakt/" class="text-brand-orange hover:underline">Kontakta oss</a> eller se <a href="/vara-tjanster/hyra-ljud/pa-anlaggning/" class="text-brand-orange hover:underline">alla PA-anläggningar →</a></p>
+    <p class="text-gray-400 text-sm mt-4 text-center">Osäker på vad som passar? <a href="/kontakt/" class="text-brand-orange hover:underline">Kontakta oss</a> eller se <a href="/vara-tjanster/hyra-ljud/" class="text-brand-orange hover:underline">alla ljudsystem →</a></p>
+  </section>
+
+  <!-- UTAN MIK-INFO + UPPGRADERING -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+    <div class="bg-brand-navy border border-brand-orange/25 rounded-2xl p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+        <div class="flex items-start gap-3 flex-1">
+          <span class="text-2xl shrink-0">🎤</span>
+          <div>
+            <p class="text-white font-semibold text-sm mb-0.5">Paketen levereras utan mikrofon — lägre pris</p>
+            <p class="text-gray-400 text-xs leading-relaxed">
+              Spela musik direkt via Bluetooth utan extra kostnad. Behöver du tala eller sjunga? Lägg till en trådlös mik nedan — eller välj bland våra mikrofoner längre ned på sidan.
+            </p>
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+          <div class="bg-brand-dark/60 border border-white/10 hover:border-brand-orange/40 rounded-xl px-4 py-3 flex flex-col items-center gap-2 transition-colors min-w-[160px]">
+            <div class="text-center">
+              <div class="text-white text-xs font-semibold mb-0.5">Trådlös handmikrofon</div>
+              <div class="text-gray-400 text-[10px] mb-1">Ca 30 m räckvidd · plug &amp; play</div>
+              <div>
+                <span class="sk-price-excl text-brand-orange font-bold text-base">+300 kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-bold text-base">+375 kr</span>
+                <span class="text-gray-500 text-[10px] sk-price-excl"> exkl.</span>
+                <span class="text-gray-500 text-[10px] sk-price-incl hidden"> inkl.</span>
+              </div>
+            </div>
+            <CartButton
+              id="SK-LJD-UPG-0001"
+              name="Uppgradering — Trådlös handmikrofon"
+              price={_upgPrices["SK-LJD-UPG-0001"] ?? 300}
+              category="Ljud tillbehör"
+              size="sm"
+            />
+          </div>
+          <div class="bg-brand-dark/60 border border-white/10 hover:border-brand-orange/40 rounded-xl px-4 py-3 flex flex-col items-center gap-2 transition-colors min-w-[160px]">
+            <div class="text-center">
+              <div class="text-white text-xs font-semibold mb-0.5">Trådlöst headset</div>
+              <div class="text-gray-400 text-[10px] mb-1">Frihands · Ca 30 m räckvidd</div>
+              <div>
+                <span class="sk-price-excl text-brand-orange font-bold text-base">+370 kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-bold text-base">+463 kr</span>
+                <span class="text-gray-500 text-[10px] sk-price-excl"> exkl.</span>
+                <span class="text-gray-500 text-[10px] sk-price-incl hidden"> inkl.</span>
+              </div>
+            </div>
+            <CartButton
+              id="SK-LJD-UPG-0002"
+              name="Uppgradering — Trådlöst headset"
+              price={_upgPrices["SK-LJD-UPG-0002"] ?? 370}
+              category="Ljud tillbehör"
+              size="sm"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Singel kolumner -->
@@ -130,7 +193,7 @@ const faqSchema = {
       <p class="text-gray-400 mt-1">En kolumn med basenhet. Täcker en riktning perfekt — idealisk för talaramplifiering och ensidig publik.</p>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {singelKolumner.map(p => (
+      {singelKolumner.map((p:any) => (
         <ProductCard
           artno={p.artno}
           name={p.name}
@@ -140,8 +203,10 @@ const faqSchema = {
           alt={p.alt ?? p.name}
           description={p.description}
           persons={p.persons}
-          specs={p.includes}
-          category="Portabelt ljud"
+          specs={p.specs ?? p.includes ?? []}
+          category="Ljud kolumnhögtalare"
+          monteringMin={p.monteringMin}
+          manualUrl={p.manualUrl}
           bulky={p.bulky}
           forceLeverans={p.forceLeverans}
         />
@@ -156,7 +221,7 @@ const faqSchema = {
       <p class="text-gray-400 mt-1">Två kolumner för stereo och bredare täckning. Perfekt för dansgolv, bröllop och event med publik på båda sidor.</p>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {duoKolumner.map(p => (
+      {duoKolumner.map((p:any) => (
         <ProductCard
           artno={p.artno}
           name={p.name}
@@ -166,8 +231,10 @@ const faqSchema = {
           alt={p.alt ?? p.name}
           description={p.description}
           persons={p.persons}
-          specs={p.includes}
-          category="Portabelt ljud"
+          specs={p.specs ?? p.includes ?? []}
+          category="Ljud kolumnhögtalare"
+          monteringMin={p.monteringMin}
+          manualUrl={p.manualUrl}
           bulky={p.bulky}
           forceLeverans={p.forceLeverans}
         />
@@ -181,12 +248,12 @@ const faqSchema = {
       <h2 class="text-2xl font-bold text-white mb-6">Välj rätt kolumnhögtalare</h2>
       <div class="space-y-4">
         {[
-          { persons: "Upp till 80 pers.", rec: "Portable Medium (singel)", price: "799 kr/dygn", use: "Tal, konferens, mingel, liten fest" },
-          { persons: "60–100 pers.", rec: "Portable Medium+ (singel)", price: "999 kr/dygn", use: "Bröllop, företagsfest, föreläsning" },
-          { persons: "80–120 pers.", rec: "Portable Large (singel)", price: "1 199 kr/dygn", use: "Konferens, utomhusevent, stor lokal" },
-          { persons: "60–100 pers.", rec: "Portable Medium Duo", price: "1 499 kr/dygn", use: "Bröllop med stereo, dansgolv, fest" },
-          { persons: "100–200 pers.", rec: "Portable Medium+ Duo", price: "1 899 kr/dygn", use: "Stor konferens, bröllop, kickoff" },
-          { persons: "120–200 pers.", rec: "Portable Large Duo", price: "2 299 kr/dygn", use: "Stor fest, utomhus, festivalmingel" },
+          { persons: "Upp till 80 pers.", rec: "Medium (utan mik)",      price: "699 kr/dygn",   use: "Tal, konferens, mingel, liten fest" },
+          { persons: "60–100 pers.",      rec: "Medium+ (utan mik)",     price: "899 kr/dygn",   use: "Bröllop, företagsfest, föreläsning" },
+          { persons: "80–120 pers.",      rec: "Large (utan mik)",       price: "1 099 kr/dygn", use: "Konferens, utomhusevent, stor lokal" },
+          { persons: "60–100 pers.",      rec: "Medium Duo (utan mik)",  price: "1 299 kr/dygn", use: "Bröllop med stereo, dansgolv, fest" },
+          { persons: "100–200 pers.",     rec: "Medium+ Duo (utan mik)", price: "1 699 kr/dygn", use: "Stor konferens, bröllop, kickoff" },
+          { persons: "100–240 pers.",     rec: "Large Duo (utan mik)",   price: "2 199 kr/dygn", use: "Stor fest, utomhus, festivalmingel" },
         ].map(row => (
           <div class="flex items-start gap-4 border-b border-white/5 pb-4 last:border-0 last:pb-0">
             <div class="bg-brand-orange/10 border border-brand-orange/20 rounded-lg px-3 py-2 shrink-0 text-center min-w-[100px]">
@@ -200,6 +267,106 @@ const faqSchema = {
           </div>
         ))}
       </div>
+    </div>
+  </section>
+
+  <!-- MIXERBORD -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
+    <p class="text-gray-400 mb-8 text-sm">Koppla in mikrofoner och musikspelare. Mixerbord hyrs separat och ansluts till högtalarpaket.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {_ljudData.mixers.map((p: any) => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          specs={p.specs ?? []}
+          category="Mixerbord"
+          manualUrl={p.manualUrl}
+          bulky={p.bulky}
+          forceLeverans={p.forceLeverans}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- MIKROFONER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {(_ljudData.mikrofoner ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Mikrofon" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
+      ))}
+    </div>
+  </section>
+
+  <!-- TILLBEHÖR TILL MIKROFONER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör till mikrofoner</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {(_ljudData.tillbehor_mikrofon?.filter((p:any) => !p.artno?.startsWith('SK-LJD-UPG')) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Mikrofon tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
+      ))}
+    </div>
+  </section>
+
+  <!-- ÖVRIGA TILLBEHÖR LJUD -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Övriga tillbehör</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {(_ljudData.tillbehor_ljud ?? []).filter((p:any) => !p.categories || p.categories.includes('portable')).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Ljud tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
+      ))}
+    </div>
+  </section>
+
+  <!-- EL-TILLBEHÖR -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {(_elData.products ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
+      ))}
+      {(_ljusData.rok?.tillbehor?.filter((p:any) => ['SK-LJS-ROK-ACC-0001','SK-LJS-ROK-ACC-0002'].includes(p.artno)) ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/st'} />
+      ))}
+    </div>
+  </section>
+
+  <!-- TEKNIKER & TJÄNSTER -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Tekniker &amp; tjänster</h2>
+    <p class="text-gray-400 text-sm mb-6">Behöver du hjälp på plats? Vi erbjuder tekniker och scenengineers som hanterar ljud, ljus och AV under hela eventet.</p>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {_tjansterData.services?.filter((s:any) => s.categories?.includes('ljud')).map((svc: any) => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={svc.image} alt={svc.alt ?? svc.name} width="800" height="665" loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="p-5 flex flex-col flex-1">
+            <h3 class="font-bold text-white text-lg mb-2">{svc.name}</h3>
+            {svc.artno && <p class="artno-badge mb-2">{svc.artno}</p>}
+            <p class="text-gray-400 text-sm mb-3 flex-1">{svc.description}</p>
+            <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3">
+              {svc.includes?.map((item: string) => (
+                <li class="flex gap-1.5"><span class="text-green-400">▸</span>{item}</li>
+              ))}
+            </ul>
+            <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-3 gap-3">
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{svc.price.toLocaleString('sv')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(svc.price * 1.25).toLocaleString('sv')} kr</span>
+                <span class="text-gray-400 text-xs">{svc.priceNote ?? '/tim'}</span>
+              </div>
+              <CartButton id={svc.artno} name={svc.name} price={svc.price} category="Tjänster" artno={svc.artno} image={svc.image} size="md" iconOnly={true} />
+            </div>
+          </div>
+        </article>
+      ))}
     </div>
   </section>
 
@@ -219,39 +386,28 @@ const faqSchema = {
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 text-center">
-    <div class="bg-brand-navy border border-brand-orange/20 rounded-2xl p-8">
-      <h2 class="text-2xl font-bold text-white mb-3">Osäker på vilken kolumnhögtalare du behöver?</h2>
-      <p class="text-gray-400 mb-6">Berätta om din lokal och antal gäster — vi rekommenderar rätt system. Vi har hyrt ut kolumnhögtalare i Stockholm sedan 1986.</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-bold px-8 py-3 rounded-xl transition-colors">
-          Kontakta oss
-        </a>
-        <a href="/vara-tjanster/hyra-ljud/portable/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white font-bold px-8 py-3 rounded-xl transition-colors">
-          Se allt portabelt ljud
-        </a>
-      </div>
-    </div>
-  </section>
-
+  <!-- CTA + navigering -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex flex-wrap gap-4">
+    <a href="/vara-tjanster/hyra-ljud/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">← Tillbaka till hyra ljud</a>
+    <a href="/vara-tjanster/hyra-ljud/portable/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">🔋 Portabelt ljud (med mik)</a>
+    <a href="/bokningssida/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Boka nu</a>
+    <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Fråga om offert</a>
+  </div>
 
   <!-- Guider & Svens Kunskapsskola -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
     <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.75rem;">
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 1rem;">Läs mer & förbered dig</p>
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 1rem;">Läs mer &amp; förbered dig</p>
       <div style="display:flex;flex-wrap:wrap;gap:2.5rem;">
         <div style="flex:1;min-width:220px;">
           <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 0.5rem;">Guider</p>
         <a href="/for/guider/hur-stor-pa/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Hur stor PA behöver du?</a>
         <a href="/for/guider/hyra-pa-system/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Guide: Hyra PA-system</a>
-        <a href="/for/guider/studentflak-checklista/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Studentflak checklista</a>
           <a href="/for/guider/" style="display:inline-block;margin-top:0.6rem;color:rgba(255,255,255,0.60);font-size:0.8rem;text-decoration:none;">Alla guider →</a>
         </div>
         <div style="flex:1;min-width:220px;">
           <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 0.5rem;">Svens Kunskapsskola</p>
         <a href="/svens-kunskapsskola/#koppla-in-ljudsystem" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c4b5f4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Video: Koppla in ett hyrt ljudsystem</a>
-        <a href="/svens-kunskapsskola/#kontakter-ljud" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c4b5f4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Video: Kontakter inom ljud</a>
           <a href="/svens-kunskapsskola/" style="display:inline-block;margin-top:0.6rem;color:#c4b5f4;font-size:0.8rem;font-weight:600;text-decoration:none;">Alla videoguider →</a>
         </div>
       </div>
