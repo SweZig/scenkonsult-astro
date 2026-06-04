@@ -139,10 +139,33 @@ const pageSchema = {
             <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(196,181,244,0.2);">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Från ca</span>
-                <span style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:#c4b5f4;">1 600 kr</span>
+                <span style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:#c4b5f4;"><span id="flak-pris" data-exkl="1600">1 600</span> kr</span>
               </div>
-              <p style="color:rgba(255,255,255,0.60); font-size:0.75rem; margin:0.25rem 0 0;">Per dygn, exkl. ev. elgenerator (*helg = 1 dygns pris fredag–måndag, förutsatt tillgänglighet)</p>
+              <label for="flak-elverk" style="display:flex; align-items:center; gap:0.5rem; margin-top:0.85rem; cursor:pointer; user-select:none;">
+                <input type="checkbox" id="flak-elverk" style="width:1rem; height:1rem; accent-color:#c4b5f4; cursor:pointer;" />
+                <span style="color:rgba(255,255,255,0.72); font-size:0.8rem;">Inkl. elgenerator 2200W (+<span data-exkl="799">799</span> kr)</span>
+              </label>
+              <p style="color:rgba(255,255,255,0.60); font-size:0.75rem; margin:0.6rem 0 0;">Per dygn (*helg = 1 dygns pris fredag–måndag, förutsatt tillgänglighet)</p>
             </div>
+
+            <script is:inline>
+              (function () {
+                var cb = document.getElementById('flak-elverk');
+                var pris = document.getElementById('flak-pris');
+                if (!cb || !pris) return;
+                cb.addEventListener('change', function () {
+                  pris.setAttribute('data-exkl', cb.checked ? '2399' : '1600');
+                  // Be moms-toggle räkna om priset i aktuellt läge
+                  var mode = 'excl';
+                  try { mode = localStorage.getItem('sk-vat') || 'excl'; } catch (e) {}
+                  if (typeof window.skApplyVat === 'function') window.skApplyVat(mode);
+                  else {
+                    var base = parseInt(pris.getAttribute('data-exkl') || '0', 10);
+                    pris.textContent = (mode === 'incl' ? Math.round(base * 1.25) : base).toLocaleString('sv-SE');
+                  }
+                });
+              })();
+            </script>
             <a href="/bokningssida/" style="display:block; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:0.9rem 2rem; border-radius:4px; text-align:center; margin-top:1.25rem;">
               Boka nu
             </a>
