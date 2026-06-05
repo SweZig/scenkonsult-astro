@@ -1904,8 +1904,13 @@ async function pollCurrentCart() {
 
 // Stoppa polling när tab blir hidden (sparar API-anrop)
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) stopPanelPolling();
-  else if (currentCart && currentCart.id) startPanelPolling();
+  if (document.hidden) {
+    stopPanelPolling();
+    stopRefreshTimer();
+  } else {
+    if (currentCart && currentCart.id) startPanelPolling();
+    if (_appVisible) startRefreshTimer();
+  }
 });
 
 // ── DIRTY-TRACKING I DETALJPANELEN ────────────────────────────
@@ -1937,6 +1942,7 @@ let activeTab = 'info';
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let refreshTimer = null;
+let _appVisible = false; // sätts true när appen visas — styr om refresh-timern får återstartas vid visibilitychange
 
 // ── HELPERS ───────────────────────────────────────────────────
 const $ = id => document.getElementById(id); // admin v2
@@ -2034,6 +2040,7 @@ function doLogin() {
 function showApp() {
   $('login-screen').style.display = 'none';
   $('app').style.display = 'flex';
+  _appVisible = true;
   _liftConfigPanelsToBody();
   loadCarts();
   loadChatTemplates();
@@ -7151,7 +7158,13 @@ $('refresh-btn').addEventListener('contextmenu', (e) => {
 
 function startRefreshTimer() {
   clearInterval(refreshTimer);
-  refreshTimer = setInterval(loadCarts, 30_000); // var 30 sek
+  // Pausar automatiskt när fliken är dold (visibilitychange stoppar timern,
+  // men guarden här skyddar även mot ev. tick som hinner avfyras).
+  refreshTimer = setInterval(() => { if (!document.hidden) loadCarts(); }, 30_000); // var 30 sek
+}
+
+function stopRefreshTimer() {
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -7489,14 +7502,14 @@ window.invSendEmail        = invSendEmail;
 window.invSaveFields       = invSaveFields;
 window.invUpdateDueDate    = invUpdateDueDate;
 window.invCreateAndSend    = invCreateAndSend;
-window.openPanel       = openDetail;
+// (borttaget) window.openPanel — redundant alias; openDetail exponeras under eget namn
 window.openDetail      = openDetail;
 window.closePanel      = closePanel;
 window.sendMessage     = sendMessage;
 window.confirmOrder    = confirmOrder;
 window.cancelOrder     = cancelOrder;
 window.cloneCustomerToNewQuote = cloneCustomerToNewQuote;
-window.notifyCustomer  = sendCustomerNotice;
+// (borttaget) window.notifyCustomer — död alias; sendCustomerNotice anropas via makeBtn-referens, behöver ej vara global
 window.quoteAddCustomRow = quoteAddCustomRow;
 window.quotePickerCat  = quotePickerCat;
 window.quotePickerSub  = quotePickerSub;
@@ -7505,6 +7518,7 @@ window.quoteQtyIdx     = quoteQtyIdx;
 window.quoteEditName   = quoteEditName;
 window.quoteEditPrice  = quoteEditPrice;
 window.quoteDelIdx     = quoteDelIdx;
+window.quotePdfClear   = quotePdfClear; // ✕-knappen i quote-PDF-fältet anropar via inline onclick
 window.sendQuote       = sendQuote;
 window.closeQuoteModal = closeQuoteModal;
 window.openQuoteModal  = openQuoteModal;
