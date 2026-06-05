@@ -62,7 +62,7 @@ def prod(p, item_type='product'):
     for k in ('tagline','size','dimensions','capacity','useCase','transport',
               'persons','includes','specs','features',
               'monteringMin','manualUrl','bulky','volumePricing',
-              'priceNote','section'):
+              'priceNote','section','linkedServices'):
         v = p.get(k)
         if v is not None and v != '' and v != [] and v != {}:
             out[k] = v
@@ -159,8 +159,37 @@ catalog['Karaoke'] = {'sub': {
 }}
 
 # ── Bild (produkter + dukar + tillbehör; services hamnar under Tjänster) ─────
+def split_entries(products):
+    """Emittera cartSplit-rader som egna katalog-entries (parent-länkade).
+    Används så admin känner igen artno:na när orders med split-rader kommer in
+    från sajten, och kan plocka samma rader manuellt för att replikera offerten."""
+    out = []
+    for p in products:
+        splits = p.get('cartSplit') or []
+        if not splits: continue
+        parent_artno = (p.get('artno') or '').strip()
+        parent_name = p.get('name','')
+        for sp in splits:
+            artno = (sp.get('artno') or '').strip()
+            if not artno: continue
+            out.append({
+                'id': artno, 'artno': artno,
+                'name': sp.get('name',''),
+                'price': sp.get('price',0),
+                'qty': sp.get('qty',1),
+                'image': sp.get('image') or p.get('image',''),
+                'desc': f'Komponent i {parent_name} ({parent_artno}). '
+                        f'Lägg in tillsammans med övriga komponentrader + leverans + montering '
+                        f'för att replikera kundvarukorgen.',
+                'type': 'product',
+                'parent': parent_artno,
+                'priceNote': '/dygn',
+            })
+    return out
+
 catalog['Bild'] = {'sub': {
     'Projektorer & skärmar': [prod(p) for p in bild.get('products',[])],
+    'Paketkomponenter':      split_entries(bild.get('products',[])),
     'Projektordukar':        [prod(p) for p in bild.get('dukar',[])
                               if p.get('artno') or p.get('slug')],
     'Tillbehör':             [prod(p) for p in bild.get('tillbehor',[])
