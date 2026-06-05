@@ -44,8 +44,10 @@ exports.handler = async (event) => {
       return err('Varukorg hittades ej eller har gått ut', 404);
     }
 
-    // Kolla TTL för icke-bekräftade varukorgar
-    if (cart.expires_at && new Date(cart.expires_at) < new Date()) {
+    // Kolla TTL — men bekräftade/avslutade ordrar har ingen TTL och ska aldrig
+    // räknas som utgångna (även om ett gammalt expires_at råkar ligga kvar i DB).
+    const _ttlExempt = cart.confirmed_at || cart.status === 'confirmed' || cart.status === 'completed' || cart.status === 'fakturerad';
+    if (!_ttlExempt && cart.expires_at && new Date(cart.expires_at) < new Date()) {
       return err('Varukorgen har gått ut', 410);
     }
 

@@ -101,7 +101,8 @@ exports.handler = async (event) => {
       if (!body.token) return err('Token krävs', 400);
       const { data, error } = await db.from('carts').select('*').eq('cart_token', body.token).single();
       if (error || !data) return err('Varukorg hittades ej', 404);
-      if (data.expires_at && new Date(data.expires_at) < new Date()) return err('Varukorgen har gått ut', 410);
+      const _ttlExempt = data.confirmed_at || data.status === 'confirmed' || data.status === 'completed' || data.status === 'fakturerad';
+      if (!_ttlExempt && data.expires_at && new Date(data.expires_at) < new Date()) return err('Varukorgen har gått ut', 410);
       cart = data;
     }
 
@@ -240,6 +241,7 @@ exports.handler = async (event) => {
         updates.confirmed_user_agent   = ua;
         updates.confirmation_text      = body.confirmation_text || `Order ${cart.id} bekräftad digitalt`;
         updates.status                 = 'confirmed';
+        updates.expires_at             = null; // Bekräftad order har ingen TTL — annars dör kundlänken 21 dagar efter offerten skickades
 
         // Skicka intern notis till info@scenkonsult.se
       const apiKey4confirm = process.env.RESEND_API_KEY;
