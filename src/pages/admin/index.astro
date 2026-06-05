@@ -1831,14 +1831,35 @@ function stopPanelPolling() {
   }
 }
 
+// Returnerar true om admin just nu redigerar ett fält i detaljpanelen.
+// Programmatiska value-tilldelningar och inklistring triggar inte alltid
+// input-eventet som sätter panelDirty, så vi kollar fokus separat. Då undviker
+// vi att pollern bygger om panelen mitt i att admin skriver (förlorad text).
+function _isEditingPanelField() {
+  const ae = document.activeElement;
+  if (!ae) return false;
+  if (!ae.closest?.('#panel-body')) return false;
+  const tag = ae.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || ae.isContentEditable;
+}
+
 async function pollCurrentCart() {
   if (!currentCart || !currentCart.id) return;
   if (document.hidden) return;     // Skippa när tab är inaktiv
   if (panelDirty)     return;       // Skippa om admin skriver i textarea etc
+  if (_isEditingPanelField()) return; // Skippa om ett fält har fokus (ej hunnit flaggas dirty)
 
   try {
     const { ok, data } = await api(`admin-carts?id=${encodeURIComponent(currentCart.id)}`);
     if (!ok || !data?.cart) return;
+
+    // Race-skydd: api-anropet är async och admin kan ha börjat redigera
+    // MEDAN svaret var i luften. Kontrollera dirty/fokus IGEN efter awaitet —
+    // annars skriver ett försenat pollsvar över text som just skrivits/sparats.
+    if (panelDirty) return;
+    if (_isEditingPanelField()) return;
+    // Cart kan ha bytts under tiden (admin öppnade en annan order)
+    if (!currentCart || data.cart.id !== currentCart.id) return;
 
     const fresh = data.cart;
 
@@ -2053,6 +2074,12 @@ function _liftConfigPanelsToBody() {
     el.style.overflowY   = 'auto';
     el.style.zIndex      = '8900';
     el.style.boxShadow   = '0 12px 40px rgba(0,0,0,.6)';
+    // Opak bakgrund — panelens HTML har background:rgba(196,181,244,0.05)
+    // (95% genomskinlig) vilket bara funkar inline i quote-overlayn där en
+    // opak förälder ligger bakom. Som flytande modal mot bara backdropen lyser
+    // sidans text igenom. Tvinga opak mörk ton (samma som övriga modaler).
+    el.style.setProperty('background', '#1a1640', 'important');
+    el.style.border = '1px solid rgba(196,181,244,0.35)';
     document.body.appendChild(el);
   });
 }
@@ -2450,9 +2477,9 @@ function cartCardOpen(c) {
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at).getTime()) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age}d sedan` : '';
   const msgRaw = (c.customer_message || '').trim();
-  const msgEsc = msgRaw.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const msgEsc = htmlEscape(msgRaw);
   const msgSnip = msgEsc.length > 140 ? msgEsc.slice(0, 137) + '…' : msgEsc;
-  const nameEsc = (c.customer_name || 'Okänd kund').replace(/[<>"']/g, ch => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const nameEsc = htmlEscape(c.customer_name || 'Okänd kund');
 
   return `
     <div class="cc-open" data-id="${c.id}" data-cart-id="${c.id}">
@@ -2498,7 +2525,7 @@ function cartCardCompact(c) {
     <div class="cc-compact ${uCls}" data-id="${c.id}" data-cart-id="${c.id}">
       ${delBtn}
       <div class="cc-row1">
-        <span class="cc-name">${c.customer_name || 'Okänd kund'}</span>
+        <span class="cc-name">${htmlEscape(c.customer_name || 'Okänd kund')}</span>
         ${reqB}
         ${overdueB}
         ${noDateB}
@@ -2833,7 +2860,7 @@ function cartCardHTML(c) {
     <div class="cart-card" data-id="${c.id}" data-cart-id="${c.id}" style="position:relative;${cardExtraStyle}">
       ${delBtn}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-        <div class="cart-card-name" style="margin:0">${c.customer_name || (c.source === 'sven' ? 'Sven-ärende — kund okänd' : 'Okänd kund')}</div>
+        <div class="cart-card-name" style="margin:0">${htmlEscape(c.customer_name || (c.source === 'sven' ? 'Sven-ärende — kund okänd' : 'Okänd kund'))}</div>
         ${intentBadge}
       </div>
       ${daysFlag}
@@ -3014,6 +3041,17 @@ function _waitForButton(btn, targetText, maxMs = 5000) {
 
 function renderTab(tab) {
   const body = $('panel-body');
+  // Bevara halvskrivet chatt-utkast över en re-render. Chatt-textarean är
+  // undantagen från dirty-tracking (sparas via Skicka-knappen), så en poll
+  // eller annan re-render skulle annars nolla texten. Vi fångar värdet +
+  // markörposition innan body byggs om och återställer efteråt.
+  let _chatDraft = null;
+  if (tab === 'chat') {
+    const ta = document.getElementById('chat-input');
+    if (ta && ta.value) {
+      _chatDraft = { value: ta.value, start: ta.selectionStart, end: ta.selectionEnd };
+    }
+  }
   if (tab === 'info')     body.innerHTML = renderInfoTab();
   if (tab === 'products') {
     body.innerHTML = renderProductsTab();
@@ -3041,6 +3079,14 @@ function renderTab(tab) {
     });
   });
   if (tab === 'chat')     renderChatTab();
+  // Återställ ev. bevarat chatt-utkast efter att fliken byggts om.
+  if (tab === 'chat' && _chatDraft) {
+    const ta = document.getElementById('chat-input');
+    if (ta) {
+      ta.value = _chatDraft.value;
+      try { ta.setSelectionRange(_chatDraft.start ?? ta.value.length, _chatDraft.end ?? ta.value.length); } catch (_) {}
+    }
+  }
   if (tab === 'log')      body.innerHTML = renderLogTab();
 
   // Nollställ dirty-flaggan — vi har just renderat färska värden från currentCart.
@@ -3165,12 +3211,21 @@ function renderTab(tab) {
         e.stopPropagation();
         emojiPanel.style.display = emojiPanel.style.display === 'none' ? 'block' : 'none';
       });
-      // Klick utanför stänger pickern
-      document.addEventListener('click', e => {
-        if (!emojiPanel.contains(e.target) && e.target !== emojiBtn) {
-          emojiPanel.style.display = 'none';
+      // Klick utanför stänger pickern. Använd en NAMNGIVEN handler på window som
+      // tas bort före varje ny registrering — annars läcker en ny lyssnare för
+      // varje gång chattfliken renderas (öppna chatten 15 ggr → 15 lyssnare).
+      if (window._svenEmojiOutsideClick) {
+        document.removeEventListener('click', window._svenEmojiOutsideClick);
+      }
+      window._svenEmojiOutsideClick = function(e) {
+        const panel = document.getElementById('chat-emoji-panel');
+        const btn   = document.getElementById('chat-emoji-btn');
+        if (!panel) return;
+        if (!panel.contains(e.target) && e.target !== btn) {
+          panel.style.display = 'none';
         }
-      });
+      };
+      document.addEventListener('click', window._svenEmojiOutsideClick);
       // Klick på en emoji infogar vid markörens position
       emojiPanel.querySelectorAll('.chat-emoji-pick').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3251,6 +3306,18 @@ function prodUpdateSum(idx) {
   if (se) se.textContent = fmt(total) + ' kr';
   if (sv) sv.textContent = fmt(Math.round(total*0.25)) + ' kr';
   if (si) si.textContent = fmt(Math.round(total*1.25)) + ' kr';
+
+  // Synka currentCart live så footern och kanban-kortet visar samma summa som
+  // tabellen UTAN att man måste spara först. (Tidigare läste de bara
+  // currentCart.total_excl som uppdaterades först vid prodSave → priset
+  // "hängde inte med".) DB skrivs fortfarande bara vid Spara — detta är ren
+  // UI-spegling. Markera dirty så att spara-skyddet kickar in.
+  if (currentCart) {
+    currentCart.items = items;
+    currentCart.total_excl = Math.round(total * 100);
+    if (typeof renderPanelFooter === 'function') renderPanelFooter();
+  }
+  if (typeof markPanelDirty === 'function') markPanelDirty();
 }
 
 // Wire up live sum update on input change
@@ -7066,9 +7133,9 @@ function renderCalendar() {
 
 // Liten hjälpfunktion för band-text (undviker XSS från kundnamn)
 function escapeHtml(s) {
-  return String(s||'').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+  // Alias för htmlEscape (definierad tidigare) — en enda implementation
+  // undviker drift mellan flera escape-varianter.
+  return htmlEscape(s);
 }
 
 // ── REFRESH ───────────────────────────────────────────────────

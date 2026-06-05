@@ -63,7 +63,10 @@
     .row-msgcount { display: inline-block; background: rgba(196,181,244,0.15); color: #c4b5f4; font-size: 0.65rem; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: middle; font-weight: 600; }
 
     .filter-btn small { opacity: 0.7; margin-left: 4px; font-weight: 400; }
-    .reply-preview { font-size: 0.75rem; color: rgba(255,255,255,0.60); margin-top: 3px; font-style: italic; }
+    .reply-preview { font-size: 0.75rem; color: rgba(255,255,255,0.58); margin-top: 5px; padding-left: 0.6rem; border-left: 2px solid rgba(196,181,244,0.25); line-height: 1.45; }
+    .bubble-a .sven-link { color: #c4b5f4; text-decoration: underline; text-underline-offset: 2px; }
+    .bubble-a .sven-link:hover { color: #e2dcfb; }
+    .bubble-a .sven-bullet { color: rgba(196,181,244,0.7); margin-right: 2px; }
     #auth-screen { position: fixed; inset: 0; background: #0c0a24; display: flex; align-items: center; justify-content: center; z-index: 999; }
     .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; text-align: center; }
     .auth-box h2 { color: #c4b5f4; margin-bottom: 1.25rem; }
@@ -500,7 +503,7 @@ function renderTable() {
       <td style="color:rgba(255,255,255,0.60);font-size:0.78rem;white-space:nowrap">${fmtTime(l.created_at)}</td>
       <td>
         <div>${escapeHtml(l.message || '–')}${msgBadge}${badgesHtml}</div>
-        ${l.reply_preview ? `<div class="reply-preview">↳ ${escapeHtml(l.reply_preview).substring(0,140)}…</div>` : ''}
+        ${l.reply_preview ? (() => { const p = previewText(l.reply_preview); return `<div class="reply-preview">↳ ${escapeHtml(p).substring(0,140)}${p.length > 140 ? '…' : ''}</div>`; })() : ''}
       </td>
       <td>${typeTag(l.customer_type)}</td>
       <td><span class="page-tag">${(l.page_url||'–').replace('/vara-tjanster','').replace('/for/','/')}</span></td>
@@ -606,16 +609,40 @@ async function openThread(sessionId) {
   body.scrollTop = 0;
 }
 
+// Kort, ren förhandsvisning för tabellraden: tar bort taggar och markdown och
+// ersätter dem med små ikoner så previewen blir läsbar i stället för brusig.
+function previewText(text) {
+  let s = String(text || '')
+    .replace(/\s*(?:\n)?\s*CHIPS:\s*\[[\s\S]*?\]\s*$/i, '')
+    .replace(/\[CART:[^\]]+\]/g, '🛒')
+    .replace(/\[FORWARD:(?:offert|ring|fraga)\]/gi, '🤖')
+    .replace(/\[([^\]]+)\]\((?:https?:\/\/|\/)[^)\s]+\)/g, '$1') // länk → bara texten
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return s;
+}
+
 // Renderar Svens svarstext: escapar, tar bort CHIPS-rader (extra säkerhet om
 // någon gammal logg har dem kvar) och färgkodar [CART]/[FORWARD]-taggar.
+// Renderar även markdown-länkar, fetstil och punktlistor så att admin ser
+// ungefär det kunden såg i widgeten — inte rå markdown.
 function formatSvenReply(text) {
   // Ta bort ev. trailing CHIPS-rad om historisk data har den (nya inläggen
   // har strippats redan i backend men ev. gamla rader kan ha den kvar)
   let cleaned = String(text || '').replace(/\s*(?:\n)?\s*CHIPS:\s*\[[\s\S]*?\]\s*$/i, '').trim();
   let html = escapeHtml(cleaned);
-  // Färgkoda taggar
+  // Färgkoda taggar (görs FÖRE länk-regex så att URL-parentes inte krockar)
   html = html.replace(/\[CART:([^\]]+)\]/g, (_, ids) => `<span class="tag-cart" title="Sven la till produkter i varukorgen">🛒 CART:${escapeHtml(ids)}</span>`);
   html = html.replace(/\[FORWARD:(offert|ring|fraga)\]/gi, (_, t) => `<span class="tag-forward" title="Sven taggade för admin-uppföljning">🤖 FORWARD:${t}</span>`);
+  // Markdown-länkar [text](/url) → klickbar <a>. Texten är redan escapad ovan,
+  // så vi matchar mot escapade tecken. URL valideras grovt (intern/extern).
+  html = html.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)\s]+)\)/g,
+    (_, label, url) => `<a href="${url}" target="_blank" rel="noopener" class="sven-link">${label}</a>`);
+  // Fetstil **text**
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Punktlistor: rader som börjar med "- " eller "• " → radbrytning med bullet
+  html = html.replace(/^[\-•]\s+(.+)$/gm, '<span class="sven-bullet">•</span> $1');
   return html;
 }
 
