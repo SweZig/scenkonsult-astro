@@ -7592,6 +7592,45 @@ function quoteSearchPick(idx) {
   const hits = resBox?._hits;
   if (!hits || !hits[idx]) return;
   const p = hits[idx];
+
+  // Auto-expandera bundle-produkter (cartSplit + linkedServices)
+  // Replikerar kundvarukorgens uppdelning: hårdvaru-rader + leverans + montering
+  // som separata rader istället för en enda lump-rad.
+  const hasBundle =
+    (Array.isArray(p.cartSplit) && p.cartSplit.length > 0) ||
+    (Array.isArray(p.linkedServices) && p.linkedServices.length > 0);
+  if (hasBundle) {
+    (p.cartSplit || []).forEach((row) => {
+      _commitTargetItem({
+        id:    row.artno || '',
+        name:  row.name  || '',
+        price: row.price || 0,
+        qty:   row.qty   || 1,
+        category: '',
+        type: 'product',
+      });
+    });
+    (p.linkedServices || []).forEach((row) => {
+      _commitTargetItem({
+        id:    row.artno || '',
+        name:  row.name  || '',
+        price: row.price || 0,
+        qty:   1,
+        category: 'Tjänster',
+        type: 'service',
+      });
+    });
+    const inpId = _configTarget === 'productsTab' ? 'prod-search' : 'qp-search';
+    const inp = document.getElementById(inpId);
+    if (inp) { inp.value = ''; inp.focus(); }
+    if (resBox) resBox.style.display = 'none';
+    if (typeof toast === 'function') {
+      const hw = (p.cartSplit || []).length, sv = (p.linkedServices || []).length;
+      toast(`${p.name}: ${hw} hårdvaru-rader + ${sv} tjänster tillagda`, 'success');
+    }
+    return;
+  }
+
   // Klassificera som tjänst eller hårdvara
   const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
   const isSvc = SVC_CATALOG_KEYS.includes(p._cat) || SVC_IDS.has(p.id);

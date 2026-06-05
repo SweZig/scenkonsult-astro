@@ -62,7 +62,7 @@ def prod(p, item_type='product'):
     for k in ('tagline','size','dimensions','capacity','useCase','transport',
               'persons','includes','specs','features',
               'monteringMin','manualUrl','bulky','volumePricing',
-              'priceNote','section','linkedServices'):
+              'priceNote','section','linkedServices','cartSplit'):
         v = p.get(k)
         if v is not None and v != '' and v != [] and v != {}:
             out[k] = v
