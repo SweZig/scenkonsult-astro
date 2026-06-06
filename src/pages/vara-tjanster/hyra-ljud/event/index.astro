@@ -102,6 +102,41 @@ const faqSchema = {
       ))}
     </div>
   </section>
+
+  <!-- VIDEO: SE EVENT-PAKETET I PRAKTIKEN -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-brand-navy border border-white/10 rounded-2xl overflow-hidden p-6 lg:p-8">
+      <div
+        class="sk-video-embed relative rounded-xl overflow-hidden cursor-pointer bg-brand-dark group"
+        style="aspect-ratio:16/9"
+        data-video-id="JkanC_CMmLY"
+        role="button"
+        tabindex="0"
+        aria-label="Spela video: Se Event-paketet i praktiken"
+      >
+        <img
+          src="https://i.ytimg.com/vi/JkanC_CMmLY/hqdefault.jpg"
+          alt="Förhandsvisning: Event-ljudpaket i praktiken"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <span class="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/15 transition-colors">
+          <span class="flex items-center justify-center rounded-full" style="width:68px;height:68px;background:rgba(196,181,244,0.92);box-shadow:0 6px 24px rgba(0,0,0,0.35);">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#0c0a24" style="margin-left:3px;"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </span>
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold text-white mb-3">Se Event-paketet i praktiken</h2>
+        <p class="text-gray-400 mb-5" style="color:rgba(255,255,255,0.72)">Sven visar vad som ingår i vårt Event-ljudpaket, vad det räcker till och hur du riggar det själv på några minuter. Inga förkunskaper krävs.</p>
+        <a href="/svens-kunskapsskola/" class="inline-flex items-center gap-2 text-brand-orange font-semibold text-sm" style="color:#c4b5f4;text-decoration:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c4b5f4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          Fler videoguider i Svens Kunskapsskola →
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- MIXERBORD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
@@ -227,6 +262,28 @@ const faqSchema = {
       </div>
     </div>
   </section>
+
+<script>
+  document.querySelectorAll('.sk-video-embed').forEach((el) => {
+    const play = () => {
+      const id = el.getAttribute('data-video-id');
+      if (!id || el.dataset.loaded) return;
+      el.dataset.loaded = '1';
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+      iframe.title = 'Videoguide';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
+      el.innerHTML = '';
+      el.appendChild(iframe);
+    };
+    el.addEventListener('click', play);
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); }
+    });
+  });
+</script>
 
 <!-- rebuild: 2026-05-21 GSC unstuck -->
 </Layout>
