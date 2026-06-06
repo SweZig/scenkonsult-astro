@@ -143,16 +143,27 @@ const faqSchema = {
     </div>
   </section>
 
-  <!-- Kolumnhögtalare-banner -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-    <a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/" class="flex items-center justify-between bg-brand-navy border border-brand-orange/30 hover:border-brand-orange/60 rounded-2xl px-6 py-4 transition-all group">
-      <div>
-        <div class="text-brand-orange font-bold text-sm uppercase tracking-wide mb-1">Stockholms största utbud</div>
-        <div class="text-white font-bold text-lg">Kolumnhögtalare — diskret &amp; elegant PA</div>
-        <div class="text-gray-400 text-sm mt-1">Alto TS108C, Alto TS112C &amp; LD Systems Maui 28 G2 — smal design utan stativ</div>
-      </div>
-      <span class="text-brand-orange font-bold text-sm shrink-0 ml-4 group-hover:underline">Se alla →</span>
-    </a>
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {_ljudData.portable.products.map((p: any) => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          persons={p.persons}
+          specs={p.specs ?? p.includes ?? []}
+          category="Ljud portabelt"
+          monteringMin={p.monteringMin}
+          manualUrl={p.manualUrl}
+          bulky={p.bulky}
+          forceLeverans={p.forceLeverans}
+        />
+      ))}
+    </div>
   </section>
 
   <!-- VIDEO: SVEN VISAR INKOPPLING (toggle Portable / Kolumn) -->
@@ -209,28 +220,6 @@ const faqSchema = {
     </div>
   </section>
 
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {_ljudData.portable.products.map((p: any) => (
-        <ProductCard
-          artno={p.artno}
-          name={p.name}
-          price={p.price}
-          priceNote={p.priceNote}
-          image={p.image}
-          alt={p.alt ?? p.name}
-          description={p.description}
-          persons={p.persons}
-          specs={p.specs ?? p.includes ?? []}
-          category="Ljud portabelt"
-          monteringMin={p.monteringMin}
-          manualUrl={p.manualUrl}
-          bulky={p.bulky}
-          forceLeverans={p.forceLeverans}
-        />
-      ))}
-    </div>
-  </section>
   <!-- MIXERBORD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
