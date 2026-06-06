@@ -155,6 +155,60 @@ const faqSchema = {
     </a>
   </section>
 
+  <!-- VIDEO: SVEN VISAR INKOPPLING (toggle Portable / Kolumn) -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden p-6 lg:p-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div
+          class="sk-video-embed relative rounded-xl overflow-hidden cursor-pointer bg-brand-dark group order-2 lg:order-1"
+          style="aspect-ratio:16/9"
+          data-video-id="mr-1UM2YbJo"
+          role="button"
+          tabindex="0"
+          aria-label="Spela video: Sven visar hur du kopplar in det portabla ljudpaketet"
+        >
+          <img
+            class="sk-video-thumb w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            src="https://i.ytimg.com/vi/mr-1UM2YbJo/hqdefault.jpg"
+            alt="Förhandsvisning: inkoppling av portabelt ljud"
+            loading="lazy"
+          />
+          <span class="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/15 transition-colors">
+            <span class="flex items-center justify-center rounded-full" style="width:68px;height:68px;background:rgba(196,181,244,0.92);box-shadow:0 6px 24px rgba(0,0,0,0.35);">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="#0c0a24" style="margin-left:3px;"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+          </span>
+        </div>
+        <div class="order-1 lg:order-2">
+          <h2 class="text-2xl font-bold text-white mb-3">Sven visar dig hur du kopplar in ljudpaketet</h2>
+          <p class="text-gray-400 mb-4" style="color:rgba(255,255,255,0.72)">Vi har två sorters portabelt ljud — välj nedan så visar Sven steg för steg hur du kopplar in just den varianten och vad de olika kontakterna och reglagen gör.</p>
+          <div class="flex gap-2 mb-5" role="tablist">
+            <button
+              type="button"
+              class="sk-video-tab px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              data-video-id="mr-1UM2YbJo"
+              data-label="Sven visar hur du kopplar in det portabla ljudpaketet"
+              aria-selected="true"
+              style="background:#c4b5f4;color:#0c0a24;"
+            >Portable (batteridrivet)</button>
+            <button
+              type="button"
+              class="sk-video-tab px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              data-video-id="LSnzgiwDRMA"
+              data-label="Sven visar hur du kopplar in kolumnhögtalarna"
+              aria-selected="false"
+              style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.72);"
+            >Kolumnhögtalare</button>
+          </div>
+          <a href="/svens-kunskapsskola/" class="inline-flex items-center gap-2 text-brand-orange font-semibold text-sm" style="color:#c4b5f4;text-decoration:none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c4b5f4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Fler videoguider i Svens Kunskapsskola →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {_ljudData.portable.products.map((p: any) => (
@@ -290,6 +344,54 @@ const faqSchema = {
       </div>
     </div>
   </section>
+
+<script>
+  document.querySelectorAll('.sk-video-embed').forEach((el) => {
+    const loadVideo = () => {
+      const id = el.getAttribute('data-video-id');
+      if (!id) return;
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+      iframe.title = 'Videoguide';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
+      el.dataset.loaded = '1';
+      el.innerHTML = '';
+      el.appendChild(iframe);
+    };
+    el.addEventListener('click', () => { if (!el.dataset.loaded) loadVideo(); });
+    el.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && !el.dataset.loaded) { e.preventDefault(); loadVideo(); }
+    });
+
+    // Tab-växling: byt video-ID + thumbnail, nollställ ev. laddad iframe
+    const tabs = document.querySelectorAll('.sk-video-tab');
+    const thumbHtml = (id) => `
+      <img class="sk-video-thumb w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="Förhandsvisning" loading="lazy" />
+      <span class="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/15 transition-colors">
+        <span class="flex items-center justify-center rounded-full" style="width:68px;height:68px;background:rgba(196,181,244,0.92);box-shadow:0 6px 24px rgba(0,0,0,0.35);">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#0c0a24" style="margin-left:3px;"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+      </span>`;
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const id = tab.getAttribute('data-video-id');
+        const label = tab.getAttribute('data-label') || 'Videoguide';
+        el.setAttribute('data-video-id', id);
+        el.setAttribute('aria-label', 'Spela video: ' + label);
+        delete el.dataset.loaded;
+        el.innerHTML = thumbHtml(id);
+        tabs.forEach((t) => {
+          const active = t === tab;
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+          t.style.background = active ? '#c4b5f4' : 'rgba(255,255,255,0.08)';
+          t.style.color = active ? '#0c0a24' : 'rgba(255,255,255,0.72)';
+        });
+      });
+    });
+  });
+</script>
 
 <!-- rebuild: 2026-05-21 GSC unstuck -->
 </Layout>
