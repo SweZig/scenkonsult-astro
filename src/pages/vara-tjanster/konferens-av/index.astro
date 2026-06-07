@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import KunskapBlock from '../../../components/KunskapBlock.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import CartButton from '../../../components/CartButton.astro';
@@ -496,26 +497,19 @@ const faqSchema = {
   </section>
 
 
-  <!-- Guider & resurser -->
-  <section style="background:#0c0a24;border-top:1px solid rgba(255,255,255,0.06);padding:2.5rem clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px;margin:0 auto;">
-      <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 1.25rem;">📖 Guider för konferens AV</p>
-      <div style="display:flex;flex-wrap:wrap;gap:2.5rem;">
-        <div style="flex:1;min-width:220px;">
-        <a href="/for/guider/konferens-av-checklista/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Konferens AV checklista</a>
-        <a href="/for/guider/hyra-tradlos-mikrofon/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Hyra trådlös mikrofon</a>
-        <a href="/for/guider/hyra-projektor-pris/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Hyra projektor — priser</a>
-        <a href="/for/guider/ljud-foretagsfest/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Ljud till företagsfest</a>
-          <a href="/for/guider/" style="display:inline-block;margin-top:0.6rem;color:rgba(255,255,255,0.60);font-size:0.8rem;text-decoration:none;">Alla guider →</a>
-        </div>
-      <div style="flex:1;min-width:220px;">
-        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 0.5rem;">Svens Kunskapsskola</p>
-        <a href="/svens-kunskapsskola/#koppla-in-ljudsystem" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c4b5f4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Video: Koppla in ett hyrt ljudsystem</a>
-        <a href="/svens-kunskapsskola/#kontakter-bild" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c4b5f4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Video: Kontakter — HDMI & bild</a>
-        <a href="/svens-kunskapsskola/" style="display:inline-block;margin-top:0.6rem;color:#c4b5f4;font-size:0.8rem;font-weight:600;text-decoration:none;">Alla videoguider →</a>
-      </div>
-      </div>
-    </div>
-  </section>
+
+  <KunskapBlock
+    guides={[
+    { href: "/for/guider/konferens-av-checklista/", label: "Konferens AV — checklista" },
+    { href: "/for/guider/hyra-tradlos-mikrofon/", label: "Hyra trådlös mikrofon" },
+    { href: "/for/guider/hyra-projektor-pris/", label: "Hyra projektor — pris" },
+    { href: "/for/guider/hur-stor-pa/", label: "Hur stor PA behöver jag?" }
+  ]}
+    videos={[
+    { slug: "kontakter-ljud", label: "Kontakter inom ljud" },
+    { slug: "kontakter-bild", label: "Kontakter inom bild" },
+    { slug: "hur-det-fungerar", label: "Hur det fungerar att hyra hos oss" }
+  ]}
+  />
 
 </Layout>

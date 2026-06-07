@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import KunskapBlock from '../../../components/KunskapBlock.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import CartButton from '../../../components/CartButton.astro';
@@ -248,5 +249,18 @@ const tillbehor = karaoke.tillbehor
       </div>
     </div>
   </section>
+
+  <KunskapBlock
+    guides={[
+    { href: "/for/guider/hyra-tradlos-mikrofon/", label: "Hyra trådlös mikrofon" },
+    { href: "/for/guider/ljud-foretagsfest/", label: "Ljud till företagsfest" },
+    { href: "/for/guider/hur-stor-pa/", label: "Hur stor PA behöver jag?" }
+  ]}
+    videos={[
+    { slug: "kontakter-ljud", label: "Kontakter inom ljud" },
+    { slug: "koppla-in-ljudsystem", label: "Koppla in ett hyrt ljudsystem" },
+    { slug: "hur-det-fungerar", label: "Hur det fungerar att hyra hos oss" }
+  ]}
+  />
 
 </Layout>

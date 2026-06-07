@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import KunskapBlock from '../../components/KunskapBlock.astro';
 
 const kategorier = [
   {
@@ -150,4 +151,21 @@ const kategorier = [
     </div>
 
   </div>
+  <KunskapBlock
+    intro="Hos oss får du inte bara utrustning — du får kunskapen att använda den. Vår intendent Sven ansvarar för all kunskap till dig som kund: guider att läsa och videoguider som visar precis hur allt kopplas in."
+    guides={[
+    { href: "/for/guider/", label: "Alla guider — kunskapsbanken" },
+    { href: "/for/guider/dmx-styrning-guide/", label: "DMX-styrning — komplett guide" },
+    { href: "/for/guider/hur-stor-pa/", label: "Hur stor PA behöver jag?" },
+    { href: "/for/guider/hur-stor-scen/", label: "Hur stor scen behöver jag?" },
+    { href: "/for/guider/vad-kostar-det/", label: "Vad kostar det?" }
+  ]}
+    videos={[
+    { slug: "hur-det-fungerar", label: "Hur det fungerar att hyra hos oss" },
+    { slug: "koppla-in-ljudsystem", label: "Koppla in ett hyrt ljudsystem" },
+    { slug: "kontakter-ljud", label: "Kontakter inom ljud" },
+    { slug: "kontakter-bild", label: "Kontakter inom bild" }
+  ]}
+  />
+
 </Layout>

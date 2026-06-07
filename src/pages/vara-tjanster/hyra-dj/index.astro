@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import KunskapBlock from '../../../components/KunskapBlock.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import CartButton from '../../../components/CartButton.astro';
@@ -395,5 +396,18 @@ const faqSchema = {
       </div>
     </div>
   </section>
+
+  <KunskapBlock
+    guides={[
+    { href: "/for/guider/dj-eller-liveband/", label: "DJ eller liveband?" },
+    { href: "/for/guider/dj-brollop-pris/", label: "DJ på bröllop — pris" },
+    { href: "/for/guider/varfor-numark-denon-rane/", label: "Varför Numark/Denon/Rane?" }
+  ]}
+    videos={[
+    { slug: "kontakter-ljud", label: "Kontakter inom ljud" },
+    { slug: "koppla-in-ljudsystem", label: "Koppla in ett hyrt ljudsystem" },
+    { slug: "hur-det-fungerar", label: "Hur det fungerar att hyra hos oss" }
+  ]}
+  />
 
 </Layout>
