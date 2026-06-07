@@ -61,6 +61,16 @@ const volPricingJSON = JSON.stringify(volPricingMap);
       </table>
     </div>
 
+    <!-- TILLBEHÖRSPÅMINNELSE -->
+    <div class="accessory-reminder">
+      <span class="accessory-reminder-icon" aria-hidden="true">💡</span>
+      <div class="accessory-reminder-text">
+        <strong>Glöm inte tillbehören!</strong>
+        Elkablar, ställningar, DMX-kablar, stativ och annat smått är lätt att missa — men avgörande på plats. Dubbelkolla att du har allt du behöver.
+      </div>
+      <a href="/vara-tjanster/" class="accessory-reminder-link">Se tillbehör →</a>
+    </div>
+
     <!-- TILLÄGGSTJÄNSTER -->
     <div class="services-wrap">
       <div class="services-header">Tilläggstjänster</div>
@@ -406,6 +416,31 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 .pickup-notice svg { flex-shrink:0; margin-top:1px; color: #c4b5f4; }
 .pickup-notice strong { color: rgba(255,255,255,0.85); }
 .pickup-notice.hidden { display: none; }
+.accessory-reminder {
+  display:flex; align-items:center; gap:0.85rem;
+  background:rgba(196,181,244,0.08);
+  border:1px solid rgba(196,181,244,0.25);
+  border-radius:14px;
+  padding:0.9rem 1.1rem;
+  margin-bottom:1.5rem;
+}
+.accessory-reminder-icon { font-size:1.35rem; line-height:1; flex-shrink:0; }
+.accessory-reminder-text {
+  flex:1; color:rgba(255,255,255,0.72);
+  font-size:0.86rem; line-height:1.55;
+}
+.accessory-reminder-text strong { color:#fff; display:block; margin-bottom:0.1rem; }
+.accessory-reminder-link {
+  flex-shrink:0; white-space:nowrap;
+  color:#c4b5f4; font-family:'Space Grotesk',sans-serif;
+  font-size:0.82rem; font-weight:700; letter-spacing:0.04em;
+  text-decoration:none; transition:color 0.15s;
+}
+.accessory-reminder-link:hover { color:#e2dcfb; }
+@media (max-width:560px) {
+  .accessory-reminder { flex-wrap:wrap; }
+  .accessory-reminder-link { margin-left:2.2rem; }
+}
 .services-wrap {
   border:1px solid rgba(255,255,255,0.08);
   border-radius:14px; overflow:hidden; margin-bottom:1.5rem;
@@ -742,13 +777,15 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   import _ljudJson  from '../../data/ljud.json';
   import _djJson    from '../../data/dj.json';
   import _bildJson  from '../../data/bild.json';
+  import _elJson      from '../../data/el.json';
+  import _karaokeJson from '../../data/karaoke.json';
 
   function _buildCatalog() {
     const cat = {};
     function add(products, category, link) {
       for (const p of (products ?? [])) {
-        if (!p.slug) continue;
-        cat[p.slug] = {
+        if (!p) continue;
+        const entry = {
           desc:    p.description || '',
           cat:     category,
           link,
@@ -758,6 +795,8 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
           videos:  p.video ? ['/videos/' + p.video] : [],
           volPricing: p.volumePricing || [],
         };
+        if (p.slug)  cat[p.slug] = entry;
+        if (p.artno) cat[p.artno] = entry;
       }
     }
     // Scen
@@ -808,6 +847,16 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     // Bild
     add(_bildJson.products,  'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
     add(_bildJson.tillbehor, 'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
+    add(_bildJson.dukar,     'Projektorduk',      '/vara-tjanster/hyra-bild-projektorer-skarmar/#projektorduk');
+    // Ljus — DMX-styrning + förbruknings-/stativtillbehör (saknades tidigare)
+    add(_ljusJson.dmx?.tillbehor,    'DMX-styrning',          '/vara-tjanster/hyra-ljus/ljuseffekter/');
+    add(_ljusJson.rok?.tillbehor,    'Ljus — Rök & pyro',     '/vara-tjanster/hyra-ljus/rok-pyro/');
+    add(_ljusJson.stativ?.tillbehor, 'Ljus — Stativ & tross', '/vara-tjanster/hyra-ljus/stativ-tross/');
+    // El-tillbehör
+    add(_elJson.products, 'El-tillbehör', '/vara-tjanster/hyra-ljud/');
+    // Karaoke
+    add(_karaokeJson.packages,  'Karaoke',            '/vara-tjanster/hyra-karaoke/');
+    add(_karaokeJson.tillbehor, 'Karaoke — tillbehör', '/vara-tjanster/hyra-karaoke/');
     // Frakt & tjänster — leverans, montering, tillägg, fakturaavgift
     const _addService = (id, artno, label, desc, price) => {
       const entry = { desc, cat: 'Tjänster', link: '/', includes: [], artno: artno || '', image: '', price: price || 0 };

@@ -199,9 +199,15 @@ const dukSkJson = (d: any) => JSON.stringify({
     <div class="duk-grid">
       {bildData.dukar?.map((d) => (
         <article class="duk-card group" data-sk-product={dukSkJson(d)} tabindex="0" role="button" aria-label={`Visa info om ${d.name}`} style="cursor:pointer">
-          <div class="duk-card-img bg-brand-dark overflow-hidden">
+          <div class="duk-card-img bg-brand-dark overflow-hidden" style="position:relative;">
             <img src={d.image} alt={d.alt ?? d.name} loading="lazy"
               class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+            {d.video && (
+              <span class="duk-video-badge" aria-hidden="true">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#0c0a24" style="margin-left:1px;"><path d="M8 5v14l11-7z"/></svg>
+                Video
+              </span>
+            )}
           </div>
           <div class="duk-card-body">
             <h3 class="duk-card-title">{d.name}</h3>
@@ -455,6 +461,25 @@ const dukSkJson = (d: any) => JSON.stringify({
   }
   .duk-card-img {
     aspect-ratio: 1024 / 853;
+  }
+  .duk-video-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #c4b5f4;
+    color: #0c0a24;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.45rem 0.2rem 0.4rem;
+    border-radius: 9999px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
   }
   .duk-card-body {
     padding: 0.85rem 0.9rem 0.9rem;
