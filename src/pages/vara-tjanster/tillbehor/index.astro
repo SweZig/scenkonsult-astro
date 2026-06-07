@@ -14,14 +14,26 @@ import elData from '../../../data/el.json';
 // Hjälpare: normalisera ett produktobjekt till kort-props
 const arr = (x: any): any[] => Array.isArray(x) ? x : [];
 
-// Grupper i kommunikationsordning: Scen · Ljud · Bild · Ljus · El
+// Grupper. El & ström överst (vanligaste tillbehöret man missar, visas alltid).
+// prefix = artikelnummer-prefix i varukorgen som "aktiverar" gruppen.
+// always = visas oavsett varukorgens innehåll.
 const grupper = [
+  {
+    namn: 'El & ström',
+    eyebrow: 'Eltillbehör',
+    intro: 'Förlängningskablar, grenuttag, 3-fas, överkörningsskydd, generatorer och regnskydd. Det vanligaste man glömmer — relevant till nästan all utrustning.',
+    items: arr(elData.products),
+    cat: 'El-tillbehör',
+    prefix: 'SK-EL',
+    always: true,
+  },
   {
     namn: 'Scen',
     eyebrow: 'Scentillbehör',
     intro: 'Trappor, räcken, scenkjol och backdrops till scenpaketen.',
     items: arr(scenData.tillbehor),
     cat: 'Scen — tillbehör',
+    prefix: 'SK-SCN',
   },
   {
     namn: 'Ljud',
@@ -29,6 +41,7 @@ const grupper = [
     intro: 'Stativ, XLR- och multikablar, DI-boxar, IEM, monitorer och mikrofonuppgraderingar.',
     items: [...arr(ljudData.tillbehor_mikrofon), ...arr(ljudData.tillbehor_ljud)],
     cat: 'Ljud — tillbehör',
+    prefix: 'SK-LJD',
   },
   {
     namn: 'Bild',
@@ -36,6 +49,7 @@ const grupper = [
     intro: 'Bord, stativ, HDMI-kablar och adaptrar, splitters, mediaspelare och presenterklickare.',
     items: arr(bildData.tillbehor),
     cat: 'Bild — tillbehör',
+    prefix: 'SK-BLD',
   },
   {
     namn: 'Ljus — DMX & kablar',
@@ -43,6 +57,7 @@ const grupper = [
     intro: 'DMX-styrenheter, kablar och trådlöst. Läs vår DMX-guide om du är osäker.',
     items: arr(ljusData.dmx?.tillbehor),
     cat: 'DMX-styrning',
+    prefix: 'SK-LJS',
   },
   {
     namn: 'Ljus — rök & förbrukning',
@@ -50,6 +65,7 @@ const grupper = [
     intro: 'Rökvätska, hazervätska, granulat och konfettirör — förbrukningsvaror till rök- och effektmaskiner.',
     items: arr(ljusData.rok?.tillbehor),
     cat: 'Ljus — Rök & pyro',
+    prefix: 'SK-LJS',
   },
   {
     namn: 'Ljus — stativ & tross',
@@ -57,13 +73,7 @@ const grupper = [
     intro: 'Couplers, clamps, trossöverdrag och scentyngder till ljusriggen.',
     items: arr(ljusData.stativ?.tillbehor),
     cat: 'Ljus — Stativ & tross',
-  },
-  {
-    namn: 'El & ström',
-    eyebrow: 'Eltillbehör',
-    intro: 'Förlängningskablar, grenuttag, 3-fas, överkörningsskydd, generatorer och regnskydd.',
-    items: arr(elData.products),
-    cat: 'El-tillbehör',
+    prefix: 'SK-LJS',
   },
 ];
 
@@ -102,10 +112,15 @@ const faqSchema = {
     <p style="color:rgba(255,255,255,0.72);font-size:1rem;line-height:1.8;max-width:680px;margin:-0.5rem 0 0;">
       Det är lätt att missa det lilla som gör stor skillnad på plats — en förlängningskabel, en extra XLR eller ett stativ. Här hittar du alla {totalAntal} tillbehör vi hyr ut, grupperade per produktområde. Klicka på ett kort för full info eller lägg det direkt i varukorgen.
     </p>
+    <div id="tillbehor-filter-notice" style="display:none;margin-top:1.25rem;background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.25);border-radius:12px;padding:0.85rem 1.1rem;font-size:0.88rem;color:rgba(255,255,255,0.78);line-height:1.55;">
+      <span aria-hidden="true">🛒</span>
+      Visar tillbehör som passar din varukorg.
+      <button type="button" id="tillbehor-show-all" style="background:none;border:none;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;text-decoration:underline;padding:0;margin-left:0.25rem;">Visa alla tillbehör</button>
+    </div>
   </div>
 
   {grupper.map(g => g.items.length === 0 ? null : (
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2">
+    <section class="tillbehor-grupp max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2" data-prefix={g.prefix} data-always={g.always ? 'true' : undefined}>
       <SectionHeader eyebrow={g.eyebrow} h2={g.namn} lead={g.intro} marginBottom="1.25rem" />
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {g.items.map((p:any) => (
@@ -149,4 +164,65 @@ const faqSchema = {
     { slug: "koppla-in-ljudsystem", label: "Koppla in ett hyrt ljudsystem" }
   ]}
   />
+
+  <script>
+    // Semi-intelligent filtrering: visa bara tillbehörsgrupper vars huvudkategori
+    // finns i varukorgen. El & ström (data-always) visas alltid. Tom varukorg
+    // eller inga igenkända artiklar → visa allt (sidan ska vara användbar direkt).
+    (function () {
+      function presentPrefixes() {
+        try {
+          const items = (window.skCart && window.skCart.get && window.skCart.get()) || [];
+          const set = new Set();
+          for (const it of items) {
+            if (!it) continue;
+            const code = String(it.artno || it.id || '').toUpperCase();
+            const m = code.match(/^(SK-[A-Z]+)/);
+            if (m) set.add(m[1]);
+            // Karaoke-paket m.fl. kan sakna SK-prefix på id — fall tillbaka på category
+            const c = String(it.category || '').toLowerCase();
+            if (c.includes('scen')) set.add('SK-SCN');
+            if (c.includes('ljud') || c.includes('mikrofon') || c.includes('pa')) set.add('SK-LJD');
+            if (c.includes('bild') || c.includes('projektor') || c.includes('skärm') || c.includes('led')) set.add('SK-BLD');
+            if (c.includes('ljus') || c.includes('dmx') || c.includes('rök')) set.add('SK-LJS');
+            if (c.includes('dj')) set.add('SK-DJ');
+          }
+          return set;
+        } catch { return new Set(); }
+      }
+
+      function applyFilter(forceAll) {
+        const groups = Array.from(document.querySelectorAll('.tillbehor-grupp'));
+        const notice = document.getElementById('tillbehor-filter-notice');
+        if (!groups.length) return;
+
+        const present = forceAll ? new Set() : presentPrefixes();
+        // Räkna kategori-prefix (exkl. el) som faktiskt ligger i varukorgen
+        const meaningful = new Set([...present].filter(p => p !== 'SK-EL'));
+        const shouldFilter = !forceAll && meaningful.size > 0;
+
+        groups.forEach(sec => {
+          const el = /** @type {HTMLElement} */ (sec);
+          const always = el.dataset.always === 'true';
+          const prefix = el.dataset.prefix || '';
+          const show = !shouldFilter || always || present.has(prefix);
+          el.style.display = show ? '' : 'none';
+        });
+
+        if (notice) notice.style.display = shouldFilter ? '' : 'none';
+      }
+
+      function init() {
+        applyFilter(false);
+        const showAllBtn = document.getElementById('tillbehor-show-all');
+        if (showAllBtn) showAllBtn.addEventListener('click', () => applyFilter(true));
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
 </Layout>
