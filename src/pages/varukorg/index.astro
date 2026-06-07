@@ -1763,12 +1763,20 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
   }
 
   // ── INIT ─────────────────────────────────────────────────
-  loadCartFromUrl().then(() => {
+  function refreshCart() {
     renderCart();
     updateNavBadge();
     autoSelectServices();
     updateSummary();
     checkCanProceed();
+  }
+  window.__skRefreshCart = refreshCart;
+
+  // Rita om varukorgen när något läggs till (t.ex. via tillbehörs-popupen)
+  window.addEventListener('sk-cart-changed', () => refreshCart());
+
+  loadCartFromUrl().then(() => {
+    refreshCart();
   });
 </script>
 

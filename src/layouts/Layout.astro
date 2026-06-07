@@ -768,6 +768,7 @@ const localBusinessSchema = {
       }
       skSaveCart(cart);
       skUpdateBadge();
+      try { window.dispatchEvent(new CustomEvent('sk-cart-changed', { detail: { id: item.id } })); } catch {}
     }
     function skRemoveFromCart(id) {
       const cart = skGetCart().filter(i => i.id !== id);
