@@ -4,6 +4,7 @@ import Layout from '../../../layouts/Layout.astro';
 const guider = [
   {
     slug: "konferens-av-checklista",
+    cat: "Planering & checklistor",
     icon: "📋",
     title: "Konferens AV — komplett checklista",
     desc: "Allt du behöver tänka på: PA, mikrofoner, projektor och hybrid. Rekommenderat upplägg efter konferensstorlek.",
@@ -12,7 +13,8 @@ const guider = [
   },
   {
     slug: "dmx-styrning-guide",
-    icon: "🎛",
+    cat: "Ljus & effekter",
+    icon: "🕹️",
     title: "DMX-styrning — komplett guide",
     desc: "Från första kabeln till proffsriggen: kanaler, adresser, terminering, trådlöst, RDM och Art-Net. Nybörjardel + avancerad del.",
     tags: ["Ljus", "DMX", "Teknik"],
@@ -20,6 +22,7 @@ const guider = [
   },
   {
     slug: "hyra-uplights",
+    cat: "Ljus & effekter",
     icon: "🌟",
     title: "Hyra uplights — LED wallwash för ditt event",
     desc: "Förvandla lokalen på 10 minuter. Guide till antal, kabel vs batteri och priser från 79 kr/st/dygn.",
@@ -28,6 +31,7 @@ const guider = [
   },
   {
     slug: "hyra-pa-system",
+    cat: "Ljud & PA",
     icon: "🔊",
     title: "Hyra PA-system — komplett guide 2026",
     desc: "Portable, Event, Music eller Live — vad väljer du? Storleksguide från 10 till 500+ gäster med priser.",
@@ -36,6 +40,7 @@ const guider = [
   },
   {
     slug: "hyra-rokmaskin",
+    cat: "Ljus & effekter",
     icon: "💨",
     title: "Hyra rökmaskin i Stockholm",
     desc: "Rökmaskin, hazer eller kallgnistmaskin? Guide till skillnaderna, brandlarm och vad det kostar.",
@@ -44,6 +49,7 @@ const guider = [
   },
   {
     slug: "rokvatska-guide",
+    cat: "Ljus & effekter",
     icon: "🧪",
     title: "Rökvätska — standard, haze, heavy eller CO2?",
     desc: "Vilken rökvätska ska du välja? Guide till de fyra huvudtyperna med matchning mot rökmaskin och priser från 119 kr.",
@@ -52,6 +58,7 @@ const guider = [
   },
   {
     slug: "hyra-tradlos-mikrofon",
+    cat: "Ljud & PA",
     icon: "🎤",
     title: "Hyra trådlös mikrofon — guide till rätt val",
     desc: "Handmikrofon, headset eller myggmikrofon? Skillnaderna, när du väljer vad och vad det kostar. Shure SLXD från 699 kr/dygn.",
@@ -60,6 +67,7 @@ const guider = [
   },
   {
     slug: "ljud-foretagsfest",
+    cat: "Ljud & PA",
     icon: "🏢",
     title: "Ljud till företagsfest — välj rätt system",
     desc: "Event-serie för tal och konferens, Music-serie för dans och DJ. Storleksguide för 30–500 gäster med konkreta priser.",
@@ -68,6 +76,7 @@ const guider = [
   },
   {
     slug: "hyra-projektor-pris",
+    cat: "Bild & projektion",
     icon: "📽️",
     title: "Hyra projektor — vad kostar det?",
     desc: "Projektor vs skärm — när väljer du vad? Priser på projektorer, dukar och skärmar. Full HD från 399 kr/dygn, 4K UHD från 899 kr/dygn.",
@@ -76,6 +85,7 @@ const guider = [
   },
   {
     slug: "ljus-brollop",
+    cat: "Ljus & effekter",
     icon: "💡",
     title: "Ljus till bröllop — vad behöver man?",
     desc: "Guide till uplights, moving heads och stämningsljus. Tre faser: vigsel, middag och dansgolv — med konkreta priser.",
@@ -84,6 +94,7 @@ const guider = [
   },
   {
     slug: "dj-brollop-pris",
+    cat: "DJ & musik",
     icon: "🎧",
     title: "DJ till bröllop — vad kostar det?",
     desc: "Pristabell för DJ-bokning, vad som ingår och tillkommer. Junior DJ från 1 999 kr, Senior DJ från 2 399 kr.",
@@ -92,6 +103,7 @@ const guider = [
   },
   {
     slug: "studentflak-checklista",
+    cat: "Planering & checklistor",
     icon: "🎓",
     title: "Studentflak 2026 — den kompletta checklistan",
     desc: "Allt ni behöver tänka på: ljud, ström, tillstånd och tips. Vilket system passar ert flak?",
@@ -100,6 +112,7 @@ const guider = [
   },
   {
     slug: "ljud-brollop",
+    cat: "Ljud & PA",
     icon: "💍",
     title: "Ljud till bröllop — vad behöver man?",
     desc: "Guide till PA-system, mikrofoner och ljud för vigsel, middag och dansgolv. Med storlekstabell och priser.",
@@ -108,6 +121,7 @@ const guider = [
   },
   {
     slug: "hyra-scen-pris",
+    cat: "Scen",
     icon: "🎭",
     title: "Hyra scen — vad kostar det?",
     desc: "Komplett prisguide för scenuthyrning 2026. Alla storlekar, vad som tillkommer och hur du väljer rätt.",
@@ -116,7 +130,8 @@ const guider = [
   },
   {
     slug: "varfor-numark-denon-rane",
-    icon: "🎛️",
+    cat: "DJ & musik",
+    icon: "💿",
     title: "Varför Numark, Denon & Rane — inte Pioneer?",
     desc: "Konkreta argument för standalone DJ-controllers med inbyggd Spotify/Tidal-streaming mot Pioneer CDJ-systemet.",
     tags: ["DJ", "Utrustning"],
@@ -124,6 +139,7 @@ const guider = [
   },
   {
     slug: "hur-stor-pa",
+    cat: "Ljud & PA",
     icon: "🔊",
     title: "Hur stor PA-anläggning behöver jag?",
     desc: "Tabeller för inomhus och utomhus, gästantal och eventtyp. Inkl. guide till subbasen.",
@@ -132,6 +148,7 @@ const guider = [
   },
   {
     slug: "hur-stor-scen",
+    cat: "Scen",
     icon: "🎭",
     title: "Hur stor scen behöver jag?",
     desc: "Referenstabell: scenstorlekar, antal artister, scenhöjder och tillbehör.",
@@ -140,6 +157,7 @@ const guider = [
   },
   {
     slug: "dj-eller-liveband",
+    cat: "DJ & musik",
     icon: "🎸",
     title: "DJ eller liveband till festen?",
     desc: "Ärlig jämförelse på pris, stämning, logistik och teknikkrav. Inkl. combo-alternativet.",
@@ -148,6 +166,7 @@ const guider = [
   },
   {
     slug: "ljussattning-tips",
+    cat: "Ljus & effekter",
     icon: "💡",
     title: "Ljussättning för event",
     desc: "Typer av ljus, placering, dramaturgi under kvällen och de 4 vanligaste misstagen.",
@@ -156,6 +175,7 @@ const guider = [
   },
   {
     slug: "checklista-event",
+    cat: "Planering & checklistor",
     icon: "✅",
     title: "Komplett checklista för event",
     desc: "Allt från bokning till retur — 8–12 veckor före, event-dagen och backup-plan.",
@@ -164,6 +184,7 @@ const guider = [
   },
   {
     slug: "ljud-utomhus",
+    cat: "Ljud & PA",
     icon: "🌤️",
     title: "Ljud utomhus — komplett guide",
     desc: "Effektbehov, placering, väderskydd och tillståndsregler för utomhus-event.",
@@ -172,6 +193,7 @@ const guider = [
   },
   {
     slug: "vad-kostar-det",
+    cat: "Planering & checklistor",
     icon: "💰",
     title: "Vad kostar det att hyra utrustning?",
     desc: "Prisguide 2025 med tabeller, exempelpaket och tips för att sänka totalkostnaden.",
@@ -195,6 +217,17 @@ const schema = {
     }
   }))
 };
+
+// Kategoriordning (prioritering: Scen · Ljud · Bild · Ljus · DJ) + planering sist
+const kategorier = [
+  { namn: "Scen",                  ikon: "🎭", intro: "Storlek, pris och tillbehör för scenuthyrning." },
+  { namn: "Ljud & PA",             ikon: "🔊", intro: "Dimensionera PA, välj mikrofon och få ljud som bär." },
+  { namn: "Bild & projektion",     ikon: "📽️", intro: "Projektor, skärm och duk för konferens och event." },
+  { namn: "Ljus & effekter",       ikon: "💡", intro: "Ljussättning, DMX-styrning, uplights och rökeffekter." },
+  { namn: "DJ & musik",            ikon: "🎧", intro: "DJ-bokning, utrustning och DJ kontra liveband." },
+  { namn: "Planering & checklistor", ikon: "✅", intro: "Budget, tidsplan och kompletta checklistor." },
+];
+const guiderPerKategori = (k: string) => guider.filter(g => (g as any).cat === k);
 ---
 
 <Layout
@@ -230,7 +263,7 @@ const schema = {
         <div>
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;">
             <span style="background:rgba(196,181,244,0.15);color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:4px;">🎬 Videoguider</span>
-            <span style="background:rgba(196,181,244,0.15);color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:4px;">4 avsnitt</span>
+            <span style="background:rgba(196,181,244,0.15);color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:4px;">Steg för steg på film</span>
           </div>
           <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.3rem,2.5vw,1.75rem);color:white;margin:0 0 0.6rem;line-height:1.2;">Svens Kunskapsskola</h2>
           <p style="color:rgba(255,255,255,0.55);font-size:clamp(0.85rem,1.5vw,0.95rem);line-height:1.65;margin:0;max-width:560px;">Videoguider om att koppla in ljud, förstå kontakter och hyra rätt — av Sven intendenten. Inga förkunskaper krävs.</p>
@@ -240,30 +273,45 @@ const schema = {
     </div>
   </section>
 
-  <!-- Guide-kort -->
-  <section style="background:#0c0a24;padding:clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;">
-      {guider.map(g => (
-        <a href={`/for/guider/${g.slug}/`}
-           style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.75rem;text-decoration:none;display:flex;flex-direction:column;gap:0.75rem;transition:border-color 0.2s,transform 0.15s;"
-           onmouseenter="this.style.borderColor='rgba(196,181,244,0.35)';this.style.transform='translateY(-2px)'"
-           onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.transform='translateY(0)'">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <span style="font-size:1.75rem;">{g.icon}</span>
-            <span style="color:rgba(255,255,255,0.55);font-family:'Space Grotesk',sans-serif;font-size:0.72rem;">{g.lasttid} läsning</span>
-          </div>
-          <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:white;margin:0;line-height:1.25;">{g.title}</h2>
-          <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.65;margin:0;flex:1;">{g.desc}</p>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem;">
-            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-              {g.tags.map(t => (
-                <span style="background:rgba(196,181,244,0.1);color:#c4b5f4;font-size:0.7rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:9999px;">{t}</span>
+  <!-- Guide-kort, grupperade per kategori -->
+  <section style="background:#0c0a24;padding:clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(2.5rem,5vw,3.5rem);">
+      {kategorier.map(kat => {
+        const items = guiderPerKategori(kat.namn);
+        return items.length === 0 ? null : (
+          <div>
+            <div style="display:flex;align-items:baseline;gap:0.6rem;margin-bottom:0.4rem;border-bottom:1px solid rgba(196,181,244,0.18);padding-bottom:0.75rem;">
+              <span style="font-size:1.4rem;line-height:1;">{kat.ikon}</span>
+              <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.3rem,2.6vw,1.8rem);color:white;margin:0;line-height:1.1;">{kat.namn}</h2>
+              <span style="color:rgba(255,255,255,0.45);font-family:'Space Grotesk',sans-serif;font-size:0.8rem;">{items.length} {items.length === 1 ? 'guide' : 'guider'}</span>
+            </div>
+            <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;margin:0 0 1.5rem;">{kat.intro}</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;">
+              {items.map(g => (
+                <a href={`/for/guider/${g.slug}/`}
+                   style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.75rem;text-decoration:none;display:flex;flex-direction:column;gap:0.75rem;transition:border-color 0.2s,transform 0.15s;"
+                   onmouseenter="this.style.borderColor='rgba(196,181,244,0.35)';this.style.transform='translateY(-2px)'"
+                   onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.transform='translateY(0)'">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <span style="font-size:1.75rem;">{g.icon}</span>
+                    <span style="color:rgba(255,255,255,0.55);font-family:'Space Grotesk',sans-serif;font-size:0.72rem;">{g.lasttid} läsning</span>
+                  </div>
+                  <h3 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:white;margin:0;line-height:1.25;">{g.title}</h3>
+                  <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.65;margin:0;flex:1;">{g.desc}</p>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem;">
+                    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                      {g.tags.map(t => (
+                        <span style="background:rgba(196,181,244,0.1);color:#c4b5f4;font-size:0.7rem;font-weight:600;padding:0.15rem 0.5rem;border-radius:9999px;">{t}</span>
+                      ))}
+                    </div>
+                    <span style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;">Läs →</span>
+                  </div>
+                </a>
               ))}
             </div>
-            <span style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;">Läs →</span>
           </div>
-        </a>
-      ))}
+        );
+      })}
     </div>
   </section>
 
