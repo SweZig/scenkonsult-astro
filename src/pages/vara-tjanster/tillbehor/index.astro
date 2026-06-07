@@ -1,0 +1,152 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
+import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
+import KunskapBlock from '../../../components/KunskapBlock.astro';
+
+import scenData from '../../../data/scenes.json';
+import ljudData from '../../../data/ljud.json';
+import ljusData from '../../../data/ljus.json';
+import bildData from '../../../data/bild.json';
+import elData from '../../../data/el.json';
+
+// Hjälpare: normalisera ett produktobjekt till kort-props
+const arr = (x: any): any[] => Array.isArray(x) ? x : [];
+
+// Grupper i kommunikationsordning: Scen · Ljud · Bild · Ljus · El
+const grupper = [
+  {
+    namn: 'Scen',
+    eyebrow: 'Scentillbehör',
+    intro: 'Trappor, räcken, scenkjol och backdrops till scenpaketen.',
+    items: arr(scenData.tillbehor),
+    cat: 'Scen — tillbehör',
+  },
+  {
+    namn: 'Ljud',
+    eyebrow: 'Ljudtillbehör',
+    intro: 'Stativ, XLR- och multikablar, DI-boxar, IEM, monitorer och mikrofonuppgraderingar.',
+    items: [...arr(ljudData.tillbehor_mikrofon), ...arr(ljudData.tillbehor_ljud)],
+    cat: 'Ljud — tillbehör',
+  },
+  {
+    namn: 'Bild',
+    eyebrow: 'Bildtillbehör',
+    intro: 'Bord, stativ, HDMI-kablar och adaptrar, splitters, mediaspelare och presenterklickare.',
+    items: arr(bildData.tillbehor),
+    cat: 'Bild — tillbehör',
+  },
+  {
+    namn: 'Ljus — DMX & kablar',
+    eyebrow: 'Ljusstyrning',
+    intro: 'DMX-styrenheter, kablar och trådlöst. Läs vår DMX-guide om du är osäker.',
+    items: arr(ljusData.dmx?.tillbehor),
+    cat: 'DMX-styrning',
+  },
+  {
+    namn: 'Ljus — rök & förbrukning',
+    eyebrow: 'Förbrukning',
+    intro: 'Rökvätska, hazervätska, granulat och konfettirör — förbrukningsvaror till rök- och effektmaskiner.',
+    items: arr(ljusData.rok?.tillbehor),
+    cat: 'Ljus — Rök & pyro',
+  },
+  {
+    namn: 'Ljus — stativ & tross',
+    eyebrow: 'Rigg',
+    intro: 'Couplers, clamps, trossöverdrag och scentyngder till ljusriggen.',
+    items: arr(ljusData.stativ?.tillbehor),
+    cat: 'Ljus — Stativ & tross',
+  },
+  {
+    namn: 'El & ström',
+    eyebrow: 'Eltillbehör',
+    intro: 'Förlängningskablar, grenuttag, 3-fas, överkörningsskydd, generatorer och regnskydd.',
+    items: arr(elData.products),
+    cat: 'El-tillbehör',
+  },
+];
+
+const totalAntal = grupper.reduce((n, g) => n + g.items.length, 0);
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vilka tillbehör behöver jag till min hyrda utrustning?", "acceptedAnswer": { "@type": "Answer", "text": "Det vanligaste man glömmer är förlängningskablar och grenuttag (el), ljudkablar (XLR), DMX-kablar till ljusstyrning samt stativ. Lägg till det du behöver direkt från den här sidan, så slipper du stå utan på plats. Är du osäker hjälper vi dig gärna att sätta ihop rätt." } },
+    { "@type": "Question", "name": "Ingår kablar i hyrespaketen?", "acceptedAnswer": { "@type": "Answer", "text": "Standardpaketen inkluderar de kablar som behövs för grunduppställningen. Behöver du längre dragningar, extra grenuttag, 3-fas eller fler XLR-/DMX-kablar hyr du dem separat som tillbehör. Transport och montering tillkommer alltid separat." } },
+    { "@type": "Question", "name": "Kan jag hyra bara tillbehör?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, du kan hyra tillbehör fristående. Lägg dem i varukorgen och skicka en förfrågan precis som med övrig utrustning." } }
+  ]
+};
+---
+<Layout
+  title="Alla tillbehör — kablar, stativ, DMX & el | Scenkonsult"
+  description="Alla tillbehör för uthyrning hos Scenkonsult: förlängningskablar, ljudkablar (XLR), DMX-kablar, stativ, rökvätska, HDMI och el. Grupperat per produktområde. Leverans i Storstockholm."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-400">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/vara-tjanster/" class="hover:text-brand-orange transition-colors">Tjänster</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Tillbehör</li>
+    </ol>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <ModernHero
+      eyebrow="Komplettera din beställning"
+      h1="Alla tillbehör"
+      h1Accent="på ett ställe"
+      chips={["Förlängningskablar", "Ljudkablar", "DMX-kablar", "Stativ", "El & ström"]}
+    />
+    <p style="color:rgba(255,255,255,0.72);font-size:1rem;line-height:1.8;max-width:680px;margin:-0.5rem 0 0;">
+      Det är lätt att missa det lilla som gör stor skillnad på plats — en förlängningskabel, en extra XLR eller ett stativ. Här hittar du alla {totalAntal} tillbehör vi hyr ut, grupperade per produktområde. Klicka på ett kort för full info eller lägg det direkt i varukorgen.
+    </p>
+  </div>
+
+  {grupper.map(g => g.items.length === 0 ? null : (
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2">
+      <SectionHeader eyebrow={g.eyebrow} h2={g.namn} lead={g.intro} marginBottom="1.25rem" />
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {g.items.map((p:any) => (
+          <ElTillbehorCard
+            img={p.image}
+            name={p.name}
+            excl={p.price}
+            desc={p.description ?? p.desc ?? ''}
+            category={g.cat}
+            artno={p.artno}
+            slug={p.slug}
+            specs={p.specs ?? []}
+            manualUrl={p.manualUrl}
+            priceNote={p.priceNote ?? '/dygn'}
+            modal={true}
+          />
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <!-- CTA -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12">
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Osäker på vad du behöver?</h2>
+      <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;margin:0 0 1.5rem;max-width:560px;margin-left:auto;margin-right:auto;">Beskriv ditt event så hjälper vi dig att få med rätt kablar, stativ och tillbehör — så att inget fattas på plats.</p>
+      <a href="/kontakt/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Kontakta oss</a>
+    </div>
+  </section>
+
+  <KunskapBlock
+    intro="Vår intendent Sven hjälper dig att inte glömma något — guider och videoguider om kablar, kontakter och hur allt kopplas in."
+    guides={[
+    { href: "/for/guider/dmx-styrning-guide/", label: "DMX-styrning — komplett guide" },
+    { href: "/for/guider/ljud-utomhus/", label: "Ljud utomhus" },
+    { href: "/for/guider/checklista-event/", label: "Komplett event-checklista" }
+  ]}
+    videos={[
+    { slug: "kontakter-ljud", label: "Kontakter inom ljud" },
+    { slug: "kontakter-bild", label: "Kontakter inom bild" },
+    { slug: "koppla-in-ljudsystem", label: "Koppla in ett hyrt ljudsystem" }
+  ]}
+  />
+</Layout>

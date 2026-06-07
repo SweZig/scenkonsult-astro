@@ -66,9 +66,9 @@ const volPricingJSON = JSON.stringify(volPricingMap);
       <span class="accessory-reminder-icon" aria-hidden="true">💡</span>
       <div class="accessory-reminder-text">
         <strong>Glöm inte tillbehören!</strong>
-        Elkablar, ställningar, DMX-kablar, stativ och annat smått är lätt att missa — men avgörande på plats. Dubbelkolla att du har allt du behöver.
+        Förlängningskablar, ljudkablar, DMX-kablar, stativ och annat smått är lätt att missa — men avgörande på plats. Dubbelkolla att du har allt du behöver.
       </div>
-      <a href="/vara-tjanster/" class="accessory-reminder-link">Se tillbehör →</a>
+      <a href="/vara-tjanster/tillbehor/" class="accessory-reminder-link">Se tillbehör →</a>
     </div>
 
     <!-- TILLÄGGSTJÄNSTER -->
@@ -793,6 +793,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
           artno:   p.artno || '',
           image:   p.image || '',
           videos:  p.video ? ['/videos/' + p.video] : [],
+          manualUrl: p.manualUrl || '',
           volPricing: p.volumePricing || [],
         };
         if (p.slug)  cat[p.slug] = entry;
@@ -817,7 +818,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     add(_ljusJson.stativ?.products,  'Ljus — Stativ & tross', '/vara-tjanster/hyra-ljus/stativ-tross/');
     // DJ — cart lagrar "dj-utr-" + slug (hårdvara) eller artno direkt (tjänster)
     for (const p of (_djJson.equipment ?? [])) {
-      const entry = { desc: p.description || '', cat: p.artno?.startsWith('SK-DJ-0') && parseInt(p.artno.slice(-4)) >= 9 ? 'DJ-tjänst' : 'DJ-utrustning', link: '/vara-tjanster/hyra-dj/', includes: p.specs || [], artno: p.artno || '', image: p.image || '', videos: p.video ? ['/videos/' + p.video] : [], volPricing: p.volumePricing || [] };
+      const entry = { desc: p.description || '', cat: p.artno?.startsWith('SK-DJ-0') && parseInt(p.artno.slice(-4)) >= 9 ? 'DJ-tjänst' : 'DJ-utrustning', link: '/vara-tjanster/hyra-dj/', includes: p.specs || [], artno: p.artno || '', image: p.image || '', videos: p.video ? ['/videos/' + p.video] : [], manualUrl: p.manualUrl || '', volPricing: p.volumePricing || [] };
       if (p.slug) cat['dj-utr-' + p.slug] = entry;
       if (p.artno) cat[p.artno] = entry;
     }
@@ -1032,6 +1033,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
       cartId:    item.id,
       images:    imgSrc ? [imgSrc] : [],
       videos:    info.videos || [],
+      manualUrl: info.manualUrl || '',
       persons:   '',
     });
   }
