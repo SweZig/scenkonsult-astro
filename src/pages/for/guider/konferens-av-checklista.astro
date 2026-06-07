@@ -164,16 +164,16 @@ const faqSchema = {
     <section style="margin-bottom:3rem;">
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till konferens</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <ProductCard artno={portMed.artno} name={portMed.name} price={portMed.price} priceNote="/dygn" image={portMed.image} alt={portMed.name} description={portMed.description} persons={portMed.persons} specs={portMed.includes} category="Ljud"
+        <ProductCard artno={portMed.artno} name={portMed.name} price={portMed.price} priceNote="/dygn" image={portMed.image} alt={portMed.name} description={portMed.description} persons={portMed.persons} specs={portMed.specs ?? []} category="Ljud"
           manualUrl={portMed.manualUrl}
         />
-        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc ?? ''} specs={shureHS.specs ?? shureHS.includes ?? []} category="Mikrofon"
+        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc ?? ''} specs={shureHS.specs ?? []} category="Mikrofon"
           manualUrl={shureHS.manualUrl}
         />
-        <ProductCard artno={shure2HS.artno} name={shure2HS.name} price={shure2HS.price} priceNote="/dygn" image={shure2HS.image} alt={shure2HS.name} description={shure2HS.description ?? shure2HS.desc ?? ''} specs={shure2HS.specs ?? shure2HS.includes ?? []} category="Mikrofon"
+        <ProductCard artno={shure2HS.artno} name={shure2HS.name} price={shure2HS.price} priceNote="/dygn" image={shure2HS.image} alt={shure2HS.name} description={shure2HS.description ?? shure2HS.desc ?? ''} specs={shure2HS.specs ?? []} category="Mikrofon"
           manualUrl={shure2HS.manualUrl}
         />
-        <ProductCard artno={projektor.artno} name={projektor.name} price={projektor.price} priceNote="/dygn" image={projektor.image} alt={projektor.name} description={projektor.description} specs={projektor.includes ?? []} category="Projektor"
+        <ProductCard artno={projektor.artno} name={projektor.name} price={projektor.price} priceNote="/dygn" image={projektor.image} alt={projektor.name} description={projektor.description} specs={projektor.specs ?? []} category="Projektor"
           manualUrl={projektor.manualUrl}
         />
       </div>

@@ -3891,7 +3891,7 @@ function renderProductsTab() {
     const pid = item.id || '';
     const desc = (typeof PROD_DESC !== 'undefined' && PROD_DESC[pid]) ? PROD_DESC[pid] : null;
     const popoutContent = desc
-      ? `<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-top:4px">${desc.desc||''}</div>${desc.includes?.length ? '<ul style="font-size:0.72rem;color:var(--text-faint);padding-left:14px;margin-top:3px">' + desc.includes.map(s=>`<li>${s}</li>`).join('') + '</ul>' : ''}`
+      ? `<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-top:4px">${desc.desc||''}</div>${desc.specs?.length ? '<ul style="font-size:0.72rem;color:var(--text-faint);padding-left:14px;margin-top:3px">' + desc.specs.map(s=>`<li>${s}</li>`).join('') + '</ul>' : ''}`
       : `<div style="font-size:0.78rem;color:var(--text-faint);margin-top:4px">Artno: ${pid || '–'} · Kategori: ${item.category || '–'}</div>`;
 
     return separator + `<tr data-idx="${idx}" class="prod-row" draggable="true" ondragstart="prodDragStart(event,${idx})" ondragover="prodDragOver(event)" ondrop="prodDrop(event,${idx})" ondragend="prodDragEnd(event)" style="cursor:default">

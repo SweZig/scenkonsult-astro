@@ -122,16 +122,16 @@ const faqSchema = {
     <section style="margin-bottom:3rem;">
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till företagsfest</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-        <ProductCard artno={evMedium.artno} name={evMedium.name} price={evMedium.price} priceNote="/dygn" image={evMedium.image} alt={evMedium.name} description={evMedium.description} persons={evMedium.persons} specs={evMedium.includes} category="Ljud"
+        <ProductCard artno={evMedium.artno} name={evMedium.name} price={evMedium.price} priceNote="/dygn" image={evMedium.image} alt={evMedium.name} description={evMedium.description} persons={evMedium.persons} specs={evMedium.specs ?? []} category="Ljud"
           manualUrl={evMedium.manualUrl}
         />
-        <ProductCard artno={musMedium.artno} name={musMedium.name} price={musMedium.price} priceNote="/dygn" image={musMedium.image} alt={musMedium.name} description={musMedium.description} persons={musMedium.persons} specs={musMedium.includes} category="Ljud"
+        <ProductCard artno={musMedium.artno} name={musMedium.name} price={musMedium.price} priceNote="/dygn" image={musMedium.image} alt={musMedium.name} description={musMedium.description} persons={musMedium.persons} specs={musMedium.specs ?? []} category="Ljud"
           manualUrl={musMedium.manualUrl}
         />
-        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc ?? ''} specs={shureHS.specs ?? shureHS.includes ?? []} category="Mikrofon"
+        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc ?? ''} specs={shureHS.specs ?? []} category="Mikrofon"
           manualUrl={shureHS.manualUrl}
         />
-        <ProductCard artno={ljusPaket.artno} name={ljusPaket.name} price={ljusPaket.price} priceNote="/dygn" image={ljusPaket.image} alt={ljusPaket.name} description={ljusPaket.description} specs={ljusPaket.includes ?? []} category="Ljus"
+        <ProductCard artno={ljusPaket.artno} name={ljusPaket.name} price={ljusPaket.price} priceNote="/dygn" image={ljusPaket.image} alt={ljusPaket.name} description={ljusPaket.description} specs={ljusPaket.specs ?? []} category="Ljus"
           manualUrl={ljusPaket.manualUrl}
         />
       </div>

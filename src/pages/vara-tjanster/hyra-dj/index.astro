@@ -165,7 +165,7 @@ const faqSchema = {
       <!-- Footer: ingår + CTA -->
       <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between px-5 py-4 border-t border-white/10">
         <ul class="flex flex-wrap gap-x-5 gap-y-1">
-          {dj.djService.includes.map(item => (
+          {dj.djService.specs.map(item => (
             <li class="flex gap-1.5 text-xs text-gray-400">
               <span class="text-green-400">▸</span>{item}
             </li>
@@ -201,7 +201,7 @@ const faqSchema = {
             <div class="text-gray-400 text-xs mt-1">{pkg.hours} speltid</div>
           </div>
           <ul class="space-y-1.5 mb-4 flex-1">
-            {pkg.includes.map(item => (
+            {pkg.specs.map(item => (
               <li class="flex gap-2 text-xs text-gray-300">
                 <span class="text-green-400 shrink-0">✓</span>{item}
               </li>
@@ -336,7 +336,7 @@ const faqSchema = {
           priceSuffix={p.priceNote}
           artno={p.artno}
           category="DJ-utrustning"
-          bullets={p.includes ?? []}
+          bullets={p.specs ?? []}
         />
       ))}
     </div>
@@ -353,7 +353,7 @@ const faqSchema = {
           priceSuffix={p.priceNote}
           artno={p.artno}
           category="DJ-utrustning"
-          bullets={p.includes ?? []}
+          bullets={p.specs ?? []}
         />
       ))}
     </div>

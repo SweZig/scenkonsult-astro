@@ -57,10 +57,10 @@ def prod(p, item_type='product'):
     }
     # Extra-fält för modal-visning — passas igenom bara om de finns
     #   Scen:  tagline, size, dimensions, capacity, useCase, transport
-    #   Ljud/ljus/dj/bild: persons, includes/specs, monteringMin, manualUrl, bulky
+    #   Ljud/ljus/dj/bild: persons, specs, monteringMin, manualUrl, bulky
     #   Ljus-effekter: volumePricing (volymrabatt)
     for k in ('tagline','size','dimensions','capacity','useCase','transport',
-              'persons','includes','specs','features',
+              'persons','specs','features',
               'monteringMin','manualUrl','bulky','volumePricing',
               'priceNote','section','linkedServices','cartSplit'):
         v = p.get(k)
@@ -315,7 +315,7 @@ def add_flat(prods, cat_name):
         }
         # Passa igenom extra-fält för modal-visning på ordersidan
         for k in ('tagline','size','dimensions','capacity','useCase','transport',
-                  'persons','includes','specs','features',
+                  'persons','specs','features',
                   'monteringMin','manualUrl','bulky','volumePricing',
                   'priceNote','section'):
             v = p.get(k)

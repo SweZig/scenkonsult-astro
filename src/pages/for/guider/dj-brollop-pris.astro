@@ -109,14 +109,14 @@ const faqSchema = {
           artno={eq[0].artno} name={eq[0].name} price={eq[0].price}
           priceNote="/dygn" image={eq[0].image} alt={eq[0].name}
           description={eq[0].description ?? eq[0].desc ?? ''}
-          specs={eq[0].includes ?? eq[0].specs ?? []} category="DJ"
+          specs={eq[0].specs ?? []} category="DJ"
           manualUrl={eq[0].manualUrl}
         />
         <ProductCard
           artno={eq[2].artno} name={eq[2].name} price={eq[2].price}
           priceNote="/dygn" image={eq[2].image} alt={eq[2].name}
           description={eq[2].description ?? eq[2].desc ?? ''}
-          specs={eq[2].includes ?? eq[2].specs ?? []} category="DJ"
+          specs={eq[2].specs ?? []} category="DJ"
           manualUrl={eq[2].manualUrl}
         />
       </div>
@@ -163,7 +163,7 @@ const faqSchema = {
             <div style="color:rgba(196,181,244,0.7);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.25rem;">{pkg.tagline}</div>
             <div style="color:white;font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">{pkg.name}</div>
             <ul style="list-style:none;padding:0;margin:0 0 1rem;flex:1;">
-              {pkg.includes.map((item: string) => (
+              {pkg.specs.map((item: string) => (
                 <li style="color:rgba(255,255,255,0.55);font-size:0.8rem;padding:0.2rem 0;display:flex;gap:0.5rem;">
                   <span style="color:#4ade80;">✓</span>{item}
                 </li>

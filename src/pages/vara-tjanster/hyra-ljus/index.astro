@@ -92,7 +92,7 @@ const faqSchema = {
             <h3 class="font-bold text-white text-lg mt-1 mb-1" itemprop="name">{p.name}</h3>
             <p class="text-gray-400 text-xs mb-3">{p.tagline}</p>
             <ul class="space-y-1 mb-4">
-              {p.includes.map(item => (
+              {(p.specs ?? []).map(item => (
                 <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{item}</li>
               ))}
             </ul>

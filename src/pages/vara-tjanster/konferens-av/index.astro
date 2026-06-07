@@ -168,7 +168,7 @@ const faqSchema = {
             <h3 class="font-bold text-white text-sm mb-2 leading-tight">{p.name}</h3>
             <p class="text-gray-400 text-xs mb-3 flex-1">{p.description}</p>
             <ul class="space-y-1 mb-3">
-              {(p.specs || p.includes || []).slice(0,3).map((s: string) => (
+              {(p.specs || []).slice(0,3).map((s: string) => (
                 <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{s}</li>
               ))}
             </ul>
@@ -235,7 +235,7 @@ const faqSchema = {
             <h3 class="font-bold text-white text-sm mb-2 leading-tight">{p.name}</h3>
             <p class="text-gray-400 text-xs mb-3 flex-1">{p.description ?? p.desc}</p>
             <ul class="space-y-1 mb-3">
-              {(p.specs || p.includes || []).slice(0,3).map((s: string) => (
+              {(p.specs || []).slice(0,3).map((s: string) => (
                 <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{s}</li>
               ))}
             </ul>
@@ -305,7 +305,7 @@ const faqSchema = {
           image={p.image}
           alt={p.alt ?? p.name}
           description={p.description}
-          specs={p.includes}
+          specs={p.specs ?? []}
           category="Projektor"
           bulky={p.bulky}
           forceLeverans={p.forceLeverans}
@@ -326,7 +326,7 @@ const faqSchema = {
           image={p.image}
           alt={p.alt ?? p.name}
           description={p.description}
-          specs={p.includes}
+          specs={p.specs ?? []}
           category="Skärm"
           bulky={p.bulky}
           forceLeverans={p.forceLeverans}
@@ -417,7 +417,7 @@ const faqSchema = {
           alt={p.alt ?? p.name}
           description={p.description}
           persons={p.persons}
-          specs={p.includes}
+          specs={p.specs ?? []}
           category="Portabelt ljud"
           bulky={p.bulky}
           forceLeverans={p.forceLeverans}

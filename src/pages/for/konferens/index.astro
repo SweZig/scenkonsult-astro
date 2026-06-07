@@ -204,21 +204,21 @@ const pageSchema = {
           artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
           priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
           description={portMedium.description} persons={portMedium.persons}
-          specs={portMedium.includes} category="Ljud"
+          specs={portMedium.specs ?? []} category="Ljud"
           manualUrl={portMedium.manualUrl}
         />
         <ProductCard
           artno={shureHeadset.artno} name={shureHeadset.name} price={shureHeadset.price}
           priceNote="/dygn" image={shureHeadset.image} alt={shureHeadset.name}
           description={shureHeadset.description ?? shureHeadset.desc}
-          specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon"
+          specs={shureHeadset.specs ?? []} category="Mikrofon"
           manualUrl={shureHeadset.manualUrl}
         />
         <ProductCard
           artno={shureMygga.artno} name={shureMygga.name} price={shureMygga.price}
           priceNote="/dygn" image={shureMygga.image} alt={shureMygga.name}
           description={shureMygga.description ?? shureMygga.desc}
-          specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon"
+          specs={shureMygga.specs ?? []} category="Mikrofon"
           manualUrl={shureMygga.manualUrl}
         />
       </div>
@@ -227,14 +227,14 @@ const pageSchema = {
           artno={projektor.artno} name={projektor.name} price={projektor.price}
           priceNote="/dygn" image={projektor.image} alt={projektor.name}
           description={projektor.description}
-          specs={projektor.includes ?? []} category="Projektor"
+          specs={projektor.specs ?? []} category="Projektor"
           manualUrl={projektor.manualUrl}
         />
         <ProductCard
           artno={skarm65.artno} name={skarm65.name} price={skarm65.price}
           priceNote="/dygn" image={skarm65.image} alt={skarm65.name}
           description={skarm65.description}
-          specs={skarm65.includes ?? []} category="Skärm"
+          specs={skarm65.specs ?? []} category="Skärm"
           manualUrl={skarm65.manualUrl}
         />
       </div>

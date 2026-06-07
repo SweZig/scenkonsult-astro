@@ -24,7 +24,7 @@ const faqSchema = {
 const dukSkJson = (d: any) => JSON.stringify({
   name:      d.name,
   artno:     d.artno ?? '',
-  desc:      (d.specs ?? d.includes ?? []).join('||'),
+  desc:      (d.specs ?? []).join('||'),
   rows:      [],
   price:     typeof d.price === 'number' ? d.price : 0,
   priceNote: d.priceNote ?? '/dygn',
@@ -81,7 +81,7 @@ const dukSkJson = (d: any) => JSON.stringify({
           image={p.image}
           alt={p.alt}
           description={p.description}
-          specs={p.includes}
+          specs={p.specs ?? []}
           category="Projektor & skärm"
           bulky={p.bulky}
           forceLeverans={p.forceLeverans}
@@ -111,7 +111,7 @@ const dukSkJson = (d: any) => JSON.stringify({
           image={p.image}
           alt={p.alt}
           description={p.description}
-          specs={p.includes}
+          specs={p.specs ?? []}
           category="Projektor & skärm"
           bulky={p.bulky}
           forceLeverans={p.forceLeverans}
@@ -176,7 +176,7 @@ const dukSkJson = (d: any) => JSON.stringify({
           image={p.image}
           alt={p.alt}
           description={p.description}
-          specs={p.includes}
+          specs={p.specs ?? []}
           videoSrc={p.video}
           category="Projektor & skärm"
           bulky={p.bulky}
@@ -204,7 +204,7 @@ const dukSkJson = (d: any) => JSON.stringify({
           </div>
           <div class="duk-card-body">
             <h3 class="duk-card-title">{d.name}</h3>
-            <p class="duk-card-tagline">{d.includes?.[0] ?? ''}</p>
+            <p class="duk-card-tagline">{(d.specs ?? [])[0] ?? ''}</p>
             <div class="duk-card-foot">
               <div class="leading-none">
                 <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{d.price.toLocaleString('sv')}&nbsp;kr</span>
