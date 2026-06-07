@@ -47,7 +47,9 @@ const faqSchema = {
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstativ med T-bar</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {ljusData.stativ.products.filter((p:any) => parseInt(p.artno.slice(-4)) <= 4).map((p: any) => (
-        <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross" />
+        <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross"
+          manualUrl={p.manualUrl}
+        />
       ))}
     </div>
   </section>
@@ -57,7 +59,9 @@ const faqSchema = {
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstorn</h2>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
       {ljusData.stativ.products.filter((p:any) => parseInt(p.artno.slice(-4)) >= 5 && parseInt(p.artno.slice(-4)) <= 7).map((p: any) => (
-        <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross" />
+        <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross"
+          manualUrl={p.manualUrl}
+        />
       ))}
     </div>
   </section>
@@ -67,7 +71,9 @@ const faqSchema = {
     <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstraverser &amp; Trossbågar</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {ljusData.stativ.products.filter((p:any) => parseInt(p.artno.slice(-4)) >= 8).map((p: any) => (
-        <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross" />
+        <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross"
+          manualUrl={p.manualUrl}
+        />
       ))}
     </div>
   </section>

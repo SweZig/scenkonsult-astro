@@ -166,46 +166,62 @@ const pageSchema = {
           artno={liveSmall.artno} name={liveSmall.name} price={liveSmall.price}
           priceNote="/dygn" image={liveSmall.image} alt={liveSmall.name}
           description={liveSmall.description} persons={liveSmall.persons}
-          specs={liveSmall.includes} category="Ljud" />
+          specs={liveSmall.includes} category="Ljud"
+          manualUrl={liveSmall.manualUrl}
+        />
         <ProductCard
           artno={liveMedium.artno} name={liveMedium.name} price={liveMedium.price}
           priceNote="/dygn" image={liveMedium.image} alt={liveMedium.name}
           description={liveMedium.description} persons={liveMedium.persons}
-          specs={liveMedium.includes} category="Ljud" />
+          specs={liveMedium.includes} category="Ljud"
+          manualUrl={liveMedium.manualUrl}
+        />
         <ProductCard
           artno={scenMedium.artno} name={scenMedium.name} price={scenMedium.price}
           priceNote="/dygn" image={scenMedium.image} alt={scenMedium.name}
           description={scenMedium.description ?? ''}
-          specs={scenMedium.includes ?? []} category="Scen" />
+          specs={scenMedium.includes ?? []} category="Scen"
+          manualUrl={scenMedium.manualUrl}
+        />
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <ProductCard
           artno={mhWash.artno} name={mhWash.name} price={mhWash.price}
           priceNote="/st/dygn" image={mhWash.image} alt={mhWash.name}
           description={mhWash.description}
-          specs={mhWash.includes ?? []} category="Ljuseffekter" />
+          specs={mhWash.includes ?? []} category="Ljuseffekter"
+          manualUrl={mhWash.manualUrl}
+        />
         <ProductCard
           artno={mhBeam.artno} name={mhBeam.name} price={mhBeam.price}
           priceNote="/st/dygn" image={mhBeam.image} alt={mhBeam.name}
           description={mhBeam.description}
-          specs={mhBeam.includes ?? []} category="Ljuseffekter" />
+          specs={mhBeam.includes ?? []} category="Ljuseffekter"
+          manualUrl={mhBeam.manualUrl}
+        />
         {rokmaskin && <ProductCard
           artno={rokmaskin.artno} name={rokmaskin.name} price={rokmaskin.price}
           priceNote="/dygn" image={rokmaskin.image} alt={rokmaskin.name}
           description={rokmaskin.description ?? ''}
-          specs={rokmaskin.includes ?? []} category="Rök & pyro" />}
+          specs={rokmaskin.includes ?? []} category="Rök & pyro"
+          manualUrl={rokmaskin.manualUrl}
+        />}
       </div>
       {ledTrailer7 && <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
         <ProductCard
           artno={ledTrailer7.artno} name={ledTrailer7.name} price={ledTrailer7.price}
           priceNote="/dygn" image={ledTrailer7.image} alt={ledTrailer7.name}
           description={ledTrailer7.description ?? ''}
-          specs={ledTrailer7.includes ?? []} category="Bild" />
+          specs={ledTrailer7.includes ?? []} category="Bild"
+          manualUrl={ledTrailer7.manualUrl}
+        />
         {ledTrailer15 && <ProductCard
           artno={ledTrailer15.artno} name={ledTrailer15.name} price={ledTrailer15.price}
           priceNote="/dygn" image={ledTrailer15.image} alt={ledTrailer15.name}
           description={ledTrailer15.description ?? ''}
-          specs={ledTrailer15.includes ?? []} category="Bild" />}
+          specs={ledTrailer15.includes ?? []} category="Bild"
+          manualUrl={ledTrailer15.manualUrl}
+        />}
       </div>}
       <div class="mt-6 flex flex-wrap gap-3">
         <a href="/vara-tjanster/hyra-ljud/live/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Live PA-system →</a>

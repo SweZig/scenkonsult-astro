@@ -139,10 +139,18 @@ const faqSchema = {
     <section style="margin-bottom:3rem;">
       <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1.25rem;">Populärt till bröllop</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <ProductCard artno={evSmall.artno} name={evSmall.name} price={evSmall.price} priceNote="/dygn" image={evSmall.image} alt={evSmall.name} description={evSmall.description} persons={evSmall.persons} specs={evSmall.includes} category="Ljud" />
-        <ProductCard artno={portMed.artno} name={portMed.name} price={portMed.price} priceNote="/dygn" image={portMed.image} alt={portMed.name} description={portMed.description} persons={portMed.persons} specs={portMed.includes} category="Ljud" />
-        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc} specs={shureHS.specs ?? shureHS.includes ?? []} category="Mikrofon" />
-        <ProductCard artno={tradlos.artno} name={tradlos.name} price={tradlos.price} priceNote="/dygn" image={tradlos.image} alt={tradlos.name} description={tradlos.description ?? tradlos.desc} specs={tradlos.specs ?? []} category="Mikrofon" />
+        <ProductCard artno={evSmall.artno} name={evSmall.name} price={evSmall.price} priceNote="/dygn" image={evSmall.image} alt={evSmall.name} description={evSmall.description} persons={evSmall.persons} specs={evSmall.includes} category="Ljud"
+          manualUrl={evSmall.manualUrl}
+        />
+        <ProductCard artno={portMed.artno} name={portMed.name} price={portMed.price} priceNote="/dygn" image={portMed.image} alt={portMed.name} description={portMed.description} persons={portMed.persons} specs={portMed.includes} category="Ljud"
+          manualUrl={portMed.manualUrl}
+        />
+        <ProductCard artno={shureHS.artno} name={shureHS.name} price={shureHS.price} priceNote="/dygn" image={shureHS.image} alt={shureHS.name} description={shureHS.description ?? shureHS.desc} specs={shureHS.specs ?? shureHS.includes ?? []} category="Mikrofon"
+          manualUrl={shureHS.manualUrl}
+        />
+        <ProductCard artno={tradlos.artno} name={tradlos.name} price={tradlos.price} priceNote="/dygn" image={tradlos.image} alt={tradlos.name} description={tradlos.description ?? tradlos.desc} specs={tradlos.specs ?? []} category="Mikrofon"
+          manualUrl={tradlos.manualUrl}
+        />
       </div>
       <div class="mt-5 flex flex-wrap gap-3">
         <a href="/for/brollop/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Mer om bröllopsteknik →</a>

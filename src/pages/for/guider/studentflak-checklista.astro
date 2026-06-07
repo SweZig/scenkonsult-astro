@@ -167,10 +167,18 @@ const faqSchema = {
     <section style="margin-bottom:3rem;">
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till studentflak</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <ProductCard artno={porSmallP.artno} name={porSmallP.name} price={porSmallP.price} priceNote="/dygn" image={porSmallP.image} alt={porSmallP.name} description={porSmallP.description} persons={porSmallP.persons} specs={porSmallP.includes} category="Portabelt ljud" />
-        <ProductCard artno={porMedium.artno} name={porMedium.name} price={porMedium.price} priceNote="/dygn" image={porMedium.image} alt={porMedium.name} description={porMedium.description} persons={porMedium.persons} specs={porMedium.includes} category="Portabelt ljud" />
-        <ProductCard artno={porSmallDuo.artno} name={porSmallDuo.name} price={porSmallDuo.price} priceNote="/dygn" image={porSmallDuo.image} alt={porSmallDuo.name} description={porSmallDuo.description ?? ''} specs={porSmallDuo.includes ?? []} category="Portabelt ljud" />
-        <ProductCard artno={tradlos.artno} name={tradlos.name} price={tradlos.price} priceNote="/dygn" image={tradlos.image} alt={tradlos.name} description={tradlos.description ?? tradlos.desc} specs={tradlos.specs ?? []} category="Mikrofon" />
+        <ProductCard artno={porSmallP.artno} name={porSmallP.name} price={porSmallP.price} priceNote="/dygn" image={porSmallP.image} alt={porSmallP.name} description={porSmallP.description} persons={porSmallP.persons} specs={porSmallP.includes} category="Portabelt ljud"
+          manualUrl={porSmallP.manualUrl}
+        />
+        <ProductCard artno={porMedium.artno} name={porMedium.name} price={porMedium.price} priceNote="/dygn" image={porMedium.image} alt={porMedium.name} description={porMedium.description} persons={porMedium.persons} specs={porMedium.includes} category="Portabelt ljud"
+          manualUrl={porMedium.manualUrl}
+        />
+        <ProductCard artno={porSmallDuo.artno} name={porSmallDuo.name} price={porSmallDuo.price} priceNote="/dygn" image={porSmallDuo.image} alt={porSmallDuo.name} description={porSmallDuo.description ?? ''} specs={porSmallDuo.includes ?? []} category="Portabelt ljud"
+          manualUrl={porSmallDuo.manualUrl}
+        />
+        <ProductCard artno={tradlos.artno} name={tradlos.name} price={tradlos.price} priceNote="/dygn" image={tradlos.image} alt={tradlos.name} description={tradlos.description ?? tradlos.desc} specs={tradlos.specs ?? []} category="Mikrofon"
+          manualUrl={tradlos.manualUrl}
+        />
       </div>
       <div class="mt-5 flex flex-wrap gap-3">
         <a href="/vara-tjanster/hyra-ljud/portable/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla portabla system →</a>

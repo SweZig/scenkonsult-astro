@@ -240,39 +240,53 @@ const pageSchema = {
           artno={evSmall.artno} name={evSmall.name} price={evSmall.price}
           priceNote="/dygn" image={evSmall.image} alt={evSmall.name}
           description={evSmall.description} persons={evSmall.persons}
-          specs={evSmall.includes} category="Ljud" />
+          specs={evSmall.includes} category="Ljud"
+          manualUrl={evSmall.manualUrl}
+        />
         <ProductCard
           artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
           priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
           description={portMedium.description} persons={portMedium.persons}
-          specs={portMedium.includes} category="Ljud" />
+          specs={portMedium.includes} category="Ljud"
+          manualUrl={portMedium.manualUrl}
+        />
         <ProductCard
           artno={shureHeadset.artno} name={shureHeadset.name} price={shureHeadset.price}
           priceNote="/dygn" image={shureHeadset.image} alt={shureHeadset.name}
           description={shureHeadset.description ?? shureHeadset.desc}
-          specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon" />
+          specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon"
+          manualUrl={shureHeadset.manualUrl}
+        />
         <ProductCard
           artno={mhWash.artno} name={mhWash.name} price={mhWash.price}
           priceNote="/st/dygn" image={mhWash.image} alt={mhWash.name}
           description={mhWash.description}
-          specs={mhWash.includes ?? []} category="Ljuseffekter" />
+          specs={mhWash.includes ?? []} category="Ljuseffekter"
+          manualUrl={mhWash.manualUrl}
+        />
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <ProductCard
           artno={ljusPaketSmall.artno} name={ljusPaketSmall.name} price={ljusPaketSmall.price}
           priceNote="/dygn" image={ljusPaketSmall.image} alt={ljusPaketSmall.name}
           description={ljusPaketSmall.description}
-          specs={ljusPaketSmall.includes ?? []} category="Ljus" />
+          specs={ljusPaketSmall.includes ?? []} category="Ljus"
+          manualUrl={ljusPaketSmall.manualUrl}
+        />
         <ProductCard
           artno={scenSmall.artno} name={scenSmall.name} price={scenSmall.price}
           priceNote="/dygn" image={scenSmall.image} alt={scenSmall.name}
           description={scenSmall.description ?? ''}
-          specs={scenSmall.includes ?? []} category="Scen" />
+          specs={scenSmall.includes ?? []} category="Scen"
+          manualUrl={scenSmall.manualUrl}
+        />
         <ProductCard
           artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price}
           priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name}
           description={tradlosHand.description ?? tradlosHand.desc}
-          specs={tradlosHand.specs ?? []} category="Mikrofon" />
+          specs={tradlosHand.specs ?? []} category="Mikrofon"
+          manualUrl={tradlosHand.manualUrl}
+        />
       </div>
       <div class="mt-8 flex flex-wrap gap-3">
         <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Se alla ljudpaket →</a>

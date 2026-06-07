@@ -137,10 +137,18 @@ const faqSchema = {
     <section style="margin-bottom:3rem;">
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populära val</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <ProductCard artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price} priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name} description={tradlosHand.description ?? tradlosHand.desc ?? ''} specs={tradlosHand.specs ?? []} category="Mikrofon" />
-        <ProductCard artno={shureHeadset.artno} name={shureHeadset.name} price={shureHeadset.price} priceNote="/dygn" image={shureHeadset.image} alt={shureHeadset.name} description={shureHeadset.description ?? shureHeadset.desc ?? ''} specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon" />
-        <ProductCard artno={shureMygga.artno} name={shureMygga.name} price={shureMygga.price} priceNote="/dygn" image={shureMygga.image} alt={shureMygga.name} description={shureMygga.description ?? shureMygga.desc ?? ''} specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon" />
-        <ProductCard artno={shure2hs.artno} name={shure2hs.name} price={shure2hs.price} priceNote="/dygn" image={shure2hs.image} alt={shure2hs.name} description={shure2hs.description ?? shure2hs.desc ?? ''} specs={shure2hs.specs ?? shure2hs.includes ?? []} category="Mikrofon" />
+        <ProductCard artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price} priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name} description={tradlosHand.description ?? tradlosHand.desc ?? ''} specs={tradlosHand.specs ?? []} category="Mikrofon"
+          manualUrl={tradlosHand.manualUrl}
+        />
+        <ProductCard artno={shureHeadset.artno} name={shureHeadset.name} price={shureHeadset.price} priceNote="/dygn" image={shureHeadset.image} alt={shureHeadset.name} description={shureHeadset.description ?? shureHeadset.desc ?? ''} specs={shureHeadset.specs ?? shureHeadset.includes ?? []} category="Mikrofon"
+          manualUrl={shureHeadset.manualUrl}
+        />
+        <ProductCard artno={shureMygga.artno} name={shureMygga.name} price={shureMygga.price} priceNote="/dygn" image={shureMygga.image} alt={shureMygga.name} description={shureMygga.description ?? shureMygga.desc ?? ''} specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon"
+          manualUrl={shureMygga.manualUrl}
+        />
+        <ProductCard artno={shure2hs.artno} name={shure2hs.name} price={shure2hs.price} priceNote="/dygn" image={shure2hs.image} alt={shure2hs.name} description={shure2hs.description ?? shure2hs.desc ?? ''} specs={shure2hs.specs ?? shure2hs.includes ?? []} category="Mikrofon"
+          manualUrl={shure2hs.manualUrl}
+        />
       </div>
       <div class="mt-5 flex flex-wrap gap-3">
         <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Allt ljud & mikrofoner →</a>

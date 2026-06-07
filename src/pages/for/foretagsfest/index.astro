@@ -210,29 +210,39 @@ const kunder = [
           artno={evMedium.artno} name={evMedium.name} price={evMedium.price}
           priceNote="/dygn" image={evMedium.image} alt={evMedium.name}
           description={evMedium.description} persons={evMedium.persons}
-          specs={evMedium.includes} category="Ljud" />
+          specs={evMedium.includes} category="Ljud"
+          manualUrl={evMedium.manualUrl}
+        />
         <ProductCard
           artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
           priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
           description={portMedium.description} persons={portMedium.persons}
-          specs={portMedium.includes} category="Ljud" />
+          specs={portMedium.includes} category="Ljud"
+          manualUrl={portMedium.manualUrl}
+        />
         <ProductCard
           artno={shureMygga.artno} name={shureMygga.name} price={shureMygga.price}
           priceNote="/dygn" image={shureMygga.image} alt={shureMygga.name}
           description={shureMygga.description ?? shureMygga.desc}
-          specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon" />
+          specs={shureMygga.specs ?? shureMygga.includes ?? []} category="Mikrofon"
+          manualUrl={shureMygga.manualUrl}
+        />
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <ProductCard
           artno={ljusPaket.artno} name={ljusPaket.name} price={ljusPaket.price}
           priceNote="/dygn" image={ljusPaket.image} alt={ljusPaket.name}
           description={ljusPaket.description}
-          specs={ljusPaket.includes ?? []} category="Ljus" />
+          specs={ljusPaket.includes ?? []} category="Ljus"
+          manualUrl={ljusPaket.manualUrl}
+        />
         <ProductCard
           artno={mhWash.artno} name={mhWash.name} price={mhWash.price}
           priceNote="/st/dygn" image={mhWash.image} alt={mhWash.name}
           description={mhWash.description}
-          specs={mhWash.includes ?? []} category="Ljuseffekter" />
+          specs={mhWash.includes ?? []} category="Ljuseffekter"
+          manualUrl={mhWash.manualUrl}
+        />
       </div>
       <!-- Konferens-länk -->
       <div class="mt-8 bg-brand-navy border border-brand-orange/20 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
