@@ -23,13 +23,13 @@ const faqSchema = {
     { "@type": "Question", "name": "Hur länge behöver DJ:n spela på bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "De flesta bröllopsfester bokar 3–4 timmar DJ. Räkna med att dansgolvet öppnar 21–22 och stänger vid midnatt. Vill du ha DJ under hela kvällen (inklusive bakgrundsmusik under middagen) boka gärna 5–6 timmar." } },
     { "@type": "Question", "name": "Kan vi hyra DJ-utrustning utan DJ?", "acceptedAnswer": { "@type": "Answer", "text": `Ja — vi hyr ut DJ-utrustning separat om ni har en DJ ni litar på. Numark Mixstream Pro+ kostar ${dp('SK-DJ-0001')} kr/dygn. Denon Prime 4+ kostar ${dp('SK-DJ-0003')} kr/dygn. Alla controllers är standalone och behöver ingen laptop.` } },
     { "@type": "Question", "name": "Vad är skillnaden på Junior och Senior DJ?", "acceptedAnswer": { "@type": "Answer", "text": "Junior DJ har erfarenhet från bröllop och privatfester och levererar hög kvalitet till ett lägre pris. Senior DJ har djupare erfarenhet, bredare repertoar och är van vid krävande situationer. Båda alternativen är professionella — skillnaden är framförallt erfarenhet och flexibilitet." } },
-    { "@type": "Question", "name": "Behöver vi ordna ljud och scen till DJ:n?", "acceptedAnswer": { "@type": "Answer", "text": "DJ-hårdvara ingår i priset, men ljud och scen hyrs separat. Ett PA-system för 80–150 gäster kostar från 799–1 199 kr/dygn. En liten scen (2×2 m) för DJ-bordet kostar från 400 kr/dygn. Vi hjälper er sätta ihop ett komplett paket." } }
+    { "@type": "Question", "name": "Behöver vi ordna ljud och scen till DJ:n?", "acceptedAnswer": { "@type": "Answer", "text": `DJ-hårdvara ingår i priset, men ljud och scen hyrs separat. Ett PA-system för 80–150 gäster kostar från ${evSmall.price}–${evMedium.price} kr/dygn. En liten scen (2×2 m) för DJ-bordet kostar från ${scenSmallPris} kr/dygn. Vi hjälper er sätta ihop ett komplett paket.` } }
   ]
 };
 ---
 <Layout
   title="DJ till Bröllop Stockholm — Pris & Guide 2026 | Scenkonsult"
-  description="Vad kostar en DJ till bröllop? Guide till DJ-pris, speltid och utrustning. Junior DJ från 1 999 kr, Senior DJ från 2 399 kr. Stockholm sedan 1986."
+  description={`Vad kostar en DJ till bröllop? Guide till DJ-pris, speltid och utrustning. Junior DJ från ${svcTable[0].junior} kr, Senior DJ från ${svcTable[0].senior} kr. Stockholm sedan 1986.`}
   schemaExtra={faqSchema}
 >
   <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">

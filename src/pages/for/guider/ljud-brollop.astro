@@ -34,14 +34,14 @@ const faqSchema = {
     { "@type": "Question", "name": "Hur mycket ljud behöver man till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "För 50–80 gäster inomhus räcker Event Small (2 toppar, ingen sub). Ska det dansdas är Event Medium med subwoofer rätt. Utomhus: välj alltid ett steg upp. Vi hjälper er dimensionera gratis." } },
     { "@type": "Question", "name": "Vilken mikrofon passar till bröllopstalet?", "acceptedAnswer": { "@type": "Answer", "text": "Trådlöst headset (Shure SLXD) för toastmaster och celebrant — händerna är fria och mikrofonen sitter stabilt nära munnen. Trådlös handmikrofon passar den som föredrar att hålla i något. Båda ger kristallklart ljud utan rundgång." } },
     { "@type": "Question", "name": "Kan man hyra ljud till bröllop utan tekniker?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra standardpaket är byggda för självinstallation. Vi går igenom allt vid utlämning och finns tillgängliga på telefon under hela evenemanget. Vill ni ha tekniker på plats erbjuder vi det som tillägg." } },
-    { "@type": "Question", "name": "Vad kostar det att hyra ljud till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "Ett PA-system för 50–100 gäster kostar 799–1 199 kr/dygn. Lägg till trådlös mikrofon (400–749 kr) och eventuell leverans. Räkna totalt 1 500–3 000 kr för ett komplett ljudupplägg till ett medelstort bröllop." } },
+    { "@type": "Question", "name": "Vad kostar det att hyra ljud till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `Ett PA-system för 50–100 gäster kostar ${fmt(evSmall.price)}–${fmt(evMedium.price)} kr/dygn. Lägg till trådlös mikrofon (${fmt(tradlos.price)}–${fmt(shureMygga.price)} kr) och eventuell leverans. Räkna totalt 1 500–3 000 kr för ett komplett ljudupplägg till ett medelstort bröllop.` } },
     { "@type": "Question", "name": "Ska man välja kolumnhögtalare eller PA på stativ till bröllopet?", "acceptedAnswer": { "@type": "Answer", "text": "Kolumnhögtalare (t.ex. Alto TS108C) är diskreta, snygga och ger jämn ljudspridning — perfekta för vigsel och mingel. PA på stativ ger mer kraft och passar bättre om det ska dansdas. Många bröllop kombinerar: kolumn under middagen, PA på stativ under festen." } }
   ]
 };
 ---
 <Layout
   title="Ljud till Bröllop Stockholm — Guide & Priser 2026 | Scenkonsult"
-  description="Hur mycket ljud behöver du till bröllopet? Guide till PA-system, mikrofoner och ljud för vigsel, middag och dansgolv. Priser från 799 kr/dygn."
+  description={`Hur mycket ljud behöver du till bröllopet? Guide till PA-system, mikrofoner och ljud för vigsel, middag och dansgolv. Priser från ${evSmall.price} kr/dygn.`}
   schemaExtra={faqSchema}
 >
   <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
