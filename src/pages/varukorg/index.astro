@@ -68,7 +68,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         <strong>Glöm inte tillbehören!</strong>
         Förlängningskablar, ljudkablar, DMX-kablar, stativ och annat smått är lätt att missa — men avgörande på plats. Dubbelkolla att du har allt du behöver.
       </div>
-      <a href="/vara-tjanster/tillbehor/" class="accessory-reminder-link">Se tillbehör →</a>
+      <a href="/vara-tjanster/tillbehor/" class="accessory-reminder-link" id="openTillbehorPopup">Se tillbehör →</a>
     </div>
 
     <!-- TILLÄGGSTJÄNSTER -->
@@ -273,6 +273,25 @@ const volPricingJSON = JSON.stringify(volPricingMap);
 
   </div><!-- /cartContent -->
 </div>
+
+<!-- TILLBEHÖRS-POPUP -->
+<div id="tillbehorPopup" class="tb-popup" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Alla tillbehör">
+  <div class="tb-popup-backdrop" data-tb-close></div>
+  <div class="tb-popup-panel">
+    <div class="tb-popup-head">
+      <div>
+        <p class="tb-popup-eyebrow">Komplettera din beställning</p>
+        <h2 class="tb-popup-title">Alla tillbehör</h2>
+      </div>
+      <button type="button" class="tb-popup-close" data-tb-close aria-label="Stäng">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="tb-popup-body" id="tbPopupBody">
+      <div class="tb-popup-loading">Laddar tillbehör…</div>
+    </div>
+  </div>
+</div>
 </section>
 
 </Layout>
@@ -440,6 +459,66 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 @media (max-width:560px) {
   .accessory-reminder { flex-wrap:wrap; }
   .accessory-reminder-link { margin-left:2.2rem; }
+}
+
+/* ─── TILLBEHÖRS-POPUP ─────────────────────────────────────── */
+.tb-popup { position:fixed; inset:0; z-index:9000; display:none; }
+.tb-popup.open { display:block; }
+.tb-popup-backdrop { position:absolute; inset:0; background:rgba(6,5,18,0.72); backdrop-filter:blur(3px); }
+.tb-popup-panel {
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(1080px, calc(100vw - 2rem));
+  height:min(86vh, 900px);
+  background:#0c0a24; border:1px solid rgba(196,181,244,0.22);
+  border-radius:18px; overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 24px 70px rgba(0,0,0,0.55);
+}
+.tb-popup-head {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;
+  padding:1.25rem 1.5rem; border-bottom:1px solid rgba(255,255,255,0.08);
+  background:linear-gradient(135deg,#1e1850,#0c0a24); flex-shrink:0;
+}
+.tb-popup-eyebrow {
+  color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.72rem;
+  font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin:0 0 0.25rem;
+}
+.tb-popup-title { font-family:'DM Serif Display',serif; font-size:1.6rem; color:white; margin:0; line-height:1.1; }
+.tb-popup-close {
+  flex-shrink:0; width:40px; height:40px; border-radius:10px;
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.8); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tb-popup-close:hover { background:rgba(196,181,244,0.15); border-color:rgba(196,181,244,0.5); color:#fff; }
+.tb-popup-body { overflow-y:auto; padding:1.25rem 1.5rem 2rem; flex:1; }
+.tb-popup-loading { color:rgba(255,255,255,0.55); text-align:center; padding:3rem 0; font-size:0.95rem; }
+.tb-popup-body .tb-grupp { margin-bottom:2rem; }
+.tb-popup-body .tb-grupp-head {
+  display:flex; align-items:baseline; gap:0.6rem; margin-bottom:1rem;
+  border-bottom:1px solid rgba(196,181,244,0.18); padding-bottom:0.6rem;
+}
+.tb-popup-body .tb-grupp-title { font-family:'DM Serif Display',serif; font-size:1.25rem; color:white; margin:0; }
+.tb-popup-body .tb-grupp-intro { color:rgba(255,255,255,0.55); font-size:0.85rem; margin:0 0 1rem; }
+.tb-popup-body .tb-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.75rem; }
+@media (min-width:640px) { .tb-popup-body .tb-grid { grid-template-columns:repeat(3,1fr); } }
+@media (min-width:900px) { .tb-popup-body .tb-grid { grid-template-columns:repeat(4,1fr); } }
+.tb-popup-notice {
+  background:rgba(196,181,244,0.08); border:1px solid rgba(196,181,244,0.25);
+  border-radius:12px; padding:0.75rem 1rem; margin-bottom:1.5rem;
+  font-size:0.88rem; color:rgba(255,255,255,0.78); line-height:1.55;
+}
+.tb-popup-notice button {
+  background:none; border:none; color:#c4b5f4; font-family:'Space Grotesk',sans-serif;
+  font-weight:700; font-size:0.84rem; cursor:pointer; text-decoration:underline; padding:0; margin-left:0.25rem;
+}
+/* Mobil: full-screen-känsla */
+@media (max-width:600px) {
+  .tb-popup-panel {
+    width:100vw; height:100dvh; max-height:100dvh;
+    border-radius:0; border:none; left:0; top:0; transform:none;
+  }
+  .tb-popup-title { font-size:1.35rem; }
 }
 .services-wrap {
   border:1px solid rgba(255,255,255,0.08);
@@ -1691,4 +1770,105 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     updateSummary();
     checkCanProceed();
   });
+</script>
+
+<!-- TILLBEHÖRS-POPUP: hämtar tillbehörssidan och visar den i en modal (desktop). -->
+<!-- På liten skärm låter vi länken navigera till sidan istället. -->
+<script>
+  (function () {
+    const MOBILE_BP = 600;
+    const link = document.getElementById('openTillbehorPopup');
+    const popup = document.getElementById('tillbehorPopup');
+    const body = document.getElementById('tbPopupBody');
+    if (!link || !popup || !body) return;
+
+    let loaded = false;
+
+    function presentPrefixes() {
+      try {
+        const items = (window.skCart && window.skCart.get && window.skCart.get()) || [];
+        const set = new Set();
+        for (const it of items) {
+          if (!it) continue;
+          const code = String(it.artno || it.id || '').toUpperCase();
+          const m = code.match(/^(SK-[A-Z]+)/);
+          if (m) set.add(m[1]);
+          const c = String(it.category || '').toLowerCase();
+          if (c.includes('scen')) set.add('SK-SCN');
+          if (c.includes('ljud') || c.includes('mikrofon') || c.includes('pa')) set.add('SK-LJD');
+          if (c.includes('bild') || c.includes('projektor') || c.includes('skärm') || c.includes('led')) set.add('SK-BLD');
+          if (c.includes('ljus') || c.includes('dmx') || c.includes('rök')) set.add('SK-LJS');
+          if (c.includes('dj')) set.add('SK-DJ');
+        }
+        return set;
+      } catch { return new Set(); }
+    }
+
+    function applyFilter(forceAll) {
+      const groups = Array.from(body.querySelectorAll('.tb-grupp'));
+      const notice = body.querySelector('.tb-popup-notice');
+      if (!groups.length) return;
+      const present = forceAll ? new Set() : presentPrefixes();
+      const meaningful = new Set([...present].filter(p => p !== 'SK-EL'));
+      const shouldFilter = !forceAll && meaningful.size > 0;
+      groups.forEach(sec => {
+        const always = sec.dataset.always === 'true';
+        const prefix = sec.dataset.prefix || '';
+        sec.style.display = (!shouldFilter || always || present.has(prefix)) ? '' : 'none';
+      });
+      if (notice) notice.style.display = shouldFilter ? '' : 'none';
+    }
+
+    async function ensureLoaded() {
+      if (loaded) { applyFilter(false); return; }
+      try {
+        const res = await fetch('/vara-tjanster/tillbehor/');
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const sections = doc.querySelectorAll('.tillbehor-grupp');
+        if (!sections.length) { window.location.href = '/vara-tjanster/tillbehor/'; return; }
+
+        let out = '<div class="tb-popup-notice" style="display:none">🛒 Visar tillbehör som passar din varukorg.<button type="button" id="tbShowAll">Visa alla tillbehör</button></div>';
+        sections.forEach(sec => {
+          const prefix = sec.getAttribute('data-prefix') || '';
+          const always = sec.getAttribute('data-always') || '';
+          const title = sec.querySelector('.sh-h2')?.textContent || '';
+          const intro = sec.querySelector('.sh-lead, .sh-h2 ~ p')?.textContent || '';
+          const grid = sec.querySelector('.grid');
+          out += `<div class="tb-grupp" data-prefix="${prefix}"${always ? ' data-always="true"' : ''}>`
+            + `<div class="tb-grupp-head"><h3 class="tb-grupp-title">${title}</h3></div>`
+            + (intro ? `<p class="tb-grupp-intro">${intro}</p>` : '')
+            + `<div class="tb-grid">${grid ? grid.innerHTML : ''}</div></div>`;
+        });
+        body.innerHTML = out;
+        loaded = true;
+        const showAll = document.getElementById('tbShowAll');
+        if (showAll) showAll.addEventListener('click', () => applyFilter(true));
+        applyFilter(false);
+      } catch {
+        window.location.href = '/vara-tjanster/tillbehor/';
+      }
+    }
+
+    function open() {
+      popup.classList.add('open');
+      popup.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      ensureLoaded();
+    }
+    function close() {
+      popup.classList.remove('open');
+      popup.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    link.addEventListener('click', function (e) {
+      // På mobil: låt länken navigera till sidan (full sida funkar bäst där)
+      if (window.innerWidth <= MOBILE_BP) return;
+      e.preventDefault();
+      open();
+    });
+    popup.querySelectorAll('[data-tb-close]').forEach(el => el.addEventListener('click', close));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && popup.classList.contains('open')) close(); });
+  })();
 </script>

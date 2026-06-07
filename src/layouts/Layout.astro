@@ -787,37 +787,38 @@ const localBusinessSchema = {
     // Init badge on load
     skUpdateBadge();
 
-    // Wire up all cart buttons on this page
-    document.querySelectorAll('.sk-cart-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const item = {
-          id: this.dataset.id,
-          name: this.dataset.name,
-          price: Number(this.dataset.price),
-          priceNote: this.dataset.priceNote || '/dygn',
-          category: this.dataset.category || '',
-          image: this.dataset.image || '',
-          artno: this.dataset.artno || '',
-          bulky: this.dataset.bulky === 'true',
-          forceLeverans: this.dataset.forceLeverans || undefined,
-          monteringMin: this.dataset.monteringMin ? Number(this.dataset.monteringMin) : null,
-        };
-        skAddToCart(item);
-        // Visual feedback
-        const iconAdd = this.querySelector('.sk-cart-icon-add');
-        const iconCheck = this.querySelector('.sk-cart-icon-check');
-        const lbl = this.querySelector('.sk-cart-btn-label');
-        iconAdd?.classList.add('hidden');
-        iconCheck?.classList.remove('hidden');
-        if (lbl) lbl.textContent = 'Tillagd!';
-        this.style.background = '#7c3aed';
-        setTimeout(() => {
-          iconAdd?.classList.remove('hidden');
-          iconCheck?.classList.add('hidden');
-          if (lbl) lbl.textContent = 'Lägg i varukorg';
-          this.style.background = '';
-        }, 1400);
-      });
+    // Cart-knappar via delegation på body — fungerar även för dynamiskt
+    // injicerade knappar (t.ex. tillbehörs-popupen i varukorgen).
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.sk-cart-btn');
+      if (!btn) return;
+      const item = {
+        id: btn.dataset.id,
+        name: btn.dataset.name,
+        price: Number(btn.dataset.price),
+        priceNote: btn.dataset.priceNote || '/dygn',
+        category: btn.dataset.category || '',
+        image: btn.dataset.image || '',
+        artno: btn.dataset.artno || '',
+        bulky: btn.dataset.bulky === 'true',
+        forceLeverans: btn.dataset.forceLeverans || undefined,
+        monteringMin: btn.dataset.monteringMin ? Number(btn.dataset.monteringMin) : null,
+      };
+      skAddToCart(item);
+      // Visual feedback
+      const iconAdd = btn.querySelector('.sk-cart-icon-add');
+      const iconCheck = btn.querySelector('.sk-cart-icon-check');
+      const lbl = btn.querySelector('.sk-cart-btn-label');
+      iconAdd?.classList.add('hidden');
+      iconCheck?.classList.remove('hidden');
+      if (lbl) lbl.textContent = 'Tillagd!';
+      btn.style.background = '#7c3aed';
+      setTimeout(() => {
+        iconAdd?.classList.remove('hidden');
+        iconCheck?.classList.add('hidden');
+        if (lbl) lbl.textContent = 'Lägg i varukorg';
+        btn.style.background = '';
+      }, 1400);
     });
 
   </script>
