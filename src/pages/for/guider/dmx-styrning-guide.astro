@@ -1,0 +1,328 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import ljusData from '../../../data/ljus.json';
+
+const dmx = (ljusData.dmx?.tillbehor ?? []) as any[];
+const dp = (artno: string) => dmx.find(p => p.artno === artno)?.price ?? 0;
+const get = (artno: string) => dmx.find(p => p.artno === artno) ?? {};
+
+// Controllers/konsoler för produktkort
+const ctrl192   = get('SK-LJS-DMX-0001');
+const sdc16     = get('SK-LJS-DMX-0002');
+const ctrl512   = get('SK-LJS-DMX-0003');
+const pcSoft    = get('SK-LJS-DMX-0004');
+const martinM6  = get('SK-LJS-DMX-0005');
+
+const incl = (n: number) => Math.round(n * 1.25);
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad betyder DMX?", "acceptedAnswer": { "@type": "Answer", "text": "DMX står för Digital Multiplex (fullständigt DMX512-A). Det är en digital standard från 1986 för att styra ljus och effekter — dimmrar, moving heads, LED-armaturer, rökmaskiner med mera. En enda DMX-kabel skickar 512 styrkanaler i en kedja från en kontroller (konsol/styrenhet) ut till armaturerna." } },
+    { "@type": "Question", "name": "Hur funkar DMX-kanaler och adresser?", "acceptedAnswer": { "@type": "Answer", "text": "En DMX-linje (ett 'universe') har 512 kanaler. Varje armatur tar ett antal kanaler — en enkel LED PAR kanske 3–8 kanaler, en moving head 14–24. Du ger varje armatur en startadress (DMX-adress), och armaturen lyssnar sedan på det antal kanaler den behöver räknat från den adressen. Ger du två armaturer samma adress gör de exakt samma sak." } },
+    { "@type": "Question", "name": "Behöver jag en DMX-kontroller för att hyra ljus?", "acceptedAnswer": { "@type": "Answer", "text": `Nej, inte alltid. Många av våra LED PAR och moving heads har inbyggda automat- och musikprogram samt fjärrkontroll — perfekt för fester och bröllop utan tekniker. DMX behövs när du vill ha exakt kontroll, programmera scener, eller köra ljuset synkat med musik/show. En enkel standalone-styrenhet kostar från ${dp('SK-LJS-DMX-0001')} kr/dygn.` } },
+    { "@type": "Question", "name": "Vilken DMX-kabel ska jag använda?", "acceptedAnswer": { "@type": "Answer", "text": `Använd riktig DMX-kabel (110 ohm), inte vanlig mikrofonkabel — mikrofonkabel (75 ohm) kan funka på korta avstånd men ger störningar och slumpmässiga fel på längre kedjor. Våra DMX-kablar är 5-pol XLR och finns i 1–5 m (${dp('SK-LJS-DMX-0006')} kr) och 10–15 m (${dp('SK-LJS-DMX-0007')} kr). Många armaturer har 3-pol XLR — då behövs en adapter, som vi lägger med vid behov.` } },
+    { "@type": "Question", "name": "Vad är en DMX-terminator och behöver jag den?", "acceptedAnswer": { "@type": "Answer", "text": "En terminator är en 120 ohm-plugg som sätts i DMX-ut på den sista armaturen i kedjan. Den 'stänger' linjen och hindrar signalen från att studsa tillbaka och störa. På korta kedjor (några armaturer, korta kablar) klarar man sig ofta utan, men på längre uppställningar — särskilt med moving heads — kan en saknad terminator ge flimmer och hack. Vi lägger med terminator vid behov." } },
+    { "@type": "Question", "name": "Hur många armaturer kan jag koppla på en DMX-linje?", "acceptedAnswer": { "@type": "Answer", "text": "Fysiskt rekommenderas max 32 enheter i en daisy chain innan signalen behöver förstärkas med en DMX-splitter/booster. Logiskt begränsas du av de 512 kanalerna — har varje moving head 16 kanaler ryms 32 st (32×16=512). När du har fler armaturer eller längre kablar än så delar du upp i flera universe eller sätter in en splitter." } },
+    { "@type": "Question", "name": "Vad är skillnaden mellan trådbunden och trådlös DMX?", "acceptedAnswer": { "@type": "Answer", "text": `Trådbunden DMX går via XLR-kabel i en kedja — stabilt och gratis störningsmässigt. Trådlös DMX (2,4 GHz) skickar samma signal utan kabel, perfekt när du inte kan dra kabel över en dansgolv eller till en armatur i taket. Vårt trådlösa startkit (1 sändare + 2 mottagare) kostar ${dp('SK-LJS-DMX-0008')} kr/dygn och extra enheter ${dp('SK-LJS-DMX-0009')} kr.` } },
+    { "@type": "Question", "name": "Vad är RDM och Art-Net/sACN?", "acceptedAnswer": { "@type": "Answer", "text": "RDM (Remote Device Management) är en utökning av DMX som låter konsolen läsa av och fjärrkonfigurera armaturer över samma kabel — t.ex. sätta adresser utan att klättra i taket. Art-Net och sACN är protokoll som skickar många DMX-universe över vanligt nätverk (Ethernet) istället för XLR — standard på större produktioner där hundratals armaturer ska styras." } },
+    { "@type": "Question", "name": "Kan jag styra DMX-ljus från datorn?", "acceptedAnswer": { "@type": "Answer", "text": `Ja. Vår PC-mjukvara (${dp('SK-LJS-DMX-0004')} kr/dygn) ger 512 kanaler via USB med dra-och-släpp-programmering, ljud-till-ljus med BPM-analys och live-dimning. Det är ett bra steg upp från standalone-styrenheter när du vill bygga och spara egna scener på en större skärm.` } }
+  ]
+};
+---
+<Layout
+  title="DMX-styrning — komplett guide för nybörjare & proffs | Scenkonsult"
+  description="Allt om DMX-ljusstyrning: kanaler, adresser, kablar, terminering, daisy chain, trådlöst, RDM och Art-Net. Nybörjardel + avancerad del. Hyr DMX-utrustning i Stockholm från 99 kr/dygn."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-400">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">DMX-styrning</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:2rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Kunskapsguide · Ljusstyrning</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">DMX-styrning — från första kabeln till proffsriggen</h1>
+      <p style="color:rgba(255,255,255,0.72);font-size:1.05rem;line-height:1.8;">DMX är språket som ljus- och effektutrustning pratar. Den här guiden tar dig från noll till att förstå hela kedjan — kanaler, adresser, kablar och styrenheter — och vidare in i det avancerade: terminering, splitters, trådlöst, RDM och nätverksprotokoll. Läs nybörjardelen om du precis börjat. Hoppa till proffsdelen om du redan kan grunderna.</p>
+    </header>
+
+    <!-- Snabbnavigering -->
+    <nav style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:2.5rem;" aria-label="Innehåll">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 0.75rem;">Innehåll</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1rem;">
+        {[
+          { t:"1 · Vad är DMX?", h:"#vad-ar-dmx" },
+          { t:"2 · Kanaler & adresser", h:"#kanaler" },
+          { t:"3 · Koppla ihop kedjan", h:"#kedja" },
+          { t:"4 · Välj styrenhet", h:"#styrenhet" },
+          { t:"5 · Vanliga nybörjarfel", h:"#nyborjarfel" },
+          { t:"6 · Terminering & splitters", h:"#terminering" },
+          { t:"7 · Trådlös DMX", h:"#tradlos" },
+          { t:"8 · RDM, Art-Net & sACN", h:"#avancerat" },
+          { t:"9 · Bygga en show", h:"#show" },
+          { t:"10 · Hyr DMX-utrustning", h:"#hyr" },
+        ].map(({t,h}) => (
+          <a href={h} style="color:rgba(255,255,255,0.72);font-size:0.88rem;text-decoration:none;padding:0.15rem 0;transition:color 0.2s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.72)'">{t}</a>
+        ))}
+      </div>
+    </nav>
+
+    <!-- ============ NYBÖRJARDEL ============ -->
+    <div style="display:flex;align-items:center;gap:0.75rem;margin:0 0 2rem;">
+      <span style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.35rem 0.85rem;border-radius:9999px;">Del 1 · Nybörjare</span>
+      <span style="height:1px;flex:1;background:rgba(196,181,244,0.2);"></span>
+    </div>
+
+    <!-- 1. Vad är DMX -->
+    <section id="vad-ar-dmx" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">1. Vad är DMX — egentligen?</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">DMX (Digital Multiplex, formellt <strong style="color:white;">DMX512</strong>) är en digital standard från 1986 för att styra scenljus och effekter. Tänk dig en enda kabel som bär 512 separata "skjutreglage" — varje reglage kallas en <strong style="color:white;">kanal</strong> och kan ha ett värde mellan 0 och 255. En kanal kan vara "rött ljus styrka", nästa "grönt", nästa "rotera huvudet åt höger", och så vidare.</p>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Du sitter vid en <strong style="color:white;">kontroller</strong> (en styrenhet eller konsol). Den skickar de 512 kanalvärdena, om och om igen, många gånger per sekund, ut på kabeln. Alla armaturer är kopplade på samma kabel i en lång kedja och plockar var och en ut just sina kanaler.</p>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Enkel analogi:</strong> DMX är som ett klassrum där läraren (kontrollern) ropar ut 512 instruktioner i tur och ordning, hela tiden. Varje elev (armatur) vet vilka nummer i uppräkningen som gäller just hen — och lyssnar bara på dem.</p>
+      </div>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0;">En komplett DMX-linje med 512 kanaler kallas ett <strong style="color:white;">universe</strong>. Små och medelstora event klarar sig gott och väl på ett enda universe. Stora produktioner kan ha tiotals.</p>
+    </section>
+
+    <!-- 2. Kanaler & adresser -->
+    <section id="kanaler" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">2. Kanaler och adresser — det viktigaste att förstå</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Varje armatur tar ett visst <strong style="color:white;">antal kanaler</strong>. En enkel LED PAR i RGB-läge tar tre (röd, grön, blå). I ett mer avancerat läge kanske 7–8 (lägg till vit, dimmer, strobe, program). En moving head kan ta 14–24 kanaler för att styra pan, tilt, färg, gobo, fokus och allt annat.</p>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Du tilldelar varje armatur en <strong style="color:white;">startadress</strong> — ett nummer mellan 1 och 512. Armaturen lyssnar sedan på sina kanaler räknat <em>från</em> den adressen. Exempel med tre LED PAR som tar 8 kanaler styck:</p>
+      <div style="overflow-x:auto;margin:1.25rem 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Armatur","Startadress","Använder kanaler"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { a:"LED PAR #1", adr:"1",  k:"1–8" },
+              { a:"LED PAR #2", adr:"9",  k:"9–16" },
+              { a:"LED PAR #3", adr:"17", k:"17–24" },
+            ].map(({a,adr,k}, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{a}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;">{adr}</td>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.72);">{k}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Nu kan kontrollern styra de tre armaturerna oberoende av varandra. Skulle du istället ge alla tre adress <strong style="color:white;">1</strong>, gör de <em>exakt samma sak</em> — vilket är precis vad du vill om du har en rad uplights som ska byta färg unisont.</p>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Tumregel:</strong> nästa armaturs adress = föregående adress + antal kanaler. Skriv ner adressplanen innan du börjar — den sparar dig massor av felsökning senare.</p>
+      </div>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0;">Adressen ställer du på själva armaturen — antingen via en liten display och meny, eller (på äldre/enklare armaturer) med fysiska <strong style="color:white;">DIP-switchar</strong>. DIP-switchar är binära: switch 1 = 1, switch 2 = 2, switch 3 = 4, switch 4 = 8, och så vidare. Vill du ha adress 17 slår du på switch 1 (1) och switch 5 (16). Många manualer har en färdig adresstabell — och vi lägger gärna med en lathund.</p>
+    </section>
+
+    <!-- 3. Koppla ihop -->
+    <section id="kedja" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">3. Koppla ihop kedjan (daisy chain)</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">DMX kopplas i en kedja — "daisy chain". Du går från kontrollerns <strong style="color:white;">DMX-ut</strong> till första armaturens <strong style="color:white;">DMX-in</strong>. Sedan från den armaturens <strong style="color:white;">DMX-ut</strong> till nästa armaturs <strong style="color:white;">DMX-in</strong>. Och så vidare genom hela riggen.</p>
+      <div style="background:#0c0a24;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.5rem;margin:1.5rem 0;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;color:rgba(255,255,255,0.8);line-height:2;text-align:center;">
+        🎛 Kontroller <span style="color:#c4b5f4;">─ut→in─</span> 💡 PAR #1 <span style="color:#c4b5f4;">─ut→in─</span> 💡 PAR #2 <span style="color:#c4b5f4;">─ut→in─</span> 💡 PAR #3 <span style="color:#c4b5f4;">→</span> 🔌 Terminator
+      </div>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0 0 1rem;padding-left:1.2rem;">
+        <li>Använd <strong style="color:white;">riktig DMX-kabel</strong> (110 ohm), inte mikrofonkabel — mer om det nedan.</li>
+        <li>Det spelar ingen roll i vilken <em>ordning</em> armaturerna sitter fysiskt — adressen avgör vad de gör, inte platsen i kedjan.</li>
+        <li>Håll kontrollern i ena änden och avsluta med en <strong style="color:white;">terminator</strong> i sista armaturens ut-port (förklaras i proffsdelen).</li>
+      </ul>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0;">Behöver du nå en armatur som sitter långt bort — i taket eller på andra sidan dansgolvet — slipper du dra kabel med <strong style="color:white;">trådlös DMX</strong>. Se avsnitt 7.</p>
+    </section>
+
+    <!-- 4. Välj styrenhet -->
+    <section id="styrenhet" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">4. Vilken styrenhet behöver du?</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1.5rem;">Det här är frågan de flesta kunder ställer. Svaret beror på hur mycket kontroll du vill ha och hur många armaturer du kör. Här är vår stege, från enklast till proffskonsol:</p>
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        {[
+          { n:"Inbyggda program + fjärrkontroll", p:0, who:"Fest & bröllop utan tekniker", txt:"Många LED PAR och moving heads har automat- och musikprogram inbyggda. Ingen DMX behövs alls — sätt på, välj färg/program med medföljande fjärr, klart. Billigast och enklast." },
+          { n:"Styrenhet 192 kanaler", p:dp('SK-LJS-DMX-0001'), who:"Liten rigg, första DMX-steget", txt:"12 scannrar × 16 kanaler, 240 sekvenser, inbyggd musikstyrning. Standalone — ingen dator. Perfekt nybörjarkontroller för en handfull armaturer." },
+          { n:"Botex SDC-16", p:dp('SK-LJS-DMX-0002'), who:"Manuell färgmix", who2:"", txt:"16 individuella faders + master. Du skjuter kanalerna manuellt som ett mixerbord — väldigt pedagogiskt för att förstå vad varje kanal gör." },
+          { n:"Styrenhet 512 kanaler", p:dp('SK-LJS-DMX-0003'), who:"Medelstor rigg", txt:"Hela universet (512 kanaler), styr upp till 48 enheter, 4 600 scener i 96 banker, mjukpatch och LCD-display. Steget upp när riggen växer." },
+          { n:"PC-mjukvara (USB)", p:dp('SK-LJS-DMX-0004'), who:"Bygga & spara scener på dator", txt:"512 kanaler via USB, dra-och-släpp-programmering, ljud-till-ljus med BPM-analys, live-dimning. Inkl. Sunlite Suite 2-licens." },
+          { n:"Martin M6 konsol", p:dp('SK-LJS-DMX-0005'), who:"Proffsproduktion", txt:"Dubbla 15,4\u2033 touchskärmar, 44 playbacks med timing, FastBlend RGB-faders. Stöder Martin, Robe, Chauvet m.fl. För den som bygger riktiga shower." },
+        ].map(({n,p,who,txt}) => (
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.25rem 1.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:0.4rem;">
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0;font-size:1rem;">{n}</h3>
+              <span style="color:#c4b5f4;font-weight:700;font-size:0.95rem;white-space:nowrap;">{p === 0 ? 'Ingår i armaturen' : (<>från <span class="sk-price-excl">{p}</span><span class="sk-price-incl hidden">{incl(p)}</span> kr/dygn</>)}</span>
+            </div>
+            <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 0.5rem;">{who}</p>
+            <p style="color:rgba(255,255,255,0.72);font-size:0.9rem;line-height:1.7;margin:0;">{txt}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 5. Nybörjarfel -->
+    <section id="nyborjarfel" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">5. Sju vanliga nybörjarfel (och hur du undviker dem)</h2>
+      <div style="display:flex;flex-direction:column;gap:0.85rem;">
+        {[
+          { f:"Mikrofonkabel istället för DMX-kabel", l:"Mikrofonkabel är 75 ohm, DMX är 110 ohm. På korta avstånd kanske det funkar — på längre ger det flimmer och slumpfel. Använd alltid riktig DMX-kabel." },
+          { f:"Glömd terminator", l:"Utan terminator kan signalen studsa tillbaka i kabeln och störa. Får du oförklarligt hack eller flimmer — sätt en terminator i sista armaturen." },
+          { f:"Krockande adresser", l:"Två armaturer med överlappande kanaler 'slåss' om samma styrkommandon. Gör en adressplan: nästa adress = föregående + antal kanaler." },
+          { f:"Fel kanalläge (mode) på armaturen", l:"Många armaturer har flera lägen (3ch, 7ch, 14ch…). Konsolens profil måste matcha armaturens läge, annars styr du fel saker." },
+          { f:"In och ut förväxlat", l:"Signalen går alltid från kontroller-UT → armatur-IN → armatur-UT → nästa armatur-IN. Förväxlar du in/ut kommer inget fram." },
+          { f:"3-pol vs 5-pol XLR", l:"DMX-standarden är 5-pol, men många armaturer har 3-pol. Det fungerar med adapter — bara att veta om i förväg." },
+          { f:"För många enheter på en linje", l:"Max ~32 enheter i en kedja innan signalen behöver en splitter/booster. Fler än så — dela upp linjen." },
+        ].map(({f,l}, i) => (
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1rem 1.25rem;display:flex;gap:0.85rem;align-items:flex-start;">
+            <span style="background:rgba(196,181,244,0.15);color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;width:1.7rem;height:1.7rem;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{i+1}</span>
+            <div>
+              <p style="color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.92rem;margin:0 0 0.25rem;">{f}</p>
+              <p style="color:rgba(255,255,255,0.72);font-size:0.88rem;line-height:1.65;margin:0;">{l}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ============ AVANCERAD DEL ============ -->
+    <div style="display:flex;align-items:center;gap:0.75rem;margin:3.5rem 0 2rem;">
+      <span style="background:linear-gradient(135deg,#c4b5f4,#8b7fd4);color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.35rem 0.85rem;border-radius:9999px;">Del 2 · Semi-proffs</span>
+      <span style="height:1px;flex:1;background:rgba(196,181,244,0.2);"></span>
+    </div>
+
+    <!-- 6. Terminering & splitters -->
+    <section id="terminering" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">6. Terminering, splitters & signalintegritet</h2>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#c4b5f4;font-size:1.02rem;margin:1.25rem 0 0.5rem;">Terminator (120 ohm)</h3>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">DMX bygger på RS-485, en differentiell signal som vill "se" en korrekt impedans i båda ändar. Kontrollern terminerar i sin ände; du måste avsluta den andra. En terminator är en XLR-plugg med ett 120 ohm-motstånd mellan data+ och data−, instucken i <strong style="color:white;">sista</strong> armaturens ut-port. Den absorberar signalen så den inte reflekteras tillbaka som störande ekon. Symtom på saknad terminator: intermittent flimmer, hack i moving heads, armaturer som "hänger sig" på ett värde.</p>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#c4b5f4;font-size:1.02rem;margin:1.25rem 0 0.5rem;">DMX-splitter / booster</h3>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">En passiv daisy chain klarar fysiskt ~32 enheter och ungefär 300 m total kabellängd innan signalen degraderar. En <strong style="color:white;">splitter</strong> (opto-isolerad) tar in en DMX-linje och skickar ut flera fräscha, buffrade kopior — du får parallella grenar istället för en lång kedja, och varje gren får full signalstyrka. Opto-isoleringen skyddar dessutom mot jordströmmar mellan olika strömkretsar (ground loops), vilket är ett verkligt problem på stora riggar med utrustning på olika faser.</p>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Topologi att undvika:</strong> "stjärna" genom att Y-splitta en DMX-kabel passivt med en vanlig splitter-XLR. Det fungerar nästan aldrig stabilt — DMX vill vara en linjär kedja eller gå via en aktiv splitter. Behöver du grena, använd en riktig opto-splitter.</p>
+      </div>
+    </section>
+
+    <!-- 7. Trådlös DMX -->
+    <section id="tradlos" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">7. Trådlös DMX</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Trådlös DMX skickar samma 512 kanaler över 2,4 GHz-bandet istället för kabel. En <strong style="color:white;">sändare</strong> kopplas till kontrollerns DMX-ut; en eller flera <strong style="color:white;">mottagare</strong> sitter vid armaturerna och matar ut vanlig DMX därifrån. Användbart när du inte kan eller vill dra kabel — över ett dansgolv, upp i ett tak, till en truss på andra sidan rummet, eller på utomhusevent.</p>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Vårt <strong style="color:white;">trådlösa startkit</strong> innehåller 1 sändare + 2 mottagare (<span class="sk-price-excl">{dp('SK-LJS-DMX-0008')}</span><span class="sk-price-incl hidden">{incl(dp('SK-LJS-DMX-0008'))}</span> kr/dygn). Behöver du nå fler punkter lägger du till extra <span class="sk-price-excl">{dp('SK-LJS-DMX-0009')}</span><span class="sk-price-incl hidden">{incl(dp('SK-LJS-DMX-0009'))}</span> kr sändare eller <span class="sk-price-excl">{dp('SK-LJS-DMX-0010')}</span><span class="sk-price-incl hidden">{incl(dp('SK-LJS-DMX-0010'))}</span> kr mottagare.</p>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0;padding-left:1.2rem;">
+        <li><strong style="color:white;">Bandval:</strong> 2,4 GHz delas med WiFi och Bluetooth. På fulla event (mässor, många accesspunkter) kan det bli trångt — välj kanal/ID medvetet och håll antenner fria.</li>
+        <li><strong style="color:white;">Latens:</strong> minimal i praktiken, men trådbundet är fortfarande golden standard för tajt show-kritisk timing.</li>
+        <li><strong style="color:white;">Blanda fritt:</strong> du kan ha en del av riggen trådlöst och en del på kabel — mottagaren matar ut helt vanlig DMX som du kan daisy-chaina vidare.</li>
+      </ul>
+    </section>
+
+    <!-- 8. RDM, Art-Net, sACN -->
+    <section id="avancerat" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">8. RDM, Art-Net & sACN</h2>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#c4b5f4;font-size:1.02rem;margin:1.25rem 0 0.5rem;">RDM — DMX som pratar tillbaka</h3>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Vanlig DMX är enkelriktad — kontrollern skickar, armaturen lyssnar, punkt. <strong style="color:white;">RDM (Remote Device Management)</strong> lägger till en returkanal över <em>samma kabel</em>. Med RDM-kapabel utrustning kan konsolen upptäcka vilka armaturer som sitter i riggen, läsa av deras status (temperatur, lamptimmar, fel) och fjärrkonfigurera dem — sätta DMX-adress och kanalläge utan att klättra upp i taket. En enorm tidsbesparare på stora riggar.</p>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#c4b5f4;font-size:1.02rem;margin:1.25rem 0 0.5rem;">Art-Net & sACN — DMX över nätverk</h3>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">När ett universe (512 kanaler) inte räcker går man över till nätverk. <strong style="color:white;">Art-Net</strong> och <strong style="color:white;">sACN</strong> (E1.31) är protokoll som packar många DMX-universe i vanlig Ethernet-trafik. En enda nätverkskabel kan bära hundratals universe från konsolen till <strong style="color:white;">noder</strong> ute i riggen, som i sin tur matar ut fysisk DMX till armaturerna.</p>
+      <div style="overflow-x:auto;margin:1.25rem 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.86rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["","DMX512","Art-Net","sACN (E1.31)"].map(h =>
+              <th style="text-align:left;padding:0.7rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { r:"Medium", a:"XLR-kabel", b:"Ethernet", c:"Ethernet" },
+              { r:"Universe", a:"1 per linje", b:"Många", c:"Många" },
+              { r:"Adressering", a:"Manuell/RDM", b:"IP-baserad", c:"IP + multicast" },
+              { r:"Typiskt för", a:"Små–medel", b:"Medel–stor", c:"Stor produktion" },
+            ].map(({r,a,b,c}, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.7rem 0.5rem;color:white;font-weight:600;">{r}</td>
+                <td style="padding:0.7rem 0.5rem;color:rgba(255,255,255,0.72);">{a}</td>
+                <td style="padding:0.7rem 0.5rem;color:rgba(255,255,255,0.72);">{b}</td>
+                <td style="padding:0.7rem 0.5rem;color:rgba(255,255,255,0.72);">{c}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0;">För de allra flesta event i vår uthyrning räcker ett klassiskt DMX-universe gott och väl. Art-Net/sACN blir aktuellt först när du bygger stora, multizonade riggar — hör av dig så hjälper vi dig dimensionera och bemanna med tekniker.</p>
+    </section>
+
+    <!-- 9. Bygga en show -->
+    <section id="show" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">9. Att bygga en show — scener, chaser & cues</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">När hårdvaran sitter handlar resten om att <em>programmera</em>. Tre begrepp att kunna:</p>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0 0 1rem;padding-left:1.2rem;">
+        <li><strong style="color:white;">Scen (look):</strong> ett fruset ögonblick — alla kanalers värden just nu. "Blått tvätt + spots på scenen + haze."</li>
+        <li><strong style="color:white;">Chase:</strong> en sekvens av scener som spelas i loop, ofta i takt med musiken. Tänk löpande färgskiften eller en bouncande beam-effekt.</li>
+        <li><strong style="color:white;">Cue / cue-lista:</strong> programmerade övergångar med tider — gå från look A till look B på 3 sekunder när artisten byter låt. Ryggraden i en teater- eller konsertshow.</li>
+      </ul>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Standalone-styrenheter sparar scener och banker i minnet. PC-mjukvaran och Martin M6 lägger till tidslinjer, BPM-synk, fades och betydligt mer minne — vägen mot riktigt programmerade shower.</p>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Pro-tips:</strong> programmera färre, starka looks hellre än många röriga. En handfull genomtänkta scener du kan trigga säkert under kvällen slår en överambitiös show du inte hinner styra. Och: spara ofta.</p>
+      </div>
+    </section>
+
+    <!-- 10. Hyr DMX-utrustning — produktkort -->
+    <section id="hyr" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 0.5rem;">10. Hyr DMX-utrustning hos oss</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1.5rem;">Från enkel standalone-styrenhet till proffskonsol — plus kablar, terminatorer och trådlöst. Vet du inte vad du behöver? Lägg det du vill ha i varukorgen och skriv vad du ska göra, så kompletterar vi rätt.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <ProductCard artno={ctrl192.artno} name={ctrl192.name} price={ctrl192.price} image={ctrl192.image} alt={ctrl192.name} description={ctrl192.description ?? ''} specs={ctrl192.specs ?? []} category="DMX-styrning" manualUrl={ctrl192.manualUrl} />
+        <ProductCard artno={sdc16.artno} name={sdc16.name} price={sdc16.price} image={sdc16.image} alt={sdc16.name} description={sdc16.description ?? ''} specs={sdc16.specs ?? []} category="DMX-styrning" manualUrl={sdc16.manualUrl} />
+        <ProductCard artno={ctrl512.artno} name={ctrl512.name} price={ctrl512.price} image={ctrl512.image} alt={ctrl512.name} description={ctrl512.description ?? ''} specs={ctrl512.specs ?? []} category="DMX-styrning" manualUrl={ctrl512.manualUrl} />
+        <ProductCard artno={pcSoft.artno} name={pcSoft.name} price={pcSoft.price} image={pcSoft.image} alt={pcSoft.name} description={pcSoft.description ?? ''} specs={pcSoft.specs ?? []} category="DMX-styrning" manualUrl={pcSoft.manualUrl} />
+        <ProductCard artno={martinM6.artno} name={martinM6.name} price={martinM6.price} image={martinM6.image} alt={martinM6.name} description={martinM6.description ?? ''} specs={martinM6.specs ?? []} category="DMX-styrning" manualUrl={martinM6.manualUrl} wide={true} />
+      </div>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla ljuseffekter & styrning →</a>
+        <a href="/for/guider/hyra-uplights/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Guide: Hyra uplights →</a>
+        <a href="/for/guider/ljussattning-tips/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Guide: Ljussättning →</a>
+      </div>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.82rem;margin-top:1rem;">Kablar och trådlöst: DMX-kabel 1–5 m {dp('SK-LJS-DMX-0006')} kr · 10–15 m {dp('SK-LJS-DMX-0007')} kr · Trådlöst startkit {dp('SK-LJS-DMX-0008')} kr/dygn. Transport och montering tillkommer eller offereras separat.</p>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor om DMX</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Osäker på riggen? Vi hjälper till.</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Beskriv ditt event så föreslår vi rätt styrenhet, antal kanaler och kablage — och bemannar med tekniker om du vill.</p>
+      <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se DMX-styrning & effekter</a>
+    </div>
+
+  </article>
+
+  <!-- Relaterade guider -->
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <p style="color:rgba(255,255,255,0.72);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+      {[
+        { t:"Hyra uplights →", h:"/for/guider/hyra-uplights/" },
+        { t:"Ljussättningstips →", h:"/for/guider/ljussattning-tips/" },
+        { t:"Hyra rökmaskin →", h:"/for/guider/hyra-rokmaskin/" },
+        { t:"Ljus till bröllop →", h:"/for/guider/ljus-brollop/" },
+      ].map(({t,h}) => (
+        <a href={h} style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">{t}</a>
+      ))}
+    </div>
+  </div>
+
+</Layout>
