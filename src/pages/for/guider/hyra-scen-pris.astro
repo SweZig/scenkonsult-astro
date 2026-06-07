@@ -19,10 +19,10 @@ const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "Vad kostar det att hyra en scen i Stockholm?", "acceptedAnswer": { "@type": "Answer", "text": "Scenpaket Small (2×2 m) kostar från 400 kr/dygn. Scenpaket Medium (4×3 m) kostar ca 1 499 kr/dygn. Stora scener för festivaler och konserter (6×4 m+) kostar 3 000–8 000 kr/dygn. Transport och montering tillkommer." } },
-    { "@type": "Question", "name": "Hur stor scen behöver jag?", "acceptedAnswer": { "@type": "Answer", "text": "DJ eller trubadur: 2×2 m (Small) räcker. Liveband med 3–4 musiker: 4×3 m (Medium). Band med 5+ musiker eller showproduktion: 6×4 m eller större. Som tumregel: minst 2 m² per musiker." } },
+    { "@type": "Question", "name": "Vad kostar det att hyra en scen i Stockholm?", "acceptedAnswer": { "@type": "Answer", "text": "Scenpaket Small (2×2 m) kostar från 400 kr/dygn. Scenpaket Medium (5×2 m) kostar 1 000 kr/dygn. Stora scener för festivaler och konserter (5×4 m och uppåt) kostar 2 000–4 800 kr/dygn. Transport och montering tillkommer." } },
+    { "@type": "Question", "name": "Hur stor scen behöver jag?", "acceptedAnswer": { "@type": "Answer", "text": "DJ eller trubadur: 2×2 m (Small) räcker. Liveband med 3–4 musiker: 4×4 m (Medium++). Band med 5+ musiker eller showproduktion: 5×4 m eller större. Som tumregel: minst 2 m² per musiker." } },
     { "@type": "Question", "name": "Ingår montering i scenhyran?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — montering och demontering är alltid en separat kostnad som offerteras baserat på scenstorlek och plats. Vi monterar i hela Storstockholm. Räkna med 1 000–3 000 kr för montering av ett standardscenpaket." } },
-    { "@type": "Question", "name": "Kan man hyra scen utomhus?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, alla våra scener är byggda för utomhusbruk. Vid risk för regn eller vind rekommenderar vi ett scensläde (tak) som tillägg. Kontakta oss för rådgivning baserat på er plats och väderprognos." } },
+    { "@type": "Question", "name": "Kan man hyra scen utomhus?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, alla våra scener är byggda för utomhusbruk. Vid risk för regn eller vind rekommenderar vi ett scentak som tillägg. Kontakta oss för rådgivning baserat på er plats och väderprognos." } },
     { "@type": "Question", "name": "Hur tidigt måste jag boka scen?", "acceptedAnswer": { "@type": "Answer", "text": "För events under maj–september (högsäsong) rekommenderar vi 4–8 veckor i förväg. Utanför säsong går ofta kortare varsel. Kontakta oss direkt för att kontrollera tillgänglighet." } }
   ]
 };
@@ -61,13 +61,13 @@ const faqSchema = {
             {[
               { n:"Small",    dim:"2×2 m = 4 m²",  pass:"DJ, trubadur, talarpodium",     artno:"SK-SCN-0001" },
               { n:"Small+",   dim:"3×2 m = 6 m²",  pass:"DJ + VJ, duo",                  artno:"SK-SCN-0002" },
-              { n:"Small++",  dim:"3×3 m = 9 m²",  pass:"Trio, litet liveband",           artno:"SK-SCN-0003" },
-              { n:"Medium",   dim:"4×3 m = 12 m²", pass:"Band 3–5 pers",                  artno:"SK-SCN-0004" },
-              { n:"Medium+",  dim:"5×4 m = 20 m²", pass:"Band 4–6 pers + backline",       artno:"SK-SCN-0005" },
-              { n:"Medium++", dim:"5×5 m = 25 m²", pass:"Stort band, show",               artno:"SK-SCN-0007" },
-              { n:"Large",    dim:"6×6 m = 36 m²", pass:"Stor produktion, festival",      artno:"SK-SCN-0008" },
-              { n:"Large+",   dim:"8×6 m = 48 m²", pass:"Stor festival, konsert",         artno:"SK-SCN-0009" },
-              { n:"XL",       dim:"10×8 m+",        pass:"Stor utomhuskonsert",            artno:"SK-SCN-0011" },
+              { n:"Small++",  dim:"4×2 m = 8 m²",  pass:"Trio, litet liveband",           artno:"SK-SCN-0003" },
+              { n:"Medium",   dim:"5×2 m = 10 m²", pass:"Band 3–4 pers",                  artno:"SK-SCN-0004" },
+              { n:"Medium+",  dim:"6×2 m = 12 m²", pass:"Band 4–5 pers",                 artno:"SK-SCN-0005" },
+              { n:"Medium++", dim:"4×4 m = 16 m²", pass:"Band + backline, show",         artno:"SK-SCN-0007" },
+              { n:"Large",    dim:"5×4 m = 20 m²", pass:"Stor produktion, festival",     artno:"SK-SCN-0008" },
+              { n:"Large+",   dim:"6×4 m = 24 m²", pass:"Stor festival, konsert",        artno:"SK-SCN-0009" },
+              { n:"XL",       dim:"9×4 m = 36 m²", pass:"Stor utomhuskonsert",           artno:"SK-SCN-0011" },
             ].map(({ n, dim, pass, artno }, i) => (
               <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
                 <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{n}</td>
