@@ -1092,6 +1092,141 @@ const _monteringAdminConfig = {
     }
     .cal-feed-box .btn-action { padding: 0.4rem 0.85rem; font-size: 0.78rem; }
 
+    /* ── Kalender: vy-växlare (Månad / Vecka / Dag) ── */
+    .cal-viewswitch {
+      display: inline-flex; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 9px; padding: 2px; gap: 2px;
+    }
+    .cal-vbtn {
+      background: transparent; border: none; color: var(--text-muted);
+      font-family: inherit; font-size: 0.82rem; font-weight: 600;
+      padding: 0.4rem 0.95rem; border-radius: 7px; cursor: pointer; transition: all 0.15s;
+    }
+    .cal-vbtn:hover { color: var(--text); }
+    .cal-vbtn.active { background: var(--brand-purple); color: #fff; }
+    @media (max-width: 640px) {
+      .cal-header { flex-wrap: wrap; gap: 0.6rem; }
+      .cal-vbtn { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
+    }
+
+    /* ── Veckovy ── */
+    .calw-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      background: var(--surface); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px; overflow: hidden;
+    }
+    .calw-col { border-right: 1px solid rgba(255,255,255,0.07); min-height: 220px; }
+    .calw-col:last-child { border-right: none; }
+    .calw-col.is-weekend { background: rgba(255,255,255,0.015); }
+    .calw-col.is-today { background: rgba(196,181,244,0.07); }
+    .calw-colhead {
+      padding: 0.6rem 0.5rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+    }
+    .calw-colhead .dow { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(196,181,244,0.6); }
+    .calw-colhead .dnum { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-top: 2px; }
+    .calw-col.is-today .calw-colhead .dnum {
+      background: var(--brand-purple); color: #fff; border-radius: 50%;
+      width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; margin: 2px auto 0;
+    }
+    .calw-body { padding: 0.5rem 0.4rem; display: flex; flex-direction: column; gap: 5px; }
+    .calw-empty { font-size: 0.72rem; color: var(--text-faint); text-align: center; padding: 1rem 0; font-style: italic; }
+    .calw-card {
+      border: 1px solid; border-radius: 8px; padding: 6px 8px; cursor: pointer;
+      transition: filter 0.12s; font-size: 0.74rem; line-height: 1.35;
+    }
+    .calw-card:hover { filter: brightness(1.22); }
+    .calw-card .cc-top { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+    .calw-card .cc-time { font-weight: 700; font-size: 0.72rem; }
+    .calw-card .cc-tag { font-size: 0.6rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.04em; }
+    .calw-card .cc-name { font-weight: 600; color: #fff; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .calw-card .cc-meta { font-size: 0.66rem; opacity: 0.8; margin-top: 2px; }
+    @media (max-width: 760px) {
+      .calw-grid { grid-template-columns: 1fr; }
+      .calw-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); min-height: 0; }
+      .calw-col:last-child { border-bottom: none; }
+      .calw-colhead { display: flex; align-items: baseline; justify-content: flex-start; gap: 0.5rem; text-align: left; }
+      .calw-colhead .dnum { margin-top: 0; }
+    }
+
+    /* ── Dagsvy ── */
+    .cald-wrap {
+      background: var(--surface); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px; overflow: hidden;
+    }
+    .cald-head {
+      padding: 0.9rem 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .cald-head .cd-date { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+    .cald-head .cd-count { font-size: 0.8rem; color: var(--text-muted); }
+    .cald-list { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem; }
+    .cald-empty { padding: 2.5rem 1rem; text-align: center; color: var(--text-faint); font-style: italic; }
+    .cald-card {
+      border: 1px solid; border-radius: 11px; padding: 0.85rem 1rem; cursor: pointer;
+      transition: filter 0.12s, border-color 0.12s;
+    }
+    .cald-card:hover { filter: brightness(1.15); }
+    .cald-card .cd-row1 { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+    .cald-card .cd-statustag { font-size: 0.7rem; font-weight: 700; padding: 2px 9px; border-radius: 99px; background: rgba(0,0,0,0.25); }
+    .cald-card .cd-name { font-size: 1rem; font-weight: 700; color: #fff; }
+    .cald-card .cd-company { font-size: 0.82rem; color: var(--text-muted); }
+    .cald-card .cd-grid { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin-top: 0.55rem; font-size: 0.8rem; color: rgba(255,255,255,0.78); }
+    .cald-card .cd-grid .cd-field { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .cald-card .cd-grid .cd-field b { color: #fff; font-weight: 600; }
+    .cald-card .cd-products { margin-top: 0.6rem; border-top: 1px dashed rgba(196,181,244,0.22); padding-top: 0.55rem; }
+    .cald-card .cd-products .cd-plabel { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(196,181,244,0.55); margin-bottom: 0.3rem; }
+    .cald-card .cd-products ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
+    .cald-card .cd-products li { font-size: 0.8rem; color: rgba(255,255,255,0.82); display: flex; justify-content: space-between; gap: 1rem; }
+    .cald-card .cd-products li .cd-pqty { color: var(--brand-lav); font-weight: 600; flex-shrink: 0; }
+    .cald-card .cd-flags { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .cald-card .cd-flag { font-size: 0.68rem; padding: 2px 8px; border-radius: 99px; background: rgba(196,181,244,0.12); color: var(--brand-lav); border: 1px solid rgba(196,181,244,0.25); }
+
+    /* ── Plocklista (kundkort) ── */
+    .plock-head {
+      background: rgba(196,181,244,0.06); border: 1px solid rgba(196,181,244,0.2);
+      border-radius: 11px; padding: 0.85rem 1rem; margin-bottom: 1rem;
+    }
+    .plock-head-row { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+    .plock-cust { font-size: 1.05rem; font-weight: 700; color: #fff; }
+    .plock-sub { font-size: 0.85rem; color: var(--text-muted); }
+    .plock-dates { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.82rem; color: rgba(255,255,255,0.8); }
+    .plock-dates b { color: #fff; font-weight: 600; }
+    .plock-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+    .plock-hint { font-size: 0.74rem; color: var(--text-faint); font-style: italic; margin-bottom: 0.9rem; }
+    .plock-empty { padding: 2rem 1rem; text-align: center; color: var(--text-faint); font-style: italic; }
+    .plock-group { margin-bottom: 1.1rem; }
+    .plock-grouphead {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700;
+      color: var(--brand-lav); padding-bottom: 0.35rem; margin-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(196,181,244,0.18); display: flex; align-items: center; gap: 0.4rem;
+    }
+    .plock-gcount { margin-left: auto; color: var(--text-faint); font-weight: 500; text-transform: none; letter-spacing: 0; }
+    .plock-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+    .plock-item {
+      display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.7rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
+      cursor: pointer; transition: all 0.12s; user-select: none;
+    }
+    .plock-item:hover { border-color: rgba(196,181,244,0.4); }
+    .plock-check {
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid rgba(196,181,244,0.45); display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s;
+    }
+    .plock-check::after { content: '✓'; color: transparent; font-size: 0.85rem; font-weight: 700; }
+    .plock-qty { flex-shrink: 0; font-weight: 700; color: var(--brand-lav); font-size: 0.95rem; min-width: 34px; }
+    .plock-name { flex: 1; font-size: 0.92rem; color: #fff; line-height: 1.3; }
+    .plock-artno { display: block; font-size: 0.68rem; color: var(--text-faint); font-family: 'SF Mono', Menlo, monospace; margin-top: 1px; }
+    .plock-item.picked { opacity: 0.5; background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.3); }
+    .plock-item.picked .plock-check { background: var(--green, #4ade80); border-color: var(--green, #4ade80); }
+    .plock-item.picked .plock-check::after { color: #0c0a24; }
+    .plock-item.picked .plock-name { text-decoration: line-through; color: var(--text-muted); }
+    @media print {
+      .plock-toolbar button, .plock-hint { display: none; }
+      .plock-item { break-inside: avoid; }
+    }
+
     /* ── BUTTONS ───────────────────────────────────────── */
     .btn-action {
       background: var(--surface2); border: 1px solid var(--border); color: var(--text);
@@ -1415,6 +1550,11 @@ const _monteringAdminConfig = {
   <div class="view" id="view-calendar">
     <div class="cal-header">
       <div class="cal-title" id="cal-month-label">—</div>
+      <div class="cal-viewswitch" role="group" aria-label="Kalendervy">
+        <button class="cal-vbtn active" data-calview="month">Månad</button>
+        <button class="cal-vbtn" data-calview="week">Vecka</button>
+        <button class="cal-vbtn" data-calview="day">Dag</button>
+      </div>
       <div class="cal-nav">
         <button class="cal-nav-btn" id="cal-prev">◀</button>
         <button class="cal-nav-btn" id="cal-today">Idag</button>
@@ -1435,7 +1575,7 @@ const _monteringAdminConfig = {
       <span class="cal-legend-hint">💡 Hovra över ett band för fullständig information</span>
     </div>
 
-    <div class="cal-grid">
+    <div class="cal-grid" id="cal-grid-month">
       <div class="cal-weekdays">
         <div class="cal-weekday">Mån</div><div class="cal-weekday">Tis</div>
         <div class="cal-weekday">Ons</div><div class="cal-weekday">Tor</div>
@@ -1444,6 +1584,12 @@ const _monteringAdminConfig = {
       </div>
       <div class="cal-days" id="cal-days"></div>
     </div>
+
+    <!-- Veckovy -->
+    <div id="cal-grid-week" style="display:none"></div>
+
+    <!-- Dagsvy -->
+    <div id="cal-grid-day" style="display:none"></div>
 
     <!-- Feed-URL för extern kalender (Google/iCloud/Outlook) -->
     <div class="cal-feed-box" id="cal-feed-box" style="display:none">
@@ -1767,6 +1913,7 @@ const _monteringAdminConfig = {
   <div class="panel-tabs">
     <button class="panel-tab active" data-tab="info">ℹ Info</button>
     <button class="panel-tab" data-tab="products">📦 Produkter</button>
+    <button class="panel-tab" data-tab="plocklista">📋 Plocklista</button>
     <button class="panel-tab" data-tab="faktura">🧾 Faktura</button>
     <button class="panel-tab" data-tab="chat">💬 Chatt <span id="chat-unread-badge" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 6px;font-size:0.7rem;margin-left:4px"></span></button>
     <button class="panel-tab" data-tab="log">📜 Logg</button>
@@ -1941,6 +2088,8 @@ let currentAudit = [];
 let activeTab = 'info';
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
+let calView = 'month';                 // 'month' | 'week' | 'day'
+let calDate = new Date();              // ankardatum för vecko-/dagsvy
 let refreshTimer = null;
 let _appVisible = false; // sätts true när appen visas — styr om refresh-timern får återstartas vid visibilitychange
 
@@ -3073,6 +3222,7 @@ function renderTab(tab) {
           .join('');
     }
   }
+  if (tab === 'plocklista') body.innerHTML = renderPlocklistaTab();
   if (tab === 'faktura')  { body.innerHTML = renderFakturaTab(); invLoadPreviewNumber(); invLoadRecent(); }
   // Force browser to respect dark styling on form elements
   requestAnimationFrame(() => {
@@ -3866,6 +4016,84 @@ function catIcon(category) {
   if (c.includes('tjänst') || c.includes('leverans') || c.includes('montering')) return { icon: '🚚', color: 'var(--gray)' };
   return { icon: '📦', color: 'var(--gray)' };
 }
+
+function renderPlocklistaTab() {
+  const c = currentCart || {};
+  const SVC_CATS = ['Tjänster', 'Tillägg'];
+  // Endast fysisk utrustning att plocka — inga tjänster, tillägg eller noteringar
+  const products = (c.items || []).filter(i =>
+    !i._note && i.name?.trim() && i.type !== 'service' && !SVC_CATS.includes(i.category)
+  );
+
+  // Datum/tid-header för plockning
+  const fmtSEloc = iso => iso ? new Date(iso + 'T00:00:00').toLocaleDateString('sv-SE', { weekday:'short', day:'numeric', month:'long', year:'numeric' }) : '–';
+  const eventD  = c.event_date ? fmtSEloc(c.event_date) : null;
+  const returnD = c.return_date && c.return_date !== c.event_date ? fmtSEloc(c.return_date) : null;
+  const pickupT = c.delivery_time || '13:00';
+  const returnT = c.return_time || '11:00';
+
+  // Gruppera per kategori i samma ordning som de ligger i ordern
+  const groups = [];
+  const groupMap = {};
+  for (const p of products) {
+    const key = p.category || 'Övrigt';
+    if (!groupMap[key]) { groupMap[key] = { cat: key, items: [] }; groups.push(groupMap[key]); }
+    groupMap[key].items.push(p);
+  }
+
+  const totalQty = products.reduce((s, p) => s + (p.qty || p.quantity || 1), 0);
+
+  const header = `
+    <div class="plock-head">
+      <div class="plock-head-row">
+        <span class="plock-cust">${escapeHtml(c.customer_company || c.customer_name || c.id || '–')}</span>
+        ${c.customer_company && c.customer_name ? `<span class="plock-sub">${escapeHtml(c.customer_name)}</span>` : ''}
+      </div>
+      <div class="plock-dates">
+        ${eventD ? `<span>📅 <b>Utlämning:</b> ${eventD} kl ${pickupT}</span>` : '<span style="color:var(--amber)">⚠ Eventdatum saknas</span>'}
+        ${returnD ? `<span>↩ <b>Retur:</b> ${returnD} kl ${returnT}</span>` : (eventD ? `<span>↩ <b>Retur:</b> samma dag kl ${returnT}</span>` : '')}
+        ${c.event_location ? `<span>📍 <b>Plats:</b> ${escapeHtml(c.event_location)}</span>` : ''}
+      </div>
+    </div>`;
+
+  if (!products.length) {
+    return header + `<div class="plock-empty">Inga produkter att plocka — ordern innehåller bara tjänster eller är tom.</div>`;
+  }
+
+  const groupsHtml = groups.map(g => {
+    const { icon, color } = catIcon(g.cat);
+    const rows = g.items.map(p => {
+      const q = p.qty || p.quantity || 1;
+      const artno = p.id ? `<span class="plock-artno">${escapeHtml(p.id)}</span>` : '';
+      return `<li class="plock-item" onclick="this.classList.toggle('picked')">
+        <span class="plock-check" aria-hidden="true"></span>
+        <span class="plock-qty">${q}×</span>
+        <span class="plock-name">${escapeHtml(p.name)}${artno}</span>
+      </li>`;
+    }).join('');
+    return `<div class="plock-group">
+      <div class="plock-grouphead"><span style="color:${color}">${icon}</span> ${escapeHtml(g.cat)} <span class="plock-gcount">${g.items.length} st</span></div>
+      <ul class="plock-list">${rows}</ul>
+    </div>`;
+  }).join('');
+
+  return `
+    ${header}
+    <div class="plock-toolbar">
+      <span class="section-label" style="margin:0">Plocklista — ${products.length} artiklar (${totalQty} st totalt)</span>
+      <div style="display:flex;gap:0.4rem">
+        <button class="btn-action" onclick="plockReset()" style="font-size:0.76rem;padding:0.35rem 0.7rem">↺ Nollställ bockar</button>
+        <button class="btn-action" onclick="window.print()" style="font-size:0.76rem;padding:0.35rem 0.7rem">🖨 Skriv ut</button>
+      </div>
+    </div>
+    <div class="plock-hint">💡 Klicka på en rad för att bocka av den när du plockat. (Bockarna sparas inte — endast en arbetslista.)</div>
+    ${groupsHtml}`;
+}
+
+function plockReset() {
+  document.querySelectorAll('.plock-item.picked').forEach(el => el.classList.remove('picked'));
+}
+window.plockReset = plockReset;
 
 function renderProductsTab() {
   const allItems = (currentCart.items || []);
@@ -6823,9 +7051,47 @@ function closePanel() {
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────
-$('cal-prev').addEventListener('click',  () => { if (--calMonth < 0)  { calMonth = 11; calYear--; } renderCalendar(); });
-$('cal-next').addEventListener('click',  () => { if (++calMonth > 11) { calMonth = 0;  calYear++; } renderCalendar(); });
-$('cal-today').addEventListener('click', () => { calYear = new Date().getFullYear(); calMonth = new Date().getMonth(); renderCalendar(); });
+// Stega bakåt/framåt — stegstorlek beror på aktiv vy
+function calStep(dir) {
+  if (calView === 'month') {
+    calMonth += dir;
+    if (calMonth < 0)  { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0;  calYear++; }
+    // håll calDate i synk så ett byte till vecka/dag landar i samma månad
+    calDate = new Date(calYear, calMonth, 1);
+  } else if (calView === 'week') {
+    calDate = new Date(calDate); calDate.setDate(calDate.getDate() + dir * 7);
+    calYear = calDate.getFullYear(); calMonth = calDate.getMonth();
+  } else {
+    calDate = new Date(calDate); calDate.setDate(calDate.getDate() + dir);
+    calYear = calDate.getFullYear(); calMonth = calDate.getMonth();
+  }
+  renderCalendar();
+}
+$('cal-prev').addEventListener('click',  () => calStep(-1));
+$('cal-next').addEventListener('click',  () => calStep(1));
+$('cal-today').addEventListener('click', () => {
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth(); calDate = now;
+  renderCalendar();
+});
+
+// Vy-växlare: Månad / Vecka / Dag
+document.querySelectorAll('.cal-vbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    calView = btn.dataset.calview;
+    document.querySelectorAll('.cal-vbtn').forEach(b => b.classList.toggle('active', b === btn));
+    // Synka ankardatum med aktuell månadsvy om vi just lämnade månadsläget
+    if ((calView === 'week' || calView === 'day')) {
+      const now = new Date();
+      // om calDate inte är i den månad/år vi tittar på, default till idag (om i månaden) annars 1:a
+      if (calDate.getFullYear() !== calYear || calDate.getMonth() !== calMonth) {
+        calDate = (now.getFullYear() === calYear && now.getMonth() === calMonth) ? now : new Date(calYear, calMonth, 1);
+      }
+    }
+    renderCalendar();
+  });
+});
 
 // Calendar feed: kopiera URL till urklipp
 $('cal-feed-copy')?.addEventListener('click', async () => {
@@ -6851,27 +7117,120 @@ $('cal-feed-help')?.addEventListener('click', (e) => {
   );
 });
 
-function renderCalendar() {
-  const months = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
-  $('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
+const CAL_MONTHS = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+const CAL_DOW = ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
 
-  // ── Varning: aktiva ordrar utan event_date är osynliga i kalendern ──
+// ISO YYYY-MM-DD från Date
+function calToIso(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Svenskt datumformat för en ISO-sträng
+function calFmtSE(iso, opts = { day:'numeric', month:'long', year:'numeric' }) {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('sv-SE', opts);
+}
+
+// Visa varningsbanner om aktiva ordrar saknar event_date (gemensam för alla vyer)
+function calRenderUndatedWarning() {
   const ACTIVE_NO_DATE = new Set(['confirmed', 'fakturerad']);
   const undated = carts.filter(c => ACTIVE_NO_DATE.has(c.status) && !c.event_date);
   const warnEl = document.getElementById('cal-no-date-warn');
-  if (warnEl) {
-    if (undated.length) {
-      const links = undated.map(c =>
-        `<a href="#" onclick="event.preventDefault(); openDetail('${c.id}')" style="color:#fde68a;text-decoration:underline;font-weight:600">${c.customer_name || c.id}</a>`
-      ).join(', ');
-      warnEl.innerHTML =
-        `⚠ <strong>${undated.length} bekräftad${undated.length === 1 ? '' : 'e'} order utan datum</strong> visas inte i kalendern. ` +
-        `Lägg till event_date i Info-fliken: ${links}`;
-      warnEl.style.display = 'block';
-    } else {
-      warnEl.style.display = 'none';
-    }
+  if (!warnEl) return;
+  if (undated.length) {
+    const links = undated.map(c =>
+      `<a href="#" onclick="event.preventDefault(); openDetail('${c.id}')" style="color:#fde68a;text-decoration:underline;font-weight:600">${c.customer_name || c.id}</a>`
+    ).join(', ');
+    warnEl.innerHTML =
+      `⚠ <strong>${undated.length} bekräftad${undated.length === 1 ? '' : 'e'} order utan datum</strong> visas inte i kalendern. ` +
+      `Lägg till event_date i Info-fliken: ${links}`;
+    warnEl.style.display = 'block';
+  } else {
+    warnEl.style.display = 'none';
   }
+}
+
+// Gemensam bokningsinsamling: returnerar bokningar som överlappar [startStr, endStr].
+// Samma pipeline-/triagelogik som månadsvyn använde tidigare.
+function calCollectBookings(startStr, endStr) {
+  const KNOWN_STATUSES = new Set(Object.keys(STATUS_LABELS));
+  const CALENDAR_STATUSES = new Set(['new','waiting','confirmed','fakturerad','completed']);
+  const isBookingRequest = (c) =>
+    c.status === 'new' && (c.items || []).filter(i => !i._note && i.name?.trim()).length === 0;
+  return carts
+    .filter(c => c.event_date && CALENDAR_STATUSES.has(c.status) && !isBookingRequest(c))
+    .map(c => ({
+      cart: c,
+      start: c.event_date,
+      end:   c.return_date && c.return_date >= c.event_date ? c.return_date : c.event_date,
+      pickupTime: c.delivery_time || '13:00',
+      returnTime: c.return_time   || '11:00',
+    }))
+    .filter(b => b.start <= endStr && b.end >= startStr);
+}
+
+// Bygg en kompakt tooltip-text för en bokning (delas av alla vyer)
+function calBookingTooltip(b) {
+  const c = b.cart;
+  const sLabel = STATUS_LABELS[c.status]
+    ? `${STATUS_LABELS[c.status].icon} ${STATUS_LABELS[c.status].label}`
+    : `❓ ${c.status || 'okänd status'}`;
+  const totalKr = c.total_excl ? Math.round(c.total_excl/100).toLocaleString('sv-SE') + ' kr' : '';
+  const datumRad = b.end === b.start
+    ? `📅 ${calFmtSE(b.start)}`
+    : `📅 ${calFmtSE(b.start)} – ${calFmtSE(b.end)}`;
+  const tip = [sLabel, '─────────────'];
+  if (c.customer_name) tip.push(`👤 ${c.customer_name}`);
+  if (c.customer_company) tip.push(`🏢 ${c.customer_company}`);
+  tip.push(datumRad);
+  tip.push(`🕐 Utlämning ${b.pickupTime}  ↩ Retur ${b.returnTime}`);
+  if (c.event_location) tip.push(`📍 ${c.event_location}`);
+  if (totalKr) tip.push(`💰 ${totalKr} (exkl moms)`);
+  return tip.join('\n');
+}
+
+// Ladda feed-URL-rutan (körs en gång, gemensam för alla vyer)
+function calLoadFeedBox() {
+  const feedBox = $('cal-feed-box');
+  if (!feedBox || feedBox.dataset.loaded) return;
+  feedBox.dataset.loaded = '1';
+  api('admin-calendar-feed-url').then(({ ok: o, data }) => {
+    if (o && data?.configured && data?.url) {
+      $('cal-feed-url').textContent = data.url;
+      feedBox.dataset.webcal = data.webcal_url || '';
+      feedBox.style.display = 'flex';
+    } else {
+      $('cal-feed-url').textContent = data?.message || 'CALENDAR_FEED_TOKEN saknas i Netlify-env';
+      feedBox.style.display = 'flex';
+      feedBox.style.opacity = '0.7';
+      $('cal-feed-copy').disabled = true;
+      $('cal-feed-open').style.display = 'none';
+    }
+  }).catch(() => { feedBox.style.display = 'none'; });
+}
+
+// ── DISPATCHER ──────────────────────────────────────────────────
+function renderCalendar() {
+  calRenderUndatedWarning();
+
+  // Visa/dölj rätt grid-container
+  $('cal-grid-month').style.display = calView === 'month' ? '' : 'none';
+  $('cal-grid-week').style.display  = calView === 'week'  ? '' : 'none';
+  $('cal-grid-day').style.display   = calView === 'day'   ? '' : 'none';
+  // Legend är mest relevant i månads-/veckovy
+  const legend = document.querySelector('.cal-legend');
+  if (legend) legend.style.display = calView === 'day' ? 'none' : 'flex';
+
+  if (calView === 'week')      renderCalendarWeek();
+  else if (calView === 'day')  renderCalendarDay();
+  else                         renderCalendarMonth();
+
+  calLoadFeedBox();
+}
+
+// ── MÅNADSVY ────────────────────────────────────────────────────
+function renderCalendarMonth() {
+  const months = CAL_MONTHS;
+  $('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
 
   const firstDay = new Date(calYear, calMonth, 1);
   const lastDay  = new Date(calYear, calMonth + 1, 0);
@@ -6886,43 +7245,20 @@ function renderCalendar() {
 
   const totalCells = Math.ceil((startDow + lastDay.getDate()) / 7) * 7;
 
-  // Helper: format ISO date YYYY-MM-DD
-  const toIso = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  // Helper: format ISO date YYYY-MM-DD (gemensam)
+  const toIso = calToIso;
 
   // Visning sträcker sig från cell 0 till sista cell.
-  // Cell k = (1 - startDow + k) i calMonth. Sista cellen är k = totalCells - 1.
-  // Tidigare hade vi 'totalCells - startDow - 1' vilket är ETT FÖR MYCKET som
-  // dras bort — bokningar på sista cellen (t.ex. 31 maj 2026) filtrerades bort.
   const viewStart = new Date(calYear, calMonth, 1 - startDow);
   const viewEnd   = new Date(calYear, calMonth, totalCells - startDow);
   const viewStartStr = toIso(viewStart);
   const viewEndStr   = toIso(viewEnd);
 
-  // Filtrera bokningar som överlappar visningen.
-  // Kalendern visar bara faktisk bearbetad pipeline — Bokningsförfrågningar
-  // (status='new' utan produkter) hoppas över tills admin har triagerat dem.
-  const KNOWN_STATUSES = new Set(Object.keys(STATUS_LABELS));
+  // Filtrera bokningar som överlappar visningen (gemensam pipeline-logik).
   const CALENDAR_STATUSES = new Set(['new','waiting','confirmed','fakturerad','completed']);
-  const unknownInCalendar = carts.filter(c => c.event_date && !KNOWN_STATUSES.has(c.status));
-  if (unknownInCalendar.length) {
-    console.warn(
-      `[Calendar] ${unknownInCalendar.length} cart(s) med okänd status hoppas över. ` +
-      `Städa upp i Supabase eller mappa till en känd status:`,
-      unknownInCalendar.map(c => ({ id: c.id, status: c.status, event_date: c.event_date, customer: c.customer_name }))
-    );
-  }
   const isBookingRequest = (c) =>
     c.status === 'new' && (c.items || []).filter(i => !i._note && i.name?.trim()).length === 0;
-  const visible = carts
-    .filter(c => c.event_date && CALENDAR_STATUSES.has(c.status) && !isBookingRequest(c))
-    .map(c => ({
-      cart: c,
-      start: c.event_date,
-      end:   c.return_date && c.return_date >= c.event_date ? c.return_date : c.event_date,
-      pickupTime: c.delivery_time || '13:00',
-      returnTime: c.return_time   || '11:00',
-    }))
-    .filter(b => b.start <= viewEndStr && b.end >= viewStartStr);
+  const visible = calCollectBookings(viewStartStr, viewEndStr);
 
   // ── DIAGNOS: vilka carts förkastades och varför? ─────────────────
   // Hjälper felsöka "min bokning syns inte i kalendern". Logga endast om
@@ -7113,29 +7449,196 @@ function renderCalendar() {
     cell.appendChild(bandsArea);
     days.appendChild(cell);
   }
+}
 
-  // Visa feed-URL om CALENDAR_FEED_TOKEN är konfigurerat på servern
-  // Hämtas via skyddad endpoint så feed-token aldrig syns i admin-HTML innan auth
-  const feedBox = $('cal-feed-box');
-  if (feedBox && !feedBox.dataset.loaded) {
-    feedBox.dataset.loaded = '1';
-    api('admin-calendar-feed-url').then(({ ok: o, data }) => {
-      if (o && data?.configured && data?.url) {
-        $('cal-feed-url').textContent = data.url;
-        feedBox.dataset.webcal = data.webcal_url || '';
-        feedBox.style.display = 'flex';
-      } else {
-        // Visa en informativ hint istället för att dölja helt
-        $('cal-feed-url').textContent = data?.message || 'CALENDAR_FEED_TOKEN saknas i Netlify-env';
-        feedBox.style.display = 'flex';
-        feedBox.style.opacity = '0.7';
-        $('cal-feed-copy').disabled = true;
-        $('cal-feed-open').style.display = 'none';
-      }
-    }).catch(() => {
-      feedBox.style.display = 'none';
-    });
+// ── VECKOVY ─────────────────────────────────────────────────────
+// 7 kolumner (mån–sön) med detaljerade bokningskort per dag.
+function renderCalendarWeek() {
+  // Måndag i calDate's vecka
+  const anchor = new Date(calDate);
+  let dow = (anchor.getDay() + 6) % 7; // Mon=0
+  const monday = new Date(anchor); monday.setDate(anchor.getDate() - dow);
+  const sunday = new Date(monday);   sunday.setDate(monday.getDate() + 6);
+
+  const startStr = calToIso(monday);
+  const endStr   = calToIso(sunday);
+
+  // Etikett: "5–11 maj 2026" / "30 mars–5 april 2026"
+  const sameMonth = monday.getMonth() === sunday.getMonth();
+  const sameYear  = monday.getFullYear() === sunday.getFullYear();
+  let label;
+  if (sameMonth && sameYear) {
+    label = `${monday.getDate()}–${sunday.getDate()} ${CAL_MONTHS[monday.getMonth()].toLowerCase()} ${monday.getFullYear()}`;
+  } else {
+    const a = monday.toLocaleDateString('sv-SE', { day:'numeric', month:'short' });
+    const b = sunday.toLocaleDateString('sv-SE', { day:'numeric', month:'short', year:'numeric' });
+    label = `${a}–${b}`;
   }
+  // Veckonummer (ISO)
+  const wk = calIsoWeek(monday);
+  $('cal-month-label').textContent = `Vecka ${wk} · ${label}`;
+
+  const bookings = calCollectBookings(startStr, endStr);
+  const todayStr = calToIso(new Date());
+
+  let cols = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    const dStr = calToIso(d);
+    const isWeekend = i >= 5;
+    const isToday = dStr === todayStr;
+
+    // Bokningar aktiva denna dag (start <= d <= end)
+    const dayB = bookings
+      .filter(b => b.start <= dStr && b.end >= dStr)
+      .sort((a, b) => (a.pickupTime || '').localeCompare(b.pickupTime || ''));
+
+    let body;
+    if (!dayB.length) {
+      body = `<div class="calw-empty">—</div>`;
+    } else {
+      body = dayB.map(b => {
+        const c = b.cart;
+        const sCls = STATUS_LABELS[c.status]?.cls || 's-new';
+        const name = escapeHtml(c.customer_company || c.customer_name || c.id);
+        const isStart = b.start === dStr;
+        const isEnd   = b.end === dStr;
+        const multi   = b.start !== b.end;
+        // Tidsetikett: utlämning på startdag, retur på slutdag, ↔ mittdag
+        let timeTag;
+        if (isStart && isEnd)      timeTag = `🕐 ${b.pickupTime}`;
+        else if (isStart)          timeTag = `🕐 ut ${b.pickupTime}`;
+        else if (isEnd)            timeTag = `↩ åter ${b.returnTime}`;
+        else                       timeTag = `↔ pågår`;
+        const tag = multi ? (isStart ? 'Start' : isEnd ? 'Retur' : 'Pågår') : '';
+        const totalKr = c.total_excl ? Math.round(c.total_excl/100).toLocaleString('sv-SE') + ' kr' : '';
+        const loc = c.event_location ? `📍 ${escapeHtml(c.event_location)}` : '';
+        const meta = [loc, totalKr].filter(Boolean).join(' · ');
+        return `<div class="calw-card ${sCls}" title="${escapeHtml(calBookingTooltip(b))}" onclick="openDetail('${c.id}')">
+          <div class="cc-top"><span class="cc-time">${timeTag}</span>${tag ? `<span class="cc-tag">${tag}</span>` : ''}</div>
+          <div class="cc-name">${name}</div>
+          ${meta ? `<div class="cc-meta">${meta}</div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    cols += `<div class="calw-col${isWeekend ? ' is-weekend' : ''}${isToday ? ' is-today' : ''}">
+      <div class="calw-colhead">
+        <div class="dow">${CAL_DOW[i]}</div>
+        <div class="dnum">${d.getDate()}</div>
+      </div>
+      <div class="calw-body">${body}</div>
+    </div>`;
+  }
+
+  $('cal-grid-week').innerHTML = `<div class="calw-grid">${cols}</div>`;
+}
+
+// ── DAGSVY ──────────────────────────────────────────────────────
+// En dag, maximal detalj: tider, plats, totalpris, produktlista per order.
+function renderCalendarDay() {
+  const d = new Date(calDate);
+  const dStr = calToIso(d);
+  const todayStr = calToIso(new Date());
+  const wk = calIsoWeek(d);
+
+  const niceDate = d.toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  $('cal-month-label').textContent = niceDate.charAt(0).toUpperCase() + niceDate.slice(1) + (dStr === todayStr ? ' · Idag' : '');
+
+  const dayB = calCollectBookings(dStr, dStr)
+    .filter(b => b.start <= dStr && b.end >= dStr)
+    .sort((a, b) => (a.pickupTime || '').localeCompare(b.pickupTime || ''));
+
+  let cards;
+  if (!dayB.length) {
+    cards = `<div class="cald-empty">Inga bokningar denna dag.</div>`;
+  } else {
+    cards = dayB.map(b => {
+      const c = b.cart;
+      const sLab = STATUS_LABELS[c.status] || { icon:'❓', label:c.status||'okänd', cls:'s-new' };
+      const isStart = b.start === dStr;
+      const isEnd   = b.end === dStr;
+      const multi   = b.start !== b.end;
+
+      // Rörelse-rad: vad händer idag?
+      let movement;
+      if (isStart && isEnd) movement = `🕐 Utlämning ${b.pickupTime} · ↩ Retur ${b.returnTime}`;
+      else if (isStart)     movement = `🕐 Utlämning ${b.pickupTime} · pågår t.o.m. ${calFmtSE(b.end, {day:'numeric',month:'long'})}`;
+      else if (isEnd)       movement = `↩ Retur ${b.returnTime} · startade ${calFmtSE(b.start, {day:'numeric',month:'long'})}`;
+      else                  movement = `↔ Pågår (${calFmtSE(b.start,{day:'numeric',month:'short'})}–${calFmtSE(b.end,{day:'numeric',month:'short'})})`;
+
+      const totalKr = c.total_excl ? Math.round(c.total_excl/100).toLocaleString('sv-SE') + ' kr' : null;
+      const loc = c.event_location || null;
+
+      // Produktlista (endast produkter, ej tjänster/tillägg/noteringar)
+      const SVC_CATS = ['Tjänster','Tillägg'];
+      const products = (c.items || []).filter(i =>
+        !i._note && i.name?.trim() && i.type !== 'service' && !SVC_CATS.includes(i.category)
+      );
+      let prodHtml = '';
+      if (products.length) {
+        prodHtml = `<div class="cd-products">
+          <div class="cd-plabel">Utrustning att plocka (${products.length} st)</div>
+          <ul>${products.map(p => {
+            const q = p.qty || p.quantity || 1;
+            return `<li><span>${escapeHtml(p.name)}</span><span class="cd-pqty">×${q}</span></li>`;
+          }).join('')}</ul>
+        </div>`;
+      }
+
+      // Flaggor
+      const flags = [];
+      if (c.status === 'waiting') {
+        if (c.last_read_customer) flags.push('👁 Offert läst');
+        else flags.push('👁⃠ Offert ej öppnad');
+        if (c.bounce_status === 'bounced') flags.push('⚠ Mail studsade');
+      }
+      if (c.status === 'fakturerad' || c.status === 'completed') {
+        if (c.invoice_number) flags.push(`🧾 Faktura ${c.invoice_number}`);
+        if (c.invoice_paid_at) flags.push('💚 Betald');
+        else if (c.status === 'fakturerad' && c.invoice_due_date) flags.push(`💳 Förfaller ${calFmtSE(c.invoice_due_date,{day:'numeric',month:'short'})}`);
+      }
+      if (['confirmed','fakturerad','completed'].includes(c.status)) {
+        if (c.pickup_confirmed_at) flags.push('✓ Utlämning kvitterad');
+        else if (c.pickup_signed_at) flags.push('✍ Kund förberedd');
+      }
+
+      return `<div class="cald-card ${sLab.cls}" onclick="openDetail('${c.id}')">
+        <div class="cd-row1">
+          <span class="cd-statustag">${sLab.icon} ${sLab.label}</span>
+          <span class="cd-name">${escapeHtml(c.customer_name || c.id)}</span>
+          ${c.customer_company ? `<span class="cd-company">${escapeHtml(c.customer_company)}</span>` : ''}
+        </div>
+        <div class="cd-grid">
+          <span class="cd-field">${movement}</span>
+          ${loc ? `<span class="cd-field">📍 <b>${escapeHtml(loc)}</b></span>` : ''}
+          ${totalKr ? `<span class="cd-field">💰 <b>${totalKr}</b> exkl moms</span>` : ''}
+          ${c.customer_phone ? `<span class="cd-field">📞 ${escapeHtml(c.customer_phone)}</span>` : ''}
+        </div>
+        ${prodHtml}
+        ${flags.length ? `<div class="cd-flags">${flags.map(f => `<span class="cd-flag">${f}</span>`).join('')}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  $('cal-grid-day').innerHTML = `<div class="cald-wrap">
+    <div class="cald-head">
+      <span class="cd-date">${niceDate.charAt(0).toUpperCase() + niceDate.slice(1)}</span>
+      <span class="cd-count">Vecka ${wk} · ${dayB.length} bokning${dayB.length === 1 ? '' : 'ar'}</span>
+    </div>
+    <div class="cald-list">${cards}</div>
+  </div>`;
+}
+
+// ISO-veckonummer för ett datum
+function calIsoWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - dayNum + 3);
+  const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  const firstDayNum = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNum + 3);
+  return 1 + Math.round((d - firstThursday) / (7 * 24 * 3600 * 1000));
 }
 
 // Liten hjälpfunktion för band-text (undviker XSS från kundnamn)
