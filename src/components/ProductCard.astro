@@ -27,7 +27,12 @@ interface Props {
   throwRatio?: { min: number; max: number; aspect?: string };
 }
 const { id, artno, name, price, priceNote = "/dygn", image, alt, description, persons, specs, videoSrc, quantityPrices, volumePricing, dimensionTable, wide = false, category = 'Produkt', monteringMin, manualUrl, bulky = false, forceLeverans, throwRatio } = Astro.props;
-const cartId = id ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+// Varukorgens id måste vara en riktig katalognyckel (artno) så att order-/admin-
+// uppslag matchar exakt. Slugifierat namn som fallback är BUGGKÄLLA: namn med
+// '+' eller '/' (t.ex. "Music, Small+") slugifieras till nåt som inte finns som
+// nyckel, varpå order-sidans namn-fallback krockar med fel produkt (Small ≠ Small+).
+// Prioritet: explicit id → artno → slugifierat namn (sista utväg).
+const cartId = id ?? (artno && artno.trim() ? artno : name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
 
 // Auto-mappa volumePricing → quantityPrices om quantityPrices saknas
 // Detta gör att produktkortet automatiskt visar volymtrappa när volumePricing
