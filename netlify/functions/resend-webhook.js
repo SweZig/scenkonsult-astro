@@ -117,6 +117,14 @@ exports.handler = async (event) => {
     return { statusCode: 200, body: JSON.stringify({ ok: true, missing_email_id: true }) };
   }
 
+  // Mottagaradress ur payloaden — används som fallback-matchning om message-id
+  // inte kopplar (t.ex. äldre offerter, faktura/påminnelse, eller race där
+  // last_quote_message_id ännu inte hunnit sparas).
+  let recipientEmail = null;
+  const rawTo = data.to;
+  if (Array.isArray(rawTo) && rawTo.length) recipientEmail = String(rawTo[0]).trim().toLowerCase();
+  else if (typeof rawTo === 'string' && rawTo) recipientEmail = rawTo.trim().toLowerCase();
+
   // Bygg en kort bounce_reason för UI:n
   let reason = null;
   if (data.bounce) {
@@ -131,25 +139,47 @@ exports.handler = async (event) => {
   }
   if (!reason) reason = bounceStatus === 'complained' ? 'Markerat som spam' : 'Mailet kunde inte levereras';
 
-  // Hitta cart med matchande message-id
+  // Hitta cart — primärt på message-id, sekundärt på mottagaradress.
   const db = supabase();
-  let cart;
+  let cart = null;
+  let matchMethod = null;
+
+  // 1) Primär matchning: last_quote_message_id === emailId
   try {
-    const { data: rows } = await db.from('carts')
+    const { data: row } = await db.from('carts')
       .select('id, status, customer_name, customer_email')
       .eq('last_quote_message_id', emailId)
-      .limit(1)
-      .single()
-      .catch(() => ({ data: null }));
-    cart = rows;
+      .single();
+    if (row) { cart = row; matchMethod = 'message_id'; }
   } catch (e) {
-    console.error('RESEND_WEBHOOK: DB-fel vid cart-lookup:', e.message);
-    return { statusCode: 200, body: JSON.stringify({ ok: true, db_error: true }) };
+    console.error('RESEND_WEBHOOK: DB-fel vid message_id-lookup:', e.message);
+    return { statusCode: 500, body: JSON.stringify({ ok: false, db_error: true }) };
+  }
+
+  // 2) Fallback: senaste icke-avslutade cart med matchande mottagaradress.
+  //    Täcker offerter skickade innan message-id sparades, samt faktura/
+  //    påminnelse-bounces (de lagrar inte last_quote_message_id).
+  if (!cart && recipientEmail) {
+    try {
+      const { data: rows } = await db.from('carts')
+        .select('id, status, customer_name, customer_email, updated_at')
+        .eq('customer_email', recipientEmail)
+        .neq('status', 'cancelled')
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      if (Array.isArray(rows) && rows.length) { cart = rows[0]; matchMethod = 'email_fallback'; }
+    } catch (e) {
+      console.error('RESEND_WEBHOOK: DB-fel vid email-fallback:', e.message);
+      // fortsätt — vi loggar no_match nedan
+    }
   }
 
   if (!cart) {
-    console.warn('RESEND_WEBHOOK: ingen cart hittades för email_id', emailId, 'event', evtType);
-    return { statusCode: 200, body: JSON.stringify({ ok: true, no_match: true }) };
+    // Ingen cart matchade. Logga tydligt så det går att felsöka i Netlify-loggen.
+    console.warn('RESEND_WEBHOOK: INGEN cart matchade', JSON.stringify({
+      event: evtType, email_id: emailId, recipient: recipientEmail || '(saknas)',
+    }));
+    return { statusCode: 200, body: JSON.stringify({ ok: true, no_match: true, email_id: emailId, recipient: recipientEmail }) };
   }
 
   try {
@@ -160,15 +190,16 @@ exports.handler = async (event) => {
     }, 'id', cart.id);
 
     await logAudit(db, cart.id, 'system', 'email_bounce', {
-      event:    evtType,
-      status:   bounceStatus,
-      email:    cart.customer_email,
+      event:        evtType,
+      status:       bounceStatus,
+      email:        cart.customer_email,
       reason,
-      email_id: emailId,
+      email_id:     emailId,
+      match_method: matchMethod,
     });
 
-    console.log('RESEND_WEBHOOK: bounce noterad', cart.id, bounceStatus);
-    return { statusCode: 200, body: JSON.stringify({ ok: true, cart_id: cart.id, status: bounceStatus }) };
+    console.log('RESEND_WEBHOOK: bounce noterad', cart.id, bounceStatus, 'via', matchMethod);
+    return { statusCode: 200, body: JSON.stringify({ ok: true, cart_id: cart.id, status: bounceStatus, match_method: matchMethod }) };
   } catch (e) {
     console.error('RESEND_WEBHOOK: fel vid update:', e.message);
     return { statusCode: 200, body: JSON.stringify({ ok: true, update_error: true }) };
