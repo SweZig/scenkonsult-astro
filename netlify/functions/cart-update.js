@@ -170,7 +170,11 @@ exports.handler = async (event) => {
       if (body.invoice_number   !== undefined) updates.invoice_number   = body.invoice_number;
       if (body.invoice_sent_at  !== undefined) updates.invoice_sent_at  = body.invoice_sent_at;
       if (body.invoice_paid_at  !== undefined) updates.invoice_paid_at  = body.invoice_paid_at;
-      if (body.payment_terms_days  !== undefined) updates.payment_terms_days  = parseInt(body.payment_terms_days) || 5;
+      if (body.payment_terms_days  !== undefined) {
+        const t = parseInt(body.payment_terms_days);
+        // 0 = Förskott — giltigt värde som inte får falla tillbaka på 5.
+        updates.payment_terms_days = Number.isFinite(t) ? t : 5;
+      }
       if (body.delivery_time        !== undefined) updates.delivery_time        = body.delivery_time     || '13:00';
       if (body.return_time          !== undefined) updates.return_time          = body.return_time       || '11:00';
       if (body.return_date          !== undefined) updates.return_date          = body.return_date       || null;
@@ -195,6 +199,7 @@ exports.handler = async (event) => {
       }
       if (body.referral_source !== undefined) updates.referral_source = body.referral_source || null;
       if (body.pickup_admin_note !== undefined) updates.pickup_admin_note = body.pickup_admin_note || null;
+      if (body.skip_pickup_flow  !== undefined) updates.skip_pickup_flow  = !!body.skip_pickup_flow;
 
       // Manuell markering "kund har läst offerten" (när admin vet via annan kanal)
       if (body.last_read_customer !== undefined) {

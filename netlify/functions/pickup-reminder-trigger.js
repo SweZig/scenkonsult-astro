@@ -44,7 +44,7 @@ exports.handler = async (event) => {
   const db = supabase();
   try {
     const { data: cart, error } = await db.from('carts')
-      .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, customer_company, delivery_mode, pickup_short_token, prepared_via')
+      .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, customer_company, delivery_mode, pickup_short_token, prepared_via, skip_pickup_flow')
       .eq('id', cart_id)
       .single();
 

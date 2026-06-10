@@ -63,7 +63,7 @@ const pickupReminderHandler = async () => {
   let candidates;
   try {
     const { data, error } = await db.from('carts')
-      .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, pickup_reminder_sent_at, customer_company, delivery_mode, pickup_short_token, prepared_via')
+      .select('id, customer_name, customer_email, customer_phone, cart_token, event_date, event_location, items, status, delivery_time, pickup_reminder_sent_at, customer_company, delivery_mode, pickup_short_token, prepared_via, skip_pickup_flow')
       .eq('event_date', tomorrow);
     if (error) throw error;
     candidates = data || [];
@@ -87,6 +87,11 @@ const pickupReminderHandler = async () => {
   };
 
   for (const cart of tomorrows) {
+    if (cart.skip_pickup_flow) {
+      results.skipped_no_channel++; // räknas som överhoppad
+      console.log('SCHEDULED_PICKUP: Hoppar över (utlämningsflöde avstängt) för', cart.id);
+      continue;
+    }
     if (cart.pickup_reminder_sent_at) {
       results.skipped_already_sent++;
       continue;

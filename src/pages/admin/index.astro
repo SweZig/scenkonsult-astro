@@ -999,6 +999,9 @@ const _monteringAdminConfig = {
       line-height: 1;
     }
     .cal-band:hover { filter: brightness(1.25); z-index: 5; }
+    /* Mellandag i ett flerdagsband (varken start eller retur) tonas ned */
+    .cal-band.cal-passive { opacity: 0.5; }
+    .cal-band.cal-passive:hover { opacity: 0.95; }
     .cal-band.s-new {
       background: rgba(196,181,244,0.18);
       border-color: rgba(196,181,244,0.55);
@@ -1136,6 +1139,10 @@ const _monteringAdminConfig = {
       transition: filter 0.12s; font-size: 0.74rem; line-height: 1.35;
     }
     .calw-card:hover { filter: brightness(1.22); }
+    /* Mellandagar utan utlämning/retur tonas ned — ingen åtgärd krävs */
+    .calw-card.cal-passive { opacity: 0.45; border-style: dashed; }
+    .calw-card.cal-passive:hover { opacity: 0.85; filter: none; }
+    .calw-card.cal-passive .cc-time { font-weight: 500; }
     .calw-card .cc-top { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
     .calw-card .cc-time { font-weight: 700; font-size: 0.72rem; }
     .calw-card .cc-tag { font-size: 0.6rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -1167,6 +1174,8 @@ const _monteringAdminConfig = {
       transition: filter 0.12s, border-color 0.12s;
     }
     .cald-card:hover { filter: brightness(1.15); }
+    .cald-card.cal-passive { opacity: 0.5; border-style: dashed; }
+    .cald-card.cal-passive:hover { opacity: 0.9; filter: none; }
     .cald-card .cd-row1 { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
     .cald-card .cd-statustag { font-size: 0.7rem; font-weight: 700; padding: 2px 9px; border-radius: 99px; background: rgba(0,0,0,0.25); }
     .cald-card .cd-name { font-size: 1rem; font-weight: 700; color: #fff; }
@@ -3822,10 +3831,20 @@ function renderInfoTab() {
     </div>
 
     ${['confirmed','fakturerad','completed'].includes(c.status) ? `
-    <div class="section-label">Utlämningsflöde</div>
+    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem">
+      <span>Utlämningsflöde</span>
+      <button onclick="toggleSkipPickup()" title="${c.skip_pickup_flow ? 'Slå på utlämningsflödet igen (förberedelse-länk, signering, kvittens)' : 'Stäng av utlämningsflödet för denna kund — ingen förberedelse-länk skickas och ingen signering/kvittens krävs'}" style="font-size:0.7rem;font-weight:600;padding:0.25rem 0.7rem;border-radius:20px;cursor:pointer;font-family:inherit;border:1px solid ${c.skip_pickup_flow ? 'rgba(196,181,244,0.4);background:rgba(196,181,244,0.12);color:var(--brand-lav)' : 'rgba(255,255,255,0.18);background:transparent;color:rgba(255,255,255,0.6)'}">${c.skip_pickup_flow ? '▶ Slå på igen' : '⏻ Stäng av'}</button>
+    </div>
     <div style="background:var(--bg);border-radius:8px;padding:0.85rem 1rem;margin-bottom:1rem;font-size:0.85rem;line-height:1.65">
       ${
-        c.pickup_confirmed_at ? `
+        c.skip_pickup_flow ? `
+        <div style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.65);font-weight:600;margin-bottom:0.25rem">
+          <span>⏸</span>
+          <span>Utlämningsflöde avstängt för denna kund</span>
+        </div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.55)">Ingen förberedelse-länk skickas automatiskt, och ingen digital signering eller motkvittering krävs. Slå på igen om utlämning behöver hanteras digitalt.</div>
+        `
+        : c.pickup_confirmed_at ? `
         <div style="display:flex;align-items:center;gap:0.5rem;color:var(--green);font-weight:600">
           <span>✍️</span>
           <span>Kvittens aktiverad ${fmtTime(c.pickup_confirmed_at)}</span>
@@ -4846,6 +4865,8 @@ function renderFakturaTab() {
   const invNum = c.invoice_number || '— (ej skapad)';
   const isPaid = !!c.invoice_paid_at;
   const isSent = !!c.invoice_sent_at;
+  // 0 = Förskott är giltigt; bara saknat värde defaultar till 5.
+  const terms = (c.payment_terms_days === 0 || c.payment_terms_days) ? parseInt(c.payment_terms_days) : 5;
 
   return `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
@@ -4866,17 +4887,17 @@ function renderFakturaTab() {
       </div>
       <div>
         <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Förfallodag</div>
-        <input id="inv-due" type="date" value="${(() => { if (c.invoice_due_date) return c.invoice_due_date; const d = new Date((c.invoice_date || new Date().toISOString().slice(0,10))); d.setDate(d.getDate() + (c.payment_terms_days||5)); return d.toISOString().slice(0,10); })()}"
+        <input id="inv-due" type="date" value="${(() => { if (c.invoice_due_date) return c.invoice_due_date; const d = new Date((c.invoice_date || new Date().toISOString().slice(0,10))); d.setDate(d.getDate() + terms); return d.toISOString().slice(0,10); })()}"
           style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
       </div>
       <div>
         <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Betalningsvillkor</div>
         <select id="inv-terms" onchange="invUpdateDueDate()" style="width:100%;font-size:0.78rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
-          <option value="5" ${(c.payment_terms_days||5)==5?'selected':''}>5 dagar netto</option>
-          <option value="10" ${(c.payment_terms_days||5)==10?'selected':''}>10 dagar netto</option>
-          <option value="20" ${(c.payment_terms_days||5)==20?'selected':''}>20 dagar netto</option>
-          <option value="30" ${(c.payment_terms_days||5)==30?'selected':''}>30 dagar netto</option>
-          <option value="0" ${(c.payment_terms_days||5)==0?'selected':''}>Förskott</option>
+          <option value="5" ${terms==5?'selected':''}>5 dagar netto</option>
+          <option value="10" ${terms==10?'selected':''}>10 dagar netto</option>
+          <option value="20" ${terms==20?'selected':''}>20 dagar netto</option>
+          <option value="30" ${terms==30?'selected':''}>30 dagar netto</option>
+          <option value="0" ${terms==0?'selected':''}>Förskott</option>
         </select>
       </div>
       <div>
@@ -5063,7 +5084,8 @@ function invUpdateDueDate() {
   const termsEl = document.getElementById('inv-terms');
   if (!dateEl || !dueEl || !termsEl) return;
   const base = new Date(dateEl.value || new Date().toISOString().slice(0,10));
-  const days = parseInt(termsEl.value) || 5;
+  const raw  = parseInt(termsEl.value);
+  const days = Number.isFinite(raw) ? raw : 5; // 0 = Förskott, behåll
   base.setDate(base.getDate() + days);
   dueEl.value = base.toISOString().slice(0,10);
 }
@@ -5844,6 +5866,28 @@ async function adminResetPickup(options = {}) {
 }
 window.adminResetPickup = adminResetPickup;
 
+// Slå av/på utlämningsflödet (förberedelse-länk + signering + kvittens) för en kund.
+async function toggleSkipPickup() {
+  const c = currentCart;
+  if (!c) return;
+  const turningOff = !c.skip_pickup_flow;
+  if (turningOff && !confirm('Stäng av utlämningsflödet för denna kund?\n\nIngen förberedelse-länk skickas automatiskt kvällen innan, och ingen digital signering eller motkvittering krävs. Du kan slå på det igen när som helst.')) return;
+  const { ok: success, data } = await api('cart-update', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: c.id, skip_pickup_flow: turningOff })
+  });
+  if (success) {
+    currentCart.skip_pickup_flow = turningOff;
+    toast(turningOff ? '⏸ Utlämningsflöde avstängt' : '▶ Utlämningsflöde påslaget');
+    loadCarts();
+    renderPanelFooter();
+    if (typeof renderTab === 'function') renderTab('info');
+  } else {
+    toast(data?.error || 'Kunde inte uppdatera', 'error');
+  }
+}
+window.toggleSkipPickup = toggleSkipPickup;
+
 // ─── Samlad utlämnings-modal ──────────────────────────────────────────────
 // Tre kontextuella val: (A) Verifiera & motkvittera om kund förberett,
 // (B) Skicka SMS-länk till kund nu, (C) Signera på admin-enhet (öppna /sign/
@@ -6208,7 +6252,7 @@ function renderPanelFooter() {
     } else {
       makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
     }
-    makeBtn('📩 Påminn om betalning', '', sendCustomerNotice);
+    makeBtn('📩 Påminn om betalning', '', sendPaymentReminder);
     if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
   } else if (c.status === 'completed') {
     // Avslutade ordrar: minimala actions
@@ -6246,7 +6290,8 @@ function renderPanelFooter() {
   }
 
   // Utlämning — samlad modal "Genomför utlämning" med tre kontextuella val
-  if (['confirmed','fakturerad','completed'].includes(c.status) && c.cart_token) {
+  // Hoppas över helt om utlämningsflödet är avstängt för kunden.
+  if (['confirmed','fakturerad','completed'].includes(c.status) && c.cart_token && !c.skip_pickup_flow) {
     if (c.pickup_confirmed_at) {
       // Helt klart — visa kvittens
       makeBtn('📋 Visa kvittens', '', () => adminShowPickup(c));
@@ -6631,6 +6676,43 @@ async function sendCustomerNotice() {
     if (activeTab === 'chat') renderTab('chat');
   } else toast('Kunde inte skicka notis', 'error');
 }
+
+// Skicka en BETALNINGSPÅMINNELSE (PDF) till fakturaadressen.
+async function sendPaymentReminder() {
+  const c = currentCart;
+  if (!c) return;
+  if (!c.invoice_number) { toast('Ingen faktura skickad ännu — skapa fakturan först', 'error'); return; }
+  if (c.invoice_paid_at) { toast('Fakturan är redan markerad som betald', 'error'); return; }
+
+  const toEmail = (c.use_invoice_email && c.invoice_email) ? c.invoice_email : c.customer_email;
+  if (!toEmail) { toast('Saknar mottagaradress för påminnelsen', 'error'); return; }
+
+  // Antal dagar sedan förfallodag (för bekräftelsedialogen)
+  let overdueTxt = '';
+  if (c.invoice_due_date) {
+    const due = new Date(c.invoice_due_date + 'T00:00:00');
+    const today = new Date(new Date().toISOString().slice(0,10) + 'T00:00:00');
+    const d = Math.round((today - due) / 86400000);
+    overdueTxt = d > 0 ? `\n\nFörfallodagen var ${due.toLocaleDateString('sv-SE')} (${d} ${d===1?'dag':'dagar'} sedan).` : `\n\nFörfallodag: ${due.toLocaleDateString('sv-SE')}.`;
+  }
+
+  if (!confirm(`Skicka betalningspåminnelse som PDF?\n\nFaktura ${c.invoice_number}\nTill: ${toEmail}${overdueTxt}\n\nEn vänlig påminnelse skickas till fakturaadressen med en PDF-bilaga.`)) return;
+
+  const { ok, data } = await api('invoice-reminder-send', {
+    method: 'POST',
+    body: JSON.stringify({ cart_id: c.id }),
+    timeoutMs: 30000,
+  });
+  if (ok) {
+    toast('📩 Påminnelsefaktura skickad!');
+    currentCart.invoice_reminder_sent_at = new Date().toISOString();
+    loadCarts();
+    if (activeTab === 'faktura') renderTab('faktura');
+  } else {
+    toast(data?.error || 'Kunde inte skicka påminnelsen', 'error');
+  }
+}
+window.sendPaymentReminder = sendPaymentReminder;
 
 // ── OFFERT-MODAL ──────────────────────────────────────────────
 // Produktkatalog — kategori → (sub →) produkter med pris
@@ -7347,9 +7429,10 @@ function renderCalendarMonth() {
     for (const b of todays) {
       const isStart = b.start === dateStr;
       const isEnd   = b.end   === dateStr;
+      const isPassive = !isStart && !isEnd; // mellandag — ingen åtgärd
 
       const band = document.createElement('div');
-      band.className = `cal-band s-${b.cart.status}`;
+      band.className = `cal-band s-${b.cart.status}${isPassive ? ' cal-passive' : ''}`;
       band.dataset.id = b.cart.id;
 
       // Position
@@ -7510,11 +7593,13 @@ function renderCalendarWeek() {
         else if (isStart)          timeTag = `🕐 ut ${b.pickupTime}`;
         else if (isEnd)            timeTag = `↩ åter ${b.returnTime}`;
         else                       timeTag = `↔ pågår`;
+        // Mellandag (varken utlämning eller retur) = ingen åtgärd → tonas ned
+        const passive = !isStart && !isEnd;
         const tag = multi ? (isStart ? 'Start' : isEnd ? 'Retur' : 'Pågår') : '';
         const totalKr = c.total_excl ? Math.round(c.total_excl/100).toLocaleString('sv-SE') + ' kr' : '';
         const loc = c.event_location ? `📍 ${escapeHtml(c.event_location)}` : '';
         const meta = [loc, totalKr].filter(Boolean).join(' · ');
-        return `<div class="calw-card ${sCls}" title="${escapeHtml(calBookingTooltip(b))}" onclick="openDetail('${c.id}')">
+        return `<div class="calw-card ${sCls}${passive ? ' cal-passive' : ''}" title="${escapeHtml(calBookingTooltip(b))}" onclick="openDetail('${c.id}')">
           <div class="cc-top"><span class="cc-time">${timeTag}</span>${tag ? `<span class="cc-tag">${tag}</span>` : ''}</div>
           <div class="cc-name">${name}</div>
           ${meta ? `<div class="cc-meta">${meta}</div>` : ''}
@@ -7566,6 +7651,8 @@ function renderCalendarDay() {
       else if (isStart)     movement = `🕐 Utlämning ${b.pickupTime} · pågår t.o.m. ${calFmtSE(b.end, {day:'numeric',month:'long'})}`;
       else if (isEnd)       movement = `↩ Retur ${b.returnTime} · startade ${calFmtSE(b.start, {day:'numeric',month:'long'})}`;
       else                  movement = `↔ Pågår (${calFmtSE(b.start,{day:'numeric',month:'short'})}–${calFmtSE(b.end,{day:'numeric',month:'short'})})`;
+      // Mellandag utan utlämning/retur = ingen åtgärd → tonas ned
+      const passive = multi && !isStart && !isEnd;
 
       const totalKr = c.total_excl ? Math.round(c.total_excl/100).toLocaleString('sv-SE') + ' kr' : null;
       const loc = c.event_location || null;
@@ -7603,7 +7690,7 @@ function renderCalendarDay() {
         else if (c.pickup_signed_at) flags.push('✍ Kund förberedd');
       }
 
-      return `<div class="cald-card ${sLab.cls}" onclick="openDetail('${c.id}')">
+      return `<div class="cald-card ${sLab.cls}${passive ? ' cal-passive' : ''}" onclick="openDetail('${c.id}')">
         <div class="cd-row1">
           <span class="cd-statustag">${sLab.icon} ${sLab.label}</span>
           <span class="cd-name">${escapeHtml(c.customer_name || c.id)}</span>

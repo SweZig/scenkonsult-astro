@@ -24,7 +24,10 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
 
     const today   = new Date().toISOString().slice(0,10);
     const invDate = cart.invoice_date || today;
-    const terms   = cart.payment_terms_days || 5;
+    const terms   = (cart.payment_terms_days === 0 || cart.payment_terms_days)
+      ? parseInt(cart.payment_terms_days)
+      : 5;
+    const isForskott = terms === 0;
     const dueDate = cart.invoice_due_date || (() => {
       const d = new Date(invDate); d.setDate(d.getDate() + terms);
       return d.toISOString().slice(0,10);
@@ -83,7 +86,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
       doc.fontSize(10).font('Helvetica').fillColor('#1a1a2e').text(fmtDate(invDate), 50, infoY + 40);
 
       doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Förfallodag', 50, infoY + 58);
-      doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a2e').text(fmtDate(dueDate), 50, infoY + 68);
+      doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a2e').text(isForskott ? 'Omgående (före utlämning)' : fmtDate(dueDate), 50, infoY + 68);
     }
 
     // Kund (höger kolumn)
@@ -185,7 +188,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
       doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
       doc.text('Bankgiro: 5132-0646', 50, payY + 12);
       doc.text('Swish: 123 136 59 07', 50, payY + 24);
-      doc.text(`Betalningsvillkor: ${terms} dagar netto`, 50, payY + 36);
+      doc.text(isForskott ? 'Betalningsvillkor: Förskott (betalas före utlämning)' : `Betalningsvillkor: ${terms} dagar netto`, 50, payY + 36);
 
       if (swishQrBuffer) {
         doc.fontSize(7).font('Helvetica').fillColor(GRAY).text('Betala med Swish', 50, payY + 54);
