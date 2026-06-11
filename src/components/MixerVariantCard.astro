@@ -1,0 +1,236 @@
+---
+// MixerVariantCard.astro
+// Produktkort för en mixer med ETT tillval (t.ex. Behringer Wing Rack + S32 Stagebox).
+// Toggle byter synligt pris OCH vad som läggs i varukorgen:
+//   - "Endast Wing Rack"  → lägger 1 rad (basartikeln)
+//   - "Med S32 Stagebox"  → lägger 2 rader (basartikeln + tillvalsartikeln)
+// Bevarar principen "en fysisk produkt = ett artikelnummer": tillvalet är en
+// egen katalogpost (eget artno), så plocklista/admin/order ser exakt vad som
+// ska skickas. Visuellt identiskt med ProductCard (aspect-ratio 1024/853,
+// object-contain, bg-brand-dark, samma prisrad/knappstil/manuallänk).
+import Price from './Price.astro';
+
+interface VariantOption {
+  artno: string;        // tillvalets artno (egen katalogpost)
+  addPrice: number;     // tillvalets pris (basPris + addPrice = comboPrice)
+  comboPrice: number;   // totalpris bas + tillval
+  baseLabel: string;    // toggle-etikett för enbart bas
+  comboLabel: string;   // toggle-etikett för bas + tillval
+}
+interface Props {
+  artno: string;
+  name: string;
+  price: number;        // baspris (enbart basartikeln)
+  priceNote?: string;
+  image?: string;
+  alt?: string;
+  description: string;
+  specs?: string[];
+  category?: string;
+  manualUrl?: string;
+  variant: VariantOption;
+  // Tillvalets metadata (för korrekt varukorgsrad)
+  variantName: string;
+  variantImage?: string;
+  variantBulky?: boolean;
+}
+const {
+  artno, name, price, priceNote = '/dygn', image, alt, description,
+  specs = [], category = 'Mixerbord', manualUrl, variant,
+  variantName, variantImage, variantBulky = false,
+} = Astro.props;
+
+const uid = `mvc-${Math.random().toString(36).slice(2, 8)}`;
+
+// Schema/JSON för quick-view (samma form som ProductCard data-sk-product)
+const productJson = JSON.stringify({
+  name, artno, desc: specs.join('||'),
+  rows: [], price, priceNote, category, cartId: artno,
+  images: image ? [image] : [], videos: [], persons: '',
+  manualUrl: manualUrl ?? '',
+});
+// Tillvalsdata exponeras till klient-scriptet via data-attribut på knappen
+const variantPayload = JSON.stringify({
+  base:    { id: artno, name, price, artno, category, image: image ?? '' },
+  variant: { id: variant.artno, name: variantName, price: variant.addPrice, artno: variant.artno, category, image: variantImage ?? image ?? '', bulky: variantBulky },
+  comboPrice: variant.comboPrice,
+});
+---
+<article
+  class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full"
+  itemscope itemtype="https://schema.org/Product"
+  data-sk-product={productJson}
+  style="cursor:pointer"
+>
+  {image && (
+    <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
+      <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy"
+        class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+    </div>
+  )}
+  <meta itemprop="image" content={image ? `https://scenkonsult.se${image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
+  <meta itemprop="brand" content="Scenkonsult Norden" />
+
+  <div class="p-5 flex flex-col flex-1">
+    <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors leading-tight mb-1" itemprop="name">{name}</h2>
+    <p class="artno-badge mb-2" id={`${uid}-artno`}>{artno}</p>
+    <p class="text-gray-400 text-sm leading-relaxed mb-3" itemprop="description">{description}</p>
+
+    {specs.length > 0 && (
+      <ul class="space-y-1 border-t border-white/10 pt-3">
+        {specs.map(s => (
+          <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0 mt-0.5">▸</span><span>{s}</span></li>
+        ))}
+      </ul>
+    )}
+
+    <!-- VARIANT-TOGGLE -->
+    <div class="mt-4 border-t border-white/10 pt-4">
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">Välj uppsättning</p>
+      <div class="grid grid-cols-2 gap-2" role="group" aria-label="Välj uppsättning" data-mvc-toggle={uid}>
+        <button
+          type="button"
+          class="mvc-opt mvc-opt-base text-left rounded-lg border px-3 py-2 transition-all border-brand-orange bg-brand-orange/10"
+          data-mvc-mode="base"
+          aria-pressed="true"
+        >
+          <span class="block text-xs font-semibold text-white leading-tight">{variant.baseLabel}</span>
+          <span class="block text-[11px] mt-0.5">
+            <span class="sk-price-excl text-brand-orange font-bold">{price.toLocaleString('sv')} kr</span>
+            <span class="sk-price-incl hidden text-brand-orange font-bold">{Math.round(price * 1.25).toLocaleString('sv')} kr</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          class="mvc-opt mvc-opt-combo text-left rounded-lg border px-3 py-2 transition-all border-white/15 bg-transparent"
+          data-mvc-mode="combo"
+          aria-pressed="false"
+        >
+          <span class="block text-xs font-semibold text-white leading-tight">{variant.comboLabel}</span>
+          <span class="block text-[11px] mt-0.5">
+            <span class="sk-price-excl text-brand-orange font-bold">{variant.comboPrice.toLocaleString('sv')} kr</span>
+            <span class="sk-price-incl hidden text-brand-orange font-bold">{Math.round(variant.comboPrice * 1.25).toLocaleString('sv')} kr</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 min-h-[0.5rem]"></div>
+
+    <!-- Prisrad + knapp -->
+    <div class="flex flex-col border-t border-white/10 pt-4 mt-auto gap-2" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+      <div class="flex items-center justify-between gap-3">
+        <meta itemprop="priceCurrency" content="SEK" />
+        <meta itemprop="price" content={String(price)} />
+        <meta itemprop="availability" content="https://schema.org/InStock" />
+        <span class="text-brand-orange font-extrabold text-xl shrink-0" id={`${uid}-price`}>
+          <Price amount={price} suffix={priceNote} size="xl" />
+        </span>
+        <button
+          type="button"
+          class="mvc-add inline-flex items-center whitespace-nowrap px-4 py-2 text-sm gap-2 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold rounded-lg transition-all duration-200"
+          data-mvc-payload={variantPayload}
+          aria-label={`Lägg ${name} i varukorgen`}
+        >
+          <svg class="mvc-icon-add shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          <svg class="mvc-icon-check shrink-0 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span class="mvc-label">Lägg i varukorg</span>
+        </button>
+      </div>
+      {manualUrl && (
+        <a href={manualUrl} target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-brand-orange transition-colors mt-1 w-fit">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Ladda ned manual (PDF)
+        </a>
+      )}
+    </div>
+  </div>
+</article>
+
+<script>
+  // Variant-kort: toggle byter pris + vad som läggs i varukorgen.
+  // Self-contained — använder window.skCart.add (globalt exponerat i Layout).
+  (function () {
+    function fmt(n: number) { return n.toLocaleString('sv') + ' kr'; }
+
+    function initCard(card: Element) {
+      const addBtn = card.querySelector('.mvc-add') as HTMLElement | null;
+      const priceEl = card.querySelector('[id$="-price"]') as HTMLElement | null;
+      const optBtns = Array.from(card.querySelectorAll('.mvc-opt')) as HTMLElement[];
+      if (!addBtn) return;
+
+      let mode: 'base' | 'combo' = 'base';
+      let payload: any;
+      try { payload = JSON.parse(addBtn.dataset.mvcPayload || '{}'); } catch { return; }
+
+      function paintPrice() {
+        if (!priceEl) return;
+        const p = mode === 'combo' ? payload.comboPrice : payload.base.price;
+        const excl = priceEl.querySelector('.sk-price-excl');
+        const incl = priceEl.querySelector('.sk-price-incl');
+        // Prisrad använder Price-komponentens spans (.sk-price-excl/.sk-price-incl)
+        if (excl) excl.textContent = fmt(p);
+        if (incl) incl.textContent = fmt(Math.round(p * 1.25));
+      }
+
+      function selectMode(next: 'base' | 'combo') {
+        mode = next;
+        optBtns.forEach(b => {
+          const active = b.dataset.mvcMode === next;
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          b.classList.toggle('border-brand-orange', active);
+          b.classList.toggle('bg-brand-orange/10', active);
+          b.classList.toggle('border-white/15', !active);
+          b.classList.toggle('bg-transparent', !active);
+        });
+        paintPrice();
+      }
+
+      optBtns.forEach(b => {
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectMode((b.dataset.mvcMode as 'base' | 'combo') || 'base');
+        });
+      });
+
+      addBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cart = (window as any).skCart;
+        if (!cart || typeof cart.add !== 'function') return;
+        // Bas-raden läggs alltid
+        cart.add({ ...payload.base, qty: 1 });
+        // Tillvals-raden bara i combo-läge
+        if (mode === 'combo') {
+          cart.add({ ...payload.variant, qty: 1 });
+        }
+        // Visuell feedback
+        const iconAdd = addBtn.querySelector('.mvc-icon-add');
+        const iconCheck = addBtn.querySelector('.mvc-icon-check');
+        const lbl = addBtn.querySelector('.mvc-label');
+        iconAdd?.classList.add('hidden');
+        iconCheck?.classList.remove('hidden');
+        if (lbl) lbl.textContent = 'Tillagd!';
+        addBtn.style.background = '#7c3aed';
+        setTimeout(() => {
+          iconAdd?.classList.remove('hidden');
+          iconCheck?.classList.add('hidden');
+          if (lbl) lbl.textContent = 'Lägg i varukorg';
+          addBtn.style.background = '';
+        }, 1400);
+      });
+
+      paintPrice();
+    }
+
+    document.querySelectorAll('.mvc-add').forEach(btn => {
+      const card = btn.closest('article');
+      if (card) initCard(card);
+    });
+  })();
+</script>
