@@ -16,6 +16,7 @@ interface VariantOption {
   comboPrice: number;   // totalpris bas + tillval
   baseLabel: string;    // toggle-etikett för enbart bas
   comboLabel: string;   // toggle-etikett för bas + tillval
+  comboImage?: string;  // bild som visas i combo-läge (basbild = Props.image)
 }
 interface Props {
   artno: string;
@@ -54,6 +55,8 @@ const variantPayload = JSON.stringify({
   base:    { id: artno, name, price, artno, category, image: image ?? '' },
   variant: { id: variant.artno, name: variantName, price: variant.addPrice, artno: variant.artno, category, image: variantImage ?? image ?? '', bulky: variantBulky },
   comboPrice: variant.comboPrice,
+  baseImage:  image ?? '',
+  comboImage: variant.comboImage ?? image ?? '',
 });
 ---
 <article
@@ -64,7 +67,7 @@ const variantPayload = JSON.stringify({
 >
   {image && (
     <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
-      <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy"
+      <img src={image} alt={alt ?? name} width="512" height="427" loading="lazy" id={`${uid}-img`}
         class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
     </div>
   )}
@@ -162,6 +165,7 @@ const variantPayload = JSON.stringify({
     function initCard(card: Element) {
       const addBtn = card.querySelector('.mvc-add') as HTMLElement | null;
       const priceEl = card.querySelector('[id$="-price"]') as HTMLElement | null;
+      const imgEl = card.querySelector('[id$="-img"]') as HTMLImageElement | null;
       const optBtns = Array.from(card.querySelectorAll('.mvc-opt')) as HTMLElement[];
       if (!addBtn) return;
 
@@ -179,6 +183,12 @@ const variantPayload = JSON.stringify({
         if (incl) incl.textContent = fmt(Math.round(p * 1.25));
       }
 
+      function paintImage() {
+        if (!imgEl) return;
+        const src = mode === 'combo' ? payload.comboImage : payload.baseImage;
+        if (src && imgEl.getAttribute('src') !== src) imgEl.setAttribute('src', src);
+      }
+
       function selectMode(next: 'base' | 'combo') {
         mode = next;
         optBtns.forEach(b => {
@@ -190,6 +200,7 @@ const variantPayload = JSON.stringify({
           b.classList.toggle('bg-transparent', !active);
         });
         paintPrice();
+        paintImage();
       }
 
       optBtns.forEach(b => {
@@ -226,6 +237,7 @@ const variantPayload = JSON.stringify({
       });
 
       paintPrice();
+      paintImage();
     }
 
     document.querySelectorAll('.mvc-add').forEach(btn => {
