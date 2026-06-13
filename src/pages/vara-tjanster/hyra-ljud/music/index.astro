@@ -4,6 +4,7 @@ import KunskapBlock from '../../../../components/KunskapBlock.astro';
 import ModernHero from '../../../../components/ModernHero.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import MixerVariantCard from '../../../../components/MixerVariantCard.astro';
+import MixerModelCard from '../../../../components/MixerModelCard.astro';
 import CartButton from '../../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import _ljudData from '../../../../data/ljud.json';
@@ -143,39 +144,39 @@ const faqSchema = {
     <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
     <p class="text-gray-400 mb-8 text-sm">Koppla in mikrofoner och musikspelare. Mixerbord hyrs separat och ansluts till högtalarpaket.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {_ljudData.mixers.filter((p: any) => !p.hideFromGrid).map((p: any) => (
-        p.variantOption ? (
-          <MixerVariantCard
-            artno={p.artno}
-            name={p.name}
-            price={p.price}
-            image={p.image}
-            alt={p.alt ?? p.name}
-            description={p.description}
-            specs={p.specs ?? []}
-            category="Mixerbord"
-            manualUrl={p.manualUrl}
-            variant={p.variantOption}
-            variantName={(_ljudData.mixers.find((m: any) => m.artno === p.variantOption.artno) ?? {}).name ?? p.variantOption.comboLabel}
-            variantImage={(_ljudData.mixers.find((m: any) => m.artno === p.variantOption.artno) ?? {}).image ?? p.image}
-            variantBulky={(_ljudData.mixers.find((m: any) => m.artno === p.variantOption.artno) ?? {}).bulky ?? false}
-          />
-        ) : (
+      {(_ljudData.mixerLayout ?? []).map((slot: any) => {
+        const byArtno = (a: string) => _ljudData.mixers.find((m: any) => m.artno === a);
+        if (slot.type === 'group') {
+          const members = slot.members.map((a: string) => byArtno(a)).filter(Boolean).map((m: any) => ({
+            artno: m.artno, name: m.name, price: m.price, image: m.image,
+            alt: m.alt ?? m.name, description: m.description, specs: m.specs ?? [],
+            manualUrl: m.manualUrl, bulky: m.bulky, forceLeverans: m.forceLeverans,
+            shortLabel: m.name.includes(',') ? m.name.split(',').slice(1).join(',').trim() : m.name,
+          }));
+          return <MixerModelCard title={slot.title} selectLabel={slot.selectLabel ?? 'Välj modell'} category="Mixerbord" models={members} />;
+        }
+        const p = byArtno(slot.artno);
+        if (!p) return null;
+        if (slot.type === 'variant' && p.variantOption) {
+          const v = byArtno(p.variantOption.artno) ?? {};
+          return (
+            <MixerVariantCard
+              artno={p.artno} name={p.name} price={p.price} image={p.image}
+              alt={p.alt ?? p.name} description={p.description} specs={p.specs ?? []}
+              category="Mixerbord" manualUrl={p.manualUrl} variant={p.variantOption}
+              variantName={v.name ?? p.variantOption.comboLabel}
+              variantImage={v.image ?? p.image} variantBulky={v.bulky ?? false}
+            />
+          );
+        }
+        return (
           <ProductCard
-            artno={p.artno}
-            name={p.name}
-            price={p.price}
-            image={p.image}
-            alt={p.alt ?? p.name}
-            description={p.description}
-            specs={p.specs ?? []}
-            category="Mixerbord"
-            manualUrl={p.manualUrl}
-            bulky={p.bulky}
-            forceLeverans={p.forceLeverans}
+            artno={p.artno} name={p.name} price={p.price} image={p.image}
+            alt={p.alt ?? p.name} description={p.description} specs={p.specs ?? []}
+            category="Mixerbord" manualUrl={p.manualUrl} bulky={p.bulky} forceLeverans={p.forceLeverans}
           />
-        )
-      ))}
+        );
+      })}
     </div>
   </section>
 

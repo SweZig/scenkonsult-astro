@@ -1,0 +1,239 @@
+---
+// MixerModelCard.astro
+// Produktkort för en GRUPP av modeller (t.ex. Mackie ProFX12/16/22).
+// Toggle väljer EN modell — endast den valda läggs i varukorgen (en rad).
+// Skiljer sig från MixerVariantCard (som lägger bas + valfritt tillval):
+// här är det ett enkelt modellval, ingen kombination.
+// Bevarar "en fysisk produkt = ett artikelnummer": varje modell är en egen
+// katalogpost. Visuellt identiskt med ProductCard.
+import Price from './Price.astro';
+
+interface Model {
+  artno: string;
+  name: string;
+  price: number;
+  image?: string;
+  alt?: string;
+  description?: string;
+  specs?: string[];
+  manualUrl?: string;
+  bulky?: boolean;
+  forceLeverans?: string;
+  shortLabel: string;   // kort etikett i toggeln (t.ex. "12+4 kanaler")
+}
+interface Props {
+  title: string;            // grupprubrik (t.ex. "Mackie ProFX")
+  selectLabel?: string;     // etikett ovanför toggeln
+  category?: string;
+  models: Model[];          // 2+ modeller, första = förvald
+  priceNote?: string;
+}
+const {
+  title, selectLabel = 'Välj modell', category = 'Mixerbord',
+  models, priceNote = '/dygn',
+} = Astro.props;
+
+const uid = `mmc-${Math.random().toString(36).slice(2, 8)}`;
+const first = models[0];
+
+// Payload till klient: alla modeller, varukorgsrad = vald modell
+const modelsPayload = JSON.stringify(models.map(m => ({
+  id: m.artno, name: m.name, price: m.price, artno: m.artno,
+  category, image: m.image ?? '', bulky: m.bulky ?? false,
+  forceLeverans: m.forceLeverans ?? undefined,
+  description: m.description ?? '', specs: m.specs ?? [],
+  manualUrl: m.manualUrl ?? '', alt: m.alt ?? m.name,
+})));
+
+// Quick-view-data för förvald modell (uppdateras inte vid toggle — quick-view
+// hanterar bara grundvyn; toggle styr varukorg/pris/bild/specs i kortet)
+const productJson = JSON.stringify({
+  name: first.name, artno: first.artno, desc: (first.specs ?? []).join('||'),
+  rows: [], price: first.price, priceNote, category, cartId: first.artno,
+  images: first.image ? [first.image] : [], videos: [], persons: '',
+  manualUrl: first.manualUrl ?? '',
+});
+---
+<article
+  class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full"
+  itemscope itemtype="https://schema.org/Product"
+  data-sk-product={productJson}
+  style="cursor:pointer"
+>
+  {first.image && (
+    <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853;cursor:zoom-in">
+      <img src={first.image} alt={first.alt ?? first.name} width="512" height="427" loading="lazy" id={`${uid}-img`}
+        class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+    </div>
+  )}
+  <meta itemprop="image" content={first.image ? `https://scenkonsult.se${first.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
+  <meta itemprop="brand" content="Scenkonsult Norden" />
+
+  <div class="p-5 flex flex-col flex-1">
+    <h2 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors leading-tight mb-1" itemprop="name" id={`${uid}-name`}>{first.name}</h2>
+    <p class="artno-badge mb-2" id={`${uid}-artno`}>{first.artno}</p>
+    <p class="text-gray-400 text-sm leading-relaxed mb-3" itemprop="description" id={`${uid}-desc`}>{first.description}</p>
+
+    <ul class="space-y-1 border-t border-white/10 pt-3" id={`${uid}-specs`}>
+      {(first.specs ?? []).map(s => (
+        <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0 mt-0.5">▸</span><span>{s}</span></li>
+      ))}
+    </ul>
+
+    <!-- MODELLVÄLJARE -->
+    <div class="mt-4 border-t border-white/10 pt-4">
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{selectLabel}</p>
+      <div class={`grid gap-2 ${models.length >= 3 ? 'grid-cols-3' : 'grid-cols-2'}`} role="group" aria-label={selectLabel}>
+        {models.map((m, i) => (
+          <button
+            type="button"
+            class:list={[
+              'mmc-opt text-left rounded-lg border px-2.5 py-2 transition-all',
+              i === 0 ? 'border-brand-orange bg-brand-orange/10' : 'border-white/15 bg-transparent',
+            ]}
+            data-mmc-index={i}
+            aria-pressed={i === 0 ? 'true' : 'false'}
+          >
+            <span class="block text-[11px] font-semibold text-white leading-tight">{m.shortLabel}</span>
+            <span class="block text-[11px] mt-0.5">
+              <span class="sk-price-excl text-brand-orange font-bold">{m.price.toLocaleString('sv')} kr</span>
+              <span class="sk-price-incl hidden text-brand-orange font-bold">{Math.round(m.price * 1.25).toLocaleString('sv')} kr</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div class="flex-1 min-h-[0.5rem]"></div>
+
+    <!-- Prisrad + knapp -->
+    <div class="flex flex-col border-t border-white/10 pt-4 mt-auto gap-2" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+      <div class="flex items-center justify-between gap-3">
+        <meta itemprop="priceCurrency" content="SEK" />
+        <meta itemprop="price" content={String(first.price)} />
+        <meta itemprop="availability" content="https://schema.org/InStock" />
+        <span class="text-brand-orange font-extrabold text-xl shrink-0" id={`${uid}-price`}>
+          <Price amount={first.price} suffix={priceNote} size="xl" />
+        </span>
+        <button
+          type="button"
+          class="mmc-add inline-flex items-center whitespace-nowrap px-4 py-2 text-sm gap-2 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold rounded-lg transition-all duration-200"
+          data-mmc-models={modelsPayload}
+          aria-label={`Lägg ${title} i varukorgen`}
+        >
+          <svg class="mmc-icon-add shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          <svg class="mmc-icon-check shrink-0 hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span class="mmc-label">Lägg i varukorg</span>
+        </button>
+      </div>
+      <a id={`${uid}-manual`} href={first.manualUrl ?? '#'} target="_blank" rel="noopener noreferrer"
+        class:list={['inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-brand-orange transition-colors mt-1 w-fit', !first.manualUrl && 'hidden']}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Ladda ned manual (PDF)
+      </a>
+    </div>
+  </div>
+</article>
+
+<script>
+  // Modellväljar-kort: toggle byter vald modell (namn/artno/pris/bild/specs/manual).
+  // Endast den valda modellen läggs i varukorgen. Self-contained.
+  (function () {
+    function fmt(n: number) { return n.toLocaleString('sv') + ' kr'; }
+
+    function initCard(card: Element) {
+      const addBtn = card.querySelector('.mmc-add') as HTMLElement | null;
+      if (!addBtn) return;
+      let models: any[];
+      try { models = JSON.parse(addBtn.dataset.mmcModels || '[]'); } catch { return; }
+      if (!models.length) return;
+
+      const nameEl   = card.querySelector('[id$="-name"]') as HTMLElement | null;
+      const artnoEl  = card.querySelector('[id$="-artno"]') as HTMLElement | null;
+      const descEl   = card.querySelector('[id$="-desc"]') as HTMLElement | null;
+      const specsEl  = card.querySelector('[id$="-specs"]') as HTMLElement | null;
+      const priceEl  = card.querySelector('[id$="-price"]') as HTMLElement | null;
+      const imgEl    = card.querySelector('[id$="-img"]') as HTMLImageElement | null;
+      const manualEl = card.querySelector('[id$="-manual"]') as HTMLAnchorElement | null;
+      const optBtns  = Array.from(card.querySelectorAll('.mmc-opt')) as HTMLElement[];
+
+      let idx = 0;
+
+      function paint() {
+        const m = models[idx];
+        if (nameEl) nameEl.textContent = m.name;
+        if (artnoEl) artnoEl.textContent = m.artno;
+        if (descEl) descEl.textContent = m.description || '';
+        if (imgEl && m.image && imgEl.getAttribute('src') !== m.image) imgEl.setAttribute('src', m.image);
+        if (specsEl) {
+          specsEl.innerHTML = (m.specs || []).map((s: string) =>
+            `<li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0 mt-0.5">▸</span><span>${s}</span></li>`
+          ).join('');
+        }
+        if (priceEl) {
+          const excl = priceEl.querySelector('.sk-price-excl');
+          const incl = priceEl.querySelector('.sk-price-incl');
+          if (excl) excl.textContent = fmt(m.price);
+          if (incl) incl.textContent = fmt(Math.round(m.price * 1.25));
+        }
+        if (manualEl) {
+          if (m.manualUrl) { manualEl.setAttribute('href', m.manualUrl); manualEl.classList.remove('hidden'); }
+          else { manualEl.classList.add('hidden'); }
+        }
+      }
+
+      function select(next: number) {
+        idx = next;
+        optBtns.forEach((b, i) => {
+          const active = i === next;
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          b.classList.toggle('border-brand-orange', active);
+          b.classList.toggle('bg-brand-orange/10', active);
+          b.classList.toggle('border-white/15', !active);
+          b.classList.toggle('bg-transparent', !active);
+        });
+        paint();
+      }
+
+      optBtns.forEach((b) => {
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          select(parseInt(b.dataset.mmcIndex || '0', 10));
+        });
+      });
+
+      addBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cart = (window as any).skCart;
+        if (!cart || typeof cart.add !== 'function') return;
+        const m = models[idx];
+        cart.add({ id: m.id, name: m.name, price: m.price, artno: m.artno, category: m.category, image: m.image, bulky: m.bulky, forceLeverans: m.forceLeverans, qty: 1 });
+        const iconAdd = addBtn.querySelector('.mmc-icon-add');
+        const iconCheck = addBtn.querySelector('.mmc-icon-check');
+        const lbl = addBtn.querySelector('.mmc-label');
+        iconAdd?.classList.add('hidden');
+        iconCheck?.classList.remove('hidden');
+        if (lbl) lbl.textContent = 'Tillagd!';
+        addBtn.style.background = '#7c3aed';
+        setTimeout(() => {
+          iconAdd?.classList.remove('hidden');
+          iconCheck?.classList.add('hidden');
+          if (lbl) lbl.textContent = 'Lägg i varukorg';
+          addBtn.style.background = '';
+        }, 1400);
+      });
+
+      paint();
+    }
+
+    document.querySelectorAll('.mmc-add').forEach(btn => {
+      const card = btn.closest('article');
+      if (card) initCard(card);
+    });
+  })();
+</script>
