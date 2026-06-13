@@ -4865,8 +4865,14 @@ function renderFakturaTab() {
   const invNum = c.invoice_number || '— (ej skapad)';
   const isPaid = !!c.invoice_paid_at;
   const isSent = !!c.invoice_sent_at;
-  // 0 = Förskott är giltigt; bara saknat värde defaultar till 5.
-  const terms = (c.payment_terms_days === 0 || c.payment_terms_days) ? parseInt(c.payment_terms_days) : 5;
+  // Default betalningsvillkor styrs av kundtyp när inget uttryckligt värde finns:
+  //   B2C (privatperson/organisation) → 0 = Förskott
+  //   B2B (företag)                   → 5 dagar netto
+  // 0 är ett giltigt sparat värde (Förskott) och får inte tolkas som "saknas".
+  const termsDefault = (c.customer_type === 'b2b') ? 5 : 0;
+  const terms = (c.payment_terms_days === 0 || c.payment_terms_days)
+    ? parseInt(c.payment_terms_days)
+    : termsDefault;
 
   return `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">

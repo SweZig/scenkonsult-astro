@@ -37,10 +37,12 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
   return new Promise((resolve, reject) => {
     const today   = new Date().toISOString().slice(0,10);
     const invDate = cart.invoice_date || today;
-    // payment_terms_days === 0 betyder FÖRSKOTT — får ej falla tillbaka på 5.
+    // payment_terms_days === 0 betyder FÖRSKOTT — får ej falla tillbaka på default.
+    // Default när värde saknas styrs av kundtyp: B2B → 5 dagar netto, annars Förskott (0).
+    const termsDefault = (getVillkor(cart).type === 'b2b') ? 5 : 0;
     const terms   = (cart.payment_terms_days === 0 || cart.payment_terms_days)
       ? parseInt(cart.payment_terms_days)
-      : 5;
+      : termsDefault;
     const isForskott = terms === 0;
     const dueDate = cart.invoice_due_date || (() => {
       // Förskott: förfaller samma dag (betalas före utlämning).
@@ -216,10 +218,10 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     doc.text('Swish: 123 136 59 07', 50, payY + 24);
     doc.text(isForskott ? 'Betalningsvillkor: Förskott (betalas före utlämning)' : `Betalningsvillkor: ${terms} dagar netto`, 50, payY + 36);
 
-    // Förskottsnotis för privatpersoner och organisationer (B2C).
-    // Placeras direkt under betalningsvillkoren; skjuter ned ev. Swish-QR.
+    // Förskottsnotis för privatpersoner och organisationer (B2C) — visas bara
+    // när fakturan faktiskt är förskott, så texten inte motsäger ett ev. nettovillkor.
     let payExtra = 0;
-    if (custType === 'b2c') {
+    if (custType === 'b2c' && isForskott) {
       doc.fontSize(8).font('Helvetica-Oblique').fillColor(GRAY).text(
         'För privatpersoner och organisationer tillämpar vi förskottsbetalning via Bankgiro, Swish eller kortbetalning.',
         50, payY + 50, { width: 230 }
