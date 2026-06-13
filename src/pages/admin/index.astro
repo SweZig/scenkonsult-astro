@@ -5503,10 +5503,30 @@ async function invCreateCredit() {
       return;
     }
     toast(`Kreditfaktura ${data.credit_invoice_number} skickad! 📧`);
-    currentCart.credit_invoice_number = data.credit_invoice_number;
-    currentCart.credit_sent_at        = new Date().toISOString();
-    currentCart.credit_amount_excl    = data.total_excl;
-    currentCart.credit_mode           = choice.mode;
+    // Hämta om hela ordern från detalj-endpointen (select *) — annars saknar
+    // currentCart credit_invoice_number och ser inte att fakturan nollställts
+    // vid full kreditering (listan i loadCarts har inte de kolumnerna).
+    try {
+      const refetch = await api(`admin-carts?id=${encodeURIComponent(currentCart.id)}`);
+      if (refetch.ok && refetch.data?.cart) {
+        currentCart     = refetch.data.cart;
+        currentMessages = refetch.data.messages || currentMessages;
+        currentAudit    = refetch.data.audit_log || currentAudit;
+      } else {
+        // Fallback: patcha lokalt
+        currentCart.credit_invoice_number = data.credit_invoice_number;
+        currentCart.credit_sent_at        = new Date().toISOString();
+        currentCart.credit_amount_excl    = data.total_excl;
+        currentCart.credit_mode           = choice.mode;
+        if (data.percent === 100) {
+          currentCart.invoice_number   = null;
+          currentCart.invoice_sent_at  = null;
+          currentCart.invoice_paid_at  = null;
+          currentCart.invoice_due_date = null;
+          currentCart.status           = 'confirmed';
+        }
+      }
+    } catch(_) { /* behåll currentCart som det är */ }
     await loadCarts();
     renderTab('faktura');
   } catch(e) {
