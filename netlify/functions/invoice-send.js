@@ -23,6 +23,15 @@ function fmtDate(iso) {
   return new Date(iso).toLocaleDateString('sv-SE');
 }
 
+// Härled momsregistreringsnummer ur org.nr: "SE" + endast siffror + "01".
+// Ex: "556053-5873" → "SE556053587301". Returnerar null om för få siffror.
+function orgnrToVat(orgnr) {
+  if (!orgnr) return null;
+  const digits = String(orgnr).replace(/\D/g, '');
+  if (digits.length < 10) return null;
+  return 'SE' + digits.slice(0, 10) + '01';
+}
+
 // ── Generera PDF ─────────────────────────────────────────────────────────────
 function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
   return new Promise((resolve, reject) => {
@@ -43,6 +52,9 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     const totalExcl = items.reduce((s,i) => s + ((i.price||0)*(i.qty||1)), 0);
     const vat       = Math.round(totalExcl * 0.25);
     const totalIncl = totalExcl + vat;
+
+    // Kundtyp (b2b/b2c) — samma källa som hyresvillkoren på sida 2.
+    const custType = getVillkor(cart).type;
 
     const doc    = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks = [];
@@ -101,6 +113,13 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     if (cart.customer_orgnr) {
       doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Org.nr: ' + cart.customer_orgnr, cx, ky);
       ky += 14;
+      // Momsregistreringsnummer härleds från org.nr: "SE" + endast siffror + "01".
+      // Ex: 556053-5873 → SE556053587301. Visas endast för företag/organisation (B2B).
+      const vatNum = orgnrToVat(cart.customer_orgnr);
+      if (custType === 'b2b' && vatNum) {
+        doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Momsreg.nr: ' + vatNum, cx, ky);
+        ky += 14;
+      }
     }
     if (cart.customer_address || cart.event_location) {
       doc.fontSize(9).fillColor(GRAY).text(cart.customer_address || cart.event_location, cx, ky);
@@ -197,10 +216,21 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     doc.text('Swish: 123 136 59 07', 50, payY + 24);
     doc.text(isForskott ? 'Betalningsvillkor: Förskott (betalas före utlämning)' : `Betalningsvillkor: ${terms} dagar netto`, 50, payY + 36);
 
+    // Förskottsnotis för privatpersoner och organisationer (B2C).
+    // Placeras direkt under betalningsvillkoren; skjuter ned ev. Swish-QR.
+    let payExtra = 0;
+    if (custType === 'b2c') {
+      doc.fontSize(8).font('Helvetica-Oblique').fillColor(GRAY).text(
+        'För privatpersoner och organisationer tillämpar vi förskottsbetalning via Bankgiro, Swish eller kortbetalning.',
+        50, payY + 50, { width: 230 }
+      );
+      payExtra = 22;
+    }
+
     // Swish QR-kod
     if (swishQrBuffer) {
-      doc.fontSize(7).font('Helvetica').fillColor(GRAY).text('Betala med Swish', 50, payY + 54);
-      doc.image(swishQrBuffer, 50, payY + 64, { width: 72, height: 72 });
+      doc.fontSize(7).font('Helvetica').fillColor(GRAY).text('Betala med Swish', 50, payY + 54 + payExtra);
+      doc.image(swishQrBuffer, 50, payY + 64 + payExtra, { width: 72, height: 72 });
     }
 
     // Höger: Avsändare (exakt samma y-värde)
@@ -211,7 +241,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
        .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, payY + 36);
 
     // Footer — direkt under betalningsinfo + QR-kod
-    ry = payY + (swishQrBuffer ? 148 : 60);
+    ry = payY + (swishQrBuffer ? 148 + payExtra : Math.max(60, 50 + payExtra));
     doc.moveTo(50, ry).lineTo(50 + W, ry).lineWidth(0.5).stroke('#e0e0e8');
     doc.fontSize(8).font('Helvetica').fillColor(GRAY)
        .text('Tack för ditt förtroende! Frågor? Ring 072-448 10 00 eller maila info@scenkonsult.se',
