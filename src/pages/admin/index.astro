@@ -4934,7 +4934,7 @@ function renderFakturaTab() {
       <button class="btn-action" onclick="invDownloadPdf()" style="font-size:0.78rem;border-color:rgba(196,181,244,0.45);color:rgba(196,181,244,0.8)">📄 Spara som PDF</button>
     </div>
 
-    ${isSent ? `
+    ${(isSent || c.credit_invoice_number) ? `
       <!-- ═══ Kreditfaktura ═══ -->
       <div style="margin-top:14px;padding:10px 12px;background:rgba(185,28,28,0.06);border:1px solid rgba(185,28,28,0.25);border-radius:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">

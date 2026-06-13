@@ -348,9 +348,23 @@ exports.handler = async (event) => {
       percent = p;
     }
 
-    // Bygg kreditrader + totalsummor
-    const creditLines = buildCreditLines(cart, percent);
-    const totalExcl   = creditLines.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
+    // Bygg kreditrader + totalsummor.
+    // Vid resend: använd den sparade ögonblicksbilden (credit_items/credit_amount_excl)
+    // — annars skulle en omsändning räkna om mot ev. NY faktura på samma order.
+    let creditLines, totalExcl, creditOfInvoice;
+    if (resend && cart.credit_invoice_number && Array.isArray(cart.credit_items) && cart.credit_items.length) {
+      creditLines     = cart.credit_items;
+      totalExcl       = (typeof cart.credit_amount_excl === 'number')
+        ? cart.credit_amount_excl
+        : creditLines.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
+      creditOfInvoice = cart.credit_of_invoice || cart.invoice_number;
+    } else {
+      creditLines     = buildCreditLines(cart, percent);
+      totalExcl       = creditLines.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
+      creditOfInvoice = cart.invoice_number;
+    }
+    // Numret som krediteras visas i PDF:en — frys det vid skapandet.
+    cart.invoice_number = creditOfInvoice;
 
     if (totalExcl >= 0)
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Kan inte kreditera 0 kr eller positivt belopp' }) };
@@ -387,9 +401,33 @@ exports.handler = async (event) => {
       credit_reason:         reason || null,
       credit_items:          creditLines,
     };
+
+    // Full kreditering = ordern är helt återförd. Frigör fakturafälten så att en
+    // NY faktura (nytt K-nummer) kan ställas ut på samma order — t.ex. när kunden
+    // ändrat sig och en ny offert/order ska faktureras. Kreditposten behålls intakt.
+    // Partiell kreditering rör inte fakturan (ursprungsbeloppet är delvis kvar).
+    const isFullCredit = percent === 100 && !resend;
+    if (isFullCredit) {
+      updates.invoice_number   = null;
+      updates.invoice_sent_at  = null;
+      updates.invoice_paid_at  = null;
+      updates.invoice_due_date = null;
+      updates.status           = 'confirmed';
+    }
+
     await db.update('carts', updates, 'id', cart_id);
+
+    // Frys vilket fakturanummer krediten avser (överlever ev. ny faktura på ordern).
+    // Separat, icke-blockerande skrivning — kolumnen credit_of_invoice kan saknas
+    // i äldre scheman och får då inte fälla hela krediteringen.
+    db.update('carts', { credit_of_invoice: creditOfInvoice }, 'id', cart_id).catch(e =>
+      console.warn('credit_of_invoice kunde inte sparas (kolumn kanske saknas):', e.message)
+    );
+
     await logAudit(db, cart_id, 'admin', resend ? 'credit_resent' : 'credit_sent', {
-      credit_invoice_number: creditNumber, mode: modeUsed, percent, total_excl: totalExcl
+      credit_invoice_number: creditNumber, mode: modeUsed, percent, total_excl: totalExcl,
+      credited_invoice: creditOfInvoice,
+      invoice_reset: !!isFullCredit
     });
 
     console.log('CREDIT_SENT:', JSON.stringify({ cart_id, credit_number: creditNumber, mode: modeUsed, percent }));

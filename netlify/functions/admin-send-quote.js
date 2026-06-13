@@ -37,10 +37,13 @@ exports.handler = async (event) => {
 
   let cartId    = existing_cart_id || genCartId();
   let cartToken = generateCartToken();
+  // Sätts till true om vi skickar om en offert till en redan bekräftad order —
+  // då måste den digitala signeringen nollställas så kunden kan godkänna på nytt.
+  let clearPriorConfirmation = false;
 
   if (existing_cart_id) {
     const { data: existingCart } = await db.from('carts')
-      .select('id, cart_token, status')
+      .select('id, cart_token, status, confirmed_at')
       .eq('id', existing_cart_id).single().catch(() => ({ data: null }));
 
     if (!existingCart) {
@@ -49,6 +52,10 @@ exports.handler = async (event) => {
       cartToken = generateCartToken();
     } else {
       cartToken = existingCart.cart_token || cartToken;
+      // Kunden hade redan bekräftat. En ny/ändrad offert skickas ut → den gamla
+      // signeringen gäller inte längre den nya offerten. Nollställ så att
+      // cart-update.js (customer_confirm) släpper igenom en ny bekräftelse.
+      if (existingCart.confirmed_at) clearPriorConfirmation = true;
     }
   }
 
@@ -92,8 +99,21 @@ exports.handler = async (event) => {
       cart_token:       cartToken,
       cc_email:         customer.cc_email || null,
       expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+      // Vid omskickad offert till en redan bekräftad order: nollställ signeringen
+      // så kunden kan godkänna den nya offerten på nytt.
+      ...(clearPriorConfirmation ? {
+        confirmed_at:         null,
+        confirmed_ip:         null,
+        confirmed_user_agent: null,
+        confirmation_text:    null,
+      } : {}),
     });
     await logAudit(db, cartId, 'admin', 'quote_sent', { to: customer.email });
+    if (clearPriorConfirmation) {
+      await logAudit(db, cartId, 'admin', 'confirmation_reset', {
+        reason: 'Ny offert skickad till tidigare bekräftad order'
+      });
+    }
   } catch (e) {
     console.error('ADMIN_QUOTE_DB_ERROR:', e.message);
     return err('Databasfel: ' + e.message, 500);
