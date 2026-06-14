@@ -56,6 +56,14 @@ const INJ_RAIL_SEGMENTS = {
   '1m': _rail1m ? { artno: _rail1m.artno, name: _rail1m.name, price: _rail1m.price } : { artno: 'SK-SCN-ACC-0006', name: 'Skyddsräcke 1,0 m', price: 140 },
 };
 
+// Scenkjol-segment per höjd — fasta längder (20cm=4m, 40cm=2m, 60cm=4m).
+// Kortets "+ Scenkjol" packar 3 sidor (fram+höger+vänster) genom att avrunda
+// upp löpmeter till hela segment av den valda höjdens segmentlängd.
+const _skirts = _tillbehor.filter(t => typeof t.skirtHeight === 'number' && typeof t.segmentMeters === 'number');
+const INJ_SKIRT_BY_HEIGHT = Object.fromEntries(
+  _skirts.map(s => [s.skirtHeight, { artno: s.artno, name: s.name, price: s.price, segmentMeters: s.segmentMeters }])
+);
+
 const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
 const INJ_MONTERING_MIN_PER_MODULE = (tjanster.montering && typeof tjanster.montering.minPerModul === 'number') ? tjanster.montering.minPerModul : 7.5;
@@ -168,6 +176,13 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         ))}
         <button
           type="button"
+          class="paket-pill paket-pill-skirt"
+          data-paket-skirt
+          aria-pressed="false"
+          title="Lägg till scenkjol — döljer ben och teknik på 3 sidor (fram, höger, vänster)"
+        >+ Scenkjol</button>
+        <button
+          type="button"
           class="paket-pill paket-pill-rail"
           data-paket-rail
           aria-pressed="false"
@@ -230,7 +245,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SELECTION_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
+<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -240,9 +255,32 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   const TRAPP = INJ_TRAPP_BY_HEIGHT;
   const RAIL_2M = INJ_RAIL_SEGMENTS['2m'];
   const RAIL_1M = INJ_RAIL_SEGMENTS['1m'];
+  const SKIRT_BY_HEIGHT = INJ_SKIRT_BY_HEIGHT;
   const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
 
   function fmt(n) { return Math.round(n).toLocaleString('sv-SE') + ' kr'; }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Scenkjol-paket: täcker 3 sidor (fram + höger + vänster) = width + 2×depth
+  // löpmeter. Antal segment avrundas UPP till hela segment av den valda
+  // höjdens segmentlängd (20cm=4m, 40cm=2m, 60cm=4m). Spill accepteras.
+  // Returnerar null om ingen kjol finns för höjden (t.ex. höjd utan artikel).
+  // ──────────────────────────────────────────────────────────────────
+  function computeSkirtPack(width, depth, height) {
+    const seg = SKIRT_BY_HEIGHT[height];
+    if (!seg) return null;
+    const meters = width + 2 * depth;
+    const count = Math.ceil(meters / seg.segmentMeters);
+    return {
+      artno: seg.artno,
+      name: seg.name,
+      price: seg.price,
+      count,
+      meters,
+      segmentMeters: seg.segmentMeters,
+      totalPrice: count * seg.price,
+    };
+  }
 
   // Packa räcken: greedy 2m först, sedan 1m. Sidor < 1m → inget räcke.
   function packRail(meters) {
@@ -287,7 +325,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     return (w % 2 === 0) || (d % 2 === 0);
   }
 
-  function computePrice(cfg, surface, stairs, height, rail) {
+  function computePrice(cfg, surface, stairs, height, rail, skirt) {
     if (!isSurfaceValid(cfg.width, cfg.depth, surface)) return null;
     const mc = moduleCount(cfg.width, cfg.depth, surface);
     const useHeight = height ?? cfg.defaultHeight;
@@ -296,6 +334,10 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     if (cfg.tak) price += cfg.tak.price;
     if (rail) {
       price += computeRailPack(cfg.width, cfg.depth, stairs).totalPrice;
+    }
+    if (skirt) {
+      const sp = computeSkirtPack(cfg.width, cfg.depth, useHeight);
+      if (sp) price += sp.totalPrice;
     }
     return price;
   }
@@ -457,6 +499,11 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     let stairs = cfg.defaultStairCount;
     let height = cfg.defaultHeight;
     let rail = false;
+    let skirt = false;
+
+    // 1×1-yta: 20 cm-ben och skyddsräcken är ej tillgängliga (bara 1×2 har 20cm-ben;
+    // räcken monteras ej på 1×1-podier). Höjd 20 visas/tillåts endast på 1×2-ytor.
+    const is1x1 = (s) => s === '1x1-halkfri';
 
     const svgEl = card.querySelector('[data-paket-svg]');
     const priceExcl = card.querySelector('[data-paket-price-excl]');
@@ -468,7 +515,16 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     const fraktNoteEl = card.querySelector('[data-paket-frakt-note]');
 
     function update() {
-      const price = computePrice(cfg, surface, stairs, height, rail);
+      // Yta-beroende regler:
+      // - 20 cm-höjd: endast 1×2-ytor. På 1×1 → fall tillbaka till 40.
+      // - Räcken + Scenkjol-knappar kan ha sina egna gating-regler nedan.
+      if (is1x1(surface) && height === 20) {
+        height = (cfg.heights || []).includes(40) ? 40 : (cfg.defaultHeight || 40);
+      }
+      // Räcken ej tillgängligt på 1×1 → nollställ om aktivt.
+      if (is1x1(surface) && rail) rail = false;
+
+      const price = computePrice(cfg, surface, stairs, height, rail, skirt);
 
       // Disable invalid surfaces
       card.querySelectorAll('[data-yta]').forEach(b => {
@@ -535,20 +591,50 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         b.setAttribute('aria-pressed', String(parseInt(b.dataset.stairs)) === String(stairs) ? 'true' : 'false');
       });
       card.querySelectorAll('[data-height]').forEach(b => {
-        b.setAttribute('aria-pressed', String(parseInt(b.dataset.height)) === String(height) ? 'true' : 'false');
+        const h = parseInt(b.dataset.height);
+        // 20 cm endast på 1×2-ytor — inaktivera pillen på 1×1.
+        if (h === 20) {
+          const disabled = is1x1(surface);
+          b.disabled = disabled;
+          b.classList.toggle('paket-pill-disabled', disabled);
+          b.title = disabled ? '20 cm finns endast för 1×2 m-podier' : '';
+        }
+        b.setAttribute('aria-pressed', h === height ? 'true' : 'false');
       });
       const railBtn = card.querySelector('[data-paket-rail]');
       if (railBtn) {
+        // Räcken ej på 1×1-podier
+        const railDisabled = is1x1(surface);
+        railBtn.disabled = railDisabled;
+        railBtn.classList.toggle('paket-pill-disabled', railDisabled);
         railBtn.setAttribute('aria-pressed', rail ? 'true' : 'false');
-        // Dynamisk tooltip som beskriver exakt vad säkerhetspaketet innehåller
-        const pack = computeRailPack(cfg.width, cfg.depth, stairs);
-        const railSegTxt = pack.count20 > 0 || pack.count10 > 0
-          ? `skyddsräcken (${pack.count20}×2m${pack.count10 > 0 ? ' + ' + pack.count10 + '×1m' : ''}) längs ${stairs === 0 ? 'alla 4 sidor' : stairs === 1 ? 'bak + båda sidor' : 'båda sidor'}`
-          : 'skyddsräcken';
-        const stairRailTxt = pack.stairRailCount > 0
-          ? ` + räcken till ${pack.stairRailCount} trappa${pack.stairRailCount > 1 ? 'or' : ''}`
-          : '';
-        railBtn.title = `Säkerhetspaket: ${railSegTxt}${stairRailTxt} — totalt ${fmt(pack.totalPrice)}`;
+        if (railDisabled) {
+          railBtn.title = 'Skyddsräcken monteras ej på 1×1 m-podier';
+        } else {
+          // Dynamisk tooltip som beskriver exakt vad säkerhetspaketet innehåller
+          const pack = computeRailPack(cfg.width, cfg.depth, stairs);
+          const railSegTxt = pack.count20 > 0 || pack.count10 > 0
+            ? `skyddsräcken (${pack.count20}×2m${pack.count10 > 0 ? ' + ' + pack.count10 + '×1m' : ''}) längs ${stairs === 0 ? 'alla 4 sidor' : stairs === 1 ? 'bak + båda sidor' : 'båda sidor'}`
+            : 'skyddsräcken';
+          const stairRailTxt = pack.stairRailCount > 0
+            ? ` + räcken till ${pack.stairRailCount} trappa${pack.stairRailCount > 1 ? 'or' : ''}`
+            : '';
+          railBtn.title = `Säkerhetspaket: ${railSegTxt}${stairRailTxt} — totalt ${fmt(pack.totalPrice)}`;
+        }
+      }
+      const skirtBtn = card.querySelector('[data-paket-skirt]');
+      if (skirtBtn) {
+        const sp = computeSkirtPack(cfg.width, cfg.depth, height);
+        // Inaktivera om ingen kjol finns för vald höjd
+        const skirtDisabled = !sp;
+        skirtBtn.disabled = skirtDisabled;
+        skirtBtn.classList.toggle('paket-pill-disabled', skirtDisabled);
+        skirtBtn.setAttribute('aria-pressed', skirt ? 'true' : 'false');
+        if (skirtDisabled) {
+          skirtBtn.title = 'Scenkjol saknas för vald höjd';
+        } else {
+          skirtBtn.title = `Scenkjol ${height} cm — 3 sidor (${sp.meters} m) → ${sp.count}×${sp.name} = ${fmt(sp.totalPrice)}`;
+        }
       }
 
       if (svgEl) drawPaketSvg(svgEl, cfg, surface, stairs);
@@ -569,6 +655,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     });
     card.querySelectorAll('[data-height]').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (btn.disabled) return;
         height = parseInt(btn.dataset.height);
         update();
       });
@@ -576,7 +663,20 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     const railBtn = card.querySelector('[data-paket-rail]');
     if (railBtn) {
       railBtn.addEventListener('click', () => {
+        if (railBtn.disabled) return;
         rail = !rail;
+        // Räcken och scenkjol kan ej kombineras
+        if (rail) skirt = false;
+        update();
+      });
+    }
+    const skirtBtn = card.querySelector('[data-paket-skirt]');
+    if (skirtBtn) {
+      skirtBtn.addEventListener('click', () => {
+        if (skirtBtn.disabled) return;
+        skirt = !skirt;
+        // Scenkjol och räcken kan ej kombineras
+        if (skirt) rail = false;
         update();
       });
     }
@@ -693,6 +793,23 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         }
       }
 
+      // Scenkjol — 3 sidor (fram + höger + vänster), fasta segment per höjd.
+      // Ömsesidigt uteslutande med räcken (säkerställs i UI), men skirt-flaggan
+      // läses här oberoende så att cart-raderna stämmer med priset.
+      if (skirt) {
+        const sp = computeSkirtPack(cfg.width, cfg.depth, height);
+        if (sp && sp.count > 0) {
+          window.skCart.add({
+            id: sp.artno,
+            artno: sp.artno,
+            name: `${sp.name} — ${paketName}`,
+            price: sp.price,
+            qty: sp.count,
+            category: 'Scen tillbehör',
+          });
+        }
+      }
+
       // Tak-paket — alltid bulky/montering eftersom tak är skrymmande och tar tid
       if (cfg.tak) {
         const takItem = {
@@ -781,8 +898,10 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   .paket-pill:hover:not(:disabled) { border-color: rgba(196,181,244,0.4); color: white; }
   .paket-pill[aria-pressed="true"] { background: #c4b5f4; color: #0c0a24; border-color: #c4b5f4; }
   .paket-pill-disabled, .paket-pill:disabled { opacity: 0.3; cursor: not-allowed; }
-  .paket-pill-rail { border-style: dashed; border-color: rgba(196,181,244,0.35); margin-left: auto; }
+  .paket-pill-rail { border-style: dashed; border-color: rgba(196,181,244,0.35); }
   .paket-pill-rail[aria-pressed="true"] { border-style: solid; }
+  .paket-pill-skirt { border-style: dashed; border-color: rgba(196,181,244,0.35); margin-left: auto; }
+  .paket-pill-skirt[aria-pressed="true"] { border-style: solid; }
 
   .paket-bottom { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.85rem; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08); }
   .paket-bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
