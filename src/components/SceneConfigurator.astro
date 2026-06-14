@@ -8,6 +8,14 @@ const stairs = (scenData.tillbehor || []).filter(t =>
   ['SK-SCN-ACC-0001', 'SK-SCN-ACC-0002'].includes(t.artno)
 );
 const skirt = (scenData.tillbehor || []).find(t => t.artno === 'SK-SCN-ACC-0003');
+// Scenkjol-segment per höjd — fasta längder (samma sortiment som paketkorten):
+// 20cm=4m (ACC-0011), 40cm=2m (ACC-0009), 60cm=4m (ACC-0003).
+const _skirtsByHeight = (scenData.tillbehor || []).filter(
+  t => typeof t.skirtHeight === 'number' && typeof t.segmentMeters === 'number'
+);
+const INJ_SKIRT_BY_HEIGHT = Object.fromEntries(
+  _skirtsByHeight.map(s => [s.skirtHeight, { artno: s.artno, name: s.name, price: s.price, segmentMeters: s.segmentMeters }])
+);
 const railSegments = (scenData.tillbehor || []).filter(t =>
   ['SK-SCN-ACC-0006', 'SK-SCN-ACC-0007'].includes(t.artno)
 );
@@ -138,9 +146,11 @@ const configData = {
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">3</span>Höjd</legend>
         <div class="cfg-pill-row">
+          <label class="cfg-pill cfg-pill-height-20"><input type="radio" name="height" value="20" /><span>20 cm</span></label>
           <label class="cfg-pill"><input type="radio" name="height" value="40" /><span>40 cm</span></label>
           <label class="cfg-pill cfg-pill-height-60"><input type="radio" name="height" value="60" checked /><span>60 cm</span></label>
         </div>
+        <p class="cfg-hint cfg-hint-height-20" hidden>20 cm finns endast för 1×2 m-podier.</p>
       </fieldset>
 
       <fieldset class="cfg-step">
@@ -160,7 +170,7 @@ const configData = {
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">5</span>Scenkjol</legend>
-        <p class="cfg-hint">Svart scenkjol som döljer ben och teknik. 24,75 kr per löpmeter.</p>
+        <p class="cfg-hint">Svart scenkjol som döljer ben och teknik. Pris per sida i hela segment: 20 cm = 4 m/segment, 40 cm = 2 m/segment, 60 cm = 4 m/segment.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="skirtMode" value="none" checked /><span>Ingen</span></label>
           <label class="cfg-pill"><input type="radio" name="skirtMode" value="custom" /><span>Anpassad placering</span></label>
@@ -175,7 +185,7 @@ const configData = {
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">6</span>Skyddsräcken</legend>
-        <p class="cfg-hint">140 kr/m för 1,0 m och 2,0 m segment. Räcken rekommenderas för scener från 60 cm höjd och uppåt. Räcken kan inte placeras där trappa står.</p>
+        <p class="cfg-hint">140 kr/m för 1,0 m och 2,0 m segment. Räcken rekommenderas för scener från 60 cm höjd och uppåt. Räcken kan inte placeras där trappa står. Ej tillgängligt för 1×1 m-podier, och kan ej kombineras med scenkjol.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="railMode" value="none" checked /><span>Ingen</span></label>
           <label class="cfg-pill"><input type="radio" name="railMode" value="custom" /><span>Anpassad placering</span></label>
@@ -234,7 +244,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_SKIRT_PRICE_PER_METER, INJ_SELECTION_RULES }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -271,9 +281,21 @@ const configData = {
     const FRAKT_DATA = cfg.frakt || {};
     const FRAKT_LABELS = { storbil: 'Stor bil', storbil_slap: 'Stor bil + släp', lastbil: 'Lätt lastbil' };
     const SKIRT_PRICE_PER_METER = INJ_SKIRT_PRICE_PER_METER;
+    const SKIRT_BY_HEIGHT = INJ_SKIRT_BY_HEIGHT;
     const MONTERING_PRICE_PER_HOUR = INJ_MONTERING_PRICE_PER_HOUR;
     const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
     const OBLIG_OVER_M2 = INJ_OBLIG_OVER_M2;
+
+    // Scenkjol med FASTA segment (samma sortiment/regel som paketkorten).
+    // Per sida: antal segment = tak(sidlängd / segmentlängd) för vald höjd.
+    // 20cm→4m-segment, 40cm→2m-segment, 60cm→4m-segment. Returnerar null
+    // om ingen kjol finns för höjden.
+    function skirtSegmentsForSide(sideMeters, height) {
+      const seg = SKIRT_BY_HEIGHT[height];
+      if (!seg || sideMeters <= 0) return null;
+      const count = Math.ceil(sideMeters / seg.segmentMeters);
+      return { artno: seg.artno, name: seg.name, price: seg.price, count, segmentMeters: seg.segmentMeters };
+    }
 
     function getStairForHeight(h) {
       if (h === 40) return { artno: 'SK-SCN-ACC-0001', name: 'Scentrapp (40 cm)', price: 279 };
@@ -386,18 +408,26 @@ const configData = {
       }
 
       if (state.skirtMode === 'custom') {
-        const skirtMeters = sideLengthsTotal('skirt');
-        if (skirtMeters > 0) {
-          lines.push({
-            artno: 'SK-SCN-ACC-0003',
-            name: `${prefix} Scenkjol (${skirtMeters} m)`,
-            price: Math.round(skirtMeters * SKIRT_PRICE_PER_METER * 100) / 100,
-            qty: 1,
-            category: 'Scen',
-            isCalculated: true,
-            metaText: `${skirtMeters} m × 24,75 kr`,
-          });
-        }
+        // Fasta segment per sida, aggregerat per artikel (höjdberoende).
+        const skirtSides = SIDES.filter(s => state.skirt[s]);
+        const skirtTotals = {}; // artno -> { name, price, count }
+        skirtSides.forEach(side => {
+          const seg = skirtSegmentsForSide(sideLengthMeters(side), state.height);
+          if (!seg) return;
+          if (!skirtTotals[seg.artno]) skirtTotals[seg.artno] = { name: seg.name, price: seg.price, count: 0 };
+          skirtTotals[seg.artno].count += seg.count;
+        });
+        Object.entries(skirtTotals).forEach(([artno, t]) => {
+          if (t.count > 0) {
+            lines.push({
+              artno,
+              name: `${prefix} ${t.name}`,
+              price: t.price,
+              qty: t.count,
+              category: 'Scen',
+            });
+          }
+        });
       }
 
       if (state.railMode === 'custom') {
@@ -716,20 +746,51 @@ const configData = {
         cartBtn.disabled = !valid;
       }
 
-      // 1×1 → lås höjd till 40 cm
+      // Höjd-regler:
+      // - 1×1 → endast 40 cm (20 + 60 inaktiverade, fallback till 40)
+      // - 1×2 → 20/40/60 cm (20 cm endast för 1×2-podier)
       const height60 = document.querySelector('input[name="height"][value="60"]');
       const height40 = document.querySelector('input[name="height"][value="40"]');
+      const height20 = document.querySelector('input[name="height"][value="20"]');
       const pill60 = document.querySelector('.cfg-pill-height-60');
-      if (state.moduleType === '1x1-halkfri') {
+      const pill20 = document.querySelector('.cfg-pill-height-20');
+      const hint20 = document.querySelector('.cfg-hint-height-20');
+      const is1x1 = state.moduleType === '1x1-halkfri';
+      if (is1x1) {
         if (state.height !== 40) {
           state.height = 40;
           if (height40) height40.checked = true;
         }
         if (height60) height60.disabled = true;
         if (pill60) pill60.classList.add('cfg-pill-disabled');
+        if (height20) height20.disabled = true;
+        if (pill20) pill20.classList.add('cfg-pill-disabled');
+        if (hint20) hint20.hidden = false;
       } else {
         if (height60) height60.disabled = false;
         if (pill60) pill60.classList.remove('cfg-pill-disabled');
+        if (height20) height20.disabled = false;
+        if (pill20) pill20.classList.remove('cfg-pill-disabled');
+        if (hint20) hint20.hidden = true;
+      }
+
+      // Räcken EJ på 1×1-podier → inaktivera hela räcke-steget.
+      const railModeNone = document.querySelector('input[name="railMode"][value="none"]');
+      const railModeCustom = document.querySelector('input[name="railMode"][value="custom"]');
+      if (is1x1) {
+        if (state.railMode !== 'none') {
+          state.railMode = 'none';
+          SIDES.forEach(s => { state.rail[s] = false; });
+          document.querySelectorAll('input[name="rail"]').forEach(cb => { cb.checked = false; });
+          if (railModeNone) railModeNone.checked = true;
+        }
+        if (railModeCustom) {
+          railModeCustom.disabled = true;
+          railModeCustom.closest('.cfg-pill')?.classList.add('cfg-pill-disabled');
+        }
+      } else if (railModeCustom) {
+        railModeCustom.disabled = false;
+        railModeCustom.closest('.cfg-pill')?.classList.remove('cfg-pill-disabled');
       }
 
       // Räcken på trapp-sidor är nu tillåtna (trappan tar av 1 m från sidans
@@ -933,6 +994,15 @@ const configData = {
         if (state.skirtMode === 'none') {
           SIDES.forEach(s => { state.skirt[s] = false; });
           document.querySelectorAll('input[name="skirt"]').forEach(cb => cb.checked = false);
+        } else {
+          // Scenkjol och räcken kan ej kombineras → nollställ räcken
+          if (state.railMode !== 'none') {
+            state.railMode = 'none';
+            SIDES.forEach(s => { state.rail[s] = false; });
+            document.querySelectorAll('input[name="rail"]').forEach(cb => cb.checked = false);
+            const rmNone = document.querySelector('input[name="railMode"][value="none"]');
+            if (rmNone) rmNone.checked = true;
+          }
         }
         render();
       });
@@ -946,6 +1016,15 @@ const configData = {
         if (state.railMode === 'none') {
           SIDES.forEach(s => { state.rail[s] = false; });
           document.querySelectorAll('input[name="rail"]').forEach(cb => cb.checked = false);
+        } else {
+          // Räcken och scenkjol kan ej kombineras → nollställ scenkjol
+          if (state.skirtMode !== 'none') {
+            state.skirtMode = 'none';
+            SIDES.forEach(s => { state.skirt[s] = false; });
+            document.querySelectorAll('input[name="skirt"]').forEach(cb => cb.checked = false);
+            const smNone = document.querySelector('input[name="skirtMode"][value="none"]');
+            if (smNone) smNone.checked = true;
+          }
         }
         render();
       });
