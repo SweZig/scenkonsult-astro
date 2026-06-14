@@ -267,15 +267,16 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   function fmt(n) { return Math.round(n).toLocaleString('sv-SE') + ' kr'; }
 
   // ──────────────────────────────────────────────────────────────────
-  // Scenkjol-paket: täcker 3 sidor (fram + höger + vänster) = width + 2×depth
-  // löpmeter. Antal segment avrundas UPP till hela segment av den valda
-  // höjdens segmentlängd (20cm=4m, 40cm=2m, 60cm=4m). Spill accepteras.
-  // Returnerar null om ingen kjol finns för höjden (t.ex. höjd utan artikel).
+  // Scenkjol-paket. Per-sida-regel mot räcken:
+  //   - Endast kjol vald → fram + höger + vänster = width + 2×depth löpmeter
+  //   - Kjol OCH räcken valda → kjol ENBART fram (width), räcken tar h/v/bak
+  // Antal segment avrundas UPP till hela segment av höjdens segmentlängd
+  // (20cm=4m, 40cm=2m, 60cm=4m). Returnerar null om ingen kjol finns.
   // ──────────────────────────────────────────────────────────────────
-  function computeSkirtPack(width, depth, height) {
+  function computeSkirtPack(width, depth, height, railAlso) {
     const seg = SKIRT_BY_HEIGHT[height];
     if (!seg) return null;
-    const meters = width + 2 * depth;
+    const meters = railAlso ? width : (width + 2 * depth);
     const count = Math.ceil(meters / seg.segmentMeters);
     return {
       artno: seg.artno,
@@ -284,6 +285,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       count,
       meters,
       segmentMeters: seg.segmentMeters,
+      sides: railAlso ? 'fram' : 'fram + höger + vänster',
       totalPrice: count * seg.price,
     };
   }
@@ -298,17 +300,31 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     return { count20: c20, count10: c10 };
   }
 
-  // "Säkerhetspaket" för paketkort: skyddsräcken på bak + sidor utan trappa
+  // "Säkerhetspaket" för paketkort: skyddsräcken på sidor utan trappa
   // PLUS räcken på själva trapporna (SK-SCN-ACC-0008, 200 kr × antal trappor).
-  // - 0 trappor → fram + bak + 2 sidor, 0 trapp-räcken
-  // - 1 trappa  → bak + 2 sidor (trappa antas på fram) + 1 trapp-räcke-par
-  // - 2 trappor → 2 sidor (trappor på fram + bak) + 2 trapp-räcke-par
+  // Per-sida-regel mot scenkjol: om skirtAlso=true tar scenkjolen FRAM, så
+  // räcken läggs ENDAST på bak + höger + vänster (fram exkluderas helt).
+  //
+  // Sidlogik (stairs antas på fram, sedan bak):
+  //   skirtAlso=false:
+  //     0 trappor → fram + bak + 2 sidor
+  //     1 trappa  → bak + 2 sidor (fram har trappa)
+  //     2 trappor → 2 sidor (fram + bak har trappor)
+  //   skirtAlso=true (fram = kjol, aldrig räcke):
+  //     0–1 trappor → bak + 2 sidor
+  //     2 trappor   → 2 sidor (bak har trappa)
   // Returnerar { count20, count10, stairRailCount, totalPrice }.
-  function computeRailPack(width, depth, stairs) {
+  function computeRailPack(width, depth, stairs, skirtAlso) {
     const sides = [];
-    if (stairs === 0) sides.push(width, width, depth, depth);
-    else if (stairs === 1) sides.push(width, depth, depth);
-    else sides.push(depth, depth);
+    if (skirtAlso) {
+      // Fram tillhör scenkjolen → aldrig räcke på fram.
+      if (stairs <= 1) sides.push(width, depth, depth);   // bak + 2 sidor
+      else sides.push(depth, depth);                       // bak har trappa → 2 sidor
+    } else {
+      if (stairs === 0) sides.push(width, width, depth, depth);
+      else if (stairs === 1) sides.push(width, depth, depth);
+      else sides.push(depth, depth);
+    }
     let c20 = 0, c10 = 0;
     sides.forEach(len => {
       const p = packRail(len);
@@ -339,10 +355,10 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
     let price = mc * MOD_PRICE[surface] + stairs * stairPrice;
     if (cfg.tak) price += cfg.tak.price;
     if (rail) {
-      price += computeRailPack(cfg.width, cfg.depth, stairs).totalPrice;
+      price += computeRailPack(cfg.width, cfg.depth, stairs, skirt).totalPrice;
     }
     if (skirt) {
-      const sp = computeSkirtPack(cfg.width, cfg.depth, useHeight);
+      const sp = computeSkirtPack(cfg.width, cfg.depth, useHeight, rail);
       if (sp) price += sp.totalPrice;
     }
     return price;
@@ -617,10 +633,14 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         if (railDisabled) {
           railBtn.title = 'Skyddsräcken monteras ej på 1×1 m-podier';
         } else {
-          // Dynamisk tooltip som beskriver exakt vad säkerhetspaketet innehåller
-          const pack = computeRailPack(cfg.width, cfg.depth, stairs);
+          // Dynamisk tooltip som beskriver exakt vad säkerhetspaketet innehåller.
+          // När scenkjol också är vald tar kjolen FRAM → räcken bak + sidor.
+          const pack = computeRailPack(cfg.width, cfg.depth, stairs, skirt);
+          const sidesTxt = skirt
+            ? (stairs >= 2 ? 'båda sidor' : 'bak + båda sidor')
+            : (stairs === 0 ? 'alla 4 sidor' : stairs === 1 ? 'bak + båda sidor' : 'båda sidor');
           const railSegTxt = pack.count20 > 0 || pack.count10 > 0
-            ? `skyddsräcken (${pack.count20}×2m${pack.count10 > 0 ? ' + ' + pack.count10 + '×1m' : ''}) längs ${stairs === 0 ? 'alla 4 sidor' : stairs === 1 ? 'bak + båda sidor' : 'båda sidor'}`
+            ? `skyddsräcken (${pack.count20}×2m${pack.count10 > 0 ? ' + ' + pack.count10 + '×1m' : ''}) längs ${sidesTxt}`
             : 'skyddsräcken';
           const stairRailTxt = pack.stairRailCount > 0
             ? ` + räcken till ${pack.stairRailCount} trappa${pack.stairRailCount > 1 ? 'or' : ''}`
@@ -630,7 +650,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       }
       const skirtBtn = card.querySelector('[data-paket-skirt]');
       if (skirtBtn) {
-        const sp = computeSkirtPack(cfg.width, cfg.depth, height);
+        const sp = computeSkirtPack(cfg.width, cfg.depth, height, rail);
         // Inaktivera om ingen kjol finns för vald höjd
         const skirtDisabled = !sp;
         skirtBtn.disabled = skirtDisabled;
@@ -639,7 +659,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         if (skirtDisabled) {
           skirtBtn.title = 'Scenkjol saknas för vald höjd';
         } else {
-          skirtBtn.title = `Scenkjol ${height} cm — 3 sidor (${sp.meters} m) → ${sp.count}×${sp.name} = ${fmt(sp.totalPrice)}`;
+          skirtBtn.title = `Scenkjol ${height} cm — ${sp.sides} (${sp.meters} m) → ${sp.count}×${sp.name} = ${fmt(sp.totalPrice)}`;
         }
       }
 
@@ -671,8 +691,6 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       railBtn.addEventListener('click', () => {
         if (railBtn.disabled) return;
         rail = !rail;
-        // Räcken och scenkjol kan ej kombineras
-        if (rail) skirt = false;
         update();
       });
     }
@@ -681,8 +699,6 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       skirtBtn.addEventListener('click', () => {
         if (skirtBtn.disabled) return;
         skirt = !skirt;
-        // Scenkjol och räcken kan ej kombineras
-        if (skirt) rail = false;
         update();
       });
     }
@@ -763,10 +779,10 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         }
       }
 
-      // Säkerhetspaket — skyddsräcken på bak + sidor utan trappa
-      // + räcken till trapporna (om trappor valda)
+      // Säkerhetspaket — skyddsräcken på sidor utan trappa (+ trapp-räcken).
+      // Om scenkjol också vald tar kjolen FRAM → räcken bak + sidor.
       if (rail) {
-        const pack = computeRailPack(cfg.width, cfg.depth, stairs);
+        const pack = computeRailPack(cfg.width, cfg.depth, stairs, skirt);
         if (pack.count20 > 0) {
           window.skCart.add({
             id: RAIL_2M.artno,
@@ -799,11 +815,10 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         }
       }
 
-      // Scenkjol — 3 sidor (fram + höger + vänster), fasta segment per höjd.
-      // Ömsesidigt uteslutande med räcken (säkerställs i UI), men skirt-flaggan
-      // läses här oberoende så att cart-raderna stämmer med priset.
+      // Scenkjol — fasta segment per höjd. Per-sida-regel mot räcken:
+      // endast kjol → fram+höger+vänster; kjol OCH räcken → kjol enbart fram.
       if (skirt) {
-        const sp = computeSkirtPack(cfg.width, cfg.depth, height);
+        const sp = computeSkirtPack(cfg.width, cfg.depth, height, rail);
         if (sp && sp.count > 0) {
           window.skCart.add({
             id: sp.artno,

@@ -185,7 +185,7 @@ const configData = {
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">6</span>Skyddsräcken</legend>
-        <p class="cfg-hint">140 kr/m för 1,0 m och 2,0 m segment. Räcken rekommenderas för scener från 60 cm höjd och uppåt. Räcken kan inte placeras där trappa står. Ej tillgängligt för 1×1 m-podier, och kan ej kombineras med scenkjol.</p>
+        <p class="cfg-hint">140 kr/m för 1,0 m och 2,0 m segment. Räcken rekommenderas för scener från 60 cm höjd och uppåt. Räcken kan inte placeras där trappa står. Ej tillgängligt för 1×1 m-podier. Per sida går det inte att ha både scenkjol och räcke — välj det ena per sida.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="railMode" value="none" checked /><span>Ingen</span></label>
           <label class="cfg-pill"><input type="radio" name="railMode" value="custom" /><span>Anpassad placering</span></label>
@@ -270,9 +270,6 @@ const configData = {
       skirt: { fram: false, vanster: false, hoger: false, bak: false },
       railMode: 'none',
       rail: { fram: false, vanster: false, hoger: false, bak: false },
-      // Scenkjol & skyddsräcken kan ej kombineras. Spårar vilket som valdes
-      // sist så render() kan demota det andra om båda råkar bli 'custom'.
-      lastExclusive: null, // 'skirt' | 'rail' | null
       installation: false,
       frakt: 'none',
       fraktTrip: 'tr',
@@ -812,25 +809,33 @@ const configData = {
         }
       });
 
-      // Ömsesidig uteslutning (single source of truth): scenkjol & räcken kan
-      // ej vara 'custom' samtidigt. Om båda är det, behåll det som valdes sist.
-      if (state.skirtMode === 'custom' && state.railMode === 'custom') {
-        const demote = state.lastExclusive === 'skirt' ? 'rail' : 'skirt';
-        if (demote === 'rail') {
-          state.railMode = 'none';
-          SIDES.forEach(s => { state.rail[s] = false; });
-          document.querySelectorAll('input[name="rail"]').forEach(cb => { cb.checked = false; });
-        } else {
-          state.skirtMode = 'none';
-          SIDES.forEach(s => { state.skirt[s] = false; });
-          document.querySelectorAll('input[name="skirt"]').forEach(cb => { cb.checked = false; });
-        }
-      }
       // Synka mode-radioknapparna mot state (annars kan DOM och state divergera)
       const skirtRadio = document.querySelector(`input[name="skirtMode"][value="${state.skirtMode}"]`);
       const railRadio = document.querySelector(`input[name="railMode"][value="${state.railMode}"]`);
       if (skirtRadio) skirtRadio.checked = true;
       if (railRadio) railRadio.checked = true;
+
+      // Per-sida-regel: en sida kan ha scenkjol ELLER räcke, inte båda.
+      // Inaktivera räcke-kryssrutan på sidor som redan har kjol, och tvärtom.
+      // (Endast relevant när respektive läge är 'custom'.)
+      const skirtActive = state.skirtMode === 'custom';
+      const railActive = state.railMode === 'custom';
+      document.querySelectorAll('input[name="rail"]').forEach(cb => {
+        const side = cb.dataset.side;
+        const blocked = skirtActive && state.skirt[side];
+        if (blocked && state.rail[side]) { state.rail[side] = false; cb.checked = false; }
+        cb.disabled = blocked;
+        cb.parentElement?.classList.toggle('cfg-side-disabled', blocked);
+        if (blocked) cb.title = 'Scenkjol valt på denna sida — räcke kan ej kombineras här.';
+      });
+      document.querySelectorAll('input[name="skirt"]').forEach(cb => {
+        const side = cb.dataset.side;
+        const blocked = railActive && state.rail[side];
+        if (blocked && state.skirt[side]) { state.skirt[side] = false; cb.checked = false; }
+        cb.disabled = blocked;
+        cb.parentElement?.classList.toggle('cfg-side-disabled', blocked);
+        if (blocked) cb.title = 'Räcke valt på denna sida — scenkjol kan ej kombineras här.';
+      });
 
       // Visa/dölj custom-paneler
       const skirtSides = document.getElementById('cfg-skirt-sides');
@@ -1017,8 +1022,6 @@ const configData = {
         if (state.skirtMode === 'none') {
           SIDES.forEach(s => { state.skirt[s] = false; });
           document.querySelectorAll('input[name="skirt"]').forEach(cb => cb.checked = false);
-        } else {
-          state.lastExclusive = 'skirt';
         }
         render();
       });
@@ -1032,8 +1035,6 @@ const configData = {
         if (state.railMode === 'none') {
           SIDES.forEach(s => { state.rail[s] = false; });
           document.querySelectorAll('input[name="rail"]').forEach(cb => cb.checked = false);
-        } else {
-          state.lastExclusive = 'rail';
         }
         render();
       });
