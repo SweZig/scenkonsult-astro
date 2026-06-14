@@ -270,6 +270,9 @@ const configData = {
       skirt: { fram: false, vanster: false, hoger: false, bak: false },
       railMode: 'none',
       rail: { fram: false, vanster: false, hoger: false, bak: false },
+      // Scenkjol & skyddsräcken kan ej kombineras. Spårar vilket som valdes
+      // sist så render() kan demota det andra om båda råkar bli 'custom'.
+      lastExclusive: null, // 'skirt' | 'rail' | null
       installation: false,
       frakt: 'none',
       fraktTrip: 'tr',
@@ -809,6 +812,26 @@ const configData = {
         }
       });
 
+      // Ömsesidig uteslutning (single source of truth): scenkjol & räcken kan
+      // ej vara 'custom' samtidigt. Om båda är det, behåll det som valdes sist.
+      if (state.skirtMode === 'custom' && state.railMode === 'custom') {
+        const demote = state.lastExclusive === 'skirt' ? 'rail' : 'skirt';
+        if (demote === 'rail') {
+          state.railMode = 'none';
+          SIDES.forEach(s => { state.rail[s] = false; });
+          document.querySelectorAll('input[name="rail"]').forEach(cb => { cb.checked = false; });
+        } else {
+          state.skirtMode = 'none';
+          SIDES.forEach(s => { state.skirt[s] = false; });
+          document.querySelectorAll('input[name="skirt"]').forEach(cb => { cb.checked = false; });
+        }
+      }
+      // Synka mode-radioknapparna mot state (annars kan DOM och state divergera)
+      const skirtRadio = document.querySelector(`input[name="skirtMode"][value="${state.skirtMode}"]`);
+      const railRadio = document.querySelector(`input[name="railMode"][value="${state.railMode}"]`);
+      if (skirtRadio) skirtRadio.checked = true;
+      if (railRadio) railRadio.checked = true;
+
       // Visa/dölj custom-paneler
       const skirtSides = document.getElementById('cfg-skirt-sides');
       const railSides = document.getElementById('cfg-rail-sides');
@@ -995,14 +1018,7 @@ const configData = {
           SIDES.forEach(s => { state.skirt[s] = false; });
           document.querySelectorAll('input[name="skirt"]').forEach(cb => cb.checked = false);
         } else {
-          // Scenkjol och räcken kan ej kombineras → nollställ räcken
-          if (state.railMode !== 'none') {
-            state.railMode = 'none';
-            SIDES.forEach(s => { state.rail[s] = false; });
-            document.querySelectorAll('input[name="rail"]').forEach(cb => cb.checked = false);
-            const rmNone = document.querySelector('input[name="railMode"][value="none"]');
-            if (rmNone) rmNone.checked = true;
-          }
+          state.lastExclusive = 'skirt';
         }
         render();
       });
@@ -1017,14 +1033,7 @@ const configData = {
           SIDES.forEach(s => { state.rail[s] = false; });
           document.querySelectorAll('input[name="rail"]').forEach(cb => cb.checked = false);
         } else {
-          // Räcken och scenkjol kan ej kombineras → nollställ scenkjol
-          if (state.skirtMode !== 'none') {
-            state.skirtMode = 'none';
-            SIDES.forEach(s => { state.skirt[s] = false; });
-            document.querySelectorAll('input[name="skirt"]').forEach(cb => cb.checked = false);
-            const smNone = document.querySelector('input[name="skirtMode"][value="none"]');
-            if (smNone) smNone.checked = true;
-          }
+          state.lastExclusive = 'rail';
         }
         render();
       });
