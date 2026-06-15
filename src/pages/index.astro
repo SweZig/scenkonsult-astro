@@ -1,5 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import djData from '../data/dj.json';
+
+// Frånpriser härleds från JSON-katalogen (hänger med vid prisjustering).
+const djFranExcl = Math.min(...(djData.equipment as any[])
+  .filter(p => p.category === 'DJ-tjänst' && p.tier === 'junior' && p.price)
+  .map(p => p.price));
+const djFranInkl = Math.round(djFranExcl * 1.25);
 
 const homeSchema = {
   "@context": "https://schema.org",
@@ -199,7 +206,7 @@ const homeSchema = {
         </div>
         <div class="svc2-body">
           <h3 class="svc2-title">Hyra DJ</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">1 999 kr</strong><strong class="sk-price-incl hidden">2 499 kr</strong> <span>/kväll</span></p>
+          <p class="svc2-price">från <strong class="sk-price-excl">{djFranExcl.toLocaleString('sv')} kr</strong><strong class="sk-price-incl hidden">{djFranInkl.toLocaleString('sv')} kr</strong> <span>/kväll</span></p>
           <p class="svc2-desc">Boka professionell DJ eller hyr utrustning. Alla genrer.</p>
           <span class="svc2-cta">Se DJ-tjänsten →</span>
         </div>

@@ -1,6 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import KunskapBlock from '../../components/KunskapBlock.astro';
+import djData from '../../data/dj.json';
+
+// DJ-frånpris från JSON (hänger med vid prisjustering).
+const djFran = Math.min(...(djData.equipment as any[])
+  .filter(p => p.category === 'DJ-tjänst' && p.tier === 'junior' && p.price)
+  .map(p => p.price));
 
 const kategorier = [
   {
@@ -62,7 +68,7 @@ const kategorier = [
     rubrik: "Professionella DJs",
     beskrivning: "Erfarna DJs till bröllop, privata fester och företagsevent. Vi har DJs som täcker allt från 80-tal till idag. Välj junior, senior eller PRO-DJ beroende på behov och budget.",
     href: "/vara-tjanster/hyra-dj/",
-    fran: "1 999 kr",
+    fran: `${djFran.toLocaleString('sv')} kr`,
     icon: "🎧",
     tjanster: ["Junior DJ", "Senior DJ", "PRO DJ med tekniker", "Bröllop, fest & event"],
   },

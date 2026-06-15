@@ -1,5 +1,11 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import djData from '../../../data/dj.json';
+
+// DJ-frånpriser från JSON (hänger med vid prisjustering).
+const _djSvc = (djData.equipment as any[]).filter(p => p.category === 'DJ-tjänst' && p.price);
+const djJuniorFran = Math.min(..._djSvc.filter(p => p.tier === 'junior').map(p => p.price));
+const djSeniorFran = Math.min(..._djSvc.filter(p => p.tier === 'senior').map(p => p.price));
 
 const guider = [
   {
@@ -97,7 +103,7 @@ const guider = [
     cat: "DJ & musik",
     icon: "🎧",
     title: "DJ till bröllop — vad kostar det?",
-    desc: "Pristabell för DJ-bokning, vad som ingår och tillkommer. Junior DJ från 1 999 kr, Senior DJ från 2 399 kr.",
+    desc: `Pristabell för DJ-bokning, vad som ingår och tillkommer. Junior DJ från ${djJuniorFran.toLocaleString('sv')} kr, Senior DJ från ${djSeniorFran.toLocaleString('sv')} kr.`,
     tags: ["DJ", "Bröllop", "Priser"],
     lasttid: "3 min"
   },
