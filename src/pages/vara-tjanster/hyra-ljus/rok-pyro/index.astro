@@ -36,6 +36,9 @@ const faqSchema = {
   }))
 };
 
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((ljusData as any).rok.products ?? (ljusData as any).rok);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -54,7 +57,7 @@ const faqSchema = {
       { label: "Rök & Pyroteknik" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">349&nbsp;kr</span><span class="sk-price-incl hidden">436&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Rökmaskin & kallgnistmaskin",
       "Konfettiavfyrare",
       "Volymrabatt",

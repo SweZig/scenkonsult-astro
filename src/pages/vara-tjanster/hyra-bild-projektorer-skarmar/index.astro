@@ -36,6 +36,9 @@ const dukSkJson = (d: any) => JSON.stringify({
   persons:   '',
   manualUrl: d.manualUrl ?? '',
 });
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((bildData as any).products);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -55,7 +58,7 @@ const dukSkJson = (d: any) => JSON.stringify({
       { label: "Projektor & skärm" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">399&nbsp;kr</span><span class="sk-price-incl hidden">499&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Klarar dagsljus",
       "Full HD och 4K",
       "LED-vägg & trailerscen",

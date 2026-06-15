@@ -31,6 +31,9 @@ const extraFaq = [
   { q: "Kan jag boka tekniker separat?", a: "Ja – vi erbjuder tekniker för installation, soundcheck och körning under eventet som tillägg. Tekniker finns att boka till alla systemstorlekar, oavsett om du hyr Event, Live eller Music-system." },
   { q: "Vad händer om något går sönder under eventet?", a: "Vi har jourtjänst kvällstid. Ring 072-448 10 00 och vi hjälper dig – antingen via telefon eller med utryckning om det behövs. Ansvar för skador regleras i hyresvillkoren." },
 ];
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = Math.min(_low((ljudData as any).portable.products),_low((ljudData as any).event.products),_low((ljudData as any).music.products),_low((ljudData as any).live.products));
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 
 <Layout title={ljudData.metaTitle} description={ljudData.metaDescription} schemaExtra={faqSchema}>
@@ -46,7 +49,7 @@ const extraFaq = [
       { label: "Hyra ljud" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">499&nbsp;kr</span><span class="sk-price-incl hidden">624&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "20–4 000 personer",
       "Testkört och kalibrerat",
       "Tekniker tillgänglig",

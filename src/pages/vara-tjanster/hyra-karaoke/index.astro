@@ -45,6 +45,9 @@ const tillbehor = karaoke.tillbehor
     return obj ? { ...obj, _category: ref.source } : null;
   })
   .filter(Boolean);
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((karaoke as any).packages);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -63,7 +66,7 @@ const tillbehor = karaoke.tillbehor
       { label: "Hyr karaoke-utrustning" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">699&nbsp;kr</span><span class="sk-price-incl hidden">874&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "6 färdiga paket",
       "Trådlösa mikar",
       "80 000+ låtar via Singa",

@@ -61,11 +61,15 @@ const faqSchema = {
   }))
 };
 
+// Frånpris härleds från JSON (billigaste portable-produkt).
+const portableFran = Math.min(...((_ljudData as any).portable.products as any[])
+  .filter((p: any) => p.price).map((p: any) => p.price));
+const portableFranInkl = Math.round(portableFran * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
   title="Hyra Portabelt Ljud Stockholm – Batteridrivet PA-system | Scenkonsult"
-  description="Hyr portabelt batteridrivet ljud i Stockholm från 599 kr/dygn. Kompakta kolumnsystem perfekta för utomhus, studentflak och event utan strömkälla. Leverans i hela Storstockholm."
+  description={`Hyr portabelt batteridrivet ljud i Stockholm från ${portableFran} kr/dygn. Kompakta kolumnsystem perfekta för utomhus, studentflak och event utan strömkälla. Leverans i hela Storstockholm.`}
 >
 
   <ModernHero
@@ -79,7 +83,7 @@ const faqSchema = {
       { label: "Portabelt ljud" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">599 kr</span><span class="sk-price-incl hidden">749 kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${portableFran.toLocaleString('sv')} kr</span><span class="sk-price-incl hidden">${portableFranInkl.toLocaleString('sv')} kr</span> / dygn` },
       "Batteridrivet",
       "Bluetooth & inbyggd mixer",
       "Ingen strömkälla krävs",

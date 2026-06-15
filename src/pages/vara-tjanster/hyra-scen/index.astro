@@ -56,6 +56,9 @@ const pageSchema = {
     }
   }))
 };
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((scenData as any).products);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 
 <Layout
@@ -89,7 +92,7 @@ const pageSchema = {
       { label: "Hyra scen" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">400&nbsp;kr</span><span class="sk-price-incl hidden">500&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Halkfri eller slät yta",
       "Bygg din egen från 2×2 m",
       "Leverans i Storstockholm",

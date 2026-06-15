@@ -102,6 +102,9 @@ const categories = [
     image: ljudData.live.products[0].image,
   }
 ];
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = Math.min(_low((ljudData as any).portable.products),_low((ljudData as any).event.products),_low((ljudData as any).music.products),_low((ljudData as any).live.products));
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   title="Hyra PA-anläggning Stockholm — Alla Storlekar från 499 kr | Scenkonsult"
@@ -120,7 +123,7 @@ const categories = [
       { label: "PA-anläggning" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">499&nbsp;kr</span><span class="sk-price-incl hidden">624&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "20–4 000 personer",
       "Inomhus & utomhus",
       "Batteridrift tillgängligt",

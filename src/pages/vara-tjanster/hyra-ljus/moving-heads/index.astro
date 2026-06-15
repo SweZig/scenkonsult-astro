@@ -67,6 +67,8 @@ const faqSchema = {
     }
   ]
 };
+const _heroFranExcl = 299;
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   title="Hyr Moving Heads Stockholm — Stockholms Största Utbud | Scenkonsult"
@@ -86,7 +88,7 @@ const faqSchema = {
       { label: "Moving Heads" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">299&nbsp;kr</span><span class="sk-price-incl hidden">374&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "9 modeller i lager",
       "Wash & Beam/Spot",
       "Volympriser",

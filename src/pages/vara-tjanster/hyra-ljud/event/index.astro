@@ -56,6 +56,9 @@ const faqSchema = {
   }))
 };
 
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((_ljudData as any).event.products);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -74,7 +77,7 @@ const faqSchema = {
       { label: "Ljudanläggning för event" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">799&nbsp;kr</span><span class="sk-price-incl hidden">999&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Plug & play",
       "Mikrofoner & mixer som tillval",
       "Ingen tekniker krävs",

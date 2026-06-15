@@ -33,6 +33,9 @@ const faqSchema = {
     "acceptedAnswer": { "@type": "Answer", "text": f.a }
   }))
 };
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((ljusData as any).paket.products);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 
 <Layout title={ljusData.metaTitle} description={ljusData.metaDescription} schemaExtra={[pageSchema, faqSchema]}>
@@ -48,7 +51,7 @@ const faqSchema = {
       { label: "Hyra ljus" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">399&nbsp;kr</span><span class="sk-price-incl hidden">499&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Färdiga paket – plug & play",
       "DMX med automatisk eller manuell styrning",
       "Tekniker tillgänglig",

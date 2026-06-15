@@ -98,6 +98,9 @@ const faqSchema = {
     }
   ]
 };
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((bildData as any).products);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   title="Hyra Konferensutrustning Stockholm — Mikrofon, Projektor & Ljud | Scenkonsult"
@@ -116,7 +119,7 @@ const faqSchema = {
       { label: "Konferensutrustning" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">399&nbsp;kr</span><span class="sk-price-incl hidden">499&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Trådlösa mikrofoner",
       "Projektor & storbildsskärm",
       "Diskret PA-ljud",

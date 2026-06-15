@@ -17,6 +17,9 @@ const faqSchema = {
   }))
 };
 
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((ljusData as any).stativ.products ?? (ljusData as any).stativ);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -35,7 +38,7 @@ const faqSchema = {
       { label: "Stativ & Tross" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">40&nbsp;kr</span><span class="sk-price-incl hidden">50&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "T-bar & vevstativ",
       "Trosstorn & traverser",
       "Passar alla effekter",

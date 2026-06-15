@@ -28,6 +28,9 @@ const extraFaq = [
   { q: "Kan ni leverera och installera?", a: "Ja — leverans, installation, kabeldragning och soundcheck/testbild ingår vid bokning av installation. För LED-vägg och mobil LED-trailer ingår alltid montering. För enskilda projektorer/skärmar är installation tillval (600 kr/tim)." },
   { q: "Klarar projektorn dagsljus utomhus?", a: "Nej — projektor behöver nedmörkat rum eller skugga. För utomhus i dagsljus krävs LED-vägg eller mobil LED-trailer. Vi har LED-trailers 7, 15 och 28 m² som klarar full sol." },
 ];
+const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
+const _heroFranExcl = _low((bildData as any).products);
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 
 <Layout title={bildData.metaTitle} description={bildData.metaDescription} schemaExtra={faqSchema}>
@@ -43,7 +46,7 @@ const extraFaq = [
       { label: "Hyra bild" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">399&nbsp;kr</span><span class="sk-price-incl hidden">499&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "BenQ Full HD & 4K — dagsljus",
       "Skärmar 65–85\" 4K",
       "LED-vägg & mobil LED-trailer",

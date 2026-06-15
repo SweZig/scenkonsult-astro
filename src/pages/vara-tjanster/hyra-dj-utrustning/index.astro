@@ -24,6 +24,8 @@ const faqSchema = {
     "acceptedAnswer": { "@type": "Answer", "text": f.a }
   }))
 };
+const _heroFranExcl = Math.min(...(dj.equipment as any[]).filter((p:any)=>/controller|rane|system/i.test(p.name)&&p.price).map((p:any)=>p.price));
+const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -42,7 +44,7 @@ const faqSchema = {
       { label: "Hyra DJ-utrustning" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">799&nbsp;kr</span><span class="sk-price-incl hidden">999&nbsp;kr</span> / dygn' },
+      { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Standalone — ingen laptop",
       "Numark, Denon, Rane",
       "Levereras klart",
