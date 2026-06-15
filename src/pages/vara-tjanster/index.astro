@@ -2,18 +2,29 @@
 import Layout from '../../layouts/Layout.astro';
 import KunskapBlock from '../../components/KunskapBlock.astro';
 import djData from '../../data/dj.json';
+import scenesData from '../../data/scenes.json';
+import bildData from '../../data/bild.json';
+import tjansterData from '../../data/tjanster.json';
 
-// DJ-frånpris från JSON (hänger med vid prisjustering).
+// Frånpriser från JSON (hänger med vid prisjustering).
+const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price).map((p: any) => p.price));
+const scenFran = _low((scenesData as any).products);
+const bildFran = _low((bildData as any).products);
+// DJ-tjänst (junior) + DJ-controller (billigaste controller, ej bord)
 const djFran = Math.min(...(djData.equipment as any[])
-  .filter(p => p.category === 'DJ-tjänst' && p.tier === 'junior' && p.price)
-  .map(p => p.price));
+  .filter(p => p.category === 'DJ-tjänst' && p.tier === 'junior' && p.price).map(p => p.price));
+const djUtrFran = Math.min(...(djData.equipment as any[])
+  .filter(p => /controller|rane|system/i.test(p.name) && p.price).map(p => p.price));
+// Ljudtekniker: billigaste teknikertjänst
+const teknikerFran = Math.min(...((tjansterData as any).services as any[])
+  .filter(p => ['SK-TJN-0002','SK-LJD-TJN-0001'].includes(p.artno) && p.price).map(p => p.price));
 
 const kategorier = [
   {
     rubrik: "Scener",
     beskrivning: "Vårt ursprung. Från 4m² podie till 48m² XL-scen med tak. Vi har scener för inomhus och utomhus, med eller utan scentak, halkfria ytor och professionell finish. Beskriv ditt behov så presenterar vi en lösning.",
     href: "/vara-tjanster/hyra-scen/",
-    fran: "599 kr/dygn",
+    fran: `${scenFran.toLocaleString("sv")} kr/dygn`,
     icon: "🎭",
     tjanster: ["Scenpaket Small → XL+", "Scen med tak", "Inomhus & utomhus", "Leverans & montering"],
   },
@@ -34,7 +45,7 @@ const kategorier = [
     rubrik: "Ljudtekniker",
     beskrivning: "Ett bra ljudsystem behöver någon som sköter det. Hyr en erfaren ljudtekniker som soundcheckar, mixar live under hela eventet och felsöker på plats. Allround eventtekniker eller scenengineer för liveband och konsert.",
     href: "/vara-tjanster/hyra-ljudtekniker/",
-    fran: "600 kr/tim",
+    fran: `${teknikerFran.toLocaleString("sv")} kr/tim`,
     icon: "🎚️",
     tjanster: ["Tekniker på plats", "Scenengineer för live", "Soundcheck & körning", "Fristående eller med utrustning"],
   },
@@ -42,7 +53,7 @@ const kategorier = [
     rubrik: "Bild",
     beskrivning: "HD/4K-projektorer, professionella displayskärmar 65–85\" och modulär LED-vägg för storbildsvisning. Mobila LED-trailers för utomhusevent. Perfekt för presentationer, konferenser, produktlanseringar, prisutdelningar och storbildsvisning på event.",
     href: "/vara-tjanster/hyra-bild/",
-    fran: "Från 399 kr",
+    fran: `Från ${bildFran.toLocaleString("sv")} kr`,
     icon: "📽️",
     tjanster: [
       { label: "Projektor & skärm",  href: "/vara-tjanster/hyra-bild-projektorer-skarmar/" },
@@ -76,7 +87,7 @@ const kategorier = [
     rubrik: "DJ-utrustning",
     beskrivning: "Hyr professionella standalone DJ-controllers från Numark, Denon och Rane. Inga laptops krävs — ladda din musik på USB och kör. Plus stadiga DJ-bord. För dig som mixar själv eller kompletterar en befintlig DJ.",
     href: "/vara-tjanster/hyra-dj-utrustning/",
-    fran: "799 kr/dygn",
+    fran: `${djUtrFran.toLocaleString("sv")} kr/dygn`,
     icon: "🎛️",
     tjanster: ["Numark Mixstream Pro", "Denon Prime-serien", "Rane System One", "DJ-bord"],
   },

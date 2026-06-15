@@ -1,5 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import tjansterData from '../../data/tjanster.json';
+
+// Avgifter från JSON (kontraktuella — hänger med vid ändring).
+const bokningsavgift = (tjansterData as any).fakturaavgift.default;
+const _mont = (tjansterData as any).montering;
+const montPer15 = Math.round(_mont.prisPerTimme * _mont.minDebiteringMin / 60);
+const montPerTim = _mont.prisPerTimme;
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', href: '/hyresvillkor/' }, { label: 'Företag' }];
 ---
 
@@ -39,7 +46,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
         <h2 class="text-lg font-bold text-white mb-3">2. Bokning och betalning</h2>
         <p>Bokning är bindande och bekräftas skriftligen via e-post. Betalning sker mot faktura med betalningsvillkor enligt överenskommelse (vanligen 5–30 dagar). Företag eller organisationer som hyr för <strong class="text-gray-200">första gången</strong>, eller som saknar kreditmöjlighet, kan i stället betala vid hämtning med kort (de flesta betalkort accepteras, samt Apple Pay och Google Pay) eller via Swish.</p>
         <p class="mt-2">Bokningar inom <strong class="text-gray-200">72 timmar</strong> före utlämning kräver alltid omedelbar betalning oavsett tidigare kundhistorik.</p>
-        <p class="mt-2">En <strong class="text-gray-200">bokningsavgift om 49 kr</strong> (exkl. moms) tillkommer per faktura för att täcka administrativa kostnader.</p>
+        <p class="mt-2">En <strong class="text-gray-200">bokningsavgift om {bokningsavgift} kr</strong> (exkl. moms) tillkommer per faktura för att täcka administrativa kostnader.</p>
         <p class="mt-2">Vid utebliven betalning i rätt tid debiteras dröjsmålsränta enligt räntelagen (referensränta + 8 %). Priser på hemsidan är per hyresperiod (22 h) och exklusive moms samt eventuella transport-, monterings- och teknikerkostnader om ej annat anges.</p>
       </section>
 
@@ -118,7 +125,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
         <h2 class="text-lg font-bold text-white mb-3">8. Montering och teknik</h2>
         <p>Enklare utrustning (PA-paket Event/Portable, ljuspaket Small–Medium, projektorer) är avsedd för självmontering och levereras med instruktioner. Vi visar gärna hur det fungerar vid hämtning.</p>
         <p class="mt-2">Scenpaket av storlek <strong class="text-gray-200">Large och uppåt</strong> kräver alltid professionell montering och demontering av vår personal, vilket prissätts separat. LED-skärmar och mer komplex ljusutrustning kräver tekniker vid installation — detta offerteras separat.</p>
-        <p class="mt-2">Monteringstjänst debiteras per påbörjad 15-minutersperiod à <strong class="text-gray-200">150 kr</strong> exkl. moms (600 kr/timme).</p>
+        <p class="mt-2">Monteringstjänst debiteras per påbörjad 15-minutersperiod à <strong class="text-gray-200">{montPer15} kr</strong> exkl. moms ({montPerTim} kr/timme).</p>
       </section>
 
       <!-- 9 -->

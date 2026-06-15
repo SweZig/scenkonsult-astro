@@ -1,8 +1,27 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import djData from '../data/dj.json';
+import scenesData from '../data/scenes.json';
+import ljudData from '../data/ljud.json';
+import bildData from '../data/bild.json';
+import ljusData from '../data/ljus.json';
 
 // Frånpriser härleds från JSON-katalogen (hänger med vid prisjustering).
+const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price).map((p: any) => p.price));
+const fmt = (n: number) => n.toLocaleString('sv');
+
+const scenFran = _low((scenesData as any).products);
+// Ljud: lägsta över alla sektioner (portable är billigast)
+const ljudFran = _low([
+  ...((ljudData as any).portable?.products ?? []),
+  ...((ljudData as any).event?.products ?? []),
+  ...((ljudData as any).music?.products ?? []),
+  ...((ljudData as any).live?.products ?? []),
+]);
+const bildFran = _low((bildData as any).products);
+// Ljus: lägsta färdiga paket (inte lösa effekter)
+const ljusFran = _low((ljusData as any).paket?.products ?? []);
+
 const djFranExcl = Math.min(...(djData.equipment as any[])
   .filter(p => p.category === 'DJ-tjänst' && p.tier === 'junior' && p.price)
   .map(p => p.price));
@@ -122,7 +141,7 @@ const homeSchema = {
       </div>
       <div class="svc2-body">
         <h3 class="svc2-title">Hyra scen</h3>
-        <p class="svc2-price">från <strong class="sk-price-excl">400 kr</strong><strong class="sk-price-incl hidden">500 kr</strong> <span>/dygn</span></p>
+        <p class="svc2-price">från <strong class="sk-price-excl">{fmt(scenFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(scenFran*1.25))} kr</strong> <span>/dygn</span></p>
         <p class="svc2-desc">12 scenpaket, 4–48 m². Med eller utan tak.</p>
         <span class="svc2-cta">Se scenpaket →</span>
       </div>
@@ -136,7 +155,7 @@ const homeSchema = {
         </div>
         <div class="svc2-body">
           <h3 class="svc2-title">Hyra ljud</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">499 kr</strong><strong class="sk-price-incl hidden">624 kr</strong> <span>/dygn</span></p>
+          <p class="svc2-price">från <strong class="sk-price-excl">{fmt(ljudFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(ljudFran*1.25))} kr</strong> <span>/dygn</span></p>
           <p class="svc2-desc">Portabelt, event, musik & live. PA-system för alla skalor.</p>
           <span class="svc2-cta">Se alla ljudpaket →</span>
         </div>
@@ -157,7 +176,7 @@ const homeSchema = {
       </div>
       <div class="svc2-body">
         <h3 class="svc2-title">Projektor &amp; skärm</h3>
-        <p class="svc2-price">från <strong class="sk-price-excl">399 kr</strong><strong class="sk-price-incl hidden">499 kr</strong> <span>/dygn</span></p>
+        <p class="svc2-price">från <strong class="sk-price-excl">{fmt(bildFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(bildFran*1.25))} kr</strong> <span>/dygn</span></p>
         <p class="svc2-desc">BenQ-projektorer + LED-väggar. Klarar dagsljus.</p>
         <span class="svc2-cta">Se bildpaket →</span>
       </div>
@@ -171,6 +190,7 @@ const homeSchema = {
       </div>
       <div class="svc2-body">
         <h3 class="svc2-title">LED-vägg</h3>
+      <!-- LED-vägg: per-kabinett-pris definieras i led-vägg-konfiguratorn, ej generisk katalog -->
         <p class="svc2-price">från <strong class="sk-price-excl">275 kr</strong><strong class="sk-price-incl hidden">344 kr</strong> <span>/kabinett/dygn</span></p>
         <p class="svc2-desc">Bygg din egen LED-vägg. Indoor & outdoor. Konfigurator på sidan.</p>
         <span class="svc2-cta">Bygg din LED-vägg →</span>
@@ -185,7 +205,7 @@ const homeSchema = {
         </div>
         <div class="svc2-body">
           <h3 class="svc2-title">Hyra ljus</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">399 kr</strong><strong class="sk-price-incl hidden">499 kr</strong> <span>/dygn</span></p>
+          <p class="svc2-price">från <strong class="sk-price-excl">{fmt(ljusFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(ljusFran*1.25))} kr</strong> <span>/dygn</span></p>
           <p class="svc2-desc">Festbelysning till scenlighting med moving heads och DMX.</p>
           <span class="svc2-cta">Se alla ljuspaket →</span>
         </div>

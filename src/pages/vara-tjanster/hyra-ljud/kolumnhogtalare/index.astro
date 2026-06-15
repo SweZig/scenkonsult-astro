@@ -324,13 +324,16 @@ const faqSchema = {
       <h2 class="text-2xl font-bold text-white mb-6">Välj rätt kolumnhögtalare</h2>
       <div class="space-y-4">
         {[
-          { persons: "Upp till 80 pers.", rec: "Kolumn Small",      price: "699 kr/dygn",   use: "Tal, konferens, mingel, liten fest" },
-          { persons: "60–100 pers.",      rec: "Kolumn Medium",     price: "899 kr/dygn",   use: "Bröllop, företagsfest, föreläsning" },
-          { persons: "80–120 pers.",      rec: "Kolumn Large",      price: "1 099 kr/dygn", use: "Konferens, utomhusevent, stor lokal" },
-          { persons: "60–100 pers.",      rec: "Kolumn Small Duo",  price: "1 299 kr/dygn", use: "Bröllop med stereo, dansgolv, fest" },
-          { persons: "100–200 pers.",     rec: "Kolumn Medium Duo", price: "1 699 kr/dygn", use: "Stor konferens, bröllop, kickoff" },
-          { persons: "100–240 pers.",     rec: "Kolumn Large Duo",  price: "2 199 kr/dygn", use: "Stor fest, utomhus, festivalmingel" },
-        ].map(row => (
+          { persons: "Upp till 80 pers.", rec: "Kolumn Small",      use: "Tal, konferens, mingel, liten fest" },
+          { persons: "60–100 pers.",      rec: "Kolumn Medium",     use: "Bröllop, företagsfest, föreläsning" },
+          { persons: "80–120 pers.",      rec: "Kolumn Large",      use: "Konferens, utomhusevent, stor lokal" },
+          { persons: "60–100 pers.",      rec: "Kolumn Small Duo",  use: "Bröllop med stereo, dansgolv, fest" },
+          { persons: "100–200 pers.",     rec: "Kolumn Medium Duo", use: "Stor konferens, bröllop, kickoff" },
+          { persons: "100–240 pers.",     rec: "Kolumn Large Duo",  use: "Stor fest, utomhus, festivalmingel" },
+        ].map(row => {
+          const _kp = ((_ljudData as any).kolumnNoMic as any[]).find(k => k.name === row.rec)?.price;
+          const price = _kp ? `${_kp.toLocaleString('sv')} kr/dygn` : '';
+          return (
           <div class="flex items-start gap-4 border-b border-white/5 pb-4 last:border-0 last:pb-0">
             <div class="bg-brand-orange/10 border border-brand-orange/20 rounded-lg px-3 py-2 shrink-0 text-center min-w-[100px]">
               <span class="text-brand-orange font-bold text-xs">{row.persons}</span>
@@ -339,9 +342,10 @@ const faqSchema = {
               <div class="text-white font-semibold text-sm">{row.rec}</div>
               <div class="text-gray-400 text-xs mt-0.5">{row.use}</div>
             </div>
-            <div class="text-gray-400 text-xs shrink-0 text-right">{row.price}</div>
+            <div class="text-gray-400 text-xs shrink-0 text-right">{price}</div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   </section>
