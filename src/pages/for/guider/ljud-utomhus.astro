@@ -5,7 +5,7 @@ const schema = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Article",
+      "@type": "Article","image":"https://scenkonsult.se/images/hero/scen3_hero.webp",
       "headline": "Ljud utomhus — allt du behöver veta för ett lyckat event",
       "description": "Guide till ljud för utomhus-event. Effektbehov, placering, väder, kablar och vanliga fallgropar.",
       "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
@@ -25,9 +25,10 @@ const schema = {
     }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Ljud utomhus' }];
 ---
 
-<Layout
+<Layout breadcrumbs={pageBreadcrumbs}
   title="Ljud Utomhus — Guide till Bra Ljud vid Utomhus-event | Scenkonsult"
   description="Allt om ljud för utomhus-event. Effektbehov, placering av högtalare, väder, kablar och tillstånd. Från Scenkonsult — uthyrare sedan 1986."
   schemaExtra={schema}

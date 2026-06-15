@@ -38,8 +38,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Ska man välja kolumnhögtalare eller PA på stativ till bröllopet?", "acceptedAnswer": { "@type": "Answer", "text": "Kolumnhögtalare (t.ex. Alto TS108C) är diskreta, snygga och ger jämn ljudspridning — perfekta för vigsel och mingel. PA på stativ ger mer kraft och passar bättre om det ska dansdas. Många bröllop kombinerar: kolumn under middagen, PA på stativ under festen." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event', href: '/for/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Ljud till bröllop' }];
+const pageArticle = { headline: "Ljud till Bröllop Stockholm — Guide & Priser 2026", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Ljud till Bröllop Stockholm — Guide & Priser 2026 | Scenkonsult"
   description={`Hur mycket ljud behöver du till bröllopet? Guide till PA-system, mikrofoner och ljud för vigsel, middag och dansgolv. Priser från ${evSmall.price} kr/dygn.`}
   schemaExtra={faqSchema}

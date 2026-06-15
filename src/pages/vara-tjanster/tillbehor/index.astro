@@ -88,8 +88,9 @@ const faqSchema = {
     { "@type": "Question", "name": "Kan jag hyra bara tillbehör?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, du kan hyra tillbehör fristående. Lägg dem i varukorgen och skicka en förfrågan precis som med övrig utrustning." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Tjänster', href: '/vara-tjanster/' }, { label: 'Tillbehör' }];
 ---
-<Layout
+<Layout breadcrumbs={pageBreadcrumbs}
   title="Alla tillbehör — kablar, stativ, DMX & el | Scenkonsult"
   description="Alla tillbehör för uthyrning hos Scenkonsult: förlängningskablar, ljudkablar (XLR), DMX-kablar, stativ, rökvätska, HDMI och el. Grupperat per produktområde. Leverans i Storstockholm."
   schemaExtra={faqSchema}

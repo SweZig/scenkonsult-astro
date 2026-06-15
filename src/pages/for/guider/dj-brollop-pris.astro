@@ -35,8 +35,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Behöver vi ordna ljud och scen till DJ:n?", "acceptedAnswer": { "@type": "Answer", "text": `DJ-hårdvara ingår i priset, men ljud och scen hyrs separat. Ett PA-system för 80–150 gäster kostar från ${evSmall.price}–${evMedium.price} kr/dygn. En liten scen (2×2 m) för DJ-bordet kostar från ${scenSmallPris} kr/dygn. Vi hjälper er sätta ihop ett komplett paket.` } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event', href: '/for/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'DJ till bröllop — pris' }];
+const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 2026", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="DJ till Bröllop Stockholm — Pris & Guide 2026 | Scenkonsult"
   description={`Vad kostar en DJ till bröllop? Guide till DJ-pris, speltid och utrustning. Junior DJ från ${svcTable[0].junior} kr, Senior DJ från ${svcTable[0].senior} kr. Stockholm sedan 1986.`}
   schemaExtra={faqSchema}

@@ -22,8 +22,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Behöver man tekniker för att använda uplights?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — våra LED PAR-armaturer har inbyggda musiksynkroniserade automatprogram och fjärrkontroll. Inga tekniker behövs. Plug in, välj färg med fjärrkontrollen och du är klar. 5–10 minuter att sätta upp." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hyra uplights' }];
+const pageArticle = { headline: "Hyra Uplights Stockholm — LED PAR & Wallwash", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Hyra Uplights Stockholm — LED PAR & Wallwash | Scenkonsult"
   description={`Hyr uplights och LED PAR-armaturer i Stockholm. Skapa stämningsfull wallwash-belysning från ${ep('SK-LJS-EFF-0001')} kr/st/dygn. Batteridrivna och kabelanslutna. Leverans i Storstockholm.`}
   schemaExtra={faqSchema}

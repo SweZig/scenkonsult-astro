@@ -26,8 +26,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Hur tidigt måste jag boka scen?", "acceptedAnswer": { "@type": "Answer", "text": "För events under maj–september (högsäsong) rekommenderar vi 4–8 veckor i förväg. Utanför säsong går ofta kortare varsel. Kontakta oss direkt för att kontrollera tillgänglighet." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event', href: '/for/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hyra scen — pris' }];
+const pageArticle = { headline: "Hyra Scen Stockholm — Pris & Guide 2026", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Hyra Scen Stockholm — Pris & Guide 2026 | Scenkonsult"
   description={`Vad kostar det att hyra scen i Stockholm? Scenpaket från ${s('SK-SCN-0001')?.price} kr/dygn. Guide till rätt scenstorlek för DJ, liveband och festival. Leverans och montering i Storstockholm.`}
   schemaExtra={faqSchema}

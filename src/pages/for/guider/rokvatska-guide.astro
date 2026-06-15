@@ -103,7 +103,7 @@ const faqSchema = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Article",
+      "@type": "Article","image":"https://scenkonsult.se/images/hero/scen3_hero.webp",
       "headline": "Rökvätska — komplett guide till olika typer av fog fluid",
       "description": "Standard, haze, heavy och fast fog — vad är skillnaderna och vilken ska du välja? Guide med kundfeedback, matchning till rökmaskin och priser.",
       "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
@@ -149,9 +149,10 @@ const faqSchema = {
     }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Rökvätska-guide' }];
 ---
 
-<Layout
+<Layout breadcrumbs={pageBreadcrumbs}
   title="Rökvätska — komplett guide: standard, haze, heavy, CO2 | Scenkonsult"
   description={`Vilken rökvätska ska du välja? Guide till standard, haze, heavy och fast fog/CO2. Matchning mot rökmaskin, pris från ${ap('SK-LJS-ROK-ACC-0005')} kr. Stockholm.`}
   schemaExtra={faqSchema}

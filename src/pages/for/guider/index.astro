@@ -228,9 +228,10 @@ const kategorier = [
   { namn: "Planering & checklistor", ikon: "✅", intro: "Budget, tidsplan och kompletta checklistor." },
 ];
 const guiderPerKategori = (k: string) => guider.filter(g => (g as any).cat === k);
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event', href: '/for/' }, { label: 'Guider' }];
 ---
 
-<Layout
+<Layout breadcrumbs={pageBreadcrumbs}
   title="Guider om Eventproduktion & AV-uthyrning | Scenkonsult Stockholm"
   description="Kompletta guider om PA-dimensionering, scenstorlek, ljussättning, DJ vs liveband och event-planering. Från Scenkonsult — uthyrare sedan 1986."
   schemaExtra={schema}

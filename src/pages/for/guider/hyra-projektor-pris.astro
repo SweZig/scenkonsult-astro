@@ -46,8 +46,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Kan man ansluta laptop och HDMI?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra projektorer och skärmar har HDMI-ingång. Vi hyr även ut HDMI-kablar (5 m och 10 m) och HDMI-splitter om ni behöver köra samma bild till flera skärmar." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hyra projektor — pris' }];
+const pageArticle = { headline: "Hyra Projektor Stockholm — Pris & Guide 2026", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Hyra Projektor Stockholm — Pris & Guide 2026 | Scenkonsult"
   description={`Vad kostar det att hyra projektor i Stockholm? Full HD från ${bp('SK-BLD-0002')} kr/dygn, 4K UHD från ${bp('SK-BLD-0007')} kr/dygn. Skärmar 65–85 tum 4K UHD. Guide till projektor vs skärm, dukar och HDMI. Leverans i Storstockholm.`}
   schemaExtra={faqSchema}

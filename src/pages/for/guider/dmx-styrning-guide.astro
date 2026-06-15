@@ -31,8 +31,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Kan jag styra DMX-ljus från datorn?", "acceptedAnswer": { "@type": "Answer", "text": `Ja. Vår PC-mjukvara (${dp('SK-LJS-DMX-0004')} kr/dygn) ger 512 kanaler via USB med dra-och-släpp-programmering, ljud-till-ljus med BPM-analys och live-dimning. Det är ett bra steg upp från standalone-styrenheter när du vill bygga och spara egna scener på en större skärm.` } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'DMX-styrning' }];
+const pageArticle = { headline: "DMX-styrning — komplett guide för nybörjare & proffs", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="DMX-styrning — komplett guide för nybörjare & proffs | Scenkonsult"
   description={`Allt om DMX-ljusstyrning: kanaler, adresser, kablar, terminering, daisy chain, trådlöst, RDM och Art-Net. Nybörjardel + avancerad del. Hyr DMX-utrustning i Stockholm från ${dp('SK-LJS-DMX-0001')} kr/dygn.`}
   schemaExtra={faqSchema}

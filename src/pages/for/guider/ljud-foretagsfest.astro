@@ -31,8 +31,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Kan man kombinera ljud och ljus i ett paket?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi hyr gärna ut ljud och ljus tillsammans. Välj ett PA-paket + ett ljuspaket, lägg till i varukorgen och skicka en offertförfrågan. Vi optimerar leveransen och kan ge rabatt vid kombinationsbeställning." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event', href: '/for/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Ljud till företagsfest' }];
+const pageArticle = { headline: "Ljud till Företagsfest Stockholm — Guide & Priser 2026", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Ljud till Företagsfest Stockholm — Guide & Priser 2026 | Scenkonsult"
   description={`Vilket PA-system passar till er företagsfest? Guide till ljud för 50–500 gäster. Event-serie för tal, Music-serie för dans. Priser från ${lp('SK-LJD-EVE-0001')} kr/dygn.`}
   schemaExtra={faqSchema}

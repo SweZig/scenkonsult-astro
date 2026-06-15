@@ -18,7 +18,7 @@ const schema = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Article",
+      "@type": "Article","image":"https://scenkonsult.se/images/hero/scen3_hero.webp",
       "headline": "Varför vi valt Numark, Denon och Rane — och inte Pioneer/AlphaTheta",
       "description": "Konkreta argument för standalone DJ-controllers med inbyggd streaming mot det traditionella Pioneer CDJ-systemet.",
       "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
@@ -104,9 +104,10 @@ const varaModeller = ['SK-DJ-0001', 'SK-DJ-0002', 'SK-DJ-0003', 'SK-DJ-0004'].ma
     ...guideContent[artno]
   };
 });
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Varför Numark, Denon & Rane?' }];
 ---
 
-<Layout
+<Layout breadcrumbs={pageBreadcrumbs}
   title="Varför Numark, Denon och Rane — inte Pioneer? DJ-guide | Scenkonsult"
   description="Konkreta argument för standalone DJ-controllers med inbyggd Spotify/Tidal-streaming mot Pioneer CDJ. Smartare, billigare, färre felkällepunkter."
   schemaExtra={schema}

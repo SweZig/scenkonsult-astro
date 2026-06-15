@@ -75,7 +75,7 @@ const _totForetagsfest = paket[2].total;
 const schema = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "Article", "headline": "Vad kostar det att hyra scen, ljud och ljus? Prisguide 2026", "author": { "@type": "Organization", "name": "Scenkonsult Norden" }, "datePublished": "2025-01-01", "dateModified": "2026-04-16", "url": "https://scenkonsult.se/for/guider/vad-kostar-det/" },
+    { "@type": "Article","image":"https://scenkonsult.se/images/hero/scen3_hero.webp", "headline": "Vad kostar det att hyra scen, ljud och ljus? Prisguide 2026", "author": { "@type": "Organization", "name": "Scenkonsult Norden" }, "datePublished": "2025-01-01", "dateModified": "2026-04-16", "url": "https://scenkonsult.se/for/guider/vad-kostar-det/" },
     { "@type": "FAQPage", "mainEntity": [
       { "@type": "Question", "name": "Vad kostar det att hyra scen i Stockholm?", "acceptedAnswer": { "@type": "Answer", "text": `Scenpaket Small (4 m²): ${fmt(_scenSmall)} kr/dygn. Medium (10 m²): ${fmt(_scenMedium)} kr/dygn. Large (20 m²): ${fmt(_scenLarge)} kr/dygn. XL (36 m²): ${fmt(_scenXL)} kr/dygn. Priser exkl. moms. Transport tillkommer.` } },
       { "@type": "Question", "name": "Vad kostar det att hyra ljud till en fest med 100 gäster?", "acceptedAnswer": { "@type": "Answer", "text": `Music Small (${fmt(_musicSmall)} kr/dygn) täcker 20–80 pers. med dans och subwoofer. Music Medium (${fmt(_musicMed)} kr/dygn) täcker 60–120 pers. Priser exkl. moms och transport.` } },
@@ -92,8 +92,9 @@ const sparTips = [
   {t:"Installera själv",d:"Standardpaket är byggda för enkel installation. Spara monteringskostnaden på enkla rigg."},
   {t:"Boka i förväg",d:"Populära helger (maj–sept) tar slut. Boka 4–8 veckor i förväg för bäst urval."},
 ];
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Vad kostar det?' }];
 ---
-<Layout title="Vad Kostar det att Hyra Scen, Ljud & Ljus? Prisguide 2026 | Scenkonsult" description="Exakta priser ur vårt sortiment för PA, scen, ljus och DJ-utrustning. Exempelpaket för bröllop, företagsfest och festival. Scenkonsult sedan 1986." schemaExtra={schema}>
+<Layout breadcrumbs={pageBreadcrumbs} title="Vad Kostar det att Hyra Scen, Ljud & Ljus? Prisguide 2026 | Scenkonsult" description="Exakta priser ur vårt sortiment för PA, scen, ljus och DJ-utrustning. Exempelpaket för bröllop, företagsfest och festival. Scenkonsult sedan 1986." schemaExtra={schema}>
   <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
     <div style="max-width:820px;margin:0 auto;">
       <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;"><ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);"><li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li><li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li><li style="color:white;">Vad kostar det?</li></ol></nav>

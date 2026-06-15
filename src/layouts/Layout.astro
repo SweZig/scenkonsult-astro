@@ -64,6 +64,8 @@ interface Props {
   image?: string;
   schemaExtra?: object;
   noindex?: boolean;
+  breadcrumbs?: { label: string; href?: string }[];
+  article?: { headline: string; datePublished?: string; dateModified?: string; image?: string };
 }
 
 const {
@@ -72,7 +74,38 @@ const {
   image = '/images/hero/scen3_hero.webp',
   schemaExtra,
   noindex = false,
+  breadcrumbs = [],
+  article,
 } = Astro.props;
+
+// Article JSON-LD (för guide-/contentsidor) — komplett för rich results.
+const articleSchema = article ? {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": article.headline,
+  "image": new URL(article.image || image, 'https://scenkonsult.se').href,
+  "datePublished": article.datePublished || "2025-01-01",
+  "dateModified": article.dateModified || article.datePublished || "2025-01-01",
+  "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Scenkonsult Norden",
+    "logo": { "@type": "ImageObject", "url": "https://scenkonsult.se/logo-white.png" }
+  },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": new URL(Astro.url.pathname, 'https://scenkonsult.se').href }
+} : null;
+
+// BreadcrumbList JSON-LD (Googles föredragna format) — absoluta URL:er.
+const breadcrumbSchema = breadcrumbs.length > 1 ? {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": breadcrumbs.map((c, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "name": c.label,
+    ...(c.href ? { "item": new URL(c.href, 'https://scenkonsult.se').href } : {})
+  }))
+} : null;
 
 const canonicalURL = new URL(Astro.url.pathname, 'https://scenkonsult.se');
 
@@ -188,6 +221,8 @@ const localBusinessSchema = {
   <link rel="icon" type="image/png" href="/logo-icon.png" />
   <!-- Structured data — LocalBusiness (global) -->
   <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
+  {breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />}
+  {articleSchema && <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />}
   <!-- Structured data — page-specific -->
   {schemaExtra && <script type="application/ld+json" set:html={JSON.stringify(schemaExtra)} />}
   <!-- Preload kritiska fonter (latin-subset, fetchpriority high i nyare browsers).

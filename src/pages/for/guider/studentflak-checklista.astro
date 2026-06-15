@@ -24,8 +24,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Hur tidigt måste man boka till studentflaket?", "acceptedAnswer": { "@type": "Answer", "text": "Studentperioden (maj–juni) är vår mest bokade tid på året. Boka 4–8 veckor i förväg för att säkra utrustningen. Ring oss — vi kan ofta lösa kort varsel om utrustningen är ledig." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event', href: '/for/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Studentflak checklista' }];
+const pageArticle = { headline: "Studentflak Checklista 2026 — Ljud, Teknik & Tips", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Studentflak Checklista 2026 — Ljud, Teknik & Tips | Scenkonsult"
   description="Komplett checklista för studentflaket. Vilket ljud behöver man? Hur fixar man strömmen? Priser och tips från Scenkonsult — uthyrare sedan 1986."
   schemaExtra={faqSchema}

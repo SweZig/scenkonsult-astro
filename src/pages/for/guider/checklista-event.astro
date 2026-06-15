@@ -5,7 +5,7 @@ const schema = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Article",
+      "@type": "Article","image":"https://scenkonsult.se/images/hero/scen3_hero.webp",
       "headline": "Komplett checklista för event — teknik, logistik och timing",
       "description": "Komplett checklista för att planera teknik till fest och event. Ljud, ljus, scen, leverans och backup-plan. Nedladdningsbar PDF-version.",
       "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
@@ -95,9 +95,10 @@ const lokalKoll = [
   { punkt: "Ljudrestriktioner", detalj: "Fråga lokalen om max dB-nivå och stängningstid. Vanligt på hotell och restauranger." },
   { punkt: "Tillgång för leverans", detalj: "Lastbrygga, hiss eller ramp? Scenelement väger 15–30 kg per modul." },
 ];
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Checklista för event' }];
 ---
 
-<Layout
+<Layout breadcrumbs={pageBreadcrumbs}
   title="Komplett Checklista för Event — Teknik, Logistik & Timing | Scenkonsult"
   description="Komplett checklista för att planera AV-teknik till fest och event. Ljud, ljus, scen, leverans och backup-plan. Från Scenkonsult — uthyrare sedan 1986."
   schemaExtra={schema}

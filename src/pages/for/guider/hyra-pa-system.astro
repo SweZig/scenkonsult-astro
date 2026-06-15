@@ -29,8 +29,10 @@ const faqSchema = {
     { "@type": "Question", "name": "Hur mycket watt behöver man?", "acceptedAnswer": { "@type": "Answer", "text": "Watt-talet är missvisande — vad som avgör räckvidden är antalet högtalare, deras placering och lokalens akustik. Tumregel: välj paket efter gästantal, inte watt. Vår storleksguide tar dig rätt." } }
   ]
 };
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hyra PA-system' }];
+const pageArticle = { headline: "Hyra PA-system Stockholm — Guide & Priser 2026", datePublished: "2025-01-01", dateModified: "2026-06-15" };
 ---
-<Layout
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Hyra PA-system Stockholm — Guide & Priser 2026 | Scenkonsult"
   description={`Hyr PA-system i Stockholm. Portable från ${lp('SK-LJD-POR-0001')} kr, Event från ${lp('SK-LJD-EVE-0001')} kr, Music med subwoofer från ${lp('SK-LJD-MUS-0001')} kr/dygn. Guide till rätt PA för ditt event. Leverans i Storstockholm.`}
   schemaExtra={faqSchema}
