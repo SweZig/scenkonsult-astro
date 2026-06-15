@@ -71,19 +71,51 @@ interface Props {
 const {
   title = 'Hyra Scen, Ljud & Bild Stockholm | Scenkonsult – Sedan 1986',
   description = 'Uthyrning av scen, ljud, bild, ljus och DJ-utrustning för fest, bröllop, event och konsert. Komplett scenproduktion i Stockholm. Leverans och montering. Sedan 1986.',
-  image = '/images/hero/scen3_hero.webp',
+  image,
   schemaExtra,
   noindex = false,
   breadcrumbs = [],
   article,
 } = Astro.props;
 
+// OG-bild per sida: explicit image-prop vinner, annars härleds en relevant
+// kategori-banner från URL:en. Faller tillbaka på hero-bilden.
+const OG_DEFAULT = '/images/hero/scen3_hero.webp';
+const _ogMap: { test: (p: string) => boolean; img: string }[] = [
+  { test: p => p.includes('/hyra-scen'), img: '/images/tjanster/plugg_scener.webp' },
+  { test: p => p.includes('/hyra-ljud/event'), img: '/images/tjanster/plugg_event_ljud.webp' },
+  { test: p => p.includes('/hyra-ljud/live'), img: '/images/tjanster/plugg_live_ljud.webp' },
+  { test: p => p.includes('/hyra-ljud/music'), img: '/images/tjanster/plugg_dance_ljud.webp' },
+  { test: p => p.includes('/hyra-ljud/kolumn'), img: '/images/tjanster/plugg_kolumn.webp' },
+  { test: p => p.includes('/hyra-ljud/portable'), img: '/images/tjanster/plugg_portabelt.webp' },
+  { test: p => p.includes('/hyra-ljudtekniker'), img: '/images/tjanster/plugg_live_ljud.webp' },
+  { test: p => p.includes('/hyra-ljud'), img: '/images/tjanster/plugg_ljud.webp' },
+  { test: p => p.includes('/hyra-bild-led-vagg'), img: '/images/tjanster/plugg_led-vagg.jpg' },
+  { test: p => p.includes('/hyra-bild'), img: '/images/tjanster/plugg_bild.webp' },
+  { test: p => p.includes('/hyra-ljus'), img: '/images/tjanster/plugg_ljus.webp' },
+  { test: p => p.includes('/hyra-dj-utrustning'), img: '/images/tjanster/plugg_dj.webp' },
+  { test: p => p.includes('/hyra-dj'), img: '/images/tjanster/plugg_dj.webp' },
+  { test: p => p.includes('/konferens'), img: '/images/tjanster/plugg_event_ljud.webp' },
+  { test: p => p.includes('/brollop'), img: '/images/tjanster/plugg_dance_ljud.webp' },
+  { test: p => p.includes('/festival'), img: '/images/tjanster/plugg_live_ljud.webp' },
+  { test: p => p.includes('/foretagsfest'), img: '/images/tjanster/plugg_dance_ljud.webp' },
+  { test: p => p.includes('/studentflak'), img: '/images/tjanster/plugg_ljud.webp' },
+  { test: p => p.includes('/tillbehor'), img: '/images/tjanster/plugg_bild-tillbehor.webp' },
+  { test: p => p.includes('/hyra-karaoke'), img: '/images/tjanster/plugg_dance_ljud.webp' },
+  { test: p => p.includes('/guider/dj-') || p.includes('/varfor-numark'), img: '/images/tjanster/plugg_dj.webp' },
+  { test: p => p.includes('/guider/hyra-projektor') || p.includes('/guider/') && p.includes('projektor'), img: '/images/tjanster/plugg_bild.webp' },
+  { test: p => p.includes('/guider/') && (p.includes('ljus') || p.includes('uplights') || p.includes('dmx') || p.includes('rokmaskin') || p.includes('rokvatska')), img: '/images/tjanster/plugg_ljus.webp' },
+  { test: p => p.includes('/guider/') && (p.includes('ljud') || p.includes('pa-system') || p.includes('stor-pa') || p.includes('mikrofon')), img: '/images/tjanster/plugg_ljud.webp' },
+  { test: p => p.includes('/guider/') && p.includes('scen'), img: '/images/tjanster/plugg_scener.webp' },
+];
+const _resolvedOg = image || (_ogMap.find(m => m.test(Astro.url.pathname))?.img ?? OG_DEFAULT);
+
 // Article JSON-LD (för guide-/contentsidor) — komplett för rich results.
 const articleSchema = article ? {
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": article.headline,
-  "image": new URL(article.image || image, 'https://scenkonsult.se').href,
+  "image": new URL(article.image || _resolvedOg, 'https://scenkonsult.se').href,
   "datePublished": article.datePublished || "2025-01-01",
   "dateModified": article.dateModified || article.datePublished || "2025-01-01",
   "author": { "@type": "Organization", "name": "Scenkonsult Norden" },
@@ -209,14 +241,14 @@ const localBusinessSchema = {
   <meta property="og:url" content={canonicalURL} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:image" content={`https://scenkonsult.se${image}`} />
+  <meta property="og:image" content={`https://scenkonsult.se${_resolvedOg}`} />
   <meta property="og:locale" content="sv_SE" />
   <meta property="og:site_name" content="Scenkonsult Norden" />
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content={`https://scenkonsult.se${image}`} />
+  <meta name="twitter:image" content={`https://scenkonsult.se${_resolvedOg}`} />
   <title>{title}</title>
   <link rel="icon" type="image/png" href="/logo-icon.png" />
   <!-- Structured data — LocalBusiness (global) -->
