@@ -14,9 +14,7 @@ const konferensMikrofoner = [
   'SK-LJD-MIK-0022', // Shure SLXD myggmikrofon
   'SK-LJD-MIK-0023', // Shure SLXD headset
   'SK-LJD-MIK-0024', // Shure SLXD lågprofil headset
-  'SK-LJD-MIK-0016', // Trådlös handmikrofon
-  'SK-LJD-MIK-0017', // Trådlöst headset
-  'SK-LJD-MIK-0028', // Shure SLXD 2 headset (ersätter icke-existerande 8-kanals 0030)
+  'SK-LJD-MIK-0028', // Shure SLXD 2 headset
 ];
 const _allMikar = [...((ljudData as any).mikrofoner ?? []), ...(ljudData.tillbehor_mikrofon as any[])];
 const mikrofoner = _allMikar.filter((p:any) => konferensMikrofoner.includes(p.artno));
@@ -81,7 +79,7 @@ const faqSchema = {
     {
       "@type": "Question",
       "name": "Vilken mikrofon passar bäst för konferens och föreläsning?",
-      "acceptedAnswer": { "@type": "Answer", "text": "För en talare som rör sig fritt är trådlöst headset eller myggmikrofon bäst — händerna är fria och mikrofonen sitter nära munnen. Shure SLXD ger professionell, krypterad ljud med 100 m räckvidd. För paneldiskussioner med flera talare rekommenderar vi trådlöst 8-kanals set." }
+      "acceptedAnswer": { "@type": "Answer", "text": "För en talare som rör sig fritt är trådlöst headset eller myggmikrofon bäst — händerna är fria och mikrofonen sitter nära munnen. Shure SLXD ger professionell, krypterad ljud med 100 m räckvidd. För paneler med flera talare har vi SLXD-system med två headset, och fler kanaler kan offereras vid behov." }
     },
     {
       "@type": "Question",
@@ -151,9 +149,9 @@ const faqSchema = {
       <p class="text-gray-400 mt-1">Professionella Shure SLXD-system med AES-256-kryptering och upp till 100 m räckvidd — industristandard för konferens och föreläsning.</p>
     </div>
 
-    <!-- Shure SLXD primär -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
-      {mikrofoner.filter(p => p.artno.startsWith('SK-LJD-MIK-002')).map((p: any) => (
+    <!-- Shure SLXD — kompakt 4-kolumns rad -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {mikrofoner.map((p: any) => (
         <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col"
           itemscope itemtype="https://schema.org/Product">
           <meta itemprop="name" content={p.name} />
@@ -164,16 +162,9 @@ const faqSchema = {
             <img src={p.image} alt={p.name} width="512" height="427" loading="lazy"
               class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
           </div>
-          <div class="p-4 flex flex-col flex-1">
-            <div class="inline-block bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs px-2 py-0.5 rounded mb-2 self-start">Shure SLXD</div>
-            <h3 class="font-bold text-white text-sm mb-2 leading-tight">{p.name}</h3>
-            <p class="text-gray-400 text-xs mb-3 flex-1">{p.description}</p>
-            <ul class="space-y-1 mb-3">
-              {(p.specs || []).slice(0,3).map((s: string) => (
-                <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{s}</li>
-              ))}
-            </ul>
-            <div class="flex items-center justify-between border-t border-white/10 pt-3"
+          <div class="p-3 flex flex-col flex-1">
+            <h3 class="font-bold text-white text-sm mb-2 leading-tight flex-1">{p.name}</h3>
+            <div class="flex items-center justify-between border-t border-white/10 pt-3 gap-2"
               itemprop="offers" itemscope itemtype="https://schema.org/Offer">
               <meta itemprop="priceCurrency" content="SEK" />
               <meta itemprop="price" content={String(p.price)} />
@@ -207,79 +198,12 @@ const faqSchema = {
                 <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
                 <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
               </div>
-              <div>
-                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price.toLocaleString('sv-SE')} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
-                <span class="text-gray-400 text-xs">/dygn</span>
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-base">{p.price.toLocaleString('sv-SE')} kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-base">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
+                <span class="text-gray-400 text-xs block">/dygn</span>
               </div>
-              <CartButton id={p.artno} name={p.name} price={p.price} category="Konferens" size="md" iconOnly={true} />
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
-
-    <!-- Budget-mikrofoner + 8-kanals -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {mikrofoner.filter(p => !p.artno.startsWith('SK-LJD-MIK-002')).map((p: any) => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col"
-          itemscope itemtype="https://schema.org/Product">
-          <meta itemprop="name" content={p.name} />
-          <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
-          <meta itemprop="brand" content="Scenkonsult Norden" />
-          <meta itemprop="description" content={p.description ?? p.desc ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
-          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-            <img src={p.image} alt={p.name} width="512" height="427" loading="lazy"
-              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
-          </div>
-          <div class="p-4 flex flex-col flex-1">
-            <h3 class="font-bold text-white text-sm mb-2 leading-tight">{p.name}</h3>
-            <p class="text-gray-400 text-xs mb-3 flex-1">{p.description ?? p.desc}</p>
-            <ul class="space-y-1 mb-3">
-              {(p.specs || []).slice(0,3).map((s: string) => (
-                <li class="text-gray-400 text-xs flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{s}</li>
-              ))}
-            </ul>
-            <div class="flex items-center justify-between border-t border-white/10 pt-3"
-              itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-              <meta itemprop="priceCurrency" content="SEK" />
-              <meta itemprop="price" content={String(p.price)} />
-              <meta itemprop="priceValidUntil" content="2027-12-31" />
-              <meta itemprop="availability" content="https://schema.org/InStock" />
-              <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
-                <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
-                  <meta itemprop="addressCountry" content="SE" />
-                </div>
-                <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
-                  <meta itemprop="currency" content="SEK" />
-                  <meta itemprop="value" content="0" />
-                </div>
-                <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
-                  <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
-                    <meta itemprop="minValue" content="0" />
-                    <meta itemprop="maxValue" content="1" />
-                    <meta itemprop="unitCode" content="DAY" />
-                  </div>
-                  <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue">
-                    <meta itemprop="minValue" content="0" />
-                    <meta itemprop="maxValue" content="1" />
-                    <meta itemprop="unitCode" content="DAY" />
-                  </div>
-                </div>
-              </div>
-              <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
-                <meta itemprop="applicableCountry" content="SE" />
-                <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
-                <meta itemprop="merchantReturnDays" content="1" />
-                <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
-                <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
-              </div>
-              <div>
-                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{p.price.toLocaleString('sv-SE')} kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{Math.round(p.price*1.25).toLocaleString('sv-SE')} kr</span>
-                <span class="text-gray-400 text-xs">/dygn</span>
-              </div>
-              <CartButton id={p.artno} name={p.name} price={p.price} category="Konferens" size="md" iconOnly={true} />
+              <CartButton id={p.artno} name={p.name} price={p.price} category="Konferens" size="sm" iconOnly={true} />
             </div>
           </div>
         </article>
