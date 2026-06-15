@@ -1,0 +1,159 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import KunskapBlock from '../../../components/KunskapBlock.astro';
+import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
+import CartButton from '../../../components/CartButton.astro';
+import data from '../../../data/ljudtekniker.json';
+import tjanster from '../../../data/tjanster.json';
+
+// Lös upp tjänsteposterna från tjanster.json (master för pris/namn/bild).
+const services = (tjanster as any).services as any[];
+const byArtno = (a: string) => services.find(s => s.artno === a);
+const levels = data.levels.map(l => ({ ...l, svc: byArtno(l.artno) })).filter(l => l.svc);
+
+// Lägsta timpris för chips/snabbnav.
+const fromExcl = Math.min(...levels.map(l => l.svc.price));
+const fromInkl = Math.round(fromExcl * 1.25);
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": data.faq.map((f: { q: string; a: string }) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+---
+<Layout
+  schemaExtra={faqSchema}
+  title={data.metaTitle}
+  description={data.metaDescription}
+>
+  <ModernHero
+    eyebrow={data.eyebrow}
+    h1={data.h1}
+    h1Accent={data.h1Accent}
+    intro={data.intro}
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Hyra ljudtekniker" }
+    ]}
+    chips={[
+      { html: `Från <span class="sk-price-excl">${fromExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${fromInkl.toLocaleString('sv')}&nbsp;kr</span> / tim` },
+      "Soundcheck & körning ingår",
+      "Allround & scenengineer",
+      "Hela Storstockholm",
+    ]}
+  />
+
+  <!-- USP / Varför hyra ljudtekniker -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <SectionHeader
+      h2={data.uspTitle}
+      lead="En tekniker på plats är skillnaden mellan ljud som funkar och ljud som bara hänger med."
+      marginBottom="2.5rem"
+    />
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {data.usps.map(u => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 flex flex-col">
+          <div class="text-3xl mb-3">{u.icon}</div>
+          <h3 class="font-bold text-white text-lg mb-2">{u.title}</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">{u.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Nivåer / Välj rätt tekniker -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader h2={data.levelsTitle} lead={data.levelsLead} marginBottom="2.5rem" />
+    <div class="grid md:grid-cols-2 gap-6">
+      {levels.map(l => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col">
+          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+            <img src={l.svc.image} alt={l.svc.alt || l.svc.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          </div>
+          <div class="p-6 flex flex-col flex-1">
+            <h3 class="font-bold text-white text-xl mb-1">{l.svc.name}</h3>
+            <p class="text-brand-orange/80 text-xs font-semibold uppercase tracking-wide mb-3">{l.forWho}</p>
+            <p class="text-gray-400 text-sm mb-4 leading-relaxed">{l.svc.description}</p>
+            <ul class="space-y-1.5 mb-5 text-sm text-gray-400 border-t border-white/10 pt-4 flex-1">
+              {l.bullets.map(b => (
+                <li class="flex gap-2"><span class="text-green-400 shrink-0">▸</span>{b}</li>
+              ))}
+            </ul>
+            <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-4 gap-3">
+              <div class="leading-none">
+                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{l.svc.price.toLocaleString('sv')}&nbsp;kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{Math.round(l.svc.price * 1.25).toLocaleString('sv')}&nbsp;kr</span>
+                <span class="text-gray-400 text-xs">{l.svc.priceNote}</span>
+              </div>
+              <CartButton id={l.svc.slug} name={l.svc.name} price={l.svc.price} priceNote={l.svc.priceNote} category="Tjänster" artno={l.svc.artno} image={l.svc.image} size="md" />
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Så går det till -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader h2={data.processTitle} marginBottom="2.5rem" />
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {data.process.map(p => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 flex flex-col">
+          <div class="w-9 h-9 rounded-full bg-brand-orange/15 text-brand-orange font-extrabold flex items-center justify-center mb-3">{p.step}</div>
+          <h3 class="font-bold text-white text-base mb-2">{p.title}</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">{p.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA-rad -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="bg-gradient-to-br from-brand-navy to-brand-dark border border-white/10 rounded-2xl p-8 sm:p-10 text-center">
+      <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3" style="font-family:'DM Serif Display',serif;">
+        Behöver du även utrustning?
+      </h2>
+      <p class="text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
+        Boka tekniker tillsammans med en av våra ljudanläggningar så levererar, riggar och kör vi hela ljudet åt dig — du behöver inte ta med någonting.
+      </p>
+      <div class="flex flex-wrap gap-3 justify-center">
+        <a href="/vara-tjanster/hyra-ljud/" class="bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold px-6 py-3 rounded-lg transition-colors">
+          Se ljudanläggningar →
+        </a>
+        <a href="/kontakt/" class="border border-white/20 hover:border-brand-orange/50 text-white px-6 py-3 rounded-lg transition-colors">
+          Begär offert
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <SectionHeader h2="Vanliga frågor" marginBottom="2rem" />
+    <div class="space-y-3">
+      {data.faq.map(f => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl group">
+          <summary class="cursor-pointer list-none px-5 py-4 font-semibold text-white flex items-center justify-between gap-4">
+            {f.q}
+            <span class="text-brand-orange transition-transform group-open:rotate-45 shrink-0 text-xl leading-none">+</span>
+          </summary>
+          <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">{f.a}</div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <KunskapBlock
+    guides={[
+      { href: "/for/guider/hur-stor-pa/", label: "Hur stor PA behöver jag?" },
+      { href: "/for/guider/ljud-foretagsfest/", label: "Ljud till företagsfest" },
+      { href: "/for/guider/hyra-pa-system/", label: "Hyra PA-system — guide" }
+    ]}
+  />
+</Layout>
