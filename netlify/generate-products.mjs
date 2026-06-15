@@ -59,7 +59,7 @@ const cartLines = [];
 
 // Scen
 scenes.products.forEach(p => {
-  if (p.id && p.price) cartLines.push(cartLine(p.name, p.artno || `scen-${p.id}`, p.price));
+  if (p.id && p.price) cartLines.push(cartLine(p.name, `scen-${p.id}`, p.price));
 });
 (scenes.modules || []).forEach(p => {
   if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
@@ -68,15 +68,15 @@ scenes.products.forEach(p => {
 // Ljud: event, live, music, portable, mixers
 ['event','live','music','portable'].forEach(sec => {
   (ljud[sec]?.products || []).forEach(p => {
-    if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+    if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
   });
 });
 // Ljud: kolumnhögtalare utan mik (no-mic varianter)
 (ljud.kolumnNoMic || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 (ljud.mixers || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 
 // Ljud mikrofon tillbehör (bara om slug finns)
@@ -84,26 +84,26 @@ const miks = Array.isArray(ljud.tillbehor_mikrofon)
   ? ljud.tillbehor_mikrofon
   : (ljud.tillbehor_mikrofon?.products || []);
 miks.forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 
 // Ljus: paket, effekter, rok products + rok tillbehor
 (ljus.paket?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 (ljus.effekter?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 (ljus.rok?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 (ljus.rok?.tillbehor || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 
 // DJ utrustning
 Object.values(dj.equipment || {}).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 // DJ paket
 (dj.packages || []).forEach(p => {
@@ -122,13 +122,13 @@ Object.values(dj.equipment || {}).forEach(p => {
 
 // Bild
 (bild.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 (bild.dukar || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 (bild.tillbehor || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.artno || p.slug || p.id, p.price));
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
 });
 
 const CART_ID_LISTA = cartLines.join('\n');

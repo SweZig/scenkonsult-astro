@@ -206,9 +206,16 @@ Ljus stativ:  /vara-tjanster/hyra-ljus/stativ-tross/
 Moving heads: /vara-tjanster/hyra-ljus/moving-heads/
 
 — DJ & specialtjänster
-DJ:           /vara-tjanster/hyra-dj/
+Boka DJ (spelare):    /vara-tjanster/hyra-dj/
+DJ-utrustning (hyra): /vara-tjanster/hyra-dj-utrustning/
+Ljudtekniker:         /vara-tjanster/hyra-ljudtekniker/
 Karaoke:      /vara-tjanster/hyra-karaoke/
 Konferens AV: /vara-tjanster/konferens-av/
+
+VIKTIGT om DJ — vi har TVÅ separata DJ-sidor, blanda inte ihop dem:
+• Vill kunden BOKA en DJ som spelar på eventet (Junior/Senior/PRO) → /vara-tjanster/hyra-dj/
+• Vill kunden HYRA DJ-utrustning att spela själv på (Numark/Denon/Rane controllers, DJ-bord) → /vara-tjanster/hyra-dj-utrustning/
+• Vill kunden ha en tekniker som sköter ljudet på plats (soundcheck, körning, felsökning) → /vara-tjanster/hyra-ljudtekniker/
 
 Alla tjänster (hub): /vara-tjanster/
 

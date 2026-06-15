@@ -10,6 +10,8 @@ import ljudJson   from '../data/ljud.json';
 import ljusJson   from '../data/ljus.json';
 import djJson     from '../data/dj.json';
 import bildJson   from '../data/bild.json';
+import tjansterJson from '../data/tjanster.json';
+import karaokeJson  from '../data/karaoke.json';
 
 type SvenProduct = { name: string; price: number; category: string };
 const svenProducts: Record<string, SvenProduct> = {};
@@ -26,6 +28,9 @@ const svenProducts: Record<string, SvenProduct> = {};
   });
 });
 ((ljudJson as any).mixers as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
+});
+((ljudJson as any).kolumnNoMic as any[] || []).forEach((p: any) => {
   if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
 });
 
@@ -45,6 +50,20 @@ const svenProducts: Record<string, SvenProduct> = {};
 // DJ
 Object.values((djJson as any).equipment || {}).forEach((p: any) => {
   if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'DJ' };
+});
+// DJ-paket (saknar slug → nyckel = artno, matchar CART_ID_LISTA)
+((djJson as any).packages as any[] || []).forEach((p: any) => {
+  if (p.artno && p.price) svenProducts[p.artno] = { name: p.name, price: p.price, category: 'DJ-paket' };
+});
+
+// Tjänster (tekniker på plats, scenengineer m.fl.) — nyckel = artno (matchar CART_ID_LISTA)
+((tjansterJson as any).services as any[] || []).forEach((p: any) => {
+  if (p.artno && p.price) svenProducts[p.artno] = { name: p.name, price: p.price, category: 'Tjänster' };
+});
+
+// Karaoke-paket (saknar slug → nyckel = artno)
+((karaokeJson as any).packages as any[] || []).forEach((p: any) => {
+  if (p.artno && p.price) svenProducts[p.artno] = { name: p.name, price: p.price, category: 'Karaoke' };
 });
 
 // Bild
