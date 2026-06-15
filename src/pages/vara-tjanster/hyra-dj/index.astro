@@ -24,8 +24,8 @@ const faqSchema = {
 >
 
   <ModernHero
-    eyebrow="DJ · Spelar & utrustning"
-    h1="Hyr DJ eller DJ-utrustning i"
+    eyebrow="DJ-tjänst · Boka spelare"
+    h1="Boka DJ i"
     h1Accent="Stockholm"
     intro={dj.intro}
     breadcrumbs={[
@@ -317,18 +317,17 @@ const faqSchema = {
     </div>
   </section>
 
-  <!-- HYR DJ-UTRUSTNING -->
+  <!-- HYR DJ-UTRUSTNING — kort teaser med länk till dedikerad sida -->
   <section id="dj-utrustning" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <SectionHeader
       eyebrow="Utrustning"
-      h2="Hyr DJ-utrustning"
-      lead="Vill du mixa själv? Vi hyr ut professionella DJ-controllers från Numark och Denon — från kompakta modeller för hemfesten till full standalone-setup för stora event. Borden passar ihop med alla controllers och ger en komplett DJ-station på plats."
+      h2="Hyr DJ-utrustning separat"
+      lead="Vill du eller någon i gänget mixa själv? Vi hyr ut professionella standalone DJ-controllers (Numark, Denon, Rane) och stadiga DJ-bord. Från 799 kr/dygn — ingen laptop krävs."
     />
 
-    <!-- Controllers — 2 per rad, större kort -->
-    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">DJ-controllers</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-      {dj.equipment.filter(p => ['SK-DJ-0001','SK-DJ-0002','SK-DJ-0003','SK-DJ-0004'].includes(p.artno)).map(p => (
+    <!-- 3 mest populära controllers som teaser -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-6">
+      {dj.equipment.filter(p => ['SK-DJ-0001','SK-DJ-0002','SK-DJ-0003'].includes(p.artno)).map(p => (
         <MediaCard
           id={p.artno}
           title={p.name}
@@ -342,21 +341,12 @@ const faqSchema = {
       ))}
     </div>
 
-    <!-- DJ-bord — 3 per rad, mindre -->
-    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">DJ-bord</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {dj.equipment.filter(p => ['SK-DJ-0005','SK-DJ-0006'].includes(p.artno)).map(p => (
-        <MediaCard
-          id={p.artno}
-          title={p.name}
-          images={[p.image]}
-          priceExcl={p.price}
-          priceSuffix={p.priceNote}
-          artno={p.artno}
-          category="DJ-utrustning"
-          bullets={p.specs ?? []}
-        />
-      ))}
+    <!-- CTA: Se hela utbudet -->
+    <div class="mt-8 text-center">
+      <a href="/vara-tjanster/hyra-dj-utrustning/" class="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold px-6 py-3 rounded-lg transition-colors">
+        Se alla DJ-controllers &amp; bord →
+      </a>
+      <p class="text-xs text-gray-500 mt-3">Inkl. Rane System One, Denon Prime 4+ och stadiga DJ-bord</p>
     </div>
   </section>
 

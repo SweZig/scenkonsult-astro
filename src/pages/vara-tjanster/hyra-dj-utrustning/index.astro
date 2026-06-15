@@ -1,0 +1,179 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import KunskapBlock from '../../../components/KunskapBlock.astro';
+import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
+import MediaCard from '../../../components/MediaCard.astro';
+import dj from '../../../data/dj.json';
+
+// Filtrera fram bara hårdvara (controllers + DJ-bord) — INTE DJ-tjänster (Junior/Senior/PRO)
+const controllers = dj.equipment.filter(p => ['SK-DJ-0001','SK-DJ-0002','SK-DJ-0003','SK-DJ-0004'].includes(p.artno));
+const djBord = dj.equipment.filter(p => ['SK-DJ-0005','SK-DJ-0006'].includes(p.artno));
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": dj.djUtrustning.faq.map((f: {q:string,a:string}) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+---
+<Layout
+  schemaExtra={faqSchema}
+  title={dj.djUtrustning.metaTitle}
+  description={dj.djUtrustning.metaDescription}
+>
+
+  <ModernHero
+    eyebrow="DJ-utrustning · Uthyrning"
+    h1="Hyra DJ-utrustning"
+    h1Accent="Stockholm"
+    intro={dj.djUtrustning.intro}
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Hyra DJ-utrustning" }
+    ]}
+    chips={[
+      { html: 'Från <span class="sk-price-excl">799&nbsp;kr</span><span class="sk-price-incl hidden">999&nbsp;kr</span> / dygn' },
+      "Standalone — ingen laptop",
+      "Numark, Denon, Rane",
+      "Levereras klart",
+      "Leverans i Storstockholm",
+      "Sedan 1986",
+    ]}
+  />
+
+  <!-- Vad du kan göra -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {[
+        { icon: "🎛️", title: "Mixa själv", text: "Du eller någon i gänget har DJ-erfarenhet — hyr bara utrustningen och kör." },
+        { icon: "🎉", title: "Komplettera er DJ", text: "Er DJ kommer med datorn men behöver mixer eller controller — vi har lösningen." },
+        { icon: "🏠", title: "Hemfest till klubbevent", text: "Från en kompakt Numark för 50 personer till Rane System One för 500+." },
+      ].map(u => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 text-center">
+          <div class="text-4xl mb-3">{u.icon}</div>
+          <h3 class="font-bold text-white mb-2">{u.title}</h3>
+          <p class="text-sm text-gray-400">{u.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- DJ-controllers -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader
+      eyebrow="Controllers"
+      h2="DJ-controllers — standalone, ingen laptop krävs"
+      lead="Professionella DJ-controllers från Numark, Denon och Rane. Alla är standalone — du laddar musiken på USB eller SD-kort och kopplar in i ljudet. Touchskärm, jog wheels, effekter — allt finns med."
+    />
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+      {controllers.map(p => (
+        <MediaCard
+          id={p.artno}
+          title={p.name}
+          images={[p.image]}
+          priceExcl={p.price}
+          priceSuffix={p.priceNote}
+          artno={p.artno}
+          category="DJ-utrustning"
+          bullets={p.specs ?? []}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- DJ-bord -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader
+      eyebrow="Bord"
+      h2="DJ-bord — stadigt och proffsigt"
+      lead="Stabila DJ-bord som passar alla våra controllers och mixerbord. Välj en enkel modell eller en med front- och sidopaneler för en mer professionell look."
+    />
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+      {djBord.map(p => (
+        <MediaCard
+          id={p.artno}
+          title={p.name}
+          images={[p.image]}
+          priceExcl={p.price}
+          priceSuffix={p.priceNote}
+          artno={p.artno}
+          category="DJ-utrustning"
+          bullets={p.specs ?? []}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Behöver du en DJ också? -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <div class="bg-gradient-to-br from-brand-navy to-brand-dark border border-brand-orange/30 rounded-2xl p-8 sm:p-10 text-center">
+      <div class="text-4xl mb-4">🎧</div>
+      <h2 class="text-2xl font-bold text-white mb-3" style="font-family:'DM Serif Display',serif;">
+        Behöver du också en DJ-spelare?
+      </h2>
+      <p class="text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
+        Om ingen i gänget har erfarenhet av att DJ-spela — vi har 10+ professionella DJs i Stockholm
+        som kan ta hand om kvällen. Junior, Senior och PRO-nivåer med fast pris från 1 999 kr.
+      </p>
+      <a href="/vara-tjanster/hyra-dj/" class="inline-flex items-center gap-2 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold px-6 py-3 rounded-lg transition-colors">
+        Se våra DJs &amp; priser →
+      </a>
+    </div>
+  </section>
+
+  <!-- Behöver du ljud/ljus också? -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader
+      eyebrow="Komplettera"
+      h2="Bygg ett komplett event-paket"
+      lead="DJ-utrustning utan ljud blir tyst. Vi kompletterar gärna ert paket med högtalare, mikrofoner och belysning — boka allt på samma offert."
+    />
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+      <a href="/vara-tjanster/hyra-ljud/music/" class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-5 transition-colors block">
+        <div class="text-2xl mb-2">🔊</div>
+        <h3 class="font-bold text-white mb-1">Ljud till DJ</h3>
+        <p class="text-sm text-gray-400">Music-paketen — högtalare och subwoofer för dans.</p>
+      </a>
+      <a href="/vara-tjanster/hyra-ljus/fardiga-paket/" class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-5 transition-colors block">
+        <div class="text-2xl mb-2">💡</div>
+        <h3 class="font-bold text-white mb-1">Ljus &amp; effekter</h3>
+        <p class="text-sm text-gray-400">Discoljus, uplights och rökmaskin.</p>
+      </a>
+      <a href="/vara-tjanster/" class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-5 transition-colors block">
+        <div class="text-2xl mb-2">📦</div>
+        <h3 class="font-bold text-white mb-1">Komplett paket</h3>
+        <p class="text-sm text-gray-400">Tala om ditt event — vi sätter ihop allt.</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <SectionHeader
+      eyebrow="Vanliga frågor"
+      h2="Hyra DJ-utrustning — vanliga frågor"
+    />
+    <div class="space-y-3 mt-6">
+      {dj.djUtrustning.faq.map((f: {q:string,a:string}) => (
+        <details class="bg-brand-navy border border-white/10 hover:border-brand-orange/30 rounded-2xl overflow-hidden group transition-colors">
+          <summary class="flex items-center justify-between p-5 cursor-pointer list-none">
+            <h3 class="text-white font-semibold text-lg pr-4 group-open:text-brand-orange transition-colors">{f.q}</h3>
+            <span class="text-brand-orange shrink-0 transition-transform group-open:rotate-180 text-xl">▾</span>
+          </summary>
+          <div class="px-5 pb-5 text-gray-400 leading-relaxed">
+            <p>{f.a}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- KunskapBlock CTA -->
+  <KunskapBlock />
+
+</Layout>
