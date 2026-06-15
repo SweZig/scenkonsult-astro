@@ -17,8 +17,17 @@ const sp = (artno: string) => [
   ...(sceneData.products as any[]),
   ...((sceneData as any).accessories ?? []),
 ].find(x => x.artno === artno)?.price ?? 0;
-// DJ-service priser från JSON
-const djSvc = (djData.djService as any).priceTable;
+// DJ-service priser härleds från equipment[] (master). Inkl moms = ×1.25.
+const _djEq = (djData.equipment as any[]);
+const _svc = (tier:string, hours:string) => _djEq.find(p => p.category === 'DJ-tjänst' && p.tier === tier && p.hours === hours);
+const djService = ['2 tim','3 tim','4 tim'].map(hours => {
+  const j = _svc('junior', hours), s = _svc('senior', hours);
+  return {
+    tid: hours,
+    junior: j?.price ?? 0, juniorInkl: Math.round((j?.price ?? 0) * 1.25),
+    senior: s?.price ?? 0, seniorInkl: Math.round((s?.price ?? 0) * 1.25),
+  };
+});
 
 const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"DJ eller liveband? Ärlig jämförelse 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/dj-eller-liveband/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Vad kostar en DJ till bröllop?","acceptedAnswer":{"@type":"Answer","text":`Via Scenkonsult kostar en junior DJ ${dp("SK-DJ-0009")} kr (2 tim) upp till ${dp("SK-DJ-0011")} kr (4 tim) exkl moms. Senior DJ ${dp("SK-DJ-0012")}–${dp("SK-DJ-0014")} kr exkl moms. DJ-hårdvara ingår.`}},{"@type":"Question","name":"Vad kostar det att hyra DJ-utrustning?","acceptedAnswer":{"@type":"Answer","text":`Numark Mixstream Pro+ kostar ${dp("SK-DJ-0001")} kr/dygn. Denon Prime GO+ ${dp("SK-DJ-0002")} kr/dygn. Denon Prime 4+ ${dp("SK-DJ-0003")} kr/dygn. Rane System One ${dp("SK-DJ-0004")} kr/dygn. Alla priser exkl moms.`}},{"@type":"Question","name":"Kan man kombinera DJ och liveband?","acceptedAnswer":{"@type":"Answer","text":`Ja — liveband under cocktail/middag, DJ på dansgolvet. Det kräver scen (fr Scenpaket Medium+ ${sp("SK-SCN-0005")} kr/dygn) och PA som funkar för båda (Music-serien fr ${lp("SK-LJD-MUS-0001")} kr/dygn).`}}]}]};
 const djUtrustning = [
@@ -26,9 +35,6 @@ const djUtrustning = [
   {n:"Denon Prime GO+",p:dp("SK-DJ-0002"),d:"Kompakt 2-deck standalone. Batteri + WiFi. Perfekt för mindre event.",link:"/vara-tjanster/hyra-dj/"},
   {n:"Denon Prime 4+",p:dp("SK-DJ-0003"),d:"4-deck standalone. Stor skärm, inbyggt ljudkort. Professionell setup utan laptop.",link:"/vara-tjanster/hyra-dj/"},
   {n:"Rane System One",p:dp("SK-DJ-0004"),d:"Professionellt Serato-system. Valt av toppnamn. Magistralt ljud och byggkvalitet.",link:"/vara-tjanster/hyra-dj/"},
-];
-const djService = [
-  ...(djData.djService as any).priceTable.map((r:any) => ({tid:r.hours,junior:r.junior,juniorInkl:r.juniorInkl,senior:r.senior,seniorInkl:r.seniorInkl})),
 ];
 ---
 <Layout title="DJ eller Liveband? Ärlig Jämförelse 2025 | Scenkonsult" description="DJ vs liveband — pris, stämning, logistik och teknikkrav. Konkreta priser från Scenkonsults sortiment. Uthyrare sedan 1986." schemaExtra={schema}>

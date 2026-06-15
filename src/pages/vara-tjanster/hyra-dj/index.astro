@@ -16,6 +16,21 @@ const faqSchema = {
   }))
 };
 
+// DJ-tjänst priser härleds från equipment[] (master). Inkl moms = ×1.25.
+const _svcEq = (dj.equipment as any[]).filter(p => p.category === 'DJ-tjänst');
+const _svc = (tier: string, hours: string) => _svcEq.find(p => p.tier === tier && p.hours === hours);
+const svcRows = ['2 tim','3 tim','4 tim'].map(hours => {
+  const j = _svc('junior', hours), s = _svc('senior', hours), pr = _svc('pro', hours);
+  return {
+    hours,
+    junior: j?.price ?? 0, juniorInkl: Math.round((j?.price ?? 0) * 1.25), artnoJunior: j?.artno,
+    senior: s?.price ?? 0, seniorInkl: Math.round((s?.price ?? 0) * 1.25), artnoSenior: s?.artno,
+    pro: pr?.price ?? 0, artnoPro: pr?.artno,
+  };
+});
+// Lägsta DJ-tjänstpris för chips/snabbnav
+const djFromExcl = Math.min(...svcRows.map(r => r.junior).filter(Boolean));
+const djFromInkl = Math.round(djFromExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -34,7 +49,7 @@ const faqSchema = {
       { label: "Hyr DJ" }
     ]}
     chips={[
-      { html: 'Från <span class="sk-price-excl">1 999&nbsp;kr</span><span class="sk-price-incl hidden">2 499&nbsp;kr</span> / 2 tim' },
+      { html: `Från <span class="sk-price-excl">${djFromExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${djFromInkl.toLocaleString('sv')}&nbsp;kr</span> / 2 tim` },
       "10+ professionella DJs",
       "Alla genrer — 70-tal till idag",
       "Pioneer & Numark/Denon/Rane",
@@ -46,8 +61,8 @@ const faqSchema = {
     <div class="flex flex-wrap gap-3 text-xs text-gray-300 items-center">
       <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
         🎤 DJ-tjänst från
-        <span class="sk-price-excl font-semibold text-brand-orange">1 999&nbsp;kr</span>
-        <span class="sk-price-incl hidden font-semibold text-brand-orange">2 499&nbsp;kr</span>
+        <span class="sk-price-excl font-semibold text-brand-orange">{djFromExcl.toLocaleString('sv')}&nbsp;kr</span>
+        <span class="sk-price-incl hidden font-semibold text-brand-orange">{djFromInkl.toLocaleString('sv')}&nbsp;kr</span>
         /2 tim
       </span>
       <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
@@ -125,7 +140,7 @@ const faqSchema = {
         <div class="px-4 py-4 text-center text-gray-300">Senior DJ</div>
         <div class="px-4 py-4 text-center text-gray-300">PRO DJ</div>
       </div>
-      {dj.djService.priceTable.map((row, i) => (
+      {svcRows.map((row, i) => (
         <div class={`grid grid-cols-4 border-b border-white/5 ${i % 2 !== 0 ? 'bg-white/[0.03]' : ''}`}>
           <div class="px-5 py-4 text-gray-300 text-sm font-medium self-center">{row.hours}</div>
           <!-- Junior -->

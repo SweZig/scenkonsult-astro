@@ -6,7 +6,16 @@ import ljudData from '../../../data/ljud.json';
 import sceneData from '../../../data/scenes.json';
 
 const eq = djData.equipment as any[];
-const svcTable = (djData.djService as any).priceTable as any[];
+// DJ-tjänst pristabell härledd från equipment[] (master). Inkl moms = ×1.25.
+const _svc = (tier: string, hours: string) => eq.find(p => p.category === 'DJ-tjänst' && p.tier === tier && p.hours === hours);
+const svcTable = ['2 tim','3 tim','4 tim'].map(hours => {
+  const j = _svc('junior', hours), s = _svc('senior', hours);
+  return {
+    hours,
+    junior: j?.price ?? 0, juniorInkl: Math.round((j?.price ?? 0) * 1.25),
+    senior: s?.price ?? 0, seniorInkl: Math.round((s?.price ?? 0) * 1.25),
+  };
+});
 const dp = (artno: string) => eq.find(p => p.artno === artno)?.price ?? 0;
 const sp = (artno: string) => (sceneData.products as any[]).find(p => p.artno === artno)?.price ?? 0;
 const scenSmallPris = sp('SK-SCN-0001');  // Scenpaket Small — DJ-bord
