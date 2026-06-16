@@ -16,7 +16,7 @@ const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
 const LOGO_URL   = 'https://scenkonsult.se/logo-white.png';
 
 function fmtKr(n) {
-  return (parseInt(n) || 0).toLocaleString('sv-SE') + ' kr';
+  return (parseInt(n) || 0).toLocaleString('sv-SE').replace(/\u00A0/g, ' ') + ' kr';
 }
 function fmtDate(iso) {
   if (!iso) return '—';

@@ -14,7 +14,7 @@ const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
 const LOGO_URL   = 'https://scenkonsult.se/logo-white.png';
 
-function fmtKr(n) { return (parseInt(n) || 0).toLocaleString('sv-SE') + ' kr'; }
+function fmtKr(n) { return (parseInt(n) || 0).toLocaleString('sv-SE').replace(/\u00A0/g, ' ') + ' kr'; }
 function fmtDate(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('sv-SE');

@@ -10,7 +10,7 @@ const PDFDocument = require('pdfkit');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
 function fmtKr(n) {
-  return (parseInt(n) || 0).toLocaleString('sv-SE') + ' kr';
+  return (parseInt(n) || 0).toLocaleString('sv-SE').replace(/\u00A0/g, ' ') + ' kr';
 }
 function fmtDate(iso) {
   if (!iso) return '—';
