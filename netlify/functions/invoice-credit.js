@@ -312,10 +312,10 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); }
   catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltigt JSON' }) }; }
 
-  const { cart_id, mode, custom_percent, reason, resend } = body;
+  const { cart_id, mode, custom_percent, custom_amount, reason, resend } = body;
   if (!cart_id) return { statusCode: 400, headers, body: JSON.stringify({ error: 'cart_id krävs' }) };
-  if (!['full', 'cancel_rules', 'custom'].includes(mode))
-    return { statusCode: 400, headers, body: JSON.stringify({ error: "mode måste vara 'full', 'cancel_rules' eller 'custom'" }) };
+  if (!['full', 'cancel_rules', 'custom', 'custom_amount'].includes(mode))
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "mode måste vara 'full', 'cancel_rules', 'custom' eller 'custom_amount'" }) };
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'RESEND_API_KEY saknas' }) };
@@ -331,6 +331,7 @@ exports.handler = async (event) => {
     // Bestäm procent
     let percent;
     let modeUsed = mode;
+    let amountExclOverride = null; // sätts bara för custom_amount
     if (mode === 'full') {
       percent = 100;
     } else if (mode === 'cancel_rules') {
@@ -341,7 +342,21 @@ exports.handler = async (event) => {
           error: `Enligt avbokningsreglerna är ingen kreditering möjlig (${calc.days} dag${calc.days === 1 ? '' : 'ar'} till event${calc.isDj ? ', DJ' : ''}).`
         }) };
       }
-    } else { // custom
+    } else if (mode === 'custom_amount') {
+      // Fast kronbelopp angivet INKL. moms (matchar UI:t som tänker i inkl-belopp).
+      // Räkna om till exkl. moms för fakturaraden.
+      const inclAmt = parseInt(custom_amount);
+      if (isNaN(inclAmt) || inclAmt < 1)
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'custom_amount måste vara ett positivt belopp (kr inkl. moms)' }) };
+      // Tak: får inte överstiga ursprungsbeloppet inkl. moms
+      const origItems = (Array.isArray(cart.items) ? cart.items : []).filter(i => !i._note && i.name);
+      const origExcl  = origItems.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
+      const origIncl  = Math.round(origExcl * 1.25);
+      if (inclAmt > origIncl)
+        return { statusCode: 400, headers, body: JSON.stringify({ error: `Beloppet (${inclAmt} kr) överstiger fakturans ${origIncl} kr inkl. moms` }) };
+      amountExclOverride = Math.round(inclAmt / 1.25);
+      percent = origIncl > 0 ? Math.round(inclAmt / origIncl * 100) : 0; // ungefärlig % för loggning/PDF
+    } else { // custom (procent)
       const p = parseInt(custom_percent);
       if (isNaN(p) || p < 1 || p > 100)
         return { statusCode: 400, headers, body: JSON.stringify({ error: 'custom_percent måste vara 1-100' }) };
@@ -358,6 +373,17 @@ exports.handler = async (event) => {
         ? cart.credit_amount_excl
         : creditLines.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
       creditOfInvoice = cart.credit_of_invoice || cart.invoice_number;
+    } else if (amountExclOverride != null) {
+      // custom_amount — fast kronbelopp, en summary-rad
+      creditLines = [{
+        id:    'credit-line',
+        artno: '',
+        name:  `Kreditering av faktura ${cart.invoice_number || ''}`,
+        price: -amountExclOverride,
+        qty:   1,
+      }];
+      totalExcl       = -amountExclOverride;
+      creditOfInvoice = cart.invoice_number;
     } else {
       creditLines     = buildCreditLines(cart, percent);
       totalExcl       = creditLines.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
@@ -387,10 +413,12 @@ exports.handler = async (event) => {
       if (logoRes.ok) logoBuffer = Buffer.from(await logoRes.arrayBuffer());
     } catch(e) { /* ok */ }
 
-    const pdfBuffer = await generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, percent, logoBuffer);
+    // För custom_amount visar vi inte procent i PDF/e-post (beloppet är exakt) → null
+    const displayPercent = (modeUsed === 'custom_amount') ? null : percent;
+    const pdfBuffer = await generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, displayPercent, logoBuffer);
     const totalIncl = totalExcl + Math.round(totalExcl * 0.25);
 
-    await sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, percent, totalIncl);
+    await sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, displayPercent, totalIncl);
 
     const now = new Date().toISOString();
     const updates = {

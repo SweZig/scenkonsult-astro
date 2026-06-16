@@ -327,6 +327,19 @@ const _monteringAdminConfig = {
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='rgba(255,255,255,0.5)'><path d='M10 8.586L4.707 3.293 3.293 4.707 8.586 10l-5.293 5.293 1.414 1.414L10 11.414l5.293 5.293 1.414-1.414L11.414 10l5.293-5.293-1.414-1.414L10 8.586z'/></svg>");
       background-repeat: no-repeat; background-position: center; cursor: pointer;
     }
+    /* Gemensam clear-knapp (X) för sökrutor */
+    .search-clear-btn {
+      position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+      width: 20px; height: 20px; padding: 0; margin: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.12); border: none; border-radius: 50%;
+      color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    .search-clear-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+    .pb-search-wrap { position: relative; flex: 1 1 280px; max-width: 480px; min-width: 280px; }
+    .pb-search-wrap .pb-search { width: 100%; min-width: 0; flex: none; max-width: none; padding-right: 34px; }
+    .filter-search-wrap .filter-input { padding-right: 30px; }
     .pb-controls { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
     .pb-status-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; }
     .pb-list {
@@ -1324,6 +1337,7 @@ const _monteringAdminConfig = {
 
       /* Kanban-filter stack: sök full bredd, datum 50/50, reset full bredd */
       .kanban-filters { width: 100%; flex-direction: column; align-items: stretch; }
+      .filter-search-wrap { width: 100%; display: block; }
       #filter-search { width: 100% !important; }
       .filter-pill { width: 100%; justify-content: center; min-height: 44px; font-size: 0.95rem; }
       .filter-date-group {
@@ -1521,7 +1535,10 @@ const _monteringAdminConfig = {
     <div class="kanban-header">
       <div class="kanban-title">Orderöversikt</div>
       <div class="kanban-filters">
-        <input class="filter-input" id="filter-search" placeholder="🔍 Sök kund..." style="width:180px" />
+        <div class="filter-search-wrap" style="position:relative;display:inline-block">
+          <input class="filter-input" id="filter-search" placeholder="🔍 Sök namn, företag, tel..." style="width:200px" autocomplete="off" />
+          <button type="button" id="filter-search-clear" class="search-clear-btn" aria-label="Rensa sökning" title="Rensa" hidden>×</button>
+        </div>
         <button type="button" class="filter-pill" id="filter-unread-btn" aria-pressed="false" title="Visa carts som behöver uppmärksamhet: kunden har inte öppnat offerten, olästa kundmeddelanden, ELLER nya Sven-ärenden">
           📬 Oläst<span class="filter-pill-count" id="filter-unread-count" hidden></span>
         </button>
@@ -1615,7 +1632,10 @@ const _monteringAdminConfig = {
   <div class="view" id="view-phonebook">
     <div class="pb-header">
       <div class="pb-title">Telefonbok <span class="pb-count" id="pb-count"></span></div>
-      <input type="search" id="pb-search" class="pb-search" placeholder="🔍 Sök på namn, företag eller telefonnummer..." autocomplete="off" />
+      <div class="pb-search-wrap">
+        <input type="text" id="pb-search" class="pb-search" placeholder="🔍 Sök på namn, företag eller telefonnummer..." autocomplete="off" />
+        <button type="button" id="pb-search-clear" class="search-clear-btn" aria-label="Rensa sökning" title="Rensa" hidden>×</button>
+      </div>
       <div class="pb-controls">
         <div class="waiting-sort" id="pb-sort-group">
           <button class="wsort-btn active" data-pb-sort="alpha">A–Ö</button>
@@ -2474,11 +2494,24 @@ function isCartUnread(c) {
 }
 
 function getFilteredCarts() {
-  const search = $('filter-search').value.toLowerCase().trim();
+  const searchRaw = $('filter-search').value.trim();
+  const search = searchRaw.toLowerCase();
+  const searchDigits = normalizePhone(searchRaw);
   const from   = $('filter-from').value;
   const to     = $('filter-to').value;
   return carts.filter(c => {
-    if (search && !((c.customer_name || '').toLowerCase().includes(search) || (c.id || '').toLowerCase().includes(search))) return false;
+    if (search) {
+      const matchText =
+        (c.customer_name    || '').toLowerCase().includes(search) ||
+        (c.customer_company || '').toLowerCase().includes(search) ||
+        (c.id               || '').toLowerCase().includes(search);
+      let matchPhone = false;
+      if (searchDigits) {
+        const phoneDigits = normalizePhone(c.customer_phone || '');
+        matchPhone = !!phoneDigits && phoneDigits.includes(searchDigits);
+      }
+      if (!matchText && !matchPhone) return false;
+    }
     if (from && c.event_date && c.event_date < from) return false;
     if (to   && c.event_date && c.event_date > to)   return false;
     if (_unreadFilter && !isCartUnread(c)) return false;
@@ -2533,6 +2566,7 @@ function syncDateEmptyState(input) {
 // Nollställ alla filter
 $('filter-reset')?.addEventListener('click', () => {
   $('filter-search').value = '';
+  const fsc = $('filter-search-clear'); if (fsc) fsc.hidden = true;
   $('filter-from').value = '';
   $('filter-to').value = '';
   syncDateEmptyState($('filter-from'));
@@ -2930,6 +2964,25 @@ document.addEventListener('click', e => {
 
 // Sökruta — re-rendera vid input
 $('pb-search')?.addEventListener('input', renderPhonebook);
+
+// ── CLEAR-KNAPP (X) FÖR SÖKRUTOR ──────────────────────────────
+// Visar/döljer X baserat på innehåll, rensar fält + fokuserar vid klick.
+function wireSearchClear(inputId, btnId) {
+  const input = $(inputId);
+  const btn   = $(btnId);
+  if (!input || !btn) return;
+  const sync = () => { btn.hidden = !input.value; };
+  sync();
+  input.addEventListener('input', sync);
+  btn.addEventListener('click', () => {
+    input.value = '';
+    btn.hidden = true;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+  });
+}
+wireSearchClear('filter-search', 'filter-search-clear');
+wireSearchClear('pb-search', 'pb-search-clear');
 
 // ── MARKERA KUNDMEDDELANDEN SOM LÄSTA ─────────────────────────
 async function markAdminRead(cartId) {
@@ -5501,6 +5554,7 @@ async function invCreateCredit() {
         cart_id: currentCart.id,
         mode:    choice.mode,
         custom_percent: choice.mode === 'custom' ? choice.percent : undefined,
+        custom_amount:  choice.mode === 'custom_amount' ? choice.amount : undefined,
         reason:  choice.reason || null,
       }),
     });
@@ -5607,7 +5661,7 @@ function showCreditDialog(preview) {
           </div>
         </label>
 
-        <label style="display:block;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;margin-bottom:12px;cursor:pointer">
+        <label style="display:block;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;margin-bottom:8px;cursor:pointer">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <input type="radio" name="credit-mode" value="custom" style="accent-color:#f87171">
             <div style="flex:1;min-width:140px">
@@ -5621,6 +5675,22 @@ function showCreditDialog(preview) {
             </div>
           </div>
           <div id="credit-custom-amt" style="color:#fca5a5;font-size:0.72rem;margin-top:4px;margin-left:24px;display:none"></div>
+        </label>
+
+        <label style="display:block;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;margin-bottom:12px;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <input type="radio" name="credit-mode" value="custom_amount" style="accent-color:#f87171">
+            <div style="flex:1;min-width:140px">
+              <div style="color:#f0eeff;font-weight:600;font-size:0.85rem">Anpassat belopp</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:0.72rem">Ange ett valfritt belopp i kronor (inkl. moms)</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input id="credit-custom-kr" type="number" min="1" step="1" placeholder="0" disabled
+                style="width:84px;font-size:0.85rem;padding:4px 8px;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.2);border-radius:5px;text-align:right">
+              <span style="color:rgba(255,255,255,0.6);font-size:0.8rem">kr</span>
+            </div>
+          </div>
+          <div id="credit-custom-kr-info" style="color:#fca5a5;font-size:0.72rem;margin-top:4px;margin-left:24px;display:none"></div>
         </label>
 
         <!-- Anledning (valfri) -->
@@ -5639,6 +5709,8 @@ function showCreditDialog(preview) {
 
     const pctInput = dlg.querySelector('#credit-custom-pct');
     const customAmtEl = dlg.querySelector('#credit-custom-amt');
+    const krInput = dlg.querySelector('#credit-custom-kr');
+    const krInfoEl = dlg.querySelector('#credit-custom-kr-info');
     function updateCustomAmt() {
       const p = parseInt(pctInput.value) || 0;
       const amt = Math.round(origIncl * p / 100);
@@ -5646,12 +5718,26 @@ function showCreditDialog(preview) {
     }
     pctInput.addEventListener('input', updateCustomAmt);
 
+    function updateKrInfo() {
+      const kr = parseInt(krInput.value) || 0;
+      if (kr > origIncl) {
+        krInfoEl.textContent = `⚠ Max ${origIncl.toLocaleString('sv-SE')} kr (fakturans belopp)`;
+      } else {
+        krInfoEl.textContent = `Krediterar ${kr.toLocaleString('sv-SE')} kr av ${origIncl.toLocaleString('sv-SE')} kr`;
+      }
+    }
+    krInput.addEventListener('input', updateKrInfo);
+
     dlg.querySelectorAll('input[name="credit-mode"]').forEach(r => {
       r.addEventListener('change', () => {
-        const isCustom = r.value === 'custom' && r.checked;
+        const isCustom    = r.value === 'custom' && r.checked;
+        const isCustomAmt = r.value === 'custom_amount' && r.checked;
         pctInput.disabled = !isCustom;
+        krInput.disabled  = !isCustomAmt;
         customAmtEl.style.display = isCustom ? 'block' : 'none';
-        if (isCustom) { updateCustomAmt(); pctInput.focus(); }
+        krInfoEl.style.display    = isCustomAmt ? 'block' : 'none';
+        if (isCustom)    { updateCustomAmt(); pctInput.focus(); }
+        if (isCustomAmt) { updateKrInfo();    krInput.focus(); }
       });
     });
 
@@ -5659,14 +5745,19 @@ function showCreditDialog(preview) {
     dlg.querySelector('#credit-ok').onclick = () => {
       const mode = dlg.querySelector('input[name="credit-mode"]:checked')?.value;
       if (!mode) { toast('Välj ett alternativ', 'error'); return; }
-      let pct;
+      let pct, kr;
       if (mode === 'custom') {
         pct = parseInt(pctInput.value);
         if (!pct || pct < 1 || pct > 100) { toast('Ange % mellan 1 och 100', 'error'); return; }
       }
+      if (mode === 'custom_amount') {
+        kr = parseInt(krInput.value);
+        if (!kr || kr < 1) { toast('Ange ett belopp i kronor', 'error'); return; }
+        if (kr > origIncl) { toast(`Beloppet får inte överstiga ${origIncl.toLocaleString('sv-SE')} kr`, 'error'); return; }
+      }
       const reason = dlg.querySelector('#credit-reason').value.trim();
       dlg.remove();
-      resolve({ mode, percent: pct, reason });
+      resolve({ mode, percent: pct, amount: kr, reason });
     };
     dlg.onclick = e => { if (e.target === dlg) { dlg.remove(); resolve(null); } };
   });
