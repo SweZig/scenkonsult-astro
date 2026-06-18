@@ -22,8 +22,12 @@ const faq = [
     a: 'Våra system kan byggas upp till 4,2 meter höga och 3,0 meter breda per sektion. Genom att kombinera startsystem med påbyggnadssystem bygger du väggar så långa du vill — sektion för sektion.'
   },
   {
+    q: 'Hur många moltontyg ingår i den kompletta vagnen?',
+    a: 'Vagnen rymmer upp till 10 sektioner stolpar och bärstänger, men 9 moltontyg — eftersom angränsande sektioner delar stolpe behövs ett tyg mindre än antalet sektioner för att täcka en sammanhängande vägg. Behöver du fler eller andra storlekar kompletterar du enkelt med lösa scenmolton.'
+  },
+  {
     q: 'Vad kostar det att hyra Pipe & Drape i Stockholm?',
-    a: 'Ett startsystem kostar 550 kr/dygn och varje påbyggnadssystem 375 kr/dygn. Scenmolton från 250 kr/dygn. För större ytor finns en komplett vagn med upp till 10 sektioner för 5 995 kr/dygn. Priser exkl. moms. Transport och montering tillkommer och offereras separat.'
+    a: 'Ett startsystem kostar 550 kr/dygn och varje påbyggnadssystem 375 kr/dygn. Scenmolton från 250 kr/dygn. För större ytor finns en komplett vagn med upp till 10 sektioner för 5 995 kr/dygn. Priser exkl. moms. Transport och montering tillkommer och offereras separat. Den kompletta vagnen kräver lätt lastbil för transport på grund av höjden.'
   },
   {
     q: 'Vad används Pipe & Drape till?',
@@ -141,6 +145,7 @@ const _lowInkl = Math.round(_low * 1.25);
               description={p.description}
               category="Pipe & Drape"
               bulky={p.bulky}
+              forceLeverans={p.forceLeverans}
             />
           ))}
         </div>
