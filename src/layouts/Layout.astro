@@ -20,6 +20,9 @@ const svenProducts: Record<string, SvenProduct> = {};
 (scenesJson.products as any[]).forEach(p => {
   if (p.id && p.price) svenProducts[`scen-${p.id}`] = { name: p.name, price: p.price, category: 'Scen' };
 });
+((scenesJson as any).pipeDrape as any[] || []).forEach((p: any) => {
+  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Pipe & Drape' };
+});
 
 // Ljud: event / live / music / portable / mixers
 (['event','live','music','portable'] as const).forEach(sec => {
@@ -455,6 +458,7 @@ const localBusinessSchema = {
           <div class="nav-dd-col">
             <span class="nav-dd-heading">Hårdvara</span>
             <a href="/vara-tjanster/hyra-scen/">🎪 Hyra scen</a>
+            <a href="/vara-tjanster/hyra-scen/pipe-drape/" class="nav-dd-sub">Pipe &amp; Drape <span style="background:#c4b5f4;color:#0c0a24;padding:1px 6px;border-radius:99px;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;margin-left:4px;vertical-align:1px;">Nytt</span></a>
             <a href="/vara-tjanster/hyra-ljud/" class="nav-dd-hub">🔊 Hyra ljud</a>
             <a href="/vara-tjanster/hyra-ljud/portable/" class="nav-dd-sub">Portabelt ljud</a>
             <a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/" class="nav-dd-sub">Kolumn</a>
@@ -513,6 +517,7 @@ const localBusinessSchema = {
         <button class="nav-mob-trigger" id="mobTjänsterBtn">Tjänster <span class="nav-arrow">▾</span></button>
         <ul class="nav-mob-sub" id="mobTjänsterSub">
           <li><a href="/vara-tjanster/hyra-scen/">Hyra scen</a></li>
+          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-scen/pipe-drape/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Pipe &amp; Drape</a></li>
           <li><a href="/vara-tjanster/hyra-ljud/">Hyra ljud</a></li>
           <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljud/portable/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Portable</a></li>
           <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Kolumn</a></li>
@@ -567,6 +572,7 @@ const localBusinessSchema = {
         <h3>Hårdvara</h3>
         <ul>
           <li><a href="/vara-tjanster/hyra-scen/">Hyra scen</a></li>
+          <li><a href="/vara-tjanster/hyra-scen/pipe-drape/">Pipe &amp; Drape</a></li>
           <li><a href="/vara-tjanster/hyra-ljud/">Hyra ljud</a></li>
           <li><a href="/vara-tjanster/hyra-bild/">Hyra bild</a></li>
           <li><a href="/vara-tjanster/hyra-ljus/">Hyra ljus</a></li>

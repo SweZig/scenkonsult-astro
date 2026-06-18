@@ -1,0 +1,234 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import KunskapBlock from '../../../../components/KunskapBlock.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
+import SectionHeader from '../../../../components/SectionHeader.astro';
+import ProductCard from '../../../../components/ProductCard.astro';
+import scenData from '../../../../data/scenes.json';
+
+const products = (scenData as any).pipeDrape as any[];
+
+const metaTitle = 'Hyra Pipe & Drape Stockholm — Draperivägg & Scenmolton | Från 250 kr/dygn';
+const metaDescription = 'Hyr Pipe & Drape-system i Stockholm — flexibla draperiväggar upp till 4,2 m höga och 3,0 m breda. Wentex-system med svart scenmolton, startsystem, påbyggnad och komplett vagn. Levereras i Storstockholm. Sedan 1986.';
+const intro = 'Pipe & Drape är ett flexibelt stolp- och draperisystem som bygger snygga, fristående väggar var som helst — utan håltagning eller fast montage. Perfekt för att skapa fonder bakom scenen, dela av lokaler, dölja teknik och lager, rama in mässmontrar eller bygga en elegant bakgrund till bröllop och fest. Alla våra system kan byggas upp till 4,2 meter höga och 3,0 meter breda per sektion, och kombineras i bredd så långt du behöver. Vi levererar till hela Storstockholm.';
+
+const faq = [
+  {
+    q: 'Vad är ett Pipe & Drape-system?',
+    a: 'Pipe & Drape är ett modulärt system av justerbara stolpar (pipes) och draperier (drapes) som bygger fristående väggar. Tyngdplattor i botten håller systemet stabilt utan att du behöver borra eller fästa något i väggar eller tak. Du träer scenmolton på en horisontell bärstång och får en slät, professionell yta.'
+  },
+  {
+    q: 'Hur höga och breda kan väggarna bli?',
+    a: 'Våra system kan byggas upp till 4,2 meter höga och 3,0 meter breda per sektion. Genom att kombinera startsystem med påbyggnadssystem bygger du väggar så långa du vill — sektion för sektion.'
+  },
+  {
+    q: 'Vad kostar det att hyra Pipe & Drape i Stockholm?',
+    a: 'Ett startsystem kostar 550 kr/dygn och varje påbyggnadssystem 375 kr/dygn. Scenmolton från 250 kr/dygn. För större ytor finns en komplett vagn med upp till 10 sektioner för 5 995 kr/dygn. Priser exkl. moms. Transport och montering tillkommer och offereras separat.'
+  },
+  {
+    q: 'Vad används Pipe & Drape till?',
+    a: 'Vanliga användningsområden är scenfond/backdrop, avdelare i lokaler, att dölja teknik och förråd, mässmontrar, omklädningsytor backstage samt eleganta bakgrunder vid bröllop, fest och företagsevent.'
+  },
+  {
+    q: 'Ingår transport och montering?',
+    a: 'Nej. Transport och montering tillkommer och offereras separat. Mindre uppställningar kan du enkelt rigga själv — systemet kräver inga verktyg. För stora ytor hjälper våra tekniker gärna till.'
+  }
+];
+
+const pageSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Pipe & Drape-system för uthyrning i Stockholm",
+  "description": intro,
+  "numberOfItems": products.length,
+  "itemListElement": products.map((p, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "item": {
+      "@type": "Product",
+      "name": p.name,
+      "description": p.description,
+      "image": `https://scenkonsult.se${p.image}`,
+      "sku": p.artno,
+      "brand": { "@type": "Brand", "name": "Scenkonsult Norden" },
+      "offers": {
+        "@type": "Offer",
+        "price": String(p.price),
+        "priceCurrency": "SEK",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock",
+        "seller": { "@type": "Organization", "name": "Scenkonsult Norden" },
+        "url": `https://scenkonsult.se/vara-tjanster/hyra-scen/pipe-drape/#${p.slug}`
+      }
+    }
+  }))
+};
+
+const _low = Math.min(...products.filter(p => p.price).map(p => p.price));
+const _lowInkl = Math.round(_low * 1.25);
+---
+
+<Layout
+  title={metaTitle}
+  description={metaDescription}
+  schemaExtra={{
+    "@context": "https://schema.org",
+    "@graph": [
+      pageSchema,
+      {
+        "@type": "FAQPage",
+        "mainEntity": faq.map((f) => ({
+          "@type": "Question",
+          "name": f.q,
+          "acceptedAnswer": { "@type": "Answer", "text": f.a }
+        }))
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Hem", "item": "https://scenkonsult.se/" },
+          { "@type": "ListItem", "position": 2, "name": "Våra tjänster", "item": "https://scenkonsult.se/vara-tjanster/" },
+          { "@type": "ListItem", "position": 3, "name": "Hyra scen", "item": "https://scenkonsult.se/vara-tjanster/hyra-scen/" },
+          { "@type": "ListItem", "position": 4, "name": "Pipe & Drape", "item": "https://scenkonsult.se/vara-tjanster/hyra-scen/pipe-drape/" }
+        ]
+      }
+    ]
+  }}
+>
+
+  <!-- HERO -->
+  <ModernHero
+    eyebrow="Scen · Pipe & Drape"
+    h1="Hyra Pipe & Drape i"
+    h1Accent="Stockholm"
+    intro={intro}
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Hyra scen", href: "/vara-tjanster/hyra-scen/" },
+      { label: "Pipe & Drape" }
+    ]}
+    chips={[
+      { html: `Från <span class="sk-price-excl">${_low.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_lowInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
+      "Upp till 4,2 m hög × 3,0 m bred",
+      "Wentex-system · svart molton",
+      "Inga verktyg — fristående",
+      "Leverans i Storstockholm",
+    ]}
+  />
+
+  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1180px;margin:0 auto;">
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- PRODUKTER                                                       -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="produkter" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
+        <SectionHeader
+          eyebrow="Produkter"
+          h2="Pipe & Drape — system & scenmolton"
+          leadHtml="Börja med ett <strong>startsystem</strong> och bygg vidare i bredd med <strong>påbyggnadssystem</strong> — sektion för sektion. Komplettera med svart <strong>scenmolton</strong> (300 g/m²) i två storlekar. Behöver du täcka en stor yta är den <strong>kompletta vagnen</strong> med upp till 10 sektioner det smidigaste valet. <strong>Priserna är exkl. transport och montering, som tillkommer separat.</strong>"
+        />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map(p => (
+            <ProductCard
+              artno={p.artno}
+              name={p.name}
+              price={p.price}
+              priceNote={p.priceNote}
+              image={p.image}
+              alt={p.alt}
+              description={p.description}
+              category="Pipe & Drape"
+              bulky={p.bulky}
+            />
+          ))}
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- ANVÄNDNINGSOMRÅDEN                                              -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="anvandning" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
+        <SectionHeader
+          eyebrow="Inspiration"
+          h2="Vad använder man Pipe & Drape till?"
+          lead="Ett av de mest mångsidiga systemen vi hyr ut — samma stolpar och draperier löser många olika behov."
+        />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.4rem;">
+            <h3 style="color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin:0 0 0.5rem;">Scenfond &amp; backdrop</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.6;margin:0;">Skapa en ren, svart bakgrund bakom scenen som ramar in artister och döljer det som finns bakom.</p>
+          </div>
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.4rem;">
+            <h3 style="color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin:0 0 0.5rem;">Avdela lokaler</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.6;margin:0;">Dela av en stor sal i mindre ytor — för mingel, omklädning eller separata zoner — utan att bygga väggar.</p>
+          </div>
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.4rem;">
+            <h3 style="color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin:0 0 0.5rem;">Dölj teknik &amp; förråd</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.6;margin:0;">Göm kablar, flightcase, lager och teknik bakom en snygg draperivägg som höjer hela intrycket.</p>
+          </div>
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.4rem;">
+            <h3 style="color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin:0 0 0.5rem;">Mässmontrar</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.6;margin:0;">Bygg fristående montrar och väggar för mässor och utställningar — snabbt riggat och lätt att flytta.</p>
+          </div>
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.4rem;">
+            <h3 style="color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin:0 0 0.5rem;">Bröllop &amp; fest</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.6;margin:0;">En elegant fond bakom brudbordet eller tårtbordet — eller en bakgrund för fotovägg och porträtt.</p>
+          </div>
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.4rem;">
+            <h3 style="color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin:0 0 0.5rem;">Backstage &amp; entré</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.6;margin:0;">Skapa diskreta backstage-ytor och leda gäster rätt vid entré och garderob.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- FAQ                                                             -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="faq" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
+        <SectionHeader
+          eyebrow="Vanliga frågor"
+          h2="Frågor om Pipe & Drape"
+        />
+        <div style="display:flex;flex-direction:column;gap:0.75rem;max-width:820px;">
+          {faq.map(f => (
+            <details style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1rem 1.25rem;">
+              <summary style="color:white;font-weight:600;font-size:0.95rem;cursor:pointer;list-style:none;">{f.q}</summary>
+              <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;line-height:1.7;margin:0.75rem 0 0;">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- CTA                                                            -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section style="margin-bottom:1rem;">
+        <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:clamp(1.5rem,3vw,2rem);max-width:820px;">
+          <div style="color:rgba(255,255,255,0.7);font-size:0.95rem;line-height:1.7;display:flex;flex-direction:column;gap:0.75rem;">
+            <p>Osäker på hur många sektioner du behöver? Berätta hur stor yta eller vägg du vill bygga, så hjälper vi dig att räkna ut rätt antal startsystem, påbyggnadssystem och molton.</p>
+            <p style="color:rgba(255,255,255,0.85);font-weight:500;">Alla priser gäller hyra per dygn (22 timmar) och är exkl. moms. Transport och montering tillkommer och offereras separat. Längre perioder offereras separat.</p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.8rem;margin-top:1.5rem;align-items:center;">
+            <a href="/bokningssida/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.05em;padding:0.75rem 1.5rem;border-radius:10px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#e2dcfb'" onmouseout="this.style.background='#c4b5f4'">Begär offert</a>
+            <a href="/kontakt/" style="border:1px solid rgba(255,255,255,0.3);color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.85rem;padding:0.75rem 1.5rem;border-radius:10px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Kontakta oss</a>
+            <a href="/vara-tjanster/hyra-scen/" style="color:rgba(255,255,255,0.55);font-size:0.85rem;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#c4b5f4'" onmouseout="this.style.color='rgba(255,255,255,0.55)'">← Tillbaka till Hyra scen</a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </article>
+
+  <KunskapBlock
+    guides={[
+      { href: "/for/guider/hur-stor-scen/", label: "Hur stor scen behöver jag?" },
+      { href: "/for/guider/checklista-event/", label: "Komplett event-checklista" }
+    ]}
+    videos={[
+      { slug: "hur-det-fungerar", label: "Hur det fungerar att hyra hos oss" }
+    ]}
+  />
+
+</Layout>

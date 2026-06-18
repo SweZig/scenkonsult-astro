@@ -100,6 +100,7 @@ catalog['Scen'] = {'sub': {
     'Plattformsmoduler':    [prod(p) for p in scenes.get('modules', [])],
 }}
 catalog['Scentillbehör'] = {'products': [prod(p) for p in scenes.get('tillbehor', [])]}
+catalog['Pipe & Drape'] = {'products': [prod(p) for p in scenes.get('pipeDrape', [])]}
 
 # ── Ljud (paket + mixers) ─────────────────────────────────────────────────────
 catalog['Ljud'] = {'sub': {

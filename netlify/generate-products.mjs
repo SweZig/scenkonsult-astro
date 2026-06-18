@@ -64,6 +64,9 @@ scenes.products.forEach(p => {
 (scenes.modules || []).forEach(p => {
   if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
 });
+(scenes.pipeDrape || []).forEach(p => {
+  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno, p.price));
+});
 
 // Ljud: event, live, music, portable, mixers
 ['event','live','music','portable'].forEach(sec => {
@@ -287,6 +290,7 @@ QUOTE_CAT['Scen'] = { sub: {
   'Plattformsmoduler': (scenes.modules||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug,artno:p.artno||'',name:p.name,price:p.price})),
 }};
 QUOTE_CAT['Scentillbehör'] = { products: (scenes.tillbehor||scenes.accessories||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug||'scen-acc',artno:p.artno||'',name:p.name,price:p.price})) };
+QUOTE_CAT['Pipe & Drape'] = { products: (scenes.pipeDrape||[]).filter(p=>p.price).map(p=>({id:p.artno||p.slug,artno:p.artno||'',name:p.name,price:p.price})) };
 
 // Ljud (paket + mixers)
 QUOTE_CAT['Ljud'] = { sub: {
