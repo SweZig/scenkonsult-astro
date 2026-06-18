@@ -82,7 +82,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
     .map(([k, v]) => [k, { name: v.label || k, pris: v.pris || 0 }])
 );
 const INJ_MONTERING_PRICE_PER_HOUR = (tjanster.montering && tjanster.montering.prisPerTimme) || 600;
-const INJ_MONTERING_ROUND_TO_MIN = 30;
+const INJ_MONTERING_ROUND_TO_MIN = (tjanster.montering && typeof tjanster.montering.avrundaTillMin === 'number') ? tjanster.montering.avrundaTillMin : 15;
 ---
 
 <article

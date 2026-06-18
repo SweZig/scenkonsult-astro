@@ -44,6 +44,7 @@ const INJ_MODULE_BY_KEY = Object.fromEntries(
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
 const INJ_MONTERING_MIN_PER_MODULE = (typeof tjanster.montering?.minPerModul === 'number') ? tjanster.montering.minPerModul : 7.5;
+const INJ_MONTERING_ROUND_TO_MIN = (typeof tjanster.montering?.avrundaTillMin === 'number') ? tjanster.montering.avrundaTillMin : 15;
 // Monteringstid per räcke-artikel (min, engångs — ×2 demontering läggs på i klient-logik).
 // Källa: scenes.json tillbehor[].monteringMin. Faller tillbaka på längd × 4 min/m.
 const INJ_RAIL_MONTERING = Object.fromEntries(
@@ -251,7 +252,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_RAIL_MONTERING, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_MONTERING_ROUND_TO_MIN, INJ_RAIL_MONTERING, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -294,10 +295,11 @@ const configData = {
     // närmaste kvart (samma avrundning som visas i prisraden). Används BÅDE för
     // visad prisrad OCH för assemblyMinutesTotal som stämplas till cart, så att
     // konfiguratorns visade pris == checkout-pris by design.
+    const MONTERING_ROUND_TO_MIN = INJ_MONTERING_ROUND_TO_MIN;
     function sceneMonteringMinRounded(lines) {
       const rawMin = moduleCount() * MODULE_MONTERING_MIN * 2 + railMonteringMin(lines) * 2;
-      const hours = Math.round(rawMin / 60 * 4) / 4; // kvart
-      return hours * 60;
+      // Avrunda UPPÅT till närmaste avrundaTillMin (påbörjad kvart).
+      return Math.ceil(rawMin / MONTERING_ROUND_TO_MIN) * MONTERING_ROUND_TO_MIN;
     }
 
     const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
@@ -482,7 +484,7 @@ const configData = {
       if (state.installation) {
         // Avrundad totaltid (moduler + räcken, × 2) — samma värde stämplas till cart.
         const totalMin = sceneMonteringMinRounded(lines);
-        const hours = Math.round(totalMin / 60 * 4) / 4;
+        const hours = totalMin / 60; // redan avrundat till kvart i helpern
         const monteringPris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
         lines.push({
           artno: 'SK-TJN-0001',
@@ -895,9 +897,9 @@ const configData = {
       const installCb = document.getElementById('cfg-installation');
       const installLabel = document.getElementById('cfg-installation-label');
       const installHint = document.getElementById('cfg-installation-hint');
-      // Samma avrundade tid som prisraden och cart (kvart) — håll alla tre i synk.
+      // Samma avrundade tid som prisraden och cart — håll alla tre i synk.
       const minutes = sceneMonteringMinRounded(computeLineItems());
-      const hours = Math.round(minutes / 60 * 4) / 4;
+      const hours = minutes / 60;
       const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
 
       // Frakt-radioknappar — "Hämta själv" och "Leverans"
