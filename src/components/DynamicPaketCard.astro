@@ -51,9 +51,11 @@ const INJ_TRAPP_BY_HEIGHT = {
 // Skyddsräcken — slå upp via artno (för auto-beräkning av säkerhetspaket)
 const _rail2m = _tillbehor.find(t => t.artno === 'SK-SCN-ACC-0007');
 const _rail1m = _tillbehor.find(t => t.artno === 'SK-SCN-ACC-0006');
+const _railStair = _tillbehor.find(t => t.artno === 'SK-SCN-ACC-0008');
 const INJ_RAIL_SEGMENTS = {
-  '2m': _rail2m ? { artno: _rail2m.artno, name: _rail2m.name, price: _rail2m.price } : { artno: 'SK-SCN-ACC-0007', name: 'Skyddsräcke 2,0 m', price: 280 },
-  '1m': _rail1m ? { artno: _rail1m.artno, name: _rail1m.name, price: _rail1m.price } : { artno: 'SK-SCN-ACC-0006', name: 'Skyddsräcke 1,0 m', price: 140 },
+  '2m': _rail2m ? { artno: _rail2m.artno, name: _rail2m.name, price: _rail2m.price, monteringMin: _rail2m.monteringMin || 0 } : { artno: 'SK-SCN-ACC-0007', name: 'Skyddsräcke 2,0 m', price: 280, monteringMin: 8 },
+  '1m': _rail1m ? { artno: _rail1m.artno, name: _rail1m.name, price: _rail1m.price, monteringMin: _rail1m.monteringMin || 0 } : { artno: 'SK-SCN-ACC-0006', name: 'Skyddsräcke 1,0 m', price: 140, monteringMin: 4 },
+  'stair': _railStair ? { artno: _railStair.artno, monteringMin: _railStair.monteringMin || 0 } : { artno: 'SK-SCN-ACC-0008', monteringMin: 8 },
 };
 
 // Scenkjol-segment per höjd — fasta längder (20cm=4m, 40cm=2m, 60cm=4m).
@@ -261,6 +263,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   const TRAPP = INJ_TRAPP_BY_HEIGHT;
   const RAIL_2M = INJ_RAIL_SEGMENTS['2m'];
   const RAIL_1M = INJ_RAIL_SEGMENTS['1m'];
+  const RAIL_STAIR = INJ_RAIL_SEGMENTS['stair'];
   const SKIRT_BY_HEIGHT = INJ_SKIRT_BY_HEIGHT;
   const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
 
@@ -389,11 +392,19 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
   // Identiskt mönster som LED-vägg-sidan: monteringstid avrundad uppåt till
   // närmaste 30 min, kostnad = h × prisPerTimme.
   // ──────────────────────────────────────────────────────────────────
-  function computeMonteringMin(modCount, takMonteringMin) {
-    // Modul-rad: modCount × 10 min × 2 (montering + demontering)
+  function computeMonteringMin(modCount, takMonteringMin, railPack) {
+    // Modul-rad: modCount × 7,5 min × 2 (montering + demontering)
     let total = modCount * MODULE_MONTERING_MIN * 2;
     // Tak (om paketet har) — också × 2 för montering+demontering
     if (takMonteringMin) total += takMonteringMin * 2;
+    // Räcken (om valda) — count20/count10/stairRailCount × respektive monteringMin × 2
+    if (railPack) {
+      const railMin =
+        (railPack.count20 || 0) * RAIL_2M.monteringMin +
+        (railPack.count10 || 0) * RAIL_1M.monteringMin +
+        (railPack.stairRailCount || 0) * RAIL_STAIR.monteringMin;
+      total += railMin * 2;
+    }
     // Avrunda upp till närmaste 30 min
     const step = INJ_MONTERING_ROUND_TO_MIN;
     return Math.ceil(total / step) * step;
@@ -586,7 +597,8 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         } else {
           const mc = moduleCount(cfg.width, cfg.depth, surface);
           const takMonteringMin = cfg.tak ? (cfg.tak.monteringMin || 0) : 0;
-          const monteringMin = computeMonteringMin(mc, takMonteringMin);
+          const railPack = rail ? computeRailPack(cfg.width, cfg.depth, stairs, skirt) : null;
+          const monteringMin = computeMonteringMin(mc, takMonteringMin, railPack);
           const monteringKr = Math.round((monteringMin / 60) * INJ_MONTERING_PRICE_PER_HOUR);
           const frakt = computeFraktDetails(mc, !!cfg.tak, cfg.forceLeverans);
           const transport = card.dataset.paketTransport;
@@ -717,6 +729,15 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
       const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(mc, !!cfg.tak)) : null;
 
+      // Option 1: hela scenens monteringstid räknas EN gång (moduler + tak + räcken,
+      // alla × 2 för montering + demontering) och stämplas som assemblyMinutesTotal
+      // på modul-raden. Checkout läser detta verbatim (ingen golvning, ingen × qty)
+      // → kortets visade tid == debiterad tid by design. Per-item monteringMin sätts
+      // INTE på modul/tak/räcke-rader (skulle dubbelräknas + golvas av checkout).
+      const takMonteringMinAdd = cfg.tak ? (cfg.tak.monteringMin || 0) : 0;
+      const railPackAdd = rail ? computeRailPack(cfg.width, cfg.depth, stairs, skirt) : null;
+      const sceneAssemblyMin = computeMonteringMin(mc, takMonteringMinAdd, railPackAdd);
+
       // skCart.add merger qty på existing item-id men SÄTTER INTE flaggor på en
       // existerande rad. För att flaggor (bulky/requiresAssembly/forceLeverans/
       // monteringMin) garanterat hamnar på storage-itemet, applicera dem direkt
@@ -745,7 +766,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         price: MOD_PRICE[surface],
         qty: mc,
         category: 'Scen',
-        monteringMin: MODULE_MONTERING_MIN, // alltid satt så att monteringspriset blir rätt om kunden bockar i
+        assemblyMinutesTotal: sceneAssemblyMin, // hela scenens monteringstid (en gång)
       };
       if (isBulky) {
         modItem.bulky = true;
@@ -756,7 +777,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
       }
       window.skCart.add(modItem);
       // Säkerställ flaggor även om itemet redan fanns i cart (merge-bug-skydd)
-      const modFlags = { monteringMin: MODULE_MONTERING_MIN };
+      const modFlags = { assemblyMinutesTotal: sceneAssemblyMin };
       if (isBulky) modFlags.bulky = true;
       if (isKravs) {
         modFlags.requiresAssembly = true;
@@ -842,7 +863,7 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
           category: 'Scen tillbehör',
           bulky: true,
           requiresAssembly: true,
-          monteringMin: cfg.tak.monteringMin,
+          // monteringMin sätts EJ — taktiden ingår redan i modul-radens assemblyMinutesTotal.
         };
         // Om paketet har forceLeverans-override på sig (Large+ tak: lastbil),
         // sätt det på tak-raden också så att 'lastbil' definitivt vinner i cart
@@ -852,7 +873,6 @@ const INJ_MONTERING_ROUND_TO_MIN = 30;
         const takFlags = {
           bulky: true,
           requiresAssembly: true,
-          monteringMin: cfg.tak.monteringMin,
         };
         if (cfg.forceLeverans) takFlags.forceLeverans = cfg.forceLeverans;
         applyFlagsTo(cfg.tak.artno, takFlags);

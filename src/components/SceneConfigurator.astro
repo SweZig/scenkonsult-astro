@@ -44,6 +44,13 @@ const INJ_MODULE_BY_KEY = Object.fromEntries(
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
 const INJ_MONTERING_MIN_PER_MODULE = (typeof tjanster.montering?.minPerModul === 'number') ? tjanster.montering.minPerModul : 7.5;
+// Monteringstid per räcke-artikel (min, engångs — ×2 demontering läggs på i klient-logik).
+// Källa: scenes.json tillbehor[].monteringMin. Faller tillbaka på längd × 4 min/m.
+const INJ_RAIL_MONTERING = Object.fromEntries(
+  (scenData.tillbehor || [])
+    .filter(t => ['SK-SCN-ACC-0006', 'SK-SCN-ACC-0007', 'SK-SCN-ACC-0008'].includes(t.artno))
+    .map(t => [t.artno, (typeof t.monteringMin === 'number') ? t.monteringMin : 0])
+);
 const INJ_SKIRT_PRICE_PER_METER = skirt?.pricePerMeter || 24.75;
 const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
@@ -244,7 +251,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_RAIL_MONTERING, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -283,7 +290,26 @@ const configData = {
     const SKIRT_PRICE_PER_METER = INJ_SKIRT_PRICE_PER_METER;
     const SKIRT_BY_HEIGHT = INJ_SKIRT_BY_HEIGHT;
     const MONTERING_PRICE_PER_HOUR = INJ_MONTERING_PRICE_PER_HOUR;
+    // Hela scenens monteringstid (moduler + räcken, × 2), avrundad till
+    // närmaste kvart (samma avrundning som visas i prisraden). Används BÅDE för
+    // visad prisrad OCH för assemblyMinutesTotal som stämplas till cart, så att
+    // konfiguratorns visade pris == checkout-pris by design.
+    function sceneMonteringMinRounded(lines) {
+      const rawMin = moduleCount() * MODULE_MONTERING_MIN * 2 + railMonteringMin(lines) * 2;
+      const hours = Math.round(rawMin / 60 * 4) / 4; // kvart
+      return hours * 60;
+    }
+
     const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
+    const RAIL_MONTERING = INJ_RAIL_MONTERING;
+    // Summerar engångs-monteringsminuter för räcke-rader i en lines-array
+    // (Skyddsräcke 1m/2m + trappräcke). ×2 demontering läggs på av anroparen.
+    function railMonteringMin(lines) {
+      return lines.reduce((sum, l) => {
+        const m = RAIL_MONTERING[l.artno];
+        return sum + (m ? m * (l.qty || 0) : 0);
+      }, 0);
+    }
     const OBLIG_OVER_M2 = INJ_OBLIG_OVER_M2;
 
     // Scenkjol med FASTA segment (samma sortiment/regel som paketkorten).
@@ -454,7 +480,8 @@ const configData = {
       }
 
       if (state.installation) {
-        const totalMin = modCount * MODULE_MONTERING_MIN * 2;
+        // Avrundad totaltid (moduler + räcken, × 2) — samma värde stämplas till cart.
+        const totalMin = sceneMonteringMinRounded(lines);
         const hours = Math.round(totalMin / 60 * 4) / 4;
         const monteringPris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
         lines.push({
@@ -868,7 +895,8 @@ const configData = {
       const installCb = document.getElementById('cfg-installation');
       const installLabel = document.getElementById('cfg-installation-label');
       const installHint = document.getElementById('cfg-installation-hint');
-      const minutes = moduleCount() * MODULE_MONTERING_MIN * 2;
+      // Samma avrundade tid som prisraden och cart (kvart) — håll alla tre i synk.
+      const minutes = sceneMonteringMinRounded(computeLineItems());
       const hours = Math.round(minutes / 60 * 4) / 4;
       const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
 
@@ -1093,9 +1121,19 @@ const configData = {
 
       // Filtrera bort Tjänst (montering) och Leverans (frakt) från cart-rader.
       // Dessa hamnar istället under "Tilläggstjänster" i varukorgen via
-      // bulky/monteringMin/forceLeverans-flaggor på plattformsmodul-raden.
+      // assemblyMinutesTotal/forceLeverans-flaggor på plattformsmodul-raden.
       const cartLines = lines.filter(l => l.category !== 'Tjänst' && l.category !== 'Leverans');
       const platformArtnos = Object.values(MODULE_ARTNO);
+
+      // Option 1: räkna hela scenens monteringstid EN gång (moduler + räcken,
+      // båda × 2 för montering + demontering) och stämpla som assemblyMinutesTotal
+      // på den FÖRSTA plattformsraden. Checkout läser detta verbatim (ingen golvning,
+      // ingen × qty) → konfiguratorns visade tid == checkout-tid by design.
+      // Konfiguratorn har inget tak (bara paketkorten har det).
+      const sceneAssemblyMin = state.installation
+        ? sceneMonteringMinRounded(lines)
+        : 0;
+      let assemblyStamped = false;
 
       cartLines.forEach(l => {
         const isPlatform = platformArtnos.includes(l.artno);
@@ -1109,9 +1147,11 @@ const configData = {
         };
         if (isPlatform) {
           item.bulky = true;
-          if (state.installation) {
-            item.monteringMin = MODULE_MONTERING_MIN;
+          if (state.installation && !assemblyStamped) {
+            // Hela scenens monteringstid på första plattformsraden (en gång).
+            item.assemblyMinutesTotal = sceneAssemblyMin;
             item.requiresAssembly = true;
+            assemblyStamped = true;
           }
           if (state.frakt === 'auto') {
             const lev = getRecommendedFrakt();
