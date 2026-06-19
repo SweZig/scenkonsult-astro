@@ -1,11 +1,11 @@
 ---
-// deploy-refresh foretagsfest 2026-06-19 (cache-bust, ingen funktionell ändring)
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 import karaokeData from '../../../data/karaoke.json';
+import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
 
 const evSmall = ljudData.event.products[0];
 const evMedium = ljudData.event.products[1];
@@ -20,6 +20,49 @@ const _karPriser = _karPaket.map((p:any) => p.price).filter((n:any) => typeof n 
 const karMin = _karPriser.length ? Math.min(..._karPriser) : 0;
 const karMax = _karPriser.length ? Math.max(..._karPriser) : 0;
 const karAntal = _karPaket.length;
+
+// Företagsfest-paket — priser från live-JSON via artno
+const ffPaketDefs: PaketDef[] = [
+  {
+    namn: 'Kickoff & mingel',
+    gaster: '20–100 gäster',
+    beskrivning: 'Ljud för presentationer och tal, trådlösa mikrofoner och stämningsljus för minglet. Lätt att rigga själva.',
+    rader: [
+      { artno: 'SK-LJD-EVE-0001', label: 'PA-system (2× 10″ toppar)' },
+      { artno: 'SK-LJD-MIK-0016', label: 'Trådlös handmikrofon' },
+      { artno: 'SK-LJD-MIK-0023', label: 'Shure SLXD headset — talare' },
+      { artno: 'SK-LJS-PAK-0002', label: 'Ljuspaket Small+ (moving head)' },
+    ],
+  },
+  {
+    namn: 'Julfest & personalfest',
+    gaster: '80–200 gäster',
+    featured: true,
+    beskrivning: 'Komplett kväll med kraftfullare PA, tal-mikrofoner, dansgolvsljus och rök. Vårt populäraste festupplägg.',
+    rader: [
+      { artno: 'SK-LJD-EVE-0002', label: 'PA-system (2× 12″ toppar)' },
+      { artno: 'SK-LJD-MIK-0016', label: 'Trådlös handmikrofon' },
+      { artno: 'SK-LJD-MIK-0023', label: 'Shure SLXD headset — toastmaster' },
+      { artno: 'SK-LJS-PAK-0004', label: 'Ljuspaket Medium (moving heads)' },
+      { artno: 'SK-LJS-EFF-0010', label: 'Moving Head Wash', qty: 2 },
+      { artno: 'SK-LJS-ROK-0001', label: 'Rökmaskin 1500W' },
+    ],
+  },
+  {
+    namn: 'Gala & prisutdelning',
+    gaster: '100–300 gäster',
+    beskrivning: 'Scen, storskärm för vinnarbilder och lookback, rejäl ljussättning och dubbla mikrofoner. För det stora kvällseventet.',
+    rader: [
+      { artno: 'SK-LJD-EVE-0004', label: 'PA Event Medium+ (4× 12″)' },
+      { artno: 'SK-LJD-MIK-0026', label: 'Shure SLXD — 2 handmikrofoner' },
+      { artno: 'SK-LJS-PAK-0007', label: 'Ljuspaket Large (moving heads + scanner)' },
+      { artno: 'SK-SCN-0004', label: 'Scenpaket Medium (5×2 m)' },
+      { artno: 'SK-BLD-0003', label: '65″ 4K-skärm' },
+      { artno: 'SK-BLD-ACC-0003', label: 'Golvstativ för skärm' },
+    ],
+  },
+];
+const ffPaket = buildPaket3(ffPaketDefs);
 
 const faq = [
   {
@@ -204,6 +247,54 @@ const kunder = [
           <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="📞 " data-label="072-448 10 00" href="#tel" style="display:block; text-align:center; color:rgba(255,255,255,0.60); font-family:'Space Grotesk',sans-serif; font-size:0.85rem; text-decoration:none;"><noscript>📞 072-448 10 00</noscript></a>
         </div>
       </div>
+    </div>
+  </section>
+
+
+  <!-- Tre företagsfest-paket -->
+  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Företagspaket</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Tre färdiga utgångspunkter</h2>
+      <p style="color:rgba(255,255,255,0.55); font-size:0.95rem; line-height:1.7; max-width:680px; margin:0 0 2.5rem;">Konkreta paket byggda på riktig utrustning — från kickoff till gala. Allt går att justera fritt i offertdialogen så att det passar er lokal, gästlista och budget.</p>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:1.5rem; align-items:stretch;">
+        {ffPaket.map(pk => (
+          <div style={`background:#1e1850; border:1px solid ${pk.featured ? 'rgba(196,181,244,0.5)' : 'rgba(255,255,255,0.08)'}; border-radius:16px; padding:1.85rem; display:flex; flex-direction:column; position:relative;`}>
+            {pk.featured && (
+              <span style="position:absolute; top:-0.7rem; left:1.85rem; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-size:0.65rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:0.25rem 0.7rem; border-radius:999px;">Populärast</span>
+            )}
+            <h3 style="font-family:'DM Serif Display',serif; font-size:1.5rem; color:white; margin:0 0 0.25rem;">{pk.namn}</h3>
+            <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin:0 0 0.9rem;">{pk.gaster}</p>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.88rem; line-height:1.6; margin:0 0 1.25rem;">{pk.beskrivning}</p>
+
+            <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:1rem; margin-bottom:1.25rem; flex:1;">
+              {pk.rader.map(r => (
+                <div style="display:flex; justify-content:space-between; align-items:baseline; gap:0.75rem; padding:0.4rem 0;">
+                  <span style="color:rgba(255,255,255,0.72); font-size:0.85rem; line-height:1.4;">
+                    {r.qty > 1 && <span style="color:#c4b5f4; font-weight:700;">{r.qty}× </span>}{r.label}
+                  </span>
+                  <span style="color:rgba(255,255,255,0.45); font-size:0.8rem; white-space:nowrap;"><span data-exkl={r.radPrice}>{fmtKr(r.radPrice)}</span> kr</span>
+                </div>
+              ))}
+            </div>
+
+            <div style="border-top:1px solid rgba(196,181,244,0.2); padding-top:1rem;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Från ca</span>
+                <span style="font-family:'DM Serif Display',serif; font-size:1.7rem; color:#c4b5f4;"><span data-exkl={pk.franPris}>{fmtKr(pk.franPris)}</span> kr</span>
+              </div>
+              <p style="color:rgba(255,255,255,0.45); font-size:0.72rem; margin:0.25rem 0 0;">/dygn · exkl. leverans &amp; montering</p>
+            </div>
+
+            <a href="/bokningssida/" style={`display:block; margin-top:1.25rem; background:${pk.featured ? '#c4b5f4' : 'transparent'}; color:${pk.featured ? '#0c0a24' : '#c4b5f4'}; border:1px solid #c4b5f4; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; padding:0.8rem 1.5rem; border-radius:4px; text-align:center; transition:all 0.2s;`} onmouseenter={`this.style.background='#e2dcfb'; this.style.color='#0c0a24'; this.style.borderColor='#e2dcfb'`} onmouseleave={`this.style.background='${pk.featured ? '#c4b5f4' : 'transparent'}'; this.style.color='${pk.featured ? '#0c0a24' : '#c4b5f4'}'; this.style.borderColor='#c4b5f4'`}>
+              Begär offert på detta paket
+            </a>
+          </div>
+        ))}
+      </div>
+
+      <p style="color:rgba(255,255,255,0.4); font-size:0.8rem; line-height:1.6; margin:2rem 0 0; max-width:680px;">Utgångspriser per dygn räknat på paketets innehåll. Transport, montering och tekniker på plats tillkommer alltid och offereras separat. Faktura med individuella villkor för företag. Växla exkl./inkl. moms längst ner till vänster.</p>
     </div>
   </section>
 
