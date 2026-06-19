@@ -242,6 +242,18 @@ exports.handler = async (event) => {
       // Kund kan uppdatera sin anteckning eller bekräfta order
       if (body.notes_customer !== undefined) updates.customer_message = body.notes_customer;
 
+      // ── Kund väljer leveranssätt direkt på /order/ ──────────────────
+      if (body.action === 'set_delivery_mode') {
+        const dm = body.delivery_mode;
+        if (dm !== 'self_pickup' && dm !== 'delivery') {
+          return err('Ogiltigt leveranssätt', 400);
+        }
+        updates.delivery_mode = dm;
+        await db.update('carts', updates, 'cart_token', body.token);
+        await logAudit(db, cart.id, 'customer', 'delivery_mode_set', { delivery_mode: dm });
+        return ok({ ok: true, success: true, cart_id: cart.id, delivery_mode: dm });
+      }
+
       // ── B2B: kund kompletterar fakturauppgifter ─────────────────────
       if (body.action === 'update_invoice_details') {
         // Endast B2B (samma logik som _invoice-villkor.js)
@@ -256,6 +268,7 @@ exports.handler = async (event) => {
         const clean = (v, max = 300) =>
           (typeof v === 'string' ? v.trim().slice(0, max) : '') || null;
 
+        if (body.customer_company !== undefined) updates.customer_company = clean(body.customer_company, 200);
         if (body.customer_orgnr !== undefined) {
           const o = clean(body.customer_orgnr, 20);
           // Lös validering: tillåt siffror, bindestreck, mellanslag (556xxx-xxxx)

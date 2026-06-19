@@ -185,7 +185,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     overflow: hidden;
   }
   .section-head {
-    padding: 1rem 1.5rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid rgba(255,255,255,0.07);
     font-weight: 700;
     font-size: 0.875rem;
@@ -193,7 +193,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     text-transform: uppercase;
     letter-spacing: 0.07em;
   }
-  .section-body { padding: 1.25rem 1.5rem; }
+  .section-body { padding: 1.25rem 1.25rem; }
 
   /* Info grid */
   .info-grid {
@@ -358,6 +358,24 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     line-height: 1.55;
     font-style: italic;
   }
+  /* Leveranssätt-val (kund väljer direkt) */
+  .odel-choices { display: flex; gap: 0.6rem; margin-top: 0.85rem; flex-wrap: wrap; }
+  .odel-choice {
+    flex: 1; min-width: 180px;
+    display: flex; align-items: center; gap: 0.6rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 10px; padding: 0.7rem 0.9rem;
+    cursor: pointer; text-align: left;
+    font-family: inherit; color: #f0eeff;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .odel-choice:hover { background: rgba(196,181,244,0.12); border-color: rgba(196,181,244,0.45); }
+  .odel-choice:disabled { opacity: 0.55; cursor: default; }
+  .odel-choice-ic { font-size: 1.4rem; flex-shrink: 0; }
+  .odel-choice-tx { display: flex; flex-direction: column; gap: 1px; }
+  .odel-choice-tx strong { font-size: 0.9rem; font-weight: 700; }
+  .odel-choice-tx span { font-size: 0.76rem; color: rgba(255,255,255,0.6); line-height: 1.35; }
 
   /* Totals box */
   .order-totals {
@@ -545,6 +563,10 @@ import orderCatalog from '../../data/order-catalog-flat.json';
         <!-- Redigeringsläge -->
         <div id="invoiceEdit" style="display:none">
           <div class="inv-grid">
+            <label class="inv-field" style="grid-column:1/-1">
+              <span class="inv-label">Företagsnamn</span>
+              <input type="text" id="invCompany" class="inv-input" placeholder="Företagets namn" autocomplete="off">
+            </label>
             <label class="inv-field">
               <span class="inv-label">Organisationsnummer</span>
               <input type="text" id="invOrgnr" class="inv-input" placeholder="556xxx-xxxx" autocomplete="off">
@@ -1085,12 +1107,23 @@ function renderOrder(c) {
       </div>
     </div>`;
   } else if (c.event_date) {
-    // Leveranssätt ännu inte valt — visa neutral prompt
+    // Leveranssätt ännu inte valt — låt kunden välja direkt
     html += `<div class="order-delivery order-delivery-tbd">
-      <div class="odel-icon">❓</div>
+      <div class="odel-icon">🚚</div>
       <div class="odel-body">
-        <div class="odel-title">Leveranssätt — meddela oss gärna</div>
-        <div class="odel-text">Vill ni hämta själva hos oss på Grimstagatan 164 i Vällingby, eller önskar ni att vi kör ut utrustningen? Skriv i meddelanderutan nedan.</div>
+        <div class="odel-title">Hur vill ni ha utrustningen?</div>
+        <div class="odel-text">Välj om ni hämtar själva hos oss eller om vi ska köra ut utrustningen. Ni kan ändra er genom att höra av er i chatten.</div>
+        <div class="odel-choices">
+          <button type="button" class="odel-choice" onclick="window.setDeliveryMode('self_pickup')">
+            <span class="odel-choice-ic">📦</span>
+            <span class="odel-choice-tx"><strong>Vi hämtar själva</strong><span>Hos er på Grimstagatan 164, Vällingby</span></span>
+          </button>
+          <button type="button" class="odel-choice" onclick="window.setDeliveryMode('delivery')">
+            <span class="odel-choice-ic">🚚</span>
+            <span class="odel-choice-tx"><strong>Ni levererar till oss</strong><span>Leveranskostnad specificeras i offerten</span></span>
+          </button>
+        </div>
+        <div id="delModeMsg" style="margin-top:0.6rem;font-size:0.82rem"></div>
       </div>
     </div>`;
   }
@@ -1327,6 +1360,7 @@ function renderInvoiceSection(c) {
 
   const view = document.getElementById('invoiceView');
   view.innerHTML =
+    row('Företag', c.customer_company) +
     row('Organisationsnummer', c.customer_orgnr) +
     row('Fakturareferens / PO', c.customer_ref) +
     row('Fakturaadress', c.customer_invoice_address || (c.customer_address ? c.customer_address + ' (samma som kontakt)' : null)) +
@@ -1350,6 +1384,7 @@ function openInvoiceEdit(c) {
   document.getElementById('invoiceEdit').style.display = '';
   document.getElementById('invMsg').textContent = '';
 
+  document.getElementById('invCompany').value = c.customer_company || '';
   document.getElementById('invOrgnr').value = c.customer_orgnr || '';
   document.getElementById('invRef').value   = c.customer_ref || '';
 
@@ -1397,6 +1432,7 @@ async function saveInvoiceDetails(c) {
     token:   cartToken,
     cart_id: cartId,
     action:  'update_invoice_details',
+    customer_company: document.getElementById('invCompany').value.trim(),
     customer_orgnr: document.getElementById('invOrgnr').value.trim(),
     customer_ref:   document.getElementById('invRef').value.trim(),
     customer_invoice_address: addrSame ? null : document.getElementById('invAddr').value.trim(),
@@ -1418,6 +1454,7 @@ async function saveInvoiceDetails(c) {
     if (res.ok && !data.error) {
       // Uppdatera lokal cart och rendera om i visningsläge
       Object.assign(c, {
+        customer_company: payload.customer_company || null,
         customer_orgnr: payload.customer_orgnr || null,
         customer_ref:   payload.customer_ref || null,
         customer_invoice_address: payload.customer_invoice_address,
@@ -1427,10 +1464,21 @@ async function saveInvoiceDetails(c) {
         peppol_id:      payload.peppol_id,
       });
       renderInvoiceSection(c);
-      const v = document.getElementById('invoiceView');
+      // Uppdatera företagsbadge i headern om namnet ändrats
+      const cb = document.getElementById('orderCompanyBadge');
+      if (cb) {
+        if (c.customer_company) {
+          const op = c.customer_orgnr ? ` <span class="ocb-orgnr">· Org.nr ${c.customer_orgnr}</span>` : '';
+          cb.innerHTML = `<span class="ocb-label">🏢 Offert till företag</span><span class="ocb-name">${c.customer_company}</span>${op}`;
+          cb.style.display = '';
+        } else {
+          cb.style.display = 'none';
+        }
+      }
       const ok = document.createElement('div');
       ok.style.cssText = 'margin-top:0.8rem;padding:8px 12px;background:rgba(134,239,172,0.12);border:1px solid rgba(134,239,172,0.4);border-radius:8px;color:#86efac;font-size:0.85rem;font-weight:600';
       ok.textContent = '✓ Fakturauppgifterna är sparade. Tack!';
+      const v = document.getElementById('invoiceView');
       v.appendChild(ok);
       setTimeout(() => { ok.style.transition = 'opacity 0.5s'; ok.style.opacity = '0'; setTimeout(() => ok.remove(), 500); }, 4000);
     } else {
@@ -1447,9 +1495,36 @@ async function saveInvoiceDetails(c) {
   }
 }
 
+// Kund väljer leveranssätt direkt på orderkortet
+async function setDeliveryMode(mode) {
+  const msg = document.getElementById('delModeMsg');
+  const btns = document.querySelectorAll('.odel-choice');
+  btns.forEach(b => b.disabled = true);
+  if (msg) { msg.style.color = 'rgba(255,255,255,0.7)'; msg.textContent = '⏳ Sparar val…'; }
+  try {
+    const res = await fetch('/.netlify/functions/cart-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: cartToken, cart_id: cartId, action: 'set_delivery_mode', delivery_mode: mode }),
+    });
+    const data = await res.json();
+    if (res.ok && !data.error) {
+      const c = window._currentCart;
+      if (c) { c.delivery_mode = mode; renderOrder(c); }
+    } else {
+      btns.forEach(b => b.disabled = false);
+      if (msg) { msg.style.color = '#f87171'; msg.textContent = data.error || 'Kunde inte spara valet. Försök igen.'; }
+    }
+  } catch (e) {
+    btns.forEach(b => b.disabled = false);
+    if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Nätverksfel — försök igen.'; }
+  }
+}
+
 // Exponera funktioner som anropas via onclick i dynamisk HTML
 window.confirmOrder = confirmOrder;
 window.renderInvoiceSection = renderInvoiceSection;
+window.setDeliveryMode = setDeliveryMode;
 
 _ensureNameMap();
 loadOrder();
