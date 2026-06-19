@@ -743,6 +743,10 @@ const localBusinessSchema = {
       let closeTimer: ReturnType<typeof setTimeout> | null = null;
       const openDD = () => {
         if (closeTimer) clearTimeout(closeTimer);
+        // Stäng alla andra öppna dropdowns så bara en visas åt gången
+        document.querySelectorAll('.nav-dropdown-menu.dd-open').forEach((other) => {
+          if (other !== ddMenu) other.classList.remove('dd-open');
+        });
         ddMenu.classList.add('dd-open');
       };
       const closeDD = () => {
