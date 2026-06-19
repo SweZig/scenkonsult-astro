@@ -12,6 +12,44 @@ const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_m
 const projektor = bildData.products.find((p:any) => p.artno === 'SK-BLD-0002');
 const skarm65 = bildData.products.find((p:any) => p.artno === 'SK-BLD-0003');
 
+import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
+
+const konfPaketDefs: PaketDef[] = [
+  {
+    namn: 'Litet möte / seminarium',
+    gaster: '20–50 deltagare',
+    rader: [
+      { artno: 'SK-LJD-POR-0003', label: '1× kolumnhögtalare (Alto TS108C)' },
+      { artno: 'SK-LJD-MIK-0016', label: '1× trådlös handmikrofon' },
+      { artno: 'SK-BLD-0002', label: '1× projektor Full HD' },
+      { artno: 'SK-BLD-ACC-0002', label: '1× projektorduk 100″' },
+    ],
+  },
+  {
+    namn: 'Medelstort event',
+    gaster: '50–150 deltagare',
+    featured: true,
+    rader: [
+      { artno: 'SK-LJD-POR-0004', label: '1× kolumnhögtalare (Alto TS112C)' },
+      { artno: 'SK-LJD-MIK-0023', label: 'Shure SLXD headset — talare' },
+      { artno: 'SK-LJD-MIK-0022', label: 'Shure SLXD myggmikrofon' },
+      { artno: 'SK-BLD-0007', label: '1× projektor 4K UHD' },
+      { artno: 'SK-BLD-ACC-0002', label: '1× projektorduk 100″' },
+    ],
+  },
+  {
+    namn: 'Stor konferens / föreläsning',
+    gaster: '150–500 deltagare',
+    rader: [
+      { artno: 'SK-LJD-EVE-0002', label: 'PA Event Medium (2× 12″)' },
+      { artno: 'SK-LJD-MIK-0028', label: 'Shure SLXD — 2 headset' },
+      { artno: 'SK-BLD-0003', label: '65″ 4K-skärm' },
+      { artno: 'SK-BLD-ACC-0003', label: 'Golvstativ för skärm' },
+    ],
+  },
+];
+const konfPaket = buildPaket3(konfPaketDefs);
+
 const faq = [
   {
     q: "Vilket PA-system passar en konferens för 100 personer?",
@@ -125,36 +163,28 @@ const pageSchema = {
         <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Rekommenderade paket</p>
         <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 1.5rem;">Rätt paket för er storlek</h2>
 
-        {[
-          {
-            size: "Litet möte / seminarium",
-            guests: "20–50 deltagare",
-            items: ["1× kolumnhögtalare", "1× trådlös handmick", "1× projektor 4000 lumen", "1× projektorduk 180 cm"]
-          },
-          {
-            size: "Medelstort event",
-            guests: "50–150 deltagare",
-            items: ["2× kolumnhögtalare stereo", "2× trådlösa mikrofoner", "1× projektor 6000 lumen", "1× duk 250 cm + stativ"]
-          },
-          {
-            size: "Stor konferens / föreläsning",
-            guests: "150–500 deltagare",
-            items: ["PA Event Medium med subs", "4× trådlösa mikrofoner", "Dubbla projektorer eller LED-vägg", "Tekniker ingår i priset"]
-          }
-        ].map(p => (
-          <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem; margin-bottom:1rem;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700; color:white; margin:0;">{p.size}</h3>
-              <span style="background:rgba(196,181,244,0.12); color:#c4b5f4; font-size:0.75rem; font-weight:600; padding:0.2rem 0.6rem; border-radius:9999px; white-space:nowrap;">{p.guests}</span>
+        {konfPaket.map(p => (
+          <div style={`background:#1e1850; border:1px solid ${p.featured ? 'rgba(196,181,244,0.5)' : 'rgba(255,255,255,0.08)'}; border-radius:12px; padding:1.5rem; margin-bottom:1rem; position:relative;`}>
+            {p.featured && (
+              <span style="position:absolute; top:-0.65rem; left:1.5rem; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-size:0.62rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:0.2rem 0.65rem; border-radius:999px;">Populärast</span>
+            )}
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:0.75rem;">
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700; color:white; margin:0;">{p.namn}</h3>
+              <span style="background:rgba(196,181,244,0.12); color:#c4b5f4; font-size:0.75rem; font-weight:600; padding:0.2rem 0.6rem; border-radius:9999px; white-space:nowrap;">{p.gaster}</span>
             </div>
-            {p.items.map(i => (
-              <div style="display:flex; align-items:center; gap:0.5rem; padding:0.3rem 0;">
-                <span style="color:#86efac; font-size:0.75rem;">✓</span>
-                <span style="color:rgba(255,255,255,0.6); font-size:0.85rem;">{i}</span>
+            {p.rader.map(r => (
+              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:0.75rem; padding:0.3rem 0;">
+                <span style="color:rgba(255,255,255,0.6); font-size:0.85rem;"><span style="color:#86efac; font-size:0.75rem; margin-right:0.4rem;">✓</span>{r.qty > 1 ? r.qty + '× ' : ''}{r.label}</span>
+                <span style="color:rgba(255,255,255,0.4); font-size:0.78rem; white-space:nowrap;"><span data-exkl={r.radPrice}>{fmtKr(r.radPrice)}</span> kr</span>
               </div>
             ))}
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:1rem; padding-top:0.85rem; border-top:1px solid rgba(196,181,244,0.2);">
+              <span style="color:rgba(255,255,255,0.5); font-size:0.82rem;">Från ca</span>
+              <span style="font-family:'DM Serif Display',serif; font-size:1.4rem; color:#c4b5f4;"><span data-exkl={p.franPris}>{fmtKr(p.franPris)}</span> kr<span style="font-size:0.72rem; color:rgba(255,255,255,0.45); font-family:'Space Grotesk',sans-serif;"> /dygn</span></span>
+            </div>
           </div>
         ))}
+        <p style="color:rgba(255,255,255,0.4); font-size:0.78rem; line-height:1.5; margin:0.5rem 0 0;">Utgångspriser per dygn räknat på paketets innehåll. Tekniker, leverans och montering tillkommer och offereras separat. Växla exkl./inkl. moms längst ner till vänster.</p>
       </div>
 
       <div style="position:sticky; top:calc(var(--nav-offset,166px) + 2rem);">

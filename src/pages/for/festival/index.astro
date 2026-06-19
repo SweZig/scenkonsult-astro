@@ -16,6 +16,37 @@ const rokmaskin = (ljusData.rok.products as any[])[0];
 const ledTrailer7 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0006');
 const ledTrailer15 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0011');
 
+import { buildPaket, fmtKr, type PaketDef } from '../../../utils/paket';
+
+const festPaketDefs: (PaketDef | null)[] = [
+  {
+    namn: 'Liten festival',
+    gaster: '100–300 besökare',
+    rader: [
+      { artno: 'SK-LJD-LIV-0001', label: 'Live Small PA (4 000W)' },
+      { artno: 'SK-LJS-EFF-0002', label: 'LED PAR-armatur', qty: 8 },
+      { artno: 'SK-LJS-EFF-0014', label: 'Moving Head Beam/Spot', qty: 2 },
+      { artno: 'SK-SCN-0001', label: 'Scenpodie 4 m²' },
+      { artno: 'SK-BLD-0002', label: 'Projektor Full HD' },
+      { artno: 'SK-BLD-ACC-0002', label: 'Projektorduk 100″' },
+    ],
+  },
+  {
+    namn: 'Mellanstor festival',
+    gaster: '300–700 besökare',
+    featured: true,
+    rader: [
+      { artno: 'SK-LJD-LIV-0003', label: 'Live Large PA (15 000W)' },
+      { artno: 'SK-LJS-PAK-0007', label: 'Ljuspaket Large (moving heads + PAR)' },
+      { artno: 'SK-SCN-0004', label: 'Scenpaket Medium (5×2 m)' },
+      { artno: 'SK-BLD-0007', label: 'Projektor 4K UHD' },
+      { artno: 'SK-BLD-ACC-0002', label: 'Projektorduk 100″' },
+    ],
+  },
+  null, // Stor festival — offert ("Fullrig — kontakta oss")
+];
+const festPaket = festPaketDefs.map(d => d ? buildPaket(d) : null);
+
 const faq = [
   {
     q: "Hur stor scen behöver jag till en festival med 500 besökare?",
@@ -129,11 +160,14 @@ const pageSchema = {
 
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem;">
         {[
-          { label: "Liten festival", guests: "100–300 bes.", scen: "4×3 m", pa: "Live Small (4 000W)", ljus: "8× PAR + 2× moving head", bild: "Projektor + 100\" duk" },
-          { label: "Mellanstor", guests: "300–700 bes.", scen: "6×4 m", pa: "Live Medium (8 000W)", ljus: "16× PAR + 4× moving head", bild: "LED-trailer 7 m²" },
-          { label: "Stor festival", guests: "700–2000 bes.", scen: "8×6 m", pa: "Live Large (15 000W+)", ljus: "Fullrig — kontakta oss", bild: "LED-trailer 15–28 m²" }
+          { label: "Liten festival", guests: "100–300 bes.", scen: "4 m²", pa: "Live Small (4 000W)", ljus: "8× PAR + 2× moving head", bild: "Projektor + 100\" duk", pk: festPaket[0] },
+          { label: "Mellanstor", guests: "300–700 bes.", scen: "5×2 m", pa: "Live Large (15 000W)", ljus: "Ljuspaket Large", bild: "Projektor 4K + duk", pk: festPaket[1] },
+          { label: "Stor festival", guests: "700–2000 bes.", scen: "8×6 m", pa: "Line Array", ljus: "Fullrig — kontakta oss", bild: "LED-trailer 15–28 m²", pk: festPaket[2] }
         ].map(p => (
-          <div style="background:#1e1850; border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.5rem;">
+          <div style={`background:#1e1850; border:1px solid ${p.pk?.featured ? 'rgba(196,181,244,0.5)' : 'rgba(255,255,255,0.1)'}; border-radius:12px; padding:1.5rem; position:relative;`}>
+            {p.pk?.featured && (
+              <span style="position:absolute; top:-0.65rem; left:1.5rem; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-size:0.62rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:0.2rem 0.65rem; border-radius:999px;">Populärast</span>
+            )}
             <h3 style="font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700; color:white; margin:0 0 0.25rem;">{p.label}</h3>
             <p style="color:#c4b5f4; font-size:0.8rem; font-weight:600; margin:0 0 1.25rem;">{p.guests}</p>
             {[["Scen", p.scen], ["PA", p.pa], ["Ljus", p.ljus], ["Bild", p.bild]].map(([l, v]) => (
@@ -142,9 +176,19 @@ const pageSchema = {
                 <span style="color:rgba(255,255,255,0.75); font-size:0.85rem;">{v}</span>
               </div>
             ))}
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:0.85rem; padding-top:0.85rem; border-top:1px solid rgba(196,181,244,0.2);">
+              <span style="color:rgba(255,255,255,0.5); font-size:0.78rem;">{p.pk ? 'Från ca' : 'Pris'}</span>
+              {p.pk ? (
+                <span style="font-family:'DM Serif Display',serif; font-size:1.3rem; color:#c4b5f4;"><span data-exkl={p.pk.franPris}>{fmtKr(p.pk.franPris)}</span> kr<span style="font-size:0.7rem; color:rgba(255,255,255,0.45); font-family:'Space Grotesk',sans-serif;"> /dygn</span></span>
+              ) : (
+                <span style="font-family:'Space Grotesk',sans-serif; font-size:0.9rem; font-weight:700; color:#c4b5f4;">Offert</span>
+              )}
+            </div>
           </div>
         ))}
       </div>
+
+      <p style="color:rgba(255,255,255,0.4); font-size:0.78rem; line-height:1.5; margin:1.5rem auto 0; max-width:680px; text-align:center;">Utgångspriser per dygn räknat på paketets innehåll. Scen, transport, montering och tekniker tillkommer och offereras separat. Växla exkl./inkl. moms längst ner till vänster.</p>
 
       <div style="text-align:center; margin-top:2.5rem;">
         <a href="/bokningssida/" style="display:inline-block; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:0.9rem 2.5rem; border-radius:4px;">

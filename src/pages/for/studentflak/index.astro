@@ -3,11 +3,27 @@ import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
+import { buildPaket, getProduct, fmtKr } from '../../../utils/paket';
 
 const portSmallPlus = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0002');
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
 const portSmallDuo = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0005');
 const tradlosHand = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
+
+// Studentflak-paketet — priser från live-JSON, exakt summa (ingen avrundning)
+const flakPaket = buildPaket({
+  namn: 'Studentflak-paketet',
+  gaster: '20–40 studenter',
+  round: false,
+  rader: [
+    { artno: 'SK-LJD-LIV-0002', label: 'Live Medium — 2×15″ sub + 2×12″' },
+    { artno: 'SK-LJD-MIX-0003', label: 'LD Vibz8 — 4+1 kanaler' },
+    { artno: 'SK-LJD-MIK-0006', label: '1× handmikrofon' },
+    { artno: 'SK-LJD-MIK-0007', label: 'Bluetooth-mottagare + AUX' },
+  ],
+});
+const elgenerator = getProduct('SK-EL-0012'); // Elgenerator 2200W (tillval)
+const flakMedElverk = flakPaket.franPris + elgenerator.price;
 
 const faq = [
   {
@@ -122,28 +138,22 @@ const pageSchema = {
 
         <div>
           <div style="background:#1e1850; border:1px solid rgba(196,181,244,0.2); border-radius:16px; padding:2rem;">
-            <h3 style="font-family:'DM Serif Display',serif; font-size:1.35rem; color:white; margin:0 0 0.5rem;">Studentflak-paketet</h3>
-            <p style="color:rgba(255,255,255,0.60); font-size:0.85rem; margin:0 0 1.25rem;">Populäraste kombinationen för ett flak med 20–40 studenter:</p>
-            {[
-              ["PA-system", "Live Medium — 2×15″ sub + 2×12″"],
-              ["Mixerbord", "LD Vibz8 — 4+1 kanaler"],
-              ["Mikrofon", "1× handmikrofon"],
-              ["Anslutning", "Bluetooth-mottagare + AUX"],
-              ["Vid behov", "Elgenerator 2200W (tillval)"]
-            ].map(([l, v]) => (
-              <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.07);">
-                <span style="color:rgba(255,255,255,0.60); font-size:0.85rem;">{l}</span>
-                <span style="color:white; font-size:0.85rem; font-weight:600;">{v}</span>
+            <h3 style="font-family:'DM Serif Display',serif; font-size:1.35rem; color:white; margin:0 0 0.5rem;">{flakPaket.namn}</h3>
+            <p style="color:rgba(255,255,255,0.60); font-size:0.85rem; margin:0 0 1.25rem;">Populäraste kombinationen för ett flak med {flakPaket.gaster}:</p>
+            {flakPaket.rader.map(r => (
+              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:0.75rem; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.07);">
+                <span style="color:rgba(255,255,255,0.72); font-size:0.85rem;">{r.label}</span>
+                <span style="color:rgba(255,255,255,0.45); font-size:0.8rem; white-space:nowrap;"><span data-exkl={r.radPrice}>{fmtKr(r.radPrice)}</span> kr</span>
               </div>
             ))}
             <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(196,181,244,0.2);">
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Från ca</span>
-                <span style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:#c4b5f4;"><span id="flak-pris" data-exkl="1600">1 600</span> kr</span>
+                <span style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:#c4b5f4;"><span id="flak-pris" data-exkl={flakPaket.franPris}>{fmtKr(flakPaket.franPris)}</span> kr</span>
               </div>
               <label for="flak-elverk" style="display:flex; align-items:center; gap:0.5rem; margin-top:0.85rem; cursor:pointer; user-select:none;">
-                <input type="checkbox" id="flak-elverk" style="width:1rem; height:1rem; accent-color:#c4b5f4; cursor:pointer;" />
-                <span style="color:rgba(255,255,255,0.72); font-size:0.8rem;">Inkl. elgenerator 2200W (+<span data-exkl="799">799</span> kr)</span>
+                <input type="checkbox" id="flak-elverk" data-base={flakPaket.franPris} data-medelverk={flakMedElverk} style="width:1rem; height:1rem; accent-color:#c4b5f4; cursor:pointer;" />
+                <span style="color:rgba(255,255,255,0.72); font-size:0.8rem;">Inkl. elgenerator 2200W (+<span data-exkl={elgenerator.price}>{fmtKr(elgenerator.price)}</span> kr)</span>
               </label>
               <p style="color:rgba(255,255,255,0.60); font-size:0.75rem; margin:0.6rem 0 0;">Per dygn (*helg = 1 dygns pris fredag–måndag, förutsatt tillgänglighet)</p>
             </div>
@@ -154,14 +164,15 @@ const pageSchema = {
                 var pris = document.getElementById('flak-pris');
                 if (!cb || !pris) return;
                 cb.addEventListener('change', function () {
-                  pris.setAttribute('data-exkl', cb.checked ? '2399' : '1600');
-                  // Be moms-toggle räkna om priset i aktuellt läge
+                  var base = cb.getAttribute('data-base') || '0';
+                  var medElverk = cb.getAttribute('data-medelverk') || base;
+                  pris.setAttribute('data-exkl', cb.checked ? medElverk : base);
                   var mode = 'excl';
                   try { mode = localStorage.getItem('sk-vat') || 'excl'; } catch (e) {}
                   if (typeof window.skApplyVat === 'function') window.skApplyVat(mode);
                   else {
-                    var base = parseInt(pris.getAttribute('data-exkl') || '0', 10);
-                    pris.textContent = (mode === 'incl' ? Math.round(base * 1.25) : base).toLocaleString('sv-SE');
+                    var b = parseInt(pris.getAttribute('data-exkl') || '0', 10);
+                    pris.textContent = (mode === 'incl' ? Math.round(b * 1.25) : b).toLocaleString('sv-SE');
                   }
                 });
               })();

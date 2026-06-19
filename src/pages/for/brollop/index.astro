@@ -16,41 +16,12 @@ const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno ===
 const ljusPaketSmall = ljusData.paket.products[0];
 const scenSmall = sceneData.products[0];
 
-// ---- Bröllopspaket: priser hämtas från live-JSON via artno ----
-// Bygg en platt uppslagstabell över alla produkter (ljud, ljus, scen)
-const _prodIndex: Record<string, any> = {};
-function _indexProducts(node: any) {
-  if (!node) return;
-  if (Array.isArray(node)) { node.forEach(_indexProducts); return; }
-  if (typeof node === 'object') {
-    if (node.artno && typeof node.price === 'number') _prodIndex[node.artno] = node;
-    Object.values(node).forEach(_indexProducts);
-  }
-}
-_indexProducts(ljudData);
-_indexProducts(ljusData);
-_indexProducts(sceneData);
+// ---- Bröllopspaket: priser hämtas från live-JSON via artno (delad helper) ----
+import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
 
-function P(artno: string) {
-  const p = _prodIndex[artno];
-  if (!p) throw new Error('Bröllopspaket: saknar artno ' + artno);
-  return p;
-}
-
-type PaketRad = { artno: string; label: string; qty?: number };
-type Paket = {
-  namn: string;
-  badge: string;
-  gaster: string;
-  beskrivning: string;
-  rader: PaketRad[];
-  featured?: boolean;
-};
-
-const paketDefs: Paket[] = [
+const paketDefs: PaketDef[] = [
   {
     namn: 'Bröllop Bas',
-    badge: 'från ca',
     gaster: '50–100 gäster',
     beskrivning: 'Tal, vigsel och bakgrundsmusik med stämningsljus. Allt för en fin fest utan dansgolvsanläggning.',
     rader: [
@@ -63,7 +34,6 @@ const paketDefs: Paket[] = [
   },
   {
     namn: 'Bröllop Komplett',
-    badge: 'från ca',
     gaster: '80–120 gäster',
     beskrivning: 'Vårt populäraste upplägg. Ljud, tal, scen, stämningsljus och effekter för dansgolvet — komplett för hela kvällen.',
     featured: true,
@@ -78,7 +48,6 @@ const paketDefs: Paket[] = [
   },
   {
     namn: 'Bröllop Dansgolv',
-    badge: 'från ca',
     gaster: '120–200 gäster',
     beskrivning: 'Full festanläggning med DJ-ljud, subbasar, scen och rejäl ljussättning. För paret som vill köra dansgolv hela natten.',
     rader: [
@@ -93,19 +62,8 @@ const paketDefs: Paket[] = [
   },
 ];
 
-// Räkna ut summa per paket från live-priser och avrunda nedåt till jämn 100-lapp som "från ca"-pris
-const paket = paketDefs.map(def => {
-  const rader = def.rader.map(r => {
-    const p = P(r.artno);
-    const qty = r.qty ?? 1;
-    return { ...r, qty, name: p.name, unitPrice: p.price, radPrice: p.price * qty };
-  });
-  const summa = rader.reduce((s, r) => s + r.radPrice, 0);
-  const franPris = Math.floor(summa / 100) * 100; // avrunda nedåt till hel 100-lapp
-  return { ...def, rader, summa, franPris };
-});
-
-const fmt = (n: number) => n.toLocaleString('sv-SE').replace(/\u00A0/g, ' ');
+const paket = buildPaket3(paketDefs);
+const fmt = fmtKr;
 
 const faq = [
   {
