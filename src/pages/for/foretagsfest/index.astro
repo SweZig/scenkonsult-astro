@@ -5,7 +5,10 @@ import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 import karaokeData from '../../../data/karaoke.json';
+import siteData from '../../../data/site.json';
 import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
+
+const kunder = (siteData as any).featuredClients as string[];
 
 const evSmall = ljudData.event.products[0];
 const evMedium = ljudData.event.products[1];
@@ -124,12 +127,6 @@ const pageSchema = {
   ]
 };
 
-const kunder = [
-  "ICA Sverige", "Tele2", "Ernst & Young", "Solna Stad", "Stockholm Stad",
-  "Haninge Kommun", "Akademiska Hus", "ABG Sundal Collier",
-  "Kommunalarbetareförbundet", "Mälardalens Universitet",
-  "Houdini Sportsware", "Hornbach"
-];
 ---
 
 <Layout

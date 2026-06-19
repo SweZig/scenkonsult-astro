@@ -6,6 +6,9 @@ import ProductCard from '../components/ProductCard.astro';
 import MediaCard from '../components/MediaCard.astro';
 import ljudData from '../data/ljud.json';
 import scenData from '../data/scenes.json';
+import siteData from '../data/site.json';
+
+const kunder = (siteData as any).featuredClients as string[];
 
 export async function getStaticPaths() {
   return orter.map((ort) => ({
@@ -243,7 +246,7 @@ const pageSchema = {
     <div style="max-width:1100px; margin:0 auto; text-align:center;">
       <p style="color:rgba(255,255,255,0.60); font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Utvalda kunder vi levererat till i Storstockholm</p>
       <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
-        {["ICA Sverige", "Tele2", "Ernst & Young", "Hornbach", "ABG Sundal Collier", "Houdini Sportswear", "Solna Stad", "Ung Företagsamhet", "Odd Fellow", "Kommunalarbetareförbundet"].map(k => (
+        {kunder.map(k => (
           <span style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:0.4rem 1rem; font-family:'Space Grotesk',sans-serif; font-size:0.82rem; color:rgba(255,255,255,0.6);">
             {k}
           </span>
