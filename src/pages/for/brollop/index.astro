@@ -293,10 +293,10 @@ const pageSchema = {
           {paket.map(pk => (
             <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.7rem 0; border-bottom:1px solid rgba(255,255,255,0.07);">
               <span style="color:white; font-size:0.9rem; font-weight:600;">{pk.namn}<span style="color:rgba(255,255,255,0.4); font-weight:400; font-size:0.8rem;"> · {pk.gaster}</span></span>
-              <span style="color:#c4b5f4; font-size:0.95rem; font-weight:700; white-space:nowrap;">{fmt(pk.franPris)} kr</span>
+              <span style="color:#c4b5f4; font-size:0.95rem; font-weight:700; white-space:nowrap;"><span data-exkl={pk.franPris}>{fmt(pk.franPris)}</span> kr</span>
             </div>
           ))}
-          <p style="color:rgba(255,255,255,0.55); font-size:0.75rem; margin:1rem 0 0;">Priser per dygn, exkl. moms. Leverans, montering och tekniker tillkommer — offereras separat.</p>
+          <p style="color:rgba(255,255,255,0.55); font-size:0.75rem; margin:1rem 0 0;">Priser per dygn. Leverans, montering och tekniker tillkommer — offereras separat.</p>
         </div>
       </div>
     </div>
@@ -325,7 +325,7 @@ const pageSchema = {
                   <span style="color:rgba(255,255,255,0.72); font-size:0.85rem; line-height:1.4;">
                     {r.qty > 1 && <span style="color:#c4b5f4; font-weight:700;">{r.qty}× </span>}{r.label}
                   </span>
-                  <span style="color:rgba(255,255,255,0.45); font-size:0.8rem; white-space:nowrap;">{fmt(r.radPrice)} kr</span>
+                  <span style="color:rgba(255,255,255,0.45); font-size:0.8rem; white-space:nowrap;"><span data-exkl={r.radPrice}>{fmt(r.radPrice)}</span> kr</span>
                 </div>
               ))}
             </div>
@@ -333,9 +333,9 @@ const pageSchema = {
             <div style="border-top:1px solid rgba(196,181,244,0.2); padding-top:1rem;">
               <div style="display:flex; justify-content:space-between; align-items:baseline;">
                 <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Från ca</span>
-                <span style="font-family:'DM Serif Display',serif; font-size:1.7rem; color:#c4b5f4;">{fmt(pk.franPris)} kr</span>
+                <span style="font-family:'DM Serif Display',serif; font-size:1.7rem; color:#c4b5f4;"><span data-exkl={pk.franPris}>{fmt(pk.franPris)}</span> kr</span>
               </div>
-              <p style="color:rgba(255,255,255,0.45); font-size:0.72rem; margin:0.25rem 0 0;">/dygn · exkl. moms · exkl. leverans &amp; montering</p>
+              <p style="color:rgba(255,255,255,0.45); font-size:0.72rem; margin:0.25rem 0 0;">/dygn · exkl. leverans &amp; montering</p>
             </div>
 
             <a href="/bokningssida/" style={`display:block; margin-top:1.25rem; background:${pk.featured ? '#c4b5f4' : 'transparent'}; color:${pk.featured ? '#0c0a24' : '#c4b5f4'}; border:1px solid #c4b5f4; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; padding:0.8rem 1.5rem; border-radius:4px; text-align:center; transition:all 0.2s;`} onmouseenter={`this.style.background='#e2dcfb'; this.style.color='#0c0a24'; this.style.borderColor='#e2dcfb'`} onmouseleave={`this.style.background='${pk.featured ? '#c4b5f4' : 'transparent'}'; this.style.color='${pk.featured ? '#0c0a24' : '#c4b5f4'}'; this.style.borderColor='#c4b5f4'`}>
@@ -345,7 +345,7 @@ const pageSchema = {
         ))}
       </div>
 
-      <p style="color:rgba(255,255,255,0.4); font-size:0.8rem; line-height:1.6; margin:2rem 0 0; max-width:680px;">Angivna priser är ungefärliga utgångspriser per dygn räknat på paketets innehåll, exkl. moms. Transport, montering och tekniker på plats tillkommer alltid och offereras separat utifrån lokal och upplägg.</p>
+      <p style="color:rgba(255,255,255,0.4); font-size:0.8rem; line-height:1.6; margin:2rem 0 0; max-width:680px;">Angivna priser är ungefärliga utgångspriser per dygn räknat på paketets innehåll. Växla mellan exkl. och inkl. moms längst ner till vänster. Transport, montering och tekniker på plats tillkommer alltid och offereras separat utifrån lokal och upplägg.</p>
     </div>
   </section>
 
