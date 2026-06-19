@@ -290,9 +290,50 @@ a { color: inherit; }
 @media (min-width: 1100px) {
   .nav-dropdown-menu { min-width: 960px; }
 }
-@media (max-width: 1099px) {
-  .nav-dd-col-guides { display: none; }
+/* Produkter-dropdown: fyra balanserade kolumner */
+.nav-dd-products { min-width: 760px; }
+@media (min-width: 1100px) {
+  .nav-dd-products { min-width: 820px; }
 }
+/* Kunskap-dropdown: smalare, med framlyft Svens-block överst */
+.nav-dd-knowledge {
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 560px;
+  max-width: 640px;
+}
+@media (min-width: 1100px) {
+  .nav-dd-knowledge { min-width: 600px; }
+}
+.nav-dd-knowledge-cols { display: flex; gap: 2rem; }
+.nav-dd-feature {
+  display: flex; align-items: center; gap: 0.9rem;
+  text-decoration: none;
+  background: linear-gradient(135deg, rgba(196,181,244,0.16), rgba(196,181,244,0.06));
+  border: 1px solid rgba(196,181,244,0.3);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.nav-dd-feature:hover {
+  border-color: rgba(196,181,244,0.55);
+  background: linear-gradient(135deg, rgba(196,181,244,0.24), rgba(196,181,244,0.1));
+}
+.nav-dd-feature-ico { font-size: 1.7rem; line-height: 1; flex-shrink: 0; }
+.nav-dd-feature-txt { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; }
+.nav-dd-feature-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.92rem; font-weight: 700; color: #fff; letter-spacing: 0.01em;
+}
+.nav-dd-feature-desc {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.74rem; color: rgba(255,255,255,0.6); line-height: 1.35;
+}
+.nav-dd-feature-arrow {
+  font-size: 1.1rem; color: #c4b5f4; flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.nav-dd-feature:hover .nav-dd-feature-arrow { transform: translateX(3px); }
 .nav-dropdown-menu.dd-open {
   opacity: 1;
   pointer-events: auto;
