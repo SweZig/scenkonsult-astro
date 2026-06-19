@@ -16,6 +16,97 @@ const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno ===
 const ljusPaketSmall = ljusData.paket.products[0];
 const scenSmall = sceneData.products[0];
 
+// ---- Bröllopspaket: priser hämtas från live-JSON via artno ----
+// Bygg en platt uppslagstabell över alla produkter (ljud, ljus, scen)
+const _prodIndex: Record<string, any> = {};
+function _indexProducts(node: any) {
+  if (!node) return;
+  if (Array.isArray(node)) { node.forEach(_indexProducts); return; }
+  if (typeof node === 'object') {
+    if (node.artno && typeof node.price === 'number') _prodIndex[node.artno] = node;
+    Object.values(node).forEach(_indexProducts);
+  }
+}
+_indexProducts(ljudData);
+_indexProducts(ljusData);
+_indexProducts(sceneData);
+
+function P(artno: string) {
+  const p = _prodIndex[artno];
+  if (!p) throw new Error('Bröllopspaket: saknar artno ' + artno);
+  return p;
+}
+
+type PaketRad = { artno: string; label: string; qty?: number };
+type Paket = {
+  namn: string;
+  badge: string;
+  gaster: string;
+  beskrivning: string;
+  rader: PaketRad[];
+  featured?: boolean;
+};
+
+const paketDefs: Paket[] = [
+  {
+    namn: 'Bröllop Bas',
+    badge: 'från ca',
+    gaster: '50–100 gäster',
+    beskrivning: 'Tal, vigsel och bakgrundsmusik med stämningsljus. Allt för en fin fest utan dansgolvsanläggning.',
+    rader: [
+      { artno: 'SK-LJD-EVE-0001', label: 'PA-system (2× 10″ toppar)' },
+      { artno: 'SK-LJD-MIK-0016', label: 'Trådlös handmikrofon — tal' },
+      { artno: 'SK-LJD-MIK-0017', label: 'Trådlöst headset — vigsel' },
+      { artno: 'SK-LJS-PAK-0001', label: 'Ljuspaket Small (4× RGB PAR)' },
+      { artno: 'SK-LJD-MIX-0002', label: 'Mixerbord 4+2 kanaler' },
+    ],
+  },
+  {
+    namn: 'Bröllop Komplett',
+    badge: 'från ca',
+    gaster: '80–120 gäster',
+    beskrivning: 'Vårt populäraste upplägg. Ljud, tal, scen, stämningsljus och effekter för dansgolvet — komplett för hela kvällen.',
+    featured: true,
+    rader: [
+      { artno: 'SK-LJD-EVE-0002', label: 'PA-system (2× 12″ toppar)' },
+      { artno: 'SK-LJD-MIK-0016', label: 'Trådlös handmikrofon — tal' },
+      { artno: 'SK-LJD-MIK-0023', label: 'Shure SLXD headset — toastmaster' },
+      { artno: 'SK-LJS-PAK-0003', label: 'Ljuspaket Small++ (PAR, laser, strobe, UV)' },
+      { artno: 'SK-SCN-0001', label: 'Scenpodie för DJ / trubadur' },
+      { artno: 'SK-LJS-EFF-0011', label: 'Moving Head Wash', qty: 2 },
+    ],
+  },
+  {
+    namn: 'Bröllop Dansgolv',
+    badge: 'från ca',
+    gaster: '120–200 gäster',
+    beskrivning: 'Full festanläggning med DJ-ljud, subbasar, scen och rejäl ljussättning. För paret som vill köra dansgolv hela natten.',
+    rader: [
+      { artno: 'SK-LJD-MUS-0003', label: 'Music Medium (2× 12″ + 2× 12″ sub)' },
+      { artno: 'SK-LJD-MIK-0026', label: 'Shure SLXD — 2 handmikrofoner' },
+      { artno: 'SK-LJS-PAK-0004', label: 'Ljuspaket Medium (2 trosstorn + moving heads)' },
+      { artno: 'SK-SCN-0002', label: 'Scenpodie 2×3 m för band / DJ' },
+      { artno: 'SK-LJS-EFF-0011', label: 'Moving Head Wash', qty: 2 },
+      { artno: 'SK-LJS-ROK-0001', label: 'Rökmaskin 1500W' },
+      { artno: 'SK-LJD-MIX-0005', label: 'Mixerbord 6+4 kanaler' },
+    ],
+  },
+];
+
+// Räkna ut summa per paket från live-priser och avrunda nedåt till jämn 100-lapp som "från ca"-pris
+const paket = paketDefs.map(def => {
+  const rader = def.rader.map(r => {
+    const p = P(r.artno);
+    const qty = r.qty ?? 1;
+    return { ...r, qty, name: p.name, unitPrice: p.price, radPrice: p.price * qty };
+  });
+  const summa = rader.reduce((s, r) => s + r.radPrice, 0);
+  const franPris = Math.floor(summa / 100) * 100; // avrunda nedåt till hel 100-lapp
+  return { ...def, rader, summa, franPris };
+});
+
+const fmt = (n: number) => n.toLocaleString('sv-SE').replace(/\u00A0/g, ' ');
+
 const faq = [
   {
     q: "Hur stor PA-anläggning behöver jag till ett bröllop?",
@@ -30,8 +121,8 @@ const faq = [
     a: "En liten scen (4–6 m²) för trubaduren eller DJ:n ger ett professionellt intryck och skapar tydlig fokuspunkt. Den signalerar till gästerna att det händer saker — och frigör naturligt dansyta framför."
   },
   {
-    q: "Vad kostar ett komplett bröllopspaktet?",
-    a: "Ett komplett paket med ljud, ljus och scen för 80–100 gäster startar från ca 4 000–7 000 kr för ett dygn. Pris beror på utrustning och eventuell leverans. Begär offert så räknar vi ihop exakt."
+    q: "Vad kostar ett komplett bröllopspaket?",
+    a: "Ett komplett paket med ljud, ljus och scen för 80–120 gäster startar från ca 4 100 kr per dygn, och en full festanläggning med DJ-ljud och dansgolvsljus landar runt 5 800 kr. Pris beror på utrustning och eventuell leverans. Begär offert så räknar vi ihop exakt."
   },
   {
     q: "Hur långt i förväg måste vi boka för bröllop?",
@@ -94,7 +185,7 @@ const pageSchema = {
       { label: "Bröllop" }
     ]}
     chips={[
-      "Bröllopspaket från 2 500 kr/dygn",
+      "Bröllopspaket från 2 200 kr/dygn",
       "Leverans & montering i Storstockholm",
       "Tekniker på plats tillgängligt",
       "Avbokning fram till 3 dagar innan event*",
@@ -196,35 +287,65 @@ const pageSchema = {
       </div>
 
       <div>
-        <div style="background:#1e1850; border:1px solid rgba(196,181,244,0.2); border-radius:16px; padding:2rem; margin-bottom:1.5rem;">
-          <h3 style="font-family:'DM Serif Display',serif; font-size:1.4rem; color:white; margin:0 0 1rem;">Typiskt bröllopspaketet</h3>
-          <p style="color:rgba(255,255,255,0.55); font-size:0.9rem; line-height:1.65; margin:0 0 1.25rem;">För 80–120 gäster inomhus rekommenderar vi:</p>
-          {[
-            ["PA-system", "Event Medium (2 toppar + sub)"],
-            ["Mikrofoner", "2× trådlös hand + 1× headset"],
-            ["Scenljus", "8× LED par-lampor"],
-            ["Scen", "2×3 m podium för DJ/artist"],
-            ["Discoljus", "2× moving head + laser"],
-            ["Leverans & montering", "Tillgängligt som tillägg"]
-          ].map(([label, value]) => (
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.07);">
-              <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">{label}</span>
-              <span style="color:white; font-size:0.85rem; font-weight:600; text-align:right; max-width:55%;">{value}</span>
+        <div style="background:#1e1850; border:1px solid rgba(196,181,244,0.2); border-radius:16px; padding:2rem;">
+          <h3 style="font-family:'DM Serif Display',serif; font-size:1.4rem; color:white; margin:0 0 1rem;">Tre färdiga bröllopspaket</h3>
+          <p style="color:rgba(255,255,255,0.55); font-size:0.9rem; line-height:1.65; margin:0 0 1.25rem;">Vi har satt ihop tre utgångslägen — från enkelt taluppägg till full festanläggning. Alla går att justera fritt i dialog med oss så att det passar er lokal, er gästlista och er budget.</p>
+          {paket.map(pk => (
+            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:0.7rem 0; border-bottom:1px solid rgba(255,255,255,0.07);">
+              <span style="color:white; font-size:0.9rem; font-weight:600;">{pk.namn}<span style="color:rgba(255,255,255,0.4); font-weight:400; font-size:0.8rem;"> · {pk.gaster}</span></span>
+              <span style="color:#c4b5f4; font-size:0.95rem; font-weight:700; white-space:nowrap;">{fmt(pk.franPris)} kr</span>
             </div>
           ))}
-          <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(196,181,244,0.2);">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Från ca</span>
-              <span style="font-family:'DM Serif Display',serif; font-size:1.6rem; color:#c4b5f4;">4 500 kr</span>
-            </div>
-            <p style="color:rgba(255,255,255,0.60); font-size:0.75rem; margin:0.25rem 0 0;">Per dygn, exkl. leverans. Offert utan bindning.</p>
-          </div>
+          <p style="color:rgba(255,255,255,0.55); font-size:0.75rem; margin:1rem 0 0;">Priser per dygn, exkl. moms. Leverans, montering och tekniker tillkommer — offereras separat.</p>
         </div>
-
-        <a href="/bokningssida/" style="display:block; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:1rem 2rem; border-radius:4px; text-align:center; transition:background 0.2s;" onmouseenter="this.style.background='#e2dcfb'" onmouseleave="this.style.background='#c4b5f4'">
-          Begär offert — svar inom 2 timmar
-        </a>
       </div>
+    </div>
+  </section>
+
+  <!-- Tre bröllopspaket -->
+  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
+    <div style="max-width:1200px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Bröllopspaket</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Välj en utgångspunkt — vi finjusterar tillsammans</h2>
+      <p style="color:rgba(255,255,255,0.55); font-size:0.95rem; line-height:1.7; max-width:680px; margin:0 0 2.5rem;">Varje paket är ett konkret förslag byggt på riktig utrustning. Inget är hugget i sten — lägg till, byt ut eller dra ifrån i offertdialogen så hittar vi rätt nivå för just er dag.</p>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:1.5rem; align-items:stretch;">
+        {paket.map(pk => (
+          <div style={`background:#1e1850; border:1px solid ${pk.featured ? 'rgba(196,181,244,0.5)' : 'rgba(255,255,255,0.08)'}; border-radius:16px; padding:1.85rem; display:flex; flex-direction:column; position:relative;`}>
+            {pk.featured && (
+              <span style="position:absolute; top:-0.7rem; left:1.85rem; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-size:0.65rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:0.25rem 0.7rem; border-radius:999px;">Populärast</span>
+            )}
+            <h3 style="font-family:'DM Serif Display',serif; font-size:1.5rem; color:white; margin:0 0 0.25rem;">{pk.namn}</h3>
+            <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; margin:0 0 0.9rem;">{pk.gaster}</p>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.88rem; line-height:1.6; margin:0 0 1.25rem;">{pk.beskrivning}</p>
+
+            <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:1rem; margin-bottom:1.25rem; flex:1;">
+              {pk.rader.map(r => (
+                <div style="display:flex; justify-content:space-between; align-items:baseline; gap:0.75rem; padding:0.4rem 0;">
+                  <span style="color:rgba(255,255,255,0.72); font-size:0.85rem; line-height:1.4;">
+                    {r.qty > 1 && <span style="color:#c4b5f4; font-weight:700;">{r.qty}× </span>}{r.label}
+                  </span>
+                  <span style="color:rgba(255,255,255,0.45); font-size:0.8rem; white-space:nowrap;">{fmt(r.radPrice)} kr</span>
+                </div>
+              ))}
+            </div>
+
+            <div style="border-top:1px solid rgba(196,181,244,0.2); padding-top:1rem;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Från ca</span>
+                <span style="font-family:'DM Serif Display',serif; font-size:1.7rem; color:#c4b5f4;">{fmt(pk.franPris)} kr</span>
+              </div>
+              <p style="color:rgba(255,255,255,0.45); font-size:0.72rem; margin:0.25rem 0 0;">/dygn · exkl. moms · exkl. leverans &amp; montering</p>
+            </div>
+
+            <a href="/bokningssida/" style={`display:block; margin-top:1.25rem; background:${pk.featured ? '#c4b5f4' : 'transparent'}; color:${pk.featured ? '#0c0a24' : '#c4b5f4'}; border:1px solid #c4b5f4; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; padding:0.8rem 1.5rem; border-radius:4px; text-align:center; transition:all 0.2s;`} onmouseenter={`this.style.background='#e2dcfb'; this.style.color='#0c0a24'; this.style.borderColor='#e2dcfb'`} onmouseleave={`this.style.background='${pk.featured ? '#c4b5f4' : 'transparent'}'; this.style.color='${pk.featured ? '#0c0a24' : '#c4b5f4'}'; this.style.borderColor='#c4b5f4'`}>
+              Begär offert på detta paket
+            </a>
+          </div>
+        ))}
+      </div>
+
+      <p style="color:rgba(255,255,255,0.4); font-size:0.8rem; line-height:1.6; margin:2rem 0 0; max-width:680px;">Angivna priser är ungefärliga utgångspriser per dygn räknat på paketets innehåll, exkl. moms. Transport, montering och tekniker på plats tillkommer alltid och offereras separat utifrån lokal och upplägg.</p>
     </div>
   </section>
 
