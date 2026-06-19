@@ -83,6 +83,58 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     color: rgba(255,255,255,0.55);
     font-size: 0.78rem;
   }
+  /* ── B2B FAKTURAUPPGIFTER ──────────────────────────────── */
+  .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+  @media (max-width: 560px) { .inv-grid { grid-template-columns: 1fr; } }
+  .inv-field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .inv-label {
+    font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.72);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .inv-input {
+    background: #0f0d2a; color: #f0eeff; color-scheme: dark;
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 8px;
+    padding: 0.5rem 0.7rem; font-family: inherit; font-size: 0.9rem; width: 100%;
+  }
+  .inv-input:focus { outline: none; border-color: rgba(196,181,244,0.55); }
+  .inv-textarea { resize: vertical; min-height: 64px; }
+  .inv-hint { display: block; margin-top: 0.35rem; font-size: 0.76rem; color: rgba(255,255,255,0.5); line-height: 1.4; }
+  .inv-check {
+    display: flex; align-items: flex-start; gap: 0.55rem; cursor: pointer;
+    font-size: 0.86rem; color: rgba(255,255,255,0.8); line-height: 1.4;
+  }
+  .inv-check input { accent-color: #c4b5f4; width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0; }
+  .inv-actions { display: flex; gap: 0.6rem; margin-top: 1.2rem; flex-wrap: wrap; }
+  .inv-btn-save {
+    background: #c4b5f4; color: #0c0a24; border: none; border-radius: 8px;
+    padding: 0.6rem 1.4rem; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    font-family: inherit; transition: background 0.15s;
+  }
+  .inv-btn-save:hover { background: #e2dcfb; }
+  .inv-btn-save:disabled { opacity: 0.6; cursor: default; }
+  .inv-btn-cancel {
+    background: transparent; color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.18); border-radius: 8px;
+    padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; font-family: inherit;
+  }
+  .inv-btn-cancel:hover { color: #fff; border-color: rgba(255,255,255,0.35); }
+  .inv-btn-edit {
+    background: rgba(196,181,244,0.12); color: #c4b5f4;
+    border: 1px solid rgba(196,181,244,0.3); border-radius: 8px;
+    padding: 0.5rem 1.1rem; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+    font-family: inherit; margin-top: 0.9rem; transition: background 0.15s;
+  }
+  .inv-btn-edit:hover { background: rgba(196,181,244,0.2); }
+  .inv-view-row { display: flex; gap: 0.6rem; padding: 0.4rem 0; font-size: 0.88rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .inv-view-row:last-child { border-bottom: none; }
+  .inv-view-k { color: rgba(255,255,255,0.55); min-width: 160px; flex-shrink: 0; }
+  .inv-view-v { color: #f0eeff; font-weight: 600; }
+  .inv-view-empty { color: rgba(255,255,255,0.4); font-style: italic; font-weight: 400; }
+  .inv-peppol-flag {
+    display: inline-block; margin-top: 0.5rem; padding: 4px 10px;
+    background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.4);
+    border-radius: 6px; color: #fbbf24; font-size: 0.78rem; font-weight: 600;
+  }
   .order-id {
     font-size: 0.78rem;
     font-weight: 700;
@@ -481,6 +533,65 @@ import orderCatalog from '../../data/order-catalog-flat.json';
       <div class="totals-note" id="totalsNote" style="display:none">* Tilläggstjänsters priser är estimat och bekräftas vid orderbekräftelse.</div>
     </div>
 
+    <!-- B2B: Fakturauppgifter (visas endast för företagskunder) -->
+    <div class="section" id="invoiceSection" style="display:none">
+      <div class="section-head">🧾 Fakturauppgifter <span id="invoiceLockBadge" style="display:none;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border-radius:99px;padding:1px 9px;font-size:0.68rem;margin-left:6px;font-weight:700;text-transform:none;letter-spacing:0">🔒 Låst</span></div>
+      <div class="section-body">
+        <p style="margin:0 0 1.1rem;color:rgba(255,255,255,0.65);font-size:0.85rem;line-height:1.55">Här kan du komplettera uppgifter inför fakturering — organisationsnummer, fakturareferens/PO-nummer, separat fakturaadress och e-postadress för e-faktura. Uppgifterna används enbart på din faktura.</p>
+
+        <!-- Visningsläge -->
+        <div id="invoiceView"></div>
+
+        <!-- Redigeringsläge -->
+        <div id="invoiceEdit" style="display:none">
+          <div class="inv-grid">
+            <label class="inv-field">
+              <span class="inv-label">Organisationsnummer</span>
+              <input type="text" id="invOrgnr" class="inv-input" placeholder="556xxx-xxxx" autocomplete="off">
+            </label>
+            <label class="inv-field">
+              <span class="inv-label">Fakturareferens / PO-nummer</span>
+              <input type="text" id="invRef" class="inv-input" placeholder="T.ex. PO-12345 eller referensperson" autocomplete="off">
+            </label>
+          </div>
+
+          <label class="inv-check">
+            <input type="checkbox" id="invAddrSame" checked>
+            <span>Fakturaadress är samma som leverans-/kontaktadress</span>
+          </label>
+          <label class="inv-field" id="invAddrField" style="display:none;margin-top:0.5rem">
+            <span class="inv-label">Fakturaadress</span>
+            <textarea id="invAddr" class="inv-input inv-textarea" placeholder="Gatuadress, postnummer och ort"></textarea>
+          </label>
+
+          <label class="inv-check" style="margin-top:0.9rem">
+            <input type="checkbox" id="invEmailSame" checked>
+            <span>Skicka faktura till min vanliga e-post</span>
+          </label>
+          <label class="inv-field" id="invEmailField" style="display:none;margin-top:0.5rem">
+            <span class="inv-label">E-postadress för e-faktura</span>
+            <input type="email" id="invEmail" class="inv-input" placeholder="faktura@foretag.se" autocomplete="off">
+          </label>
+
+          <label class="inv-check" style="margin-top:0.9rem">
+            <input type="checkbox" id="invPeppol">
+            <span>Vi vill ha e-faktura via Peppol/EDI</span>
+          </label>
+          <label class="inv-field" id="invPeppolField" style="display:none;margin-top:0.5rem">
+            <span class="inv-label">Peppol-ID / GLN</span>
+            <input type="text" id="invPeppolId" class="inv-input" placeholder="T.ex. 0007:5560123456" autocomplete="off">
+            <span class="inv-hint">Peppol-fakturor hanteras manuellt av vårt team — vi bekräftar uppsättningen med dig.</span>
+          </label>
+
+          <div class="inv-actions">
+            <button class="inv-btn-save" id="invSaveBtn">Spara uppgifter</button>
+            <button class="inv-btn-cancel" id="invCancelBtn">Avbryt</button>
+          </div>
+          <div id="invMsg" style="margin-top:0.6rem;font-size:0.82rem"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Chatt -->
     <div class="section">
       <div class="section-head">💬 Skicka meddelande till oss <span id="unreadBadge" style="display:none;background:#f87171;color:#fff;border-radius:99px;padding:1px 7px;font-size:0.7rem;margin-left:6px;font-weight:700;text-transform:none;letter-spacing:0"></span></div>
@@ -694,6 +805,17 @@ async function loadOrder() {
     messages = data.messages || [];
     renderMessages();
     show('stateOrder');
+    // Djuplänk från bekräftelsemail: scrolla till fakturasektionen
+    if (location.hash === '#invoiceSection') {
+      setTimeout(() => {
+        const sec = document.getElementById('invoiceSection');
+        if (sec && sec.style.display !== 'none') {
+          sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const editBtn = document.getElementById('invEditBtn');
+          if (editBtn) editBtn.click();
+        }
+      }, 300);
+    }
   } catch {
     show('stateError');
   }
@@ -715,6 +837,9 @@ function renderOrder(c) {
       companyBadge.style.display = 'none';
     }
   }
+
+  // B2B fakturauppgifter-sektion
+  renderInvoiceSection(c);
 
   // Visa eventinfo i subtitle (företagsnamn flyttat till badge)
   const subtitleParts = [];
@@ -1172,8 +1297,159 @@ document.getElementById('chatInput').addEventListener('keydown', e => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendMessage();
 });
 
+// ── B2B FAKTURAUPPGIFTER ─────────────────────────────────────────
+function _isB2B(c) {
+  return c && (c.customer_type === 'b2b' || (!c.customer_type && c.customer_company));
+}
+
+function renderInvoiceSection(c) {
+  const sec = document.getElementById('invoiceSection');
+  if (!sec) return;
+  if (!_isB2B(c)) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  window._currentCart = c; // säkerställ referens innan ev. spara
+
+  const locked = !!c.invoice_number; // faktura skapad → låst
+  const lockBadge = document.getElementById('invoiceLockBadge');
+  if (lockBadge) lockBadge.style.display = locked ? '' : 'none';
+
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const row = (k, v) => {
+    const empty = v == null || v === '';
+    return `<div class="inv-view-row"><span class="inv-view-k">${k}</span><span class="inv-view-v${empty?' inv-view-empty':''}">${empty ? 'Ej angivet' : esc(v)}</span></div>`;
+  };
+
+  const eInvoiceShown = (c.use_invoice_email && c.invoice_email) ? c.invoice_email : null;
+  const peppolFlag = c.wants_peppol
+    ? `<div class="inv-peppol-flag">⚡ E-faktura via Peppol/EDI önskas${c.peppol_id ? ' · ' + esc(c.peppol_id) : ''}</div>`
+    : '';
+
+  const view = document.getElementById('invoiceView');
+  view.innerHTML =
+    row('Organisationsnummer', c.customer_orgnr) +
+    row('Fakturareferens / PO', c.customer_ref) +
+    row('Fakturaadress', c.customer_invoice_address || (c.customer_address ? c.customer_address + ' (samma som kontakt)' : null)) +
+    row('E-faktura skickas till', eInvoiceShown || (c.customer_email ? c.customer_email + ' (vanlig e-post)' : null)) +
+    peppolFlag +
+    (locked
+      ? `<p style="margin:0.9rem 0 0;color:rgba(255,255,255,0.55);font-size:0.82rem">Fakturan är skapad och uppgifterna är låsta. Kontakta oss på <a href="tel:0724481000" style="color:#c4b5f4">072-448 10 00</a> för ändringar.</p>`
+      : `<button class="inv-btn-edit" id="invEditBtn">✎ Redigera / komplettera</button>`);
+
+  document.getElementById('invoiceEdit').style.display = 'none';
+  view.style.display = '';
+
+  if (!locked) {
+    const editBtn = document.getElementById('invEditBtn');
+    if (editBtn) editBtn.onclick = () => openInvoiceEdit(c);
+  }
+}
+
+function openInvoiceEdit(c) {
+  document.getElementById('invoiceView').style.display = 'none';
+  document.getElementById('invoiceEdit').style.display = '';
+  document.getElementById('invMsg').textContent = '';
+
+  document.getElementById('invOrgnr').value = c.customer_orgnr || '';
+  document.getElementById('invRef').value   = c.customer_ref || '';
+
+  // Adress: bockad = samma som kontakt
+  const hasSepAddr = !!c.customer_invoice_address;
+  document.getElementById('invAddrSame').checked = !hasSepAddr;
+  document.getElementById('invAddrField').style.display = hasSepAddr ? '' : 'none';
+  document.getElementById('invAddr').value = c.customer_invoice_address || '';
+
+  // E-post: bockad = vanlig e-post
+  const hasSepEmail = !!(c.use_invoice_email && c.invoice_email);
+  document.getElementById('invEmailSame').checked = !hasSepEmail;
+  document.getElementById('invEmailField').style.display = hasSepEmail ? '' : 'none';
+  document.getElementById('invEmail').value = c.invoice_email || '';
+
+  // Peppol
+  const wantsPeppol = !!c.wants_peppol;
+  document.getElementById('invPeppol').checked = wantsPeppol;
+  document.getElementById('invPeppolField').style.display = wantsPeppol ? '' : 'none';
+  document.getElementById('invPeppolId').value = c.peppol_id || '';
+
+  // Toggle-bindningar
+  document.getElementById('invAddrSame').onchange = e =>
+    document.getElementById('invAddrField').style.display = e.target.checked ? 'none' : '';
+  document.getElementById('invEmailSame').onchange = e =>
+    document.getElementById('invEmailField').style.display = e.target.checked ? 'none' : '';
+  document.getElementById('invPeppol').onchange = e =>
+    document.getElementById('invPeppolField').style.display = e.target.checked ? '' : 'none';
+
+  document.getElementById('invCancelBtn').onclick = () => renderInvoiceSection(c);
+  document.getElementById('invSaveBtn').onclick = () => saveInvoiceDetails(c);
+}
+
+async function saveInvoiceDetails(c) {
+  const btn = document.getElementById('invSaveBtn');
+  const msg = document.getElementById('invMsg');
+  msg.textContent = '';
+  msg.style.color = 'rgba(255,255,255,0.7)';
+
+  const addrSame  = document.getElementById('invAddrSame').checked;
+  const emailSame = document.getElementById('invEmailSame').checked;
+  const wantsPeppol = document.getElementById('invPeppol').checked;
+
+  const payload = {
+    token:   cartToken,
+    cart_id: cartId,
+    action:  'update_invoice_details',
+    customer_orgnr: document.getElementById('invOrgnr').value.trim(),
+    customer_ref:   document.getElementById('invRef').value.trim(),
+    customer_invoice_address: addrSame ? null : document.getElementById('invAddr').value.trim(),
+    invoice_email:  emailSame ? null : document.getElementById('invEmail').value.trim(),
+    use_invoice_email: !emailSame && !!document.getElementById('invEmail').value.trim(),
+    wants_peppol: wantsPeppol,
+    peppol_id: wantsPeppol ? document.getElementById('invPeppolId').value.trim() : null,
+  };
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Sparar…';
+  try {
+    const res = await fetch('/.netlify/functions/cart-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (res.ok && !data.error) {
+      // Uppdatera lokal cart och rendera om i visningsläge
+      Object.assign(c, {
+        customer_orgnr: payload.customer_orgnr || null,
+        customer_ref:   payload.customer_ref || null,
+        customer_invoice_address: payload.customer_invoice_address,
+        invoice_email:  payload.invoice_email,
+        use_invoice_email: payload.use_invoice_email,
+        wants_peppol:   payload.wants_peppol,
+        peppol_id:      payload.peppol_id,
+      });
+      renderInvoiceSection(c);
+      const v = document.getElementById('invoiceView');
+      const ok = document.createElement('div');
+      ok.style.cssText = 'margin-top:0.8rem;padding:8px 12px;background:rgba(134,239,172,0.12);border:1px solid rgba(134,239,172,0.4);border-radius:8px;color:#86efac;font-size:0.85rem;font-weight:600';
+      ok.textContent = '✓ Fakturauppgifterna är sparade. Tack!';
+      v.appendChild(ok);
+      setTimeout(() => { ok.style.transition = 'opacity 0.5s'; ok.style.opacity = '0'; setTimeout(() => ok.remove(), 500); }, 4000);
+    } else {
+      msg.style.color = '#f87171';
+      msg.textContent = data.error || data.message || `Fel ${res.status}: kunde inte spara. Försök igen.`;
+      btn.disabled = false;
+      btn.textContent = 'Spara uppgifter';
+    }
+  } catch (e) {
+    msg.style.color = '#f87171';
+    msg.textContent = e.message || 'Nätverksfel — kontrollera din anslutning och försök igen.';
+    btn.disabled = false;
+    btn.textContent = 'Spara uppgifter';
+  }
+}
+
 // Exponera funktioner som anropas via onclick i dynamisk HTML
 window.confirmOrder = confirmOrder;
+window.renderInvoiceSection = renderInvoiceSection;
 
 _ensureNameMap();
 loadOrder();

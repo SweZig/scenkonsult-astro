@@ -29,6 +29,15 @@ async function sendConfirmationEmail(cart) {
   // B2B: visa företagsnamn tydligt
   const companyStr  = cart.customer_company ? `<p style="color:#555;font-size:14px;margin:8px 0;">🏢 Företag: <strong>${cart.customer_company}</strong></p>` : '';
 
+  // B2B + faktura ej skapad → uppmana till komplettering av fakturauppgifter
+  const _isB2B = cart.customer_type === 'b2b' || (!cart.customer_type && cart.customer_company);
+  const invoicePromptStr = (_isB2B && !cart.invoice_number && cartUrl) ? `
+    <div style="background:#f5f3ff;border:1px solid #c4b5f4;border-radius:10px;padding:14px 18px;margin:0 0 22px;">
+      <div style="color:#4a3faa;font-weight:700;font-size:14px;margin:0 0 4px;">🧾 Uppgifter för e-faktura</div>
+      <div style="color:#555;font-size:13px;line-height:1.55;margin:0 0 10px;">Komplettera gärna org.nr, fakturareferens, fakturaadress och e-postadress för e-faktura inför faktureringen.</div>
+      <a href="${cartUrl}#invoiceSection" style="color:#4a3faa;font-size:13px;font-weight:700;text-decoration:none;">Komplettera dina uppgifter för e-faktura →</a>
+    </div>` : '';
+
   // Kunden har redan klick-bekräftat → ingen påminnelse om signering
   const alreadySigned = !!cart.confirmed_at;
   const signNotice = alreadySigned ? '' : `
@@ -51,6 +60,7 @@ async function sendConfirmationEmail(cart) {
       : 'Vi har preliminärt bekräftat din order — det enda som återstår är din digitala bekräftelse.'} Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a> eller svara på detta mail.</p>
     ${signNotice}
     ${companyStr}${dateStr}${locationStr}
+    ${invoicePromptStr}
     <p style="margin:20px 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din beställning</p>
     ${tableHtml}
     ${cartUrl ? `<p style="margin:24px 0 0;text-align:center;"><a href="${cartUrl}" style="background:${alreadySigned ? '#332885' : '#c4b5f4'};color:${alreadySigned ? '#fff' : '#0c0a24'};padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:700;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.15);">${alreadySigned ? 'Se din orderbekräftelse →' : 'Öppna offert &amp; godkänn order →'}</a></p>
@@ -165,6 +175,9 @@ exports.handler = async (event) => {
       if (body.customer_address !== undefined) updates.customer_address = body.customer_address;
       if (body.customer_orgnr   !== undefined) updates.customer_orgnr   = body.customer_orgnr;
       if (body.customer_ref     !== undefined) updates.customer_ref     = body.customer_ref;
+      if (body.customer_invoice_address !== undefined) updates.customer_invoice_address = body.customer_invoice_address || null;
+      if (body.wants_peppol     !== undefined) updates.wants_peppol     = !!body.wants_peppol;
+      if (body.peppol_id        !== undefined) updates.peppol_id        = body.peppol_id || null;
       if (body.invoice_date     !== undefined) updates.invoice_date     = body.invoice_date || null;
       if (body.invoice_due_date !== undefined) updates.invoice_due_date = body.invoice_due_date || null;
       if (body.invoice_number   !== undefined) updates.invoice_number   = body.invoice_number;
@@ -228,6 +241,65 @@ exports.handler = async (event) => {
     } else {
       // Kund kan uppdatera sin anteckning eller bekräfta order
       if (body.notes_customer !== undefined) updates.customer_message = body.notes_customer;
+
+      // ── B2B: kund kompletterar fakturauppgifter ─────────────────────
+      if (body.action === 'update_invoice_details') {
+        // Endast B2B (samma logik som _invoice-villkor.js)
+        const isB2B = cart.customer_type === 'b2b' || (!cart.customer_type && cart.customer_company);
+        if (!isB2B) return err('Fakturauppgifter kan endast kompletteras för företagskunder', 403);
+
+        // Lås redigering så snart faktura är skapad (K-nummer tilldelat)
+        if (cart.invoice_number) {
+          return err('Fakturan är redan skapad — kontakta oss för ändringar', 409);
+        }
+
+        const clean = (v, max = 300) =>
+          (typeof v === 'string' ? v.trim().slice(0, max) : '') || null;
+
+        if (body.customer_orgnr !== undefined) {
+          const o = clean(body.customer_orgnr, 20);
+          // Lös validering: tillåt siffror, bindestreck, mellanslag (556xxx-xxxx)
+          if (o && !/^[0-9][0-9\s-]{8,14}$/.test(o)) {
+            return err('Ogiltigt organisationsnummer — använd format 556xxx-xxxx', 400);
+          }
+          updates.customer_orgnr = o;
+        }
+        if (body.customer_ref !== undefined) updates.customer_ref = clean(body.customer_ref, 200);
+        if (body.customer_invoice_address !== undefined) {
+          updates.customer_invoice_address = clean(body.customer_invoice_address, 400);
+        }
+
+        // E-faktura via e-post: återanvänder befintliga invoice_email/use_invoice_email
+        if (body.invoice_email !== undefined) {
+          const em = clean(body.invoice_email, 200);
+          if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+            return err('Ogiltig e-postadress för e-faktura', 400);
+          }
+          updates.invoice_email = em;
+          updates.use_invoice_email = !!em; // toggla på automatiskt när adress angetts
+        }
+        if (body.use_invoice_email !== undefined) {
+          updates.use_invoice_email = !!body.use_invoice_email;
+        }
+
+        // Peppol/EDI: flagga för manuell hantering
+        if (body.wants_peppol !== undefined) {
+          updates.wants_peppol = !!body.wants_peppol;
+          if (!body.wants_peppol) updates.peppol_id = null; // rensa ID om avbockad
+        }
+        if (body.peppol_id !== undefined) updates.peppol_id = clean(body.peppol_id, 100);
+
+        if (Object.keys(updates).length === 0) {
+          return err('Inga giltiga fält att uppdatera', 400);
+        }
+
+        await db.update('carts', updates, 'cart_token', body.token);
+        await logAudit(db, cart.id, 'customer', 'invoice_details_updated', {
+          fields: Object.keys(updates),
+          wants_peppol: updates.wants_peppol ?? cart.wants_peppol ?? false,
+        });
+        return ok({ ok: true, success: true, cart_id: cart.id, updated: Object.keys(updates) });
+      }
 
       // Klick-orderbekräftelse — kund signerar digitalt
       if (body.action === 'customer_confirm') {

@@ -35,7 +35,7 @@ exports.handler = async (event) => {
     if (!token) return err('Token krävs', 400);
 
     const { data: cart, error } = await db.from('carts')
-      .select('id, status, items, customer_name, customer_email, customer_phone, event_date, return_date, delivery_time, return_time, event_location, total_excl, expires_at, confirmed_at, last_read_customer, created_at, updated_at, pickup_signed_at, pickup_signature, pickup_id_photo, pickup_sign_ip, pickup_reminder_sent_at, pickup_confirmed_at, sms_sent_at, cart_token, cc_email, delivery_mode')
+      .select('id, status, items, customer_name, customer_email, customer_phone, customer_company, customer_type, customer_orgnr, customer_ref, customer_address, customer_invoice_address, invoice_email, use_invoice_email, wants_peppol, peppol_id, invoice_number, event_date, return_date, delivery_time, return_time, event_location, total_excl, expires_at, confirmed_at, last_read_customer, created_at, updated_at, pickup_signed_at, pickup_signature, pickup_id_photo, pickup_sign_ip, pickup_reminder_sent_at, pickup_confirmed_at, sms_sent_at, cart_token, cc_email, delivery_mode')
       .eq('cart_token', token)
       .single();
 

@@ -3383,6 +3383,9 @@ function renderTab(tab) {
         customer_orgnr:   $('edit-orgnr')?.value.trim()    || null,
         customer_company: $('edit-company')?.value.trim()   || null,
         customer_ref:     $('edit-custref')?.value.trim()   || null,
+        customer_invoice_address: $('edit-invoice-address')?.value.trim() || null,
+        wants_peppol:     $('edit-wants-peppol')?.checked ? true : false,
+        peppol_id:        ($('edit-wants-peppol')?.checked && $('edit-peppol-id')?.value.trim()) ? $('edit-peppol-id').value.trim() : null,
         delivery_time:    $('edit-delivery-time')?.value   || '13:00',
         return_time:      $('edit-return-time')?.value     || '11:00',
         invoice_email:    $('edit-invoice-email')?.value.trim() || null,
@@ -3839,6 +3842,19 @@ function renderInfoTab() {
       <div class="info-field">
         <div class="info-field-label">Er referensperson</div>
         <input class="info-edit-input" id="edit-custref" value="${(c.customer_ref||'').replace(/"/g,'&quot;')}" placeholder="T.ex. Hannah Johansson" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+      </div>
+      <div class="info-field" style="grid-column:1/-1">
+        <div class="info-field-label">Fakturaadress ${c.customer_invoice_address?'<span style=\"color:#c4b5f4;font-size:0.7rem\">· angiven av kund</span>':''}</div>
+        <textarea class="info-edit-input" id="edit-invoice-address" placeholder="Lämna tom = samma som kontakt-/leveransadress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;resize:vertical;min-height:48px">${(c.customer_invoice_address||'').replace(/</g,'&lt;')}</textarea>
+      </div>
+      <div class="info-field" style="grid-column:1/-1">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;color:var(--text)">
+          <input type="checkbox" id="edit-wants-peppol" ${c.wants_peppol?'checked':''} onchange="document.getElementById('peppol-id-wrap').style.display=this.checked?'block':'none'" style="accent-color:#fbbf24;width:15px;height:15px">
+          <span>${c.wants_peppol?'⚡ ':''}Kund önskar e-faktura via Peppol/EDI <span style="color:var(--text-muted);font-size:0.78rem">(manuell hantering)</span></span>
+        </label>
+        <div id="peppol-id-wrap" style="display:${c.wants_peppol?'block':'none'};margin-top:0.4rem">
+          <input class="info-edit-input" id="edit-peppol-id" value="${(c.peppol_id||'').replace(/"/g,'&quot;')}" placeholder="Peppol-ID / GLN, t.ex. 0007:5560123456" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        </div>
       </div>
     </div>
     <button class="btn-action" id="save-info-btn" style="margin-top:0.75rem;font-size:0.8rem">💾 Spara kunduppgifter</button>
