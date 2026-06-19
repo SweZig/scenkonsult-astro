@@ -1445,13 +1445,19 @@ async function saveInvoiceDetails(c) {
 
   btn.disabled = true;
   btn.textContent = '⏳ Sparar…';
+  const _ctrl = new AbortController();
+  const _to = setTimeout(() => _ctrl.abort(), 20000); // 20s tak — undvik evig snurr
   try {
     const res = await fetch('/.netlify/functions/cart-update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: _ctrl.signal,
     });
-    const data = await res.json();
+    clearTimeout(_to);
+    let data;
+    try { data = await res.json(); }
+    catch { data = { error: `Servern svarade oväntat (status ${res.status}). Försök igen eller kontakta oss.` }; }
     if (res.ok && !data.error) {
       // Uppdatera lokal cart och rendera om i visningsläge
       Object.assign(c, {
@@ -1489,8 +1495,11 @@ async function saveInvoiceDetails(c) {
       btn.textContent = 'Spara uppgifter';
     }
   } catch (e) {
+    clearTimeout(_to);
     msg.style.color = '#f87171';
-    msg.textContent = e.message || 'Nätverksfel — kontrollera din anslutning och försök igen.';
+    msg.textContent = e.name === 'AbortError'
+      ? 'Tidsgräns nådd — uppgifterna sparades kanske ändå. Ladda om sidan och kontrollera, eller försök igen.'
+      : (e.message || 'Nätverksfel — kontrollera din anslutning och försök igen.');
     btn.disabled = false;
     btn.textContent = 'Spara uppgifter';
   }
