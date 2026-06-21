@@ -368,3 +368,91 @@ for check in ['SK-LJD-TJN-0001','SK-TJN-0002','SK-BLD-TJN-0001','SK-BLD-TJN-0002
               'SK-LEV-0006','SK-LEV-0006-E','SK-TJN-0003-49','SK-DJ-0010']:
     e = order_catalog.get(check, {})
     print(f"   {check:18}  {e.get('name','SAKNAS'):50}  cat={e.get('catName','?')}")
+
+# ── Self-check: katalogen MÅSTE spegla hela sortimentet ──────────────────────
+# Stående regel (begärd 2026-06): varje artno i datafilerna ska finnas i
+# quote-catalog. Fångar "ny array/sektion glömd i scriptet" och "ny artikel i
+# ej-konsumerad array". Failar bygget (exit 1) → stoppar Netlify-deployen via
+# &&-kedjan i netlify.toml, så ett ofullständigt sortiment aldrig går live.
+#
+# EXCLUDE_ARTNOS: artno som MEDVETET hålls utanför offertkatalogen. Lägg bara
+# till här med kommentar om varför — annars ska luckan åtgärdas i scriptet, inte
+# tystas här.
+EXCLUDE_ARTNOS: set[str] = {
+    # Scentak — tillval som bara existerar nästlat i scenpaketens config.tak.
+    # Säljs inte som fristående rad utan följer med valt scenpaket via
+    # konfiguratorn; priset adderas där. Ingen egen katalograd avsedd.
+    'SK-SCN-TAK-0001', 'SK-SCN-TAK-0002',
+}
+
+import sys
+
+# Nycklar som bär KOMPONENTER inuti en enskild produkt (config-tillval,
+# split-rader m.m.) — artno här hör till sin parent-produkt och ska inte
+# räknas som egen toppnivå-sektion. Skannern går inte ner i dessa.
+_NESTED_COMPONENT_KEYS = {'config', 'cartSplit', 'tak', 'components', 'enkel'}
+
+_SOURCE_FILES = {
+    'scenes.json': scenes, 'ljud.json': ljud, 'ljus.json': ljus,
+    'bild.json': bild, 'dj.json': dj, 'karaoke.json': karaoke,
+    'tjanster.json': frakt, 'el.json': el,
+}
+
+def _all_source_artnos(data, path=''):
+    """Plocka alla (artno, källväg) ur en nästlad JSON-struktur, men hoppa
+    över komponent-nycklar (config/cartSplit/tak…) vars artno hör till en
+    parent-produkt snarare än utgör en egen säljbar katalograd."""
+    found = []
+    if isinstance(data, dict):
+        a = (data.get('artno') or '').strip()
+        if a:
+            found.append((a, path))
+        for k, v in data.items():
+            if k in _NESTED_COMPONENT_KEYS:
+                continue
+            found += _all_source_artnos(v, f'{path}.{k}' if path else k)
+    elif isinstance(data, list):
+        for v in data:
+            found += _all_source_artnos(v, f'{path}[]')
+    return found
+
+# Bygg sanningstabell: artno → källväg (första förekomst)
+source_artnos = {}
+for fn, data in _SOURCE_FILES.items():
+    for a, p in _all_source_artnos(data):
+        source_artnos.setdefault(a, f'{fn}:{p}')
+
+# Vad katalogen faktiskt fångade (quote-catalog + flat)
+caught = set()
+for d in catalog.values():
+    for p in d.get('products', []):
+        if isinstance(p, dict) and (p.get('artno') or '').strip():
+            caught.add(p['artno'].strip())
+    for arr in d.get('sub', {}).values():
+        for p in arr:
+            if isinstance(p, dict) and (p.get('artno') or '').strip():
+                caught.add(p['artno'].strip())
+caught |= {k for k in order_catalog if k.startswith('SK-')}
+
+# Saknade = i datafil men inte i katalog, exkl. medvetna undantag
+missing = {a: src for a, src in source_artnos.items()
+           if a not in caught and a not in EXCLUDE_ARTNOS}
+
+print(f"\n🛡️  Sortiment-check: {len(source_artnos)} artno i datafiler, "
+      f"{len(caught)} i katalog, {len(EXCLUDE_ARTNOS)} medvetna undantag.")
+if missing:
+    print(f"\n❌ KATALOGEN SPEGLAR INTE SORTIMENTET — {len(missing)} artno saknas:")
+    # Gruppera per källarray så det syns vilken sektion som glömts
+    by_src = {}
+    for a, src in sorted(missing.items()):
+        by_src.setdefault(src, []).append(a)
+    for src, arts in by_src.items():
+        print(f"   {src}")
+        for a in arts:
+            print(f"      • {a}  ({source_artnos[a]})")
+    print("\n   Åtgärd: lägg in arrayen i quote-catalog-byggandet ovan, eller —")
+    print("   om artikeln MEDVETET ska stå utanför offertkatalogen — addera")
+    print("   artno till EXCLUDE_ARTNOS med kommentar om varför.")
+    sys.exit(1)
+
+print("✅ Sortiment-check OK — alla artiklar finns i offertkatalogen.")
