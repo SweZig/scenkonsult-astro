@@ -1,0 +1,268 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Vad är skillnaden mellan HDMI och SDI?", "acceptedAnswer": { "@type": "Answer", "text": "HDMI är konsumentstandarden — enkel, billig och finns på i stort sett all hemelektronik, men kontakten låser inte och signalen börjar svikta efter ungefär 10–15 meter. SDI är den professionella standarden med låsande BNC-kontakt och okomprimerad signal som klarar tiotals till över hundra meter på en enda koaxialkabel. På korta avstånd räcker HDMI gott och väl; på längre avstånd och i driftsäkra produktioner är SDI det säkra valet." } },
+    { "@type": "Question", "name": "Hur långt kan en HDMI-kabel vara?", "acceptedAnswer": { "@type": "Answer", "text": "I praktiken börjar en passiv HDMI-kabel tappa signal runt 10–15 meter, särskilt vid höga upplösningar som 4K. Du kan komma längre med aktiva kablar, förstärkare (repeaters) eller HDMI-over-fiber, men då lämnar du den enkla plug-and-play-världen. Behöver du dra signal längre än så regelbundet är fiberoptik eller SDI oftast en stabilare lösning." } },
+    { "@type": "Question", "name": "Vad betyder 3G, 6G och 12G-SDI?", "acceptedAnswer": { "@type": "Answer", "text": "Siffran anger ungefär hur många gigabit per sekund standarden klarar, och därmed vilken video den orkar bära på en kabel. 3G-SDI (2,97 Gbit/s) klarar 1080p i 50/60 bilder/sek. 6G-SDI (6 Gbit/s) klarar 4K i 30 bilder/sek. 12G-SDI (12 Gbit/s) klarar 4K i 50/60 bilder/sek. Äldre generationer är SD-SDI (270 Mbit/s, standardupplöst) och HD-SDI (1,485 Gbit/s, 720p/1080i)." } },
+    { "@type": "Question", "name": "Är SDI bättre än HDMI?", "acceptedAnswer": { "@type": "Answer", "text": "Inte bättre i sig — de löser olika problem. HDMI vinner på enkelhet, pris och att det bär ljud, bild och styrdata i samma kabel rakt in i konsumentutrustning. SDI vinner på kabellängd, driftsäkerhet (låsande kontakt) och att det är byggt för proffsmiljö där en signal aldrig får falla mitt i en sändning. För hemmabio: HDMI. För en livesändning med kameror utspridda i en lokal: SDI." } },
+    { "@type": "Question", "name": "Kan man koppla ihop HDMI och SDI?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, med en konverter (omvandlare). En HDMI-till-SDI-konverter låter dig ta signalen från t.ex. en bärbar dator (HDMI) och skicka den långt via SDI-koax, för att sedan konvertera tillbaka till HDMI vid projektorn i andra änden. Det är ett mycket vanligt upplägg på konferenser och event där källan är konsumentutrustning men dragningen är lång." } },
+    { "@type": "Question", "name": "När ska jag välja fiberoptik istället?", "acceptedAnswer": { "@type": "Answer", "text": "Fiber blir aktuellt på riktigt långa avstånd — hundratals meter upp till kilometer — eller där du behöver total okänslighet för elektriska störningar. Fiber leder ljus, inte ström, så den påverkas inte av starkströmskablar, motorer eller åska, och kan göras mycket tunn och lätt. Både HDMI och SDI finns som fiberlösningar (hybridkablar eller konverterpar) när kopparkabel inte räcker till." } }
+  ]
+};
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'HDMI, SDI & fiber' }];
+const pageArticle = { headline: "HDMI, SDI & fiberoptik — guide till videosignaler och kabellängder", datePublished: "2026-06-22", dateModified: "2026-06-22" };
+---
+<Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
+  title="HDMI, SDI & fiberoptik — videosignaler och kabellängder | Scenkonsult"
+  description="Konsumentupplysning om videosignaler: HDMI för korta avstånd, SDI för proffsbruk och längre dragningar, fiberoptik för riktigt långa avstånd. Förklaring av SD, HD, 3G, 6G och 12G-SDI med jämförelsetabeller."
+  schemaExtra={faqSchema}
+>
+  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
+    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-400">
+      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
+      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
+      <li class="before:content-['/'] before:mx-1.5 text-gray-400">HDMI, SDI & fiber</li>
+    </ol>
+  </nav>
+
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+
+    <header style="margin-bottom:2rem;">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Kunskapsguide · Bild & signal</p>
+      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">HDMI, SDI & fiber — vilken videokabel för vilket jobb?</h1>
+      <p style="color:rgba(255,255,255,0.72);font-size:1.05rem;line-height:1.8;">Ska du bara koppla en laptop till en projektor bredvid dig räcker HDMI gott. Men så fort avstånden växer — över ett konferensgolv, mellan kameror på ett event, till en projektor i taket — börjar HDMI svikta, och då kommer SDI och fiberoptik in. Den här guiden förklarar de tre teknikerna, var och en lyser, och reder ut SDI-djungeln: SD, HD, 3G, 6G och 12G. Ingen förkunskap krävs.</p>
+    </header>
+
+    <!-- Snabbnavigering -->
+    <nav style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:2.5rem;" aria-label="Innehåll">
+      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 0.75rem;">Innehåll</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1rem;">
+        {[
+          { t:"1 · Snabbsvaret", h:"#snabbsvaret" },
+          { t:"2 · HDMI — enkelt & nära", h:"#hdmi" },
+          { t:"3 · HDMI:s begränsningar", h:"#hdmi-granser" },
+          { t:"4 · SDI — proffsstandarden", h:"#sdi" },
+          { t:"5 · SD/HD/3G/6G/12G", h:"#standarder" },
+          { t:"6 · Fiberoptik", h:"#fiber" },
+          { t:"7 · Konvertera mellan dem", h:"#konvertera" },
+          { t:"8 · Så väljer du", h:"#valj" },
+        ].map(({t,h}) => (
+          <a href={h} style="color:rgba(255,255,255,0.72);font-size:0.88rem;text-decoration:none;padding:0.15rem 0;transition:color 0.2s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.72)'">{t}</a>
+        ))}
+      </div>
+    </nav>
+
+    <!-- ============ DEL 1 ============ -->
+    <div style="display:flex;align-items:center;gap:0.75rem;margin:0 0 2rem;">
+      <span style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.35rem 0.85rem;border-radius:9999px;">Del 1 · Grunderna</span>
+      <span style="height:1px;flex:1;background:rgba(196,181,244,0.2);"></span>
+    </div>
+
+    <!-- 1. Snabbsvaret -->
+    <section id="snabbsvaret" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">1. Snabbsvaret</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Tre tekniker, tre tydliga användningsområden. Här är hela guiden i komprimerad form — resten är fördjupning.</p>
+      <div style="display:flex;flex-direction:column;gap:0.85rem;">
+        {[
+          { n:"HDMI", who:"Kort avstånd, enkelt", txt:"Källa och skärm står nära varandra (under ~10–15 m). En kabel bär bild, ljud och styrning. Plug and play, finns överallt, billigt." },
+          { n:"SDI", who:"Längre avstånd, proffsbruk", txt:"Kameror, switchar och projektorer utspridda i en lokal. Låsande BNC-kontakt, okomprimerat, klarar tiotals till över hundra meter på en koaxialkabel." },
+          { n:"Fiberoptik", who:"Riktigt långt & störningsfritt", txt:"Hundratals meter till kilometer, eller miljöer med mycket elektriska störningar. Leder ljus istället för ström — opåverkad av starkström och åska." },
+        ].map(({n,who,txt}) => (
+          <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.25rem 1.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:0.4rem;">
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:white;margin:0;font-size:1.05rem;">{n}</h3>
+            </div>
+            <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 0.5rem;">{who}</p>
+            <p style="color:rgba(255,255,255,0.72);font-size:0.9rem;line-height:1.7;margin:0;">{txt}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 2. HDMI -->
+    <section id="hdmi" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">2. HDMI — den enkla lösningen</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;"><strong style="color:white;">HDMI</strong> (High-Definition Multimedia Interface) är standarden du redan känner — den sitter på TV:n, datorn, spelkonsolen och projektorn. Dess stora styrka är att den gör allt i <em>en</em> kabel: okomprimerad bild, flerkanaligt ljud och styrdata (t.ex. att TV:n kan slå på och byta ingång) går genom samma kontakt. Plugga in, klart.</p>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">För det stora flertalet jobb är HDMI helt rätt: en presentatör med laptop intill projektorn, en skärm på ett mässmonter, en mediaspelare till en TV. Billigt, universellt och inget krångel.</p>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Bra att veta:</strong> alla HDMI-kablar ser likadana ut men klarar olika mycket. För 4K i 60 bilder/sek behöver du minst en "High Speed"- eller "Ultra High Speed"-märkt kabel. En gammal kabel kan ge svart bild eller flimmer i 4K trots att den fungerar i Full HD.</p>
+      </div>
+    </section>
+
+    <!-- 3. HDMI:s begränsningar -->
+    <section id="hdmi-granser" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">3. Var HDMI tar slut</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">HDMI är byggt för konsumentmiljö, och det märks när du pressar det. Två saker ställer till det på event och i proffssammanhang:</p>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0 0 1rem;padding-left:1.2rem;">
+        <li><strong style="color:white;">Längden.</strong> En passiv HDMI-kabel börjar tappa signal runt <strong style="color:white;">10–15 meter</strong>, och gränsen kryper närmare ju högre upplösning du kör. Symptomen är inte "lite sämre bild" utan tvära fel: glittrande prickar (sparkles), bild som tappar och kommer tillbaka, eller helt svart skärm.</li>
+        <li><strong style="color:white;">Kontakten.</strong> HDMI-kontakten låser inte. En knuff på kabeln, en stol som dras förbi, och bilden försvinner. På en livesändning eller mitt i ett föredrag är det oacceptabelt.</li>
+      </ul>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Du kan tänja gränsen med <strong style="color:white;">aktiva HDMI-kablar</strong> (inbyggd förstärkning), <strong style="color:white;">HDMI-extenders</strong> som skickar signalen över nätverkskabel, eller HDMI-over-fiber. Men då har du redan lämnat det enkla plug-and-play och börjat bygga ett litet system — och i det läget är det ofta värt att fråga sig om SDI eller fiber är en stabilare väg från början.</p>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Tumregel:</strong> under 10 meter — kör HDMI utan att tveka. 10–15 meter — funkar ofta men testa i förväg. Över 15 meter — planera för SDI, en extender eller fiber istället för att hoppas på en lång HDMI-kabel.</p>
+      </div>
+    </section>
+
+    <!-- ============ DEL 2 ============ -->
+    <div style="display:flex;align-items:center;gap:0.75rem;margin:3.5rem 0 2rem;">
+      <span style="background:linear-gradient(135deg,#c4b5f4,#8b7fd4);color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.35rem 0.85rem;border-radius:9999px;">Del 2 · Proffsteknik</span>
+      <span style="height:1px;flex:1;background:rgba(196,181,244,0.2);"></span>
+    </div>
+
+    <!-- 4. SDI -->
+    <section id="sdi" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">4. SDI — gjort för proffsmiljö</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;"><strong style="color:white;">SDI</strong> (Serial Digital Interface) är standarden för okomprimerad digital video i professionella sammanhang — TV-produktion, livesändning, broadcast och större event. Den går via <strong style="color:white;">koaxialkabel</strong> med en <strong style="color:white;">BNC-kontakt</strong> som vrids fast och låser. Den ramlar inte ur mitt i en sändning, och kabeln klarar långa dragningar utan att signalen knäcks.</p>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Skillnaderna mot HDMI i ett proffssammanhang:</p>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0 0 1rem;padding-left:1.2rem;">
+        <li><strong style="color:white;">Låsande kontakt.</strong> BNC vrids på plats. Ingen tappar bilden för att någon snubblar på en kabel.</li>
+        <li><strong style="color:white;">Lång räckvidd.</strong> Där HDMI ger upp efter 10–15 m går SDI tiotals till över hundra meter på samma kabel, beroende på generation.</li>
+        <li><strong style="color:white;">Okomprimerat.</strong> Full bildkvalitet utan eftertanke, kabeln efter kabeln.</li>
+        <li><strong style="color:white;">Driftsäkert.</strong> Byggt för miljöer där en signal helt enkelt inte får falla.</li>
+      </ul>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Obs:</strong> BNC-kontakten är inte unik för SDI — samma kontakt används för analog video och annat. Kolla alltid vad en port faktiskt matar ut innan du kopplar in dig på den.</p>
+      </div>
+    </section>
+
+    <!-- 5. SDI-standarderna -->
+    <section id="standarder" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">5. SD, HD, 3G, 6G, 12G — vad siffrorna betyder</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">SDI har utvecklats i takt med att upplösningarna växt. "G:et" står för gigabit per sekund — alltså hur mycket data standarden orkar pressa genom en kabel, vilket avgör vilken upplösning och bildfrekvens den klarar.</p>
+      <div style="overflow-x:auto;margin:1.25rem 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.86rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Standard","Bithastighet","Max upplösning","SMPTE"].map(h =>
+              <th style="text-align:left;padding:0.7rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { s:"SD-SDI", b:"270 Mbit/s", u:"576i / 480i", m:"259M" },
+              { s:"HD-SDI", b:"1,485 Gbit/s", u:"720p / 1080i", m:"292M" },
+              { s:"3G-SDI", b:"2,97 Gbit/s", u:"1080p60", m:"424M" },
+              { s:"6G-SDI", b:"6 Gbit/s", u:"2160p30 (4K)", m:"ST-2081" },
+              { s:"12G-SDI", b:"12 Gbit/s", u:"2160p60 (4K)", m:"ST-2082" },
+            ].map(({s,b,u,m}, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.7rem 0.5rem;color:white;font-weight:600;">{s}</td>
+                <td style="padding:0.7rem 0.5rem;color:#c4b5f4;font-weight:600;">{b}</td>
+                <td style="padding:0.7rem 0.5rem;color:rgba(255,255,255,0.72);">{u}</td>
+                <td style="padding:0.7rem 0.5rem;color:rgba(255,255,255,0.55);">{m}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#c4b5f4;font-size:1.02rem;margin:1.5rem 0 0.5rem;">Generationerna i korthet</h3>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0 0 1rem;padding-left:1.2rem;">
+        <li><strong style="color:white;">SD-SDI</strong> — ursprungsstandarden, standardupplöst video. I praktiken utfasad men dyker upp i äldre installationer.</li>
+        <li><strong style="color:white;">HD-SDI</strong> — länge arbetshästen för HD-broadcast, klarar 720p och 1080i.</li>
+        <li><strong style="color:white;">3G-SDI</strong> — "3G" för ~3 gigabit. Klarar 1080p i 50/60 bilder/sek på en kabel. Standard på de flesta moderna kameror och bildmixrar idag.</li>
+        <li><strong style="color:white;">6G-SDI</strong> — klarar 4K i 30 bilder/sek på en enda kabel.</li>
+        <li><strong style="color:white;">12G-SDI</strong> — dagens high-end, 4K i fulla 50/60 bilder/sek på en kabel.</li>
+      </ul>
+      <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#c4b5f4;font-size:1.02rem;margin:1.5rem 0 0.5rem;">Tre praktiska saker att hålla koll på</h3>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0 0 1rem;padding-left:1.2rem;">
+        <li><strong style="color:white;">Bakåtkompatibilitet.</strong> En ingång för en högre generation tar oftast emot lägre — en 12G-ingång sväljer 3G- och HD-signaler utan problem.</li>
+        <li><strong style="color:white;">Kabeln måste matcha.</strong> Ju högre datahastighet, desto kortare maxlängd på samma kabel. En kabel som klarar 100 m på HD-SDI kan vara nere på 30–50 m vid 12G. Planera dragningen efter den högsta generation som ska gå genom kabeln, och använd kabel certifierad för den.</li>
+        <li><strong style="color:white;">4K kan gå på fyra kablar.</strong> Innan 6G/12G mognade löste man 4K genom att dela signalen på fyra parallella 3G-SDI-kablar (Quad-link). Förekommer fortfarande i äldre 4K-riggar.</li>
+      </ul>
+    </section>
+
+    <!-- 6. Fiberoptik -->
+    <section id="fiber" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">6. Fiberoptik — när kabeln måste gå riktigt långt</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">När även SDI:s räckvidd inte räcker, eller miljön är full av elektriska störningar, går man över till <strong style="color:white;">fiberoptik</strong>. I stället för att skicka en elektrisk signal genom koppar skickar fiber <em>ljus</em> genom en hårtunn glastråd. Det förändrar spelplanen på flera sätt:</p>
+      <ul style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.9;margin:0 0 1rem;padding-left:1.2rem;">
+        <li><strong style="color:white;">Extrem räckvidd.</strong> Hundratals meter till flera kilometer utan att bilden försämras — långt bortom vad koppar klarar.</li>
+        <li><strong style="color:white;">Immun mot störningar.</strong> Fiber leder ljus, inte ström. Den bryr sig inte om starkströmskablar, motorer, radiosändare eller åska som löper bredvid — sådant som kan smutsa ner en kopparsignal.</li>
+        <li><strong style="color:white;">Tunn och lätt.</strong> En fiber som bär enorma datamängder kan vara tunnare och lättare än en grov koaxialkabel — en fördel vid långa dragningar och rigg.</li>
+        <li><strong style="color:white;">Galvaniskt skild.</strong> Eftersom ingen ström går genom kabeln finns inga jordströmsproblem (ground loops) mellan två platser på olika elnät.</li>
+      </ul>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">Både HDMI och SDI finns i fiberform. Det vanligaste på event är ett <strong style="color:white;">konverterpar</strong>: signalen omvandlas från koppar till ljus i ena änden, går genom fibern, och konverteras tillbaka i andra änden. Det finns också hybrid- och aktiva optiska kablar (AOC) som ser ut som en vanlig HDMI- eller SDI-kabel men har fiber inuti.</p>
+      <div style="background:#1e1850;border-left:3px solid #c4b5f4;border-radius:0 12px 12px 0;padding:1.25rem 1.5rem;margin:1.5rem 0;">
+        <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;line-height:1.7;margin:0;"><strong style="color:#c4b5f4;">Priset för räckvidden:</strong> fiber är ömtåligare för knäckning än koppar och kräver lite mer omsorg vid hantering, och konverterare behöver ström i båda ändar. Därför tar man fram fiber när avstånd eller störningsmiljö verkligen kräver det — inte som standardval för korta dragningar.</p>
+      </div>
+    </section>
+
+    <!-- 7. Konvertera -->
+    <section id="konvertera" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">7. Att blanda teknikerna</h2>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0 0 1rem;">I verkligheten kombineras de här teknikerna hela tiden. Ett mycket vanligt event-upplägg: källan är en bärbar dator med <strong style="color:white;">HDMI</strong>, men projektorn sitter 40 meter bort. Lösningen är en <strong style="color:white;">HDMI-till-SDI-konverter</strong> vid datorn, en SDI-koax (eller fiber) genom lokalen, och en <strong style="color:white;">SDI-till-HDMI-konverter</strong> vid projektorn. Källan och slutskärmen "ser" bara HDMI — men dragningen däremellan görs på en teknik som faktiskt klarar avståndet.</p>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0;">Samma princip gäller fiber: konvertera koppar till ljus där dragningen börjar, och tillbaka där den slutar. Det är så proffsen löser långa avstånd utan att tumma på driftsäkerheten.</p>
+    </section>
+
+    <!-- 8. Så väljer du -->
+    <section id="valj" style="margin-bottom:3rem;scroll-margin-top:180px;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">8. Så väljer du — en enkel beslutsgång</h2>
+      <div style="overflow-x:auto;margin:1.25rem 0;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
+            {["Situation","Välj"].map(h =>
+              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+            )}
+          </tr></thead>
+          <tbody>
+            {[
+              { s:"Källa och skärm står nära (under ~10 m)", v:"HDMI" },
+              { s:"10–15 m, kontrollerad miljö", v:"HDMI (testa först) eller extender" },
+              { s:"Längre än 15 m, eller livesändning", v:"SDI" },
+              { s:"Flera kameror / proffsproduktion", v:"SDI (3G/6G/12G efter upplösning)" },
+              { s:"Hundratals meter, eller mycket störningar", v:"Fiberoptik" },
+              { s:"HDMI-källa men lång dragning", v:"HDMI→SDI/fiber→HDMI med konverterpar" },
+            ].map(({s,v}, i) => (
+              <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
+                <td style="padding:0.75rem 0.5rem;color:rgba(255,255,255,0.85);">{s}</td>
+                <td style="padding:0.75rem 0.5rem;color:#c4b5f4;font-weight:600;">{v}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style="color:rgba(255,255,255,0.72);font-size:0.97rem;line-height:1.8;margin:0;">Är du osäker på vad just ditt event kräver — avstånd, upplösning, antal källor — hjälper vi dig dimensionera och bemannar med tekniker om du vill. Hör av dig så löser vi signalvägen åt dig.</p>
+    </section>
+
+    <!-- FAQ -->
+    <section style="margin-bottom:3rem;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <div>
+        {faqSchema.mainEntity.map((f:any) => (
+          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
+            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+              {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
+            </summary>
+            <p style="color:rgba(255,255,255,0.72);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Behöver du bild på en projektor eller skärm?</h2>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Vi hyr ut projektorer, dukar och skärmar — och löser signalvägen, oavsett avstånd. Berätta om ditt event så föreslår vi rätt upplägg.</p>
+      <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se projektorer & skärmar</a>
+    </div>
+
+  </article>
+
+  <!-- Relaterade guider -->
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <p style="color:rgba(255,255,255,0.72);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+      {[
+        { t:"Hyra projektor — pris →", h:"/for/guider/hyra-projektor-pris/" },
+        { t:"Konferens AV — checklista →", h:"/for/guider/konferens-av-checklista/" },
+        { t:"DMX-styrning →", h:"/for/guider/dmx-styrning-guide/" },
+        { t:"Alla guider →", h:"/for/guider/" },
+      ].map(({t,h}) => (
+        <a href={h} style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">{t}</a>
+      ))}
+    </div>
+  </div>
+
+</Layout>
