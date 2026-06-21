@@ -8,8 +8,9 @@
     "preview": "astro preview",
     "minify-sven": "terser public/sven-widget.src.js --compress passes=2 --mangle --format comments=false --output public/sven-widget.js",
     "fetch-reviews": "node scripts/fetch-google-reviews-buildtime.mjs",
-    "prebuild": "npm run minify-sven && npm run fetch-reviews && npm run generate-excel",
-    "generate-excel": "node generate-excel.mjs"
+    "prebuild": "npm run generate-catalogs && npm run minify-sven && npm run fetch-reviews && npm run generate-excel",
+    "generate-excel": "node generate-excel.mjs",
+    "generate-catalogs": "python3 generate-quote-catalog.py && node netlify/generate-products.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.2.0",
