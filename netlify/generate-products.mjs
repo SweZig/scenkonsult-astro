@@ -171,6 +171,9 @@ sects.push('LJUD LIVE → /vara-tjanster/hyra-ljud/live/');
 (ljud.live?.products || []).forEach(p => {
   if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
+(ljud.live?.lineArray || []).forEach(p => {
+  if (p.price) sects.push(prodLine(p.name, p.price, p.priceNote || '/enl. offert', p.persons));
+});
 sects.push('');
 
 // LJUD PORTABELT

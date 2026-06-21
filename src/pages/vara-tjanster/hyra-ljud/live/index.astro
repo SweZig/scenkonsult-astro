@@ -88,10 +88,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <!-- PAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[
-        ..._ljudData.live.products,
-        ..._ljudData.music.products.filter((p: any) => Array.isArray(p.categories) && p.categories.includes('live'))
-      ].map((p: any) => (
+      {_ljudData.live.products.map((p: any) => (
         <ProductCard
           artno={p.artno}
           name={p.name}
@@ -111,6 +108,34 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
       ))}
     </div>
   </section>
+
+  <!-- LINE ARRAY -->
+  {(_ljudData.live.lineArray?.length ?? 0) > 0 && (
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Line Array</h2>
+    <p class="text-gray-400 mb-8 text-sm">Professionella RCF line array-system för stora konserter, festivaler och arena-event. Kräver lyfttorn eller rigg — pris offereras enligt konfiguration och montering.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {_ljudData.live.lineArray.map((p: any) => (
+        <ProductCard
+          artno={p.artno}
+          name={p.name}
+          price={p.price}
+          priceNote={p.priceNote}
+          image={p.image}
+          alt={p.alt ?? p.name}
+          description={p.description}
+          persons={p.persons}
+          specs={p.specs ?? []}
+          category="Ljud live"
+          monteringMin={p.monteringMin}
+          manualUrl={p.manualUrl}
+          bulky={p.bulky}
+          forceLeverans={p.forceLeverans}
+        />
+      ))}
+    </div>
+  </section>
+  )}
 
   <!-- VIDEO: SVEN VISAR INKOPPLING -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">

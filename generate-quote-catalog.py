@@ -109,6 +109,7 @@ catalog['Ljud'] = {'sub': {
     'Event':    [prod(p) for p in ljud.get('event',{}).get('products',[])],
     'Music':    [prod(p) for p in ljud.get('music',{}).get('products',[])],
     'Live':     [prod(p) for p in ljud.get('live',{}).get('products',[])],
+    'Line Array': [prod(p) for p in ljud.get('live',{}).get('lineArray',[])],
     'Mixers':   [prod(p) for p in ljud.get('mixers',[])],
 }}
 
