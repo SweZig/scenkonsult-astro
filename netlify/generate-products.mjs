@@ -413,6 +413,11 @@ if (_mont.prisPerTimme) svenFacts.push(`Montering & demontering som tillval: ${f
 svenFacts.push('Större scenpaket (Large och uppåt), LED-skärmar och komplex ljusutrustning kräver montering/tekniker — prissätts separat.');
 svenFacts.push('');
 
+// LJUD-TIPS — kompletterande subbasar för event
+svenFacts.push('═══ LJUD: KOMPLETTERANDE SUBBAS ═══');
+svenFacts.push('Event-paketen (Small/Medium/Large) räcker bra för tal och bakgrundsmusik. Ska kunden spela MUSIK eller ha dans på eventet — tipsa om att komplettera med en subbas för mer kraft och djup i basen. Subbas 12″ (449 kr/dygn) för mindre event, Subbas 15″ (599 kr/dygn) för större event eller där basen verkligen ska kännas. Subbasen ansluts enkelt mellan ljudkälla och högtalare (plug & play).');
+svenFacts.push('');
+
 // HYRESPERIOD & HELG
 svenFacts.push('═══ HYRESPERIOD ═══');
 svenFacts.push('Normal hyresperiod är 22 timmar — hämtning kl 13:00, återlämning kl 11:00 dagen efter. Flexibelt vid behov, längre perioder mot tillägg.');

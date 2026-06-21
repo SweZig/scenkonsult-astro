@@ -33,6 +33,12 @@ const svenProducts: Record<string, SvenProduct> = {};
 ((ljudJson as any).mixers as any[] || []).forEach((p: any) => {
   if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
 });
+// Kompletterande ljud (subbasar m.m. som kompletterar event-paketen)
+((ljudJson as any).tillbehor_ljud as any[] || []).forEach((p: any) => {
+  if (p.kompletterande && (p.slug || p.artno) && p.price) {
+    svenProducts[p.slug || p.artno] = { name: p.name, price: p.price, category: 'Ljud' };
+  }
+});
 ((ljudJson as any).kolumnNoMic as any[] || []).forEach((p: any) => {
   if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
 });
