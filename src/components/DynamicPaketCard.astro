@@ -123,7 +123,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
 
     <div class="paket-specs">
       <div class="paket-spec-row"><span class="paket-spec-label">Storlek</span><span class="paket-spec-val">{paket.size}</span></div>
-      <div class="paket-spec-row"><span class="paket-spec-label">Mått</span><span class="paket-spec-val">{paket.dimensions}</span></div>
+      <div class="paket-spec-row"><span class="paket-spec-label">Mått</span><span class="paket-spec-val" data-paket-display-dim>{paket.dimensions}</span></div>
       <div class="paket-spec-row"><span class="paket-spec-label">Höjd</span><span class="paket-spec-val" data-paket-display-height>{cfg.defaultHeight} cm</span></div>
       <div class="paket-spec-row"><span class="paket-spec-label">Kapacitet</span><span class="paket-spec-val">{paket.capacity}</span></div>
       <div class="paket-spec-row"><span class="paket-spec-label">Transport</span>
@@ -352,6 +352,23 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
     return (w % 2 === 0) || (d % 2 === 0);
   }
 
+  // Alla giltiga formationer (w×d) för en given yta + yt-typ, inom
+  // konfiguratorns mått-gränser (bredd 2–12 m, djup 2–8 m). Bevarar ytan
+  // (= samma pris). 1×1 begränsas till ≤20 m²; 1×2 kräver jämn sida.
+  // Sorteras "närmast kvadratiskt först" så de mest naturliga visas vänster.
+  function validFormations(area, surface) {
+    const out = [];
+    for (let w = 2; w <= 12; w++) {
+      for (let d = 2; d <= 8; d++) {
+        if (w * d !== area) continue;
+        if (!isSurfaceValid(w, d, surface)) continue;
+        out.push([w, d]);
+      }
+    }
+    out.sort((a, b) => Math.abs(a[0] - a[1]) - Math.abs(b[0] - b[1]) || b[0] - a[0]);
+    return out;
+  }
+
   function computePrice(cfg, surface, stairs, height, rail, skirt) {
     if (!isSurfaceValid(cfg.width, cfg.depth, surface)) return null;
     const mc = moduleCount(cfg.width, cfg.depth, surface);
@@ -432,13 +449,16 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
     const { width: w, depth: d } = cfg;
     const padX = 60, padY = 60;
     const vw = 400, vh = 320;
+    // Reservera 30px nedtill för formationschips om fler än en formation finns.
+    const hasFormChips = validFormations(w * d, surface).length > 1;
+    const chipReserve = hasFormChips ? 34 : 0;
     const maxW = vw - 2 * padX;
-    const maxH = vh - 2 * padY - 30; // utrymme för trappa under
+    const maxH = vh - 2 * padY - 30 - chipReserve; // utrymme för trappa + chips under
     const scale = Math.min(maxW / w, maxH / d);
     const stageW = w * scale;
     const stageD = d * scale;
     const x0 = (vw - stageW) / 2;
-    const y0 = (vh - stageD) / 2 - 8;
+    const y0 = (vh - stageD) / 2 - 8 - (chipReserve / 2);
 
     const svgIdSafe = svgEl.id || 'pkt';
     const isHalkfri = surface.includes('halkfri');
@@ -511,6 +531,35 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       const ty = y0 - 14;
       html += `<g opacity="0.8">`;
       html += `<text x="${tx}" y="${ty}" text-anchor="middle" fill="#c4b5f4" font-family="Space Grotesk,sans-serif" font-size="11" font-weight="700" letter-spacing="1">↑ MED TAK</text>`;
+      html += `</g>`;
+    }
+
+    // ── Formationsknappar (ljusblå) — alla giltiga w×d för aktuell yta + yt-typ.
+    // Bevarar ytan (samma pris). Ritas som en rad chips längst ner i skissen.
+    // Klick hanteras via event-delegation på svgEl (data-fw/data-fd).
+    const forms = validFormations(w * d, surface);
+    if (forms.length > 1) {
+      const chipH = 22, chipPadX = 9, gap = 6, fontSize = 12;
+      // Grov bredduppskattning per chip (monospace-ish): tecken × ~7px + padding.
+      const chipW = (label) => Math.max(34, label.length * 7 + chipPadX * 2);
+      const labels = forms.map(([fw, fd]) => `${fw}×${fd}`);
+      const widths = labels.map(chipW);
+      const totalW = widths.reduce((s, x) => s + x, 0) + gap * (forms.length - 1);
+      let cx = (vw - totalW) / 2;
+      const cy = vh - chipH - 6;
+      html += `<g font-family="Space Grotesk,sans-serif" font-size="${fontSize}" font-weight="600">`;
+      forms.forEach(([fw, fd], i) => {
+        const cwi = widths[i];
+        const active = (fw === w && fd === d);
+        const fill = active ? '#7dd3fc' : 'rgba(125,211,252,0.14)';
+        const stroke = active ? '#7dd3fc' : 'rgba(125,211,252,0.55)';
+        const textFill = active ? '#0c0a24' : '#7dd3fc';
+        html += `<g class="paket-form-chip" data-fw="${fw}" data-fd="${fd}" style="cursor:pointer">`;
+        html += `<rect x="${cx}" y="${cy}" width="${cwi}" height="${chipH}" rx="11" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>`;
+        html += `<text x="${cx + cwi / 2}" y="${cy + chipH / 2 + 4}" text-anchor="middle" fill="${textFill}" pointer-events="none">${labels[i]}</text>`;
+        html += `</g>`;
+        cx += cwi + gap;
+      });
       html += `</g>`;
     }
 
@@ -589,6 +638,8 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       }
 
       if (heightDisplay) heightDisplay.textContent = height + ' cm';
+      const dimDisplay = card.querySelector('[data-paket-display-dim]');
+      if (dimDisplay) dimDisplay.textContent = `${cfg.width}×${cfg.depth} m`;
 
       // Frakt-note: "+ Montering X kr (Y h) & transport Z kr (Fordon) tillkommer i kassan"
       // Krävs-paket: matter-of-fact ("+ ...")
@@ -717,6 +768,23 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       });
     }
 
+    // Formationsknappar i SVG-skissen (event-delegation — SVG ritas om vid varje
+    // update() så per-element-listeners skulle försvinna). Byter cfg.width/depth
+    // med bibehållen yta → pris stabilt, frakt/montering/skiss räknas om.
+    if (svgEl) {
+      svgEl.addEventListener('click', (e) => {
+        const chip = e.target.closest('.paket-form-chip');
+        if (!chip) return;
+        const fw = parseInt(chip.dataset.fw, 10);
+        const fd = parseInt(chip.dataset.fd, 10);
+        if (!fw || !fd) return;
+        if (fw === cfg.width && fd === cfg.depth) return;
+        cfg.width = fw;
+        cfg.depth = fd;
+        update();
+      });
+    }
+
     cartBtn?.addEventListener('click', () => {
       if (!window.skCart || cartBtn.disabled) return;
       const mc = moduleCount(cfg.width, cfg.depth, surface);
@@ -764,7 +832,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       const modItem = {
         id: MOD_ARTNO[surface],
         artno: MOD_ARTNO[surface],
-        name: `${MOD_NAMES[surface]} — ${paketName}`,
+        name: `${MOD_NAMES[surface]} — ${paketName} (${cfg.width}×${cfg.depth} m)`,
         price: MOD_PRICE[surface],
         qty: mc,
         category: 'Scen',
