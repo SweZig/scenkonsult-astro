@@ -534,7 +534,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       html += `</g>`;
     }
 
-    // ── Formationsknappar (ljusblå) — alla giltiga w×d för aktuell yta + yt-typ.
+    // ── Formationsknappar (lavendel) — alla giltiga w×d för aktuell yta + yt-typ.
     // Bevarar ytan (samma pris). Ritas som en rad chips längst ner i skissen.
     // Klick hanteras via event-delegation på svgEl (data-fw/data-fd).
     const forms = validFormations(w * d, surface);
@@ -551,9 +551,9 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       forms.forEach(([fw, fd], i) => {
         const cwi = widths[i];
         const active = (fw === w && fd === d);
-        const fill = active ? '#7dd3fc' : 'rgba(125,211,252,0.14)';
-        const stroke = active ? '#7dd3fc' : 'rgba(125,211,252,0.55)';
-        const textFill = active ? '#0c0a24' : '#7dd3fc';
+        const fill = active ? '#c4b5f4' : 'rgba(196,181,244,0.14)';
+        const stroke = active ? '#c4b5f4' : 'rgba(196,181,244,0.55)';
+        const textFill = active ? '#0c0a24' : '#c4b5f4';
         html += `<g class="paket-form-chip" data-fw="${fw}" data-fd="${fd}" style="cursor:pointer">`;
         html += `<rect x="${cx}" y="${cy}" width="${cwi}" height="${chipH}" rx="11" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>`;
         html += `<text x="${cx + cwi / 2}" y="${cy + chipH / 2 + 4}" text-anchor="middle" fill="${textFill}" pointer-events="none">${labels[i]}</text>`;
