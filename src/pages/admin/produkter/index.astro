@@ -985,6 +985,7 @@
       ljud: {
         event:              'Event-PA',
         live:               'Live-PA',
+        lineArray:          'Line Array',
         music:              'Musik-PA',
         portable:           'Portabelt',
         mixers:             'Mixers',
@@ -998,6 +999,8 @@
         effekter: 'Ljuseffekter',
         rok:      'Rök & pyro',
         stativ:   'Stativ & tross',
+        dmx:      'DMX-styrning',
+        tillbehor:'Tillbehör',
         services: 'Tjänster'
       },
       dj: {
@@ -1036,18 +1039,27 @@
     function buildSections(fil, data) {
       const sections = [];
       for (const [key, val] of Object.entries(data)) {
-        // Mönster A: { products: [...] }
-        if (val && typeof val === 'object' && !Array.isArray(val) && Array.isArray(val.products)) {
-          if (val.products.length === 0) continue;
-          // Validera att det är produkter (har price)
-          const sample = val.products[0];
-          if (sample && typeof sample === 'object' && 'price' in sample) {
-            sections.push({
-              key,
-              label:    labelFor(fil, key),
-              products: val.products,
-              basePath: `${key}.products`
-            });
+        // Mönster A: objekt som innehåller en eller flera produkt-arrayer
+        // (t.ex. { products: [...] } och/eller { lineArray: [...] }).
+        // Vi fångar ALLA array-nycklar vars element har 'price', inte bara
+        // 'products' — annars missas syskon-arrayer som live.lineArray.
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+          for (const [subKey, subVal] of Object.entries(val)) {
+            if (!Array.isArray(subVal) || subVal.length === 0) continue;
+            const sample = subVal[0];
+            if (sample && typeof sample === 'object' && 'price' in sample) {
+              // Egen label för syskon-arrayer; 'products' behåller sektionens huvudlabel
+              const sectionKey   = subKey === 'products' ? key : `${key}.${subKey}`;
+              const sectionLabel = subKey === 'products'
+                ? labelFor(fil, key)
+                : `${labelFor(fil, key)} — ${labelFor(fil, subKey)}`;
+              sections.push({
+                key:      sectionKey,
+                label:    sectionLabel,
+                products: subVal,
+                basePath: `${key}.${subKey}`
+              });
+            }
           }
         }
         // Mönster B: rotnivå-array av produkter
