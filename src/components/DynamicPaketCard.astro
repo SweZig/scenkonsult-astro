@@ -83,6 +83,8 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
 );
 const INJ_MONTERING_PRICE_PER_HOUR = (tjanster.montering && tjanster.montering.prisPerTimme) || 600;
 const INJ_MONTERING_ROUND_TO_MIN = (tjanster.montering && typeof tjanster.montering.avrundaTillMin === 'number') ? tjanster.montering.avrundaTillMin : 15;
+// Antal tekniker — fysisk tid (assemblyMinutesTotal) oförändrad, men visad kostnad debiteras × bemanning.
+const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering.bemanning === 'number') ? tjanster.montering.bemanning : 1;
 ---
 
 <article
@@ -253,7 +255,7 @@ const INJ_MONTERING_ROUND_TO_MIN = (tjanster.montering && typeof tjanster.monter
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN }}>
+<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN, INJ_MONTERING_BEMANNING }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -599,7 +601,7 @@ const INJ_MONTERING_ROUND_TO_MIN = (tjanster.montering && typeof tjanster.monter
           const takMonteringMin = cfg.tak ? (cfg.tak.monteringMin || 0) : 0;
           const railPack = rail ? computeRailPack(cfg.width, cfg.depth, stairs, skirt) : null;
           const monteringMin = computeMonteringMin(mc, takMonteringMin, railPack);
-          const monteringKr = Math.round((monteringMin / 60) * INJ_MONTERING_PRICE_PER_HOUR);
+          const monteringKr = Math.round((monteringMin / 60) * INJ_MONTERING_PRICE_PER_HOUR) * INJ_MONTERING_BEMANNING;
           const frakt = computeFraktDetails(mc, !!cfg.tak, cfg.forceLeverans);
           const transport = card.dataset.paketTransport;
           const prefix = transport === 'krävs' ? '+ ' : 'Vid leverans: + ';
