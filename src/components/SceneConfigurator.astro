@@ -45,6 +45,8 @@ const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
 const INJ_MONTERING_MIN_PER_MODULE = (typeof tjanster.montering?.minPerModul === 'number') ? tjanster.montering.minPerModul : 7.5;
 const INJ_MONTERING_ROUND_TO_MIN = (typeof tjanster.montering?.avrundaTillMin === 'number') ? tjanster.montering.avrundaTillMin : 15;
+// Antal tekniker som monterar (debiteras som parallella mantimmar).
+const INJ_MONTERING_BEMANNING = (typeof tjanster.montering?.bemanning === 'number') ? tjanster.montering.bemanning : 1;
 // Monteringstid per räcke-artikel (min, engångs — ×2 demontering läggs på i klient-logik).
 // Källa: scenes.json tillbehor[].monteringMin. Faller tillbaka på längd × 4 min/m.
 const INJ_RAIL_MONTERING = Object.fromEntries(
@@ -252,7 +254,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_MONTERING_ROUND_TO_MIN, INJ_RAIL_MONTERING, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_MONTERING_MIN_PER_MODULE, INJ_MONTERING_ROUND_TO_MIN, INJ_MONTERING_BEMANNING, INJ_RAIL_MONTERING, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -291,6 +293,8 @@ const configData = {
     const SKIRT_PRICE_PER_METER = INJ_SKIRT_PRICE_PER_METER;
     const SKIRT_BY_HEIGHT = INJ_SKIRT_BY_HEIGHT;
     const MONTERING_PRICE_PER_HOUR = INJ_MONTERING_PRICE_PER_HOUR;
+    // Antal tekniker — fysisk tid visas oförändrad, men debiteras × bemanning (parallella mantimmar).
+    const MONTERING_BEMANNING = INJ_MONTERING_BEMANNING;
     // Hela scenens monteringstid (moduler + räcken, × 2), avrundad till
     // närmaste kvart (samma avrundning som visas i prisraden). Används BÅDE för
     // visad prisrad OCH för assemblyMinutesTotal som stämplas till cart, så att
@@ -485,15 +489,16 @@ const configData = {
         // Avrundad totaltid (moduler + räcken, × 2) — samma värde stämplas till cart.
         const totalMin = sceneMonteringMinRounded(lines);
         const hours = totalMin / 60; // redan avrundat till kvart i helpern
-        const monteringPris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
+        const monteringPris = Math.round(hours * MONTERING_PRICE_PER_HOUR * MONTERING_BEMANNING);
+        const bemText = MONTERING_BEMANNING > 1 ? ` (${MONTERING_BEMANNING} tekniker)` : '';
         lines.push({
           artno: 'SK-TJN-0001',
-          name: `${prefix} Montering & demontering (~${formatTime(totalMin)})`,
+          name: `${prefix} Montering & demontering (~${formatTime(totalMin)}${bemText})`,
           price: monteringPris,
           qty: 1,
           category: 'Tjänst',
           isCalculated: true,
-          metaText: `${hours} tim × 600 kr`,
+          metaText: `${hours} tim × ${MONTERING_BEMANNING} tekn. × ${MONTERING_PRICE_PER_HOUR} kr`,
         });
       }
 
@@ -900,7 +905,7 @@ const configData = {
       // Samma avrundade tid som prisraden och cart — håll alla tre i synk.
       const minutes = sceneMonteringMinRounded(computeLineItems());
       const hours = minutes / 60;
-      const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR);
+      const pris = Math.round(hours * MONTERING_PRICE_PER_HOUR * MONTERING_BEMANNING);
 
       // Frakt-radioknappar — "Hämta själv" och "Leverans"
       const fraktNone = document.querySelector('input[name="frakt"][value="none"]');
@@ -918,7 +923,7 @@ const configData = {
           if (fraktAuto) fraktAuto.checked = true;
         }
         if (installLabel) installLabel.textContent = '🔧 Våra tekniker sköter alltid montering vid scen över 16 m² — för säker hantering';
-        if (installHint) installHint.textContent = `Tillkommer separat: montering + demontering ca ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}). Vi levererar alltid när vi monterar.`;
+        if (installHint) installHint.textContent = `Tillkommer separat: montering + demontering ca ${formatTime(minutes)} med ${MONTERING_BEMANNING} tekniker (${hours} tim × ${MONTERING_BEMANNING} × ${MONTERING_PRICE_PER_HOUR} kr ≈ ${formatKr(pris)}). Vi levererar alltid när vi monterar.`;
       } else {
         if (installCb) installCb.disabled = false;
         // Återaktivera "Hämta själv"-pillen
@@ -927,9 +932,9 @@ const configData = {
         if (installLabel) installLabel.textContent = 'Lägg till montering & demontering — tillkommer separat';
         if (installHint) {
           if (state.installation) {
-            installHint.textContent = `Tillkommer separat: ${formatTime(minutes)} (${hours} tim × 600 kr ≈ ${formatKr(pris)}).`;
+            installHint.textContent = `Tillkommer separat: ${formatTime(minutes)} med ${MONTERING_BEMANNING} tekniker (${hours} tim × ${MONTERING_BEMANNING} × ${MONTERING_PRICE_PER_HOUR} kr ≈ ${formatKr(pris)}).`;
           } else {
-            installHint.textContent = `Vi monterar och demonterar åt dig — ${MODULE_MONTERING_MIN} min/modul × 2. Pris timdebiteras (600 kr/tim). Tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering.`;
+            installHint.textContent = `Vi monterar och demonterar åt dig med ${MONTERING_BEMANNING} tekniker — ${MODULE_MONTERING_MIN} min/modul × 2. Pris timdebiteras (${MONTERING_PRICE_PER_HOUR} kr/tim/tekniker). Tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering.`;
           }
         }
       }

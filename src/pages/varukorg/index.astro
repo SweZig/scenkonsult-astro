@@ -1176,6 +1176,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   function calcMon(cart) {
     const prisPerMin = FRAKT.montering.prisPerTimme / 60;
     const minMin     = FRAKT.montering.minDebiteringMin;
+    const bemanning  = (typeof FRAKT.montering.bemanning === 'number') ? FRAKT.montering.bemanning : 1;
     let totalMin = 0;
     cart.forEach(item => {
       if (item.assemblyMinutesTotal) {
@@ -1189,11 +1190,12 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     });
     // Om inget monteringMin finns: schablonbelopp 60 min
     if (totalMin === 0) totalMin = 60;
-    return Math.ceil(totalMin * prisPerMin);
+    // Bemanning: tiden är fysisk, men debiteras som parallella mantimmar (× antal tekniker).
+    return Math.ceil(totalMin * prisPerMin) * bemanning;
   }
   function calcMonLabel(cart) {
-    const prisPerMin = FRAKT.montering.prisPerTimme / 60;
     const minMin     = FRAKT.montering.minDebiteringMin;
+    const bemanning  = (typeof FRAKT.montering.bemanning === 'number') ? FRAKT.montering.bemanning : 1;
     let totalMin = 0;
     cart.forEach(item => {
       if (item.assemblyMinutesTotal) {
@@ -1204,7 +1206,9 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     });
     if (totalMin === 0) totalMin = 60;
     const h = Math.floor(totalMin/60), m = totalMin%60;
-    return (h ? h+'h ' : '') + (m ? m+'min ' : '') + '× ' + FRAKT.montering.prisPerTimme + ' kr/tim';
+    const timeStr = (h ? h+'h ' : '') + (m ? m+'min ' : '');
+    const bemStr = bemanning > 1 ? ' × ' + bemanning + ' tekniker' : '';
+    return timeStr + bemStr + ' × ' + FRAKT.montering.prisPerTimme + ' kr/tim';
   }
 
   // ── VILLKOR + FORM VALIDATION ──────────────────────────────
