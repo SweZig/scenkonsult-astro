@@ -2,7 +2,8 @@
 // /admin/stats/forsaljning/ — Försäljningsstatistik
 // Fakturerad omsättning (exkl. moms) med avdrag för krediteringar.
 // Data via /.netlify/functions/admin-stats-sales (server-side, service key).
-// Vyer: Månad / Kvartal / År. Bottom-up: total → kategori → produkt.
+// Vyer: Månad / Kvartal / År. Hopfälld drill-down: total/KPI → kategori → produkt.
+// Klassning av okända artikel-ID via /.netlify/functions/admin-category-override.
 ---
 <!DOCTYPE html>
 <html lang="sv">
@@ -15,69 +16,72 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
 
-    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
     .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
     .topbar a:hover { color: #c4b5f4; }
     .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
     .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
     .meta { font-size: 0.72rem; color: rgba(255,255,255,0.40); font-family: monospace; }
 
-    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.5rem; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 
-    /* Vy-toggle (månad/kvartal/år) */
     .period-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .period-row .label { font-size: 0.78rem; color: rgba(255,255,255,0.60); }
     .pill-row { display: flex; gap: 4px; }
     .pill { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 20px; color: rgba(255,255,255,0.60); font-size: 0.78rem; padding: 5px 16px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
     .pill:hover { border-color: rgba(196,181,244,0.4); color: rgba(196,181,244,0.85); }
     .pill.active { background: rgba(196,181,244,0.15); border-color: #c4b5f4; color: #c4b5f4; font-weight: 600; }
-
-    /* Period-väljare (vilken månad/kvartal/år) */
     .period-select { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
     .period-select select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 5px 10px; font-family: inherit; font-size: 0.8rem; color-scheme: dark; }
 
-    /* KPI-rad */
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+    /* KPI: omsättning + antal sida vid sida */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
     .kpi-card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 1rem 1.2rem; }
     .kpi-lbl { font-size: 0.7rem; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
-    .kpi-val { font-size: 1.9rem; font-weight: 800; color: #c4b5f4; line-height: 1.1; font-variant-numeric: tabular-nums; }
-    .kpi-unit { font-size: 0.85rem; font-weight: 600; color: rgba(196,181,244,0.7); margin-left: 4px; }
-    .kpi-delta { font-size: 0.75rem; margin-top: 5px; font-variant-numeric: tabular-nums; }
-    .delta-up   { color: #6ee7b7; }
-    .delta-down { color: #fca5a5; }
-    .delta-flat { color: rgba(255,255,255,0.45); }
+    .kpi-val { font-size: 1.8rem; font-weight: 800; color: #c4b5f4; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .kpi-unit { font-size: 0.8rem; font-weight: 600; color: rgba(196,181,244,0.7); margin-left: 4px; }
+    .kpi-delta { font-size: 0.74rem; margin-top: 5px; font-variant-numeric: tabular-nums; }
+    .delta-up { color: #6ee7b7; } .delta-down { color: #fca5a5; } .delta-flat { color: rgba(255,255,255,0.45); }
 
-    /* Sektioner */
-    .section { background: #15123a; border: 1px solid rgba(196,181,244,0.12); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 1.25rem; }
-    .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.9rem; }
-    .sec-title { font-size: 0.95rem; font-weight: 700; color: #e2dcfb; }
+    /* Graf */
+    .chart-card { background: #15123a; border: 1px solid rgba(196,181,244,0.12); border-radius: 14px; padding: 1rem 1.25rem 0.75rem; margin-bottom: 1.25rem; }
+    .chart-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.6rem; }
+    .chart-title { font-size: 0.9rem; font-weight: 700; color: #e2dcfb; }
+    .chart-sub { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
+    .chart-wrap { position: relative; height: 240px; }
+
+    /* Drill-down: kategori-rader (hopfällda) */
+    .section { background: #15123a; border: 1px solid rgba(196,181,244,0.12); border-radius: 14px; padding: 0.5rem 0.75rem; margin-bottom: 1.25rem; }
+    .sec-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0.5rem 0.5rem 0.7rem; }
+    .sec-title { font-size: 0.9rem; font-weight: 700; color: #e2dcfb; }
     .sec-sub { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
 
-    /* Kategori-rader (bottom-up nivå 1) */
-    .cat-bar { display: grid; grid-template-columns: 130px 1fr 110px 70px; align-items: center; gap: 0.75rem; padding: 7px 0; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .cat-bar:last-child { border-bottom: none; }
-    .cat-bar:hover .cat-name { color: #c4b5f4; }
-    .cat-name { font-size: 0.85rem; font-weight: 600; color: #f0eeff; display: flex; align-items: center; gap: 6px; }
-    .cat-caret { font-size: 0.65rem; color: rgba(196,181,244,0.6); transition: transform 0.15s; display: inline-block; width: 10px; }
-    .cat-bar.open .cat-caret { transform: rotate(90deg); }
-    .bar-track { background: rgba(255,255,255,0.06); border-radius: 6px; height: 22px; overflow: hidden; position: relative; }
-    .bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
-    .cat-rev { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.88rem; color: #e2dcfb; }
-    .cat-cnt { text-align: right; font-variant-numeric: tabular-nums; font-size: 0.8rem; color: rgba(255,255,255,0.55); }
+    .cat { border-top: 1px solid rgba(255,255,255,0.05); }
+    .cat:first-of-type { border-top: none; }
+    .cat-row { display: grid; grid-template-columns: 22px 1fr 120px 90px; align-items: center; gap: 0.6rem; padding: 0.65rem 0.5rem; cursor: pointer; transition: background 0.12s; }
+    .cat-row:hover { background: rgba(196,181,244,0.04); }
+    .cat-caret { font-size: 0.7rem; color: rgba(196,181,244,0.6); transition: transform 0.15s; }
+    .cat.open .cat-caret { transform: rotate(90deg); }
+    .cat-name { font-size: 0.9rem; font-weight: 600; color: #f0eeff; display: flex; align-items: center; gap: 8px; }
+    .cat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .cat-rev { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.92rem; color: #e2dcfb; }
+    .cat-cnt { text-align: right; font-variant-numeric: tabular-nums; font-size: 0.82rem; color: rgba(255,255,255,0.55); }
+    .cat-cnt small { color: rgba(255,255,255,0.35); }
 
-    /* Produkt-drilldown (nivå 2) */
-    .prod-wrap { display: none; padding: 4px 0 10px 18px; }
-    .prod-wrap.open { display: block; }
-    .prod-row { display: grid; grid-template-columns: 1fr 100px 60px; gap: 0.75rem; padding: 4px 0; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
-    .prod-name { color: rgba(255,255,255,0.78); }
-    .prod-artno { color: rgba(255,255,255,0.35); font-family: monospace; font-size: 0.72rem; }
+    .cat-body { display: none; padding: 0 0.5rem 0.6rem 2.1rem; }
+    .cat.open .cat-body { display: block; }
+    .prod-row { display: grid; grid-template-columns: 1fr 120px 90px; gap: 0.6rem; padding: 0.4rem 0; font-size: 0.82rem; border-top: 1px solid rgba(255,255,255,0.04); }
+    .prod-row:first-child { border-top: none; }
+    .prod-name { color: rgba(255,255,255,0.8); }
+    .prod-artno { color: rgba(255,255,255,0.32); font-family: monospace; font-size: 0.72rem; margin-left: 6px; }
     .prod-rev { text-align: right; font-variant-numeric: tabular-nums; color: #c4b5f4; }
     .prod-cnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.5); }
 
-    /* Trend-tabell (alla perioder) */
+    /* Trend-tabell */
     .tbl { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
     .tbl th { text-align: left; padding: 8px 10px; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid rgba(196,181,244,0.15); }
     .tbl td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-variant-numeric: tabular-nums; }
+    .tbl tr[data-jump] { cursor: pointer; }
     .tbl tr:hover td { background: rgba(196,181,244,0.04); }
     .tbl .num { text-align: right; }
     .tbl .cur { color: #c4b5f4; font-weight: 600; }
@@ -85,10 +89,25 @@
     .tbl tr.active-period td:first-child { border-left: 2px solid #c4b5f4; }
 
     .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 2.5rem; font-size: 0.9rem; }
-    .warn { background: rgba(252,165,165,0.08); border: 1px solid rgba(252,165,165,0.25); border-radius: 8px; padding: 8px 12px; font-size: 0.76rem; color: #fca5a5; margin-bottom: 1rem; }
     .spin { text-align: center; padding: 3rem; color: rgba(196,181,244,0.6); }
 
-    /* Auth */
+    /* Okänt-banner + klassningspanel */
+    .warn { background: rgba(252,165,165,0.08); border: 1px solid rgba(252,165,165,0.25); border-radius: 10px; padding: 0.7rem 0.9rem; font-size: 0.8rem; color: #fca5a5; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .warn button { background: rgba(252,165,165,0.15); border: 1px solid rgba(252,165,165,0.4); color: #fecaca; border-radius: 8px; padding: 5px 12px; font-size: 0.78rem; cursor: pointer; font-family: inherit; }
+    .warn button:hover { background: rgba(252,165,165,0.25); }
+
+    .classify { background: #1a1640; border: 1px solid rgba(196,181,244,0.2); border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+    .classify h3 { font-size: 0.95rem; color: #e2dcfb; margin-bottom: 0.3rem; }
+    .classify .hint { font-size: 0.76rem; color: rgba(255,255,255,0.5); margin-bottom: 0.9rem; }
+    .unk-row { display: grid; grid-template-columns: 1fr 150px 90px; gap: 0.75rem; align-items: center; padding: 0.7rem 0; border-top: 1px solid rgba(255,255,255,0.06); }
+    .unk-row:first-of-type { border-top: none; }
+    .unk-name { font-size: 0.88rem; color: #f0eeff; }
+    .unk-meta { font-size: 0.72rem; color: rgba(255,255,255,0.4); font-family: monospace; margin-top: 2px; }
+    .unk-meta .inv { color: rgba(196,181,244,0.55); }
+    .unk-rev { text-align: right; font-variant-numeric: tabular-nums; color: #c4b5f4; font-weight: 600; }
+    .unk-row select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: 0.8rem; color-scheme: dark; width: 100%; }
+    .classify-close { float: right; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.1rem; cursor: pointer; }
+
     #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; }
     .auth-box h2 { color: #c4b5f4; font-size: 1.1rem; margin-bottom: 1rem; }
@@ -96,7 +115,6 @@
     .auth-box button { width: 100%; background: #c4b5f4; color: #1a1430; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
     .auth-box button:hover { background: #e2dcfb; }
     .auth-err { color: #fca5a5; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1rem; }
-
     .toggle-excl { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
   </style>
 </head>
@@ -123,7 +141,6 @@
   </div>
 
   <div class="wrap">
-
     <div class="period-row">
       <span class="label">Vy:</span>
       <div class="pill-row" id="view-pills">
@@ -138,23 +155,20 @@
     </div>
 
     <div id="warn-zone"></div>
-    <div id="content-zone">
-      <div class="spin">Laddar försäljningsdata…</div>
-    </div>
-
+    <div id="classify-zone"></div>
+    <div id="content-zone"><div class="spin">Laddar försäljningsdata…</div></div>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// ── Auth (matchar /admin/ + /admin/stats/ — klartext-lösenord) ──────────
 const ADMIN_KEY = 'sk_admin_token';
 let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
 
 async function tryLogin(pw) {
   try {
     const res = await fetch('/api/admin-auth?_=' + Date.now(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
       body: JSON.stringify({ password: pw }),
     });
     const j = await res.json().catch(() => ({}));
@@ -166,14 +180,11 @@ document.getElementById('pw-btn').onclick = async () => {
   const pw = document.getElementById('pw-input').value.trim();
   if (!pw) return;
   if (await tryLogin(pw)) {
-    adminToken = pw;
-    sessionStorage.setItem(ADMIN_KEY, pw);
+    adminToken = pw; sessionStorage.setItem(ADMIN_KEY, pw);
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     init();
-  } else {
-    document.getElementById('pw-err').textContent = 'Fel lösenord';
-  }
+  } else { document.getElementById('pw-err').textContent = 'Fel lösenord'; }
 };
 document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
 
@@ -183,236 +194,257 @@ if (adminToken) {
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
       init();
-    } else {
-      sessionStorage.removeItem(ADMIN_KEY); adminToken = '';
-    }
+    } else { sessionStorage.removeItem(ADMIN_KEY); adminToken = ''; }
   });
 }
 
-// ── State ───────────────────────────────────────────────────────────────
 let currentView = sessionStorage.getItem('sk_sales_view') || 'month';
-let currentPeriodKey = null;       // vald period inom vyn (t.ex. '2026-06')
-let payload = null;                 // hela svaret från functionen
+let currentPeriodKey = null;
+let payload = null;
+let trendChart = null;
 
-// Färger per toppkategori (matchar varumärket; lavendel-skala + accenter)
 const CAT_COLOR = {
-  'Scen':       '#c4b5f4',
-  'Ljud':       '#a78bfa',
-  'Bild':       '#818cf8',
-  'Ljus':       '#f0abfc',
-  'DJ':         '#67e8f9',
-  'Karaoke':    '#fcd34d',
-  'El & ström': '#86efac',
-  'Tjänster':   'rgba(255,255,255,0.35)',
-  'Okänt':      '#fca5a5',
+  'Scen':'#c4b5f4','Ljud':'#a78bfa','Bild':'#818cf8','Ljus':'#f0abfc','DJ':'#67e8f9',
+  'Karaoke':'#fcd34d','El & ström':'#86efac','Tjänster':'rgba(255,255,255,0.45)','Okänt':'#fca5a5',
 };
+const ALL_CATS = ['Scen','Ljud','Bild','Ljus','DJ','Karaoke','El & ström','Tjänster'];
 
 const fmtKr = (n) => (n || 0).toLocaleString('sv-SE') + ' kr';
 const VIEW_LABEL = { month: 'månad', quarter: 'kvartal', year: 'år' };
 
-// Människovänlig etikett för periodnyckel
 function periodLabel(view, key) {
   if (view === 'year') return key;
   if (view === 'quarter') return key.replace('-Q', ' Q');
-  // month: 2026-06 → "Juni 2026"
   const [y, m] = key.split('-');
   const months = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
-  return `${months[parseInt(m,10)-1]} ${y}`;
+  return months[parseInt(m,10)-1] + ' ' + y;
 }
 
-// ── Hämta data ──────────────────────────────────────────────────────────
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function cssEsc(s){ return String(s).replace(/["\\]/g,'\\$&'); }
+
 async function loadData() {
   const res = await fetch('/.netlify/functions/admin-stats-sales', {
     headers: { 'Authorization': 'Bearer ' + adminToken, 'Cache-Control': 'no-cache' },
   });
-  if (res.status === 401) {
-    sessionStorage.removeItem(ADMIN_KEY);
-    location.reload();
-    return null;
-  }
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return null; }
   if (!res.ok) throw new Error('Serverfel ' + res.status);
   return res.json();
 }
 
-// ── Rendering ───────────────────────────────────────────────────────────
+function deltaHtml(now, before, isKr) {
+  if (before == null) return '<span class="kpi-delta delta-flat">&nbsp;</span>';
+  const diff = now - before;
+  if (before === 0 && now === 0) return '<span class="kpi-delta delta-flat">&nbsp;</span>';
+  const pct = before === 0 ? null : Math.round(diff / before * 100);
+  const cls = diff > 0 ? 'delta-up' : diff < 0 ? 'delta-down' : 'delta-flat';
+  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
+  const pctTxt = pct == null ? '' : ' (' + (pct>0?'+':'') + pct + '%)';
+  const val = isKr ? fmtKr(diff) : diff;
+  return '<span class="kpi-delta ' + cls + '">' + arrow + ' ' + (diff>0?'+':'') + val + pctTxt + ' vs föreg.</span>';
+}
+
+function renderChart(dimData, allKeys) {
+  const ctx = document.getElementById('trendChart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  const labels = allKeys.map(k => periodLabel(currentView, k));
+  const revData = allKeys.map(k => dimData[k].total.omsattning);
+  const cntData = allKeys.map(k => dimData[k].total.antal);
+  if (trendChart) trendChart.destroy();
+  trendChart = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        { type:'bar', label:'Omsättning (kr)', data:revData, backgroundColor:'rgba(196,181,244,0.55)', borderRadius:5, yAxisID:'y' },
+        { type:'line', label:'Antal uthyrningar', data:cntData, borderColor:'#67e8f9', backgroundColor:'#67e8f9', tension:0.3, pointRadius:3, yAxisID:'y1' },
+      ],
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'rgba(255,255,255,0.7)', font:{ size:11 }, usePointStyle:true } } },
+      scales:{
+        x:{ ticks:{ color:'rgba(255,255,255,0.5)', font:{ size:10 } }, grid:{ color:'rgba(255,255,255,0.05)' } },
+        y:{ position:'left', ticks:{ color:'rgba(196,181,244,0.7)', font:{ size:10 }, callback:v=>v.toLocaleString('sv-SE') }, grid:{ color:'rgba(255,255,255,0.05)' } },
+        y1:{ position:'right', ticks:{ color:'rgba(103,232,249,0.8)', font:{ size:10 }, precision:0 }, grid:{ drawOnChartArea:false } },
+      },
+    },
+  });
+}
+
 function render() {
   const zone = document.getElementById('content-zone');
   if (!payload) { zone.innerHTML = '<div class="spin">Laddar…</div>'; return; }
 
   const dimData = payload.data[currentView] || {};
-  const keys = Object.keys(dimData).sort().reverse(); // senaste först
+  const keys = Object.keys(dimData).sort().reverse();
 
-  // Fyll periodväljare
   const sel = document.getElementById('period-select');
-  sel.innerHTML = keys.map(k => `<option value="${k}">${periodLabel(currentView, k)}</option>`).join('');
+  sel.innerHTML = keys.map(k => '<option value="' + k + '">' + periodLabel(currentView, k) + '</option>').join('');
   if (!currentPeriodKey || !keys.includes(currentPeriodKey)) currentPeriodKey = keys[0] || null;
   sel.value = currentPeriodKey || '';
 
-  if (!currentPeriodKey) {
-    zone.innerHTML = '<div class="empty">Ingen fakturerad försäljning i denna vy ännu.</div>';
-    return;
-  }
+  document.getElementById('last-updated').textContent =
+    payload.invoice_count + ' fakturor · uppdaterad ' + new Date(payload.generated_at).toLocaleString('sv-SE');
+  renderWarn();
+
+  if (!currentPeriodKey) { zone.innerHTML = '<div class="empty">Ingen fakturerad försäljning i denna vy ännu.</div>'; return; }
 
   const cur = dimData[currentPeriodKey];
   const allKeys = Object.keys(dimData).sort();
   const idx = allKeys.indexOf(currentPeriodKey);
-  const prev = idx > 0 ? dimData[allKeys[idx - 1]] : null;
+  const prev = idx > 0 ? dimData[allKeys[idx-1]] : null;
 
-  // Delta-beräkning
-  const deltaHtml = (now, before, unit) => {
-    if (before == null) return '<span class="kpi-delta delta-flat">&nbsp;</span>';
-    const diff = now - before;
-    if (before === 0 && now === 0) return '<span class="kpi-delta delta-flat">&nbsp;</span>';
-    const pct = before === 0 ? null : Math.round(diff / before * 100);
-    const cls = diff > 0 ? 'delta-up' : diff < 0 ? 'delta-down' : 'delta-flat';
-    const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '–';
-    const pctTxt = pct == null ? '' : ` (${pct > 0 ? '+' : ''}${pct}%)`;
-    return `<span class="kpi-delta ${cls}">${arrow} ${diff > 0 ? '+' : ''}${unit === 'kr' ? fmtKr(diff) : diff}${pctTxt} vs föreg.</span>`;
-  };
+  const kpis =
+    '<div class="kpi-row">' +
+      '<div class="kpi-card"><div class="kpi-lbl">Omsättning</div><div class="kpi-val">' +
+        (cur.total.omsattning||0).toLocaleString('sv-SE') + '<span class="kpi-unit">kr</span></div>' +
+        deltaHtml(cur.total.omsattning, prev?prev.total.omsattning:null, true) + '</div>' +
+      '<div class="kpi-card"><div class="kpi-lbl">Antal uthyrningar</div><div class="kpi-val">' +
+        (cur.total.antal||0) + '</div>' +
+        deltaHtml(cur.total.antal, prev?prev.total.antal:null, false) + '</div>' +
+      '<div class="kpi-card"><div class="kpi-lbl">Snitt per uthyrning</div><div class="kpi-val">' +
+        (cur.total.antal ? Math.round(cur.total.omsattning/cur.total.antal).toLocaleString('sv-SE') : '–') +
+        '<span class="kpi-unit">kr</span></div><span class="kpi-delta delta-flat">&nbsp;</span></div>' +
+    '</div>';
 
-  // KPI:er
-  const kpis = `
-    <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="kpi-lbl">Omsättning</div>
-        <div class="kpi-val">${(cur.total.omsattning || 0).toLocaleString('sv-SE')}<span class="kpi-unit">kr</span></div>
-        ${deltaHtml(cur.total.omsattning, prev ? prev.total.omsattning : null, 'kr')}
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-lbl">Antal uthyrningar</div>
-        <div class="kpi-val">${cur.total.antal || 0}</div>
-        ${deltaHtml(cur.total.antal, prev ? prev.total.antal : null, '')}
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-lbl">Snitt per uthyrning</div>
-        <div class="kpi-val">${cur.total.antal ? Math.round(cur.total.omsattning / cur.total.antal).toLocaleString('sv-SE') : '–'}<span class="kpi-unit">kr</span></div>
-        <span class="kpi-delta delta-flat">&nbsp;</span>
-      </div>
-    </div>`;
+  const chartCard =
+    '<div class="chart-card"><div class="chart-head"><span class="chart-title">Utveckling över tid</span>' +
+    '<span class="chart-sub">omsättning (stapel) &amp; antal uthyrningar (linje) per ' + VIEW_LABEL[currentView] + '</span></div>' +
+    '<div class="chart-wrap"><canvas id="trendChart"></canvas></div></div>';
 
-  // Kategori-staplar (bottom-up nivå 1, klickbara → produkter)
-  const maxRev = Math.max(1, ...cur.categories.map(c => Math.abs(c.omsattning)));
   const catRows = cur.categories.map(c => {
     const color = CAT_COLOR[c.category] || '#c4b5f4';
-    const w = Math.max(2, Math.round(Math.abs(c.omsattning) / maxRev * 100));
-    const prods = (cur.products || []).filter(p => p.category === c.category);
-    const prodRows = prods.map(p => `
-      <div class="prod-row">
-        <div><span class="prod-name">${escapeHtml(p.name)}</span> <span class="prod-artno">${escapeHtml(p.artno || '')}</span></div>
-        <div class="prod-rev">${fmtKr(p.omsattning)}</div>
-        <div class="prod-cnt">${p.antal} st</div>
-      </div>`).join('') || '<div class="prod-row"><div class="prod-name" style="opacity:.5">Inga produktrader</div><div></div><div></div></div>';
-    return `
-      <div class="cat-bar" data-cat="${escapeHtml(c.category)}">
-        <div class="cat-name"><span class="cat-caret">▶</span>${escapeHtml(c.category)}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
-        <div class="cat-rev">${fmtKr(c.omsattning)}</div>
-        <div class="cat-cnt">${c.antal} st</div>
-      </div>
-      <div class="prod-wrap" data-cat-prods="${escapeHtml(c.category)}">${prodRows}</div>`;
+    const prods = (cur.products||[]).filter(p => p.category === c.category);
+    const prodRows = prods.length ? prods.map(p =>
+      '<div class="prod-row"><div><span class="prod-name">' + escapeHtml(p.name) + '</span>' +
+      (p.artno ? '<span class="prod-artno">' + escapeHtml(p.artno) + '</span>' : '') + '</div>' +
+      '<div class="prod-rev">' + fmtKr(p.omsattning) + '</div>' +
+      '<div class="prod-cnt">' + p.antal + ' st</div></div>'
+    ).join('') : '<div class="prod-row"><div class="prod-name" style="opacity:.5">Inga produktrader</div><div></div><div></div></div>';
+    const cntLabel = c.category === 'Tjänster'
+      ? c.antal + ' <small>fakt.</small>'
+      : c.antal + ' st';
+    return '<div class="cat" data-cat="' + escapeHtml(c.category) + '">' +
+      '<div class="cat-row"><span class="cat-caret">▶</span>' +
+      '<span class="cat-name"><span class="cat-dot" style="background:' + color + '"></span>' + escapeHtml(c.category) + '</span>' +
+      '<span class="cat-rev">' + fmtKr(c.omsattning) + '</span>' +
+      '<span class="cat-cnt">' + cntLabel + '</span></div>' +
+      '<div class="cat-body">' + prodRows + '</div></div>';
   }).join('');
 
-  const catSection = `
-    <div class="section">
-      <div class="sec-head">
-        <span class="sec-title">Omsättning per kategori</span>
-        <span class="sec-sub">${periodLabel(currentView, currentPeriodKey)} · klicka för produkter</span>
-      </div>
-      ${cur.categories.length ? catRows : '<div class="empty">Inga rader.</div>'}
-    </div>`;
+  const catSection =
+    '<div class="section"><div class="sec-head"><span class="sec-title">Per kategori</span>' +
+    '<span class="sec-sub">' + periodLabel(currentView, currentPeriodKey) + ' · klicka för att fälla ut produkter</span></div>' +
+    (cur.categories.length ? catRows : '<div class="empty">Inga rader.</div>') + '</div>';
 
-  // Trend-tabell (alla perioder i vyn)
   const trendRows = allKeys.slice().reverse().map(k => {
     const d = dimData[k];
     const active = k === currentPeriodKey ? ' class="active-period"' : '';
-    return `<tr${active} data-jump="${k}" style="cursor:pointer">
-      <td>${periodLabel(currentView, k)}</td>
-      <td class="num cur">${fmtKr(d.total.omsattning)}</td>
-      <td class="num">${d.total.antal} st</td>
-      <td class="num">${d.total.antal ? Math.round(d.total.omsattning / d.total.antal).toLocaleString('sv-SE') + ' kr' : '–'}</td>
-    </tr>`;
+    return '<tr' + active + ' data-jump="' + k + '"><td>' + periodLabel(currentView, k) + '</td>' +
+      '<td class="num cur">' + fmtKr(d.total.omsattning) + '</td>' +
+      '<td class="num">' + d.total.antal + ' st</td>' +
+      '<td class="num">' + (d.total.antal ? Math.round(d.total.omsattning/d.total.antal).toLocaleString('sv-SE') + ' kr' : '–') + '</td></tr>';
   }).join('');
 
-  const trendSection = `
-    <div class="section">
-      <div class="sec-head">
-        <span class="sec-title">Alla ${VIEW_LABEL[currentView]}er</span>
-        <span class="sec-sub">klicka på en rad för att växla period</span>
-      </div>
-      <table class="tbl">
-        <thead><tr><th>Period</th><th class="num">Omsättning</th><th class="num">Uthyrningar</th><th class="num">Snitt</th></tr></thead>
-        <tbody>${trendRows}</tbody>
-      </table>
-    </div>`;
+  const trendSection =
+    '<div class="section" style="padding:0.75rem 1.25rem 1rem"><div class="sec-head" style="padding-left:0;padding-right:0">' +
+    '<span class="sec-title">Alla ' + VIEW_LABEL[currentView] + 'er</span>' +
+    '<span class="sec-sub">klicka på en rad för att växla period</span></div>' +
+    '<table class="tbl"><thead><tr><th>Period</th><th class="num">Omsättning</th><th class="num">Uthyrningar</th><th class="num">Snitt</th></tr></thead>' +
+    '<tbody>' + trendRows + '</tbody></table></div>';
 
-  zone.innerHTML = kpis + catSection + trendSection;
+  zone.innerHTML = kpis + chartCard + catSection + trendSection;
 
-  // Bind: kategori-klick → toggla produkter
-  zone.querySelectorAll('.cat-bar').forEach(bar => {
-    bar.addEventListener('click', () => {
-      const cat = bar.dataset.cat;
-      const pw = zone.querySelector(`[data-cat-prods="${cssEsc(cat)}"]`);
-      bar.classList.toggle('open');
-      if (pw) pw.classList.toggle('open');
-    });
+  renderChart(dimData, allKeys);
+
+  zone.querySelectorAll('.cat').forEach(cat => {
+    cat.querySelector('.cat-row').addEventListener('click', () => cat.classList.toggle('open'));
   });
-  // Bind: trend-rad → hoppa till period
   zone.querySelectorAll('[data-jump]').forEach(tr => {
-    tr.addEventListener('click', () => {
-      currentPeriodKey = tr.dataset.jump;
-      render();
-    });
+    tr.addEventListener('click', () => { currentPeriodKey = tr.dataset.jump; render(); });
   });
+}
 
-  // Meta
-  document.getElementById('last-updated').textContent =
-    `${payload.invoice_count} fakturor · uppdaterad ${new Date(payload.generated_at).toLocaleString('sv-SE')}`;
-
-  // Varning för okänd omsättning (oklassificerade artiklar)
+function renderWarn() {
   const warnZone = document.getElementById('warn-zone');
-  if (payload.meta && payload.meta.unknown_revenue_kr) {
-    warnZone.innerHTML = `<div class="warn">⚠ ${fmtKr(payload.meta.unknown_revenue_kr)} kunde inte kategoriseras (okända artikel-ID: ${(payload.meta.unknown_ids||[]).join(', ') || '—'}). Visas i kategorin "Okänt".</div>`;
+  const unk = (payload.meta && payload.meta.unknown) || [];
+  if (unk.length) {
+    const totalUnknown = payload.meta.unknown_revenue_kr || 0;
+    warnZone.innerHTML = '<div class="warn"><span>⚠ ' + unk.length + ' okänd' + (unk.length===1?'t':'a') +
+      ' artikel-ID (' + fmtKr(totalUnknown) + ') kunde inte kategoriseras automatiskt.</span>' +
+      '<button id="open-classify">Klassa dem →</button></div>';
+    document.getElementById('open-classify').onclick = openClassify;
   } else {
     warnZone.innerHTML = '';
   }
 }
 
-function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function cssEsc(s) { return String(s).replace(/["\\]/g, '\\$&'); }
+function openClassify() {
+  const unk = (payload.meta && payload.meta.unknown) || [];
+  const zone = document.getElementById('classify-zone');
+  const rows = unk.map(u => {
+    const invList = (u.sample_invoices||[]).join(', ');
+    const opts = ['<option value="">— välj kategori —</option>'].concat(
+      ALL_CATS.map(c => '<option value="' + c + '">' + c + '</option>')
+    ).join('');
+    return '<div class="unk-row" data-key="' + escapeHtml(u.key) + '" data-name="' + escapeHtml(u.name) + '">' +
+      '<div><div class="unk-name">' + escapeHtml(u.name) + '</div>' +
+      '<div class="unk-meta">ID: ' + escapeHtml(u.id || u.key) +
+      (u.artno && u.artno !== u.id ? ' · artno: ' + escapeHtml(u.artno) : '') +
+      ' · <span class="inv">faktura ' + escapeHtml(invList) + '</span> (' + u.invoice_count + ' st)</div></div>' +
+      '<select data-sel>' + opts + '</select>' +
+      '<div class="unk-rev">' + fmtKr(u.omsattning) + '</div></div>';
+  }).join('');
+  zone.innerHTML = '<div class="classify"><button class="classify-close" id="classify-close">✕</button>' +
+    '<h3>Klassa okända artiklar</h3>' +
+    '<div class="hint">Välj rätt kategori för varje artikel. Klassningen sparas och gäller direkt för all historik — ingen ompublicering krävs. Fakturanumren hjälper dig se vad artikeln var.</div>' +
+    rows + '</div>';
+  document.getElementById('classify-close').onclick = () => { zone.innerHTML = ''; };
+  zone.querySelectorAll('.unk-row [data-sel]').forEach(selEl => {
+    selEl.addEventListener('change', async () => {
+      const row = selEl.closest('.unk-row');
+      const key = row.dataset.key, name = row.dataset.name, category = selEl.value;
+      if (!category) return;
+      selEl.disabled = true;
+      try {
+        const res = await fetch('/.netlify/functions/admin-category-override', {
+          method:'POST',
+          headers:{ 'Authorization':'Bearer '+adminToken, 'Content-Type':'application/json' },
+          body: JSON.stringify({ action:'set', item_key:key, category, sample_name:name }),
+        });
+        if (!res.ok) throw new Error('Serverfel ' + res.status);
+        row.style.opacity = '0.4';
+        row.querySelector('.unk-name').textContent = name + ' → ' + category + ' ✓';
+        payload = await loadData();
+        render();
+      } catch (e) {
+        alert('Kunde inte spara: ' + e.message);
+        selEl.disabled = false;
+      }
+    });
+  });
+}
 
-// ── Init + bindningar ───────────────────────────────────────────────────
 function bindControls() {
   document.querySelectorAll('#view-pills .pill').forEach(p => {
     p.addEventListener('click', () => {
       document.querySelectorAll('#view-pills .pill').forEach(x => x.classList.remove('active'));
       p.classList.add('active');
-      currentView = p.dataset.view;
-      currentPeriodKey = null; // välj senaste i nya vyn
+      currentView = p.dataset.view; currentPeriodKey = null;
       sessionStorage.setItem('sk_sales_view', currentView);
       render();
     });
   });
-  document.getElementById('period-select').addEventListener('change', e => {
-    currentPeriodKey = e.target.value;
-    render();
-  });
+  document.getElementById('period-select').addEventListener('change', e => { currentPeriodKey = e.target.value; render(); });
 }
 
 let _inited = false;
 async function init() {
-  if (_inited) return;
-  _inited = true;
-  // sätt aktiv pill enligt sparat state
-  document.querySelectorAll('#view-pills .pill').forEach(p =>
-    p.classList.toggle('active', p.dataset.view === currentView));
+  if (_inited) return; _inited = true;
+  document.querySelectorAll('#view-pills .pill').forEach(p => p.classList.toggle('active', p.dataset.view === currentView));
   bindControls();
-  try {
-    payload = await loadData();
-    render();
-  } catch (e) {
-    document.getElementById('content-zone').innerHTML =
-      `<div class="empty">Kunde inte ladda försäljningsdata: ${escapeHtml(e.message)}</div>`;
-  }
+  try { payload = await loadData(); render(); }
+  catch (e) { document.getElementById('content-zone').innerHTML = '<div class="empty">Kunde inte ladda försäljningsdata: ' + escapeHtml(e.message) + '</div>'; }
 }
 </script>
 </body>

@@ -69,8 +69,15 @@ function resolveArtno(item) {
   return '';
 }
 
-// ── artno → toppkategori ────────────────────────────────────────────────────
-function topCategory(artno) {
+// ── (id|artno) → toppkategori ───────────────────────────────────────────────
+// Prioritet: 1) manuell override (admin-klassad), 2) artno-prefix, 3) Okänt.
+// overrides = { item_key: category }. Vi slår upp på BÅDE radens id och artno
+// så att en override på endera fångar raden.
+function topCategory(artno, id, overrides) {
+  if (overrides) {
+    if (id && overrides[id]) return overrides[id];
+    if (artno && overrides[artno]) return overrides[artno];
+  }
   const m = String(artno || '').match(/^SK-([A-Z]+)/);
   if (m && PREFIX_TO_CAT[m[1]]) return PREFIX_TO_CAT[m[1]];
   return 'Okänt';
@@ -98,7 +105,7 @@ const newAgg = () => ({ omsattning_ore: 0, antal_uthyrningar: 0, _invoiceSet: ne
 
 // ── Huvud-aggregering ───────────────────────────────────────────────────────
 // Returnerar { periods: { month: {...}, quarter: {...}, year: {...} }, meta }
-function aggregate(rows) {
+function aggregate(rows, overrides) {
   // Struktur: dimension → periodKey → { categories: {cat: agg}, products: {key: {...}}, total: agg }
   const out = {
     month:   {},
@@ -107,8 +114,9 @@ function aggregate(rows) {
   };
   const dims = ['month', 'quarter', 'year'];
 
-  let unknownRevenueOre = 0;
-  const unknownIds = new Set();
+  // Okända rader samlas med namn + ackumulerad omsättning + exempelfaktura,
+  // så admin kan känna igen vad de är och klassa dem.
+  const unknown = {}; // key → { key, id, artno, name, omsattning_ore, invoices:Set }
 
   for (const cart of rows) {
     const invoiceDate = cart.invoice_date;
@@ -135,7 +143,7 @@ function aggregate(rows) {
       const lineOre = priceOre * qty;
       const isFee = isBookingFee(i);
       const artno = resolveArtno(i);
-      const cat = isFee ? 'Tjänster' : topCategory(artno);
+      const cat = isFee ? 'Tjänster' : topCategory(artno, i.id, overrides);
       return { i, qty, lineOre, isFee, artno, cat, name: i.name };
     });
 
@@ -181,6 +189,17 @@ function aggregate(rows) {
       }
     }
 
+    // ── Samla okända rader EN gång per faktura (utanför dims-loopen för att
+    //    inte trippelräkna). Använd nettobelopp efter kreditavdrag. ──────────
+    prodLines.forEach((l, idx) => {
+      if (l.cat !== 'Okänt') return;
+      const netOre = l.lineOre + (lineCredit.get(idx) || 0);
+      const key = l.artno || l.i.id || l.name;
+      if (!unknown[key]) unknown[key] = { key, id: l.i.id || '', artno: l.artno || '', name: l.name, omsattning_ore: 0, invoices: new Set() };
+      unknown[key].omsattning_ore += netOre;
+      if (invoiceNo) unknown[key].invoices.add(invoiceNo);
+    });
+
     // ── Skriv in i alla tre dimensioner ─────────────────────────────────────
     for (const dim of dims) {
       const key = pk[dim];
@@ -217,8 +236,6 @@ function aggregate(rows) {
         if (!NON_RENTAL_CATS.has(l.cat) && !cn._invoiceSet.has(invoiceNo)) {
           cn._invoiceSet.add(invoiceNo); cn.antal_uthyrningar += 1;
         }
-
-        if (l.cat === 'Okänt') { unknownRevenueOre += netOre; if (l.artno) unknownIds.add(l.artno); else if (l.i.id) unknownIds.add(l.i.id); }
       });
 
       // Avgift → Tjänster (omsättning, ej uthyrning). Räknas en gång per faktura.
@@ -241,7 +258,18 @@ function aggregate(rows) {
     }
   }
 
-  return { out, meta: { unknownRevenueOre, unknownIds: [...unknownIds] } };
+  // Okända rader → sorterad lista (störst omsättning först)
+  const unknownList = Object.values(unknown)
+    .map((u) => ({
+      key: u.key, id: u.id, artno: u.artno, name: u.name,
+      omsattning: Math.round(u.omsattning_ore / 100),
+      invoice_count: u.invoices.size,
+      sample_invoices: [...u.invoices].slice(0, 5),
+    }))
+    .sort((a, b) => Math.abs(b.omsattning) - Math.abs(a.omsattning));
+  const unknownRevenueOre = Object.values(unknown).reduce((s, u) => s + u.omsattning_ore, 0);
+
+  return { out, meta: { unknownRevenueOre, unknownList } };
 }
 
 // ── Serialisera (ta bort _invoiceSet, öre→kr, sortera) ──────────────────────
@@ -305,7 +333,19 @@ exports.handler = async (event) => {
     if (!res.ok) throw new Error(`Supabase: ${res.status} ${await res.text()}`);
     const rows = await res.json();
 
-    const { out, meta } = aggregate(rows);
+    // Hämta manuella kategori-overrides (kan saknas om migrationen ej körts ännu).
+    let overrides = {};
+    try {
+      const ovRes = await fetch(`${supaUrl}/rest/v1/category_overrides?select=item_key,category`, { headers });
+      if (ovRes.ok) {
+        const ovRows = await ovRes.json();
+        for (const r of ovRows) if (r.item_key && r.category) overrides[r.item_key] = r.category;
+      }
+    } catch (ovErr) {
+      console.warn('CATEGORY_OVERRIDES_WARN:', ovErr.message); // icke-fatal
+    }
+
+    const { out, meta } = aggregate(rows, overrides);
     const data = serialize(out);
 
     return ok({
@@ -315,7 +355,8 @@ exports.handler = async (event) => {
       data,
       meta: {
         unknown_revenue_kr: Math.round(meta.unknownRevenueOre / 100),
-        unknown_ids: meta.unknownIds,
+        unknown: meta.unknownList,
+        override_count: Object.keys(overrides).length,
         note: 'Omsättning exkl. moms. Full kreditering nollställer fakturan (faller ur setet). Partiell kreditering fördelas proportionellt över produktrader.',
       },
     });
