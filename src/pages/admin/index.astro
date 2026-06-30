@@ -184,6 +184,30 @@ const _monteringAdminConfig = {
     }
     .btn-sm:hover { border-color: var(--brand-lav); color: var(--text); }
 
+    /* Topbar-dropdown (Statistik, Produkter) — hover på desktop */
+    .topbar-menu { position: relative; display: inline-flex; }
+    .topbar-menu > .btn-sm { display: inline-flex; align-items: center; gap: 5px; }
+    .topbar-menu > .btn-sm::after {
+      content: "▾"; font-size: 0.7em; opacity: 0.7; margin-left: 1px;
+    }
+    .topbar-menu-pop {
+      position: absolute; top: calc(100% + 6px); right: 0; z-index: 60;
+      display: none; flex-direction: column; min-width: 215px; padding: 6px;
+      background: var(--surface2, #15123a); border: 1px solid rgba(196,181,244,0.25);
+      border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+    }
+    .topbar-menu:hover .topbar-menu-pop,
+    .topbar-menu.is-open .topbar-menu-pop { display: flex; }
+    .topbar-menu-pop a {
+      display: flex; align-items: center; gap: 8px; padding: 9px 11px;
+      border-radius: 8px; text-decoration: none; color: #e2dcfb;
+      font-size: 0.82rem; white-space: nowrap; transition: background 0.12s;
+    }
+    .topbar-menu-pop a:hover { background: rgba(196,181,244,0.12); }
+    .topbar-menu-pop a .sub { color: rgba(255,255,255,0.45); font-size: 0.72rem; margin-left: auto; padding-left: 12px; }
+    /* Osynlig brygga så hovern inte tappar mellan knapp och pop */
+    .topbar-menu::after { content: ""; position: absolute; top: 100%; right: 0; left: 0; height: 8px; }
+
     /* Hamburger-knapp + drawer (dolda på desktop, synliga på mobil) */
     .topbar-burger {
       display: none;
@@ -1517,11 +1541,21 @@ const _monteringAdminConfig = {
       <button class="btn-sm" id="refresh-btn" title="Hämta senaste data från servern&#10;Shift+klick = hård reload (efter deploy)">↻ Uppdatera</button>
       <button class="btn-sm" id="new-quote-btn" style="border-color:var(--brand-lav);color:var(--brand-lav)">✉ Ny manuell offert</button>
       <a href="https://scenkonsult.se" target="_blank" class="btn-sm" style="text-decoration:none;">↗ Sajten</a>
-      <a href="/admin/sven/" class="btn-sm" style="text-decoration:none;border-color:rgba(196,181,244,0.4);color:#c4b5f4">🤖 Sven</a>
-      <a href="/admin/stats/" class="btn-sm" style="text-decoration:none;border-color:rgba(196,181,244,0.4);color:#c4b5f4" title="Trafik &amp; SEO-dashboard (GA4)">📈 Statistik</a>
-      <a href="/admin/stats/forsaljning/" class="btn-sm" style="text-decoration:none;border-color:rgba(196,181,244,0.4);color:#c4b5f4" title="Försäljningsstatistik — omsättning &amp; antal uthyrningar">💰 Försäljning</a>
-      <a href="/Scenkonsult_Produktkatalog.xlsx" target="_blank" download class="btn-sm" style="text-decoration:none;" title="Ladda ner aktuell produktkatalog (genereras vid varje deploy)">📊 Katalog</a>
-      <a href="/admin/produkter/" class="btn-sm" style="text-decoration:none;border-color:rgba(196,181,244,0.4);color:#c4b5f4" title="Redigera produkter (namn, pris, beskrivning)">📦 Produkter</a>
+      <div class="topbar-menu" data-menu="stats">
+        <button type="button" class="btn-sm" style="border-color:rgba(196,181,244,0.4);color:#c4b5f4" aria-haspopup="true" aria-expanded="false">📈 Statistik</button>
+        <div class="topbar-menu-pop" role="menu">
+          <a href="/admin/stats/" role="menuitem" title="Trafik &amp; SEO-dashboard (GA4)">📈 Trafik &amp; SEO<span class="sub">GA4</span></a>
+          <a href="/admin/stats/forsaljning/" role="menuitem" title="Försäljningsstatistik — omsättning &amp; antal uthyrningar">💰 Försäljning<span class="sub">omsättning</span></a>
+          <a href="/admin/sven/" role="menuitem" title="Sven — chatbot-statistik &amp; loggar">🤖 Sven<span class="sub">chatbot</span></a>
+        </div>
+      </div>
+      <div class="topbar-menu" data-menu="products">
+        <button type="button" class="btn-sm" style="border-color:rgba(196,181,244,0.4);color:#c4b5f4" aria-haspopup="true" aria-expanded="false">📦 Produkter</button>
+        <div class="topbar-menu-pop" role="menu">
+          <a href="/admin/produkter/" role="menuitem" title="Redigera produkter (namn, pris, beskrivning)">📦 Redigera produkter</a>
+          <a href="/Scenkonsult_Produktkatalog.xlsx" target="_blank" download role="menuitem" title="Ladda ner aktuell produktkatalog (genereras vid varje deploy)">📊 Exportera katalog<span class="sub">.xlsx</span></a>
+        </div>
+      </div>
       <button class="btn-sm" id="logout-btn">Logga ut</button>
     </div>
     <button class="topbar-burger" id="topbar-burger" aria-label="Öppna meny" aria-expanded="false">
@@ -2316,6 +2350,20 @@ function buildBurgerDrawer() {
 
   const actions = $('topbar-actions');
   Array.from(actions.children).forEach(orig => {
+    // Dropdown-meny (Statistik/Produkter) → platta ut till sina länkar i drawern
+    if (orig.classList && orig.classList.contains('topbar-menu')) {
+      orig.querySelectorAll('.topbar-menu-pop a').forEach(a => {
+        const link = a.cloneNode(true);
+        link.className = 'btn-sm';
+        link.style.textDecoration = 'none';
+        link.style.borderColor = 'rgba(196,181,244,0.4)';
+        link.style.color = '#c4b5f4';
+        const sub = link.querySelector('.sub'); if (sub) sub.remove();
+        link.addEventListener('click', closeBurgerDrawer);
+        drawer.appendChild(link);
+      });
+      return;
+    }
     const clone = orig.cloneNode(true);
     clone.removeAttribute('id'); // id-collision-skydd
     if (clone.tagName === 'BUTTON') {
@@ -2353,6 +2401,27 @@ document.addEventListener('keydown', e => {
 });
 window.addEventListener('resize', () => {
   if (window.innerWidth > 600 && $('topbar-drawer')?.classList.contains('is-open')) closeBurgerDrawer();
+});
+
+// Topbar-dropdowns (Statistik/Produkter): hover öppnar via CSS, men klick på
+// triggern togglar också (touch-laptops + tangentbord). Klick utanför stänger.
+document.querySelectorAll('.topbar-menu').forEach(menu => {
+  const trigger = menu.querySelector(':scope > .btn-sm');
+  trigger?.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = menu.classList.contains('is-open');
+    document.querySelectorAll('.topbar-menu.is-open').forEach(m => {
+      m.classList.remove('is-open');
+      m.querySelector(':scope > .btn-sm')?.setAttribute('aria-expanded', 'false');
+    });
+    if (!wasOpen) { menu.classList.add('is-open'); trigger.setAttribute('aria-expanded', 'true'); }
+  });
+});
+document.addEventListener('click', () => {
+  document.querySelectorAll('.topbar-menu.is-open').forEach(m => {
+    m.classList.remove('is-open');
+    m.querySelector(':scope > .btn-sm')?.setAttribute('aria-expanded', 'false');
+  });
 });
 
 // ── UPPDATERA / LADDA OM ──────────────────────────────────────
