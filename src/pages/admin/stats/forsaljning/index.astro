@@ -58,7 +58,10 @@
     .sec-sub { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
 
     /* Variant A — utfällbar kategoritabell */
-    .cat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; table-layout: fixed; }
+    .cat-table col.c-name { width: auto; }
+    .cat-table col.c-rev { width: 140px; }
+    .cat-table col.c-cnt { width: 95px; }
     .cat-table thead th { text-align: left; padding: 8px 12px; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid rgba(196,181,244,0.2); }
     .cat-table thead th.num { text-align: right; }
     .cat-hrow { cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.12s; }
@@ -76,15 +79,19 @@
     .cat-prods { display: none; }
     .cat-prods.open { display: table-row; }
     .cat-prods > td { padding: 0; }
-    .prod-table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.18); }
+    .prod-table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.18); table-layout: fixed; }
+    .prod-table col.p-artno { width: 185px; }
+    .prod-table col.p-name { width: auto; }
+    .prod-table col.p-rev { width: 130px; }
+    .prod-table col.p-cnt { width: 80px; }
     .prod-table th { text-align: left; padding: 6px 12px 6px 34px; font-size: 0.66rem; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.38); font-weight: 600; }
     .prod-table th.num { text-align: right; padding-left: 12px; }
     .prod-table td { padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
     .prod-table tr:last-child td { border-bottom: none; }
-    .prod-artno { padding-left: 34px !important; color: rgba(255,255,255,0.4); font-family: monospace; font-size: 0.74rem; width: 140px; }
-    .prod-name { color: rgba(255,255,255,0.82); }
-    .prod-rev { text-align: right; font-variant-numeric: tabular-nums; color: #c4b5f4; }
-    .prod-cnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.5); width: 80px; }
+    .prod-artno { padding-left: 34px !important; color: rgba(255,255,255,0.4); font-family: monospace; font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prod-name { color: rgba(255,255,255,0.82); word-break: break-word; }
+    .prod-rev { text-align: right; font-variant-numeric: tabular-nums; color: #c4b5f4; white-space: nowrap; }
+    .prod-cnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.5); white-space: nowrap; }
     .cat-foot td { padding: 11px 12px; border-top: 2px solid rgba(196,181,244,0.3); font-weight: 700; }
     .cat-foot .lbl { color: #e2dcfb; }
     .cat-foot .num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -345,7 +352,7 @@ function render() {
       '<td class="cat-hrev">' + fmtKr(c.omsattning) + '</td>' +
       '<td class="cat-hcnt">' + cntLabel + '</td></tr>' +
       '<tr class="cat-prods" data-prods="' + ci + '"><td colspan="3">' +
-      '<table class="prod-table"><thead><tr>' +
+      '<table class="prod-table"><colgroup><col class="p-artno"><col class="p-name"><col class="p-rev"><col class="p-cnt"></colgroup><thead><tr>' +
       '<th>Artikelnr</th><th>Artikelnamn</th><th class="num">Omsättning</th><th class="num">Antal</th>' +
       '</tr></thead><tbody>' + prodRows + '</tbody></table></td></tr>';
   }).join('');
@@ -354,7 +361,7 @@ function render() {
     '<div class="section carded"><div class="sec-head" style="padding:0.3rem 0 0.7rem"><span class="sec-title">Per kategori</span>' +
     '<span class="sec-sub">' + periodLabel(currentView, currentPeriodKey) + ' · klicka för att fälla ut produkter</span></div>' +
     (cur.categories.length
-      ? '<table class="cat-table"><thead><tr><th>Kategori</th><th class="num">Omsättning</th><th class="num">Antal</th></tr></thead>' +
+      ? '<table class="cat-table"><colgroup><col class="c-name"><col class="c-rev"><col class="c-cnt"></colgroup><thead><tr><th>Kategori</th><th class="num">Omsättning</th><th class="num">Antal</th></tr></thead>' +
         '<tbody>' + catRows + '</tbody>' +
         '<tfoot><tr class="cat-foot"><td class="lbl">Totalt</td>' +
         '<td class="num rev">' + fmtKr(cur.total.omsattning) + '</td>' +

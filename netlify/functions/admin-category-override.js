@@ -72,9 +72,9 @@ exports.handler = async (event) => {
         sample_name: sample_name ? String(sample_name).slice(0, 300) : null,
         updated_at: new Date().toISOString(),
       };
-      const res = await fetch(`${supaUrl}/rest/v1/category_overrides`, {
+      const res = await fetch(`${supaUrl}/rest/v1/category_overrides?on_conflict=item_key`, {
         method: 'POST',
-        headers: { ...headers, Prefer: 'return=representation,resolution=merge-duplicates' },
+        headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=representation' },
         body: JSON.stringify(row),
       });
       if (!res.ok) throw new Error(`Supabase UPSERT: ${res.status} ${await res.text()}`);

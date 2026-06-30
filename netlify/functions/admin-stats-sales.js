@@ -69,14 +69,16 @@ function resolveArtno(item) {
   return '';
 }
 
-// ── (id|artno) → toppkategori ───────────────────────────────────────────────
+// ── (id|artno|name) → toppkategori ──────────────────────────────────────────
 // Prioritet: 1) manuell override (admin-klassad), 2) artno-prefix, 3) Okänt.
-// overrides = { item_key: category }. Vi slår upp på BÅDE radens id och artno
-// så att en override på endera fångar raden.
-function topCategory(artno, id, overrides) {
+// overrides = { item_key: category }. Vi slår upp på id, artno OCH namn — samma
+// ordning som unknown-nyckeln byggs (artno || id || name) — så att en override
+// fångar raden oavsett vilket fält som blev nyckeln vid klassningen.
+function topCategory(artno, id, name, overrides) {
   if (overrides) {
     if (id && overrides[id]) return overrides[id];
     if (artno && overrides[artno]) return overrides[artno];
+    if (name && overrides[name]) return overrides[name];
   }
   const m = String(artno || '').match(/^SK-([A-Z]+)/);
   if (m && PREFIX_TO_CAT[m[1]]) return PREFIX_TO_CAT[m[1]];
@@ -143,7 +145,7 @@ function aggregate(rows, overrides) {
       const lineOre = priceOre * qty;
       const isFee = isBookingFee(i);
       const artno = resolveArtno(i);
-      const cat = isFee ? 'Tjänster' : topCategory(artno, i.id, overrides);
+      const cat = isFee ? 'Tjänster' : topCategory(artno, i.id, i.name, overrides);
       return { i, qty, lineOre, isFee, artno, cat, name: i.name };
     });
 
