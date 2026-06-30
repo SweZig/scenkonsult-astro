@@ -57,34 +57,38 @@
     .sec-title { font-size: 0.9rem; font-weight: 700; color: #e2dcfb; }
     .sec-sub { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
 
-    /* Kategori-kort: hopfälld summering med andel-stapel */
-    .cat { background: #1a1640; border: 1px solid rgba(196,181,244,0.12); border-radius: 12px; margin-bottom: 0.55rem; overflow: hidden; transition: border-color 0.15s; }
-    .cat:hover { border-color: rgba(196,181,244,0.3); }
-    .cat.open { border-color: rgba(196,181,244,0.4); }
-    .cat-row { display: grid; grid-template-columns: 18px 150px 1fr auto; align-items: center; gap: 0.85rem; padding: 0.8rem 1rem; cursor: pointer; }
-    .cat-caret { font-size: 0.7rem; color: rgba(196,181,244,0.55); transition: transform 0.18s; }
-    .cat.open .cat-caret { transform: rotate(90deg); }
-    .cat-name { font-size: 0.95rem; font-weight: 600; color: #f0eeff; display: flex; align-items: center; gap: 9px; white-space: nowrap; }
-    .cat-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-    /* Andel-stapel i mitten */
-    .cat-bar-wrap { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
-    .cat-track { display: block; flex: 1; height: 9px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden; min-width: 40px; }
-    .cat-fill { display: block; height: 9px; border-radius: 5px; transition: width 0.5s ease; }
-    .cat-share { font-size: 0.74rem; color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; width: 34px; text-align: right; }
-    /* Värden höger */
-    .cat-vals { text-align: right; line-height: 1.25; }
-    .cat-rev { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1rem; color: #e2dcfb; }
-    .cat-cnt { font-variant-numeric: tabular-nums; font-size: 0.76rem; color: rgba(255,255,255,0.5); }
-    .cat-cnt small { color: rgba(255,255,255,0.35); }
-
-    .cat-body { display: none; padding: 0.2rem 1rem 0.7rem 2.6rem; border-top: 1px solid rgba(255,255,255,0.06); }
-    .cat.open .cat-body { display: block; }
-    .prod-row { display: grid; grid-template-columns: 1fr 120px 80px; gap: 0.6rem; padding: 0.45rem 0; font-size: 0.82rem; border-top: 1px solid rgba(255,255,255,0.04); }
-    .prod-row:first-child { border-top: none; padding-top: 0.6rem; }
-    .prod-name { color: rgba(255,255,255,0.8); }
-    .prod-artno { color: rgba(255,255,255,0.32); font-family: monospace; font-size: 0.72rem; margin-left: 6px; }
+    /* Variant A — utfällbar kategoritabell */
+    .cat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cat-table thead th { text-align: left; padding: 8px 12px; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid rgba(196,181,244,0.2); }
+    .cat-table thead th.num { text-align: right; }
+    .cat-hrow { cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.12s; }
+    .cat-hrow:hover { background: rgba(196,181,244,0.05); }
+    .cat-hrow.open { background: rgba(196,181,244,0.07); }
+    .cat-hrow td { padding: 10px 12px; }
+    .cat-hname { font-weight: 600; color: #f0eeff; display: flex; align-items: center; gap: 9px; }
+    .cat-caret { display: inline-block; width: 13px; font-size: 0.65rem; color: rgba(196,181,244,0.6); transition: transform 0.18s; }
+    .cat-hrow.open .cat-caret { transform: rotate(90deg); }
+    .cat-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+    .cat-hrev { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; color: #e2dcfb; }
+    .cat-hcnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.6); width: 90px; }
+    .cat-hcnt small { color: rgba(255,255,255,0.4); }
+    /* Produkt-undertabell */
+    .cat-prods { display: none; }
+    .cat-prods.open { display: table-row; }
+    .cat-prods > td { padding: 0; }
+    .prod-table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.18); }
+    .prod-table th { text-align: left; padding: 6px 12px 6px 34px; font-size: 0.66rem; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.38); font-weight: 600; }
+    .prod-table th.num { text-align: right; padding-left: 12px; }
+    .prod-table td { padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .prod-table tr:last-child td { border-bottom: none; }
+    .prod-artno { padding-left: 34px !important; color: rgba(255,255,255,0.4); font-family: monospace; font-size: 0.74rem; width: 140px; }
+    .prod-name { color: rgba(255,255,255,0.82); }
     .prod-rev { text-align: right; font-variant-numeric: tabular-nums; color: #c4b5f4; }
-    .prod-cnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.5); }
+    .prod-cnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.5); width: 80px; }
+    .cat-foot td { padding: 11px 12px; border-top: 2px solid rgba(196,181,244,0.3); font-weight: 700; }
+    .cat-foot .lbl { color: #e2dcfb; }
+    .cat-foot .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .cat-foot .rev { color: #c4b5f4; }
 
     /* Trend-tabell */
     .tbl { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -107,15 +111,17 @@
 
     .classify { background: #1a1640; border: 1px solid rgba(196,181,244,0.2); border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
     .classify h3 { font-size: 0.95rem; color: #e2dcfb; margin-bottom: 0.3rem; }
-    .classify .hint { font-size: 0.76rem; color: rgba(255,255,255,0.5); margin-bottom: 0.9rem; }
-    .unk-row { display: grid; grid-template-columns: 1fr 150px 90px; gap: 0.75rem; align-items: center; padding: 0.7rem 0; border-top: 1px solid rgba(255,255,255,0.06); }
+    .classify .hint { font-size: 0.76rem; color: rgba(255,255,255,0.62); margin-bottom: 0.9rem; }
+    .unk-row { display: grid; grid-template-columns: 1fr 160px 90px; gap: 0.75rem; align-items: center; padding: 0.7rem 0; border-top: 1px solid rgba(255,255,255,0.08); }
     .unk-row:first-of-type { border-top: none; }
     .unk-name { font-size: 0.88rem; color: #f0eeff; }
-    .unk-meta { font-size: 0.72rem; color: rgba(255,255,255,0.4); font-family: monospace; margin-top: 2px; }
-    .unk-meta .inv { color: rgba(196,181,244,0.55); }
+    .unk-meta { font-size: 0.72rem; color: rgba(255,255,255,0.55); font-family: monospace; margin-top: 2px; }
+    .unk-meta .inv { color: rgba(196,181,244,0.8); }
     .unk-rev { text-align: right; font-variant-numeric: tabular-nums; color: #c4b5f4; font-weight: 600; }
-    .unk-row select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: 0.8rem; color-scheme: dark; width: 100%; }
-    .classify-close { float: right; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 1.1rem; cursor: pointer; }
+    .unk-row select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.45); border-radius: 8px; padding: 7px 8px; font-family: inherit; font-size: 0.82rem; color-scheme: dark; width: 100%; cursor: pointer; }
+    .unk-row select:hover { border-color: rgba(196,181,244,0.7); }
+    .classify-close { float: right; background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 1.1rem; cursor: pointer; }
+    .classify-close:hover { color: #f0eeff; }
 
     #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; }
@@ -321,36 +327,39 @@ function render() {
     '<span class="chart-sub">omsättning (stapel) &amp; antal uthyrningar (linje) per ' + VIEW_LABEL[currentView] + '</span></div>' +
     '<div class="chart-wrap"><canvas id="trendChart"></canvas></div></div>';
 
-  const catTotalRev = cur.categories.reduce((s, c) => s + Math.abs(c.omsattning), 0) || 1;
-  const catMaxRev = Math.max(1, ...cur.categories.map(c => Math.abs(c.omsattning)));
-  const catRows = cur.categories.map(c => {
+  const catRows = cur.categories.map((c, ci) => {
     const color = CAT_COLOR[c.category] || '#c4b5f4';
     const prods = (cur.products||[]).filter(p => p.category === c.category);
     const prodRows = prods.length ? prods.map(p =>
-      '<div class="prod-row"><div><span class="prod-name">' + escapeHtml(p.name) + '</span>' +
-      (p.artno ? '<span class="prod-artno">' + escapeHtml(p.artno) + '</span>' : '') + '</div>' +
-      '<div class="prod-rev">' + fmtKr(p.omsattning) + '</div>' +
-      '<div class="prod-cnt">' + p.antal + ' st</div></div>'
-    ).join('') : '<div class="prod-row"><div class="prod-name" style="opacity:.5">Inga produktrader</div><div></div><div></div></div>';
+      '<tr><td class="prod-artno">' + escapeHtml(p.artno || '—') + '</td>' +
+      '<td class="prod-name">' + escapeHtml(p.name) + '</td>' +
+      '<td class="prod-rev">' + fmtKr(p.omsattning) + '</td>' +
+      '<td class="prod-cnt">' + p.antal + ' st</td></tr>'
+    ).join('') : '<tr><td class="prod-name" colspan="4" style="padding-left:34px;opacity:.5">Inga produktrader</td></tr>';
     const cntLabel = c.category === 'Tjänster'
       ? c.antal + ' <small>fakt.</small>'
       : c.antal + ' <small>st</small>';
-    const barW = Math.max(2, Math.round(Math.abs(c.omsattning) / catMaxRev * 100));
-    const sharePct = Math.round(Math.abs(c.omsattning) / catTotalRev * 100);
-    return '<div class="cat" data-cat="' + escapeHtml(c.category) + '">' +
-      '<div class="cat-row"><span class="cat-caret">▶</span>' +
-      '<span class="cat-name"><span class="cat-dot" style="background:' + color + '"></span>' + escapeHtml(c.category) + '</span>' +
-      '<span class="cat-bar-wrap"><span class="cat-track"><span class="cat-fill" style="width:' + barW + '%;background:' + color + '"></span></span>' +
-      '<span class="cat-share">' + sharePct + '%</span></span>' +
-      '<span class="cat-vals"><div class="cat-rev">' + fmtKr(c.omsattning) + '</div>' +
-      '<div class="cat-cnt">' + cntLabel + '</div></span></div>' +
-      '<div class="cat-body">' + prodRows + '</div></div>';
+    return '<tr class="cat-hrow" data-ci="' + ci + '">' +
+      '<td><span class="cat-hname"><span class="cat-caret">▶</span>' +
+      '<span class="cat-dot" style="background:' + color + '"></span>' + escapeHtml(c.category) + '</span></td>' +
+      '<td class="cat-hrev">' + fmtKr(c.omsattning) + '</td>' +
+      '<td class="cat-hcnt">' + cntLabel + '</td></tr>' +
+      '<tr class="cat-prods" data-prods="' + ci + '"><td colspan="3">' +
+      '<table class="prod-table"><thead><tr>' +
+      '<th>Artikelnr</th><th>Artikelnamn</th><th class="num">Omsättning</th><th class="num">Antal</th>' +
+      '</tr></thead><tbody>' + prodRows + '</tbody></table></td></tr>';
   }).join('');
 
   const catSection =
-    '<div class="section"><div class="sec-head" style="padding:0 0.2rem 0.7rem"><span class="sec-title">Per kategori</span>' +
-    '<span class="sec-sub">' + periodLabel(currentView, currentPeriodKey) + ' · stapeln visar andel · klicka för produkter</span></div>' +
-    (cur.categories.length ? catRows : '<div class="empty">Inga rader.</div>') + '</div>';
+    '<div class="section carded"><div class="sec-head" style="padding:0.3rem 0 0.7rem"><span class="sec-title">Per kategori</span>' +
+    '<span class="sec-sub">' + periodLabel(currentView, currentPeriodKey) + ' · klicka för att fälla ut produkter</span></div>' +
+    (cur.categories.length
+      ? '<table class="cat-table"><thead><tr><th>Kategori</th><th class="num">Omsättning</th><th class="num">Antal</th></tr></thead>' +
+        '<tbody>' + catRows + '</tbody>' +
+        '<tfoot><tr class="cat-foot"><td class="lbl">Totalt</td>' +
+        '<td class="num rev">' + fmtKr(cur.total.omsattning) + '</td>' +
+        '<td class="num">' + cur.total.antal + ' st</td></tr></tfoot></table>'
+      : '<div class="empty">Inga rader.</div>') + '</div>';
 
   const trendRows = allKeys.slice().reverse().map(k => {
     const d = dimData[k];
@@ -372,8 +381,13 @@ function render() {
 
   renderChart(dimData, allKeys);
 
-  zone.querySelectorAll('.cat').forEach(cat => {
-    cat.querySelector('.cat-row').addEventListener('click', () => cat.classList.toggle('open'));
+  zone.querySelectorAll('.cat-hrow').forEach(hrow => {
+    hrow.addEventListener('click', () => {
+      const ci = hrow.dataset.ci;
+      const prodRow = zone.querySelector('.cat-prods[data-prods="' + ci + '"]');
+      hrow.classList.toggle('open');
+      if (prodRow) prodRow.classList.toggle('open');
+    });
   });
   zone.querySelectorAll('[data-jump]').forEach(tr => {
     tr.addEventListener('click', () => { currentPeriodKey = tr.dataset.jump; render(); });
@@ -399,8 +413,9 @@ function openClassify() {
   const zone = document.getElementById('classify-zone');
   const rows = unk.map(u => {
     const invList = (u.sample_invoices||[]).join(', ');
-    const opts = ['<option value="">— välj kategori —</option>'].concat(
-      ALL_CATS.map(c => '<option value="' + c + '">' + c + '</option>')
+    const optStyle = 'style="background:#221f50;color:#f0eeff"';
+    const opts = ['<option value="" ' + optStyle + '>— välj kategori —</option>'].concat(
+      ALL_CATS.map(c => '<option value="' + c + '" ' + optStyle + '>' + c + '</option>')
     ).join('');
     return '<div class="unk-row" data-key="' + escapeHtml(u.key) + '" data-name="' + escapeHtml(u.name) + '">' +
       '<div><div class="unk-name">' + escapeHtml(u.name) + '</div>' +
