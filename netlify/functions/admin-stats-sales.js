@@ -121,8 +121,13 @@ function aggregate(rows, overrides) {
   const unknown = {}; // key → { key, id, artno, name, omsattning_ore, invoices:Set }
 
   for (const cart of rows) {
-    const invoiceDate = cart.invoice_date;
-    if (!invoiceDate) continue; // ska inte hända (gate kräver invoice_sent_at) men var defensiv
+    // Periodankare: invoice_date är förstahandsval. Manuellt/Peppol-fakturerade
+    // rader kan ha null invoice_date → fall tillbaka på invoice_sent_at, sedan
+    // created_at. Bara datumdelen (YYYY-MM-DD) används för bucketing.
+    const invoiceDate = cart.invoice_date
+      || (cart.invoice_sent_at ? String(cart.invoice_sent_at).slice(0, 10) : null)
+      || (cart.created_at ? String(cart.created_at).slice(0, 10) : null);
+    if (!invoiceDate) continue; // helt utan datum → kan inte placeras i någon period
 
     // ── Kreditering: avgör om den gäller den NUVARANDE fakturan eller en
     //    tidigare (som sedan omfakturerats). ──────────────────────────────
@@ -346,12 +351,17 @@ exports.handler = async (event) => {
     const supaKey = process.env.SUPABASE_SERVICE_KEY;
     const headers = { apikey: supaKey, Authorization: `Bearer ${supaKey}`, 'Content-Type': 'application/json' };
 
-    // Hämta bara fakturerade rader. Gate: invoice_sent_at not null + invoice_number not null.
+    // Hämta fakturerade rader. Gate: en rad räknas som intäkt om den har ett
+    // invoice_number OCH antingen invoice_sent_at är satt (normalt flöde) ELLER
+    // status='fakturerad' (manuellt/Peppol-fakturerad där invoice_sent_at saknas).
+    // Periodfiltrering på invoice_date görs INTE i SQL eftersom manuella rader kan
+    // ha null invoice_date — vi hämtar superset och bucketar i JS via fallback-datum
+    // (invoice_date → invoice_sent_at → invoice_date saknas: created_at).
     // Selektera bara fält vi behöver (mönster: aldrig select('*') i nya funktioner).
-    let q = `${supaUrl}/rest/v1/carts?select=id,invoice_number,invoice_date,invoice_sent_at,total_excl,invoice_fee_ore,items,credit_amount_excl,credit_mode,credit_of_invoice,credit_invoice_number,credit_sent_at`
-      + `&invoice_sent_at=not.is.null&invoice_number=not.is.null&id=not.like.SK-RESERVE-*&order=invoice_date.asc`;
-    if (from) q += `&invoice_date=gte.${from}`;
-    if (to)   q += `&invoice_date=lte.${to}`;
+    let q = `${supaUrl}/rest/v1/carts?select=id,invoice_number,invoice_date,invoice_sent_at,status,created_at,total_excl,invoice_fee_ore,items,credit_amount_excl,credit_mode,credit_of_invoice,credit_invoice_number,credit_sent_at`
+      + `&invoice_number=not.is.null&id=not.like.SK-RESERVE-*`
+      + `&or=(invoice_sent_at.not.is.null,status.eq.fakturerad)`
+      + `&order=created_at.asc`;
 
     const res = await fetch(q, { headers });
     if (!res.ok) throw new Error(`Supabase: ${res.status} ${await res.text()}`);
