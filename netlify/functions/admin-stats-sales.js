@@ -124,11 +124,33 @@ function aggregate(rows, overrides) {
     const invoiceDate = cart.invoice_date;
     if (!invoiceDate) continue; // ska inte hända (gate kräver invoice_sent_at) men var defensiv
 
-    // ── Full kreditering → fakturan är helt återförd. invoice-credit.js
-    //    nollställer normalt invoice_number vid full kredit, men residuala/
-    //    resend-rader kan ligga kvar med credit_mode='full' OCH invoice_number.
-    //    Regel: helt krediterad faktura = omsättning 0, antal 0 → hoppa över helt.
-    if (cart.credit_mode === 'full') continue;
+    // ── Kreditering: avgör om den gäller den NUVARANDE fakturan eller en
+    //    tidigare (som sedan omfakturerats). ──────────────────────────────
+    //    invoice-credit.js nollar invoice_number vid full kredit OCH skriver
+    //    credit_mode='full'. Om ordern sen OMFAKTURERAS får den ett nytt
+    //    invoice_number men credit_*-fälten ligger kvar och pekar på den
+    //    GAMLA fakturan. Då ska den nya fakturan räknas fullt ut.
+    //
+    //    En kreditering gäller den nuvarande fakturan endast om:
+    //      • den inte är omfakturerad efter krediteringen
+    //        (invoice_sent_at <= credit_sent_at), OCH
+    //      • credit_of_invoice saknas ELLER pekar på nuvarande invoice_number.
+    //    Annars är krediteringen "förbrukad" på en tidigare faktura och
+    //    ignoreras helt (varken nollning eller proportionellt avdrag).
+    const hasCredit = cart.credit_mode != null || (typeof cart.credit_amount_excl === 'number' && cart.credit_amount_excl < 0);
+    let creditAppliesToCurrent = false;
+    if (hasCredit) {
+      const invSent = cart.invoice_sent_at ? Date.parse(cart.invoice_sent_at) : 0;
+      const credSent = cart.credit_sent_at ? Date.parse(cart.credit_sent_at) : 0;
+      const reinvoicedAfterCredit = invSent && credSent && invSent > credSent;
+      const creditTargetsOther = cart.credit_of_invoice && cart.credit_of_invoice !== cart.invoice_number;
+      creditAppliesToCurrent = !reinvoicedAfterCredit && !creditTargetsOther;
+    }
+
+    // Full kreditering som gäller NUVARANDE faktura → ordern är helt återförd
+    // (omsättning 0, antal 0) → hoppa över. Gäller den en tidigare, omfakturerad
+    // faktura räknas den nuvarande som vanligt.
+    if (cart.credit_mode === 'full' && creditAppliesToCurrent) continue;
 
     const invoiceNo = cart.invoice_number;
     const pk = periodKeys(invoiceDate);
@@ -164,12 +186,12 @@ function aggregate(rows, overrides) {
     const prodTotalOre = prodLines.reduce((s, l) => s + l.lineOre, 0);
 
     // ── Kreditavdrag ────────────────────────────────────────────────────────
-    // Full kreditering finns inte här (raden saknar då invoice_number).
-    // Partiell: credit_amount_excl är NEGATIVT i KRONOR. Fördela proportionellt
-    // över produktrader efter radvärde. Avgiften krediteras ej proportionellt
-    // (partiell kredit är en klumpsumma mot produktvärdet).
+    // Partiell kreditering: credit_amount_excl NEGATIVT i KRONOR, fördelas
+    // proportionellt över produktrader. Dras ENDAST om krediteringen gäller
+    // den nuvarande fakturan (creditAppliesToCurrent) — en kreditering som
+    // hörde till en tidigare, omfakturerad faktura ignoreras.
     let creditOre = 0;
-    if (typeof cart.credit_amount_excl === 'number' && cart.credit_amount_excl < 0 && invoiceNo) {
+    if (creditAppliesToCurrent && typeof cart.credit_amount_excl === 'number' && cart.credit_amount_excl < 0 && invoiceNo) {
       creditOre = toOre(cart.credit_amount_excl); // negativt öre
     }
 
@@ -326,7 +348,7 @@ exports.handler = async (event) => {
 
     // Hämta bara fakturerade rader. Gate: invoice_sent_at not null + invoice_number not null.
     // Selektera bara fält vi behöver (mönster: aldrig select('*') i nya funktioner).
-    let q = `${supaUrl}/rest/v1/carts?select=id,invoice_number,invoice_date,invoice_sent_at,total_excl,invoice_fee_ore,items,credit_amount_excl,credit_mode,credit_of_invoice,credit_invoice_number`
+    let q = `${supaUrl}/rest/v1/carts?select=id,invoice_number,invoice_date,invoice_sent_at,total_excl,invoice_fee_ore,items,credit_amount_excl,credit_mode,credit_of_invoice,credit_invoice_number,credit_sent_at`
       + `&invoice_sent_at=not.is.null&invoice_number=not.is.null&id=not.like.SK-RESERVE-*&order=invoice_date.asc`;
     if (from) q += `&invoice_date=gte.${from}`;
     if (to)   q += `&invoice_date=lte.${to}`;
