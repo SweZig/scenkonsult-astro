@@ -121,13 +121,15 @@ function aggregate(rows, overrides) {
   const unknown = {}; // key → { key, id, artno, name, omsattning_ore, invoices:Set }
 
   for (const cart of rows) {
-    // Periodankare: invoice_date är förstahandsval. Manuellt/Peppol-fakturerade
-    // rader kan ha null invoice_date → fall tillbaka på invoice_sent_at, sedan
-    // created_at. Bara datumdelen (YYYY-MM-DD) används för bucketing.
+    // Periodankare: invoice_date är förstahandsval, annars invoice_sent_at.
+    // created_at används INTE som fallback — det är när varukorgen skapades, inte
+    // när den fakturerades, och skulle placera intäkten i fel månad. Manuellt/
+    // Peppol-fakturerade ordrar får numera invoice_date satt i cart-update.js när
+    // de flyttas till 'fakturerad'; en rad helt utan fakturadatum hoppas över
+    // hellre än att hamna i fel period.
     const invoiceDate = cart.invoice_date
-      || (cart.invoice_sent_at ? String(cart.invoice_sent_at).slice(0, 10) : null)
-      || (cart.created_at ? String(cart.created_at).slice(0, 10) : null);
-    if (!invoiceDate) continue; // helt utan datum → kan inte placeras i någon period
+      || (cart.invoice_sent_at ? String(cart.invoice_sent_at).slice(0, 10) : null);
+    if (!invoiceDate) continue;
 
     // ── Kreditering: avgör om den gäller den NUVARANDE fakturan eller en
     //    tidigare (som sedan omfakturerats). ──────────────────────────────
@@ -356,7 +358,8 @@ exports.handler = async (event) => {
     // status='fakturerad' (manuellt/Peppol-fakturerad där invoice_sent_at saknas).
     // Periodfiltrering på invoice_date görs INTE i SQL eftersom manuella rader kan
     // ha null invoice_date — vi hämtar superset och bucketar i JS via fallback-datum
-    // (invoice_date → invoice_sent_at → invoice_date saknas: created_at).
+    // (invoice_date → invoice_sent_at). Manuellt fakturerade ordrar får numera
+    // invoice_date satt i cart-update.js, så detta är bara en säkerhetsnät-kedja.
     // Selektera bara fält vi behöver (mönster: aldrig select('*') i nya funktioner).
     let q = `${supaUrl}/rest/v1/carts?select=id,invoice_number,invoice_date,invoice_sent_at,status,created_at,total_excl,invoice_fee_ore,items,credit_amount_excl,credit_mode,credit_of_invoice,credit_invoice_number,credit_sent_at`
       + `&invoice_number=not.is.null&id=not.like.SK-RESERVE-*`

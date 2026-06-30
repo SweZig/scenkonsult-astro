@@ -233,6 +233,18 @@ exports.handler = async (event) => {
           // confirmed_at sätts av kunden vid digital klick-bekräftelse, INTE här
         }
 
+        // Manuell/Peppol-fakturering: när en order flyttas till 'fakturerad'
+        // utan att ha gått genom invoice-send (som annars sätter dessa fält),
+        // stämpla fakturadatum + skickat-tidpunkt så att ordern behandlas som
+        // en riktig faktura överallt (försäljningsstatistik bucketar på
+        // invoice_date; gaten kräver invoice_sent_at/fakturerad). Sätts bara om
+        // de saknas, så det normala flödet aldrig skrivs över.
+        if (body.status === 'fakturerad') {
+          const now = new Date().toISOString();
+          if (!cart.invoice_date)    updates.invoice_date    = now.slice(0, 10);
+          if (!cart.invoice_sent_at) updates.invoice_sent_at = now;
+        }
+
         await logAudit(db, cart.id, 'admin', 'status_change', {
           from: oldStatus,
           to:   body.status
