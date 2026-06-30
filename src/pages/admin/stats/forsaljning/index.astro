@@ -57,36 +57,41 @@
     .sec-title { font-size: 0.9rem; font-weight: 700; color: #e2dcfb; }
     .sec-sub { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
 
-    /* Variant A — utfällbar kategoritabell */
+    /* Variant A — utfällbar kategoritabell.
+       Alla tabeller (kategori + alla produktundertabeller) delar EXAKT samma
+       kolumnbredder så att inget hoppar mellan kategorier. Omsättning/Antal är
+       identiska px i båda nivåerna; namn-kolumnen tar resten (deterministiskt
+       eftersom övriga är fasta och containern alltid är lika bred). */
     .cat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; table-layout: fixed; }
     .cat-table col.c-name { width: auto; }
-    .cat-table col.c-rev { width: 140px; }
-    .cat-table col.c-cnt { width: 95px; }
-    .cat-table thead th { text-align: left; padding: 8px 12px; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid rgba(196,181,244,0.2); }
+    .cat-table col.c-rev { width: 180px; }
+    .cat-table col.c-cnt { width: 120px; }
+    .cat-table thead th { text-align: left; padding: 8px 14px; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid rgba(196,181,244,0.2); }
     .cat-table thead th.num { text-align: right; }
     .cat-hrow { cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.12s; }
     .cat-hrow:hover { background: rgba(196,181,244,0.05); }
     .cat-hrow.open { background: rgba(196,181,244,0.07); }
-    .cat-hrow td { padding: 10px 12px; }
+    .cat-hrow td { padding: 10px 14px; }
     .cat-hname { font-weight: 600; color: #f0eeff; display: flex; align-items: center; gap: 9px; }
     .cat-caret { display: inline-block; width: 13px; font-size: 0.65rem; color: rgba(196,181,244,0.6); transition: transform 0.18s; }
     .cat-hrow.open .cat-caret { transform: rotate(90deg); }
     .cat-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
     .cat-hrev { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; color: #e2dcfb; }
-    .cat-hcnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.6); width: 90px; }
+    .cat-hcnt { text-align: right; font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.6); }
     .cat-hcnt small { color: rgba(255,255,255,0.4); }
-    /* Produkt-undertabell */
+    /* Produkt-undertabell — samma rev/cnt-bredder som kategoritabellen.
+       artno(210) + name(auto) tillsammans = kategorins name-kolumn. */
     .cat-prods { display: none; }
     .cat-prods.open { display: table-row; }
     .cat-prods > td { padding: 0; }
     .prod-table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.18); table-layout: fixed; }
-    .prod-table col.p-artno { width: 185px; }
+    .prod-table col.p-artno { width: 210px; }
     .prod-table col.p-name { width: auto; }
-    .prod-table col.p-rev { width: 130px; }
-    .prod-table col.p-cnt { width: 80px; }
-    .prod-table th { text-align: left; padding: 6px 12px 6px 34px; font-size: 0.66rem; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.38); font-weight: 600; }
-    .prod-table th.num { text-align: right; padding-left: 12px; }
-    .prod-table td { padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .prod-table col.p-rev { width: 180px; }
+    .prod-table col.p-cnt { width: 120px; }
+    .prod-table th { text-align: left; padding: 6px 14px 6px 36px; font-size: 0.66rem; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.38); font-weight: 600; }
+    .prod-table th.num { text-align: right; padding-left: 14px; }
+    .prod-table td { padding: 6px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); }
     .prod-table tr:last-child td { border-bottom: none; }
     .prod-artno { padding-left: 34px !important; color: rgba(255,255,255,0.4); font-family: monospace; font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .prod-name { color: rgba(255,255,255,0.82); word-break: break-word; }
