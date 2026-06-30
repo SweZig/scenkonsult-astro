@@ -51,27 +51,36 @@
     .chart-wrap { position: relative; height: 240px; }
 
     /* Drill-down: kategori-rader (hopfällda) */
-    .section { background: #15123a; border: 1px solid rgba(196,181,244,0.12); border-radius: 14px; padding: 0.5rem 0.75rem; margin-bottom: 1.25rem; }
+    .section { margin-bottom: 1.25rem; }
+    .section.carded { background: #15123a; border: 1px solid rgba(196,181,244,0.12); border-radius: 14px; padding: 0.5rem 1.25rem 1rem; }
     .sec-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0.5rem 0.5rem 0.7rem; }
     .sec-title { font-size: 0.9rem; font-weight: 700; color: #e2dcfb; }
     .sec-sub { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
 
-    .cat { border-top: 1px solid rgba(255,255,255,0.05); }
-    .cat:first-of-type { border-top: none; }
-    .cat-row { display: grid; grid-template-columns: 22px 1fr 120px 90px; align-items: center; gap: 0.6rem; padding: 0.65rem 0.5rem; cursor: pointer; transition: background 0.12s; }
-    .cat-row:hover { background: rgba(196,181,244,0.04); }
-    .cat-caret { font-size: 0.7rem; color: rgba(196,181,244,0.6); transition: transform 0.15s; }
+    /* Kategori-kort: hopfälld summering med andel-stapel */
+    .cat { background: #1a1640; border: 1px solid rgba(196,181,244,0.12); border-radius: 12px; margin-bottom: 0.55rem; overflow: hidden; transition: border-color 0.15s; }
+    .cat:hover { border-color: rgba(196,181,244,0.3); }
+    .cat.open { border-color: rgba(196,181,244,0.4); }
+    .cat-row { display: grid; grid-template-columns: 18px 150px 1fr auto; align-items: center; gap: 0.85rem; padding: 0.8rem 1rem; cursor: pointer; }
+    .cat-caret { font-size: 0.7rem; color: rgba(196,181,244,0.55); transition: transform 0.18s; }
     .cat.open .cat-caret { transform: rotate(90deg); }
-    .cat-name { font-size: 0.9rem; font-weight: 600; color: #f0eeff; display: flex; align-items: center; gap: 8px; }
-    .cat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .cat-rev { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.92rem; color: #e2dcfb; }
-    .cat-cnt { text-align: right; font-variant-numeric: tabular-nums; font-size: 0.82rem; color: rgba(255,255,255,0.55); }
+    .cat-name { font-size: 0.95rem; font-weight: 600; color: #f0eeff; display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+    .cat-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    /* Andel-stapel i mitten */
+    .cat-bar-wrap { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+    .cat-track { display: block; flex: 1; height: 9px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden; min-width: 40px; }
+    .cat-fill { display: block; height: 9px; border-radius: 5px; transition: width 0.5s ease; }
+    .cat-share { font-size: 0.74rem; color: rgba(255,255,255,0.5); font-variant-numeric: tabular-nums; width: 34px; text-align: right; }
+    /* Värden höger */
+    .cat-vals { text-align: right; line-height: 1.25; }
+    .cat-rev { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1rem; color: #e2dcfb; }
+    .cat-cnt { font-variant-numeric: tabular-nums; font-size: 0.76rem; color: rgba(255,255,255,0.5); }
     .cat-cnt small { color: rgba(255,255,255,0.35); }
 
-    .cat-body { display: none; padding: 0 0.5rem 0.6rem 2.1rem; }
+    .cat-body { display: none; padding: 0.2rem 1rem 0.7rem 2.6rem; border-top: 1px solid rgba(255,255,255,0.06); }
     .cat.open .cat-body { display: block; }
-    .prod-row { display: grid; grid-template-columns: 1fr 120px 90px; gap: 0.6rem; padding: 0.4rem 0; font-size: 0.82rem; border-top: 1px solid rgba(255,255,255,0.04); }
-    .prod-row:first-child { border-top: none; }
+    .prod-row { display: grid; grid-template-columns: 1fr 120px 80px; gap: 0.6rem; padding: 0.45rem 0; font-size: 0.82rem; border-top: 1px solid rgba(255,255,255,0.04); }
+    .prod-row:first-child { border-top: none; padding-top: 0.6rem; }
     .prod-name { color: rgba(255,255,255,0.8); }
     .prod-artno { color: rgba(255,255,255,0.32); font-family: monospace; font-size: 0.72rem; margin-left: 6px; }
     .prod-rev { text-align: right; font-variant-numeric: tabular-nums; color: #c4b5f4; }
@@ -312,6 +321,8 @@ function render() {
     '<span class="chart-sub">omsättning (stapel) &amp; antal uthyrningar (linje) per ' + VIEW_LABEL[currentView] + '</span></div>' +
     '<div class="chart-wrap"><canvas id="trendChart"></canvas></div></div>';
 
+  const catTotalRev = cur.categories.reduce((s, c) => s + Math.abs(c.omsattning), 0) || 1;
+  const catMaxRev = Math.max(1, ...cur.categories.map(c => Math.abs(c.omsattning)));
   const catRows = cur.categories.map(c => {
     const color = CAT_COLOR[c.category] || '#c4b5f4';
     const prods = (cur.products||[]).filter(p => p.category === c.category);
@@ -323,18 +334,22 @@ function render() {
     ).join('') : '<div class="prod-row"><div class="prod-name" style="opacity:.5">Inga produktrader</div><div></div><div></div></div>';
     const cntLabel = c.category === 'Tjänster'
       ? c.antal + ' <small>fakt.</small>'
-      : c.antal + ' st';
+      : c.antal + ' <small>st</small>';
+    const barW = Math.max(2, Math.round(Math.abs(c.omsattning) / catMaxRev * 100));
+    const sharePct = Math.round(Math.abs(c.omsattning) / catTotalRev * 100);
     return '<div class="cat" data-cat="' + escapeHtml(c.category) + '">' +
       '<div class="cat-row"><span class="cat-caret">▶</span>' +
       '<span class="cat-name"><span class="cat-dot" style="background:' + color + '"></span>' + escapeHtml(c.category) + '</span>' +
-      '<span class="cat-rev">' + fmtKr(c.omsattning) + '</span>' +
-      '<span class="cat-cnt">' + cntLabel + '</span></div>' +
+      '<span class="cat-bar-wrap"><span class="cat-track"><span class="cat-fill" style="width:' + barW + '%;background:' + color + '"></span></span>' +
+      '<span class="cat-share">' + sharePct + '%</span></span>' +
+      '<span class="cat-vals"><div class="cat-rev">' + fmtKr(c.omsattning) + '</div>' +
+      '<div class="cat-cnt">' + cntLabel + '</div></span></div>' +
       '<div class="cat-body">' + prodRows + '</div></div>';
   }).join('');
 
   const catSection =
-    '<div class="section"><div class="sec-head"><span class="sec-title">Per kategori</span>' +
-    '<span class="sec-sub">' + periodLabel(currentView, currentPeriodKey) + ' · klicka för att fälla ut produkter</span></div>' +
+    '<div class="section"><div class="sec-head" style="padding:0 0.2rem 0.7rem"><span class="sec-title">Per kategori</span>' +
+    '<span class="sec-sub">' + periodLabel(currentView, currentPeriodKey) + ' · stapeln visar andel · klicka för produkter</span></div>' +
     (cur.categories.length ? catRows : '<div class="empty">Inga rader.</div>') + '</div>';
 
   const trendRows = allKeys.slice().reverse().map(k => {
@@ -347,7 +362,7 @@ function render() {
   }).join('');
 
   const trendSection =
-    '<div class="section" style="padding:0.75rem 1.25rem 1rem"><div class="sec-head" style="padding-left:0;padding-right:0">' +
+    '<div class="section carded"><div class="sec-head" style="padding:0.3rem 0 0.7rem">' +
     '<span class="sec-title">Alla ' + VIEW_LABEL[currentView] + 'er</span>' +
     '<span class="sec-sub">klicka på en rad för att växla period</span></div>' +
     '<table class="tbl"><thead><tr><th>Period</th><th class="num">Omsättning</th><th class="num">Uthyrningar</th><th class="num">Snitt</th></tr></thead>' +
