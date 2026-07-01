@@ -17,7 +17,7 @@ const PDFDocument = require('pdfkit');
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
 
-function fmtKr(n) { return (parseInt(n) || 0).toLocaleString('sv-SE').replace(/\u00A0/g, ' ') + ' kr'; }
+function fmtKr(n) { return (parseInt(n) || 0).toLocaleString('sv-SE').replace(/\u00A0/g, ' ').replace(/\u2212/g, '-') + ' kr'; }
 function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('sv-SE'); }
 
 // ── Avbokningsregler ────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
   <h2 style="color:#b91c1c;margin:0 0 8px;">Kreditfaktura ${creditNumber}</h2>
   <p style="color:#666;font-size:13px;margin:0 0 18px;">Krediterar faktura ${cart.invoice_number || '—'}</p>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${cart.customer_name?.split(' ')[0] || ''},</p>
-  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Bifogat finner du kreditfaktura <strong>${creditNumber}</strong>${refundPercent != null && refundPercent < 100 ? ` (partiell kreditering ${refundPercent} %)` : ''}. Beloppet på <strong>${totalIncl.toLocaleString('sv-SE')} kr</strong> inkl. moms återbetalas till samma betalmedel som ursprungsfakturan inom 10 arbetsdagar.</p>
+  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Bifogat finner du kreditfaktura <strong>${creditNumber}</strong>${refundPercent != null && refundPercent < 100 ? ` (partiell kreditering ${refundPercent} %)` : ''}. Beloppet på <strong>${Math.abs(totalIncl).toLocaleString('sv-SE')} kr</strong> inkl. moms återbetalas till samma betalmedel som ursprungsfakturan inom 10 arbetsdagar.</p>
   <p style="color:#444;line-height:1.7;margin:0 0 6px;">Hör av dig om du har frågor.</p>
   <p style="color:#444;line-height:1.7;margin:0;">Vänliga hälsningar,<br><strong>Scenkonsult Norden</strong></p>
 </td></tr>
@@ -234,7 +234,7 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
     reply_to: 'info@scenkonsult.se',
     subject: subj,
     html,
-    text: `Kreditfaktura ${creditNumber} från Scenkonsult Norden.\nKrediterar faktura ${cart.invoice_number || '—'}.\nBelopp: ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms.\nÅterbetalas inom 10 arbetsdagar.`,
+    text: `Kreditfaktura ${creditNumber} från Scenkonsult Norden.\nKrediterar faktura ${cart.invoice_number || '—'}.\nBelopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms.\nÅterbetalas inom 10 arbetsdagar.`,
     attachments: [{
       filename: `Kreditfaktura_${creditNumber}_Scenkonsult.pdf`,
       content:  pdfBuffer.toString('base64'),
@@ -257,8 +257,8 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
       from: FROM, to: ['info@scenkonsult.se'],
       reply_to: cart.customer_email || 'info@scenkonsult.se',
       subject: `Kreditfaktura ${creditNumber} skickad → ${toEmail}`,
-      html: `<p>Kreditfaktura <strong>${creditNumber}</strong> skickad till ${toEmail}.<br>Ursprungsfaktura: ${cart.invoice_number || '—'}<br>Belopp: ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms${refundPercent != null && refundPercent < 100 ? ` (${refundPercent} %)` : ''}</p>`,
-      text: `Kreditfaktura ${creditNumber} skickad till ${toEmail}.\nUrsprungsfaktura: ${cart.invoice_number || '—'}\nBelopp: ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms`,
+      html: `<p>Kreditfaktura <strong>${creditNumber}</strong> skickad till ${toEmail}.<br>Ursprungsfaktura: ${cart.invoice_number || '—'}<br>Belopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms${refundPercent != null && refundPercent < 100 ? ` (${refundPercent} %)` : ''}</p>`,
+      text: `Kreditfaktura ${creditNumber} skickad till ${toEmail}.\nUrsprungsfaktura: ${cart.invoice_number || '—'}\nBelopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms`,
       attachments: [{ filename: `Kreditfaktura_${creditNumber}_Scenkonsult.pdf`, content: pdfBuffer.toString('base64') }],
     }),
   }).catch(e => console.error('CREDIT_INTERNAL_COPY_ERROR:', e.message));
