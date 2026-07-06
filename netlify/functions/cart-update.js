@@ -111,7 +111,8 @@ exports.handler = async (event) => {
       if (!body.token) return err('Token krävs', 400);
       const { data, error } = await db.from('carts').select('*').eq('cart_token', body.token).single();
       if (error || !data) return err('Varukorg hittades ej', 404);
-      const _ttlExempt = data.confirmed_at || data.status === 'confirmed' || data.status === 'completed' || data.status === 'fakturerad';
+      // Se cart-get.js — TTL gäller enbart 'new', allt annat är permanent giltigt.
+      const _ttlExempt = data.confirmed_at || data.status !== 'new';
       if (!_ttlExempt && data.expires_at && new Date(data.expires_at) < new Date()) return err('Varukorgen har gått ut', 410);
       cart = data;
     }
@@ -398,21 +399,28 @@ exports.handler = async (event) => {
     const matchVal = admin ? body.cart_id : body.token;
     await db.update('carts', updates, matchCol, matchVal);
 
-    // Hantera expires_at baserat på ny status
+    // Hantera expires_at baserat på ny status.
+    // TTL ska ENBART styra obehandlade förfrågningar (status 'new') — så fort
+    // en offert skickats (waiting) eller ordern gått vidare ska länken vara
+    // giltig permanent tills den avbryts/avslutas, oavsett hur länge kunden
+    // dröjer med sitt svar.
     const newStatus = updates.status || cart.status;
     if (newStatus === 'cancelled') {
-      // Avbruten order sparas i 90 dagar
+      // Avbruten order sparas i 90 dagar (för ev. framtida TTL-städning)
       await db.update('carts', {
         expires_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
       }, 'id', cart.id);
-    } else if (newStatus !== 'confirmed' && newStatus !== 'completed') {
-      // Förläng TTL med 21 dagar för aktiva ordrar
+    } else if (newStatus === 'new') {
+      // Obehandlad förfrågan — 21 dagars TTL som tidigare
       try { await db.rpc('extend_cart_ttl', { cart_id: cart.id }); } catch (e) {
         // extend_cart_ttl RPC saknas — sätt expires_at direkt
         await db.update('carts', {
           expires_at: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString()
         }, 'id', cart.id).catch(() => {});
       }
+    } else {
+      // waiting/confirmed/completed/fakturerad m.fl. — ingen TTL
+      await db.update('carts', { expires_at: null }, 'id', cart.id).catch(() => {});
     }
 
     // Skicka orderbekräftelsemail om status just satte till confirmed

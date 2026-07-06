@@ -83,7 +83,8 @@ exports.handler = async (event) => {
         ? await db.from('carts').select('*').eq('id', body.cart_id).eq('cart_token', body.token).single()
         : await db.from('carts').select('*').eq('cart_token', body.token).single();
       if (error || !data) return err('Varukorg hittades ej', 404);
-      const _ttlExempt = data.confirmed_at || data.status === 'confirmed' || data.status === 'completed' || data.status === 'fakturerad';
+      // Se cart-get.js — TTL gäller enbart 'new', allt annat är permanent giltigt.
+      const _ttlExempt = data.confirmed_at || data.status !== 'new';
       if (!_ttlExempt && data.expires_at && new Date(data.expires_at) < new Date()) return err('Varukorgen har gått ut', 410);
       cart = data;
     }

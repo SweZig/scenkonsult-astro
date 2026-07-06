@@ -98,7 +98,9 @@ exports.handler = async (event) => {
       total_excl:       totalExcl * 100,
       cart_token:       cartToken,
       cc_email:         customer.cc_email || null,
-      expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+      // status blir 'waiting' här — ingen TTL på skickade offerter, länken
+      // ska vara giltig tills kunden bekräftar eller ordern avbryts.
+      expires_at:       null,
       // Vid omskickad offert till en redan bekräftad order: nollställ signeringen
       // så kunden kan godkänna den nya offerten på nytt.
       ...(clearPriorConfirmation ? {

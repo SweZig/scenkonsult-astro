@@ -46,7 +46,11 @@ exports.handler = async (event) => {
 
     // Kolla TTL — men bekräftade/avslutade ordrar har ingen TTL och ska aldrig
     // räknas som utgångna (även om ett gammalt expires_at råkar ligga kvar i DB).
-    const _ttlExempt = cart.confirmed_at || cart.status === 'confirmed' || cart.status === 'completed' || cart.status === 'fakturerad';
+    // TTL gäller ENBART obehandlade förfrågningar (status 'new'). Så fort en
+    // offert är skickad (waiting) eller ordern gått vidare i pipelinen ska
+    // länken vara giltig tills ordern avbryts/avslutas — oavsett hur lång tid
+    // kunden tar på sig att svara.
+    const _ttlExempt = cart.confirmed_at || cart.status !== 'new';
     if (!_ttlExempt && cart.expires_at && new Date(cart.expires_at) < new Date()) {
       return err('Varukorgen har gått ut', 410);
     }

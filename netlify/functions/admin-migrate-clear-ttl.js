@@ -20,7 +20,7 @@
 'use strict';
 const { supabase, isAdmin, ok, err, preflight, logAudit } = require('./_lib');
 
-const TARGET_STATUSES = ['confirmed', 'completed', 'fakturerad'];
+const TARGET_STATUSES = ['confirmed', 'completed', 'fakturerad', 'waiting'];
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
