@@ -157,7 +157,15 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* iOS Safari "text autosizer" förstorar text i tighta flex/grid-behållare
+     (tickern, manifesto-statistiken) utan att CSS font-size ändras — vilket
+     krymper tillgängligt utrymme och klipper/trycker ihop innehåll. Chrome
+     och desktop-Safari har ingen sådan autosizer, därav skillnaden. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 body {
   font-family: 'Source Sans 3', sans-serif;
   background: #0c0a24;  /* brand-dark — kategorisidor är mörka, frontpage sätter egna sektionsfärger */
@@ -862,7 +870,7 @@ footer { background: #0a0820; padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 5vw,
   .nav-hamburger { display: flex; }
   .nav-mobile-menu { display: block; top: calc(32px + 64px); }
 
-  .hero { grid-template-columns: 1fr; grid-template-rows: auto 55vw; height: auto; min-height: unset; }
+  .hero { grid-template-columns: 1fr; grid-template-rows: auto minmax(240px, 55vw); height: auto; min-height: unset; }
   .hero-l { padding: calc(132px + 2.5rem) 6vw 5vh; min-height: unset; }
   .ghost-year { font-size: clamp(8rem, 38vw, 13rem); }
   .logo-ring { width: 260px; height: 260px; top: 0; right: -30%; }
