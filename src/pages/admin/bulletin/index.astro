@@ -1,0 +1,309 @@
+---
+// /admin/bulletin/ — Bulletin board för nav-tickern.
+// När minst ett meddelande är aktivt (och ej utgånget) ersätter dessa den
+// statiska default-texten i tickern på alla sidor (Layout.astro läser
+// /.netlify/functions/bulletin-list client-side).
+// Data via /.netlify/functions/admin-bulletin (service key).
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Bulletin board — Admin</title>
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+    .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
+    .topbar a:hover { color: #c4b5f4; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
+    .topbar-right { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.40); }
+
+    .wrap { max-width: 780px; margin: 0 auto; padding: 1.5rem; }
+    .hint { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.25rem; line-height: 1.5; }
+    .hint b { color: #e2dcfb; }
+
+    .preview { background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 10px; height: 36px; overflow: hidden; display: flex; align-items: center; margin-bottom: 1.5rem; }
+    .preview-track { display: flex; white-space: nowrap; animation: tickRun 26s linear infinite; }
+    .preview-item { display: inline-flex; align-items: center; gap: 1.5rem; padding: 0 2rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+    .preview-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.25); flex-shrink: 0; }
+    @keyframes tickRun { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+
+    .card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 0.9rem; }
+    .card.inactive { opacity: 0.5; }
+    .card.expired { border-color: rgba(252,165,165,0.4); }
+    .row1 { display: flex; align-items: flex-start; gap: 0.75rem; }
+    .grip { color: rgba(255,255,255,0.25); display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+    .grip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.7rem; padding: 2px; }
+    .grip button:hover { color: #c4b5f4; }
+    .grip button:disabled { opacity: 0.2; cursor: default; }
+    .fields { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+    .fields textarea { width: 100%; background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 0.88rem; resize: vertical; min-height: 40px; color-scheme: dark; }
+    .meta-row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+    .meta-row input[type="text"], .meta-row input[type="datetime-local"] { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 9px; font-family: inherit; font-size: 0.78rem; color-scheme: dark; }
+    .meta-row input[type="text"] { flex: 1; min-width: 160px; }
+    .meta-label { font-size: 0.72rem; color: rgba(255,255,255,0.5); }
+    .switch { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: rgba(255,255,255,0.7); cursor: pointer; }
+    .switch input { cursor: pointer; }
+    .actions { display: flex; gap: 0.5rem; margin-top: 0.3rem; }
+    .btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.75); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; cursor: pointer; font-family: inherit; }
+    .btn:hover { border-color: rgba(196,181,244,0.5); color: #e2dcfb; }
+    .btn.primary { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
+    .btn.primary:hover { background: #e2dcfb; }
+    .btn.danger:hover { border-color: rgba(252,165,165,0.5); color: #fca5a5; }
+    .status-note { font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+    .status-note.expired-note { color: #fca5a5; }
+
+    .add-btn { display: block; width: 100%; background: rgba(196,181,244,0.08); border: 1px dashed rgba(196,181,244,0.35); color: #c4b5f4; border-radius: 12px; padding: 0.9rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+    .add-btn:hover { background: rgba(196,181,244,0.14); }
+
+    .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 2rem; font-size: 0.88rem; }
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1e1850; border: 1px solid rgba(196,181,244,0.4); color: #e2dcfb; padding: 8px 16px; border-radius: 10px; font-size: 0.82rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
+    .toast.show { opacity: 1; }
+
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; }
+    .auth-box h2 { color: #c4b5f4; font-size: 1.1rem; margin-bottom: 1rem; }
+    .auth-box input { width: 100%; background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 10px 12px; font-family: inherit; margin-bottom: 0.75rem; color-scheme: dark; }
+    .auth-box button { width: 100%; background: #c4b5f4; color: #1a1430; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .auth-box button:hover { background: #e2dcfb; }
+    .auth-err { color: #fca5a5; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1rem; }
+  </style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Bulletin board</h2>
+    <input type="password" id="pw-input" placeholder="Adminlösenord" autocomplete="current-password" />
+    <button id="pw-btn">Logga in</button>
+    <div class="auth-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="topbar">
+    <a href="/admin/">← Admin</a>
+    <h1>📣 Bulletin board</h1>
+    <div class="topbar-right" id="last-updated"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="hint">
+      Meddelanden här visas i den rullande tickern högst upp på sajten. Är
+      <b>inga</b> meddelanden aktiva (eller alla utgångna) visas default-texten
+      istället. Max 200 tecken per meddelande.
+    </div>
+
+    <div class="preview" id="preview-box">
+      <div class="preview-track" id="preview-track"></div>
+    </div>
+
+    <div id="list"></div>
+    <button class="add-btn" id="add-btn">+ Nytt meddelande</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_KEY = 'sk_admin_token';
+let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
+let items = [];
+
+const DEFAULT_ITEMS = [
+  'Uthyrning av scen, ljud, bild & ljus',
+  'Del av Sveriges scener sedan 1986',
+  'Ingen scen är för liten — eller för stor',
+  'Leverans och montering i hela Storstockholm',
+  'Jourtjänst kvällstid',
+  'Fest · Bröllop · Event · Konsert',
+];
+
+async function tryLogin(pw) {
+  try {
+    const res = await fetch('/api/admin-auth?_=' + Date.now(), {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return !!j.ok;
+  } catch (e) { return false; }
+}
+
+document.getElementById('pw-btn').onclick = async () => {
+  const pw = document.getElementById('pw-input').value.trim();
+  if (!pw) return;
+  if (await tryLogin(pw)) {
+    adminToken = pw; sessionStorage.setItem(ADMIN_KEY, pw);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    init();
+  } else { document.getElementById('pw-err').textContent = 'Fel lösenord'; }
+};
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
+
+if (adminToken) {
+  tryLogin(adminToken).then(okResp => {
+    if (okResp) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      init();
+    } else { sessionStorage.removeItem(ADMIN_KEY); adminToken = ''; }
+  });
+}
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+async function api(action, extra) {
+  const res = await fetch('/.netlify/functions/admin-bulletin', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...extra }),
+  });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return null; }
+  if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'Serverfel'); }
+  return res.json();
+}
+
+async function loadAll() {
+  const res = await fetch('/.netlify/functions/admin-bulletin', {
+    headers: { 'Authorization': 'Bearer ' + adminToken },
+  });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return; }
+  const j = await res.json();
+  items = j.bulletins || [];
+  render();
+}
+
+function isExpired(b) {
+  return b.expires_at && new Date(b.expires_at).getTime() < Date.now();
+}
+
+function toLocalInputValue(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function render() {
+  const list = document.getElementById('list');
+  if (!items.length) {
+    list.innerHTML = '<div class="empty">Inga meddelanden ännu — default-texten visas i tickern.</div>';
+  } else {
+    list.innerHTML = items.map((b, i) => `
+      <div class="card ${!b.active ? 'inactive' : ''} ${isExpired(b) ? 'expired' : ''}" data-id="${escapeHtml(b.id)}">
+        <div class="row1">
+          <div class="grip">
+            <button data-up="${escapeHtml(b.id)}" ${i === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
+            <button data-down="${escapeHtml(b.id)}" ${i === items.length - 1 ? 'disabled' : ''} title="Flytta ner">▼</button>
+          </div>
+          <div class="fields">
+            <textarea data-field="text" maxlength="200" rows="1">${escapeHtml(b.text)}</textarea>
+            <div class="meta-row">
+              <input type="text" data-field="link_url" placeholder="Länk (valfritt), t.ex. /vara-tjanster/hyra-bild/" value="${escapeHtml(b.link_url || '')}" />
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Utgår:</span>
+              <input type="datetime-local" data-field="expires_at" value="${toLocalInputValue(b.expires_at)}" />
+              <label class="switch"><input type="checkbox" data-field="active" ${b.active ? 'checked' : ''} /> Aktiv</label>
+              ${isExpired(b) ? '<span class="status-note expired-note">⚠ Utgången — visas ej i tickern</span>' : ''}
+            </div>
+            <div class="actions">
+              <button class="btn primary" data-save="${escapeHtml(b.id)}">Spara</button>
+              <button class="btn danger" data-delete="${escapeHtml(b.id)}">Ta bort</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  renderPreview();
+  bindCardEvents();
+}
+
+function renderPreview() {
+  const active = items.filter(b => b.active && !isExpired(b));
+  const source = active.length ? active.map(b => b.text) : DEFAULT_ITEMS;
+  const html = source.map(t => `<span class="preview-item">${escapeHtml(t)}<span class="preview-dot"></span></span>`).join('');
+  document.getElementById('preview-track').innerHTML = html + html;
+}
+
+function bindCardEvents() {
+  document.querySelectorAll('[data-save]').forEach(btn => {
+    btn.onclick = async () => {
+      const card = btn.closest('.card');
+      const id = card.dataset.id;
+      const text = card.querySelector('[data-field="text"]').value.trim();
+      const link_url = card.querySelector('[data-field="link_url"]').value.trim();
+      const expiresLocal = card.querySelector('[data-field="expires_at"]').value;
+      const active = card.querySelector('[data-field="active"]').checked;
+      if (!text) { toast('Text krävs'); return; }
+      const existing = items.find(b => b.id === id);
+      try {
+        const res = await api('upsert', { bulletin: {
+          id, text, link_url: link_url || null,
+          expires_at: expiresLocal ? new Date(expiresLocal).toISOString() : null,
+          active, sort_order: existing ? existing.sort_order : items.length,
+        }});
+        if (!res) return;
+        toast('Sparat');
+        await loadAll();
+      } catch (e) { toast(e.message); }
+    };
+  });
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('Ta bort meddelandet?')) return;
+      try {
+        await api('delete', { id: btn.dataset.delete });
+        toast('Borttaget');
+        await loadAll();
+      } catch (e) { toast(e.message); }
+    };
+  });
+  document.querySelectorAll('[data-up]').forEach(btn => {
+    btn.onclick = async () => { await move(btn.dataset.up, -1); };
+  });
+  document.querySelectorAll('[data-down]').forEach(btn => {
+    btn.onclick = async () => { await move(btn.dataset.down, 1); };
+  });
+}
+
+async function move(id, dir) {
+  const idx = items.findIndex(b => b.id === id);
+  const swapWith = idx + dir;
+  if (swapWith < 0 || swapWith >= items.length) return;
+  [items[idx], items[swapWith]] = [items[swapWith], items[idx]];
+  try {
+    await api('reorder', { ids: items.map(b => b.id) });
+    await loadAll();
+  } catch (e) { toast(e.message); }
+}
+
+document.getElementById('add-btn').onclick = async () => {
+  try {
+    await api('upsert', { bulletin: { text: 'Nytt meddelande — redigera mig', sort_order: items.length, active: false } });
+    toast('Tillagt — redigera texten nedan');
+    await loadAll();
+  } catch (e) { toast(e.message); }
+};
+
+function init() {
+  document.getElementById('last-updated').textContent = new Date().toLocaleString('sv-SE');
+  loadAll();
+}
+</script>
+
+</body>
+</html>

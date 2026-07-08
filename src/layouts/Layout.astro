@@ -447,6 +447,35 @@ const localBusinessSchema = {
       <span class="tick-item">Fest · Bröllop · Event · Konsert<span class="tick-dot"></span></span>
     </div>
   </div>
+  <script>
+    // Bulletin board: om admin har lagt in aktiva meddelanden (/admin/bulletin/)
+    // ersätts default-tickern med dem. Annars lämnas den statiska texten orörd.
+    (async () => {
+      try {
+        const res = await fetch('/.netlify/functions/bulletin-list', { cache: 'default' });
+        if (!res.ok) return;
+        const { items } = await res.json();
+        if (!Array.isArray(items) || items.length === 0) return;
+
+        const track = document.querySelector('.ticker-track');
+        if (!track) return;
+
+        const itemHtml = (t, link) => {
+          const text = String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const inner = `${text}<span class="tick-dot"></span>`;
+          return link
+            ? `<a class="tick-item" href="${link}" style="text-decoration:none;color:inherit">${inner}</a>`
+            : `<span class="tick-item">${inner}</span>`;
+        };
+
+        const html = items.map(b => itemHtml(b.text, b.link)).join('');
+        // Dubblera för sömlös loop, precis som default-innehållet.
+        track.innerHTML = html + html;
+      } catch (e) {
+        // Tyst fallback - default-tickern ligger redan server-renderad.
+      }
+    })();
+  </script>
 
   <!-- NAV -->
   <nav class="nav" id="mainNav">
