@@ -106,8 +106,10 @@
     <div class="hint">
       <b>Kampanjer</b> är tidsbegränsade meddelanden — är minst en aktiv just nu
       (inom sitt från/till-fönster) visas ENDAST dessa i tickern, resten av
-      sajten opåverkad. Utan aktiv kampanj visas <b>standardtexten</b> nedan,
-      som du också kan redigera fritt. Max 200 tecken per meddelande.
+      sajten opåverkad. Flera kampanjer kan vara aktiva <b>samtidigt</b> — då
+      roterar de tillsammans i tickern. Utan aktiv kampanj visas
+      <b>standardtexten</b> nedan, som du också kan redigera fritt. Max 200
+      tecken per meddelande.
     </div>
 
     <div class="preview" id="preview-box">
@@ -358,7 +360,10 @@ async function move(id, dir) {
 document.getElementById('add-campaign-btn').onclick = async () => {
   try {
     const count = items.filter(b => b.type === 'campaign').length;
-    await api('upsert', { bulletin: { text: 'Ny kampanj — redigera mig', type: 'campaign', sort_order: count, active: false } });
+    // Explicit unik id — annars kolliderar två nya kampanjer med samma
+    // platshållartext på samma slug och den andra skriver över den första.
+    const id = 'campaign-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    await api('upsert', { bulletin: { id, text: 'Ny kampanj — redigera mig', type: 'campaign', sort_order: count, active: false } });
     toast('Tillagd — redigera texten och sätt datum nedan');
     await loadAll();
   } catch (e) { toast(e.message); }
@@ -367,7 +372,8 @@ document.getElementById('add-campaign-btn').onclick = async () => {
 document.getElementById('add-default-btn').onclick = async () => {
   try {
     const count = items.filter(b => b.type === 'default').length;
-    await api('upsert', { bulletin: { text: 'Ny standardrad — redigera mig', type: 'default', sort_order: count, active: true } });
+    const id = 'default-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    await api('upsert', { bulletin: { id, text: 'Ny standardrad — redigera mig', type: 'default', sort_order: count, active: true } });
     toast('Tillagd');
     await loadAll();
   } catch (e) { toast(e.message); }
