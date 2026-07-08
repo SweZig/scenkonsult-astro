@@ -1,12 +1,17 @@
 // netlify/functions/bulletin-list.js
 // Publik, oautentiserad GET — hämtas av nav-tickern (Layout.astro) client-side.
-// Returnerar bara aktiva, ej utgångna meddelanden (text + valfri länk),
-// sorterade på sort_order. Ingen admin-data läcker (id/skapad-datum etc. filtreras bort).
+//
+// Logik:
+//  1. Hämta alla aktiva rader med type='campaign'. Filtrera i JS på
+//     starts_at/expires_at-fönster (null = obegränsat åt det hållet).
+//  2. Finns minst en aktiv kampanj inom sitt fönster → returnera dessa.
+//  3. Annars → returnera aktiva rader med type='default' (redigerbar
+//     standardtext, se /admin/bulletin/).
 //
 // GET /.netlify/functions/bulletin-list
 
 'use strict';
-const { supabase, ok, err, preflight } = require('./_lib');
+const { supabase, err, preflight } = require('./_lib');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
@@ -15,16 +20,24 @@ exports.handler = async (event) => {
   try {
     const db = supabase();
     const { data } = await db.from('bulletins')
-      .select('text,link_url,expires_at')
+      .select('text,link_url,type,sort_order,starts_at,expires_at')
       .eq('active', true)
       .order('sort_order', { ascending: true });
 
+    const rows = data || [];
     const now = Date.now();
-    const items = (data || [])
-      .filter(b => !b.expires_at || new Date(b.expires_at).getTime() > now)
-      .map(b => ({ text: b.text, link: b.link_url || null }));
 
-    // Cacha kort hos klienten (60s) — tickern hämtar en gång per sidladdning ändå.
+    const withinWindow = (b) => {
+      if (b.starts_at && new Date(b.starts_at).getTime() > now) return false;
+      if (b.expires_at && new Date(b.expires_at).getTime() <= now) return false;
+      return true;
+    };
+
+    const campaigns = rows.filter(b => b.type === 'campaign' && withinWindow(b));
+    const source = campaigns.length ? campaigns : rows.filter(b => b.type === 'default');
+
+    const items = source.map(b => ({ text: b.text, link: b.link_url || null }));
+
     return {
       statusCode: 200,
       headers: {

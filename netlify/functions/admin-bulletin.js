@@ -29,7 +29,12 @@ function validate(b) {
   if (b.text.length > 200) return 'Text får vara max 200 tecken';
   if (b.link_url && typeof b.link_url !== 'string') return 'link_url måste vara text';
   if (b.link_url && b.link_url.length > 300) return 'Länk får vara max 300 tecken';
+  if (b.type && !['campaign', 'default'].includes(b.type)) return 'Ogiltig typ';
+  if (b.starts_at && isNaN(Date.parse(b.starts_at))) return 'Ogiltigt startdatum';
   if (b.expires_at && isNaN(Date.parse(b.expires_at))) return 'Ogiltigt utgångsdatum';
+  if (b.starts_at && b.expires_at && new Date(b.starts_at) >= new Date(b.expires_at)) {
+    return 'Från-datum måste vara före till-datum';
+  }
   return null;
 }
 
@@ -60,13 +65,17 @@ exports.handler = async (event) => {
       if (validationErr) return err(validationErr, 400);
 
       const id = b.id || slugify(b.text);
+      const type = b.type === 'default' ? 'default' : 'campaign';
       const row = {
         id,
         text: b.text.trim(),
         link_url: b.link_url?.trim() || null,
+        type,
         sort_order: typeof b.sort_order === 'number' ? b.sort_order : 0,
         active: typeof b.active === 'boolean' ? b.active : true,
-        expires_at: b.expires_at || null,
+        // Default-rader (standardtexten) har inget tidsfönster — bara kampanjer schemaläggs.
+        starts_at: type === 'default' ? null : (b.starts_at || null),
+        expires_at: type === 'default' ? null : (b.expires_at || null),
         updated_at: new Date().toISOString(),
       };
 

@@ -1,9 +1,12 @@
 ---
 // /admin/bulletin/ — Bulletin board för nav-tickern.
-// När minst ett meddelande är aktivt (och ej utgånget) ersätter dessa den
-// statiska default-texten i tickern på alla sidor (Layout.astro läser
-// /.netlify/functions/bulletin-list client-side).
+// Två typer av rader i samma tabell (bulletins):
+//  - Kampanjer (type=campaign): tidsbegränsade meddelanden, valfritt från/till-datum.
+//    Finns minst en aktiv kampanj inom sitt fönster visas ENDAST dessa i tickern.
+//  - Standardtext (type=default): den rullande texten som visas när ingen
+//    kampanj är aktiv. Ersätter de gamla hårdkodade raderna i Layout.astro.
 // Data via /.netlify/functions/admin-bulletin (service key).
+// Frontend läser /.netlify/functions/bulletin-list (publik, ingen auth).
 ---
 <!DOCTYPE html>
 <html lang="sv">
@@ -26,15 +29,22 @@
     .hint { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.25rem; line-height: 1.5; }
     .hint b { color: #e2dcfb; }
 
-    .preview { background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 10px; height: 36px; overflow: hidden; display: flex; align-items: center; margin-bottom: 1.5rem; }
+    .preview { background: #0c0a24; border: 1px solid rgba(196,181,244,0.2); border-radius: 10px; height: 36px; overflow: hidden; display: flex; align-items: center; margin-bottom: 0.5rem; }
     .preview-track { display: flex; white-space: nowrap; animation: tickRun 26s linear infinite; }
     .preview-item { display: inline-flex; align-items: center; gap: 1.5rem; padding: 0 2rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.65); }
     .preview-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.25); flex-shrink: 0; }
     @keyframes tickRun { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+    .preview-note { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-bottom: 1.75rem; }
+    .preview-note.is-campaign { color: #c4b5f4; }
+
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 1.75rem 0 0.6rem; }
+    .section-head h2 { font-size: 0.95rem; color: #e2dcfb; }
+    .section-head .sub { font-size: 0.74rem; color: rgba(255,255,255,0.45); }
 
     .card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 0.9rem; }
     .card.inactive { opacity: 0.5; }
     .card.expired { border-color: rgba(252,165,165,0.4); }
+    .card.scheduled { border-color: rgba(196,181,244,0.5); }
     .row1 { display: flex; align-items: flex-start; gap: 0.75rem; }
     .grip { color: rgba(255,255,255,0.25); display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
     .grip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.7rem; padding: 2px; }
@@ -48,7 +58,7 @@
     .meta-label { font-size: 0.72rem; color: rgba(255,255,255,0.5); }
     .switch { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: rgba(255,255,255,0.7); cursor: pointer; }
     .switch input { cursor: pointer; }
-    .actions { display: flex; gap: 0.5rem; margin-top: 0.3rem; }
+    .actions { display: flex; gap: 0.5rem; margin-top: 0.3rem; align-items: center; }
     .btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.75); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; cursor: pointer; font-family: inherit; }
     .btn:hover { border-color: rgba(196,181,244,0.5); color: #e2dcfb; }
     .btn.primary { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
@@ -56,11 +66,12 @@
     .btn.danger:hover { border-color: rgba(252,165,165,0.5); color: #fca5a5; }
     .status-note { font-size: 0.7rem; color: rgba(255,255,255,0.4); }
     .status-note.expired-note { color: #fca5a5; }
+    .status-note.scheduled-note { color: #c4b5f4; }
 
-    .add-btn { display: block; width: 100%; background: rgba(196,181,244,0.08); border: 1px dashed rgba(196,181,244,0.35); color: #c4b5f4; border-radius: 12px; padding: 0.9rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 0.5rem; }
+    .add-btn { display: block; width: 100%; background: rgba(196,181,244,0.08); border: 1px dashed rgba(196,181,244,0.35); color: #c4b5f4; border-radius: 12px; padding: 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 0.4rem; }
     .add-btn:hover { background: rgba(196,181,244,0.14); }
 
-    .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 2rem; font-size: 0.88rem; }
+    .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 1.5rem; font-size: 0.85rem; }
     .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1e1850; border: 1px solid rgba(196,181,244,0.4); color: #e2dcfb; padding: 8px 16px; border-radius: 10px; font-size: 0.82rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
     .toast.show { opacity: 1; }
 
@@ -93,17 +104,30 @@
 
   <div class="wrap">
     <div class="hint">
-      Meddelanden här visas i den rullande tickern högst upp på sajten. Är
-      <b>inga</b> meddelanden aktiva (eller alla utgångna) visas default-texten
-      istället. Max 200 tecken per meddelande.
+      <b>Kampanjer</b> är tidsbegränsade meddelanden — är minst en aktiv just nu
+      (inom sitt från/till-fönster) visas ENDAST dessa i tickern, resten av
+      sajten opåverkad. Utan aktiv kampanj visas <b>standardtexten</b> nedan,
+      som du också kan redigera fritt. Max 200 tecken per meddelande.
     </div>
 
     <div class="preview" id="preview-box">
       <div class="preview-track" id="preview-track"></div>
     </div>
+    <div class="preview-note" id="preview-note"></div>
 
-    <div id="list"></div>
-    <button class="add-btn" id="add-btn">+ Nytt meddelande</button>
+    <div class="section-head">
+      <h2>📅 Kampanjer</h2>
+      <span class="sub">Tidsbegränsade meddelanden</span>
+    </div>
+    <div id="list-campaign"></div>
+    <button class="add-btn" id="add-campaign-btn">+ Ny kampanj</button>
+
+    <div class="section-head">
+      <h2>♻️ Standardtext</h2>
+      <span class="sub">Visas när ingen kampanj är aktiv</span>
+    </div>
+    <div id="list-default"></div>
+    <button class="add-btn" id="add-default-btn">+ Ny standardrad</button>
   </div>
 </div>
 
@@ -113,15 +137,6 @@
 const ADMIN_KEY = 'sk_admin_token';
 let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
 let items = [];
-
-const DEFAULT_ITEMS = [
-  'Uthyrning av scen, ljud, bild & ljus',
-  'Del av Sveriges scener sedan 1986',
-  'Ingen scen är för liten — eller för stor',
-  'Leverans och montering i hela Storstockholm',
-  'Jourtjänst kvällstid',
-  'Fest · Bröllop · Event · Konsert',
-];
 
 async function tryLogin(pw) {
   try {
@@ -188,6 +203,12 @@ async function loadAll() {
 function isExpired(b) {
   return b.expires_at && new Date(b.expires_at).getTime() < Date.now();
 }
+function isNotYetStarted(b) {
+  return b.starts_at && new Date(b.starts_at).getTime() > Date.now();
+}
+function isActiveNow(b) {
+  return b.active && !isExpired(b) && !isNotYetStarted(b);
+}
 
 function toLocalInputValue(iso) {
   if (!iso) return '';
@@ -196,47 +217,84 @@ function toLocalInputValue(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function render() {
-  const list = document.getElementById('list');
-  if (!items.length) {
-    list.innerHTML = '<div class="empty">Inga meddelanden ännu — default-texten visas i tickern.</div>';
-  } else {
-    list.innerHTML = items.map((b, i) => `
-      <div class="card ${!b.active ? 'inactive' : ''} ${isExpired(b) ? 'expired' : ''}" data-id="${escapeHtml(b.id)}">
-        <div class="row1">
-          <div class="grip">
-            <button data-up="${escapeHtml(b.id)}" ${i === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
-            <button data-down="${escapeHtml(b.id)}" ${i === items.length - 1 ? 'disabled' : ''} title="Flytta ner">▼</button>
+function cardHtml(b, i, listLen, showDates) {
+  const dateFields = showDates ? `
+      <div class="meta-row">
+        <span class="meta-label">Från:</span>
+        <input type="datetime-local" data-field="starts_at" value="${toLocalInputValue(b.starts_at)}" />
+        <span class="meta-label">Till:</span>
+        <input type="datetime-local" data-field="expires_at" value="${toLocalInputValue(b.expires_at)}" />
+      </div>` : '';
+  let statusNote = '';
+  if (showDates) {
+    if (isExpired(b)) statusNote = '<span class="status-note expired-note">⚠ Utgången — visas ej</span>';
+    else if (isNotYetStarted(b)) statusNote = '<span class="status-note scheduled-note">🕒 Schemalagd — inte startad än</span>';
+    else if (b.active) statusNote = '<span class="status-note scheduled-note">● Aktiv nu</span>';
+  }
+  return `
+    <div class="card ${!b.active ? 'inactive' : ''} ${isExpired(b) ? 'expired' : ''} ${isNotYetStarted(b) ? 'scheduled' : ''}" data-id="${escapeHtml(b.id)}">
+      <div class="row1">
+        <div class="grip">
+          <button data-up="${escapeHtml(b.id)}" ${i === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
+          <button data-down="${escapeHtml(b.id)}" ${i === listLen - 1 ? 'disabled' : ''} title="Flytta ner">▼</button>
+        </div>
+        <div class="fields">
+          <textarea data-field="text" maxlength="200" rows="1">${escapeHtml(b.text)}</textarea>
+          <div class="meta-row">
+            <input type="text" data-field="link_url" placeholder="Länk (valfritt), t.ex. /vara-tjanster/hyra-bild/" value="${escapeHtml(b.link_url || '')}" />
           </div>
-          <div class="fields">
-            <textarea data-field="text" maxlength="200" rows="1">${escapeHtml(b.text)}</textarea>
-            <div class="meta-row">
-              <input type="text" data-field="link_url" placeholder="Länk (valfritt), t.ex. /vara-tjanster/hyra-bild/" value="${escapeHtml(b.link_url || '')}" />
-            </div>
-            <div class="meta-row">
-              <span class="meta-label">Utgår:</span>
-              <input type="datetime-local" data-field="expires_at" value="${toLocalInputValue(b.expires_at)}" />
-              <label class="switch"><input type="checkbox" data-field="active" ${b.active ? 'checked' : ''} /> Aktiv</label>
-              ${isExpired(b) ? '<span class="status-note expired-note">⚠ Utgången — visas ej i tickern</span>' : ''}
-            </div>
-            <div class="actions">
-              <button class="btn primary" data-save="${escapeHtml(b.id)}">Spara</button>
-              <button class="btn danger" data-delete="${escapeHtml(b.id)}">Ta bort</button>
-            </div>
+          ${dateFields}
+          <div class="meta-row">
+            <label class="switch"><input type="checkbox" data-field="active" ${b.active ? 'checked' : ''} /> Aktiv</label>
+            ${statusNote}
+          </div>
+          <div class="actions">
+            <button class="btn primary" data-save="${escapeHtml(b.id)}">Spara</button>
+            <button class="btn danger" data-delete="${escapeHtml(b.id)}">Ta bort</button>
           </div>
         </div>
       </div>
-    `).join('');
-  }
-  renderPreview();
+    </div>
+  `;
+}
+
+function render() {
+  const campaigns = items.filter(b => b.type === 'campaign');
+  const defaults = items.filter(b => b.type === 'default');
+
+  const listC = document.getElementById('list-campaign');
+  listC.innerHTML = campaigns.length
+    ? campaigns.map((b, i) => cardHtml(b, i, campaigns.length, true)).join('')
+    : '<div class="empty">Inga kampanjer — standardtexten rullar just nu.</div>';
+
+  const listD = document.getElementById('list-default');
+  listD.innerHTML = defaults.length
+    ? defaults.map((b, i) => cardHtml(b, i, defaults.length, false)).join('')
+    : '<div class="empty">Ingen standardtext ännu.</div>';
+
+  renderPreview(campaigns, defaults);
   bindCardEvents();
 }
 
-function renderPreview() {
-  const active = items.filter(b => b.active && !isExpired(b));
-  const source = active.length ? active.map(b => b.text) : DEFAULT_ITEMS;
-  const html = source.map(t => `<span class="preview-item">${escapeHtml(t)}<span class="preview-dot"></span></span>`).join('');
+function renderPreview(campaigns, defaults) {
+  const activeCampaigns = campaigns.filter(isActiveNow);
+  const activeDefaults = defaults.filter(b => b.active);
+  const source = activeCampaigns.length ? activeCampaigns : activeDefaults;
+  const note = document.getElementById('preview-note');
+
+  if (!source.length) {
+    document.getElementById('preview-track').innerHTML = '';
+    note.textContent = 'Inget att visa — lägg till minst en standardrad.';
+    note.className = 'preview-note';
+    return;
+  }
+
+  const html = source.map(b => `<span class="preview-item">${escapeHtml(b.text)}<span class="preview-dot"></span></span>`).join('');
   document.getElementById('preview-track').innerHTML = html + html;
+  note.textContent = activeCampaigns.length
+    ? `Live just nu: ${activeCampaigns.length} aktiv kampanj${activeCampaigns.length > 1 ? 'er' : ''}`
+    : 'Live just nu: standardtexten (ingen kampanj aktiv)';
+  note.className = activeCampaigns.length ? 'preview-note is-campaign' : 'preview-note';
 }
 
 function bindCardEvents() {
@@ -244,16 +302,19 @@ function bindCardEvents() {
     btn.onclick = async () => {
       const card = btn.closest('.card');
       const id = card.dataset.id;
+      const existing = items.find(b => b.id === id);
       const text = card.querySelector('[data-field="text"]').value.trim();
       const link_url = card.querySelector('[data-field="link_url"]').value.trim();
-      const expiresLocal = card.querySelector('[data-field="expires_at"]').value;
       const active = card.querySelector('[data-field="active"]').checked;
+      const startsField = card.querySelector('[data-field="starts_at"]');
+      const expiresField = card.querySelector('[data-field="expires_at"]');
       if (!text) { toast('Text krävs'); return; }
-      const existing = items.find(b => b.id === id);
       try {
         const res = await api('upsert', { bulletin: {
           id, text, link_url: link_url || null,
-          expires_at: expiresLocal ? new Date(expiresLocal).toISOString() : null,
+          type: existing ? existing.type : 'campaign',
+          starts_at: startsField && startsField.value ? new Date(startsField.value).toISOString() : null,
+          expires_at: expiresField && expiresField.value ? new Date(expiresField.value).toISOString() : null,
           active, sort_order: existing ? existing.sort_order : items.length,
         }});
         if (!res) return;
@@ -281,20 +342,33 @@ function bindCardEvents() {
 }
 
 async function move(id, dir) {
-  const idx = items.findIndex(b => b.id === id);
+  const item = items.find(b => b.id === id);
+  if (!item) return;
+  const group = items.filter(b => b.type === item.type);
+  const idx = group.findIndex(b => b.id === id);
   const swapWith = idx + dir;
-  if (swapWith < 0 || swapWith >= items.length) return;
-  [items[idx], items[swapWith]] = [items[swapWith], items[idx]];
+  if (swapWith < 0 || swapWith >= group.length) return;
+  [group[idx], group[swapWith]] = [group[swapWith], group[idx]];
   try {
-    await api('reorder', { ids: items.map(b => b.id) });
+    await api('reorder', { ids: group.map(b => b.id) });
     await loadAll();
   } catch (e) { toast(e.message); }
 }
 
-document.getElementById('add-btn').onclick = async () => {
+document.getElementById('add-campaign-btn').onclick = async () => {
   try {
-    await api('upsert', { bulletin: { text: 'Nytt meddelande — redigera mig', sort_order: items.length, active: false } });
-    toast('Tillagt — redigera texten nedan');
+    const count = items.filter(b => b.type === 'campaign').length;
+    await api('upsert', { bulletin: { text: 'Ny kampanj — redigera mig', type: 'campaign', sort_order: count, active: false } });
+    toast('Tillagd — redigera texten och sätt datum nedan');
+    await loadAll();
+  } catch (e) { toast(e.message); }
+};
+
+document.getElementById('add-default-btn').onclick = async () => {
+  try {
+    const count = items.filter(b => b.type === 'default').length;
+    await api('upsert', { bulletin: { text: 'Ny standardrad — redigera mig', type: 'default', sort_order: count, active: true } });
+    toast('Tillagd');
     await loadAll();
   } catch (e) { toast(e.message); }
 };
