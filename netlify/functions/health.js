@@ -26,7 +26,7 @@ async function fetchWithTimeout(url, opts = {}, ms = 6000) {
   }
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: corsHeaders, body: '' };
 
   // Vilka env-vars är satta? (endast true/false — aldrig värdet)

@@ -110,7 +110,7 @@ function statusLabel(s) {
   }[s]) || s || '';
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   // Endast GET (och HEAD för pre-flight i vissa kalenderklienter)
   if (event.httpMethod !== 'GET' && event.httpMethod !== 'HEAD') {
     return { statusCode: 405, body: 'Method not allowed' };
