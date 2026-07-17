@@ -69,11 +69,34 @@ export const handler = async (event) => {
     console.log('HEALTH:', JSON.stringify({ env, supabase }));
   }
 
-  const healthy = env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY && supabase.reachable;
+  // ── admin-carts-sond ──────────────────────────────────────────
+  // Kör EXAKT samma stora SELECT som admin-carts, men med limit=0 så inga
+  // kundrader (PII) returneras. Syftet: om en kolumn saknas i tabellen svarar
+  // PostgREST 400 och namnger kolumnen i felkroppen — då ser vi direkt vad
+  // som blockerar admins varukorgsladdning.
+  const ADMIN_CARTS_SELECT = 'id,status,items,customer_name,customer_company,customer_type,customer_orgnr,customer_ref,customer_invoice_address,invoice_email,use_invoice_email,wants_peppol,peppol_id,customer_email,customer_phone,event_date,return_date,delivery_time,return_time,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,invoice_due_date,bounce_status,bounce_at,bounce_reason,last_quote_message_id,pickup_signed_at,pickup_confirmed_at,admin_reminder_sent_at,admin_reminder_dismissed_until,source,sven_session_id,sven_forward_type,created_at,updated_at';
+  const carts_query = { ok: false, status: null, error: null };
+  if (url && key) {
+    try {
+      const res = await fetchWithTimeout(
+        `${url}/rest/v1/carts?select=${ADMIN_CARTS_SELECT}&limit=0`,
+        { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+        6000
+      );
+      carts_query.status = res.status;
+      carts_query.ok = res.ok;
+      if (!res.ok) carts_query.error = (await res.text()).slice(0, 400) || `HTTP ${res.status}`;
+    } catch (e) {
+      carts_query.error = e.name === 'AbortError' ? 'Timeout (6s)' : (e.message || 'Okänt fel');
+    }
+    console.log('HEALTH_CARTS_QUERY:', JSON.stringify(carts_query));
+  }
+
+  const healthy = env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY && supabase.reachable && carts_query.ok;
 
   return {
     statusCode: healthy ? 200 : 503,
     headers: corsHeaders,
-    body: JSON.stringify({ ok: healthy, time: new Date().toISOString(), env, supabase }, null, 2),
+    body: JSON.stringify({ ok: healthy, time: new Date().toISOString(), env, supabase, carts_query }, null, 2),
   };
 };
