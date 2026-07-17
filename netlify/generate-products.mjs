@@ -1,5 +1,5 @@
 // netlify/generate-products.mjs
-// Körs vid byggtid: läser src/data/*.json → genererar netlify/functions/_products-generated.js
+// Körs vid byggtid: läser src/data/*.json → genererar netlify/functions/_products-generated.mjs
 // Lägg till i netlify.toml build-kommando FÖRE npm run build
 
 import fs from 'fs';
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.join(__dirname, '..');
 const DATA      = path.join(ROOT, 'src/data');
-const OUT       = path.join(__dirname, 'functions/_products-generated.js');
+const OUT       = path.join(__dirname, 'functions/_products-generated.mjs');
 const OUT_JSON  = path.join(ROOT, 'src/data/quote-catalog.json');
 
 function readJson(file) {

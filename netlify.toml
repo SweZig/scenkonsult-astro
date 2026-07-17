@@ -8,6 +8,12 @@
       [functions]
         directory = "netlify/functions"
 
+      # sven-chat.mjs importerar ./_products-generated.mjs. Default-bundlaren (nft)
+      # shippar rå källkod och tracern tar inte alltid med den relativa .mjs-importen
+      # -> "Cannot find module". esbuild bundlar in datan i funktionsfilen.
+      [functions."sven-chat"]
+        node_bundler = "esbuild"
+
         # Säkerhetshuvuden
         [[headers]]
           for = "/*"

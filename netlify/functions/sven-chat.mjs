@@ -1,4 +1,4 @@
-import { CART_ID_LISTA, PRODUKTER_OCH_PRISER, SVEN_FACTS } from './_products-generated.js';
+import { CART_ID_LISTA, PRODUKTER_OCH_PRISER, SVEN_FACTS } from './_products-generated.mjs';
 
 // ── Supabase-loggning ──────────────────────────────────────────────────────
 async function logToSupabase(data) {

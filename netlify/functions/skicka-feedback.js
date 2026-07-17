@@ -38,7 +38,7 @@ async function sendEmail(apiKey, payload) {
   return res.json();
 }
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
   const headers = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
 
