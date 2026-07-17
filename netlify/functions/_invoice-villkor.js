@@ -7,13 +7,13 @@
 // Båda matchar gällande hyresvillkor på scenkonsult.se/hyresvillkor/{privatperson,foretag}/
 // Senast uppdaterad: 2026-06-01 (placeholder — sätts skarpt vid skarp publicering)
 
-const VILLKOR_DATE = '2026-06-03';
+const VILLKOR_DATE = '2026-07-17';
 
 const VILLKOR_B2C = [
   ['1. Hyresperiod',
    'Normal hyresperiod är 22 timmar — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Längre hyresperioder mot tillägg. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
   ['2. Bokning och betalning',
-   'Privatpersoner betalar alltid innan eller i samband med att utrustningen lämnas ut — via Swish, förskottsfaktura eller kortbetalning vid hämtning. Vid kortbetalning tar vi de flesta betalkort på marknaden (Visa, Mastercard, Maestro, American Express) samt Apple Pay och Google Pay. Bokningar inom 72 timmar kräver omedelbar betalning. Bokningsavgift om 49 kr (exkl. moms) tillkommer.'],
+   'Privatpersoner betalar alltid innan eller i samband med att utrustningen lämnas ut — via Swish, förskottsfaktura eller kortbetalning vid hämtning. Vid kortbetalning tar vi de flesta betalkort på marknaden (Visa, Mastercard, Maestro, American Express) samt Apple Pay och Google Pay. Bokningar inom 72 timmar kräver omedelbar betalning. Bokningsavgift om 49 kr (exkl. moms) tillkommer. Vid utebliven betalning i rätt tid debiteras dröjsmålsränta enligt räntelagen (referensränta + 8 %) samt påminnelseavgift om 60 kr per påminnelse och lagstadgad inkassoavgift om 180 kr enligt lag (1981:739) om ersättning för inkassokostnader m.m.'],
   ['3. Avbokning och ändring',
    'Mer än 7 dagar före: kostnadsfritt. 3–7 dagar: 50 % återbetalas. Färre än 3 dagar: ingen återbetalning. Byte av datum/utrustning är kostnadsfritt om tillgängligt. DJ-bokningar: mer än 60 dagar gratis; 30–60 dagar 50 %; färre än 30 dagar fullt pris. Avbokning ska göras skriftligen.'],
   ['4. Ansvar och försäkring',
@@ -40,7 +40,7 @@ const VILLKOR_B2B = [
   ['1. Hyresperiod',
    'Normal hyresperiod är 22 timmar — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Längre hyresperioder mot tillägg. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
   ['2. Bokning och betalning',
-   'Bokning är bindande och bekräftas skriftligen. Betalning sker normalt mot faktura (vanligen 5–30 dagar). Företag utan kreditmöjlighet kan i stället betala vid hämtning med kort (de flesta betalkort accepteras, samt Apple Pay och Google Pay) eller via Swish. Bokningar inom 72 timmar kräver omedelbar betalning. Bokningsavgift om 49 kr (exkl. moms) tillkommer per faktura. Dröjsmålsränta debiteras vid sen betalning (referensränta + 8 %).'],
+   'Bokning är bindande och bekräftas skriftligen. Betalning sker normalt mot faktura (vanligen 5–30 dagar). Företag utan kreditmöjlighet kan i stället betala vid hämtning med kort (de flesta betalkort accepteras, samt Apple Pay och Google Pay) eller via Swish. Bokningar inom 72 timmar kräver omedelbar betalning. Bokningsavgift om 49 kr (exkl. moms) tillkommer per faktura. Dröjsmålsränta debiteras vid sen betalning (referensränta + 8 %). Vid utebliven betalning debiteras även påminnelseavgift om 60 kr per påminnelse samt lagstadgad inkassoavgift om 180 kr enligt lag (1981:739) om ersättning för inkassokostnader m.m.'],
   ['3. Beställarens ansvar och behörighet',
    'Den fysiska person som genomför bokningen ("Beställaren") intygar att hen är behörig att binda hyresgästen — företag, förening eller annan organisation. Om sådan behörighet saknas blir Beställaren personligen och primärt ansvarig för hela hyresavtalet, inklusive hyresbelopp, skada, förlust och återanskaffningskostnad.'],
   ['4. Avbokning och ändring',

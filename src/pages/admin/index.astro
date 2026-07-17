@@ -4972,6 +4972,7 @@ function renderLogTab() {
     'invoice_sent':       { icon: '📤', label: 'Faktura skickad', color: 'var(--amber)' },
     'invoice_resent':     { icon: '📤', label: 'Faktura skickad om', color: 'var(--amber)' },
     'invoice_paid':       { icon: '💚', label: 'Faktura markerad betald', color: 'var(--green)' },
+    'invoice_reminder_sent': { icon: '📩', label: 'Betalningspåminnelse skickad', color: 'var(--amber)' },
     'order_confirmed':    { icon: '✅', label: 'Order bekräftad av kund', color: 'var(--green)' },
     'items_updated':      { icon: '📦', label: 'Produkter uppdaterade', color: 'var(--text-muted)' },
   };
@@ -5079,6 +5080,17 @@ function renderFakturaTab() {
       ${isPaid ? `<button class="btn-action" onclick="invUnmarkPaid()" style="font-size:0.8rem;border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6)">↩ Avmarkera betald</button>` : ''}
       <button class="btn-action" onclick="invDownloadPdf()" style="font-size:0.78rem;border-color:rgba(196,181,244,0.45);color:rgba(196,181,244,0.8)">📄 Spara som PDF</button>
     </div>
+
+    ${(Array.isArray(c.invoice_reminder_log) && c.invoice_reminder_log.length) ? `
+      <div style="margin-top:14px;padding:10px 12px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:8px">
+        <div style="font-size:0.82rem;font-weight:700;color:var(--amber);margin-bottom:6px">📩 Skickade påminnelser</div>
+        ${c.invoice_reminder_log.map(r => {
+          const nm = ['','Påminnelse','Påminnelse 2','Krav','Inkassokrav'][r.level] || ('Nivå '+r.level);
+          const feeKr = Math.round((r.fee_ore||0)/100);
+          return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:0.76rem;color:var(--text-muted);padding:2px 0"><span>Nivå ${r.level} · ${nm}${feeKr?` · +${feeKr} kr avgift`:''}${r.due?` · betaldag ${fmtDate(r.due)}`:''}</span><span style="white-space:nowrap">${r.at?fmtDate(r.at):''}</span></div>`;
+        }).join('')}
+      </div>
+    ` : ''}
 
     ${(isSent || c.credit_invoice_number) ? `
       <!-- ═══ Kreditfaktura ═══ -->
@@ -6881,42 +6893,139 @@ async function sendCustomerNotice() {
   } else toast('Kunde inte skicka notis', 'error');
 }
 
-// Skicka en BETALNINGSPÅMINNELSE (PDF) till fakturaadressen.
-async function sendPaymentReminder() {
+// ═══ Betalningspåminnelse i 4 nivåer ════════════════════════════════════════
+// Nivåväljare istället för enkel confirm(). Systemet rekommenderar nästa nivå
+// utifrån hur försenad fakturan är + senast skickade nivå. Ton/avgift skärps.
+const PAY_LEVELS = [
+  { n: 1, name: 'Påminnelse',   tone: 'Vänlig påminnelse. Ingen avgift.',                          fee: 0,   color: '#f59e0b' },
+  { n: 2, name: 'Påminnelse 2', tone: 'Vänlig men tydligare — andra gången. Ingen avgift.',        fee: 0,   color: '#f59e0b' },
+  { n: 3, name: 'Krav',         tone: 'Skärpt ton. +60 kr påminnelseavgift, 8 dagars betalfrist.', fee: 60,  color: '#ea580c' },
+  { n: 4, name: 'Inkassokrav',  tone: 'Formell. +180 kr inkassoavgift, varning om Kronofogden.',    fee: 180, color: '#dc2626' },
+];
+let _payRemSel = 0, _payRemPrev = 0, _payRemDays = 0, _payRemBase = 0;
+
+function payRemAccFee(level) { return (level >= 3 ? 60 : 0) + (level >= 4 ? 180 : 0); }
+function payRemRecommend(days, prev) {
+  let byDay = 1;
+  if (days >= 35) byDay = 4; else if (days >= 21) byDay = 3; else if (days >= 10) byDay = 2; else byDay = 1;
+  let rec = Math.min(byDay, prev + 1);
+  rec = Math.max(rec, prev + 1 > 4 ? 4 : prev + 1);
+  return Math.min(rec, 4);
+}
+
+// Öppnar nivåväljaren (anropas av knappen "📩 Påminn om betalning")
+function sendPaymentReminder() {
   const c = currentCart;
   if (!c) return;
   if (!c.invoice_number) { toast('Ingen faktura skickad ännu — skapa fakturan först', 'error'); return; }
   if (c.invoice_paid_at) { toast('Fakturan är redan markerad som betald', 'error'); return; }
-
   const toEmail = (c.use_invoice_email && c.invoice_email) ? c.invoice_email : c.customer_email;
   if (!toEmail) { toast('Saknar mottagaradress för påminnelsen', 'error'); return; }
 
-  // Antal dagar sedan förfallodag (för bekräftelsedialogen)
-  let overdueTxt = '';
+  // Dagar försenad + senast skickade nivå
+  _payRemDays = 0;
   if (c.invoice_due_date) {
     const due = new Date(c.invoice_due_date + 'T00:00:00');
     const today = new Date(new Date().toISOString().slice(0,10) + 'T00:00:00');
-    const d = Math.round((today - due) / 86400000);
-    overdueTxt = d > 0 ? `\n\nFörfallodagen var ${due.toLocaleDateString('sv-SE')} (${d} ${d===1?'dag':'dagar'} sedan).` : `\n\nFörfallodag: ${due.toLocaleDateString('sv-SE')}.`;
+    _payRemDays = Math.round((today - due) / 86400000);
+  }
+  _payRemPrev = parseInt(c.invoice_reminder_level) || 0;
+  const items = (c.items||[]).filter(i=>!i._note && i.name);
+  _payRemBase = Math.round(items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0) * 1.25);
+  _payRemSel = payRemRecommend(_payRemDays, _payRemPrev);
+
+  let ov = document.getElementById('payrem-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'payrem-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(12,10,36,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.onclick = (e) => { if (e.target === ov) window.payRemClose(); };
+    document.body.appendChild(ov);
+  }
+  ov.style.display = 'flex';
+  payRemRender();
+}
+
+function payRemRender() {
+  const c = currentCart; if (!c) return;
+  const toEmail = (c.use_invoice_email && c.invoice_email) ? c.invoice_email : c.customer_email;
+  const rec = payRemRecommend(_payRemDays, _payRemPrev);
+  const nf = (n) => n.toLocaleString('sv-SE');
+  const dTxt = _payRemDays > 0 ? `förfallen ${_payRemDays} ${_payRemDays===1?'dag':'dagar'}` : (_payRemDays===0 ? 'förfaller idag' : `förfaller om ${-_payRemDays} dagar`);
+  const histTxt = _payRemPrev === 0 ? 'inga påminnelser skickade än' : `senast skickat: nivå ${_payRemPrev} (${PAY_LEVELS[_payRemPrev-1].name})`;
+
+  const cards = PAY_LEVELS.map(l => {
+    const isSel = l.n === _payRemSel, isRec = l.n === rec;
+    const total = _payRemBase + payRemAccFee(l.n);
+    return `<button type="button" onclick="window.payRemPick(${l.n})" style="position:relative;text-align:left;cursor:pointer;border-radius:10px;padding:11px 12px;background:var(--surface);border:1.5px solid ${isSel?'var(--brand-lav)':'var(--border)'};${isSel?'box-shadow:0 0 0 3px rgba(196,181,244,0.18);':''}font-family:inherit;color:inherit">
+      ${isRec?'<span style="position:absolute;top:-8px;right:10px;background:var(--brand-lav);color:#0c0a24;font-size:0.6rem;font-weight:700;letter-spacing:0.3px;padding:2px 7px;border-radius:20px">REKOMMENDERAS</span>':''}
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><span style="width:9px;height:9px;border-radius:50%;background:${l.color};display:inline-block"></span><span style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint)">Nivå ${l.n}</span></div>
+      <div style="font-size:0.98rem;font-weight:700;color:var(--text);margin-bottom:3px">${l.name}</div>
+      <div style="font-size:0.76rem;color:var(--text-muted);line-height:1.35">${l.tone}</div>
+      <div style="margin-top:7px;font-size:0.76rem;font-weight:700;color:${l.fee?'var(--amber)':'#6ee7b7'}">${l.fee?('▲ +'+l.fee+' kr'):'Ingen avgift'} · att betala ${nf(total)} kr</div>
+    </button>`;
+  }).join('');
+
+  let warn = '';
+  if (_payRemSel > _payRemPrev + 1) {
+    const skipped = []; for (let i=_payRemPrev+1;i<_payRemSel;i++) skipped.push(i);
+    warn = `⚠ Du hoppar över nivå ${skipped.join(', ')}. Påminnelserna skickas normalt i ordning.`;
+  } else if (_payRemSel <= _payRemPrev) {
+    warn = `⚠ Nivå ${_payRemSel} är redan skickad — detta skickar om samma nivå.`;
   }
 
-  if (!confirm(`Skicka betalningspåminnelse som PDF?\n\nFaktura ${c.invoice_number}\nTill: ${toEmail}${overdueTxt}\n\nEn vänlig påminnelse skickas till fakturaadressen med en PDF-bilaga.`)) return;
+  document.getElementById('payrem-overlay').innerHTML = `
+    <div style="background:rgba(15,12,40,0.99);border:1px solid rgba(196,181,244,0.22);border-radius:14px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.55);max-height:92vh;overflow:auto">
+      <div style="padding:18px 20px 4px">
+        <div style="font-size:1.15rem;font-weight:700;color:#fff">Påminn om betalning — välj nivå</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:5px">Faktura <b style="color:var(--brand-lav)">${c.invoice_number}</b> · ${dTxt} · ${histTxt}<br>Skickas till ${toEmail}</div>
+      </div>
+      <div style="padding:12px 20px 4px;display:grid;grid-template-columns:1fr 1fr;gap:9px">${cards}</div>
+      <div style="padding:10px 20px 18px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);margin-top:12px">
+        <span style="font-size:0.76rem;color:var(--amber);margin-right:auto;max-width:55%">${warn}</span>
+        <button type="button" class="btn-action" onclick="window.payRemClose()" style="font-size:0.82rem">Avbryt</button>
+        <button type="button" class="btn-action btn-success" id="payrem-send" onclick="window.payRemSend()" style="font-size:0.82rem">Skicka nivå ${_payRemSel} →</button>
+      </div>
+    </div>`;
+}
 
+function payRemPick(n) { _payRemSel = n; payRemRender(); }
+function payRemClose() { const ov = document.getElementById('payrem-overlay'); if (ov) ov.style.display = 'none'; }
+
+async function payRemSend() {
+  const c = currentCart; if (!c) return;
+  const level = _payRemSel;
+  const btn = document.getElementById('payrem-send');
+  if (btn) { btn.disabled = true; btn.textContent = 'Skickar…'; }
   const { ok, data } = await api('invoice-reminder-send', {
     method: 'POST',
-    body: JSON.stringify({ cart_id: c.id }),
+    body: JSON.stringify({ cart_id: c.id, level }),
     timeoutMs: 30000,
   });
   if (ok) {
-    toast('📩 Påminnelsefaktura skickad!');
+    const names = ['', 'Påminnelse', 'Påminnelse 2', 'Krav (+60 kr)', 'Inkassokrav (+180 kr)'];
+    toast('📩 ' + (names[level] || 'Påminnelse') + ' skickad!');
     currentCart.invoice_reminder_sent_at = new Date().toISOString();
+    currentCart.invoice_reminder_level = level;
+    currentCart.invoice_reminder_fee_ore = (data && data.fee_ore) || payRemAccFee(level) * 100;
+    currentCart.invoice_reminder_due_date = (data && data.due) || currentCart.invoice_reminder_due_date;
+    currentCart.invoice_reminder_log = [
+      ...(Array.isArray(currentCart.invoice_reminder_log) ? currentCart.invoice_reminder_log : []),
+      { level, at: new Date().toISOString(), fee_ore: payRemAccFee(level)*100, due: (data&&data.due)||null, overdue_days: _payRemDays },
+    ];
+    payRemClose();
     loadCarts();
     if (activeTab === 'faktura') renderTab('faktura');
   } else {
+    if (btn) { btn.disabled = false; btn.textContent = `Skicka nivå ${level} →`; }
     toast(data?.error || 'Kunde inte skicka påminnelsen', 'error');
   }
 }
+
 window.sendPaymentReminder = sendPaymentReminder;
+window.payRemPick = payRemPick;
+window.payRemClose = payRemClose;
+window.payRemSend = payRemSend;
 
 // ── OFFERT-MODAL ──────────────────────────────────────────────
 // Produktkatalog — kategori → (sub →) produkter med pris
@@ -8043,6 +8152,7 @@ const ACTIVITY_EVENT_LABELS = {
   'invoice_sent':               { icon: '📤', label: 'Faktura skickad',                         color: 'var(--amber)' },
   'invoice_resent':             { icon: '📤', label: 'Faktura skickad om',                      color: 'var(--amber)' },
   'invoice_paid':               { icon: '💚', label: 'Faktura markerad betald',                 color: 'var(--green)' },
+  'invoice_reminder_sent':      { icon: '📩', label: 'Betalningspåminnelse skickad',            color: 'var(--amber)' },
   'order_confirmed':            { icon: '✅', label: 'Order bekräftad av kund',                 color: 'var(--green)' },
   'order_confirmed_by_customer':{ icon: '✅', label: 'Order bekräftad av kund',                 color: 'var(--green)' },
   'items_updated':              { icon: '📦', label: 'Produkter uppdaterade',                   color: 'rgba(255,255,255,.55)' },
