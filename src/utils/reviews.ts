@@ -46,11 +46,10 @@ function relativeTimeSv(publishTime: string): string {
   return years === 1 ? 'för ett år sedan' : `för ${years} år sedan`;
 }
 
-// Alla recensioner, nyaste först, med härledda fält.
+// Alla recensioner i kurerad ordning (från admin/sort_order — filen skrivs redan
+// i rätt ordning av netlify/generate-reviews.mjs), med härledda fält.
 export function getReviews(): Review[] {
   return (reviewsData.reviews as Array<Omit<Review, 'initials' | 'time'>>)
-    .slice()
-    .sort((a, b) => new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime())
     .map((r) => ({
       ...r,
       initials: initialsOf(r.author),

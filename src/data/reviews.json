@@ -1,5 +1,5 @@
 {
-  "_comment": "Kurerad, KOMPLETT lista över Google-recensioner. Google Places API returnerar max 5 recensioner per plats (och väljer själv vilka), så nya recensioner syns aldrig via API:t. Denna fil kringgår det: referens- och kontaktsidan renderar recensioner härifrån server-side. Uppdateras MANUELLT när nya recensioner kommer — skrapa https://maps.google.com/?cid=5076721930755148492 (fliken Recensioner) och lägg till nya objekt överst. Tidsetiketten ('för X sedan') beräknas automatiskt från publishTime vid varje build.",
+  "_comment": "Server-renderad snapshot av Google-recensioner (SEO + fallback). Underhålls i admin (/admin/recensioner/) → Supabase-tabellen `reviews`. Regenereras automatiskt vid varje build av netlify/generate-reviews.mjs. Redigera INTE för hand — ändringar skrivs över vid nästa deploy. Sidorna hydrerar dessutom live från /.netlify/functions/reviews-list.",
   "_source": "Google Business Profile — Scenkonsult",
   "_placeUrl": "https://maps.google.com/?cid=5076721930755148492",
   "_placeId": "ChIJuWsoFN2fX0YRzIoYyrIjdEY",

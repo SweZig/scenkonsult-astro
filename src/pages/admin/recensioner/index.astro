@@ -1,0 +1,348 @@
+---
+// /admin/recensioner/ — Underhåll av Google-recensioner.
+// Google Places API returnerar max 5 recensioner (och väljer själv vilka), så
+// nya recensioner syns aldrig via API:t. Här underhålls den KOMPLETTA listan.
+//
+// Data via /.netlify/functions/admin-reviews (service key).
+// Frontend läser /.netlify/functions/reviews-list (publik) + server-renderad
+// snapshot i src/data/reviews.json (regenereras vid varje build).
+// Antalet i badgen på sajten hämtas live från Googles API (userRatingCount).
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Recensioner — Admin</title>
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+    .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
+    .topbar a:hover { color: #c4b5f4; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
+    .topbar-right { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.40); }
+
+    .wrap { max-width: 820px; margin: 0 auto; padding: 1.5rem; }
+    .hint { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.25rem; line-height: 1.5; }
+    .hint b { color: #e2dcfb; }
+
+    .gbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.85rem 1.1rem; margin-bottom: 1.25rem; }
+    .gbar .stat { font-size: 0.82rem; color: rgba(255,255,255,0.7); }
+    .gbar .stat b { color: #c4b5f4; font-size: 1rem; }
+    .gbar .spacer { flex: 1; }
+
+    .card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 0.9rem; }
+    .card.inactive { opacity: 0.55; }
+    .row1 { display: flex; align-items: flex-start; gap: 0.75rem; }
+    .grip { color: rgba(255,255,255,0.25); display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+    .grip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.7rem; padding: 2px; }
+    .grip button:hover { color: #c4b5f4; }
+    .grip button:disabled { opacity: 0.2; cursor: default; }
+    .fields { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+    .fields textarea { width: 100%; background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 0.88rem; resize: vertical; min-height: 54px; color-scheme: dark; }
+    .meta-row { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+    .meta-row input[type="text"], .meta-row input[type="date"], .meta-row select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 9px; font-family: inherit; font-size: 0.8rem; color-scheme: dark; }
+    .meta-row input[type="text"] { flex: 1; min-width: 160px; }
+    .meta-label { font-size: 0.72rem; color: rgba(255,255,255,0.5); }
+    .stars-live { color: #f5a623; letter-spacing: 1px; font-size: 0.9rem; }
+    .switch { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: rgba(255,255,255,0.7); cursor: pointer; }
+    .switch input { cursor: pointer; }
+    .actions { display: flex; gap: 0.5rem; margin-top: 0.3rem; align-items: center; }
+    .btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.75); border-radius: 8px; padding: 6px 12px; font-size: 0.78rem; cursor: pointer; font-family: inherit; }
+    .btn:hover { border-color: rgba(196,181,244,0.5); color: #e2dcfb; }
+    .btn.primary { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
+    .btn.primary:hover { background: #e2dcfb; }
+    .btn.danger:hover { border-color: rgba(252,165,165,0.5); color: #fca5a5; }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+
+    .add-btn { display: block; width: 100%; background: rgba(196,181,244,0.08); border: 1px dashed rgba(196,181,244,0.35); color: #c4b5f4; border-radius: 12px; padding: 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 0.4rem; }
+    .add-btn:hover { background: rgba(196,181,244,0.14); }
+
+    .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 1.5rem; font-size: 0.85rem; }
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1e1850; border: 1px solid rgba(196,181,244,0.4); color: #e2dcfb; padding: 8px 16px; border-radius: 10px; font-size: 0.82rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
+    .toast.show { opacity: 1; }
+
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; }
+    .auth-box h2 { color: #c4b5f4; font-size: 1.1rem; margin-bottom: 1rem; }
+    .auth-box input { width: 100%; background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 10px 12px; font-family: inherit; margin-bottom: 0.75rem; color-scheme: dark; }
+    .auth-box button { width: 100%; background: #c4b5f4; color: #1a1430; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .auth-box button:hover { background: #e2dcfb; }
+    .auth-err { color: #fca5a5; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1rem; }
+  </style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Recensioner</h2>
+    <input type="password" id="pw-input" placeholder="Adminlösenord" autocomplete="current-password" />
+    <button id="pw-btn">Logga in</button>
+    <div class="auth-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="topbar">
+    <a href="/admin/">← Admin</a>
+    <h1>⭐ Recensioner</h1>
+    <div class="topbar-right" id="last-updated"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="hint">
+      Google Places API returnerar bara <b>5 recensioner</b> och väljer själv vilka —
+      nya recensioner syns aldrig via API:t. Här underhåller du den <b>kompletta</b>
+      listan som visas på <a href="/referenser/" target="_blank">referens-</a> och
+      kontaktsidan. Ändringar slår igenom direkt (och bakas in i sajten vid nästa deploy).
+      <b>Antalet</b> i badgen på sajten hämtas live från Google.
+    </div>
+
+    <div class="gbar">
+      <span class="stat">På Google: <b id="g-count">…</b> recensioner (<b id="g-rating">…</b>★)</span>
+      <span class="stat">Här inlagda: <b id="local-count">0</b></span>
+      <span class="spacer"></span>
+      <button class="btn" id="import-google-btn" title="Hämtar de recensioner Google visar via API (max 5) och lägger till de som saknas">↓ Importera från Google</button>
+    </div>
+
+    <div id="list"></div>
+    <button class="add-btn" id="add-btn">+ Ny recension</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_KEY = 'sk_admin_token';
+let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
+let items = [];
+
+async function tryLogin(pw) {
+  try {
+    const res = await fetch('/api/admin-auth?_=' + Date.now(), {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return !!j.ok;
+  } catch (e) { return false; }
+}
+
+document.getElementById('pw-btn').onclick = async () => {
+  const pw = document.getElementById('pw-input').value.trim();
+  if (!pw) return;
+  if (await tryLogin(pw)) {
+    adminToken = pw; sessionStorage.setItem(ADMIN_KEY, pw);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    init();
+  } else { document.getElementById('pw-err').textContent = 'Fel lösenord'; }
+};
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
+
+if (adminToken) {
+  tryLogin(adminToken).then(okResp => {
+    if (okResp) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      init();
+    } else { sessionStorage.removeItem(ADMIN_KEY); adminToken = ''; }
+  });
+}
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+async function api(action, extra) {
+  const res = await fetch('/.netlify/functions/admin-reviews', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...extra }),
+  });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return null; }
+  if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'Serverfel'); }
+  return res.json();
+}
+
+async function loadAll() {
+  const res = await fetch('/.netlify/functions/admin-reviews', {
+    headers: { 'Authorization': 'Bearer ' + adminToken },
+  });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return; }
+  const j = await res.json();
+  items = j.reviews || [];
+  render();
+}
+
+function toDateInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function starOptions(sel) {
+  return [5,4,3,2,1].map(n => `<option value="${n}" ${n===sel?'selected':''}>${n} ★</option>`).join('');
+}
+
+function cardHtml(r, i, len) {
+  return `
+    <div class="card ${!r.active ? 'inactive' : ''}" data-id="${escapeHtml(r.id)}">
+      <div class="row1">
+        <div class="grip">
+          <button data-up="${escapeHtml(r.id)}" ${i === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
+          <button data-down="${escapeHtml(r.id)}" ${i === len - 1 ? 'disabled' : ''} title="Flytta ner">▼</button>
+        </div>
+        <div class="fields">
+          <div class="meta-row">
+            <input type="text" data-field="author" placeholder="Namn" value="${escapeHtml(r.author || '')}" />
+            <span class="meta-label">Betyg:</span>
+            <select data-field="rating">${starOptions(r.rating || 5)}</select>
+            <span class="meta-label">Datum:</span>
+            <input type="date" data-field="published_at" value="${toDateInput(r.published_at)}" />
+          </div>
+          <textarea data-field="review_text" maxlength="1500" rows="3">${escapeHtml(r.review_text || '')}</textarea>
+          <div class="meta-row">
+            <label class="switch"><input type="checkbox" data-field="active" ${r.active ? 'checked' : ''} /> Aktiv (visas på sajten)</label>
+          </div>
+          <div class="actions">
+            <button class="btn primary" data-save="${escapeHtml(r.id)}">Spara</button>
+            <button class="btn danger" data-delete="${escapeHtml(r.id)}">Ta bort</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function render() {
+  const list = document.getElementById('list');
+  list.innerHTML = items.length
+    ? items.map((r, i) => cardHtml(r, i, items.length)).join('')
+    : '<div class="empty">Inga recensioner ännu — klicka "+ Ny recension" eller "Importera från Google".</div>';
+  document.getElementById('local-count').textContent = items.filter(r => r.active).length;
+  bindCardEvents();
+}
+
+function bindCardEvents() {
+  document.querySelectorAll('[data-save]').forEach(btn => {
+    btn.onclick = async () => {
+      const card = btn.closest('.card');
+      const id = card.dataset.id;
+      const existing = items.find(r => r.id === id);
+      const author = card.querySelector('[data-field="author"]').value.trim();
+      const rating = parseInt(card.querySelector('[data-field="rating"]').value, 10);
+      const review_text = card.querySelector('[data-field="review_text"]').value.trim();
+      const dateVal = card.querySelector('[data-field="published_at"]').value;
+      const active = card.querySelector('[data-field="active"]').checked;
+      if (!author) { toast('Namn krävs'); return; }
+      if (!review_text) { toast('Recensionstext krävs'); return; }
+      try {
+        const res = await api('upsert', { review: {
+          id, author, rating, review_text,
+          published_at: dateVal ? new Date(dateVal + 'T12:00:00').toISOString() : (existing ? existing.published_at : null),
+          active, sort_order: existing ? existing.sort_order : items.length,
+        }});
+        if (!res) return;
+        toast('Sparat');
+        await loadAll();
+      } catch (e) { toast(e.message); }
+    };
+  });
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('Ta bort recensionen? (Döljs från sajten)')) return;
+      try { await api('delete', { id: btn.dataset.delete }); toast('Borttaget'); await loadAll(); }
+      catch (e) { toast(e.message); }
+    };
+  });
+  document.querySelectorAll('[data-up]').forEach(btn => { btn.onclick = async () => { await move(btn.dataset.up, -1); }; });
+  document.querySelectorAll('[data-down]').forEach(btn => { btn.onclick = async () => { await move(btn.dataset.down, 1); }; });
+}
+
+async function move(id, dir) {
+  const idx = items.findIndex(r => r.id === id);
+  const swapWith = idx + dir;
+  if (idx < 0 || swapWith < 0 || swapWith >= items.length) return;
+  const order = items.map(r => r.id);
+  [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+  try { await api('reorder', { ids: order }); await loadAll(); }
+  catch (e) { toast(e.message); }
+}
+
+document.getElementById('add-btn').onclick = async () => {
+  try {
+    // Ny recension hamnar överst (nyaste först). Spara den, lägg sedan först i ordningen.
+    const today = new Date().toISOString().slice(0, 10);
+    const r = await api('upsert', { review: {
+      author: 'Nytt namn', rating: 5, review_text: 'Recensionstext …',
+      published_at: new Date(today + 'T12:00:00').toISOString(), active: false, sort_order: 0,
+    }});
+    if (r && r.review) {
+      const order = [r.review.id, ...items.map(x => x.id)];
+      await api('reorder', { ids: order });
+    }
+    toast('Tillagd — fyll i namn, betyg och text, kryssa i Aktiv och spara');
+    await loadAll();
+  } catch (e) { toast(e.message); }
+};
+
+// Hämtar de recensioner Google visar via API (max 5) och lägger till saknade.
+document.getElementById('import-google-btn').onclick = async () => {
+  const btn = document.getElementById('import-google-btn');
+  btn.disabled = true; btn.textContent = 'Hämtar …';
+  try {
+    const res = await fetch('/api/google-reviews?v=admin');
+    const j = await res.json().catch(() => ({}));
+    if (!j || !j.ok || !Array.isArray(j.reviews)) { toast('Kunde inte hämta från Google'); return; }
+    const existingAuthors = new Set(items.map(r => (r.author || '').trim().toLowerCase()));
+    const toAdd = j.reviews.filter(r => r.author && !existingAuthors.has(r.author.trim().toLowerCase()));
+    if (!toAdd.length) { toast('Inga nya att importera — alla från Google finns redan'); return; }
+    for (const r of toAdd) {
+      await api('upsert', { review: {
+        author: r.author, rating: r.rating || 5, review_text: r.text || '',
+        published_at: r.publishTime || null, active: true, sort_order: 0,
+      }});
+    }
+    toast(`Importerade ${toAdd.length} från Google`);
+    await loadAll();
+  } catch (e) { toast('Fel vid import: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '↓ Importera från Google'; }
+};
+
+// Live-antal från Googles API (userRatingCount) — samma siffra som badgen på sajten.
+async function loadGoogleCount() {
+  try {
+    const res = await fetch('/api/google-reviews?v=admin');
+    const j = await res.json().catch(() => ({}));
+    if (j && j.ok) {
+      document.getElementById('g-count').textContent = j.count != null ? j.count : '–';
+      document.getElementById('g-rating').textContent = j.rating != null ? String(j.rating).replace('.', ',') : '–';
+    } else {
+      document.getElementById('g-count').textContent = '–';
+      document.getElementById('g-rating').textContent = '–';
+    }
+  } catch (_) {
+    document.getElementById('g-count').textContent = '–';
+    document.getElementById('g-rating').textContent = '–';
+  }
+}
+
+function init() {
+  document.getElementById('last-updated').textContent = new Date().toLocaleString('sv-SE');
+  loadAll();
+  loadGoogleCount();
+}
+</script>
+
+</body>
+</html>
