@@ -1,0 +1,264 @@
+---
+// /admin/referenser/ — Underhåll av kundlistan (referenskunder).
+// Ersätter den hårdkodade clients-listan i site.json och kategori-arrayerna i
+// referenser/index.astro. Varje kund har ETT kategori-fält — de 4 kategorierna
+// och "Samtliga referenskunder" på referenssidan (samt om-oss) byggs automatiskt.
+//
+// Data via /.netlify/functions/admin-clients (service key).
+// Frontend läser /.netlify/functions/clients-list (publik) + snapshot i clients.json.
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Referenskunder — Admin</title>
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+    .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
+    .topbar a:hover { color: #c4b5f4; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
+    .topbar-right { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.40); }
+
+    .wrap { max-width: 820px; margin: 0 auto; padding: 1.5rem; }
+    .hint { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.1rem; line-height: 1.5; }
+    .hint b { color: #e2dcfb; }
+
+    .catbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+    .catchip { font-size: 0.74rem; color: rgba(255,255,255,0.65); background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 999px; padding: 4px 11px; }
+    .catchip b { color: #c4b5f4; }
+
+    .card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.7rem 0.85rem; margin-bottom: 0.55rem; }
+    .card.inactive { opacity: 0.5; }
+    .row1 { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .grip { color: rgba(255,255,255,0.25); display: flex; flex-direction: column; gap: 1px; }
+    .grip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.62rem; padding: 1px; }
+    .grip button:hover { color: #c4b5f4; }
+    .grip button:disabled { opacity: 0.2; cursor: default; }
+    input[type="text"], select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 9px; font-family: inherit; font-size: 0.82rem; color-scheme: dark; }
+    input[data-field="name"] { flex: 1; min-width: 150px; }
+    .switch { display: flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; color: rgba(255,255,255,0.7); cursor: pointer; }
+    .btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.75); border-radius: 8px; padding: 5px 11px; font-size: 0.76rem; cursor: pointer; font-family: inherit; }
+    .btn:hover { border-color: rgba(196,181,244,0.5); color: #e2dcfb; }
+    .btn.primary { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
+    .btn.primary:hover { background: #e2dcfb; }
+    .btn.danger:hover { border-color: rgba(252,165,165,0.5); color: #fca5a5; }
+
+    .add-btn { display: block; width: 100%; background: rgba(196,181,244,0.08); border: 1px dashed rgba(196,181,244,0.35); color: #c4b5f4; border-radius: 12px; padding: 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 0.4rem; }
+    .add-btn:hover { background: rgba(196,181,244,0.14); }
+    .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 1.5rem; font-size: 0.85rem; }
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1e1850; border: 1px solid rgba(196,181,244,0.4); color: #e2dcfb; padding: 8px 16px; border-radius: 10px; font-size: 0.82rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
+    .toast.show { opacity: 1; }
+
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; }
+    .auth-box h2 { color: #c4b5f4; font-size: 1.1rem; margin-bottom: 1rem; }
+    .auth-box input { width: 100%; background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 10px 12px; font-family: inherit; margin-bottom: 0.75rem; color-scheme: dark; }
+    .auth-box button { width: 100%; background: #c4b5f4; color: #1a1430; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .auth-box button:hover { background: #e2dcfb; }
+    .auth-err { color: #fca5a5; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1rem; }
+  </style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Referenskunder</h2>
+    <input type="password" id="pw-input" placeholder="Adminlösenord" autocomplete="current-password" />
+    <button id="pw-btn">Logga in</button>
+    <div class="auth-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="topbar">
+    <a href="/admin/">← Admin</a>
+    <h1>🏢 Referenskunder</h1>
+    <div class="topbar-right" id="last-updated"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="hint">
+      Lägg till en kund <b>en gång</b> och välj <b>kategori</b> — kategorivyn och
+      "Samtliga referenskunder" på <a href="/referenser/" target="_blank">referenssidan</a>
+      (samt kundlistan på om-oss) byggs automatiskt. Kunder utan kategori visas bara
+      i Samtliga-listan. Ändringar slår igenom direkt.
+    </div>
+
+    <div class="catbar" id="catbar"></div>
+
+    <div id="list"></div>
+    <button class="add-btn" id="add-btn">+ Ny kund</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_KEY = 'sk_admin_token';
+let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
+let items = [];
+
+const CATS = [
+  { key: '', label: '— Ingen (endast Samtliga)' },
+  { key: 'kommun', label: '🏛️ Kommuner & Myndigheter' },
+  { key: 'naringsliv', label: '🏢 Näringsliv & Företag' },
+  { key: 'ambassad', label: '🌍 Ambassader & Org.' },
+  { key: 'event', label: '🎶 Event & Kultur' },
+];
+
+async function tryLogin(pw) {
+  try {
+    const res = await fetch('/api/admin-auth?_=' + Date.now(), {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return !!j.ok;
+  } catch (e) { return false; }
+}
+
+document.getElementById('pw-btn').onclick = async () => {
+  const pw = document.getElementById('pw-input').value.trim();
+  if (!pw) return;
+  if (await tryLogin(pw)) {
+    adminToken = pw; sessionStorage.setItem(ADMIN_KEY, pw);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    init();
+  } else { document.getElementById('pw-err').textContent = 'Fel lösenord'; }
+};
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
+
+if (adminToken) {
+  tryLogin(adminToken).then(okResp => {
+    if (okResp) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      init();
+    } else { sessionStorage.removeItem(ADMIN_KEY); adminToken = ''; }
+  });
+}
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+
+async function api(action, extra) {
+  const res = await fetch('/.netlify/functions/admin-clients', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...extra }),
+  });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return null; }
+  if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'Serverfel'); }
+  return res.json();
+}
+
+async function loadAll() {
+  const res = await fetch('/.netlify/functions/admin-clients', { headers: { 'Authorization': 'Bearer ' + adminToken } });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return; }
+  const j = await res.json();
+  items = j.clients || [];
+  render();
+}
+
+function catOptions(sel) {
+  return CATS.map(c => `<option value="${c.key}" ${(c.key || '') === (sel || '') ? 'selected' : ''}>${c.label}</option>`).join('');
+}
+
+function cardHtml(c, i, len) {
+  return `
+    <div class="card ${!c.active ? 'inactive' : ''}" data-id="${escapeHtml(c.id)}">
+      <div class="row1">
+        <div class="grip">
+          <button data-up="${escapeHtml(c.id)}" ${i === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
+          <button data-down="${escapeHtml(c.id)}" ${i === len - 1 ? 'disabled' : ''} title="Flytta ner">▼</button>
+        </div>
+        <input type="text" data-field="name" placeholder="Kundnamn" value="${escapeHtml(c.name || '')}" />
+        <select data-field="category">${catOptions(c.category)}</select>
+        <label class="switch"><input type="checkbox" data-field="active" ${c.active ? 'checked' : ''} /> Aktiv</label>
+        <button class="btn primary" data-save="${escapeHtml(c.id)}">Spara</button>
+        <button class="btn danger" data-delete="${escapeHtml(c.id)}">Ta bort</button>
+      </div>
+    </div>
+  `;
+}
+
+function render() {
+  const list = document.getElementById('list');
+  list.innerHTML = items.length
+    ? items.map((c, i) => cardHtml(c, i, items.length)).join('')
+    : '<div class="empty">Inga kunder ännu — klicka "+ Ny kund".</div>';
+
+  // Kategori-räknare
+  const active = items.filter(c => c.active);
+  const counts = { '': 0, kommun: 0, naringsliv: 0, ambassad: 0, event: 0 };
+  active.forEach(c => { counts[c.category || ''] = (counts[c.category || ''] || 0) + 1; });
+  document.getElementById('catbar').innerHTML =
+    `<span class="catchip">Samtliga: <b>${active.length}</b></span>` +
+    CATS.filter(c => c.key).map(c => `<span class="catchip">${escapeHtml(c.label)}: <b>${counts[c.key] || 0}</b></span>`).join('');
+
+  bindCardEvents();
+}
+
+function bindCardEvents() {
+  document.querySelectorAll('[data-save]').forEach(btn => {
+    btn.onclick = async () => {
+      const card = btn.closest('.card');
+      const id = card.dataset.id;
+      const existing = items.find(c => c.id === id);
+      const name = card.querySelector('[data-field="name"]').value.trim();
+      const category = card.querySelector('[data-field="category"]').value || null;
+      const active = card.querySelector('[data-field="active"]').checked;
+      if (!name) { toast('Namn krävs'); return; }
+      try {
+        const res = await api('upsert', { client: {
+          id, name, category, active, sort_order: existing ? existing.sort_order : items.length,
+        }});
+        if (!res) return;
+        toast('Sparat');
+        await loadAll();
+      } catch (e) { toast(e.message); }
+    };
+  });
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm('Ta bort kunden? (Döljs från sajten)')) return;
+      try { await api('delete', { id: btn.dataset.delete }); toast('Borttaget'); await loadAll(); }
+      catch (e) { toast(e.message); }
+    };
+  });
+  document.querySelectorAll('[data-up]').forEach(btn => { btn.onclick = async () => { await move(btn.dataset.up, -1); }; });
+  document.querySelectorAll('[data-down]').forEach(btn => { btn.onclick = async () => { await move(btn.dataset.down, 1); }; });
+}
+
+async function move(id, dir) {
+  const idx = items.findIndex(c => c.id === id);
+  const swapWith = idx + dir;
+  if (idx < 0 || swapWith < 0 || swapWith >= items.length) return;
+  const order = items.map(c => c.id);
+  [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
+  try { await api('reorder', { ids: order }); await loadAll(); }
+  catch (e) { toast(e.message); }
+}
+
+document.getElementById('add-btn').onclick = async () => {
+  try {
+    const r = await api('upsert', { client: { name: 'Nytt kundnamn', category: null, active: false, sort_order: items.length } });
+    toast('Tillagd — fyll i namn, välj kategori, kryssa Aktiv och spara');
+    await loadAll();
+  } catch (e) { toast(e.message); }
+};
+
+function init() {
+  document.getElementById('last-updated').textContent = new Date().toLocaleString('sv-SE');
+  loadAll();
+}
+</script>
+
+</body>
+</html>

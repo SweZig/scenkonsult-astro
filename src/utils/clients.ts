@@ -1,0 +1,36 @@
+// Delad hjälpfunktion för kundlistan (referenskunder).
+// Läser src/data/clients.json (snapshot av Supabase-tabellen `clients`) och
+// exponerar både kategori-grupperad vy och komplett lista till sidmallarna.
+// Kategori-etiketter/ikoner definieras här (4 fasta kategorier).
+
+import clientsData from '../data/clients.json';
+
+export interface ClientRow { name: string; category: string | null; }
+
+// Fasta kategorier — ordning styr visning på referenssidan.
+export const CATEGORY_META = [
+  { key: 'kommun', label: 'Kommuner & Myndigheter', icon: '🏛️' },
+  { key: 'naringsliv', label: 'Näringsliv & Företag', icon: '🏢' },
+  { key: 'ambassad', label: 'Ambassader & Org.', icon: '🌍' },
+  { key: 'event', label: 'Event & Kultur', icon: '🎶' },
+] as const;
+
+function rows(): ClientRow[] {
+  return (clientsData.clients as ClientRow[]) || [];
+}
+
+// De 4 kategorierna med sina kunder (i kurerad ordning). Tomma kategorier utelämnas.
+export function getClientCategories() {
+  const all = rows();
+  return CATEGORY_META
+    .map((c) => ({
+      ...c,
+      clients: all.filter((r) => r.category === c.key).map((r) => r.name),
+    }))
+    .filter((c) => c.clients.length > 0);
+}
+
+// Samtliga kundnamn (för "Samtliga referenskunder" och om-oss).
+export function getAllClientNames(): string[] {
+  return rows().map((r) => r.name);
+}

@@ -2,8 +2,13 @@
 import Layout from '../../layouts/Layout.astro';
 import siteData from '../../data/site.json';
 import { getReviews, getSummary } from '../../utils/reviews';
+import { getClientCategories, getAllClientNames } from '../../utils/clients';
 
-const { clients, reviews } = siteData;
+const { reviews } = siteData;
+
+// Kundlista (underhålls i admin → Supabase, snapshot i clients.json)
+const clientCategories = getClientCategories();
+const clients = getAllClientNames();
 
 // Kompletta Google-recensioner (alla, ej begränsade av Places API:ts 5-tak)
 const googleReviews = getReviews();
@@ -88,30 +93,6 @@ const eventGallery = [
     desc: "LED uplighting för stämningsfull miljö",
     tag: "Företagsevent"
   },
-];
-
-// Kategorier för kundfiltrering – vilka typer av kunder
-const clientCategories = [
-  {
-    label: "Kommuner & Myndigheter",
-    icon: "🏛️",
-    clients: ["Solna Stad", "Stockholm Stad", "Haninge Kommun", "Tyresö Kommun", "Solna Tingsrätt"]
-  },
-  {
-    label: "Näringsliv & Företag",
-    icon: "🏢",
-    clients: ["ICA Sverige", "ABG Sundal Collier", "Akademiska Hus", "Hornbach", "Houdini Sportsware", "Kameo", "iOffice", "Backingminds", "Kustom", "Ekologigruppen", "Linnskog-Rudh & Partner", "Wave Stockholm", "i know a GUY", "Fredericia Furniture", "7A Sevena", "Playground Group", "KRY Vårdcentral", "Tele2", "EY", "Lucky Bowl", "PS Matsalar", "Strand Rederi", "VAROPreem Sverige", "Differ Strategy", "Jensen Beds", "Hilding Anders", "Bullandö Krog"]
-  },
-  {
-    label: "Ambassader & Org.",
-    icon: "🌍",
-    clients: ["Brasiliens Ambassad", "Indiens Ambassad", "Kommunalarbetareförbundet", "Mälardalens Universitet", "Internationella Engelska Skolan", "Forum Civ", "Ung Företagsamhet", "Scoutkåren Gustav Vasa", "Miljöpartiet", "Vänsterpartiet", "Vision", "Odd Fellow", "Korpen", "NTI Gymnasiet", "Pakistan Cultural Society", "Boodlas förening", "S-kvinnor"]
-  },
-  {
-    label: "Event & Kultur",
-    icon: "🎶",
-    clients: ["Aiva Productions", "Immersive Music Group", "Favorevent", "Hacksaw Studios", "Cash In Drop Out", "A Beautiful Soap", "SoulLink", "House of Photography", "Crashdïet", "Studio S19"]
-  }
 ];
 
 const pageSchema = {
@@ -242,7 +223,7 @@ const pageSchema = {
       <p class="text-gray-400">Vi har förtroendet att leverera till några av Stockholms mest kräsna beställare.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div id="client-categories-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
       {clientCategories.map((cat) => (
         <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 hover:border-brand-orange/30 transition-colors">
           <div class="flex items-center gap-3 mb-5">
@@ -265,8 +246,8 @@ const pageSchema = {
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
       <h2 class="text-xl font-bold text-white mb-2">Samtliga referenskunder</h2>
-      <p class="text-gray-400 text-sm mb-6">Totalt {clients.length}+ organisationer som litat på oss.</p>
-      <div class="flex flex-wrap gap-2">
+      <p class="text-gray-400 text-sm mb-6">Totalt <span id="all-clients-count">{clients.length}</span>+ organisationer som litat på oss.</p>
+      <div id="all-clients-list" class="flex flex-wrap gap-2">
         {clients.sort((a: string, b: string) => a.localeCompare(b, 'sv')).map((client: string) => (
           <span class="text-xs bg-white/5 border border-white/10 rounded-md px-2.5 py-1 text-gray-400 hover:text-white hover:border-brand-orange/30 transition-colors cursor-default">
             {client}
@@ -275,6 +256,56 @@ const pageSchema = {
       </div>
     </div>
   </section>
+
+  <!-- Hydrering av kundlistan (speglar admin-ändringar direkt) -->
+  <script define:vars={{ CATEGORY_META: [
+    { key: 'kommun', label: 'Kommuner & Myndigheter', icon: '🏛️' },
+    { key: 'naringsliv', label: 'Näringsliv & Företag', icon: '🏢' },
+    { key: 'ambassad', label: 'Ambassader & Org.', icon: '🌍' },
+    { key: 'event', label: 'Event & Kultur', icon: '🎶' },
+  ] }}>
+    (async function hydrateClients() {
+      const grid = document.getElementById('client-categories-grid');
+      const listEl = document.getElementById('all-clients-list');
+      const countEl = document.getElementById('all-clients-count');
+      const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+        { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]
+      ));
+      let clients;
+      try {
+        const res = await fetch('/.netlify/functions/clients-list');
+        if (!res.ok) return;
+        const j = await res.json();
+        if (!j || !j.ok || !Array.isArray(j.clients) || !j.clients.length) return;
+        clients = j.clients;
+      } catch (_) { return; }
+
+      // Kategorier
+      if (grid) {
+        const cards = CATEGORY_META.map(cat => {
+          const names = clients.filter(c => c.category === cat.key).map(c => c.name);
+          if (!names.length) return '';
+          return `
+            <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 hover:border-brand-orange/30 transition-colors">
+              <div class="flex items-center gap-3 mb-5"><span class="text-2xl">${cat.icon}</span><h3 class="font-bold text-white">${esc(cat.label)}</h3></div>
+              <ul class="flex flex-wrap gap-2">
+                ${names.map(n => `<li class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-300 hover:border-brand-orange/30 hover:text-white transition-colors">${esc(n)}</li>`).join('')}
+              </ul>
+            </div>`;
+        }).join('');
+        if (cards) grid.innerHTML = cards;
+      }
+
+      // Samtliga (alfabetiskt)
+      if (listEl) {
+        const all = clients.map(c => c.name).sort((a, b) => a.localeCompare(b, 'sv'));
+        listEl.innerHTML = all.map(n =>
+          `<span class="text-xs bg-white/5 border border-white/10 rounded-md px-2.5 py-1 text-gray-400 hover:text-white hover:border-brand-orange/30 transition-colors cursor-default">${esc(n)}</span>`
+        ).join('');
+        if (countEl) countEl.textContent = String(all.length);
+      }
+    })();
+  </script>
 
   <!-- Omdömen -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">

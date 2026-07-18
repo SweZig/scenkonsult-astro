@@ -1,8 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import siteData from '../../data/site.json';
+import { getAllClientNames } from '../../utils/clients';
 
-const { company, clients } = siteData;
+const { company } = siteData;
+// Kundlista (underhålls i admin → Supabase, snapshot i clients.json)
+const clients = getAllClientNames();
 ---
 
 <Layout
@@ -98,13 +101,32 @@ const { company, clients } = siteData;
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="text-2xl font-bold text-white mb-2">Några av våra kunder</h2>
       <p class="text-gray-400 mb-8">Vi är stolta över att ha levererat till ett brett spektrum av organisationer – från kommuner och ambassader till startups och kulturföreningar.</p>
-      <div class="flex flex-wrap gap-3">
+      <div id="om-oss-clients" class="flex flex-wrap gap-3">
         {clients.map(c => (
           <span class="bg-brand-dark border border-white/10 text-gray-400 text-sm px-4 py-2 rounded-full">{c}</span>
         ))}
       </div>
     </div>
   </section>
+
+  <script>
+    (async function hydrateOmOssClients() {
+      const el = document.getElementById('om-oss-clients');
+      if (!el) return;
+      const esc = (s: any) => String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+        { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c] as string
+      ));
+      try {
+        const res = await fetch('/.netlify/functions/clients-list');
+        if (!res.ok) return;
+        const j = await res.json();
+        if (!j || !j.ok || !Array.isArray(j.clients) || !j.clients.length) return;
+        el.innerHTML = j.clients.map((c: any) =>
+          `<span class="bg-brand-dark border border-white/10 text-gray-400 text-sm px-4 py-2 rounded-full">${esc(c.name)}</span>`
+        ).join('');
+      } catch (_) { /* behåll SSR */ }
+    })();
+  </script>
 
   <!-- Hitta till oss -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
