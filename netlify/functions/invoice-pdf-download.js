@@ -218,36 +218,49 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
     // ── Sida 2: Hyresvillkor — BARA för faktura ───────────────────────────────
     // Villkoren anpassas efter kundtyp (B2C/B2B) via _invoice-villkor.js.
     if (!isOrder) {
-      doc.addPage();
-
       const { villkor, heading, subhead } = getVillkor(cart);
 
-      doc.rect(0, 0, 595, 50).fill(NAVY);
-      doc.fillColor('#ffffff').fontSize(13).font('Helvetica-Bold')
-         .text(heading, 50, 16);
-      doc.fillColor('rgba(255,255,255,0.55)').fontSize(8).font('Helvetica')
-         .text(subhead, 50, 34);
+      const drawVillkorHeader = () => {
+        doc.rect(0, 0, 595, 50).fill(NAVY);
+        doc.fillColor('#ffffff').fontSize(13).font('Helvetica-Bold')
+           .text(heading, 50, 16);
+        doc.fillColor('rgba(255,255,255,0.55)').fontSize(8).font('Helvetica')
+           .text(subhead, 50, 34);
+      };
+      const drawVillkorFooter = () => {
+        doc.moveTo(50, 762).lineTo(545, 762).lineWidth(0.5).stroke('#c4b5f4');
+        doc.fontSize(7.5).font('Helvetica').fillColor(GRAY)
+           .text(
+             'Scenkonsult Norden (Sigvardsson Consulting Group AB)  ·  Org.nr 559068-4931  ·  Vinsta Skolgränd 4, 162 70 Vällingby  ·  info@scenkonsult.se',
+             50, 770, { width: W, align: 'center' }
+           );
+      };
 
+      doc.addPage();
+      drawVillkorHeader();
       let vy = 68;
 
       villkor.forEach(([title, text]) => {
-        if (vy > 748) return;
+        doc.fontSize(8).font('Helvetica');
+        const textHeight = doc.heightOfString(text, { width: W - 8, lineGap: 1.5 });
+        const needed = 18 + textHeight + 8;
+        // Sidbryt om paragrafen inte får plats — annars tappas den tyst.
+        if (vy + needed > 748) {
+          drawVillkorFooter();
+          doc.addPage();
+          drawVillkorHeader();
+          vy = 68;
+        }
         doc.rect(50, vy, W, 16).fill('#f0eeff');
         doc.fontSize(9).font('Helvetica-Bold').fillColor(NAVY)
            .text(title, 54, vy + 4, { width: W - 8 });
         vy += 18;
         doc.fontSize(8).font('Helvetica').fillColor('#333333')
            .text(text, 54, vy, { width: W - 8, lineGap: 1.5 });
-        const textHeight = doc.heightOfString(text, { width: W - 8, lineGap: 1.5 });
         vy += textHeight + 8;
       });
 
-      doc.moveTo(50, 762).lineTo(545, 762).lineWidth(0.5).stroke('#c4b5f4');
-      doc.fontSize(7.5).font('Helvetica').fillColor(GRAY)
-         .text(
-           'Scenkonsult Norden (Sigvardsson Consulting Group AB)  ·  Org.nr 559068-4931  ·  Vinsta Skolgränd 4, 162 70 Vällingby  ·  info@scenkonsult.se',
-           50, 770, { width: W, align: 'center' }
-         );
+      drawVillkorFooter();
     }
 
     doc.end();
@@ -365,3 +378,4 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
   }
 };
+
