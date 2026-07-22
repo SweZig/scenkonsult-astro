@@ -238,26 +238,42 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
 
       doc.addPage();
       drawVillkorHeader();
-      let vy = 68;
 
-      villkor.forEach(([title, text]) => {
-        doc.fontSize(8).font('Helvetica');
-        const textHeight = doc.heightOfString(text, { width: W - 8, lineGap: 1.5 });
-        const needed = 18 + textHeight + 8;
-        // Sidbryt om paragrafen inte får plats — annars tappas den tyst.
-        if (vy + needed > 748) {
-          drawVillkorFooter();
-          doc.addPage();
-          drawVillkorHeader();
-          vy = 68;
+      // Tvåkolumnslayout med kompakt typsnitt så villkoren ryms på EN sida.
+      const COL_W  = 242;            // kolumnbredd
+      const COL_IN = COL_W - 8;      // innerbredd för text
+      const COL_X  = [50, 303];      // vänster/höger kolumn-x (gutter 11, ger 50..545)
+      const V_TOP  = 60;             // start strax under navy-bandet
+      const V_BOT  = 752;            // botten, strax över sidfoten (762)
+      const H_FS = 7.5, B_FS = 7, B_LG = 1, H_PAD = 2, GAP = 6;
+
+      // Förmät varje paragrafs höjd så kolumnerna kan balanseras.
+      const measured = villkor.map(([title, text]) => {
+        doc.fontSize(H_FS).font('Helvetica-Bold');
+        const headBarH = Math.max(H_FS + 5, doc.heightOfString(title, { width: COL_IN }) + 4);
+        doc.fontSize(B_FS).font('Helvetica');
+        const textH = doc.heightOfString(text, { width: COL_IN, lineGap: B_LG });
+        return { title, text, headBarH, textH, blockH: headBarH + H_PAD + textH + GAP };
+      });
+      const halfH = measured.reduce((s, m) => s + m.blockH, 0) / 2;
+
+      let ci = 0, vy = V_TOP;
+      measured.forEach((m) => {
+        // Balansera: byt till högerkolumn när vänster passerat halva totalhöjden.
+        if (ci === 0 && (vy - V_TOP) >= halfH) { ci = 1; vy = V_TOP; }
+        // Säkerhetsnät: om villkoren växer förbi två kolumner → ny sida (aldrig tyst bortfall).
+        if (vy + m.blockH > V_BOT) {
+          if (ci === 0) { ci = 1; vy = V_TOP; }
+          else { drawVillkorFooter(); doc.addPage(); drawVillkorHeader(); ci = 0; vy = V_TOP; }
         }
-        doc.rect(50, vy, W, 16).fill('#f0eeff');
-        doc.fontSize(9).font('Helvetica-Bold').fillColor(NAVY)
-           .text(title, 54, vy + 4, { width: W - 8 });
-        vy += 18;
-        doc.fontSize(8).font('Helvetica').fillColor('#333333')
-           .text(text, 54, vy, { width: W - 8, lineGap: 1.5 });
-        vy += textHeight + 8;
+        const x = COL_X[ci];
+        doc.rect(x, vy, COL_W, m.headBarH).fill('#f0eeff');
+        doc.fontSize(H_FS).font('Helvetica-Bold').fillColor(NAVY)
+           .text(m.title, x + 4, vy + 3, { width: COL_IN });
+        vy += m.headBarH + H_PAD;
+        doc.fontSize(B_FS).font('Helvetica').fillColor('#333333')
+           .text(m.text, x + 4, vy, { width: COL_IN, lineGap: B_LG });
+        vy += m.textH + GAP;
       });
 
       drawVillkorFooter();
@@ -378,4 +394,5 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
   }
 };
+
 

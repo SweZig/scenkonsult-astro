@@ -7,7 +7,7 @@
 // Båda matchar gällande hyresvillkor på scenkonsult.se/hyresvillkor/{privatperson,foretag}/
 // Senast uppdaterad: 2026-06-01 (placeholder — sätts skarpt vid skarp publicering)
 
-const VILLKOR_DATE = '2026-07-17';
+const VILLKOR_DATE = '2026-06-01';
 
 const VILLKOR_B2C = [
   ['1. Hyresperiod',
