@@ -35,8 +35,16 @@ const faq = [
   {
     q: `Kan jag hyra för en kväll i ${ort.namn}?`,
     a: `Absolut. Vår standardperiod är ett dygn (24 h), men vi erbjuder flexibla upplägg för kortare och längre hyresperioder. Kontakta oss eller lägg produkterna i varukorgen och begär offert — så löser vi det.`
-  }
+  },
+  // Ort-specifika frågor från orter.json (valfritt, { q, a })
+  ...((ort.ortFaq ?? []) as { q: string; a: string }[])
 ];
+
+// Grannorter för intern korslänkning (närmast först, exkl. denna ort)
+const grannorter = orter
+  .filter(o => o.slug !== ort.slug)
+  .sort((a, b) => (a.distansMin ?? 999) - (b.distansMin ?? 999))
+  .slice(0, 6);
 
 const pageSchema = {
   "@context": "https://schema.org",
@@ -152,6 +160,26 @@ const pageSchema = {
     </div>
   </section>
 
+  <!-- Lokala eventlokaler (unikt per ort, renderas endast om data finns) -->
+  {ort.localVenues && ort.localVenues.length > 0 && (
+    <section style="background:#0c0a24; padding: clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem);">
+      <div style="max-width:1100px; margin:0 auto;">
+        <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Eventlokaler i {ort.namn}</p>
+        <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 1.25rem; max-width:700px;">Vi levererar till event på platser som dessa</h2>
+        {ort.venuesIntro && (
+          <p style="color:rgba(255,255,255,0.65); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.8; max-width:700px; margin:0 0 1.75rem;">{ort.venuesIntro}</p>
+        )}
+        <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+          {ort.localVenues.map(v => (
+            <span style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:0.5rem 1.15rem; font-family:'Space Grotesk',sans-serif; font-size:0.9rem; color:rgba(255,255,255,0.78);">
+              {v}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
   <!-- POPULÄRASTE PRODUKTER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
     <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#c4b5f4">Populäraste uthyrningar i {ort.namn}</p>
@@ -244,6 +272,18 @@ const pageSchema = {
   <!-- Referenskunder -->
   <section style="background:#111030; padding: clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem);">
     <div style="max-width:1100px; margin:0 auto; text-align:center;">
+      {ort.kunder && ort.kunder.length > 0 && (
+        <div style="margin-bottom:2.5rem;">
+          <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Kunder vi levererat till i {ort.namn}</p>
+          <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+            {ort.kunder.map(k => (
+              <span style="background:rgba(196,181,244,0.1); border:1px solid rgba(196,181,244,0.3); border-radius:999px; padding:0.45rem 1.1rem; font-family:'Space Grotesk',sans-serif; font-size:0.85rem; color:rgba(255,255,255,0.85);">
+                {k}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <p style="color:rgba(255,255,255,0.60); font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Utvalda kunder vi levererat till i Storstockholm</p>
       <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
         {kunder.map(k => (
@@ -269,6 +309,21 @@ const pageSchema = {
             </summary>
             <p style="color:rgba(255,255,255,0.65); font-size:0.95rem; line-height:1.75; margin:1rem 0 0;">{f.a}</p>
           </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Korslänkning till grannorter (internt länknät — fixar föräldralösa sidor) -->
+  <section style="background:#111030; padding: clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem); border-top:1px solid rgba(255,255,255,0.06);">
+    <div style="max-width:1100px; margin:0 auto;">
+      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Vi levererar i hela Storstockholm</p>
+      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.5rem,3vw,2.1rem); color:white; margin:0 0 1.5rem;">Hyra scen, ljud & ljus även i närområdet</h2>
+      <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+        {grannorter.map(g => (
+          <a href={`/hyra-ljud-scen-${g.slug}/`} style="background:rgba(196,181,244,0.08); border:1px solid rgba(196,181,244,0.3); border-radius:999px; padding:0.5rem 1.15rem; font-family:'Space Grotesk',sans-serif; font-size:0.9rem; color:rgba(196,181,244,0.95); text-decoration:none;" title={`Hyra scen, ljud & ljus i ${g.namn}`}>
+            {g.namn} →
+          </a>
         ))}
       </div>
     </div>
