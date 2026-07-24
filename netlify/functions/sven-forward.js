@@ -97,6 +97,53 @@ exports.handler = async (event) => {
 
   const db = createSupabase();
   try {
+    // ── DEDUP ────────────────────────────────────────────────────────────
+    // Sven-chat.mjs kan redan ha auto-skapat ett kort för sessionen (när Sven
+    // lovade uppföljning). Skapa då inte ett andra — uppdatera det befintliga
+    // med produkterna kunden faktiskt bekräftade via knappen.
+    if (session_id) {
+      let existing = null;
+      try {
+        const res = await db.from('carts')
+          .select('id,status,items,sven_forward_type')
+          .eq('sven_session_id', session_id)
+          .limit(1);
+        existing = Array.isArray(res.data) ? res.data[0] : (res.data || null);
+      } catch (lookupErr) {
+        console.warn('SVEN_FORWARD_LOOKUP_WARN:', lookupErr.message);
+      }
+
+      if (existing) {
+        const patch = {};
+        // Fyll produkter om knappen bar med sig sådana och kortet saknar dem.
+        const hasItems = Array.isArray(existing.items) && existing.items.length > 0;
+        if (!hasItems && cleanItems.length) {
+          patch.items = cleanItems;
+          patch.total_excl = totalExcl * 100;
+        }
+        // Uppgradera ärendetyp (fraga < ring < offert) om knappen är starkare.
+        const rank = { fraga: 1, ring: 2, offert: 3 };
+        if ((rank[forward_type] || 0) > (rank[existing.sven_forward_type] || 0)) {
+          patch.sven_forward_type = forward_type;
+        }
+        if (Object.keys(patch).length) {
+          await db.update('carts', patch, 'id', existing.id);
+        }
+        try {
+          await logAudit(db, existing.id, 'system', 'sven_forward_confirmed', {
+            forward_type, session_id, item_count: cleanItems.length, deduped: true,
+          });
+        } catch (auditErr) { console.warn('SVEN_FORWARD_AUDIT_WARN:', auditErr.message); }
+
+        console.log('SVEN_FORWARD_DEDUP:', existing.id, forward_type, session_id);
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ ok: true, cart_id: existing.id, forward_type, deduped: true }),
+        };
+      }
+    }
+
     await db.insert('carts', {
       id:                 cartId,
       status:             'new',

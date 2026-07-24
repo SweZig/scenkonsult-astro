@@ -427,6 +427,141 @@ function extractCartIds(reply) {
   return m[1].split(',').map(s => s.trim()).filter(Boolean);
 }
 
+// ── AUTO-SKAPA "INKOMMEN"-KORT VID LÖFTE OM UPPFÖLJNING ─────────────────────
+// När Sven lovar offert/uppföljning ska ett ärende ALLTID landa i kanban-
+// kolumnen "Inkommen" (status='new', source='sven') — även om kunden aldrig
+// klickar FORWARD-knappen. Deduperas på sven_session_id så vi aldrig skapar
+// dubbletter (t.ex. om kunden OCKSÅ klickar knappen → sven-forward.js hittar
+// samma kort).
+
+function svenDescribeForward(type) {
+  switch (type) {
+    case 'offert': return 'Kunden vill få en offert via mail';
+    case 'ring':   return 'Kunden vill bli uppringd';
+    default:       return 'Sven-ärende — kontrollera konversationen';
+  }
+}
+
+function svenGenCartId() {
+  const hex = (n) => {
+    const a = new Uint8Array(n);
+    crypto.getRandomValues(a);
+    return Array.from(a).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+  };
+  return `SK-${hex(4)}-${hex(2)}`;
+}
+function svenGenCartToken() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function svenBuildSnapshot(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return '';
+  const tail = messages.slice(-12);
+  return tail.map(m => {
+    const who = m.role === 'user' ? '👤 Kund' : '🎭 Sven';
+    const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
+    return `${who}:\n${content}`;
+  }).join('\n\n────────────\n\n');
+}
+
+// Plockar e-post/telefon ENBART ur kundens meddelanden — annars skulle vi
+// råka fånga Scenkonsults eget nummer (072-448 10 00) som Sven skriver.
+function svenExtractContact(messages) {
+  const userText = (Array.isArray(messages) ? messages : [])
+    .filter(m => m.role === 'user')
+    .map(m => (typeof m.content === 'string' ? m.content : ''))
+    .join('\n');
+  const email = (userText.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i) || [null])[0];
+  // Svenskt mobil-/telefonnummer: 07x-xxx xx xx, +46 7x…, eller 08-xxx xxx.
+  const phoneRaw = (userText.match(/(?:\+46|0)[\s-]?\d{1,3}(?:[\s-]?\d){5,9}/) || [null])[0];
+  const phone = phoneRaw ? phoneRaw.replace(/\s+/g, ' ').trim() : null;
+  return { email: email || null, phone };
+}
+
+function svenClassifyForward(reply, promisePhrase, forwardTag) {
+  if (forwardTag) return forwardTag;
+  const t = `${promisePhrase || ''} ${reply || ''}`.toLowerCase();
+  if (/ring|uppring|hör\s+av|slår\s+en\s+signal/.test(t)) return 'ring';
+  if (/offert|prisuppgift|prisförslag|sammanställning|skickar|mailar|återkommer/.test(t)) return 'offert';
+  return 'offert';
+}
+
+// Säkerställer att ett Sven-kort finns för sessionen. Skapar nytt i "Inkommen"
+// om inget finns, annars uppdaterar (fyll kontakt, uppgradera typ, refresha
+// snapshot). Returnerar { ok, cart_id, created|updated }.
+async function ensureSvenCart({ sessionId, forwardType, snapshot, contact, pageUrl, customerType }) {
+  const sbUrl = process.env.SUPABASE_URL;
+  const sbKey = process.env.SUPABASE_SERVICE_KEY;
+  if (!sbUrl || !sbKey || !sessionId) return { ok: false, reason: 'env-or-session-saknas' };
+  const H = {
+    'Content-Type':  'application/json',
+    'apikey':        sbKey,
+    'Authorization': 'Bearer ' + sbKey,
+    'Prefer':        'return=representation',
+  };
+  const dbCustomerType = customerType === 'company' ? 'b2b'
+                       : (customerType === 'private' || customerType === 'org') ? 'b2c'
+                       : null;
+  try {
+    const q = `${sbUrl}/rest/v1/carts?sven_session_id=eq.${encodeURIComponent(sessionId)}`
+            + `&select=id,status,customer_email,customer_phone,customer_type,sven_forward_type&limit=1`;
+    const sel = await fetch(q, { headers: H });
+    const rows = sel.ok ? await sel.json() : [];
+
+    if (Array.isArray(rows) && rows.length) {
+      const cur = rows[0];
+      const patch = {};
+      if (!cur.customer_email && contact.email) patch.customer_email = contact.email;
+      if (!cur.customer_phone && contact.phone) patch.customer_phone = contact.phone;
+      if (!cur.customer_type && dbCustomerType)  patch.customer_type  = dbCustomerType;
+      const rank = { fraga: 1, ring: 2, offert: 3 };
+      if ((rank[forwardType] || 0) > (rank[cur.sven_forward_type] || 0)) patch.sven_forward_type = forwardType;
+      // Refresha snapshot så admin ser hela den senaste konversationen.
+      patch.notes_admin = `🤖 Sven-ärende (uppdaterat vid löfte om uppföljning).\n`
+        + `Sida: ${pageUrl || '(okänd)'}\nSession: ${sessionId}\nTyp: ${forwardType}\n\n`
+        + `── Konversationssnapshot ──\n\n${snapshot}`;
+      if (Object.keys(patch).length) {
+        await fetch(`${sbUrl}/rest/v1/carts?id=eq.${encodeURIComponent(cur.id)}`,
+          { method: 'PATCH', headers: H, body: JSON.stringify(patch) });
+      }
+      return { ok: true, cart_id: cur.id, updated: true };
+    }
+
+    const cartId = svenGenCartId();
+    const row = {
+      id:                cartId,
+      status:            'new',            // → kolumnen "Inkommen"
+      source:            'sven',
+      sven_session_id:   sessionId,
+      sven_forward_type: forwardType,
+      items:             [],
+      customer_name:     null,
+      customer_email:    contact.email || null,
+      customer_phone:    contact.phone || null,
+      customer_message:  svenDescribeForward(forwardType),
+      customer_type:     dbCustomerType,
+      notes_admin:       `🤖 Auto-skapad — Sven lovade offert/uppföljning i chatten.\n`
+        + `Sida: ${pageUrl || '(okänd)'}\nSession: ${sessionId}\nTyp: ${forwardType}\n\n`
+        + `── Konversationssnapshot ──\n\n${snapshot}`,
+      total_excl:        0,
+      cart_token:        svenGenCartToken(),
+      expires_at:        new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    const ins = await fetch(`${sbUrl}/rest/v1/carts`, { method: 'POST', headers: H, body: JSON.stringify(row) });
+    if (!ins.ok) {
+      console.warn('SVEN_AUTOCART_FAIL:', ins.status, await ins.text());
+      return { ok: false };
+    }
+    console.log('SVEN_AUTOCART_OK:', cartId, forwardType, sessionId);
+    return { ok: true, cart_id: cartId, created: true };
+  } catch (e) {
+    console.warn('SVEN_AUTOCART_ERR:', e.message);
+    return { ok: false };
+  }
+}
+
 export default async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -539,12 +674,26 @@ export default async (req) => {
     const cartIds = extractCartIds(reply);
 
     // Säkerhetsnät: regex-detektor flaggar löften som Sven gjorde UTAN att
-    // tagga [FORWARD]. Tyst loggning till sven_logs.promise_detected.
-    // Inga mail — kanban är notiskanalen.
+    // tagga [FORWARD]. Loggas till sven_logs.promise_detected OCH triggar
+    // auto-skapning av ett Inkommen-kort nedan (kanban är notiskanalen).
     const detectedPromise = detectPromise(reply);
     const promiseDetected = !!detectedPromise && !forwardTag;
     if (promiseDetected) {
       console.warn('SVEN_PROMISE_UNTAGGED:', { phrase: detectedPromise, sessionId });
+    }
+
+    // Löfte om uppföljning (committal språk) → säkerställ ALLTID ett kort i
+    // "Inkommen", oavsett om kunden klickar FORWARD-knappen. Deduperas på
+    // sven_session_id så knappklick + löfte konvergerar till samma kort.
+    if (detectedPromise) {
+      await ensureSvenCart({
+        sessionId,
+        forwardType: svenClassifyForward(reply, detectedPromise, forwardTag),
+        snapshot:    svenBuildSnapshot([...trimmed, { role: 'assistant', content: reply }]),
+        contact:     svenExtractContact(trimmed),
+        pageUrl,
+        customerType,
+      });
     }
 
     // Logga till console + Supabase
