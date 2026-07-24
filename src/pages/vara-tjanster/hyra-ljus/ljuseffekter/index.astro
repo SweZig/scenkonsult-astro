@@ -161,10 +161,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
           .sort((a:any,b:any) => ['SK-EL-0001','SK-EL-0003','SK-EL-0002'].indexOf(a.artno) - ['SK-EL-0001','SK-EL-0003','SK-EL-0002'].indexOf(b.artno)) ?? []),
         ...(_elData.products.filter((p:any) => !p.categories || p.categories.includes('ljus'))?.filter((p:any) => !['SK-EL-0001','SK-EL-0002','SK-EL-0003'].includes(p.artno)) ?? []),
       ].map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} />
-      ))}
-      {(ljusData.rok?.tillbehor?.filter((p:any) => ['SK-EL-0016','SK-EL-0017'].includes(p.artno)) ?? []).map((p: any) => (
-        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/st'} />
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/dygn'} />
       ))}
     </div>
   </section>
