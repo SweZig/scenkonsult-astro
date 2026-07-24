@@ -6,9 +6,9 @@ import ProductCard from '../components/ProductCard.astro';
 import MediaCard from '../components/MediaCard.astro';
 import ljudData from '../data/ljud.json';
 import scenData from '../data/scenes.json';
-import siteData from '../data/site.json';
+import { getFeaturedClients } from '../utils/clients';
 
-const kunder = (siteData as any).featuredClients as string[];
+const kunder = getFeaturedClients();
 
 export async function getStaticPaths() {
   return orter.map((ort) => ({

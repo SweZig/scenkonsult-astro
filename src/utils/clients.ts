@@ -34,3 +34,27 @@ export function getClientCategories() {
 export function getAllClientNames(): string[] {
   return rows().map((r) => r.name);
 }
+
+// Kurerat urval av kunder för logo-banners (foretagsfest, ort-sidor).
+// Ersätter den tidigare hårdkodade urvals-arrayen i site.json.
+// Namnen valideras mot clients.json (kanonisk källa) — okända namn utelämnas
+// tyst så att sidan aldrig visar en kund som inte längre finns i registret.
+const FEATURED_CLIENT_NAMES = [
+  'ICA Sverige',
+  'Tele2',
+  'EY',
+  'Hornbach',
+  'Houdini Sportsware',
+  'ABG Sundal Collier',
+  'Akademiska Hus',
+  'Solna Stad',
+  'Stockholm Stad',
+  'Mälardalens Universitet',
+  'Kommunalarbetareförbundet',
+  'Ung Företagsamhet',
+];
+
+export function getFeaturedClients(): string[] {
+  const known = new Set(rows().map((r) => r.name));
+  return FEATURED_CLIENT_NAMES.filter((n) => known.has(n));
+}

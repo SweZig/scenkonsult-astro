@@ -505,7 +505,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
       <h2>Länken är ogiltig</h2>
       <p>Orderinformationen kunde inte hittas. Kontrollera att du använder rätt länk från bekräftelsemailet.</p>
       <p style="margin-top:1.5rem">
-        Frågor? Ring oss på <a href="tel:0724481000" style="color:#f87171">072-448 10 00</a>
+        Frågor? Ring oss på <a data-tel="MDcyNDQ4MTAwMA==" style="color:#f87171">072-448 10 00</a>
       </p>
     </div>
   </div>
@@ -634,8 +634,8 @@ import orderCatalog from '../../data/order-catalog-flat.json';
     <!-- Footer -->
     <div class="order-footer">
       Scenkonsult Norden &nbsp;·&nbsp;
-      <a href="tel:0724481000">072-448 10 00</a> &nbsp;·&nbsp;
-      <a href="mailto:info@scenkonsult.se">info@scenkonsult.se</a><br>
+      <a data-tel="MDcyNDQ4MTAwMA==">072-448 10 00</a> &nbsp;·&nbsp;
+      <a data-mail="aW5mb0BzY2Vua29uc3VsdC5zZQ==">info@scenkonsult.se</a><br>
       Mån–Fre 09:00–17:00 · Jour vid pågående uthyrning
     </div>
 
@@ -908,7 +908,7 @@ function renderOrder(c) {
     ctaEl.innerHTML = `
       <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.08);">
         <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0;">Vi ser över din förfrågan och återkommer med en offert. Frågor? Ring oss på
-          <a href="tel:0724481000" style="color:#c4b5f4;">072-448 10 00</a>.
+          <a href="tel:${atob('MDcyNDQ4MTAwMA==')}" style="color:#c4b5f4;">072-448 10 00</a>.
         </p>
       </div>`;
   }
@@ -1368,7 +1368,7 @@ function renderInvoiceSection(c) {
     row('E-faktura skickas till', eInvoiceShown || (c.customer_email ? c.customer_email + ' (vanlig e-post)' : null)) +
     peppolFlag +
     (locked
-      ? `<p style="margin:0.9rem 0 0;color:rgba(255,255,255,0.55);font-size:0.82rem">Fakturan är skapad och uppgifterna är låsta. Kontakta oss på <a href="tel:0724481000" style="color:#c4b5f4">072-448 10 00</a> för ändringar.</p>`
+      ? `<p style="margin:0.9rem 0 0;color:rgba(255,255,255,0.55);font-size:0.82rem">Fakturan är skapad och uppgifterna är låsta. Kontakta oss på <a href="tel:${atob('MDcyNDQ4MTAwMA==')}" style="color:#c4b5f4">072-448 10 00</a> för ändringar.</p>`
       : `<button class="inv-btn-edit" id="invEditBtn">✎ Redigera / komplettera</button>`);
 
   document.getElementById('invoiceEdit').style.display = 'none';

@@ -20,38 +20,11 @@ const duoKolumner    = kolumner.filter((p:any) =>  p.name.includes('Duo'));
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Vad är en kolumnhögtalare och vad passar den till?",
-      "acceptedAnswer": { "@type": "Answer", "text": "En kolumnhögtalare är ett smalt PA-system med bred, jämn ljudspridning. Diskret stativlös design passar konferenser, bröllop och event där utseendet spelar roll." }
-    },
-    {
-      "@type": "Question",
-      "name": "Vad är skillnaden mot en vanlig PA-högtalare?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Traditionella PA-system placeras på stativ och syns tydligt i lokalen. Kolumnhögtalare är smalare, snyggare och mer diskreta — perfekta när ljudet ska finnas där utan att ta plats visuellt. De ger också jämnare ljudspridning horisontellt, vilket minskar eko och rundgång i hårdare lokaler." }
-    },
-    {
-      "@type": "Question",
-      "name": "Ingår mikrofon i kolumnhögtalarna?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Dessa paket levereras utan mikrofon, vilket håller priset nere. Behöver du tala eller sjunga lägger du enkelt till en trådlös handmikrofon eller headset som tillval — eller väljer någon av våra mikrofoner längre ned på sidan." }
-    },
-    {
-      "@type": "Question",
-      "name": "Vad kostar det att hyra kolumnhögtalare i Stockholm?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kolumnhögtalare utan mikrofon hyrs från 699 kr/dygn (singel). Duo-system (2 kolumner) kostar 1 299–2 199 kr/dygn och täcker upp till 240 personer. Transport tillkommer." }
-    },
-    {
-      "@type": "Question",
-      "name": "Har ni kolumnhögtalare som liknar Bose L1?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi hyr ut Alto TS108C, Alto TS112C och LD Systems Maui 28 G2. Professionella alternativ med inbyggd förstärkare, Bluetooth och app-styrning. Från 699 kr/dygn." }
-    },
-    {
-      "@type": "Question",
-      "name": "Kan man köra kolumnhögtalare utan tekniker?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra kolumnsystem har inbyggd mixer med Bluetooth och är konstruerade för enkel hantering. Anslut telefon eller dator via Bluetooth eller kabel, sätt volymen och ni är igång. Vi ger alltid en genomgång vid leverans." }
-    }
-  ]
+  "mainEntity": _ljudData.kolumn.faq.map((f: any) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
 };
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
 const _heroFranExcl = _low((_ljudData as any).kolumnNoMic);

@@ -5,10 +5,10 @@ import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 import karaokeData from '../../../data/karaoke.json';
-import siteData from '../../../data/site.json';
 import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
+import { getFeaturedClients } from '../../../utils/clients';
 
-const kunder = (siteData as any).featuredClients as string[];
+const kunder = getFeaturedClients();
 
 const evSmall = ljudData.event.products[0];
 const evMedium = ljudData.event.products[1];

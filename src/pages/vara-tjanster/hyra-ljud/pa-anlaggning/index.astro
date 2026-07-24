@@ -14,33 +14,11 @@ const liveSmall     = ljudData.live.products[0];
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Vad kostar det att hyra en PA-anläggning i Stockholm?",
-      "acceptedAnswer": { "@type": "Answer", "text": "En PA-anläggning hyrs från 499 kr/dygn för mindre evenemang upp till 60 personer. Större system för 100–500 personer kostar 1 199–3 199 kr/dygn. Konsertsystem och line arrays offerteras separat. Transport tillkommer." }
-    },
-    {
-      "@type": "Question",
-      "name": "Vilken PA-anläggning behöver jag?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Det beror på antal gäster och typ av event. Upp till 100 pers: Event Small (799 kr). 100–280 pers: Event Medium–Large (1 199–2 399 kr). Liveband och konserter: Music eller Live-serien. Utomhus: räkna med ett steg upp i effekt." }
-    },
-    {
-      "@type": "Question",
-      "name": "Ingår uppriggning och support i hyran?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Grundpriset gäller utrustningen. Leverans, montering och teknisk support tillkommer och offerteras separat baserat på ditt event. Vi har personal som kan assistera hela evenemanget om du önskar." }
-    },
-    {
-      "@type": "Question",
-      "name": "Kan jag hyra PA-anläggning utan att ha teknisk kunskap?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra PA-system levereras konfigurerade och klara att använda. Portable-serien är speciellt enkel med inbyggd Bluetooth och färre kablar. Vi erbjuder alltid en genomgång vid leverans." }
-    },
-    {
-      "@type": "Question",
-      "name": "Levererar ni PA-anläggningar i Stockholm?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja, vi levererar och hämtar i hela Storstockholm. Transport tillkommer. Vi har hyrt ut PA-anläggningar i Stockholm sedan 1986." }
-    }
-  ]
+  "mainEntity": ljudData.paAnlaggning.faq.map((f: any) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
 };
 
 // Kategorikort med data

@@ -521,7 +521,7 @@
       <div class="state-icon">⚠️</div>
       <div class="state-title">Något gick fel</div>
       <div class="state-sub" id="error-msg">Kunde inte ladda order.</div>
-      <a href="tel:0724481000" class="btn-next" style="display:inline-block;text-decoration:none;margin-top:0.5rem">📞 Ring 072-448 10 00</a>
+      <a data-tel="MDcyNDQ4MTAwMA==" class="btn-next" style="display:inline-block;text-decoration:none;margin-top:0.5rem">📞 Ring 072-448 10 00</a>
     </div>
   </section>
 
@@ -532,7 +532,7 @@
       <div class="state-sub" id="prepared-sub">Vi aktiverar din kvittens när vi träffas vid utlämningen.</div>
       <div class="summary-card" id="prepared-summary"></div>
       <p style="margin:1.25rem 0 0;font-size:0.78rem;color:rgba(255,255,255,0.55)">
-        Behöver du ändra något? Ring oss på <a href="tel:0724481000" style="color:#c4b5f4;text-decoration:none">072-448 10 00</a>.
+        Behöver du ändra något? Ring oss på <a data-tel="MDcyNDQ4MTAwMA==" style="color:#c4b5f4;text-decoration:none">072-448 10 00</a>.
       </p>
     </div>
   </section>
@@ -1108,6 +1108,22 @@
   // Start
   // ════════════════════════════════════════════════════════════════════════
   loadOrder();
+</script>
+
+<!-- KONTAKTSKYDD: dekoda tel/mail ur base64 vid runtime — ej synligt i HTML-källan -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('a[data-tel]').forEach(el => {
+      const num = atob(el.getAttribute('data-tel'));
+      el.href = 'tel:' + num;
+      if (!el.textContent.trim()) el.textContent = num.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1-$2 $3 $4');
+    });
+    document.querySelectorAll('a[data-mail]').forEach(el => {
+      const addr = atob(el.getAttribute('data-mail'));
+      el.href = 'mailto:' + addr;
+      if (!el.textContent.trim()) el.textContent = addr;
+    });
+  });
 </script>
 
 </body>

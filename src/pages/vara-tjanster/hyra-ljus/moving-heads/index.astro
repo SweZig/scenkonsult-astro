@@ -41,31 +41,15 @@ const washHeads  = allEffekter.filter(p => p.group === 'moving-head' && p.tag?.i
 const beamHeads  = allEffekter.filter(p => p.group === 'moving-head' && p.tag?.includes('Beam')).map(toCard);
 const barHeads   = allEffekter.filter(p => p.group === 'moving-head' && p.tag?.includes('Bar')).map(toCard);
 
+const mhFaq = ljusData.movingHeads.faq;
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Vad kostar det att hyra moving heads i Stockholm?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Moving heads hyrs från 299 kr/st/dygn. Vi erbjuder volympriser — 2 st från 250 kr/st och 4 st från 225 kr/st. Kontakta oss för paketpris på större uppsättningar." }
-    },
-    {
-      "@type": "Question",
-      "name": "Vad är skillnaden mellan Moving Head Wash och Beam/Spot?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Wash-huvuden ger brett, mjukt ljus som tvättar en scen eller vägg i färg — perfekt för fest och event. Beam/Spot-huvuden ger smal, skarp stråle med gobos och prismaeffekter — perfekt för konsert och show." }
-    },
-    {
-      "@type": "Question",
-      "name": "Behöver jag DMX-controller för att hyra moving heads?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Nej — alla våra moving heads kan köras i standalone-läge (auto/sound-to-light) utan controller. Vill du ha full DMX-kontroll erbjuder vi även controller och riggning som tilläggstjänst." }
-    },
-    {
-      "@type": "Question",
-      "name": "Levererar ni moving heads i Stockholm?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Ja, vi levererar och hämtar i hela Storstockholm. Transport tillkommer. Kontakta oss för pris och tidsbokning." }
-    }
-  ]
+  "mainEntity": mhFaq.map((f: any) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
 };
 const _heroFranExcl = 299;
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
