@@ -2,6 +2,7 @@
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
+import SceneLinkCard from '../../../components/SceneLinkCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 import sceneData from '../../../data/scenes.json';
@@ -352,13 +353,7 @@ const pageSchema = {
           specs={ljusPaketSmall.specs ?? []} category="Ljus"
           manualUrl={ljusPaketSmall.manualUrl}
         />
-        <ProductCard
-          artno={scenSmall.artno} name={scenSmall.name} price={scenSmall.price}
-          priceNote="/dygn" image={scenSmall.image} alt={scenSmall.name}
-          description={scenSmall.description ?? ''}
-          specs={scenSmall.specs ?? []} category="Scen"
-          manualUrl={scenSmall.manualUrl}
-        />
+        <SceneLinkCard paket={scenSmall} />
         <ProductCard
           artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price}
           priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name}

@@ -2,6 +2,7 @@
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
+import SceneLinkCard from '../../../components/SceneLinkCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 import sceneData from '../../../data/scenes.json';
@@ -220,13 +221,7 @@ const pageSchema = {
           specs={liveMedium.specs ?? []} category="Ljud"
           manualUrl={liveMedium.manualUrl}
         />
-        <ProductCard
-          artno={scenMedium.artno} name={scenMedium.name} price={scenMedium.price}
-          priceNote="/dygn" image={scenMedium.image} alt={scenMedium.name}
-          description={scenMedium.description ?? ''}
-          specs={scenMedium.specs ?? []} category="Scen"
-          manualUrl={scenMedium.manualUrl}
-        />
+        <SceneLinkCard paket={scenMedium} />
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <ProductCard

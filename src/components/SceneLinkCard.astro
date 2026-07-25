@@ -1,0 +1,43 @@
+---
+// Kompakt LÄNK-kort för scenpaket. Leder till scensidan (eller angiven href)
+// där den fulla konfiguratorn (yta/trappor/kjol, live-pris) finns.
+// Används på inspirations-/förslagssidor (t.ex. for/brollop, for/festival)
+// där ett fullt DynamicPaketCard skulle bli för högt i ett blandat rutnät
+// med ljus-/ljud-/mikrofonkort. Matchar produktkortens visuella språk.
+const {
+  paket,
+  href = '/vara-tjanster/hyra-scen/',
+  cta = 'Bygg & konfigurera →',
+} = Astro.props;
+
+const priceExcl = paket.price;
+const priceIncl = Math.round(paket.price * 1.25);
+const fmt = (n: number) => n.toLocaleString('sv-SE');
+---
+<a
+  href={href}
+  class="bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group flex flex-col"
+  style="text-decoration:none"
+  title={`Hyra ${paket.name} — bygg och konfigurera på scensidan`}
+>
+  <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
+    <img
+      src={paket.image}
+      alt={paket.alt ?? paket.name}
+      width="1024" height="853" loading="lazy"
+      class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+    />
+  </div>
+  <div class="p-5 flex flex-col flex-1">
+    <h3 class="font-bold text-white text-lg mb-2 group-hover:text-brand-orange transition-colors">{paket.name}</h3>
+    {paket.description && <p class="text-gray-400 text-sm mb-4 flex-1">{paket.description}</p>}
+    <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-3 gap-3">
+      <div class="leading-none">
+        <span class="sk-price-excl text-brand-orange font-extrabold text-lg">från {fmt(priceExcl)} kr</span>
+        <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">från {fmt(priceIncl)} kr</span>
+        <span class="text-gray-400 text-xs">/dygn</span>
+      </div>
+      <span class="text-brand-orange text-sm font-semibold whitespace-nowrap">{cta}</span>
+    </div>
+  </div>
+</a>
