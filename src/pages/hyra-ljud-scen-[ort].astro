@@ -26,10 +26,13 @@ const lokalaKunder = [...new Set([
   ...((ort.kunder ?? []) as string[]),
 ])];
 
+const isHemma = ort.slug === 'vallingby';
 const faq = [
   {
     q: `Levererar ni till ${ort.namn}?`,
-    a: `Ja, vi levererar till ${ort.namn} och hela Storstockholm. Från vårt lager i Vällingby är det ca ${ort.distans} och ${ort.distansMin} minuter till ${ort.namn}. Du kan också hämta utrustningen själv i Vällingby om du föredrar det.`
+    a: isHemma
+      ? `Ja — Vällingby är vår hemmaplan. Vårt lager ligger på Grimstagatan 164 mitt i Vällingby, så leveransen går snabbt och du kan enkelt hämta utrustningen själv om du föredrar det.`
+      : `Ja, vi levererar till ${ort.namn} och hela Storstockholm. Från vårt lager i Vällingby är det ca ${ort.distans} och ${ort.distansMin} minuter till ${ort.namn}. Du kan också hämta utrustningen själv i Vällingby om du föredrar det.`
   },
   {
     q: `Hur lång tid tar det att ställa upp utrustningen i ${ort.namn}?`,
