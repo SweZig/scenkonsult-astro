@@ -5,7 +5,7 @@
 
 import clientsData from '../data/clients.json';
 
-export interface ClientRow { name: string; category: string | null; }
+export interface ClientRow { name: string; category: string | null; ort?: string | null; }
 
 // Fasta kategorier — ordning styr visning på referenssidan.
 export const CATEGORY_META = [
@@ -33,6 +33,16 @@ export function getClientCategories() {
 // Samtliga kundnamn (för "Samtliga referenskunder" och om-oss).
 export function getAllClientNames(): string[] {
   return rows().map((r) => r.name);
+}
+
+// Kunder kopplade till en specifik ort (matchar `ort`-fältet, satt i /admin/referenser/).
+// Case-insensitivt mot ortens namn (t.ex. "Solna"). Används på ortssidorna.
+export function getClientsByOrt(ort: string): string[] {
+  const target = (ort || '').trim().toLowerCase();
+  if (!target) return [];
+  return rows()
+    .filter((r) => (r.ort || '').trim().toLowerCase() === target)
+    .map((r) => r.name);
 }
 
 // Kurerat urval av kunder för logo-banners (foretagsfest, ort-sidor).

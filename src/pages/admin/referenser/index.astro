@@ -6,6 +6,8 @@
 //
 // Data via /.netlify/functions/admin-clients (service key).
 // Frontend läser /.netlify/functions/clients-list (publik) + snapshot i clients.json.
+import orterData from '../../../data/orter.json';
+const ORT_NAMN = orterData.map((o) => o.namn);
 ---
 <!DOCTYPE html>
 <html lang="sv">
@@ -86,7 +88,9 @@
       Lägg till en kund <b>en gång</b> och välj <b>kategori</b> — kategorivyn och
       "Samtliga referenskunder" på <a href="/referenser/" target="_blank">referenssidan</a>
       (samt kundlistan på om-oss) byggs automatiskt. Kunder utan kategori visas bara
-      i Samtliga-listan. Ändringar slår igenom direkt.
+      i Samtliga-listan. Sätt <b>Ort</b> för att koppla kunden till motsvarande
+      <a href="/hyra-ljud-scen-solna/" target="_blank">ortssida</a> — då visas den under
+      "Kunder vi levererat till i [ort]". Ändringar slår igenom vid nästa publicering.
     </div>
 
     <div class="catbar" id="catbar"></div>
@@ -97,6 +101,10 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<script define:vars={{ ORT_NAMN }}>
+  window.ORT_OPTIONS = ORT_NAMN;
+</script>
 
 <script>
 const ADMIN_KEY = 'sk_admin_token';
@@ -170,6 +178,14 @@ function catOptions(sel) {
   return CATS.map(c => `<option value="${c.key}" ${(c.key || '') === (sel || '') ? 'selected' : ''}>${c.label}</option>`).join('');
 }
 
+function ortOptions(sel) {
+  const opts = [`<option value="">— Ort (ingen) —</option>`];
+  (window.ORT_OPTIONS || []).forEach(o => {
+    opts.push(`<option value="${escapeHtml(o)}" ${o === (sel || '') ? 'selected' : ''}>${escapeHtml(o)}</option>`);
+  });
+  return opts.join('');
+}
+
 function cardHtml(c, i, len) {
   return `
     <div class="card ${!c.active ? 'inactive' : ''}" data-id="${escapeHtml(c.id)}">
@@ -180,6 +196,7 @@ function cardHtml(c, i, len) {
         </div>
         <input type="text" data-field="name" placeholder="Kundnamn" value="${escapeHtml(c.name || '')}" />
         <select data-field="category">${catOptions(c.category)}</select>
+        <select data-field="ort" title="Koppla kunden till en ortssida">${ortOptions(c.ort)}</select>
         <label class="switch"><input type="checkbox" data-field="active" ${c.active ? 'checked' : ''} /> Aktiv</label>
         <button class="btn primary" data-save="${escapeHtml(c.id)}">Spara</button>
         <button class="btn danger" data-delete="${escapeHtml(c.id)}">Ta bort</button>
@@ -213,11 +230,12 @@ function bindCardEvents() {
       const existing = items.find(c => c.id === id);
       const name = card.querySelector('[data-field="name"]').value.trim();
       const category = card.querySelector('[data-field="category"]').value || null;
+      const ort = card.querySelector('[data-field="ort"]').value || null;
       const active = card.querySelector('[data-field="active"]').checked;
       if (!name) { toast('Namn krävs'); return; }
       try {
         const res = await api('upsert', { client: {
-          id, name, category, active, sort_order: existing ? existing.sort_order : items.length,
+          id, name, category, ort, active, sort_order: existing ? existing.sort_order : items.length,
         }});
         if (!res) return;
         toast('Sparat');

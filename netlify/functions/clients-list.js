@@ -15,11 +15,11 @@ exports.handler = async (event) => {
   try {
     const db = supabase();
     const { data } = await db.from('clients')
-      .select('name,category,sort_order')
+      .select('name,category,ort,sort_order')
       .eq('active', true)
       .order('sort_order', { ascending: true });
 
-    const clients = (data || []).map(c => ({ name: c.name, category: c.category || null }));
+    const clients = (data || []).map(c => ({ name: c.name, category: c.category || null, ort: c.ort || null }));
 
     return {
       statusCode: 200,
