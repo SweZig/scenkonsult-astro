@@ -57,11 +57,13 @@ exports.handler = async (event) => {
         id,
         name: c.name.trim(),
         category: (c.category && CATEGORIES.includes(c.category)) ? c.category : null,
-        ort: (c.ort && typeof c.ort === 'string') ? c.ort.trim() : null,
         sort_order: typeof c.sort_order === 'number' ? c.sort_order : 0,
         active: typeof c.active === 'boolean' ? c.active : true,
         updated_at: new Date().toISOString(),
       };
+      // 'ort' inkluderas bara när det faktiskt är satt — så vanliga sparningar
+      // fungerar även innan Supabase-kolumnen 'ort' lagts till.
+      if (c.ort && typeof c.ort === 'string' && c.ort.trim()) row.ort = c.ort.trim();
 
       const supaUrl = process.env.SUPABASE_URL;
       const supaKey = process.env.SUPABASE_SERVICE_KEY;

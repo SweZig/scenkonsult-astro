@@ -23,8 +23,11 @@ async function main() {
 
   let rows;
   try {
-    const q = `${url}/rest/v1/clients?select=name,category,ort,sort_order&active=eq.true&order=sort_order.asc`;
-    const res = await fetch(q, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    const headers = { apikey: key, Authorization: `Bearer ${key}` };
+    const base = `${url}/rest/v1/clients?active=eq.true&order=sort_order.asc`;
+    let res = await fetch(`${base}&select=name,category,ort,sort_order`, { headers });
+    // Fallback utan 'ort' om kolumnen inte finns än (innan DB-migration körts)
+    if (!res.ok) res = await fetch(`${base}&select=name,category,sort_order`, { headers });
     if (!res.ok) { log(`Supabase svarade ${res.status} — behåller befintlig fil. ${(await res.text()).slice(0, 160)}`); return; }
     rows = await res.json();
   } catch (e) { log(`Fetch-fel: ${e.message} — behåller befintlig fil`); return; }

@@ -14,10 +14,18 @@ exports.handler = async (event) => {
 
   try {
     const db = supabase();
-    const { data } = await db.from('clients')
+    let { data, error } = await db.from('clients')
       .select('name,category,ort,sort_order')
       .eq('active', true)
       .order('sort_order', { ascending: true });
+
+    // Fallback om 'ort'-kolumnen inte finns än (innan DB-migration körts)
+    if (error) {
+      ({ data } = await db.from('clients')
+        .select('name,category,sort_order')
+        .eq('active', true)
+        .order('sort_order', { ascending: true }));
+    }
 
     const clients = (data || []).map(c => ({ name: c.name, category: c.category || null, ort: c.ort || null }));
 
