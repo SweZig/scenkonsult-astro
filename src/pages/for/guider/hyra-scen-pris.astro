@@ -1,6 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import ProductCard from '../../../components/ProductCard.astro';
+import DynamicPaketCard from '../../../components/DynamicPaketCard.astro';
 import sceneData from '../../../data/scenes.json';
 import tjData from '../../../data/tjanster.json';
 
@@ -115,13 +115,7 @@ const pageArticle = { headline: "Hyra Scen Stockholm — Pris & Guide 2026", dat
       <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.4rem,3vw,2rem); color:white; margin:0 0 1.25rem;">Välj scenpaket</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {scener.map(p => (
-          <ProductCard
-            artno={p.artno} name={p.name} price={p.price}
-            priceNote="/dygn" image={p.image} alt={p.name}
-            description={p.description ?? ''}
-            specs={p.specs ?? []} category="Scen"
-          manualUrl={p.manualUrl}
-        />
+          <DynamicPaketCard paket={p} />
         ))}
       </div>
       <div class="mt-5">
