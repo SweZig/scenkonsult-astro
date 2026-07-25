@@ -90,7 +90,8 @@ const ORT_NAMN = orterData.map((o) => o.namn);
       (samt kundlistan på om-oss) byggs automatiskt. Kunder utan kategori visas bara
       i Samtliga-listan. Sätt <b>Ort</b> för att koppla kunden till motsvarande
       <a href="/hyra-ljud-scen-solna/" target="_blank">ortssida</a> — då visas den under
-      "Kunder vi levererat till i [ort]". Ändringar slår igenom vid nästa publicering.
+      "Kunder vi levererat till i [ort]". Kryssa <b>Utvald</b> för att visa kunden i
+      utvalda-bannern (företagsfest + ortssidor). Ändringar slår igenom vid nästa publicering.
     </div>
 
     <div class="catbar" id="catbar"></div>
@@ -197,6 +198,7 @@ function cardHtml(c, i, len) {
         <input type="text" data-field="name" placeholder="Kundnamn" value="${escapeHtml(c.name || '')}" />
         <select data-field="category">${catOptions(c.category)}</select>
         <select data-field="ort" title="Koppla kunden till en ortssida">${ortOptions(c.ort)}</select>
+        <label class="switch" title="Visa i utvalda-bannern (foretagsfest + ortssidor)"><input type="checkbox" data-field="featured" ${c.featured ? 'checked' : ''} /> Utvald</label>
         <label class="switch"><input type="checkbox" data-field="active" ${c.active ? 'checked' : ''} /> Aktiv</label>
         <button class="btn primary" data-save="${escapeHtml(c.id)}">Spara</button>
         <button class="btn danger" data-delete="${escapeHtml(c.id)}">Ta bort</button>
@@ -231,11 +233,12 @@ function bindCardEvents() {
       const name = card.querySelector('[data-field="name"]').value.trim();
       const category = card.querySelector('[data-field="category"]').value || null;
       const ort = card.querySelector('[data-field="ort"]').value || null;
+      const featured = card.querySelector('[data-field="featured"]').checked;
       const active = card.querySelector('[data-field="active"]').checked;
       if (!name) { toast('Namn krävs'); return; }
       try {
         const res = await api('upsert', { client: {
-          id, name, category, ort, active, sort_order: existing ? existing.sort_order : items.length,
+          id, name, category, ort, featured, active, sort_order: existing ? existing.sort_order : items.length,
         }});
         if (!res) return;
         toast('Sparat');

@@ -61,21 +61,29 @@ exports.handler = async (event) => {
         active: typeof c.active === 'boolean' ? c.active : true,
         updated_at: new Date().toISOString(),
       };
-      // 'ort' inkluderas bara när det faktiskt är satt — så vanliga sparningar
-      // fungerar även innan Supabase-kolumnen 'ort' lagts till.
+      // Valfria kolumner ('ort', 'featured') inkluderas bara när de är satta.
+      // Om en kolumn inte finns än i Supabase görs ett retry utan dem (se nedan),
+      // så deploy-ordningen är ofarlig.
       if (c.ort && typeof c.ort === 'string' && c.ort.trim()) row.ort = c.ort.trim();
+      if (typeof c.featured === 'boolean') row.featured = c.featured;
 
       const supaUrl = process.env.SUPABASE_URL;
       const supaKey = process.env.SUPABASE_SERVICE_KEY;
-      const res = await fetch(`${supaUrl}/rest/v1/clients?on_conflict=id`, {
+      const doUpsert = (payload) => fetch(`${supaUrl}/rest/v1/clients?on_conflict=id`, {
         method: 'POST',
         headers: {
           'apikey': supaKey, 'Authorization': `Bearer ${supaKey}`,
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates,return=representation',
         },
-        body: JSON.stringify(row),
+        body: JSON.stringify(payload),
       });
+      let res = await doUpsert(row);
+      // Fallback: om en valfri kolumn (ort/featured) inte finns än → retry utan dem
+      if (!res.ok && (('ort' in row) || ('featured' in row))) {
+        const { ort, featured, ...base } = row;
+        res = await doUpsert(base);
+      }
       if (!res.ok) {
         const errText = await res.text();
         console.error('CLIENTS_UPSERT_ERROR:', res.status, errText.slice(0, 200));

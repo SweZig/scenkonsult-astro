@@ -5,7 +5,7 @@
 
 import clientsData from '../data/clients.json';
 
-export interface ClientRow { name: string; category: string | null; ort?: string | null; }
+export interface ClientRow { name: string; category: string | null; ort?: string | null; featured?: boolean; }
 
 // Fasta kategorier — ordning styr visning på referenssidan.
 export const CATEGORY_META = [
@@ -46,9 +46,9 @@ export function getClientsByOrt(ort: string): string[] {
 }
 
 // Kurerat urval av kunder för logo-banners (foretagsfest, ort-sidor).
-// Ersätter den tidigare hårdkodade urvals-arrayen i site.json.
-// Namnen valideras mot clients.json (kanonisk källa) — okända namn utelämnas
-// tyst så att sidan aldrig visar en kund som inte längre finns i registret.
+// PRIMÄR källa: kunder markerade som `featured` i /admin/referenser/ (Supabase).
+// FALLBACK (om ingen kund ännu markerats som featured): denna kodlista.
+// Namnen valideras mot clients.json — okända namn utelämnas tyst.
 const FEATURED_CLIENT_NAMES = [
   'ICA Sverige',
   'Tele2',
@@ -65,6 +65,11 @@ const FEATURED_CLIENT_NAMES = [
 ];
 
 export function getFeaturedClients(): string[] {
-  const known = new Set(rows().map((r) => r.name));
+  const all = rows();
+  // Primärt: kunder markerade som featured i admin (i sort_order-ordning).
+  const flagged = all.filter((r) => r.featured).map((r) => r.name);
+  if (flagged.length) return flagged;
+  // Fallback: kurerad kodlista (innan någon kund markerats featured i admin).
+  const known = new Set(all.map((r) => r.name));
   return FEATURED_CLIENT_NAMES.filter((n) => known.has(n));
 }

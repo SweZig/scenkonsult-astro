@@ -25,8 +25,8 @@ async function main() {
   try {
     const headers = { apikey: key, Authorization: `Bearer ${key}` };
     const base = `${url}/rest/v1/clients?active=eq.true&order=sort_order.asc`;
-    let res = await fetch(`${base}&select=name,category,ort,sort_order`, { headers });
-    // Fallback utan 'ort' om kolumnen inte finns än (innan DB-migration körts)
+    let res = await fetch(`${base}&select=name,category,ort,featured,sort_order`, { headers });
+    // Fallback utan valfria kolumner (ort/featured) om de inte finns än
     if (!res.ok) res = await fetch(`${base}&select=name,category,sort_order`, { headers });
     if (!res.ok) { log(`Supabase svarade ${res.status} — behåller befintlig fil. ${(await res.text()).slice(0, 160)}`); return; }
     rows = await res.json();
@@ -41,6 +41,7 @@ async function main() {
     name: r.name,
     category: CATEGORIES.includes(r.category) ? r.category : null,
     ort: r.ort || null,
+    featured: !!r.featured,
   }));
 
   const out = {

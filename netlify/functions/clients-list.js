@@ -15,11 +15,11 @@ exports.handler = async (event) => {
   try {
     const db = supabase();
     let { data, error } = await db.from('clients')
-      .select('name,category,ort,sort_order')
+      .select('name,category,ort,featured,sort_order')
       .eq('active', true)
       .order('sort_order', { ascending: true });
 
-    // Fallback om 'ort'-kolumnen inte finns än (innan DB-migration körts)
+    // Fallback om valfria kolumner (ort/featured) inte finns än
     if (error) {
       ({ data } = await db.from('clients')
         .select('name,category,sort_order')
@@ -27,7 +27,7 @@ exports.handler = async (event) => {
         .order('sort_order', { ascending: true }));
     }
 
-    const clients = (data || []).map(c => ({ name: c.name, category: c.category || null, ort: c.ort || null }));
+    const clients = (data || []).map(c => ({ name: c.name, category: c.category || null, ort: c.ort || null, featured: !!c.featured }));
 
     return {
       statusCode: 200,
