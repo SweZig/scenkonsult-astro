@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import CategoryHero from '../components/CategoryHero.astro';
 import orter from '../data/orter.json';
 import ProductCard from '../components/ProductCard.astro';
+import DynamicPaketCard from '../components/DynamicPaketCard.astro';
 import MediaCard from '../components/MediaCard.astro';
 import ljudData from '../data/ljud.json';
 import scenData from '../data/scenes.json';
@@ -196,26 +197,7 @@ const pageSchema = {
     <h2 class="text-2xl font-bold text-white mb-8">Hyr till ditt event</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
       {scenData.products.filter(p => ['medium','large'].includes(p.id)).map(p => (
-        <ProductCard
-          id={`scen-${p.id}`}
-          artno={p.artno}
-          name={p.name}
-          price={p.price}
-          priceNote={`/${p.priceNote ?? 'dygn'}`}
-          image={p.image}
-          alt={p.alt}
-          description={p.description}
-          specs={p.specs ?? []}
-          category="Scen"
-          dimensionTable={[
-            { label: 'Storlek', value: p.size },
-            { label: 'Mått', value: p.dimensions },
-            { label: 'Kapacitet', value: p.capacity },
-          ]}
-          bulky={p.bulky}
-          forceLeverans={p.forceLeverans}
-          manualUrl={p.manualUrl}
-        />
+        <DynamicPaketCard paket={p} />
       ))}
       {ljudData.event.products.filter(p => p.id === 'event-small').map(p => (
         <ProductCard
