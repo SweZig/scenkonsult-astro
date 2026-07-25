@@ -606,15 +606,29 @@ const homeSchema = {
       });
       return;
     }
+    // play() direkt efter src-tilldelning kapas av browserns interna load() →
+    // AbortError. Vänta på loadeddata/canplay i stället, och försök igen om
+    // första play() ändå avvisas.
+    function tryPlay(v, attempts) {
+      const p = v.play();
+      if (p && p.catch) {
+        p.catch(() => {
+          if (attempts > 0) setTimeout(() => tryPlay(v, attempts - 1), 600);
+        });
+      }
+    }
     const io = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         const v = entry.target;
         const src = v.getAttribute('data-src');
-        if (src && !v.src) {
-          v.src = src;
-          // play() returnerar Promise — fångar AbortError om browsern blockerar
-          v.play().catch(() => {});
+        if (src && !v.getAttribute('src')) {
+          v.addEventListener('loadeddata', () => tryPlay(v, 3), { once: true });
+          v.addEventListener('error', () => {
+            console.warn('[lazy-video] kunde inte ladda', src, v.error && v.error.code);
+          }, { once: true });
+          v.setAttribute('src', src);
+          v.load();
         }
         io.unobserve(v);
       });
