@@ -17,6 +17,18 @@
 /xmlrpc.php      /  410!
 /wp-login.php    /  410!
 
+# WP catch-all — alla wp-*.php som Google fortfarande hittar (2026-07-24)
+# GSC "Not found (404)" rapporterade `wp-*.php` som mönster — vi vill 410 istället
+/wp-*.php        /  410!
+/wp-*            /  410!
+
+# WordPress kategorier — 410 Gone (2026-07-24)
+# GSC "Not found (404)" för /category/uncategorized/. netlify.toml har 410 men
+# den regeln matchade inte i praktiken — force-override här.
+/category/*      /  410!
+/tag/*           /  410!
+/author/*        /  410!
+
 # Bare /requests (utan slash) — gammal WP-sida som ska 410 Gone
 /requests   /  410!
 /requests/  /  410!
