@@ -435,9 +435,6 @@ if (_payFaq) {
 svenFacts.push('Bokningsavgift 49 kr (exkl. moms) tillkommer per order.');
 svenFacts.push('');
 
-svenFacts.push('Bokningsavgift 49 kr (exkl. moms) tillkommer per order.');
-svenFacts.push('');
-
 // AVBOKNING & ÄNDRING — MÅSTE spegla hyresvillkoren §3 (privatperson) / §4 (företag)
 // och den kondenserade versionen i netlify/functions/_invoice-villkor.js.
 // Ändras villkoren: uppdatera BÅDA hyresvillkorssidorna, _invoice-villkor.js OCH detta block.
