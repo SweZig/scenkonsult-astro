@@ -435,6 +435,28 @@ if (_payFaq) {
 svenFacts.push('Bokningsavgift 49 kr (exkl. moms) tillkommer per order.');
 svenFacts.push('');
 
+svenFacts.push('Bokningsavgift 49 kr (exkl. moms) tillkommer per order.');
+svenFacts.push('');
+
+// AVBOKNING & ÄNDRING — MÅSTE spegla hyresvillkoren §3 (privatperson) / §4 (företag)
+// och den kondenserade versionen i netlify/functions/_invoice-villkor.js.
+// Ändras villkoren: uppdatera BÅDA hyresvillkorssidorna, _invoice-villkor.js OCH detta block.
+svenFacts.push('═══ AVBOKNING & ÄNDRING ═══');
+svenFacts.push('Detta är de enda giltiga avbokningsreglerna. Hitta ALDRIG på egna tidsgränser (t.ex. "48 timmar") eller avbokningsavgifter — de finns inte.');
+svenFacts.push('Utrustningshyra (allt utom bokad DJ), räknat från hyresperiodens start:');
+svenFacts.push('- Mer än 7 dagar före: kostnadsfri avbokning, full återbetalning, inga avgifter.');
+svenFacts.push('- 3–7 dagar före: 50 % av hyresbeloppet återbetalas.');
+svenFacts.push('- Färre än 3 dagar före: ingen återbetalning.');
+svenFacts.push('Bokad DJ (artisten reserverar sitt datum — separata regler):');
+svenFacts.push('- Mer än 60 dagar före: full återbetalning, inga avgifter.');
+svenFacts.push('- 30–60 dagar före: 50 % av bokningsbeloppet återbetalas.');
+svenFacts.push('- Färre än 30 dagar före: ingen återbetalning.');
+svenFacts.push('ÄNDRING är inte samma sak som avbokning: byte av datum eller utrustning är kostnadsfritt oavsett hur nära eventet det sker, förutsatt att önskad utrustning finns tillgänglig. Tipsa gärna om ombokning som alternativ till avbokning.');
+svenFacts.push('Avbokning och ändring ska alltid göras skriftligen (mail till info@scenkonsult.se).');
+svenFacts.push('Samma regler gäller privatpersoner och företag. Konsumenter har normalt 14 dagars ångerrätt vid distansavtal, men genom att slutföra bokningen godkänner kunden att tjänsten påbörjas omedelbart — infaller hyresperioden inom ångerfristen upphör ångerrätten och återbetalning sker enligt reglerna ovan.');
+svenFacts.push('Hänvisa vid detaljfrågor till hyresvillkoren: [privatperson](/hyresvillkor/privatperson/) · [företag](/hyresvillkor/foretag/).');
+svenFacts.push('');
+
 // ÖVRIGA VANLIGA FRÅGOR — resterande FAQ från site.json (utom betalning som täcks ovan)
 svenFacts.push('═══ ÖVRIGA VANLIGA FRÅGOR (från sajtens FAQ) ═══');
 (site.faq || [])
