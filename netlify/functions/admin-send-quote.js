@@ -6,6 +6,7 @@
 const crypto = require('crypto');
 const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight,
         htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
+const { daySummary: _daySummary, itemDays: _itemDays } = require('./_day-display');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -145,7 +146,11 @@ exports.handler = async (event) => {
     ? `<div style="margin:0 0 22px;padding:14px 16px;background:#fafaff;border:1px solid #ececf5;border-radius:8px;">
          <p style="margin:0 0 8px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;">Innehåll i offerten</p>
          <ul style="margin:0;padding:0 0 0 18px;color:#333;font-size:13px;line-height:1.8;">
-           ${realItems.map(i => `<li>${i.name}${(i.qty||1) > 1 ? ` <span style="color:#888;">× ${i.qty}</span>` : ''}</li>`).join('')}
+           ${realItems.map(i => {
+             const d = _itemDays(i);
+             const meta = [(i.qty||1) > 1 ? `× ${i.qty}` : '', d > 1 ? `${d} dygn` : ''].filter(Boolean).join(' · ');
+             return `<li>${i.name}${meta ? ` <span style="color:#888;">${meta}</span>` : ''}</li>`;
+           }).join('')}
          </ul>
        </div>`
     : '';
@@ -158,7 +163,18 @@ exports.handler = async (event) => {
     ? `${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalIncl)} kr inkl. moms`
     : `${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalExcl)} kr exkl. moms`;
 
+  // Flerdygnsrabatten som konkret belopp — bästa möjliga krok in till
+  // ordersidan, eftersom mailet medvetet inte visar radpriser.
+  const _ds = _daySummary(realItems);
+  const dayBlock = (_ds.hasMultiDay && _ds.rabatt > 0)
+    ? `<div style="margin:0 0 18px;padding:12px 16px;background:#eefaf1;border:1px solid #b9e6c9;border-radius:8px;">
+         <p style="margin:0;color:#2f8f52;font-size:13px;font-weight:700;">Flerdygnsrabatt — ni sparar ${fmtN(_ds.rabatt)} kr</p>
+         <p style="margin:4px 0 0;color:#4a6b55;font-size:12px;line-height:1.5;">Hyran löper över ${_ds.maxDays} hyresdygn. Ordinarie pris hade varit ${fmtN(_ds.ordinarie)} kr exkl. moms — rabatten är redan avdragen.</p>
+       </div>`
+    : '';
+
   const bigCta = `
+    ${dayBlock}
     <div style="margin:0 0 24px;padding:24px 20px;background:linear-gradient(135deg,#1e1850 0%,#332885 100%);border-radius:12px;text-align:center;">
       <p style="margin:0 0 4px;color:rgba(255,255,255,0.65);font-size:12px;text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">${primaryLabel}</p>
       <p style="margin:0 0 4px;color:#c4b5f4;font-size:34px;font-weight:800;line-height:1;font-family:Arial,sans-serif;">${fmtN(primaryAmount)} kr</p>

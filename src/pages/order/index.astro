@@ -269,6 +269,23 @@ import orderCatalog from '../../data/order-catalog-flat.json';
   .row-qty    { text-align: center; color: rgba(255,255,255,0.6); font-size: 0.88rem; }
   .row-price  { text-align: right; color: rgba(255,255,255,0.5); font-size: 0.88rem; }
   .row-total  { text-align: right; color: #c4b5f4; font-weight: 700; font-size: 0.9rem; }
+  /* Hyresdygn */
+  .row-perday { display:block; font-size: 0.62rem; color: rgba(196,181,244,0.5); font-family:'Space Grotesk',sans-serif; }
+  .row-was    { display:block; font-size: 0.72rem; color: rgba(255,255,255,0.32); font-weight: 400; text-decoration: line-through; }
+  .totals-was { color: rgba(255,255,255,0.32); text-decoration: line-through; }
+  .totals-rabatt, .totals-rabatt span { color: #4ade80 !important; font-weight: 700; }
+  .day-banner {
+    display:flex; gap:14px; align-items:flex-start;
+    background: rgba(74,222,128,0.10); border: 1px solid rgba(74,222,128,0.30);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 1.1rem;
+  }
+  .day-banner-icon {
+    width:30px; height:30px; border-radius:8px; background:rgba(74,222,128,0.18);
+    color:#4ade80; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:1.05rem; flex-shrink:0;
+  }
+  .day-banner-h { font-family:'Space Grotesk',sans-serif; font-weight:700; color:#4ade80; font-size:0.95rem; }
+  .day-banner-p { font-size:0.85rem; color:rgba(255,255,255,0.72); margin-top:3px; line-height:1.5; }
 
   /* Section separator */
   .order-sec-label {
@@ -540,11 +557,14 @@ import orderCatalog from '../../data/order-catalog-flat.json';
         <span style="text-align:right">À-pris</span>
         <span style="text-align:right">Summa</span>
       </div>
+      <div id="dayBannerWrap"></div>
       <div id="prodTableWrap"></div>
     </div>
 
     <!-- Totals -->
     <div class="order-totals" id="orderTotals" style="display:none">
+      <div class="totals-row" id="totalsOrd" style="display:none"></div>
+      <div class="totals-row" id="totalsRabatt" style="display:none"></div>
       <div class="totals-row" id="totalsExcl"></div>
       <div class="totals-row" id="totalsMoms"></div>
       <div class="totals-row grand" id="totalsGrand"></div>
@@ -996,6 +1016,35 @@ function renderOrder(c) {
   // Lagra items för popup-referens
   window._orderItems = window._orderItems || {};
 
+  // ── Hyresdygn — visning ────────────────────────────────────
+  // Renderas ur unit_price och days, ALDRIG ur price. Kunden ska se
+  // dygnspriset hen känner igen på sajten, inte det räknade periodpriset.
+  const _NON_DAY_PREFIX = ['SK-LEV-','SK-TJN-','SK-DJ-','SK-LJT-'];
+  const _NON_DAY_IDS = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
+  const dayPriced = i => {
+    if (!i || i._note || i.type === 'service') return false;
+    if (_NON_DAY_IDS.has(i.id)) return false;
+    if (['Tjänster','Tillägg','Leverans'].includes(i.category)) return false;
+    const ref = String(i.artno || i.id || '').toUpperCase();
+    return !_NON_DAY_PREFIX.some(p => ref.startsWith(p));
+  };
+  const dDays = i => { if (!dayPriced(i)) return 1; const d = Math.floor(Number(i && i.days)); return d > 0 ? d : 1; };
+  const dUnit = i => { const u = Number(i && i.unit_price); return u > 0 ? u : (Number(i && i.price) || 0); };
+  const dQty  = i => Number(i && (i.qty != null ? i.qty : i.quantity)) || 1;
+  const dFull = i => dUnit(i) * dDays(i) * dQty(i);
+  const dNow  = i => (Number(i && i.price) || 0) * dQty(i);
+  const daySummaryOf = arr => {
+    const real = (arr || []).filter(i => i && !i._note);
+    const ordinarie = real.reduce((s, i) => s + dFull(i), 0);
+    const faktiskt  = real.reduce((s, i) => s + dNow(i), 0);
+    return {
+      ordinarie, faktiskt,
+      rabatt: Math.max(0, ordinarie - faktiskt),
+      maxDays: real.reduce((m, i) => Math.max(m, dDays(i)), 1),
+      hasMultiDay: real.some(i => dDays(i) > 1),
+    };
+  };
+
   const mkProdRow = (i, globalIdx) => {
     const qty    = i.qty || i.quantity || 1;
     const total  = (i.price||0) * qty;
@@ -1013,10 +1062,15 @@ function renderOrder(c) {
     const clickProps = hasInfo ? `onclick="openOrderProductModal(window._orderItems['${key}'])" title="Klicka för mer info"` : '';
     return `<div class="order-cart-row${hasInfo?' order-cart-row-clickable':''}" ${clickProps}>
       ${imgEl}
-      <div><div class="row-name">${i.name||'–'}${infoHint}</div>${info.artno ? `<div class="row-cat">${info.artno}</div>` : ''}</div>
+      <div>
+        <div class="row-name">${i.name||'–'}${infoHint}</div>
+        ${dDays(i) > 1
+          ? `<div class="row-cat">${dDays(i)} dygn · ${fmt(dUnit(i))} kr/dygn${info.artno ? ' · ' + info.artno : ''}</div>`
+          : (info.artno ? `<div class="row-cat">${info.artno}</div>` : '')}
+      </div>
       <div class="row-qty">${qty > 1 ? qty + ' st' : '1 st'}</div>
-      <div class="row-price">${fmt(i.price)} kr</div>
-      <div class="row-total">${fmt(total)} kr</div>
+      <div class="row-price">${fmt(dDays(i) > 1 ? dUnit(i) : i.price)} kr${dDays(i) > 1 ? '<span class="row-perday">/dygn</span>' : ''}</div>
+      <div class="row-total">${dFull(i) > total ? `<span class="row-was">${fmt(dFull(i))} kr</span>` : ''}${fmt(total)} kr</div>
     </div>`;
   };
 
@@ -1026,7 +1080,7 @@ function renderOrder(c) {
     const iconDef = svcIcon(i.id);
     return `<div class="order-cart-row svc-row">
       <div class="row-img" style="background:${iconDef.bg};padding:10px">${iconDef.svg}</div>
-      <div><div class="row-name">${i.name||'–'}</div><div class="row-cat">Tilläggstjänst</div></div>
+      <div><div class="row-name">${i.name||'–'}</div><div class="row-cat">Engångsavgift för hela perioden</div></div>
       <div class="row-qty">${qty > 1 ? qty + ' st' : '1 st'}</div>
       <div class="row-price">${fmt(i.price)} kr</div>
       <div class="row-total">${fmt(total)} kr</div>
@@ -1129,11 +1183,39 @@ function renderOrder(c) {
     </div>`;
   }
 
+  // Sparbannern överst — sätter ramen INNAN kunden når tabellen, så dygnen är
+  // etablerade som ett faktum när priserna dyker upp.
+  const _bannerDs = daySummaryOf(realItems);
+  const bannerEl = document.getElementById('dayBannerWrap');
+  if (bannerEl) {
+    bannerEl.innerHTML = (_bannerDs.hasMultiDay && _bannerDs.rabatt > 0)
+      ? `<div class="day-banner">
+           <div class="day-banner-icon">&darr;</div>
+           <div>
+             <div class="day-banner-h">Flerdygnsrabatt &middot; ni sparar ${fmt(_bannerDs.rabatt)} kr</div>
+             <div class="day-banner-p">Hyran l&ouml;per &ouml;ver ${_bannerDs.maxDays} dygn. Rabatten &auml;r redan avdragen i priserna nedan.</div>
+           </div>
+         </div>`
+      : '';
+  }
+
   document.getElementById('prodTableWrap').innerHTML = html;
 
   // Totals box
   const totalsEl = document.getElementById('orderTotals');
   if (totalsEl && grandExcl > 0) {
+    // Flerdygnsrabatt som eget belopp i kronor, ovanför summan. Ett belopp
+    // säger mer än en procentsats.
+    const _ds = daySummaryOf(realItems);
+    const ordEl = document.getElementById('totalsOrd');
+    const rabEl = document.getElementById('totalsRabatt');
+    if (_ds.hasMultiDay && _ds.rabatt > 0) {
+      if (ordEl) { ordEl.innerHTML = `<span>Ordinarie pris, ${_ds.maxDays} dygn</span><span class="totals-was">${fmt(_ds.ordinarie)} kr</span>`; ordEl.style.display = ''; }
+      if (rabEl) { rabEl.innerHTML = `<span>Flerdygnsrabatt</span><span>-${fmt(_ds.rabatt)} kr</span>`; rabEl.style.display = ''; rabEl.classList.add('totals-rabatt'); }
+    } else {
+      if (ordEl) ordEl.style.display = 'none';
+      if (rabEl) rabEl.style.display = 'none';
+    }
     document.getElementById('totalsExcl').innerHTML  = `<span>Exkl. moms</span><span>${fmt(grandExcl)} kr</span>`;
     document.getElementById('totalsMoms').innerHTML  = `<span>Moms 25%</span><span>${fmt(moms)} kr</span>`;
     document.getElementById('totalsGrand').innerHTML = `<span>Totalt inkl. moms</span><span>${fmt(grandIncl)} kr</span>`;

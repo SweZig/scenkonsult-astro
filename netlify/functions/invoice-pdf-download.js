@@ -6,6 +6,7 @@
 
 const { supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingFee } = require('./_lib');
 const { getVillkor } = require('./_invoice-villkor');
+const { daySummary, dayNote, dayCell, itemQty, itemUnitPrice, lineTotalUndiscounted } = require('./_day-display');
 const PDFDocument = require('pdfkit');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
@@ -127,37 +128,87 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
     }
 
     // ── Produkttabell ──
-    const ARTNO_W = 95;
-    const colW = [ARTNO_W, W - ARTNO_W - 40 - 70 - 70, 40, 70, 70];
-    const cols = [
-      50,
-      50 + colW[0],
-      50 + colW[0] + colW[1],
-      50 + colW[0] + colW[1] + colW[2],
-      50 + colW[0] + colW[1] + colW[2] + colW[3],
-    ];
+    // Två lägen. Är varenda rad 1 hyresdygn ritas tabellen EXAKT som förut —
+    // majoriteten av uthyrningarna märker ingenting av flerdygnsstödet. Först
+    // när någon rad har fler dygn läggs Dygn-kolumnen till, à-priset visas per
+    // dygn (talet kunden känner igen) och delsumman får ordinariepriset
+    // överstruket ovanför sig.
+    const _daySum = daySummary(items);
+    const MULTI = _daySum.hasMultiDay;
+
+    const ARTNO_W = MULTI ? 82 : 95;
+    const DAY_W   = MULTI ? 34 : 0;
+    const QTY_W   = 40;
+    const UNIT_W  = MULTI ? 64 : 70;
+    const SUM_W   = MULTI ? 74 : 70;
+    const NAME_W  = W - ARTNO_W - QTY_W - DAY_W - UNIT_W - SUM_W;
+
+    const colW = MULTI
+      ? [ARTNO_W, NAME_W, QTY_W, DAY_W, UNIT_W, SUM_W]
+      : [ARTNO_W, NAME_W, QTY_W, UNIT_W, SUM_W];
+    const cols = colW.reduce((acc, w, i) => {
+      acc.push(i === 0 ? 50 : acc[i - 1] + colW[i - 1]);
+      return acc;
+    }, []);
+
+    const headers = MULTI
+      ? ['Artikelnr', 'Produkt / Tjänst', 'Antal', 'Dygn', 'Pris/dygn', 'Delsumma']
+      : ['Artikelnr', 'Produkt / Tjänst', 'Antal', 'À-pris', 'Delsumma'];
 
     doc.rect(50, tableY, W, 20).fill('#f4f4f7');
     doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY);
-    ['Artikelnr', 'Produkt / Tjänst', 'Antal', 'À-pris', 'Delsumma'].forEach((h, i) => {
+    headers.forEach((h, i) => {
       const align = i <= 1 ? 'left' : 'right';
       doc.text(h, cols[i] + 4, tableY + 6, { width: colW[i] - 8, align });
     });
 
     let ry = tableY + 20;
     items.forEach((item, idx) => {
-      const qty  = item.qty || 1;
+      const qty  = itemQty(item);
       const sum  = (item.price || 0) * qty;
       const artno = item.artno || item.id || '';
-      if (idx % 2 === 1) doc.rect(50, ry, W, 18).fill('#fafafa');
+      const note = MULTI ? dayNote(item) : '';
+      const full = lineTotalUndiscounted(item);
+      const rabatterad = MULTI && full > sum;
+      // Radhöjden var hårdkodad till 18 pt. Med en förklaringsrad under namnet
+      // och ett överstruket ordinariepris behöver raden vara högre.
+      const rowH = note ? 27 : 18;
+
+      if (idx % 2 === 1) doc.rect(50, ry, W, rowH).fill('#fafafa');
       doc.fontSize(8).font('Helvetica').fillColor(GRAY);
       doc.text(artno, cols[0] + 4, ry + 5, { width: colW[0] - 8, align: 'left' });
       doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
       doc.text(item.name || '—', cols[1] + 4, ry + 4, { width: colW[1] - 8, align: 'left' });
-      doc.text(String(qty),       cols[2] + 4, ry + 4, { width: colW[2] - 8, align: 'right' });
-      doc.text(fmtKr(item.price), cols[3] + 4, ry + 4, { width: colW[3] - 8, align: 'right' });
-      doc.text(fmtKr(sum),        cols[4] + 4, ry + 4, { width: colW[4] - 8, align: 'right' });
-      ry += 18;
+      if (note) {
+        doc.fontSize(7).font('Helvetica').fillColor(GRAY);
+        doc.text(note, cols[1] + 4, ry + 15, { width: colW[1] - 8, align: 'left' });
+        doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
+      }
+
+      let c = 2;
+      doc.text(String(qty), cols[c] + 4, ry + 4, { width: colW[c] - 8, align: 'right' }); c++;
+      if (MULTI) {
+        doc.text(dayCell(item), cols[c] + 4, ry + 4, { width: colW[c] - 8, align: 'right' }); c++;
+      }
+      // À-pris: per dygn i flerdygnsläget — samma tal som kunden såg på sajten.
+      doc.text(fmtKr(MULTI ? itemUnitPrice(item) : item.price), cols[c] + 4, ry + 4, { width: colW[c] - 8, align: 'right' }); c++;
+
+      if (rabatterad) {
+        // Ordinarie pris överstruket ovanför det rabatterade, så kolumnerna
+        // går att multiplicera ihop och komma rätt: antal × dygn × pris/dygn.
+        const txt = fmtKr(full);
+        doc.fontSize(7.5).fillColor('#a49dc4');
+        doc.text(txt, cols[c] + 4, ry + 3, { width: colW[c] - 8, align: 'right' });
+        const tw = doc.widthOfString(txt);
+        const x2 = cols[c] + colW[c] - 4;
+        doc.moveTo(x2 - tw, ry + 7).lineTo(x2, ry + 7).lineWidth(0.6).stroke('#a49dc4');
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#1a1a2e');
+        doc.text(fmtKr(sum), cols[c] + 4, ry + 13, { width: colW[c] - 8, align: 'right' });
+        doc.font('Helvetica');
+      } else {
+        doc.text(fmtKr(sum), cols[c] + 4, ry + 4, { width: colW[c] - 8, align: 'right' });
+      }
+      ry += rowH;
     });
 
     doc.rect(50, tableY, W, ry - tableY).stroke('#e0e0e8');
@@ -165,11 +216,16 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
 
     // Totals
     ry += 8;
-    const totals = [
-      ['Summa exkl. moms', fmtKr(totalExcl), GRAY, 'Helvetica'],
-      ['Moms 25%',          fmtKr(vat),       GRAY, 'Helvetica'],
-      ['Att betala inkl. moms', fmtKr(totalIncl), NAVY, 'Helvetica-Bold'],
-    ];
+    const totals = [];
+    if (MULTI && _daySum.rabatt > 0) {
+      // Rabatten som eget belopp i kronor. Ett belopp säger mer än "-33 %", och
+      // det är den rad kunden faktiskt kommer att berätta om för sin chef.
+      totals.push([`Ordinarie pris, ${_daySum.maxDays} dygn`, fmtKr(_daySum.ordinarie), '#a49dc4', 'Helvetica']);
+      totals.push(['Flerdygnsrabatt', '-' + fmtKr(_daySum.rabatt), '#2f8f52', 'Helvetica-Bold']);
+    }
+    totals.push(['Summa exkl. moms', fmtKr(totalExcl), GRAY, 'Helvetica']);
+    totals.push(['Moms 25%',          fmtKr(vat),       GRAY, 'Helvetica']);
+    totals.push(['Att betala inkl. moms', fmtKr(totalIncl), NAVY, 'Helvetica-Bold']);
     totals.forEach(([label, amount, color, font]) => {
       doc.fontSize(font === 'Helvetica-Bold' ? 11 : 9).font(font).fillColor(color);
       doc.text(label,  50,   ry, { width: W - 80, align: 'right' });

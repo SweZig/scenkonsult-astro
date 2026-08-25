@@ -177,6 +177,17 @@ const volPricingJSON = JSON.stringify(volPricingMap);
       <div id="adminSearchResults" style="margin-top:0.4rem;max-height:220px;overflow-y:auto;display:none;background:#12103a;border:1px solid rgba(196,181,244,0.2);border-radius:6px;"></div>
     </div>
 
+    <!-- FLERDYGN — statisk upplysning. Ingen beräkning här: dygnslogiken är
+         admin-only. Poängen är att gapet mellan sajtpris och offertpris blir
+         förväntat i stället för en obehaglig överraskning. -->
+    <div id="flerdygnHint" class="flerdygn-hint" style="display:none">
+      <div class="fh-icon">📅</div>
+      <div>
+        <div class="fh-h">Hyr ni fler än ett dygn?</div>
+        <div class="fh-p">Priserna här avser <b>ett hyresdygn</b>. Ska utrustningen stå kvar över helgen lämnar vi flerdygnsrabatt — <b>50 % på dag 2 och 3</b>. Skicka in korgen som offertförfrågan så räknar vi fram ert pris.</div>
+      </div>
+    </div>
+
     <!-- SUMMERING -->
     <div class="cart-summary">
       <div class="summ-row"><span>Produkter (exkl. moms)</span><span id="cartSubtotal">–</span></div>
@@ -594,7 +605,16 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 .hidden { display:none !important; }
 
 /* ─── SUMMERING ───────────────────────────────────────────── */
-.cart-summary {
+.flerdygn-hint {
+    display: flex; gap: 13px; align-items: flex-start;
+    background: rgba(196,181,244,0.07); border: 1px solid rgba(196,181,244,0.25);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 1rem;
+  }
+  .fh-icon { font-size: 1.25rem; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .fh-h { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #c4b5f4; font-size: 0.95rem; }
+  .fh-p { font-size: 0.86rem; color: rgba(255,255,255,0.74); margin-top: 3px; line-height: 1.55; }
+  .fh-p b { color: #f0eeff; }
+  .cart-summary {
   background:rgba(30,24,80,0.55);
   border:1px solid rgba(255,255,255,0.08);
   border-radius:14px;
@@ -1785,8 +1805,20 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
   }
 
   // ── INIT ─────────────────────────────────────────────────
+  // Flerdygnsrutan visas bara när korgen innehåller utrustning — på ett rent
+  // tjänsteköp (bara leverans/montering) vore den bara brus.
+  function syncFlerdygnHint() {
+    const el = document.getElementById('flerdygnHint');
+    if (!el) return;
+    const SVC = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
+    const harUtrustning = (getCart() || []).some(i =>
+      i && !SVC.has(i.id) && !['Tjänster','Tillägg','Leverans'].includes(i.category));
+    el.style.display = harUtrustning ? 'flex' : 'none';
+  }
+
   function refreshCart() {
     renderCart();
+    syncFlerdygnHint();
     updateNavBadge();
     autoSelectServices();
     updateSummary();
