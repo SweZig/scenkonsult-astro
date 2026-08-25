@@ -1173,13 +1173,22 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   // Montering: 600 kr/tim, min 15 min, baserat på monteringMin per produkt × qty
   // Demontering = monteringMin × 2 (redan inräknat i totalen)
   // assemblyMinutesTotal: override — fast totaltid oavsett qty (för LED-vägg etc.)
+  // monteringFast: FAST PAKETPRIS i kronor — används av bundle-produkter där
+  // monteringen ingår i ett annonserat totalpris (t.ex. SK-BLD-0013 LED-vägg på
+  // tross). Priset är då satt av oss, inte härlett ur minuter, så tidsuppgiften
+  // kan förbli sann för planering och transportval utan att styra kronorna.
+  // Rader med monteringFast bidrar med sitt belopp; övriga rader tidsberäknas
+  // som vanligt och summeras ovanpå.
   function calcMon(cart) {
     const prisPerMin = FRAKT.montering.prisPerTimme / 60;
     const minMin     = FRAKT.montering.minDebiteringMin;
     const bemanning  = (typeof FRAKT.montering.bemanning === 'number') ? FRAKT.montering.bemanning : 1;
     let totalMin = 0;
+    let fastSum  = 0;
     cart.forEach(item => {
-      if (item.assemblyMinutesTotal) {
+      if (item.monteringFast) {
+        fastSum += (Number(item.monteringFast) || 0);
+      } else if (item.assemblyMinutesTotal) {
         // Fast tid oavsett antal — t.ex. LED-vägg = 480 min (8 tim)
         totalMin += item.assemblyMinutesTotal;
       } else if (item.monteringMin) {
@@ -1188,27 +1197,34 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
         totalMin += Math.max(minMin, minPerItem) * item.qty;
       }
     });
-    // Om inget monteringMin finns: schablonbelopp 60 min
-    if (totalMin === 0) totalMin = 60;
+    // Schablon 60 min bara när ingenting alls är känt. Ett fast paketpris räknas
+    // som känt — annars skulle en ren bundle få 60 min schablon påklistrat.
+    if (totalMin === 0 && fastSum === 0) totalMin = 60;
     // Bemanning: tiden är fysisk, men debiteras som parallella mantimmar (× antal tekniker).
-    return Math.ceil(totalMin * prisPerMin) * bemanning;
+    return fastSum + (totalMin > 0 ? Math.ceil(totalMin * prisPerMin) * bemanning : 0);
   }
   function calcMonLabel(cart) {
     const minMin     = FRAKT.montering.minDebiteringMin;
     const bemanning  = (typeof FRAKT.montering.bemanning === 'number') ? FRAKT.montering.bemanning : 1;
     let totalMin = 0;
+    let hasFast  = false;
     cart.forEach(item => {
-      if (item.assemblyMinutesTotal) {
+      if (item.monteringFast) {
+        hasFast = true;
+      } else if (item.assemblyMinutesTotal) {
         totalMin += item.assemblyMinutesTotal;
       } else if (item.monteringMin) {
         totalMin += Math.max(minMin, item.monteringMin * 2) * item.qty;
       }
     });
-    if (totalMin === 0) totalMin = 60;
-    const h = Math.floor(totalMin/60), m = totalMin%60;
+    if (totalMin === 0 && !hasFast) totalMin = 60;
+    if (totalMin === 0) return 'fast paketpris';
+    // Avrunda minuterna — annars blir 282.6 % 60 = 42.599999999999994 i utskriften.
+    const h = Math.floor(totalMin/60), m = Math.round(totalMin%60);
     const timeStr = (h ? h+'h ' : '') + (m ? m+'min ' : '');
     const bemStr = bemanning > 1 ? ' × ' + bemanning + ' tekniker' : '';
-    return timeStr + bemStr + ' × ' + FRAKT.montering.prisPerTimme + ' kr/tim';
+    const fastStr = hasFast ? ' + fast paketpris' : '';
+    return timeStr + bemStr + ' × ' + FRAKT.montering.prisPerTimme + ' kr/tim' + fastStr;
   }
 
   // ── VILLKOR + FORM VALIDATION ──────────────────────────────
@@ -1758,6 +1774,7 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
     // Montering — utlöses bara av explicita flaggor
     const needsAssembly = cart.some(i =>
       i.assemblyMinutesTotal ||
+      i.monteringFast ||
       i.requiresAssembly === true
     );
     const chkMon = document.getElementById('chkMontering');
