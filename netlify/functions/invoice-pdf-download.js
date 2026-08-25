@@ -86,7 +86,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
       doc.fontSize(10).font('Helvetica').fillColor('#1a1a2e').text(fmtDate(invDate), 50, infoY + 40);
 
       doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Förfallodag', 50, infoY + 58);
-      doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a2e').text(isForskott ? 'Omgående (före utlämning)' : fmtDate(dueDate), 50, infoY + 68);
+      doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a2e').text(isForskott ? 'Innan eller i samband med utlämning' : fmtDate(dueDate), 50, infoY + 68);
     }
 
     // Kund (höger kolumn)

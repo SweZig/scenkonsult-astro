@@ -3348,6 +3348,16 @@ function renderTab(tab) {
       _chatDraft = { value: ta.value, start: ta.selectionStart, end: ta.selectionEnd };
     }
   }
+  // Samma sak för anmärkningen till kund. renderProductsTab() bygger textarean
+  // ur currentCart.items, så en re-render mitt i skrivandet skulle annars kasta
+  // osparad text. Fånga värdet + markörposition och lägg tillbaka efteråt.
+  let _noteDraft = null;
+  if (tab === 'products') {
+    const na = document.getElementById('prod-note');
+    if (na && na.value) {
+      _noteDraft = { value: na.value, start: na.selectionStart, end: na.selectionEnd };
+    }
+  }
   if (tab === 'info')     body.innerHTML = renderInfoTab();
   if (tab === 'products') {
     body.innerHTML = renderProductsTab();
@@ -3382,6 +3392,14 @@ function renderTab(tab) {
     if (ta) {
       ta.value = _chatDraft.value;
       try { ta.setSelectionRange(_chatDraft.start ?? ta.value.length, _chatDraft.end ?? ta.value.length); } catch (_) {}
+    }
+  }
+  // Återställ ev. bevarad anmärkningstext efter att Produkter-fliken byggts om.
+  if (tab === 'products' && _noteDraft) {
+    const na = document.getElementById('prod-note');
+    if (na) {
+      na.value = _noteDraft.value;
+      try { na.setSelectionRange(_noteDraft.start ?? na.value.length, _noteDraft.end ?? na.value.length); } catch (_) {}
     }
   }
   if (tab === 'log')      body.innerHTML = renderLogTab();
@@ -3480,6 +3498,9 @@ function renderTab(tab) {
         await refreshCurrentCart();
         clearPanelDirty();
         $('panel-title').textContent = `${currentCart.customer_name || 'Okänd'} — ${currentCart.id}`;
+        // Rita om footern — dess knappar fångar currentCart vid rendering, och
+        // refreshCurrentCart() har just bytt ut objektet.
+        if (typeof renderPanelFooter === 'function') renderPanelFooter();
         toast('Kunduppgifter sparade!');
         loadCarts();
       } else toast('Kunde inte spara', 'error');
@@ -3567,10 +3588,25 @@ function renderTab(tab) {
 
 // ── PRODUKTREDIGERING ─────────────────────────────────────────
 const SVC_IDS_ALL = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
+// Anmärkningen till kund lagras som pseudo-item {_note:true} i cart.items, men
+// redigeras i <textarea id="prod-note">. Textarean är sanningen när Produkter-
+// fliken är renderad; annars behålls noten som redan ligger i currentCart.items.
+//
+// BUGG (2026-08-25): utan detta raderades noten så fort en produktrad lades till.
+// prodGetItems() läser bara #prod-tbody, och nio anropare skriver resultatet rakt
+// till currentCart.items + ritar om fliken — som i sin tur läser noten därifrån.
+function prodGetNoteItem() {
+  const el = document.getElementById('prod-note');
+  const text = el
+    ? (el.value || '').trim()
+    : (((typeof currentCart === 'object' && currentCart?.items) || []).find(i => i._note)?.name || '').trim();
+  return text ? { _note: true, id: '_note', name: text, price: 0, qty: 1 } : null;
+}
+
 function prodGetItems() {
   // Read current values from DOM inputs
   const rows = document.querySelectorAll('#prod-tbody .prod-row');
-  return Array.from(rows).map(row => {
+  const items = Array.from(rows).map(row => {
     const get = field => row.querySelector(`[data-field="${field}"]`)?.value?.trim() || '';
     const qty = parseInt(get('qty')) || 1;
     const price = parseFloat(get('price')) || 0;
@@ -3582,6 +3618,13 @@ function prodGetItems() {
     const category = rawCat || (SVC_IDS_ALL.has(id) ? 'Tjänster' : '');
     return { id, name: get('name'), category, type, qty, price };
   }).filter(i => i.name?.trim()); // skip empty/whitespace rows
+
+  // _note läggs ALLTID sist. Radindex för drag-and-drop och svcStart-logiken
+  // utgår från tabellens ordning, som inte innehåller noten — ligger den sist
+  // påverkas inga index.
+  const note = prodGetNoteItem();
+  if (note) items.push(note);
+  return items;
 }
 
 function prodUpdateSum(idx) {
@@ -3712,16 +3755,19 @@ function prodAddRow() {
 async function prodSave() {
   const btn = document.getElementById('save-items-btn');
   const status = document.getElementById('prod-save-status');
-  // Hämta alla rader från DOM (produkter + tjänster i samma tabell)
+
+  // Skyddsspärr: utan renderad produkttabell skulle prodGetItems() returnera en
+  // tom lista och spara bort hela varukorgen. Avbryt hellre än att radera.
+  if (!document.getElementById('prod-tbody')) {
+    console.warn('prodSave: produkttabellen är inte renderad — avbryter för att inte radera items');
+    return;
+  }
+
+  // Hämta alla rader från DOM (produkter + tjänster i samma tabell).
+  // prodGetItems() bifogar _note (anmärkningen) sist på egen hand.
   const items = prodGetItems();
 
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Sparar…'; }
-
-  // Lägg till _note om fältet har innehåll
-  const noteText = document.getElementById('prod-note')?.value?.trim() || '';
-  if (noteText) {
-    items.push({ _note: true, id: '_note', name: noteText, price: 0, qty: 1 });
-  }
 
   const total_excl = Math.round(items.filter(i => !i._note).reduce((s,i) => s + i.price * i.qty, 0) * 100);
   const { ok } = await api('cart-update', {
@@ -3733,6 +3779,8 @@ async function prodSave() {
     // och övriga fält stämmer med databasen vid efterföljande flikbyten.
     await refreshCurrentCart();
     clearPanelDirty();
+    // Footerns knappar fångar currentCart vid rendering — rita om efter bytet.
+    if (typeof renderPanelFooter === 'function') renderPanelFooter();
     if (status) { status.textContent = '✓ Sparat'; status.style.color = 'var(--green)'; }
     setTimeout(() => { if (status) status.textContent = ''; }, 3000);
     toast('Produkter uppdaterade!');
@@ -6454,17 +6502,17 @@ function renderPanelFooter() {
   if (c.status === 'new') {
     // Öppna offert-modalen direkt med varukorgens produkter förifyllda.
     // sendQuote() sätter automatiskt status new → waiting när mailet skickats.
-    makeBtn('📤 Skapa & skicka offert', 'btn-success', () => openQuoteModalForCart(c));
+    makeBtn('📤 Skapa & skicka offert', 'btn-success', openQuoteModalGuarded);
     makeBtn('❌ Avvisa', 'btn-danger', cancelOrder);
 
   } else if (c.status === 'waiting') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
-    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
+    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, openQuoteModalGuarded);
     makeBtn('📩 Påminn kund', '', sendCustomerNotice);
     makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
   } else if (c.status === 'confirmed') {
     makeBtn('🧾 Skapa faktura', 'btn-success', () => renderTab('faktura'));
-    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
+    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, openQuoteModalGuarded);
   } else if (c.status === 'fakturerad') {
     if (c.invoice_paid_at) {
       // Redan betald — visa avmarkera-knapp för rättning av miss-klick
@@ -6473,7 +6521,7 @@ function renderPanelFooter() {
       makeBtn('💚 Markera betald', 'btn-success', invMarkPaid);
     }
     makeBtn('📩 Påminn om betalning', '', sendPaymentReminder);
-    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
+    if (showResend) makeBtn(resendBtnLabel, resendBtnCls, openQuoteModalGuarded);
   } else if (c.status === 'completed') {
     // Avslutade ordrar: minimala actions
     if (!c.invoice_paid_at) {
@@ -6482,10 +6530,10 @@ function renderPanelFooter() {
     } else {
       makeBtn('↩ Avmarkera betald', '', invUnmarkPaid);
     }
-    if (showResend && hasBounce) makeBtn(resendBtnLabel, resendBtnCls, () => openQuoteModalForCart(c));
+    if (showResend && hasBounce) makeBtn(resendBtnLabel, resendBtnCls, openQuoteModalGuarded);
   } else if (c.status !== 'cancelled') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
-    makeBtn('📤 Skicka offert', '', () => openQuoteModalForCart(c));
+    makeBtn('📤 Skicka offert', '', openQuoteModalGuarded);
     makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
   }
 
@@ -7099,9 +7147,36 @@ function openQuoteModal(prefill) {
   $('qc-name').focus();
 }
 
+// BUGG (2026-08-25): renderPanelFooter() gör `const c = currentCart` och fångar
+// därmed OBJEKTREFERENSEN. refreshCurrentCart() gör `currentCart = data.cart`,
+// alltså en omtilldelning till ett nytt objekt — footerns knappar pekade kvar på
+// det kasserade kortet och offerten fylldes i med värden från före sparningen.
+// (Värre: admin-send-quote skrev sedan tillbaka de gamla värdena till databasen.)
+// Läs därför alltid live-state när det är samma cart.
 function openQuoteModalForCart(cart) {
-  openQuoteModal(cart);
+  const fresh = (cart && typeof currentCart === 'object' && currentCart && cart.id === currentCart.id)
+    ? currentCart
+    : cart;
+  openQuoteModal(fresh);
 }
+
+// Footerns offertknappar gjorde tidigare ingen dirty-kontroll — skrev man en
+// anmärkning eller ändrade kunduppgifter och klickade direkt på "Skicka offert"
+// öppnades modalen med gamla värden, helt utan varning. Produkter-flikens
+// "Spara & skicka offert" har alltid frågat; nu gör footern det också.
+async function openQuoteModalGuarded() {
+  if (panelDirty) {
+    const choice = await askDirtyChoice();
+    if (choice === 'cancel') return;
+    if (choice === 'save') {
+      const saved = await saveDirtyTabIfPossible();
+      if (!saved) { toast('Kunde inte spara — avbryter', 'error'); return; }
+    }
+    clearPanelDirty();
+  }
+  openQuoteModalForCart(currentCart);
+}
+window.openQuoteModalGuarded = openQuoteModalGuarded;
 
 function closeQuoteModal() {
   $('quote-overlay').classList.remove('open');
