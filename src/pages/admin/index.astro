@@ -1724,8 +1724,8 @@ const _dayConfig = tjansterData.hyresdagar || null;
         <div><label class="form-label">CC-kopia <span style="font-size:0.72rem;color:rgba(196,181,244,0.55);font-weight:400">(kopia på alla mail)</span></label><input class="form-input" type="email" id="qc-cc" placeholder="cc@foretag.se" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
       </div>
       <div class="form-row">
-        <div><label class="form-label">Datum, från *</label><input class="form-input" type="date" id="qc-date" onchange="qcAutoReturnDate(this.value)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
-        <div><label class="form-label">Datum, till</label><input class="form-input" type="date" id="qc-date-to" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div><label class="form-label">Datum, från *</label><input class="form-input" type="date" id="qc-date" onchange="qcAutoReturnDate(this.value);quoteRenderDayBar()" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
+        <div><label class="form-label">Datum, till</label><input class="form-input" type="date" id="qc-date-to" onchange="quoteRenderDayBar()" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;"></div>
       </div>
       <div class="form-row">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;grid-column:1/-1">
@@ -1921,12 +1921,16 @@ const _dayConfig = tjansterData.hyresdagar || null;
         <button class="btn-action btn-success" onclick="quotePickerAdd()" style="height:34px;padding:0 0.75rem;font-size:0.82rem;white-space:nowrap">＋ Lägg till</button>
       </div>
 
+      <!-- Hyresperiod: förslag ur modalens egna datumfält -->
+      <div id="quote-day-bar"></div>
+
       <!-- Produkttabell -->
       <table class="quote-prod-table" id="quote-prod-table">
         <thead><tr>
           <th style="width:18px;padding:0.3rem 2px 0.3rem 0.5rem"></th>
           <th>Produkt / Tjänst</th>
           <th style="width:72px;text-align:center">Antal</th>
+          <th style="width:72px;text-align:center">Dygn</th>
           <th style="width:90px;text-align:right">à-pris (kr)</th>
           <th style="width:72px;text-align:right">Summa</th>
           <th style="width:26px"></th>
@@ -3623,7 +3627,6 @@ function prodGetItems() {
   const items = Array.from(rows).map(row => {
     const get = field => row.querySelector(`[data-field="${field}"]`)?.value?.trim() || '';
     const qty = parseInt(get('qty')) || 1;
-    const price = parseFloat(get('price')) || 0;
     const id = get('id');
     const rawCat = get('category');
     const rawType = get('type') || '';
@@ -3636,10 +3639,26 @@ function prodGetItems() {
     // inte plockas upp raderas permanent vid nästa Spara. (Samma fälla som
     // tidigare åt upp artno och _note.)
     const days = parseInt(get('days')) || 1;
+
+    // Prisfältet byter roll i flerdygnsläget: det synliga fältet redigerar då
+    // unit_price ('unit_price_edit') och periodpriset ligger i ett dolt
+    // data-field="price". Utan fallbacken här blev price 0 på varje flerdygnsrad
+    // och nollan sparades till databasen. (Bugg införd i release B, hittad
+    // 2026-08-25 — den ENDA anledningen att den inte var värre är att
+    // applyDayPricing() räknar om raden vid varje dygnsändring.)
+    const priceRaw = get('price');
+    const unitEditRaw = get('unit_price_edit');
     const unitRaw = get('unit_price');
-    const unit_price = unitRaw === '' ? price : (parseFloat(unitRaw) || 0);
+    const unit_price = unitEditRaw !== '' ? (parseFloat(unitEditRaw) || 0)
+                     : unitRaw !== ''     ? (parseFloat(unitRaw) || 0)
+                     : (parseFloat(priceRaw) || 0);
     const factorRaw = get('day_factor');
     const day_factor = factorRaw === '' ? 1 : (parseFloat(factorRaw) || 1);
+    // Härled hellre än att lita på DOM: price = unit_price × faktor. Faller
+    // tillbaka på det dolda fältet bara när faktorn saknas.
+    const price = priceRaw !== '' && unitEditRaw === ''
+      ? (parseFloat(priceRaw) || 0)
+      : Math.round(unit_price * (day_factor || 1));
     const ladderRaw = get('day_ladder');
     let day_ladder = null;
     if (ladderRaw) {
@@ -4318,7 +4337,7 @@ function prodPickerAdd() {
   const opt = sel?.options[sel.selectedIndex];
   if (!opt || !opt.value) return;
   const cat = document.getElementById('prod-cat-sel')?.value || '';
-  const p = { id: opt.value, name: opt.dataset.name || opt.textContent.split(' — ')[0], price: parseInt(opt.dataset.price) || 0, qty: 1, category: cat };
+  const p = _inheritDays({ id: opt.value, name: opt.dataset.name || opt.textContent.split(' — ')[0], price: parseInt(opt.dataset.price) || 0, qty: 1, category: cat }, prodGetItems());
   const items = prodGetItems();
   const existing = items.find(i => i.id === p.id && !i.custom);
   if (existing) { existing.qty++; }
@@ -4549,6 +4568,9 @@ function renderProductsTab() {
             <input type="hidden" data-field="artno" data-idx="${idx}" value="${(item.artno||'').replace(/"/g,'&quot;')}">
             <input type="hidden" data-field="days" data-idx="${idx}" value="${days}">
             <input type="hidden" data-field="unit_price" data-idx="${idx}" value="${unit}">
+            ${dayOK && days > 1
+              ? `<input type="hidden" data-field="price" data-idx="${idx}" value="${price}">`
+              : ''}
             <input type="hidden" data-field="day_factor" data-idx="${idx}" value="${item.day_factor ?? 1}">
             <input type="hidden" data-field="day_ladder" data-idx="${idx}" value="${ladder ? JSON.stringify(ladder).replace(/"/g,'&quot;') : ''}">
             ${dayMetaRowHTML(item, idx)}
@@ -4724,7 +4746,7 @@ function prodAddFromCatalog(sel, isService) {
     const p = JSON.parse(sel.value.replace(/&quot;/g,'"'));
     const items = prodGetItems();
     const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
-    const newItem = { id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'', type: p.type||'product' };
+    const newItem = _inheritDays({ id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'', type: p.type||'product' }, items);
     if (isService || svcStart === -1) {
       items.push(newItem); // tjänster alltid sist, eller om inga tjänster finns
     } else {
@@ -4739,7 +4761,7 @@ function prodAddFromCatalog(sel, isService) {
 function prodAddFreeRow(isService) {
   const items = prodGetItems();
   const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
-  const newItem = { id: '', name: '', price: 0, qty: 1, category: isService ? 'Tjänster' : '' };
+  const newItem = _inheritDays({ id: '', name: '', price: 0, qty: 1, category: isService ? 'Tjänster' : '' }, items);
   if (isService || svcStart === -1) {
     items.push(newItem);
   } else {
@@ -7529,7 +7551,7 @@ function quoteRenderTable() {
 
     // Separator-rad före första tjänst (om det finns hårdvara före)
     const separator = (idx === firstSvcIdx && firstSvcIdx > 0)
-      ? `<tr><td colspan="6" style="padding:6px 0 2px"><div style="border-top:1px dashed rgba(196,181,244,0.25);margin:2px 0"></div><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.55);padding:3px 4px;font-family:'Space Grotesk',sans-serif">Tjänster &amp; leverans</div></td></tr>`
+      ? `<tr><td colspan="7" style="padding:6px 0 2px"><div style="border-top:1px dashed rgba(196,181,244,0.25);margin:2px 0"></div><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.55);padding:3px 4px;font-family:'Space Grotesk',sans-serif">Tjänster &amp; leverans</div></td></tr>`
       : '';
 
     return separator + `
@@ -7538,7 +7560,7 @@ function quoteRenderTable() {
         ondrop="quoteDrop(event,${idx})" ondragend="quoteDragEnd(event)"
         style="cursor:default">
       <td style="width:18px;padding:0 2px 0 0.5rem;cursor:grab;color:rgba(196,181,244,0.4);font-size:1rem;text-align:center;user-select:none" title="Drag för att ändra ordning">⠿</td>
-      <td>${nameCell}</td>
+      <td>${nameCell}${quoteDayMetaHTML(item, idx)}<div id="qdp-${idx}" style="display:none">${quoteDayPanelHTML(item, idx)}</div></td>
       <td style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px">
           <button class="qty-btn" onclick="quoteQtyIdx(${idx},-1)" style="width:22px;height:22px;font-size:0.9rem">−</button>
@@ -7546,9 +7568,21 @@ function quoteRenderTable() {
           <button class="qty-btn" onclick="quoteQtyIdx(${idx},1)" style="width:22px;height:22px;font-size:0.9rem">＋</button>
         </div>
       </td>
+      <td style="text-align:center">
+        ${isDayPriced(item) ? `
+        <div style="display:flex;align-items:center;justify-content:center;gap:3px">
+          <button class="qty-btn" onclick="quoteDays(${idx},-1)" style="width:22px;height:22px;font-size:0.9rem" title="Färre dygn">−</button>
+          <span style="min-width:20px;text-align:center;font-size:0.82rem;color:#e2dcfb">${clampDays(item.days || 1, DAY_CFG)}</span>
+          <button class="qty-btn" onclick="quoteDays(${idx},1)" style="width:22px;height:22px;font-size:0.9rem" title="Fler dygn">＋</button>
+        </div>`
+        : `<span title="Engångspost — påverkas inte av hyrestiden" style="color:var(--text-faint);font-size:0.82rem">—</span>`}
+      </td>
       <td style="text-align:right">
-        <input class="prod-input" value="${item.price}" onchange="quoteEditPrice(${idx},this.value)"
+        <input class="prod-input" value="${isDayPriced(item) && (item.days||1) > 1 ? (Number(item.unit_price ?? item.price)||0) : item.price}"
+          onchange="${isDayPriced(item) && (item.days||1) > 1 ? `quoteEditUnitPrice(${idx},this.value)` : `quoteEditPrice(${idx},this.value)`}"
+          ${isDayPriced(item) && (item.days||1) > 1 ? 'title="À-pris per dygn — periodpriset räknas fram"' : ''}
           style="width:80px;text-align:right;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid transparent;padding:0.2rem 0.4rem;">
+        ${isDayPriced(item) && (item.days||1) > 1 ? '<div style="font-size:0.58rem;color:rgba(196,181,244,0.55);font-family:\'Space Grotesk\',sans-serif;text-align:right;margin-top:1px">per dygn</div>' : ''}
       </td>
       <td style="text-align:right;font-size:0.82rem;font-weight:600;color:var(--brand-lav);white-space:nowrap">${fmt(item.price * item.qty)} kr</td>
       <td><button class="qty-btn" style="color:var(--red);border-color:var(--red);width:22px;height:22px" onclick="quoteDelIdx(${idx})">×</button></td>
@@ -7556,12 +7590,154 @@ function quoteRenderTable() {
   }).join('');
 
   const total = quoteItems.reduce((s,i) => s + i.price * i.qty, 0);
+  const qds = cartDaySummary(quoteItems);
+  const rabattRader = (qds.hasMultiDay && qds.rabatt > 0)
+    ? `<tr><td colspan="4" style="color:var(--text-faint);font-size:0.72rem;padding-top:0.5rem">Ordinarie pris, ${qds.maxDays} dygn</td>
+         <td style="text-align:right;color:var(--text-faint);font-size:0.72rem;text-decoration:line-through;padding-top:0.5rem">${fmt(qds.ordinarie)} kr</td><td></td></tr>
+       <tr><td colspan="4" style="color:#4ade80;font-size:0.72rem;font-weight:700">Flerdygnsrabatt</td>
+         <td style="text-align:right;color:#4ade80;font-size:0.72rem;font-weight:700">−${fmt(qds.rabatt)} kr</td><td></td></tr>`
+    : '';
   tfoot.innerHTML = quoteItems.length
-    ? `<tr><td colspan="3" style="font-weight:700;padding-top:0.5rem;font-size:0.82rem">Totalt (exkl. moms)</td>
+    ? `${rabattRader}
+       <tr><td colspan="4" style="font-weight:700;padding-top:0.5rem;font-size:0.82rem">Totalt (exkl. moms)</td>
        <td style="text-align:right;font-weight:700;color:var(--brand-lav);font-size:0.82rem">${fmt(total)} kr</td><td></td></tr>
-       <tr><td colspan="3" style="color:var(--text-faint);font-size:0.72rem">Inkl. 25% moms</td>
+       <tr><td colspan="4" style="color:var(--text-faint);font-size:0.72rem">Inkl. 25% moms</td>
        <td style="text-align:right;color:var(--text-muted);font-size:0.72rem">${fmt(Math.round(total*1.25))} kr</td><td></td></tr>`
     : '';
+  quoteRenderDayBar();
+}
+
+// ── HYRESDYGN I OFFERTMODALEN ─────────────────────────────────
+// Samma modell som Produkter-fliken, men mot quoteItems (i minnet) i stället
+// för currentCart.items. Dygnen föreslås ur modalens EGNA datumfält —
+// qc-date / qc-date-to — inte ur en sparad cart, eftersom en ny offert ofta
+// saknar cart helt.
+
+function quoteAutoDays() {
+  const from = document.getElementById('qc-date')?.value;
+  const to   = document.getElementById('qc-date-to')?.value;
+  return autoDays(from, to, DAY_CFG);
+}
+
+function quoteRenderDayBar() {
+  const bar = document.getElementById('quote-day-bar');
+  if (!bar) return;
+  const d = quoteAutoDays();
+  const qds = cartDaySummary(quoteItems);
+  const harProdukter = quoteItems.some(i => isDayPriced(i));
+  if (!harProdukter) { bar.innerHTML = ''; return; }
+
+  bar.innerHTML = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(196,181,244,0.055);border:1px solid var(--border-lav);border-radius:9px;padding:8px 11px;margin-bottom:9px">
+    <span style="font-family:'Space Grotesk',sans-serif;font-size:0.72rem;color:var(--text-muted)">Hyresperiod:</span>
+    <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--brand-lav);font-size:0.82rem">${d ? d + ' dygn enligt datumen' : 'fyll i datum ovan'}</span>
+    ${d ? `<button type="button" onclick="quoteApplyDaysToAll(${d})" style="font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:7px;background:var(--brand-lav);color:#0c0a24;border:none;cursor:pointer">Sätt alla produktrader till ${d} dygn</button>` : ''}
+    ${qds.hasMultiDay && qds.rabatt > 0 ? `<span style="margin-left:auto;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;color:#4ade80">Flerdygnsrabatt −${fmt(qds.rabatt)} kr</span>` : ''}
+  </div>`;
+}
+
+function quoteDayMetaHTML(item, idx) {
+  if (!isDayPriced(item)) return '';
+  const days = clampDays(item.days || 1, DAY_CFG);
+  if (days <= 1) {
+    return `<div style="margin-top:2px"><button type="button" onclick="quoteToggleDayPanel(${idx})" style="background:none;border:none;padding:0;cursor:pointer;color:rgba(196,181,244,0.45);font-family:'Space Grotesk',sans-serif;font-size:0.64rem">⚙ Rabatt per dag</button></div>`;
+  }
+  const unit = Number(item.unit_price ?? item.price) || 0;
+  const pct  = dayDiscountPct(item);
+  const egen = Array.isArray(item.day_ladder) ? ' <span style="background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.32);border-radius:5px;padding:0 5px;font-size:0.58rem;font-weight:600">Egen rabatt</span>' : '';
+  return `<div style="margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-family:'Space Grotesk',sans-serif;font-size:0.64rem">
+    <button type="button" onclick="quoteToggleDayPanel(${idx})" style="background:none;border:none;padding:0;cursor:pointer;color:rgba(196,181,244,0.75);font-family:inherit;font-size:0.64rem">
+      <b>${fmt(unit)} kr/dygn</b> · faktor ${(Number(item.day_factor)||1).toFixed(2).replace('.',',')} ⚙
+    </button>
+    ${pct > 0 ? `<span style="background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3);border-radius:5px;padding:0 5px;font-size:0.58rem;font-weight:600">${days} dygn −${pct} %</span>` : ''}${egen}
+  </div>`;
+}
+
+function quoteDayPanelHTML(item, idx) {
+  if (!isDayPriced(item)) return '';
+  const days   = clampDays(item.days || 1, DAY_CFG);
+  const ladder = Array.isArray(item.day_ladder) ? item.day_ladder : null;
+  const rungs  = dayRungs(days, DAY_CFG, ladder);
+  const unit   = Number(item.unit_price ?? item.price) || 0;
+  const satser = Array.isArray(DAY_CFG.satser) && DAY_CFG.satser.length ? DAY_CFG.satser : DAY_RATES;
+  const factor = dayFactor(days, DAY_CFG, ladder);
+  const nu     = Math.round(unit * factor);
+
+  const dagar = rungs.map((rabatt, d) => `
+    <div style="background:#0f0d2a;border:1px solid var(--border);border-radius:6px;padding:4px 6px;min-width:88px">
+      <div style="font-size:0.55rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.06em;font-family:'Space Grotesk',sans-serif">Dag ${d+1}</div>
+      <div style="display:flex;gap:2px;margin-top:2px">
+        ${satser.map(sats => `<button type="button" onclick="quoteSetDayRate(${idx},${d},${sats})" title="${sats === 0 ? 'Fullt pris' : sats === 100 ? 'Gratis' : sats + ' % rabatt'}"
+          style="flex:1;min-width:22px;font-family:'Space Grotesk',sans-serif;font-size:0.56rem;font-weight:600;padding:2px 2px;border-radius:4px;cursor:pointer;
+                 border:1px solid ${sats === rabatt ? 'rgba(196,181,244,0.6)' : 'var(--border)'};
+                 background:${sats === rabatt ? 'rgba(196,181,244,0.18)' : 'transparent'};
+                 color:${sats === rabatt ? 'var(--brand-lav)' : (sats === 100 ? 'rgba(74,222,128,0.7)' : 'var(--text-faint)')}">${sats === 0 ? '0' : '−' + sats}</button>`).join('')}
+      </div>
+    </div>`).join('');
+
+  return `<div style="margin-top:5px;background:rgba(196,181,244,0.05);border:1px solid var(--border-lav);border-radius:8px;padding:7px 9px">
+    <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.55);font-weight:600;font-family:'Space Grotesk',sans-serif;margin-bottom:5px">Rabatt per dag — denna rad</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px">${dagar}</div>
+    <div style="font-family:ui-monospace,Menlo,monospace;font-size:0.64rem;color:var(--text-muted);background:rgba(0,0,0,0.28);border-radius:5px;padding:5px 8px;line-height:1.55">
+      ${fmt(unit)} × ${factor.toFixed(2).replace('.',',')} = <b style="color:#e2dcfb">${fmt(nu)} kr</b> per enhet · ${fmt(nu)} × ${item.qty} st = <b style="color:#e2dcfb">${fmt(nu * item.qty)} kr</b>
+    </div>
+    ${ladder ? `<button type="button" onclick="quoteResetDayLadder(${idx})" style="margin-top:5px;background:none;border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:0.6rem;color:var(--text-muted);cursor:pointer;font-family:'Space Grotesk',sans-serif">↺ Tillbaka till standardstegen</button>` : ''}
+  </div>`;
+}
+
+// Gemensam väg för allt som ändrar dygn/pris på en offertrad.
+function _quoteRecalcRow(idx, mutate) {
+  const item = quoteItems[idx];
+  if (!item) return;
+  if (!isDayPriced(item)) { toast('Engångspost — dygn påverkar inte priset', 'error'); return; }
+  mutate(item);
+  quoteItems[idx] = applyDayPricing(item, item.days, DAY_CFG, item.day_ladder);
+  quoteRenderTable();
+}
+
+function quoteDays(idx, delta) {
+  _quoteRecalcRow(idx, item => { item.days = clampDays((Number(item.days) || 1) + delta, DAY_CFG); });
+}
+
+// À-prisfältet redigerar unit_price när raden är flerdygnsprissatt — annars
+// vore det tvetydigt om admin menar per dygn eller för hela perioden.
+function quoteEditUnitPrice(idx, val) {
+  _quoteRecalcRow(idx, item => {
+    const n = parseFloat(String(val).replace(',', '.'));
+    item.unit_price = Number.isFinite(n) ? n : (item.unit_price || 0);
+  });
+}
+
+function quoteSetDayRate(idx, dayIndex, rate) {
+  _quoteRecalcRow(idx, item => {
+    const days = clampDays(item.days || 1, DAY_CFG);
+    const nu   = dayRungs(days, DAY_CFG, Array.isArray(item.day_ladder) ? item.day_ladder : null);
+    nu[dayIndex] = Number(rate) || 0;
+    item.day_ladder = nu;
+  });
+  setTimeout(() => quoteToggleDayPanel(idx, true), 0);
+}
+
+function quoteResetDayLadder(idx) {
+  _quoteRecalcRow(idx, item => { item.day_ladder = null; });
+  setTimeout(() => quoteToggleDayPanel(idx, true), 0);
+}
+
+function quoteToggleDayPanel(idx, force) {
+  const el = document.getElementById(`qdp-${idx}`);
+  if (!el) return;
+  el.style.display = (force === true) ? 'block' : (el.style.display === 'none' ? 'block' : 'none');
+}
+
+function quoteApplyDaysToAll(days) {
+  const d = clampDays(days, DAY_CFG);
+  let n = 0;
+  quoteItems = quoteItems.map(i => {
+    if (!isDayPriced(i)) return applyDayPricing(i, 1, DAY_CFG);
+    n++;
+    return applyDayPricing(i, d, DAY_CFG, i.day_ladder);
+  });
+  quoteRenderTable();
+  toast(`${n} produktrad${n === 1 ? '' : 'er'} satta till ${d} dygn`);
 }
 
 function quoteQtyIdx(idx, delta) {
@@ -7577,7 +7753,14 @@ function quoteEditName(idx, val) {
 
 function quoteEditPrice(idx, val) {
   if (!quoteItems[idx]) return;
-  quoteItems[idx].price = parseFloat(val) || 0;
+  const p = parseFloat(val) || 0;
+  quoteItems[idx].price = p;
+  // Vid 1 dygn ÄR priset dygnspriset. Spegla det till unit_price, annars
+  // skulle en senare dygnsökning räkna från ett inaktuellt underlag.
+  if (isDayPriced(quoteItems[idx]) && clampDays(quoteItems[idx].days || 1, DAY_CFG) <= 1) {
+    quoteItems[idx].unit_price = p;
+    quoteItems[idx].day_factor = 1;
+  }
   quoteRenderTable();
 }
 
@@ -8735,6 +8918,15 @@ window.quoteAddCustomRow = quoteAddCustomRow;
 window.quotePickerCat  = quotePickerCat;
 window.quotePickerSub  = quotePickerSub;
 window.quotePickerAdd  = quotePickerAdd;
+// Hyresdygn i offertmodalen — anropas via onclick i dynamisk innerHTML.
+window.quoteDays           = quoteDays;
+window.quoteEditUnitPrice  = quoteEditUnitPrice;
+window.quoteSetDayRate     = quoteSetDayRate;
+window.quoteResetDayLadder = quoteResetDayLadder;
+window.quoteToggleDayPanel = quoteToggleDayPanel;
+window.quoteApplyDaysToAll = quoteApplyDaysToAll;
+window.quoteRenderDayBar   = quoteRenderDayBar;
+
 window.quoteQtyIdx     = quoteQtyIdx;
 window.quoteEditName   = quoteEditName;
 window.quoteEditPrice  = quoteEditPrice;
@@ -8773,6 +8965,16 @@ function _quoteInsertHardware(item) {
 // ─────────────────────────────────────────────────────────────
 let _configTarget = 'quote';
 
+// Nya rader ärver hyrestiden från de rader som redan ligger i offerten.
+// Utan detta blir en produkt man lägger till EFTER "Sätt alla till 3 dygn"
+// tyst en endagsrad mitt i en flerdygnsoffert — utan varning.
+function _inheritDays(item, befintliga) {
+  if (!isDayPriced(item)) return applyDayPricing(item, 1, DAY_CFG);
+  const d = (befintliga || []).filter(isDayPriced).map(i => Number(i.days) || 1);
+  const arv = d.length ? Math.max(...d) : 1;
+  return applyDayPricing(item, arv, DAY_CFG, item.day_ladder);
+}
+
 function _commitTargetItem(item) {
   if (_configTarget === 'productsTab') {
     // Skriv direkt på currentCart.items + uppdatera DOM via renderTab.
@@ -8781,6 +8983,7 @@ function _commitTargetItem(item) {
     const items = (typeof prodGetItems === 'function')
       ? prodGetItems()
       : (currentCart.items || []);
+    item = _inheritDays(item, items);
     const isSvc = _quoteIsSvc(item);
     if (isSvc) {
       items.push(item);
@@ -8794,6 +8997,7 @@ function _commitTargetItem(item) {
     markPanelDirty();
   } else {
     // Default: quote-modalen
+    item = _inheritDays(item, quoteItems);
     if (_quoteIsSvc(item)) {
       quoteItems.push(item);
     } else {

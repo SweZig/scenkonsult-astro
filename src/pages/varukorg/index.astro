@@ -819,8 +819,16 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   function applyVolumePricing(cart) {
     return (cart || []).map(item => {
       if (!item || typeof item !== 'object') return item;
+      // Rör ALDRIG en dygnsprissatt rad. Där gäller
+      // price = round(unit_price × day_factor), och skrivs price över med
+      // endagslistpriset bryts invarianten tyst: raden säger fortfarande
+      // "3 dygn" men priset är för ett. Dygnsprissättning sker i admin, och
+      // volymrabatten är redan inräknad i unit_price där.
+      if (Number(item.days) > 1) return item;
       const vp = resolveUnitPrice(item.id, item.qty || 1, item.artno);
-      if (vp !== null && item.price !== vp) return { ...item, price: vp };
+      if (vp !== null && item.price !== vp) {
+        return { ...item, price: vp, ...(item.unit_price !== undefined ? { unit_price: vp } : {}) };
+      }
       return item;
     });
   }
@@ -1646,10 +1654,13 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
       // Filtrera bort _note-items (anmärkningar) och sätt format som varukorgssidan förstår
       const items = (c.items || [])
         .filter(i => !i._note && i.name)
+        // Spread, inte vitlista: en admin-redigerad cart bär days, unit_price,
+        // day_factor, day_ladder, artno och type. Vitlistades de bort skrevs de
+        // tillbaka till servern utan dygn, och nästa faktura visade
+        // "1 dygn à 2 998 kr" — fälten var då oåterkalleligt borta.
         .map(i => ({
+          ...i,
           id:       i.id || ('adm-' + Math.random().toString(36).slice(2,8)),
-          name:     i.name,
-          price:    i.price || 0,
           qty:      i.qty || i.quantity || 1,
           category: i.category || '',
           priceNote: '',
