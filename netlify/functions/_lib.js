@@ -5,6 +5,10 @@
 
 'use strict';
 
+// Hyresdygn — visningshjälpare. Räknar aldrig om priser, läser bara days och
+// unit_price för att kunna förklara radpriset för kunden.
+const { dayNote: _dayNote, lineTotalUndiscounted: _lineFull, daySummary: _daySummary } = require('./_day-display');
+
 // ── Supabase REST-klient (fetch-baserad) ──────────────────────
 function supabase() {
   const url  = process.env.SUPABASE_URL;
@@ -254,14 +258,23 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   const qty  = i => i.quantity || i.qty || 1;
   const sum  = i => (i.price || 0) * qty(i);
   const fmtN = n => n.toLocaleString('sv-SE');
-  const mkRow = i => `<tr>
-    <td style="padding:8px 10px;color:#222;font-size:13px;border-bottom:1px solid #f0f0f5;">${i.name}</td>
+  // Radens förklaringstext renderas ur unit_price och days — aldrig ur price.
+  // Kunden ska se dygnspriset hen känner igen, inte det räknade periodpriset.
+  const mkRow = i => {
+    const note = _dayNote(i);
+    const full = _lineFull(i);
+    const nu   = sum(i);
+    const rabatterad = full > nu;
+    return `<tr>
+    <td style="padding:8px 10px;color:#222;font-size:13px;border-bottom:1px solid #f0f0f5;">${i.name}${note ? `<br><span style="color:#8b83b0;font-size:11px;">${note}</span>` : ''}</td>
     <td style="padding:8px 10px;color:#666;font-size:13px;text-align:center;border-bottom:1px solid #f0f0f5;width:50px;">${qty(i)} st</td>
-    <td style="padding:8px 10px;color:#333;font-size:13px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;width:90px;">${fmtN(sum(i))} kr</td>
+    <td style="padding:8px 10px;color:#333;font-size:13px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;width:90px;">${rabatterad ? `<span style="color:#a49dc4;font-weight:400;text-decoration:line-through;">${fmtN(full)} kr</span><br>` : ''}${fmtN(nu)} kr</td>
   </tr>`;
+  };
   const subHdr = label => `<tr><td colspan="3" style="padding:6px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;background:#f7f7fb;">${label}</td></tr>`;
   const noteRow = noteItem ? `<tr><td colspan="3" style="padding:6px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${noteItem.name}</td></tr>` : '';
   const grandExcl = [...prodItems, ...svcItems, ...(feeItem ? [feeItem] : [])].reduce((s, i) => s + sum(i), 0);
+  const _daySum = _daySummary(allReal);
   const moms      = Math.round(grandExcl * 0.25);
   const grandIncl = grandExcl + moms;
   let html = `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;font-family:Arial,sans-serif;">
@@ -273,6 +286,17 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   if (prodItems.length) { html += subHdr('Utrustning') + prodItems.map(mkRow).join('') + noteRow; }
   if (svcItems.length)  { html += subHdr('Tilläggstjänster') + svcItems.map(mkRow).join(''); }
   if (feeItem)           { html += subHdr('Bokningsavgift') + mkRow(feeItem); }
+  // Flerdygnsrabatten som eget belopp i kronor, ovanför summan.
+  if (_daySum.hasMultiDay && _daySum.rabatt > 0) {
+    html += `<tr style="background:#f7f7fb;">
+    <td colspan="2" style="padding:8px 10px;color:#8b83b0;font-size:12px;border-top:1px solid #e0e0e8;">Ordinarie pris, ${_daySum.maxDays} dygn</td>
+    <td style="padding:8px 10px;text-align:right;color:#a49dc4;font-size:12px;border-top:1px solid #e0e0e8;text-decoration:line-through;">${fmtN(_daySum.ordinarie)} kr</td>
+  </tr>
+  <tr style="background:#f7f7fb;">
+    <td colspan="2" style="padding:6px 10px;color:#2f8f52;font-size:12px;font-weight:700;">Flerdygnsrabatt</td>
+    <td style="padding:6px 10px;text-align:right;color:#2f8f52;font-size:12px;font-weight:700;">-${fmtN(_daySum.rabatt)} kr</td>
+  </tr>`;
+  }
   html += `<tr style="background:#f7f7fb;">
     <td colspan="2" style="padding:8px 10px;color:#555;font-size:12px;border-top:1px solid #e0e0e8;">Summa exkl. moms</td>
     <td style="padding:8px 10px;text-align:right;color:#444;font-size:12px;border-top:1px solid #e0e0e8;">${fmtN(grandExcl)} kr</td>
