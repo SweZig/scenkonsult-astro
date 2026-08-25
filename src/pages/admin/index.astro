@@ -3627,7 +3627,6 @@ function prodGetItems() {
   const items = Array.from(rows).map(row => {
     const get = field => row.querySelector(`[data-field="${field}"]`)?.value?.trim() || '';
     const qty = parseInt(get('qty')) || 1;
-    const price = parseFloat(get('price')) || 0;
     const id = get('id');
     const rawCat = get('category');
     const rawType = get('type') || '';
@@ -3640,10 +3639,26 @@ function prodGetItems() {
     // inte plockas upp raderas permanent vid nästa Spara. (Samma fälla som
     // tidigare åt upp artno och _note.)
     const days = parseInt(get('days')) || 1;
+
+    // Prisfältet byter roll i flerdygnsläget: det synliga fältet redigerar då
+    // unit_price ('unit_price_edit') och periodpriset ligger i ett dolt
+    // data-field="price". Utan fallbacken här blev price 0 på varje flerdygnsrad
+    // och nollan sparades till databasen. (Bugg införd i release B, hittad
+    // 2026-08-25 — den ENDA anledningen att den inte var värre är att
+    // applyDayPricing() räknar om raden vid varje dygnsändring.)
+    const priceRaw = get('price');
+    const unitEditRaw = get('unit_price_edit');
     const unitRaw = get('unit_price');
-    const unit_price = unitRaw === '' ? price : (parseFloat(unitRaw) || 0);
+    const unit_price = unitEditRaw !== '' ? (parseFloat(unitEditRaw) || 0)
+                     : unitRaw !== ''     ? (parseFloat(unitRaw) || 0)
+                     : (parseFloat(priceRaw) || 0);
     const factorRaw = get('day_factor');
     const day_factor = factorRaw === '' ? 1 : (parseFloat(factorRaw) || 1);
+    // Härled hellre än att lita på DOM: price = unit_price × faktor. Faller
+    // tillbaka på det dolda fältet bara när faktorn saknas.
+    const price = priceRaw !== '' && unitEditRaw === ''
+      ? (parseFloat(priceRaw) || 0)
+      : Math.round(unit_price * (day_factor || 1));
     const ladderRaw = get('day_ladder');
     let day_ladder = null;
     if (ladderRaw) {
@@ -4322,7 +4337,7 @@ function prodPickerAdd() {
   const opt = sel?.options[sel.selectedIndex];
   if (!opt || !opt.value) return;
   const cat = document.getElementById('prod-cat-sel')?.value || '';
-  const p = { id: opt.value, name: opt.dataset.name || opt.textContent.split(' — ')[0], price: parseInt(opt.dataset.price) || 0, qty: 1, category: cat };
+  const p = _inheritDays({ id: opt.value, name: opt.dataset.name || opt.textContent.split(' — ')[0], price: parseInt(opt.dataset.price) || 0, qty: 1, category: cat }, prodGetItems());
   const items = prodGetItems();
   const existing = items.find(i => i.id === p.id && !i.custom);
   if (existing) { existing.qty++; }
@@ -4553,6 +4568,9 @@ function renderProductsTab() {
             <input type="hidden" data-field="artno" data-idx="${idx}" value="${(item.artno||'').replace(/"/g,'&quot;')}">
             <input type="hidden" data-field="days" data-idx="${idx}" value="${days}">
             <input type="hidden" data-field="unit_price" data-idx="${idx}" value="${unit}">
+            ${dayOK && days > 1
+              ? `<input type="hidden" data-field="price" data-idx="${idx}" value="${price}">`
+              : ''}
             <input type="hidden" data-field="day_factor" data-idx="${idx}" value="${item.day_factor ?? 1}">
             <input type="hidden" data-field="day_ladder" data-idx="${idx}" value="${ladder ? JSON.stringify(ladder).replace(/"/g,'&quot;') : ''}">
             ${dayMetaRowHTML(item, idx)}
@@ -4728,7 +4746,7 @@ function prodAddFromCatalog(sel, isService) {
     const p = JSON.parse(sel.value.replace(/&quot;/g,'"'));
     const items = prodGetItems();
     const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
-    const newItem = { id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'', type: p.type||'product' };
+    const newItem = _inheritDays({ id: p.id||'', name: p.name||'', price: p.price||0, qty: 1, category: p.category||'', type: p.type||'product' }, items);
     if (isService || svcStart === -1) {
       items.push(newItem); // tjänster alltid sist, eller om inga tjänster finns
     } else {
@@ -4743,7 +4761,7 @@ function prodAddFromCatalog(sel, isService) {
 function prodAddFreeRow(isService) {
   const items = prodGetItems();
   const svcStart = items.findIndex(i => ['Tjänster','Tillägg'].includes(i.category));
-  const newItem = { id: '', name: '', price: 0, qty: 1, category: isService ? 'Tjänster' : '' };
+  const newItem = _inheritDays({ id: '', name: '', price: 0, qty: 1, category: isService ? 'Tjänster' : '' }, items);
   if (isService || svcStart === -1) {
     items.push(newItem);
   } else {
@@ -8947,6 +8965,16 @@ function _quoteInsertHardware(item) {
 // ─────────────────────────────────────────────────────────────
 let _configTarget = 'quote';
 
+// Nya rader ärver hyrestiden från de rader som redan ligger i offerten.
+// Utan detta blir en produkt man lägger till EFTER "Sätt alla till 3 dygn"
+// tyst en endagsrad mitt i en flerdygnsoffert — utan varning.
+function _inheritDays(item, befintliga) {
+  if (!isDayPriced(item)) return applyDayPricing(item, 1, DAY_CFG);
+  const d = (befintliga || []).filter(isDayPriced).map(i => Number(i.days) || 1);
+  const arv = d.length ? Math.max(...d) : 1;
+  return applyDayPricing(item, arv, DAY_CFG, item.day_ladder);
+}
+
 function _commitTargetItem(item) {
   if (_configTarget === 'productsTab') {
     // Skriv direkt på currentCart.items + uppdatera DOM via renderTab.
@@ -8955,6 +8983,7 @@ function _commitTargetItem(item) {
     const items = (typeof prodGetItems === 'function')
       ? prodGetItems()
       : (currentCart.items || []);
+    item = _inheritDays(item, items);
     const isSvc = _quoteIsSvc(item);
     if (isSvc) {
       items.push(item);
@@ -8968,6 +8997,7 @@ function _commitTargetItem(item) {
     markPanelDirty();
   } else {
     // Default: quote-modalen
+    item = _inheritDays(item, quoteItems);
     if (_quoteIsSvc(item)) {
       quoteItems.push(item);
     } else {

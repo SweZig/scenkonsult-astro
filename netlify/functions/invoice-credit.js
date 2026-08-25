@@ -12,6 +12,7 @@
 'use strict';
 
 const { supabase: createSupabase, logAudit, getTakenInvoiceNumbers, isBookingFee } = require('./_lib');
+const { dayNote: _dayNote } = require('./_day-display');
 const PDFDocument = require('pdfkit');
 
 const RESEND_API = 'https://api.resend.com/emails';
@@ -142,15 +143,24 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
       const qty = item.qty || 1;
       const sum = (item.price || 0) * qty; // redan negativ
       const artno = item.artno || item.id || '';
-      if (idx % 2 === 1) doc.rect(50, ry, W, 18).fill('#fafafa');
+      // Samma dygnsförklaring som originalfakturan, annars ser kunden två
+      // dokument som motsäger varandra.
+      const note = _dayNote(item);
+      const rowH = note ? 27 : 18;
+      if (idx % 2 === 1) doc.rect(50, ry, W, rowH).fill('#fafafa');
       doc.fontSize(8).font('Helvetica').fillColor(GRAY);
       doc.text(artno, cols[0] + 4, ry + 5, { width: colW[0] - 8, align: 'left' });
       doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
       doc.text(item.name || '—', cols[1] + 4, ry + 4, { width: colW[1] - 8, align: 'left' });
+      if (note) {
+        doc.fontSize(7).font('Helvetica').fillColor(GRAY);
+        doc.text(note, cols[1] + 4, ry + 15, { width: colW[1] - 8, align: 'left' });
+        doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
+      }
       doc.text(String(qty),       cols[2] + 4, ry + 4, { width: colW[2] - 8, align: 'right' });
       doc.text(fmtKr(item.price), cols[3] + 4, ry + 4, { width: colW[3] - 8, align: 'right' });
       doc.text(fmtKr(sum),        cols[4] + 4, ry + 4, { width: colW[4] - 8, align: 'right' });
-      ry += 18;
+      ry += rowH;
     });
 
     doc.rect(50, tableY, W, ry - tableY).stroke('#e0e0e8');
@@ -276,13 +286,15 @@ function buildCreditLines(cart, percent) {
 
   if (percent === 100) {
     // Full kreditering — spegla alla rader negativt (qty blir negativt, price positivt)
+    // Spread, inte vitlista: raderna sparas permanent som credit_items och
+    // används vid resend. Vitlistades days/unit_price/category bort visade
+    // kreditnotan periodpriset (2 998 kr) medan originalfakturan visade
+    // "1 499 kr/dygn · 3 hyresdygn" — två dokument som motsäger varandra, och
+    // ögonblicksbilden gick inte att laga i efterhand.
     return origItems.map(i => ({
-      id:    i.id,
+      ...i,
       artno: i.artno || i.id || '',
-      name:  i.name,
-      price: i.price,
       qty:   -(i.qty || 1),
-      type:  i.type,
     }));
   }
 
