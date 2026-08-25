@@ -1,0 +1,1904 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import frakt from '../../data/tjanster.json';
+import ljusData from '../../data/ljus.json';
+
+// Bygg volympriskarta: { slug: [{minQty, unitPrice}] } — styrd av JSON, ej hårdkodad
+const volPricingMap: Record<string, {minQty:number,unitPrice:number}[]> = {};
+for (const cat of [ljusData.effekter?.products, ljusData.rok?.products]) {
+  for (const p of (cat ?? [])) {
+    if (p.slug && (p as any).volumePricing?.length) {
+      volPricingMap[p.slug] = (p as any).volumePricing;
+    }
+  }
+}
+
+const fraktRules = JSON.stringify(frakt);
+const volPricingJSON = JSON.stringify(volPricingMap);
+---
+
+<Layout
+  title="Varukorg – Scenkonsult"
+  description="Granska din varukorg och skicka en förfrågan till Scenkonsult."
+>
+<section class="cart-page">
+<div class="cart-wrap">
+
+  <div class="cart-header">
+    <h1>Din varukorg</h1>
+    <p class="cart-subtitle">Lägg till produkter via produktsidorna, sedan skickar du en förfrågan direkt.</p>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div id="cartEmpty" class="cart-empty">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+    <p>Varukorgen är tom.</p>
+    <a href="/#tjanster" class="cart-empty-cta">Se alla tjänster →</a>
+  </div>
+
+  <!-- CART CONTENT -->
+  <div id="cartContent" style="display:none">
+
+  <!-- PRODUKTLÄGG-TILL-VÄLJARE -->
+
+
+  <!-- PRODUKTTABELL -->
+    <div class="cart-table-wrap">
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th class="th-product">Produkt</th>
+            <th class="th-price">Pris</th>
+            <th class="th-qty">Antal</th>
+            <th class="th-total">Totalt</th>
+            <th class="th-remove"></th>
+          </tr>
+        </thead>
+        <tbody id="cartTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- TILLBEHÖRSPÅMINNELSE -->
+    <div class="accessory-reminder">
+      <span class="accessory-reminder-icon" aria-hidden="true">💡</span>
+      <div class="accessory-reminder-text">
+        <strong>Glöm inte tillbehören!</strong>
+        Förlängningskablar, ljudkablar, DMX-kablar, stativ och annat smått är lätt att missa — men avgörande på plats. Dubbelkolla att du har allt du behöver.
+      </div>
+      <a href="/vara-tjanster/tillbehor/" class="accessory-reminder-link" id="openTillbehorPopup">Se tillbehör →</a>
+    </div>
+
+    <!-- TILLÄGGSTJÄNSTER -->
+    <div class="services-wrap">
+      <div class="services-header">Tilläggstjänster</div>
+
+      <!-- Leverans -->
+      <label class="service-row">
+        <input type="checkbox" id="chkLeverans" class="sr-only" />
+        <div class="service-check" id="checkLeverans"></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+          <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        <div class="service-info">
+          <span class="service-label">{frakt.leverans.label}</span>
+          <span class="service-desc">{frakt.leverans.description}</span>
+          <span class="service-note" id="leveransNote">{frakt.leverans.zon}</span>
+        </div>
+        <span class="service-price" id="leveransPrice">– kr</span>
+      </label>
+
+      <!-- Admin: leverans-override — synlig bara i sk-admin-läge -->
+      <div class="sk-admin-only" id="admin-lev-override" style="margin:0.5rem 0 0.25rem;padding:0.75rem;background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.2);border-radius:8px;">
+        <div style="font-size:0.75rem;font-weight:700;color:#c4b5f4;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">⚙ Admin — Leveranstyp</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+          <select id="adminLevType" style="background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;cursor:pointer;color-scheme:dark;">
+            <option value="auto">Automatisk (regelmotor)</option>
+            <!-- Övriga options fylls i av JS från tjanster.json -->
+          </select>
+          <select id="adminLevResa" style="background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;cursor:pointer;color-scheme:dark;">
+            <option value="tur-retur">Tur & retur</option>
+            <option value="enkel">Enkelresa</option>
+          </select>
+          <span id="adminLevPreview" style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-left:0.25rem;"></span>
+        </div>
+        <div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+          <input id="adminNoteInput" type="text" placeholder="Intern anteckning på order (visas ej för kund)"
+            style="flex:1;min-width:180px;background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.6rem;font-size:0.82rem;color-scheme:dark;"
+          />
+        </div>
+      </div>
+
+      <!-- Hämtningsinfo — visas när leverans EJ är vald -->
+      <div id="pickupNotice" class="pickup-notice">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Utan leverans hämtar du utrustningen på vår depå: <strong>Grimstagatan 164, Vällingby</strong>. Utlämning sker efter tidsbokning — vi hör av oss för att boka tid.</span>
+      </div>
+
+      <!-- Montering -->
+      <label class="service-row">
+        <input type="checkbox" id="chkMontering" class="sr-only" />
+        <div class="service-check"></div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        <div class="service-info">
+          <span class="service-label">{frakt.montering.label}</span>
+          <span class="service-desc">{frakt.montering.description}</span>
+          <span class="service-note">{frakt.montering.note}</span>
+        </div>
+        <span class="service-price" id="monteringPrice">– kr</span>
+      </label>
+
+      <!-- Extra tillägg från tjanster.json -->
+      {frakt.tillagg.map(t => (
+        <label class="service-row" data-tillagg-id={t.id}>
+          <input type="checkbox" class="sr-only chk-tillagg"
+            data-id={t.id} data-pris={t.pris}
+            data-label={t.label} data-enhet={t.enhet}
+            data-qty={t.qty ? 'true' : 'false'} />
+          <div class="service-check"></div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="service-icon">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <div class="service-info">
+            <span class="service-label">{t.label}</span>
+            <span class="service-desc">{t.description}</span>
+          </div>
+          <div class="service-price-right">
+            {t.qty && (
+              <div class="tillagg-qty hidden" id={`qty-wrap-${t.id}`}>
+                <button type="button" class="tqty-btn tillagg-dec" data-id={t.id}>−</button>
+                <span class="tqty-val" id={`qtyval-${t.id}`}>1</span>
+                <button type="button" class="tqty-btn tillagg-inc" data-id={t.id}>+</button>
+              </div>
+            )}
+            <span class="service-price">{t.pris.toLocaleString('sv')} kr<span class="service-enhet">{t.enhet}</span></span>
+          </div>
+        </label>
+      ))}
+    </div>
+
+    <!-- Admin: Lägg till produkt manuellt — synlig bara i sk-admin-läge -->
+    <div class="sk-admin-only" id="admin-add-product" style="margin-bottom:1rem;padding:0.75rem;background:rgba(196,181,244,0.08);border:1px solid rgba(196,181,244,0.2);border-radius:8px;">
+      <div style="font-size:0.75rem;font-weight:700;color:#c4b5f4;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">⚙ Admin — Lägg till artikel</div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <input id="adminSearchInput" type="text" placeholder="Sök artikelnr eller namn…"
+          style="flex:1;min-width:180px;background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.6rem;font-size:0.82rem;color-scheme:dark;"
+          autocomplete="off"
+        />
+        <input id="adminQtyInput" type="number" min="1" value="1"
+          style="width:64px;background:#1e1850;color:#f0eeff;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.35rem 0.5rem;font-size:0.82rem;text-align:center;color-scheme:dark;"
+        />
+      </div>
+      <div id="adminSearchResults" style="margin-top:0.4rem;max-height:220px;overflow-y:auto;display:none;background:#12103a;border:1px solid rgba(196,181,244,0.2);border-radius:6px;"></div>
+    </div>
+
+    <!-- SUMMERING -->
+    <div class="cart-summary">
+      <div class="summ-row"><span>Produkter (exkl. moms)</span><span id="cartSubtotal">–</span></div>
+      <div class="summ-row" id="rowLeverans" style="display:none"><span>Leverans</span><span id="summLeverans">–</span></div>
+      <div class="summ-row" id="rowMontering" style="display:none"><span>Montering & demontering</span><span id="summMontering">–</span></div>
+      <div id="rowsTillagg"></div>
+      <div class="summ-row muted"><span>Bokningsavgift</span><span>49 kr</span></div>
+      <div class="summ-row muted"><span>Moms 25%</span><span id="cartVat">–</span></div>
+      <div class="summ-row total"><span>Totalt (inkl. moms)</span><span id="cartTotal">–</span></div>
+      <p class="summ-note">* Priser avser hyra per dygn (22 h). Slutlig faktura bekräftas vid bokning.</p>
+      <p class="summ-note summ-note-estimate">⚠ Alla frakt- och tjänstepriser är estimat och bekräftas som en del av orderprocessen.</p>
+    </div>
+
+    <!-- KUNDUPPGIFTER -->
+    <div class="customer-wrap">
+      <div class="customer-header">Dina uppgifter</div>
+      <div class="customer-grid">
+        <div class="field-group">
+          <label class="field-label" for="f-name">Namn *</label>
+          <input type="text" id="f-name" class="field-input" placeholder="För- och efternamn" autocomplete="name" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-company">Företag</label>
+          <input type="text" id="f-company" class="field-input" placeholder="Företagsnamn (valfritt)" autocomplete="organization" oninput="toggleOrgnr(this.value)" />
+        </div>
+        <div class="field-group" id="orgnr-group" style="display:none">
+          <label class="field-label" for="f-orgnr">Organisationsnummer *</label>
+          <input type="text" id="f-orgnr" class="field-input" placeholder="556xxx-xxxx" autocomplete="off" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-email">E-post *</label>
+          <input type="email" id="f-email" class="field-input" placeholder="din@epost.se" autocomplete="email" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-phone">Telefon *</label>
+          <input type="tel" id="f-phone" class="field-input" placeholder="070 000 00 00" autocomplete="tel" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-date-from">Önskat datum, från *</label>
+          <input type="date" id="f-date-from" class="field-input" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-date-to">Önskat datum, till *</label>
+          <input type="date" id="f-date-to" class="field-input" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-time-from">Utlämningstid (önskat)</label>
+          <input type="time" id="f-time-from" class="field-input" value="13:00" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="f-time-to">Återlämningstid (önskat)</label>
+          <input type="time" id="f-time-to" class="field-input" value="11:00" />
+        </div>
+        <div class="field-group field-full">
+          <label class="field-label" for="f-address">Leveransadress</label>
+          <input type="text" id="f-address" class="field-input" placeholder="Gatuadress, postnummer, stad" autocomplete="street-address" />
+        </div>
+        <div class="field-group field-full">
+          <label class="field-label" for="f-notes">Övrig information</label>
+          <textarea id="f-notes" class="field-input field-textarea" placeholder="Beskriv eventet, önskemål, antal gäster, lokalbeskrivning…" rows="4"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- HYRESVILLKOR -->
+    <label class="villkor-row" id="villkorRow">
+      <input type="checkbox" id="chkVillkor" class="sr-only" />
+      <div class="service-check villkor-check"></div>
+      <span class="villkor-text">
+        Jag har läst och godkänner
+        <a href="/hyresvillkor/" target="_blank" class="villkor-link">hyresvillkoren ↗</a>
+      </span>
+    </label>
+
+    <!-- Avbokningspolicy-rad -->
+    <div class="flex items-center gap-2 mb-3 text-sm text-gray-400">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <span>Generösa avbokningsregler — se <a href="/hyresvillkor/" class="text-brand-orange hover:underline">hyresvillkoren</a> för detaljer.</span>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="cart-actions">
+      <button id="btnEmail" class="cart-btn primary" disabled>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+        Maila offertförfrågan
+      </button>
+      <button id="btnSave" class="cart-btn secondary">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Spara som PDF
+      </button>
+      <button id="btnClear" class="cart-btn ghost">Töm varukorg</button>
+    </div>
+    <p class="villkor-hint hidden" id="villkorHint">Vänligen godkänn hyresvillkoren och fyll i namn, e-post och telefon för att fortsätta.</p>
+
+  </div><!-- /cartContent -->
+</div>
+
+<!-- TILLBEHÖRS-POPUP -->
+<div id="tillbehorPopup" class="tb-popup" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Alla tillbehör">
+  <div class="tb-popup-backdrop" data-tb-close></div>
+  <div class="tb-popup-panel">
+    <div class="tb-popup-head">
+      <div>
+        <p class="tb-popup-eyebrow">Komplettera din beställning</p>
+        <h2 class="tb-popup-title">Alla tillbehör</h2>
+      </div>
+      <button type="button" class="tb-popup-close" data-tb-close aria-label="Stäng">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="tb-popup-body" id="tbPopupBody">
+      <div class="tb-popup-loading">Laddar tillbehör…</div>
+    </div>
+  </div>
+</div>
+</section>
+
+</Layout>
+
+<style is:global>
+/* ─── PRODUKTVÄLJARE ──────────────────────────────────────── */
+.cart-row-clickable { cursor: pointer; transition: background 0.15s; }
+.cart-row-clickable:hover { background: rgba(196,181,244,0.06); }
+.cart-row-clickable:hover .cart-pname { color: #c4b5f4; }
+/* ─── GLOBAL ─────────────────────────────────────────────── */
+.cart-page {
+  padding-top: calc(var(--nav-offset, 166px) + 2.5rem);
+  padding-bottom: 6rem;
+  min-height: 72vh;
+  color: white;
+}
+.cart-wrap { max-width: 1060px; margin: 0 auto; padding: 0 1.25rem; }
+.sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0; }
+
+/* ─── HEADER ──────────────────────────────────────────────── */
+.cart-header { margin-bottom: 2.5rem; }
+.cart-header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: white; margin-bottom: 0.4rem;
+}
+.cart-subtitle { color: rgba(255,255,255,0.60); font-size: 0.95rem; }
+
+/* ─── EMPTY ───────────────────────────────────────────────── */
+.cart-empty {
+  display:flex; flex-direction:column; align-items:center;
+  gap:1.25rem; padding:5rem 2rem; text-align:center;
+  color:rgba(255,255,255,0.60); font-size:1.05rem;
+  font-family:'Space Grotesk',sans-serif;
+}
+.cart-empty-cta {
+  color:#c4b5f4; font-size:0.88rem; text-decoration:none;
+  border-bottom:1px solid rgba(196,181,244,0.35); padding-bottom:2px;
+}
+.cart-empty-cta:hover { border-color:#c4b5f4; }
+
+/* ─── TABLE ───────────────────────────────────────────────── */
+.cart-table-wrap {
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px; overflow-x:auto; margin-bottom:1.5rem;
+}
+.cart-table { width:100%; border-collapse:collapse; font-family:'Space Grotesk',sans-serif; color:white; }
+.cart-table thead { background:rgba(30,24,80,0.95); }
+.cart-table th {
+  padding:0.85rem 1rem; text-align:left;
+  color:rgba(255,255,255,0.60); font-size:0.71rem;
+  font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+}
+.th-price,.th-qty,.th-total { text-align:right; }
+.cart-table tbody tr { border-top:1px solid rgba(255,255,255,0.06); transition:background 0.15s; }
+.cart-table tbody tr:hover { background:rgba(196,181,244,0.04); }
+.cart-table td { padding:0.85rem 1rem; vertical-align:middle; color:white; }
+.td-price { text-align:right; color:rgba(255,255,255,0.6); }
+.td-qty { text-align:right; }
+.td-total { text-align:right; color:#c4b5f4; font-weight:700; }
+.td-remove { text-align:right; }
+
+/* Product cell — image BESIDE text */
+.cart-product { display:flex; flex-direction:row; align-items:center; gap:1rem; flex-wrap:nowrap; }
+.cart-thumb {
+  width:72px; height:60px; border-radius:8px;
+  object-fit:cover; flex-shrink:0;
+  background:rgba(30,24,80,0.8);
+  display:block; min-width:72px;
+}
+/* Broken image fallback — hide alt text overflow */
+.cart-thumb[src=""], .cart-thumb:not([src]) { display:none; }
+.cart-thumb-ph {
+  width:72px; height:60px; border-radius:8px;
+  background:rgba(255,255,255,0.04); flex-shrink:0; min-width:72px;
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,255,255,0.06);
+}
+.cart-product-text { display:flex; flex-direction:column; min-width:0; }
+.cart-pname { font-weight:600; font-size:0.92rem; color:white; line-height:1.3; margin-bottom:0.15rem; }
+.cart-pcat  { color:rgba(255,255,255,0.60); font-size:0.73rem; }
+.cart-pnote { color:rgba(255,255,255,0.55); font-size:0.7rem; }
+.vol-badge { color:#86efac; font-size:0.65rem; font-weight:600; margin-top:2px; letter-spacing:0.02em; }
+.cart-partno { font-family:monospace; font-size:0.62rem; color:rgba(196,181,244,0.45); letter-spacing:0.05em; line-height:1.2; margin-bottom:0.1rem; }
+
+/* Qty stepper */
+.qty-stepper { display:flex; align-items:center; justify-content:flex-end; }
+.qty-btn {
+  width:30px; height:30px; border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.04); color:white !important; cursor:pointer;
+  font-size:1rem; display:flex; align-items:center; justify-content:center;
+  transition:background 0.15s;
+}
+.qty-btn:first-child { border-radius:6px 0 0 6px; }
+.qty-btn:last-child  { border-radius:0 6px 6px 0; }
+.qty-btn:hover { background:rgba(196,181,244,0.2); border-color:rgba(196,181,244,0.45); }
+.qty-input,
+input[type=number].qty-input {
+  width:36px; height:30px;
+  border-top:1px solid rgba(255,255,255,0.15);
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  border-left:none; border-right:none;
+  background:rgba(255,255,255,0.07) !important;
+  color:white !important;
+  -webkit-text-fill-color: white !important;
+  text-align:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem; font-weight:700; padding:0;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius:0;
+}
+.qty-input:focus, input[type=number].qty-input:focus { outline:none; }
+.qty-input::-webkit-inner-spin-button,
+.qty-input::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+
+/* Remove */
+.remove-btn {
+  background:transparent; border:none; color:rgba(255,255,255,0.55);
+  cursor:pointer; padding:4px; border-radius:4px;
+  display:flex; align-items:center; transition:color 0.15s;
+}
+.remove-btn:hover { color:#f87171; }
+
+/* ─── TILLÄGGSTJÄNSTER ────────────────────────────────────── */
+.pickup-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0.6rem 1rem;
+  margin: 0 0 2px;
+  background: rgba(196,181,244,0.06);
+  border: 1px solid rgba(196,181,244,0.15);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+}
+.pickup-notice svg { flex-shrink:0; margin-top:1px; color: #c4b5f4; }
+.pickup-notice strong { color: rgba(255,255,255,0.85); }
+.pickup-notice.hidden { display: none; }
+.accessory-reminder {
+  display:flex; align-items:center; gap:0.85rem;
+  background:rgba(196,181,244,0.08);
+  border:1px solid rgba(196,181,244,0.25);
+  border-radius:14px;
+  padding:0.9rem 1.1rem;
+  margin-bottom:1.5rem;
+}
+.accessory-reminder-icon { font-size:1.35rem; line-height:1; flex-shrink:0; }
+.accessory-reminder-text {
+  flex:1; color:rgba(255,255,255,0.72);
+  font-size:0.86rem; line-height:1.55;
+}
+.accessory-reminder-text strong { color:#fff; display:block; margin-bottom:0.1rem; }
+.accessory-reminder-link {
+  flex-shrink:0; white-space:nowrap;
+  color:#c4b5f4; font-family:'Space Grotesk',sans-serif;
+  font-size:0.82rem; font-weight:700; letter-spacing:0.04em;
+  text-decoration:none; transition:color 0.15s;
+}
+.accessory-reminder-link:hover { color:#e2dcfb; }
+@media (max-width:560px) {
+  .accessory-reminder { flex-wrap:wrap; }
+  .accessory-reminder-link { margin-left:2.2rem; }
+}
+
+/* ─── TILLBEHÖRS-POPUP ─────────────────────────────────────── */
+.tb-popup { position:fixed; inset:0; z-index:9000; display:none; }
+.tb-popup.open { display:block; }
+.tb-popup-backdrop { position:absolute; inset:0; background:rgba(6,5,18,0.72); backdrop-filter:blur(3px); }
+.tb-popup-panel {
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(1080px, calc(100vw - 2rem));
+  height:min(86vh, 900px);
+  background:#0c0a24; border:1px solid rgba(196,181,244,0.22);
+  border-radius:18px; overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 24px 70px rgba(0,0,0,0.55);
+}
+.tb-popup-head {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;
+  padding:1.25rem 1.5rem; border-bottom:1px solid rgba(255,255,255,0.08);
+  background:linear-gradient(135deg,#1e1850,#0c0a24); flex-shrink:0;
+}
+.tb-popup-eyebrow {
+  color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.72rem;
+  font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin:0 0 0.25rem;
+}
+.tb-popup-title { font-family:'DM Serif Display',serif; font-size:1.6rem; color:white; margin:0; line-height:1.1; }
+.tb-popup-close {
+  flex-shrink:0; width:40px; height:40px; border-radius:10px;
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.8); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tb-popup-close:hover { background:rgba(196,181,244,0.15); border-color:rgba(196,181,244,0.5); color:#fff; }
+.tb-popup-body { overflow-y:auto; padding:1.25rem 1.5rem 2rem; flex:1; }
+.tb-popup-loading { color:rgba(255,255,255,0.55); text-align:center; padding:3rem 0; font-size:0.95rem; }
+.tb-popup-body .tb-grupp { margin-bottom:2rem; }
+.tb-popup-body .tb-grupp-head {
+  display:flex; align-items:baseline; gap:0.6rem; margin-bottom:1rem;
+  border-bottom:1px solid rgba(196,181,244,0.18); padding-bottom:0.6rem;
+}
+.tb-popup-body .tb-grupp-title { font-family:'DM Serif Display',serif; font-size:1.25rem; color:white; margin:0; }
+.tb-popup-body .tb-grupp-intro { color:rgba(255,255,255,0.55); font-size:0.85rem; margin:0 0 1rem; }
+.tb-popup-body .tb-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.75rem; }
+@media (min-width:640px) { .tb-popup-body .tb-grid { grid-template-columns:repeat(3,1fr); } }
+@media (min-width:900px) { .tb-popup-body .tb-grid { grid-template-columns:repeat(4,1fr); } }
+.tb-popup-notice {
+  background:rgba(196,181,244,0.08); border:1px solid rgba(196,181,244,0.25);
+  border-radius:12px; padding:0.75rem 1rem; margin-bottom:1.5rem;
+  font-size:0.88rem; color:rgba(255,255,255,0.78); line-height:1.55;
+}
+.tb-popup-notice button {
+  background:none; border:none; color:#c4b5f4; font-family:'Space Grotesk',sans-serif;
+  font-weight:700; font-size:0.84rem; cursor:pointer; text-decoration:underline; padding:0; margin-left:0.25rem;
+}
+/* Mobil: full-screen-känsla */
+@media (max-width:600px) {
+  .tb-popup-panel {
+    width:100vw; height:100dvh; max-height:100dvh;
+    border-radius:0; border:none; left:0; top:0; transform:none;
+  }
+  .tb-popup-title { font-size:1.35rem; }
+}
+.services-wrap {
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px; overflow:hidden; margin-bottom:1.5rem;
+}
+.services-header {
+  padding:0.85rem 1.2rem;
+  background:rgba(30,24,80,0.95);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.71rem; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:rgba(255,255,255,0.60);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.service-row {
+  display:flex; align-items:flex-start; gap:0.85rem;
+  padding:1rem 1.2rem;
+  border-top:1px solid rgba(255,255,255,0.06);
+  cursor:pointer; transition:background 0.15s; color:white;
+}
+.service-row:first-of-type { border-top:none; }
+.service-row:hover { background:rgba(196,181,244,0.04); }
+
+/* Custom checkbox */
+.service-check {
+  width:18px; height:18px; flex-shrink:0; margin-top:2px;
+  border:2px solid rgba(255,255,255,0.2); border-radius:5px;
+  background:transparent; transition:all 0.18s;
+  background-repeat:no-repeat; background-position:center; background-size:11px;
+  pointer-events:none;
+}
+.sr-only:checked ~ .service-check {
+  background-color:#c4b5f4; border-color:#c4b5f4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230c0a24' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+}
+.sr-only:checked ~ .service-icon { color:#c4b5f4; }
+.sr-only:checked ~ .service-info .service-label { color:white; }
+
+.service-icon { flex-shrink:0; margin-top:2px; color:rgba(196,181,244,0.5); transition:color 0.18s; }
+.service-info { flex:1; display:flex; flex-direction:column; gap:0.15rem; }
+.service-label { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.9rem; color:rgba(255,255,255,0.8); transition:color 0.18s; }
+.service-desc  { font-family:'Space Grotesk',sans-serif; font-size:0.77rem; color:rgba(255,255,255,0.60); line-height:1.4; }
+.service-note  { font-family:'Space Grotesk',sans-serif; font-size:0.72rem; color:rgba(255,255,255,0.55); line-height:1.4; }
+
+.service-price {
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem;
+  color:rgba(255,255,255,0.60); white-space:nowrap; margin-top:2px;
+  transition:color 0.2s; flex-shrink:0;
+}
+.sr-only:checked ~ .service-price { color:#c4b5f4; }
+.sr-only:checked ~ .service-price-right .service-price { color:#c4b5f4; }
+.service-enhet { font-weight:400; font-size:0.7rem; color:rgba(255,255,255,0.60); margin-left:1px; }
+.service-price-right { display:flex; flex-direction:column; align-items:flex-end; gap:0.4rem; flex-shrink:0; }
+
+/* Tillägg qty stepper */
+.tillagg-qty {
+  display:flex; align-items:center;
+  border:1px solid rgba(255,255,255,0.14); border-radius:6px; overflow:hidden;
+}
+.tqty-btn {
+  width:26px; height:26px; background:transparent; border:none;
+  color:white !important; cursor:pointer; font-size:1rem;
+  display:flex; align-items:center; justify-content:center;
+  transition:background 0.15s;
+}
+.tqty-btn:hover { background:rgba(196,181,244,0.18); }
+.tqty-val {
+  width:28px; text-align:center; color:white; font-weight:700;
+  font-size:0.85rem; font-family:'Space Grotesk',sans-serif;
+  border-left:1px solid rgba(255,255,255,0.1);
+  border-right:1px solid rgba(255,255,255,0.1);
+  padding:0 2px; background:transparent;
+}
+.hidden { display:none !important; }
+
+/* ─── SUMMERING ───────────────────────────────────────────── */
+.cart-summary {
+  background:rgba(30,24,80,0.55);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;
+  padding:1.5rem 1.5rem 1.25rem;
+  max-width:460px; margin-left:auto; margin-bottom:1.75rem;
+  font-family:'Space Grotesk',sans-serif; color:white;
+}
+.summ-row {
+  display:flex; justify-content:space-between; gap:1rem;
+  padding:0.38rem 0; font-size:0.9rem; color:rgba(255,255,255,0.78);
+}
+.summ-row.muted { color:rgba(255,255,255,0.60); }
+.summ-row.total {
+  border-top:1px solid rgba(255,255,255,0.1);
+  margin-top:0.6rem; padding-top:0.75rem;
+  font-weight:700; font-size:1.1rem; color:#c4b5f4;
+}
+.summ-note { color:rgba(255,255,255,0.55); font-size:0.72rem; margin-top:0.75rem; line-height:1.5; }
+.summ-note-estimate { color:rgba(196,181,244,0.55); margin-top:0.4rem; }
+
+/* ─── KUNDUPPGIFTER ───────────────────────────────────────── */
+.customer-wrap {
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px; overflow:hidden; margin-bottom:1.5rem;
+}
+.customer-header {
+  padding:0.85rem 1.2rem;
+  background:rgba(30,24,80,0.95);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.71rem; font-weight:700; letter-spacing:0.08em;
+  text-transform:uppercase; color:rgba(255,255,255,0.60);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.customer-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:1rem;
+  padding:1.25rem 1.2rem;
+}
+.field-group { display:flex; flex-direction:column; gap:0.4rem; min-width:0; overflow:hidden; }
+.field-full { grid-column: 1 / -1; }
+.field-label {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.75rem; font-weight:600;
+  color:rgba(255,255,255,0.5);
+  letter-spacing:0.04em;
+}
+.field-input {
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  padding:0.65rem 0.9rem;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem;
+  color:white !important;
+  -webkit-text-fill-color:white !important;
+  transition:border-color 0.18s, background 0.18s;
+  width:100%;
+  box-sizing:border-box;
+}
+.field-input::placeholder { color:rgba(255,255,255,0.55); -webkit-text-fill-color:rgba(255,255,255,0.55); }
+.field-input:focus {
+  outline:none;
+  border-color:rgba(196,181,244,0.5);
+  background:rgba(196,181,244,0.06);
+}
+.field-input:focus-visible { outline:2px solid rgba(196,181,244,0.4); outline-offset:2px; }
+.field-textarea { resize:vertical; min-height:100px; }
+
+/* Date + Time inputs — mörkt läge + synlig ikon + iOS width-fix */
+input[type="date"].field-input,
+input[type="time"].field-input {
+  color-scheme: dark;
+  -webkit-text-fill-color: rgba(255,255,255,0.85) !important;
+  /* iOS Safari ignorerar width:100% utan dessa: */
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100% !important;
+  min-width: 0;
+  max-width: 100%;
+}
+input[type="date"].field-input::-webkit-calendar-picker-indicator,
+input[type="time"].field-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  padding: 2px;
+  opacity: 0.8;
+}
+
+/* ─── HYRESVILLKOR ────────────────────────────────────────── */
+.villkor-row {
+  display:flex; align-items:center; gap:0.85rem;
+  padding:1rem 1.2rem;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  cursor:pointer; transition:background 0.15s, border-color 0.2s;
+  margin-bottom:1.5rem; color:white;
+}
+.villkor-row:hover { background:rgba(196,181,244,0.05); border-color:rgba(196,181,244,0.2); }
+.sr-only:checked ~ .villkor-check {
+  background-color:#c4b5f4; border-color:#c4b5f4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230c0a24' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+}
+.villkor-check {
+  width:20px; height:20px; flex-shrink:0;
+  border:2px solid rgba(255,255,255,0.25); border-radius:6px;
+  background:transparent; transition:all 0.18s;
+  background-repeat:no-repeat; background-position:center; background-size:12px;
+  pointer-events:none;
+}
+.villkor-text {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.9rem; color:rgba(255,255,255,0.75);
+}
+.villkor-link {
+  color:#c4b5f4; text-decoration:none;
+  border-bottom:1px solid rgba(196,181,244,0.35); padding-bottom:1px;
+}
+.villkor-link:hover { border-color:#c4b5f4; }
+.villkor-hint {
+  font-family:'Space Grotesk',sans-serif;
+  font-size:0.8rem; color:rgba(248,113,113,0.8);
+  margin-top:0.25rem; margin-bottom:1rem;
+  padding:0.5rem 0.75rem;
+  background:rgba(248,113,113,0.07);
+  border:1px solid rgba(248,113,113,0.2);
+  border-radius:8px;
+}
+
+/* ─── ACTIONS ─────────────────────────────────────────────── */
+.cart-actions { display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; margin-bottom:1rem; }
+.cart-btn {
+  display:inline-flex; align-items:center; gap:0.5rem;
+  padding:0.72rem 1.35rem; border-radius:10px;
+  font-family:'Space Grotesk',sans-serif; font-size:0.875rem; font-weight:600;
+  cursor:pointer; text-decoration:none; border:none; transition:all 0.2s;
+}
+.cart-btn.primary  { background:rgba(196,181,244,0.12); border:1px solid rgba(196,181,244,0.4); color:#c4b5f4; }
+.cart-btn.primary:hover:not([disabled]) { background:rgba(196,181,244,0.22); border-color:#c4b5f4; }
+.cart-btn.primary[disabled] { opacity:0.4; cursor:not-allowed; }
+.cart-btn.secondary { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); }
+.cart-btn.secondary:hover { background:rgba(255,255,255,0.1); color:white; }
+.cart-btn.accent   { background:#c4b5f4; color:#0c0a24; }
+.cart-btn.accent:hover:not(.disabled-btn) { background:#e2dcfb; }
+.cart-btn.disabled-btn { opacity:0.4; cursor:not-allowed; pointer-events:none; }
+.cart-btn.ghost    { background:transparent; border:1px solid rgba(248,113,113,0.25); color:rgba(248,113,113,0.6); }
+.cart-btn.ghost:hover { background:rgba(248,113,113,0.08); border-color:rgba(248,113,113,0.5); color:#f87171; }
+
+@media (max-width:700px) {
+  .th-price,.td-price { display:none; }
+  .cart-table th,.cart-table td { padding:0.7rem 0.55rem; }
+  .customer-grid { grid-template-columns:1fr; }
+  .cart-actions { flex-direction:column; align-items:stretch; }
+  .cart-btn { justify-content:center; }
+  .service-row { padding:0.85rem; }
+  .cart-thumb, .cart-thumb-ph { width:52px; height:44px; }
+}
+</style>
+
+<script>
+  // Vanligt Astro-script — Vite bundlar som ES-modul, körs deferred efter DOM är redo
+  import fraktData from '../../data/tjanster.json';
+  import _ljusJson from '../../data/ljus.json';
+  const FRAKT = fraktData;
+  const fmt = (n) => n.toLocaleString('sv') + ' kr';
+
+  // ── Volympriser — styrs av ljus.json, inga hårdkodade priser här ──
+  // Bygger { slug → [{minQty, unitPrice}] } från JSON
+  const VOL_PRICING = {};
+  for (const cat of [_ljusJson.effekter?.products, _ljusJson.rok?.products]) {
+    for (const p of (cat ?? [])) {
+      if (p.slug && p.volumePricing?.length) {
+        VOL_PRICING[p.slug] = p.volumePricing;
+      }
+    }
+  }
+
+  // Sekundärt volymprisindex på artno
+  const VOL_PRICING_BY_ARTNO = {};
+  for (const cat of [_ljusJson.effekter?.products, _ljusJson.rok?.products]) {
+    for (const p of (cat ?? [])) {
+      if (p.artno && p.volumePricing?.length) {
+        VOL_PRICING_BY_ARTNO[p.artno] = p.volumePricing;
+      }
+    }
+  }
+
+  // Returnerar rätt enhetspris för ett cart-item — söker på artno (primär) och slug (fallback)
+  function resolveUnitPrice(slug, qty, artno) {
+    const tiers = VOL_PRICING_BY_ARTNO[artno] || VOL_PRICING[slug];
+    if (!tiers?.length) return null;
+    let applicable = null;
+    for (const t of tiers) {
+      if (qty >= t.minQty) applicable = t;
+    }
+    return applicable?.unitPrice ?? null;
+  }
+
+  // Applicerar volympriser på hela kundkorgen — anropas vid sidladdning och qty-ändringar
+  function applyVolumePricing(cart) {
+    return (cart || []).map(item => {
+      if (!item || typeof item !== 'object') return item;
+      const vp = resolveUnitPrice(item.id, item.qty || 1, item.artno);
+      if (vp !== null && item.price !== vp) return { ...item, price: vp };
+      return item;
+    });
+  }
+  const SK_TTL = 21 * 24 * 60 * 60 * 1000;
+
+  // ── Komplett lokal cart-implementation (iOS-säker, ej beroende av window.skCart) ──
+  const SK_KEY = 'sk-cart';
+
+  function _getCartData() {
+    try {
+      const raw = localStorage.getItem(SK_KEY);
+      if (!raw) return null;
+      const d = JSON.parse(raw);
+      if (Array.isArray(d)) return { id: _genId(), expires: Date.now() + SK_TTL, items: d };
+      if (d.expires && Date.now() > d.expires) { localStorage.removeItem(SK_KEY); return null; }
+      return d;
+    } catch { return null; }
+  }
+  function _genId() {
+    const h = () => Math.random().toString(16).slice(2,6).toUpperCase();
+    return `SK-${h()}${h()}-${h()}`;
+  }
+  function getCart()       { return _getCartData()?.items || []; }
+  function getCartId()     { return _getCartData()?.id || null; }
+  function saveCart(items) {
+    try {
+      const existing = _getCartData();
+      localStorage.setItem(SK_KEY, JSON.stringify({
+        id:      existing?.id || _genId(),
+        expires: Date.now() + SK_TTL,
+        items,
+      }));
+      updateNavBadge();
+    } catch {}
+  }
+  function updateNavBadge() {
+    // Uppdatera badge i nav via window.skCart om tillgängligt, annars direkt
+    if (window.skCart?.badge) { window.skCart.badge(); return; }
+    const total = getCart().reduce((s,i) => s + (i.qty||1), 0);
+    ['navCartBadge','mobileCartBadge'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = total;
+      el.style.display = total > 0 ? '' : 'none';
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── PRODUKTKATALOG — genereras från JSON, inga hårdkodade objekt ──────────
+  // Bygger { cartId → { desc, cat, link, includes, artno, image } } från alla JSON-filer
+  // Källa: scenes.json, ljud.json, ljus.json, dj.json, bild.json
+  import _scenJson  from '../../data/scenes.json';
+  import _ljudJson  from '../../data/ljud.json';
+  import _djJson    from '../../data/dj.json';
+  import _bildJson  from '../../data/bild.json';
+  import _elJson      from '../../data/el.json';
+  import _karaokeJson from '../../data/karaoke.json';
+
+  function _buildCatalog() {
+    const cat = {};
+    function add(products, category, link) {
+      for (const p of (products ?? [])) {
+        if (!p) continue;
+        const entry = {
+          desc:    p.description || '',
+          cat:     category,
+          link,
+          includes: p.specs || [],
+          artno:   p.artno || '',
+          image:   p.image || '',
+          videos:  p.video ? ['/videos/' + p.video] : [],
+          manualUrl: p.manualUrl || '',
+          volPricing: p.volumePricing || [],
+        };
+        if (p.slug)  cat[p.slug] = entry;
+        if (p.artno) cat[p.artno] = entry;
+      }
+    }
+    // Scen
+    add(_scenJson.products, 'Scen', '/vara-tjanster/hyra-scen/');
+    add(_scenJson.modules, 'Scen', '/vara-tjanster/hyra-scen/');
+    add(_scenJson.tillbehor, 'Scen — tillbehör', '/vara-tjanster/hyra-scen/');
+    // Ljud
+    add(_ljudJson.event?.products,   'Ljud — Event',    '/vara-tjanster/hyra-ljud/event/');
+    add(_ljudJson.portable?.products,'Ljud — Portable', '/vara-tjanster/hyra-ljud/portable/');
+    add(_ljudJson.music?.products,   'Ljud — Music',    '/vara-tjanster/hyra-ljud/music/');
+    add(_ljudJson.live?.products,    'Ljud — Live',     '/vara-tjanster/hyra-ljud/live/');
+    add(_ljudJson.live?.lineArray,   'Ljud — Line Array','/vara-tjanster/hyra-ljud/live/');
+    add(_ljudJson.mixers,            'Ljud — Mixers',   '/vara-tjanster/hyra-ljud/');
+    add(_ljudJson.tillbehor_mikrofon,'Ljud — Mikrofoner','/vara-tjanster/hyra-ljud/');
+    // Ljus
+    add(_ljusJson.paket?.products,   'Ljus — Färdiga paket',  '/vara-tjanster/hyra-ljus/fardiga-paket/');
+    add(_ljusJson.effekter?.products,'Ljuseffekter',           '/vara-tjanster/hyra-ljus/ljuseffekter/');
+    add(_ljusJson.rok?.products,     'Ljus — Rök & pyro',     '/vara-tjanster/hyra-ljus/rok-pyro/');
+    add(_ljusJson.stativ?.products,  'Ljus — Stativ & tross', '/vara-tjanster/hyra-ljus/stativ-tross/');
+    // DJ — cart lagrar "dj-utr-" + slug (hårdvara) eller artno direkt (tjänster)
+    for (const p of (_djJson.equipment ?? [])) {
+      const entry = { desc: p.description || '', cat: p.artno?.startsWith('SK-DJ-0') && parseInt(p.artno.slice(-4)) >= 9 ? 'DJ-tjänst' : 'DJ-utrustning', link: '/vara-tjanster/hyra-dj/', includes: p.specs || [], artno: p.artno || '', image: p.image || '', videos: p.video ? ['/videos/' + p.video] : [], manualUrl: p.manualUrl || '', volPricing: p.volumePricing || [] };
+      if (p.slug) cat['dj-utr-' + p.slug] = entry;
+      if (p.artno) cat[p.artno] = entry;
+    }
+    // DJ-paket
+    for (const p of (_djJson.packages ?? [])) {
+      cat[p.artno] = { desc: p.specs?.join(', ') || '', cat: 'DJ-paket', link: '/vara-tjanster/hyra-dj/', includes: p.specs || [], artno: p.artno || '', image: p.image || '' };
+    }
+    // Tjänster — centraliserade i tjanster.json.services (efter konsolidering 2026-05-17)
+    // Tidigare låg tjänsterna utspridda i ljud.services, ljus.services, bild.services
+    // Filtrering per kategori sker i respektive produktsida via categories[]-flagga.
+    // Varukorgens katalog behöver alla tjänster — länken pekar till en lämplig
+    // hyra-sida baserat på primärkategori i artno-prefixet.
+    for (const svc of (fraktData.services ?? [])) {
+      let link = '/vara-tjanster/';
+      if (svc.artno?.startsWith('SK-BLD-')) link = '/vara-tjanster/hyra-bild-projektorer-skarmar/';
+      else if (svc.categories?.includes('ljud')) link = '/vara-tjanster/hyra-ljud/live/';
+      else if (svc.categories?.includes('ljus')) link = '/vara-tjanster/hyra-ljus/fardiga-paket/';
+      cat[svc.artno] = {
+        desc:     svc.description || '',
+        cat:      'Tjänster',
+        link,
+        includes: svc.includes || [],
+        artno:    svc.artno || '',
+        image:    svc.image || ''
+      };
+    }
+    // Bild
+    add(_bildJson.products,  'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
+    add(_bildJson.tillbehor, 'Projektor & skärm', '/vara-tjanster/hyra-bild-projektorer-skarmar/');
+    add(_bildJson.dukar,     'Projektorduk',      '/vara-tjanster/hyra-bild-projektorer-skarmar/#projektorduk');
+    // Ljus — DMX-styrning + förbruknings-/stativtillbehör (saknades tidigare)
+    add(_ljusJson.dmx?.tillbehor,    'DMX-styrning',          '/vara-tjanster/hyra-ljus/ljuseffekter/');
+    add(_ljusJson.rok?.tillbehor,    'Ljus — Rök & pyro',     '/vara-tjanster/hyra-ljus/rok-pyro/');
+    add(_ljusJson.stativ?.tillbehor, 'Ljus — Stativ & tross', '/vara-tjanster/hyra-ljus/stativ-tross/');
+    // El-tillbehör
+    add(_elJson.products, 'El-tillbehör', '/vara-tjanster/hyra-ljud/');
+    // Karaoke
+    add(_karaokeJson.packages,  'Karaoke',            '/vara-tjanster/hyra-karaoke/');
+    add(_karaokeJson.tillbehor, 'Karaoke — tillbehör', '/vara-tjanster/hyra-karaoke/');
+    // Frakt & tjänster — leverans, montering, tillägg, fakturaavgift
+    const _addService = (id, artno, label, desc, price) => {
+      const entry = { desc, cat: 'Tjänster', link: '/', includes: [], artno: artno || '', image: '', price: price || 0 };
+      cat[id] = entry;
+      if (artno) cat[artno] = entry;
+    };
+    const _lev = fraktData.leverans || {};
+    // Iterera över alla leverans-nycklar i JSON istället för att hårdkoda dem.
+    // Skyddar mot framtida tillägg/borttag (t.ex. 'bakgavel' togs bort) och
+    // garanterar att katalogen byggs så långt som möjligt även om en enskild
+    // nyckel saknas eller har trasig struktur.
+    for (const levKey of Object.keys(_lev)) {
+      const obj = _lev[levKey];
+      if (!obj || typeof obj !== 'object') continue;
+      if (obj.id) {
+        _addService(obj.id, obj.artno, obj.label, '', obj.pris);
+      } else {
+        console.warn(`[varukorg] Saknar id i leverans.${levKey} — hoppar över`);
+      }
+      if (obj.enkel && typeof obj.enkel === 'object' && obj.enkel.id) {
+        _addService(obj.enkel.id, obj.enkel.artno, obj.enkel.label, '', obj.enkel.pris);
+      }
+    }
+    if (fraktData.montering?.artno) {
+      _addService('montering', fraktData.montering.artno, fraktData.montering.label, fraktData.montering.description, fraktData.montering.prisPerTimme);
+    }
+    for (const t of (fraktData.tillagg ?? [])) {
+      if (t && t.id) _addService(t.id, t.artno, t.label, t.description || '', t.pris);
+    }
+    for (const f of (fraktData.fakturaavgift?.options ?? [])) {
+      if (f && f.id) _addService(f.id, f.artno, f.label, fraktData.fakturaavgift.description || '', f.pris);
+    }
+    return cat;
+  }
+  const PROD_CATALOG = _buildCatalog();
+  // Sekundärt index på artno — fallback för gamla carts eller om id saknas
+  const PROD_CATALOG_BY_ARTNO = {};
+  for (const [key, val] of Object.entries(PROD_CATALOG)) {
+    if (val.artno) PROD_CATALOG_BY_ARTNO[val.artno] = val;
+  }
+  function _lookupProduct(item) {
+    // artno är mest tillförlitlig (unik, alltid från JSON)
+    // id-lookup som fallback (fungerar för nya items med korrekt slug)
+    return PROD_CATALOG_BY_ARTNO[item.artno]
+        || PROD_CATALOG[item.id]
+        || PROD_CATALOG[item.id?.replace(/^mc-/,'')]
+        || {};
+  }
+
+  // Genererar volymrader för modal — samma format som produktsidorna
+  function _getModalRows(info) {
+    const tiers = info?.volPricing;
+    if (!tiers?.length) return [];
+    return [{ label: 'Volympriser', rows: tiers.map(t => `${t.minQty} st – ${(t.unitPrice * t.minQty).toLocaleString('sv')} kr`) }];
+  }
+
+  function _getImg(item) {
+    if (item.image) return item.image;
+    const info = PROD_CATALOG_BY_ARTNO[item.artno] || PROD_CATALOG[item.id] || PROD_CATALOG[item.id?.replace(/^(scen-|dj-utr-)/,'')];
+    return info?.image || '';
+  }
+
+  // Ikoner per artikelnummerprefix — används som fallback när ingen bild finns
+  const CAT_ICONS = {
+    'SK-SCN':     { emoji:'🎭', color:'#8B5CF6', label:'Scen' },
+    'SK-LJD-EL':  { emoji:'🔌', color:'#60A5FA', label:'El & kabel' },
+    'SK-LJD-MIK': { emoji:'🎤', color:'#60A5FA', label:'Mikrofon' },
+    'SK-LJD-MIX': { emoji:'🎚️', color:'#60A5FA', label:'Mixer' },
+    'SK-LJD':     { emoji:'🔊', color:'#3B82F6', label:'Ljud' },
+    'SK-LJS-DMX': { emoji:'🕹️', color:'#F59E0B', label:'DMX-styrning' },
+    'SK-LJS-ROK': { emoji:'💨', color:'#F59E0B', label:'Rök & pyro' },
+    'SK-LJS-PAK': { emoji:'💡', color:'#F59E0B', label:'Ljuspaket' },
+    'SK-LJS-EFF': { emoji:'✨', color:'#F59E0B', label:'Effekt' },
+    'SK-LJS-STV': { emoji:'🏗️', color:'#F59E0B', label:'Stativ & tross' },
+    'SK-LJS':     { emoji:'💡', color:'#F59E0B', label:'Ljus' },
+    'SK-BLD':     { emoji:'🖥️', color:'#10B981', label:'Bild' },
+    'SK-DJ-001':  { emoji:'🎧', color:'#EF4444', label:'DJ-utrustning' },
+    'SK-DJ-PAK':  { emoji:'🎶', color:'#EF4444', label:'DJ-paket' },
+    'SK-DJ-0009': { emoji:'🎵', color:'#C084FC', label:'Junior DJ' },
+    'SK-DJ-0010': { emoji:'🎵', color:'#C084FC', label:'Junior DJ' },
+    'SK-DJ-0011': { emoji:'🎵', color:'#C084FC', label:'Junior DJ' },
+    'SK-DJ-0012': { emoji:'🎧', color:'#A855F7', label:'Senior DJ' },
+    'SK-DJ-0013': { emoji:'🎧', color:'#A855F7', label:'Senior DJ' },
+    'SK-DJ-0014': { emoji:'🎧', color:'#A855F7', label:'Senior DJ' },
+    'SK-DJ-0015': { emoji:'👑', color:'#F59E0B', label:'PRO DJ' },
+    'SK-DJ-0016': { emoji:'👑', color:'#F59E0B', label:'PRO DJ' },
+    'SK-DJ-0017': { emoji:'👑', color:'#F59E0B', label:'PRO DJ' },
+    'SK-DJ':      { emoji:'🎵', color:'#EF4444', label:'DJ-tjänst' },
+    'SK-LEV':     { emoji:'🚚', color:'#F97316', label:'Leverans' },
+    'SK-TJN':     { emoji:'⚙️', color:'#F97316', label:'Tillägg' },
+  };
+
+  function _getCatIcon(item) {
+    const artno = item.artno || item.id || '';
+    // Matcha längst prefix först
+    for (const [prefix, ico] of Object.entries(CAT_ICONS)) {
+      if (artno.startsWith(prefix)) return ico;
+    }
+    // Fallback på kategori
+    const cat = (item.category || '').toLowerCase();
+    if (cat.includes('scen'))    return CAT_ICONS['SK-SCN'];
+    if (cat.includes('ljud'))    return CAT_ICONS['SK-LJD'];
+    if (cat.includes('ljus'))    return CAT_ICONS['SK-LJS'];
+    if (cat.includes('bild'))    return CAT_ICONS['SK-BLD'];
+    if (cat.includes('dj'))      return CAT_ICONS['SK-DJ'];
+    if (cat.includes('leverans') || cat.includes('transport')) return CAT_ICONS['SK-LEV'];
+    if (cat.includes('tillägg') || cat.includes('tjänst'))     return CAT_ICONS['SK-TJN'];
+    return { emoji:'📦', color:'rgba(255,255,255,0.3)', label:'' };
+  }
+
+    // ── PRODUKT-MODAL (globalt via Layout.astro sk-modal) ─────
+  // Service-info för modal — returnerar name/desc/rows/icon för tjänster
+  const _SVC_DETAILS = {
+    'SK-LEV-0001': { desc:'Utrustning levereras med vanlig bil. Chauffören kör tur & retur — utlämning och återlämning ingår.', rows:[['Resor','Tur & retur'],['Fordon','Vanlig bil'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
+    'SK-LEV-0002': { desc:'Leverans med bil och släpvagn för skrymmande gods. Aktiveras automatiskt när varukorgen innehåller skrymmande produkt.', rows:[['Resor','Tur & retur'],['Fordon','Bil med släpvagn'],['Täckning','Hela Storstockholm'],['Enkelresa','799 kr (kund hämtar/lämnar)'],['Obs','Tillämpas automatiskt för skrymmande produkter']] },
+    'SK-LEV-0003': { desc:'Lätt lastbil för extra skrymmande gods, t.ex. större scenpaket. Väljs manuellt av admin.', rows:[['Resor','Tur & retur'],['Fordon','Lätt lastbil'],['Enkelresa','1 299 kr'],['Täckning','Hela Storstockholm']] },
+    'SK-LEV-0005': { desc:'Stor bil för större laster som inte ryms i vanlig bil men inte kräver släp. Väljs automatiskt vid mindre skrymmande paket.', rows:[['Resor','Tur & retur'],['Fordon','Stor bil'],['Enkelresa','719 kr (kund hämtar/lämnar)'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
+    'SK-LEV-0006': { desc:'Stor bil med släpvagn för medel- och stora paket. Väljs automatiskt när varukorgen innehåller flera skrymmande produkter.', rows:[['Resor','Tur & retur'],['Fordon','Stor bil med släpvagn'],['Enkelresa','1 099 kr (kund hämtar/lämnar)'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
+    'SK-TJN-0001': { desc:'Vår personal monterar och demonterar utrustningen på plats. Debiteras per påbörjad kvart (150 kr/15 min).', rows:[['Pris','600 kr/tim (150 kr/15 min)'],['Minimiorder','15 minuter'],['Demontering','= Monteringstid × 2'],['Obs','Obligatorisk för scenpaket Large+']] },
+    'SK-TJN-0002': { desc:'Certifierad tekniker på plats under hela eventet. Hanterar ljud, ljus och AV-utrustning.', rows:[['Pris','600 kr/tim'],['Minimum','2 timmar'],['Täcker','Ljud, ljus och AV-utrustning']] },
+    'SK-TJN-0003': { desc:'Fakturaavgift för B2B-kunder. Kan sättas till 0 kr, 29 kr eller 49 kr per order.', rows:[['Valbar','0 / 29 / 49 kr'],['Default','49 kr']] },
+    'SK-DJ-0007':  { desc:'Scenengineer på plats — hanterar ljud och/eller ljus under eventet.', rows:[['Typ','Tekniker'],['Hårdvara','Ingår ej'],['Boka','Via offert']] },
+    'SK-DJ-0008':  { desc:'Rörlig media-editor skapar och visar realtidsgrafik, video och LED-innehåll under eventet.', rows:[['Typ','Media-teknik'],['Boka','Via offert']] },
+    'SK-DJ-0009':  { desc:'Junior DJ spelar 2 timmar. Alla genre, 70-tal till idag. DJ-hårdvara ingår.', rows:[['Speltid','2 tim'],['Nivå','Junior'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0010':  { desc:'Junior DJ spelar 3 timmar. Alla genre, 70-tal till idag. DJ-hårdvara ingår.', rows:[['Speltid','3 tim'],['Nivå','Junior'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0011':  { desc:'Junior DJ spelar 4 timmar. Alla genre, 70-tal till idag. DJ-hårdvara ingår.', rows:[['Speltid','4 tim'],['Nivå','Junior'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0012':  { desc:'Senior DJ spelar 2 timmar. Bred erfarenhet från klubb, bröllop och event. DJ-hårdvara ingår.', rows:[['Speltid','2 tim'],['Nivå','Senior'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0013':  { desc:'Senior DJ spelar 3 timmar. Bred erfarenhet från klubb, bröllop och event. DJ-hårdvara ingår.', rows:[['Speltid','3 tim'],['Nivå','Senior'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0014':  { desc:'Senior DJ spelar 4 timmar. Bred erfarenhet från klubb, bröllop och event. DJ-hårdvara ingår.', rows:[['Speltid','4 tim'],['Nivå','Senior'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0015':  { desc:'PRO DJ — 2 timmars speltid. Pris på offert. Kontakta oss för att boka och diskutera upplägget.', rows:[['Speltid','2 tim'],['Nivå','PRO'],['Pris','Offert'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0016':  { desc:'PRO DJ — 3 timmars speltid. Pris på offert. Kontakta oss för att boka och diskutera upplägget.', rows:[['Speltid','3 tim'],['Nivå','PRO'],['Pris','Offert'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+    'SK-DJ-0017':  { desc:'PRO DJ — 4 timmars speltid. Pris på offert. Kontakta oss för att boka och diskutera upplägget.', rows:[['Speltid','4 tim'],['Nivå','PRO'],['Pris','Offert'],['Hårdvara','Ingår'],['Exkl.','Resa, scen, ljud & ljus']] },
+  };
+
+  function _getServiceInfo(item) {
+    const artno = item.artno || item.id || '';
+    return _SVC_DETAILS[artno] || { desc: item.description || '', rows: [] };
+  }
+
+  function openProductModal(item) {
+    if (!window.skModalOpen) return;
+    const isService = item.type === 'service' || ['Tjänster','Tillägg','DJ-tjänst','Leverans','Montering'].includes(item.category);
+    if (isService) {
+      const svc = _getServiceInfo(item);
+      const ico = _getCatIcon(item);
+      window.skModalOpen({
+        name:      item.name,
+        artno:     item.artno || item.id || '',
+        desc:      svc.desc,
+        rows:      svc.rows,
+        price:     item.price || 0,
+        priceNote: item.priceNote || (item.price === 0 ? 'Offert' : '/tjänst'),
+        category:  item.category || 'Tjänst',
+        cartId:    item.id,
+        images:    [],
+        videos:    [],
+        persons:   '',
+      });
+      return;
+    }
+    const info = _lookupProduct(item);
+    const imgSrc = _getImg(item);
+    const artno = item.artno || info.artno || '';
+    const specArr = info.includes?.length ? info.includes : (info.desc ? [info.desc] : []);
+    window.skModalOpen({
+      name:      item.name,
+      artno:     artno,
+      desc:      specArr.join('||'),
+      rows:      _getModalRows(info),
+      price:     item.price,
+      priceNote: item.priceNote || '/dygn',
+      category:  item.category || info.cat || '',
+      cartId:    item.id,
+      images:    imgSrc ? [imgSrc] : [],
+      videos:    info.videos || [],
+      manualUrl: info.manualUrl || '',
+      persons:   '',
+    });
+  }
+
+  // Leverans: JSON-driven regelmotor.
+  // Regler ligger i tjanster.json under leverans.selection_rules och evalueras
+  // i ordning — första matchande regel vinner. Stöd för:
+  //   if=anyItemForces  + use=FROM_PRODUCT  → använd cartens första forceLeverans
+  //   if=bulkyCount, min=N + use=<key>      → matcha om antal bulky-items >= N
+  //   if=default + use=<key>                → fallback (bör vara sist)
+  function _bulkyCount(cart) {
+    return (cart || []).filter(i => i && i.bulky === true).reduce((n, i) => n + (i.qty || 1), 0);
+  }
+  function _firstForceLeverans(cart) {
+    const item = (cart || []).find(i => i && typeof i.forceLeverans === 'string' && i.forceLeverans.trim());
+    return item ? item.forceLeverans.trim() : null;
+  }
+  function resolveLevKey(cart) {
+    const rules = FRAKT?.leverans?.selection_rules || [];
+    for (const rule of rules) {
+      if (!rule || !rule.use) continue;
+      const cond = rule.if;
+      if (cond === 'anyItemForces') {
+        const forced = _firstForceLeverans(cart);
+        if (forced && FRAKT.leverans[forced]) return forced;
+        // Om use=FROM_PRODUCT men ingen produkt har forceLeverans, hoppa vidare
+      } else if (cond === 'bulkyCount') {
+        const min = typeof rule.min === 'number' ? rule.min : 1;
+        if (_bulkyCount(cart) >= min) return rule.use;
+      } else if (cond === 'default' || !cond) {
+        return rule.use;
+      }
+    }
+    return 'standard'; // sista fallback om regler är tomma
+  }
+
+  function calcLev(cart) {
+    // Admin-override: kolla dropdown
+    const adminType = document.getElementById('adminLevType')?.value || 'auto';
+    const adminResa = document.getElementById('adminLevResa')?.value || 'tur-retur';
+    const enkelresa = adminResa === 'enkel';
+
+    const key = adminType !== 'auto' ? adminType : resolveLevKey(cart);
+    const lev = FRAKT.leverans[key] || FRAKT.leverans.standard;
+
+    const price = enkelresa
+      ? (lev.enkelresa || Math.round(lev.pris / 2))
+      : lev.pris;
+
+    // Uppdatera preview i admin-panelen
+    const preview = document.getElementById('adminLevPreview');
+    if (preview) preview.textContent = price.toLocaleString('sv-SE') + ' kr';
+
+    return { price, label: lev.label, note: lev.note };
+  }
+
+  // Montering: 600 kr/tim, min 15 min, baserat på monteringMin per produkt × qty
+  // Demontering = monteringMin × 2 (redan inräknat i totalen)
+  // assemblyMinutesTotal: override — fast totaltid oavsett qty (för LED-vägg etc.)
+  // monteringFast: FAST PAKETPRIS i kronor — används av bundle-produkter där
+  // monteringen ingår i ett annonserat totalpris (t.ex. SK-BLD-0013 LED-vägg på
+  // tross). Priset är då satt av oss, inte härlett ur minuter, så tidsuppgiften
+  // kan förbli sann för planering och transportval utan att styra kronorna.
+  // Rader med monteringFast bidrar med sitt belopp; övriga rader tidsberäknas
+  // som vanligt och summeras ovanpå.
+  function calcMon(cart) {
+    const prisPerMin = FRAKT.montering.prisPerTimme / 60;
+    const minMin     = FRAKT.montering.minDebiteringMin;
+    const bemanning  = (typeof FRAKT.montering.bemanning === 'number') ? FRAKT.montering.bemanning : 1;
+    let totalMin = 0;
+    let fastSum  = 0;
+    cart.forEach(item => {
+      if (item.monteringFast) {
+        fastSum += (Number(item.monteringFast) || 0);
+      } else if (item.assemblyMinutesTotal) {
+        // Fast tid oavsett antal — t.ex. LED-vägg = 480 min (8 tim)
+        totalMin += item.assemblyMinutesTotal;
+      } else if (item.monteringMin) {
+        // montering + demontering (× 2), × antal
+        const minPerItem = item.monteringMin * 2;
+        totalMin += Math.max(minMin, minPerItem) * item.qty;
+      }
+    });
+    // Schablon 60 min bara när ingenting alls är känt. Ett fast paketpris räknas
+    // som känt — annars skulle en ren bundle få 60 min schablon påklistrat.
+    if (totalMin === 0 && fastSum === 0) totalMin = 60;
+    // Bemanning: tiden är fysisk, men debiteras som parallella mantimmar (× antal tekniker).
+    return fastSum + (totalMin > 0 ? Math.ceil(totalMin * prisPerMin) * bemanning : 0);
+  }
+  function calcMonLabel(cart) {
+    const minMin     = FRAKT.montering.minDebiteringMin;
+    const bemanning  = (typeof FRAKT.montering.bemanning === 'number') ? FRAKT.montering.bemanning : 1;
+    let totalMin = 0;
+    let hasFast  = false;
+    cart.forEach(item => {
+      if (item.monteringFast) {
+        hasFast = true;
+      } else if (item.assemblyMinutesTotal) {
+        totalMin += item.assemblyMinutesTotal;
+      } else if (item.monteringMin) {
+        totalMin += Math.max(minMin, item.monteringMin * 2) * item.qty;
+      }
+    });
+    if (totalMin === 0 && !hasFast) totalMin = 60;
+    if (totalMin === 0) return 'fast paketpris';
+    // Avrunda minuterna — annars blir 282.6 % 60 = 42.599999999999994 i utskriften.
+    const h = Math.floor(totalMin/60), m = Math.round(totalMin%60);
+    const timeStr = (h ? h+'h ' : '') + (m ? m+'min ' : '');
+    const bemStr = bemanning > 1 ? ' × ' + bemanning + ' tekniker' : '';
+    const fastStr = hasFast ? ' + fast paketpris' : '';
+    return timeStr + bemStr + ' × ' + FRAKT.montering.prisPerTimme + ' kr/tim' + fastStr;
+  }
+
+  // ── VILLKOR + FORM VALIDATION ──────────────────────────────
+  function checkCanProceed() {
+    const villkorOk = document.getElementById('chkVillkor')?.checked;
+    const nameOk    = document.getElementById('f-name')?.value.trim().length > 1;
+    const emailOk   = document.getElementById('f-email')?.value.includes('@');
+    const phoneOk   = document.getElementById('f-phone')?.value.trim().length > 6;
+    const ok = villkorOk && nameOk && emailOk && phoneOk;
+
+    const btnEmail = document.getElementById('btnEmail');
+    const hint     = document.getElementById('villkorHint');
+
+    if (btnEmail) { btnEmail.disabled = !ok; }
+    if (hint) hint.classList.toggle('hidden', ok);
+  }
+
+  document.getElementById('chkVillkor')?.addEventListener('change', checkCanProceed);
+
+  // Auto-fyll återlämningsdatum (dagen efter) när utlämningsdatum väljs
+  document.getElementById('f-date-from')?.addEventListener('change', function() {
+    const toEl = document.getElementById('f-date-to');
+    if (this.value && (!toEl.value || toEl.value <= this.value)) {
+      const d = new Date(this.value);
+      d.setDate(d.getDate() + 1);
+      toEl.value = d.toISOString().slice(0, 10);
+    }
+    checkCanProceed();
+  });
+  ['f-name','f-email','f-phone'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', checkCanProceed);
+  });
+
+  // ── RENDER ─────────────────────────────────────────────────
+  function renderCart() {
+    // Applicera volympriser baserat på current qty vid varje rendering
+    let cart = applyVolumePricing(getCart());
+    // Defensiv: filtrera bort trasiga items (saknar id eller name) så hela sidan
+    // inte kraschar om ett enskilt item är fel-format. Logga varning så vi kan
+    // hitta orsaken i framtiden.
+    const orig = cart.length;
+    cart = cart.filter(i => i && typeof i === 'object' && i.id && i.name);
+    if (cart.length !== orig) {
+      console.warn(`[varukorg] Filtrerade bort ${orig - cart.length} trasiga items`, getCart());
+    }
+    const emptyEl   = document.getElementById('cartEmpty');
+    const contentEl = document.getElementById('cartContent');
+    if (cart.length === 0) {
+      emptyEl.style.display = 'flex';
+      contentEl.style.display = 'none';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    contentEl.style.display = 'block';
+
+    const tbody = document.getElementById('cartTableBody');
+    tbody.innerHTML = cart.map(item => {
+      const imgSrc = _getImg(item);
+      const safeQty = item.qty || 1;
+      return `
+      <tr data-id="${item.id}" class="cart-row-clickable" title="Klicka för mer info">
+        <td>
+          <div class="cart-product">
+            ${imgSrc
+              ? `<img class="cart-thumb" src="${imgSrc}" alt="${item.name}" loading="lazy" width="72" height="60" onerror="this.style.display='none'">`
+              : (() => { const ico=_getCatIcon(item); return `<div class="cart-thumb-ph" style="background:${ico.color}18;border:1px solid ${ico.color}33"><span style="font-size:1.5rem;line-height:1">${ico.emoji}</span></div>`; })()
+            }
+            <div class="cart-product-text">
+              <div class="cart-pname">${item.name}</div>
+              ${(item.artno || PROD_CATALOG[item.id]?.artno) ? `<div class="cart-partno">${item.artno || PROD_CATALOG[item.id]?.artno}</div>` : ''}
+              <div class="cart-pcat">${item.category || ''}</div>
+              <div class="cart-pnote">${item.priceNote || '/dygn'}</div>
+            </div>
+          </div>
+        </td>
+        <td class="td-price">
+          ${fmt(item.price)}
+          ${resolveUnitPrice(item.id, safeQty, item.artno) !== null && safeQty > 1
+            ? `<div class="vol-badge">Volymrabatt</div>`
+            : ''}
+        </td>
+        <td class="td-qty">
+          <div class="qty-stepper">
+            <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+            <input class="qty-input" type="text" inputmode="numeric" value="${safeQty}" data-id="${item.id}" readonly />
+            <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+          </div>
+        </td>
+        <td class="td-total">${fmt(item.price * item.qty)}</td>
+        <td class="td-remove">
+          <button class="remove-btn" data-id="${item.id}" aria-label="Ta bort">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    `}).join('');
+
+    tbody.querySelectorAll('.qty-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const c = getCart();
+        const it = c.find(i => i.id === btn.dataset.id);
+        if (!it) return;
+        it.qty += btn.dataset.action === 'inc' ? 1 : -1;
+        // Applicera volympris om produkten har volymtrappor
+        const newVp = resolveUnitPrice(it.id, it.qty, it.artno);
+        if (newVp !== null) it.price = newVp;
+        saveCart(c.filter(i => i.qty > 0));
+        updateNavBadge(); renderCart(); updateSummary();
+      });
+    });
+    tbody.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        saveCart(getCart().filter(i => i.id !== btn.dataset.id));
+        updateNavBadge(); renderCart(); updateSummary();
+      });
+    });
+
+    // Klick på rad → popup (ej på knappar)
+    tbody.querySelectorAll('.cart-row-clickable').forEach(row => {
+      row.addEventListener('click', e => {
+        if (e.target.closest('.qty-btn, .remove-btn, .qty-input')) return;
+        const id   = row.dataset.id;
+        const item = getCart().find(i => i.id === id);
+        if (item) openProductModal(item);
+      });
+    });
+
+    // Uppdatera tjänstepriser
+    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    const { price: lp, label: ll, note: ln } = calcLev(cart);
+    const mp = calcMon(cart);
+    const levEl = document.getElementById('leveransPrice');
+    if (levEl) levEl.textContent = fmt(lp);
+    const levNote = document.getElementById('leveransNote');
+    if (levNote) levNote.textContent = ll + (_bulkyCount(cart) > 0 ? ' — bil med släp' : '');
+    const monEl = document.getElementById('monteringPrice');
+    if (monEl) monEl.textContent = fmt(mp);
+
+    updateSummary();
+    checkCanProceed();
+  }
+
+  // ── SUMMARY ─────────────────────────────────────────────────
+  function updateSummary() {
+    const cart = getCart();
+    if (!cart.length) return;
+    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    let extras = 0;
+
+    const chkLev = document.getElementById('chkLeverans');
+    const rowLev = document.getElementById('rowLeverans');
+
+    // Visa hämtningsinfo när leverans inte är vald
+    const pickupNotice = document.getElementById('pickupNotice');
+    if (pickupNotice) pickupNotice.classList.toggle('hidden', !!chkLev?.checked);
+    if (chkLev?.checked) {
+      const lp = calcLev(cart).price;
+      document.getElementById('summLeverans').textContent = fmt(lp);
+      rowLev.style.display = 'flex'; extras += lp;
+    } else { if(rowLev) rowLev.style.display = 'none'; }
+
+    const chkMon = document.getElementById('chkMontering');
+    const rowMon = document.getElementById('rowMontering');
+    if (chkMon?.checked) {
+      const mp = calcMon(cart);
+      document.getElementById('summMontering').textContent = fmt(mp);
+      rowMon.style.display = 'flex'; extras += mp;
+    } else { if(rowMon) rowMon.style.display = 'none'; }
+
+    const rowsTillagg = document.getElementById('rowsTillagg');
+    rowsTillagg.innerHTML = '';
+    document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
+      const pris = Number(chk.dataset.pris);
+      const qty  = chk.dataset.qty === 'true'
+        ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent || 1) : 1;
+      const tot = pris * qty; extras += tot;
+      rowsTillagg.insertAdjacentHTML('beforeend',
+        `<div class="summ-row"><span>${chk.dataset.label}${qty>1?' × '+qty:''}</span><span>${fmt(tot)}</span></div>`);
+    });
+
+    const FAKTURAAVGIFT = 49;
+    const vat = Math.round((subtotal + extras + FAKTURAAVGIFT) * 0.25);
+    document.getElementById('cartSubtotal').textContent = fmt(subtotal);
+    document.getElementById('cartVat').textContent = fmt(vat);
+    document.getElementById('cartTotal').textContent = fmt(subtotal + extras + FAKTURAAVGIFT + vat);
+  }
+
+  // Service events
+  document.getElementById('chkLeverans')?.addEventListener('change', () => {
+    updateSummary();
+    const pn = document.getElementById('pickupNotice');
+    if (pn) pn.classList.toggle('hidden', !!document.getElementById('chkLeverans')?.checked);
+  });
+  document.getElementById('chkMontering')?.addEventListener('change', updateSummary);
+  // Auto-fyll adminLevType-dropdown från tjanster.json (allt JSON-driven)
+  (function populateAdminLevDropdown() {
+    const sel = document.getElementById('adminLevType');
+    if (!sel || !FRAKT?.leverans) return;
+    const META_KEYS = new Set(['label', 'description', 'zon', 'selection_rules']);
+    const fragments = [];
+    for (const [key, val] of Object.entries(FRAKT.leverans)) {
+      if (META_KEYS.has(key)) continue;
+      if (!val || typeof val !== 'object' || !val.id) continue;
+      // Läsbar label från JSON, ta bort '(tur & retur)' som är redundant i dropdown
+      const label = (val.label || key).replace(/\s*\(tur\s*&?\s*retur\)\s*/i, '');
+      fragments.push(`<option value="${key}">${label}</option>`);
+    }
+    if (fragments.length) sel.insertAdjacentHTML('beforeend', fragments.join(''));
+  })();
+  // Admin leverans-override: uppdatera pris live vid val
+  document.getElementById('adminLevType')?.addEventListener('change', updateSummary);
+  document.getElementById('adminLevResa')?.addEventListener('change', updateSummary);
+  document.querySelectorAll('.chk-tillagg').forEach(chk => {
+    chk.addEventListener('change', function() {
+      const w = document.getElementById('qty-wrap-'+this.dataset.id);
+      if (w) w.classList.toggle('hidden', !this.checked);
+      updateSummary();
+    });
+  });
+  document.querySelectorAll('.tqty-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const valEl = document.getElementById('qtyval-'+id);
+      if (!valEl) return;
+      let v = Number(valEl.textContent);
+      valEl.textContent = String(btn.classList.contains('tillagg-inc') ? Math.min(20, v+1) : Math.max(1, v-1));
+      updateSummary();
+    });
+  });
+
+  // ── BYGG ORDER-SAMMANFATTNING ─────────────────────────────
+  function buildOrder() {
+    const cart = getCart();
+    const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
+    let extras = 0; const extraLines = [];
+
+    if (document.getElementById('chkLeverans')?.checked) {
+      const lp = calcLev(cart).price; extras += lp;
+      extraLines.push(`Leverans: ${lp.toLocaleString('sv')} kr`);
+    }
+    if (document.getElementById('chkMontering')?.checked) {
+      const mp = calcMon(cart); extras += mp;
+      extraLines.push(`Montering & demontering: ${mp.toLocaleString('sv')} kr`);
+    }
+    document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
+      const pris = Number(chk.dataset.pris);
+      const qty  = chk.dataset.qty === 'true' ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent||1) : 1;
+      const tot  = pris * qty; extras += tot;
+      extraLines.push(`${chk.dataset.label}${qty>1?' × '+qty:''}: ${tot.toLocaleString('sv')} kr`);
+    });
+
+    const vat = Math.round((subtotal + extras + 49) * 0.25);
+    const customer = {
+      name:    document.getElementById('f-name')?.value.trim() || '',
+      company: document.getElementById('f-company')?.value.trim() || '',
+      orgnr:   document.getElementById('f-orgnr')?.value.trim() || '',
+      email:   document.getElementById('f-email')?.value.trim() || '',
+      phone:   document.getElementById('f-phone')?.value.trim() || '',
+      from:         document.getElementById('f-date-from')?.value || '',
+      to:           document.getElementById('f-date-to')?.value || '',
+      delivery_time: document.getElementById('f-time-from')?.value || '13:00',
+      return_time:   document.getElementById('f-time-to')?.value || '11:00',
+      address: document.getElementById('f-address')?.value.trim() || '',
+      notes:   document.getElementById('f-notes')?.value.trim() || '',
+    };
+    // Bygg submitItems för API (produkter + tjänster) — rör INTE cart (localStorage)
+    const submitItems = [...cart];
+    if (document.getElementById('chkLeverans')?.checked) {
+      const lp = calcLev(cart);
+      submitItems.push({ id: 'lev-standard', name: 'Leverans & upphämtning (t&r)', price: lp.price, qty: 1, category: 'Tjänster' });
+    }
+    if (document.getElementById('chkMontering')?.checked) {
+      const mp = calcMon(cart);
+      submitItems.push({ id: 'montering', name: 'Montering & demontering', price: mp, qty: 1, category: 'Tjänster' });
+    }
+    document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
+      const pris = Number(chk.dataset.pris);
+      const qty  = chk.dataset.qty === 'true' ? Number(document.getElementById('qtyval-'+chk.dataset.id)?.textContent||1) : 1;
+      submitItems.push({ id: chk.dataset.id, name: chk.dataset.label, price: pris, qty, category: 'Tillägg' });
+    });
+    submitItems.push({ id: 'fakturaavgift-49', name: 'Bokningsavgift', price: 49, qty: 1, category: 'Tjänster' });
+
+    // cart = originalvarukorgen (enbart produkter, påverkar INTE localStorage)
+    return { cart, submitItems, subtotal, extras, extraLines, vat, total: subtotal + extras + 49 + vat, customer };
+  }
+
+  // ── EMAIL ─────────────────────────────────────────────────
+  async function submitOffert(triggerBtn) {
+    const { cart, submitItems, customer } = buildOrder();
+
+    const origHtml = triggerBtn.innerHTML;
+    triggerBtn.disabled = true;
+    triggerBtn.textContent = 'Skickar…';
+
+    // Lås även den andra knappen
+    const btnEmail = document.getElementById('btnEmail');
+    if (btnEmail) btnEmail.disabled = true;
+
+    try {
+      const resp = await fetch('/.netlify/functions/skicka-offert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer, cart: submitItems, sendCopy: true, cart_id: getCartId(), selfPickup: !document.getElementById('chkLeverans')?.checked }),
+      });
+
+      const result = await resp.json();
+
+      if (resp.ok && result.ok) {
+        // Rensa varukorgen i localStorage innan redirect
+        try { localStorage.removeItem('sk-cart'); } catch(e) {}
+        window.location.href = '/tack/';
+      } else {
+        alert(result.error || 'Något gick fel, försök igen eller ring oss på 072-448 10 00.');
+        triggerBtn.disabled = false;
+        triggerBtn.innerHTML = origHtml;
+        if (btnEmail) btnEmail.disabled = false;
+      }
+    } catch (err) {
+      alert('Nätverksfel — försök igen eller ring 072-448 10 00.');
+      triggerBtn.disabled = false;
+      triggerBtn.innerHTML = origHtml;
+      if (btnEmail) btnEmail.disabled = false;
+    }
+  }
+
+  document.getElementById('btnEmail')?.addEventListener('click', function() { submitOffert(this); });
+
+  // ── PDF / PRINT ───────────────────────────────────────────
+  document.getElementById('btnSave')?.addEventListener('click', () => {
+    const { cart, subtotal, extras, extraLines, vat, total, customer } = buildOrder();
+    const rows = cart.map(i=>`<tr><td>${i.name}</td><td>${i.category}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">${i.price.toLocaleString('sv')} kr</td><td style="text-align:right">${(i.price*i.qty).toLocaleString('sv')} kr</td></tr>`).join('');
+    const extRows = extraLines.map(l=>`<tr><td colspan="4" style="color:#555">${l}</td><td></td></tr>`).join('');
+    const custRows = [
+      ['Namn', customer.name],
+      customer.company ? ['Företag', customer.company] : null,
+      ['E-post', customer.email],
+      ['Telefon', customer.phone],
+      customer.from ? ['Datum från', customer.from] : null,
+      customer.to   ? ['Datum till', customer.to]   : null,
+      customer.address ? ['Leveransadress', customer.address] : null,
+      customer.notes   ? ['Övrig info', customer.notes] : null,
+    ].filter(Boolean).map(([k,v])=>`<tr><td style="color:#666;width:140px">${k}</td><td>${v}</td></tr>`).join('');
+
+    const html=`<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"><title>Varukorg – Scenkonsult</title>
+<style>body{font-family:Arial,sans-serif;padding:2rem;color:#111;max-width:750px;margin:0 auto}
+h1{color:#1e1850;margin-bottom:.2rem}p.sub{color:#666;font-size:.83rem;margin-bottom:1.5rem}
+h2{color:#1e1850;font-size:1rem;margin-top:1.5rem;margin-bottom:.5rem;border-bottom:1px solid #eee;padding-bottom:.3rem}
+table{width:100%;border-collapse:collapse;margin-bottom:1rem}
+th{background:#1e1850;color:white;padding:.5rem .8rem;text-align:left;font-size:.78rem}
+td{padding:.5rem .8rem;border-bottom:1px solid #eee;font-size:.88rem}
+.total{font-weight:700;font-size:1.05rem;color:#1e1850;text-align:right}
+.footer{font-size:.75rem;color:#999;border-top:1px solid #eee;padding-top:.8rem;margin-top:1.5rem}</style></head>
+<body>
+<h1>Scenkonsult – Offertunderlag</h1>
+<p class="sub">Genererat ${new Date().toLocaleDateString('sv')} | ${atob('aW5mb0BzY2Vua29uc3VsdC5zZQ==')} | ${atob('MDcyNDQ4MTAwMA==').replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1-$2 $3 $4')}</p>
+<h2>Produkter</h2>
+<table><thead><tr><th>Produkt</th><th>Kategori</th><th>Antal</th><th>Styckpris</th><th>Totalt</th></tr></thead>
+<tbody>${rows}${extRows}</tbody></table>
+<p>Produkter exkl. moms: <strong>${subtotal.toLocaleString('sv')} kr</strong></p>
+${extras?`<p>Tillägg: ${extras.toLocaleString('sv')} kr</p>`:''}
+<p>Moms 25%: ${vat.toLocaleString('sv')} kr</p>
+<p class="total">Totalt inkl. moms: ${total.toLocaleString('sv')} kr</p>
+${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>` : ''}
+<p class="footer">Alla priser avser hyra per dygn (22 h). Kontakta oss för slutlig bekräftelse och bokning.<br><strong>Obs: Alla frakt- och tjänstepriser är estimat och bekräftas som en del av orderprocessen.</strong></p>
+</body></html>`;
+    const w=window.open('','_blank');
+    if(w){w.document.write(html);w.document.close();w.focus();w.print();}
+  });
+
+  // ── TÖMT ─────────────────────────────────────────────────
+  document.getElementById('btnClear')?.addEventListener('click', () => {
+    if (confirm('Töm hela varukorgen?')) {
+      localStorage.removeItem('sk-cart');
+      updateNavBadge(); renderCart();
+    }
+  });
+
+  // ── URL-PARAM CART LOADING (admin-skickad offert) ────────
+  async function loadCartFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const cartParam  = params.get('cart');
+    const tokenParam = params.get('token');
+    if (!cartParam || !tokenParam) return;
+
+    // Kontrollera att det inte redan är rätt cart i localStorage
+    const existing = _getCartData();
+    if (existing?.id === cartParam && (existing?.items?.length || 0) > 0) return;
+
+    try {
+      const res  = await fetch(`/.netlify/functions/cart-get?token=${encodeURIComponent(tokenParam)}`);
+      const data = await res.json();
+      if (!res.ok || !data.cart) return;
+
+      const c = data.cart;
+      // Filtrera bort _note-items (anmärkningar) och sätt format som varukorgssidan förstår
+      const items = (c.items || [])
+        .filter(i => !i._note && i.name)
+        .map(i => ({
+          id:       i.id || ('adm-' + Math.random().toString(36).slice(2,8)),
+          name:     i.name,
+          price:    i.price || 0,
+          qty:      i.qty || i.quantity || 1,
+          category: i.category || '',
+          priceNote: '',
+        }));
+
+      if (items.length > 0) {
+        localStorage.setItem('sk-cart', JSON.stringify({
+          id:      cartParam,
+          expires: Date.now() + SK_TTL,
+          items
+        }));
+        renderCart();
+        updateNavBadge();
+        updateSummary();
+      }
+    } catch (e) { /* tyst fel — fortsätt med tom varukorg */ }
+  }
+
+
+  // ── ADMIN: Sök och lägg till produkt ────────────────────────────────────
+  (function() {
+    const searchInput = document.getElementById('adminSearchInput');
+    const qtyInput    = document.getElementById('adminQtyInput');
+    const resultsEl   = document.getElementById('adminSearchResults');
+    if (!searchInput || !resultsEl) return;
+
+    // Bygg platt produktlista från QUOTE_CATALOG (injiceras i Layout)
+    function buildAdminCatalog() {
+      const cat = typeof window.__ADMIN_QUOTE_CATALOG__ !== 'undefined'
+        ? window.__ADMIN_QUOTE_CATALOG__
+        : (typeof window._SK_QUOTE_CATALOG !== 'undefined' ? window._SK_QUOTE_CATALOG : null);
+      if (!cat) return [];
+      const list = [];
+      for (const [catName, section] of Object.entries(cat)) {
+        const prods = section.products || [];
+        const subs  = section.sub || {};
+        [...prods, ...Object.values(subs).flat()].forEach(p => {
+          if (p && p.id && p.name) list.push({ ...p, catName });
+        });
+      }
+      return list;
+    }
+
+    let catalog = [];
+    // Fördröjd initiering tills QUOTE_CATALOG finns
+    function ensureCatalog() {
+      if (!catalog.length) catalog = buildAdminCatalog();
+      return catalog;
+    }
+
+    function renderResults(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) { resultsEl.style.display = 'none'; return; }
+      const list = ensureCatalog();
+      const hits = list.filter(p =>
+        p.id.toLowerCase().includes(q) ||
+        p.name.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').includes(q) ||
+        p.name.toLowerCase().includes(q)
+      ).slice(0, 12);
+
+      if (!hits.length) {
+        resultsEl.innerHTML = '<div style="padding:0.6rem 0.75rem;font-size:0.82rem;color:rgba(255,255,255,0.60)">Inga träffar</div>';
+        resultsEl.style.display = 'block';
+        return;
+      }
+      resultsEl.innerHTML = hits.map(p => `
+        <div data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.price||0}" data-image="${p.image||''}"
+          style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.75rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.82rem;"
+          onmouseover="this.style.background='rgba(196,181,244,0.08)'"
+          onmouseout="this.style.background=''"
+        >
+          <div>
+            <span style="color:rgba(255,255,255,0.60);font-size:0.72rem;font-family:monospace;margin-right:6px">${p.id}</span>
+            <span style="color:#fff">${p.name}</span>
+          </div>
+          <span style="color:#c4b5f4;white-space:nowrap;margin-left:8px">${(p.price||0).toLocaleString('sv-SE')} kr</span>
+        </div>`).join('');
+      resultsEl.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', () => renderResults(searchInput.value));
+
+    resultsEl.addEventListener('click', (e) => {
+      const row = e.target.closest('[data-id]');
+      if (!row) return;
+      const qty = parseInt(qtyInput?.value || '1', 10) || 1;
+      const item = {
+        id:       row.dataset.id,
+        artno:    row.dataset.id,
+        name:     row.dataset.name,
+        price:    parseInt(row.dataset.price, 10) || 0,
+        category: 'Admin',
+        image:    row.dataset.image || '',
+        qty,
+      };
+      skCart.add(item);
+      renderCart();
+      updateSummary();
+      updateNavBadge();
+      // Stäng sökning och rensa
+      resultsEl.style.display = 'none';
+      searchInput.value = '';
+      qtyInput.value = '1';
+    });
+
+    // Stäng vid klick utanför
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#admin-add-product')) {
+        resultsEl.style.display = 'none';
+      }
+    });
+  })();
+  // Auto-select av leverans + montering baserat på cart-items.
+  // STRIKTA regler — endast EXPLICITA "transport krävs"-flaggor styr auto-bock.
+  //
+  // SEMANTISK SKILLNAD:
+  // - bulky: EGENSKAP (för fraktregeln "bulkyCount >= 1 → bil med släp" som
+  //   används NÄR kunden valt leverans). Triggar INTE auto-bock — kunden kan
+  //   hämta själv om hen vill.
+  // - forceLeverans / requiresBakgavel: KRAV (transport måste ske). Triggar auto-bock.
+  // - requiresAssembly: KRAV (montering måste ske). Triggar auto-bock.
+  //
+  // För scen: paket/konfigurator sätter requiresAssembly + forceLeverans bara
+  // när transport='krävs' (Large+, XL, tak-paket eller konfiguration ≥16 m²).
+  // Mindre paket (Small–Medium++) har bara bulky → kunden måste aktivt välja
+  // leverans + montering i varukorgen om hen vill ha det.
+  function autoSelectServices() {
+    const cart = getCart();
+    if (!cart.length) return;
+
+    // Leverans — bara explicita transport-krav triggar auto-bock
+    const needsDelivery = cart.some(i =>
+      (typeof i.forceLeverans === 'string' && i.forceLeverans) ||
+      i.requiresBakgavel === true
+    );
+    const chkLev = document.getElementById('chkLeverans');
+    if (needsDelivery && chkLev && !chkLev.checked) {
+      chkLev.checked = true;
+      chkLev.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // Montering — utlöses bara av explicita flaggor
+    const needsAssembly = cart.some(i =>
+      i.assemblyMinutesTotal ||
+      i.monteringFast ||
+      i.requiresAssembly === true
+    );
+    const chkMon = document.getElementById('chkMontering');
+    if (needsAssembly && chkMon && !chkMon.checked) {
+      chkMon.checked = true;
+      chkMon.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  // ── INIT ─────────────────────────────────────────────────
+  function refreshCart() {
+    renderCart();
+    updateNavBadge();
+    autoSelectServices();
+    updateSummary();
+    checkCanProceed();
+  }
+  window.__skRefreshCart = refreshCart;
+
+  // Rita om varukorgen när något läggs till (t.ex. via tillbehörs-popupen)
+  window.addEventListener('sk-cart-changed', () => refreshCart());
+
+  loadCartFromUrl().then(() => {
+    refreshCart();
+  });
+</script>
+
+<!-- TILLBEHÖRS-POPUP: hämtar tillbehörssidan och visar den i en modal (desktop). -->
+<!-- På liten skärm låter vi länken navigera till sidan istället. -->
+<script>
+  (function () {
+    const MOBILE_BP = 600;
+    const link = document.getElementById('openTillbehorPopup');
+    const popup = document.getElementById('tillbehorPopup');
+    const body = document.getElementById('tbPopupBody');
+    if (!link || !popup || !body) return;
+
+    let loaded = false;
+
+    function presentPrefixes() {
+      try {
+        const items = (window.skCart && window.skCart.get && window.skCart.get()) || [];
+        const set = new Set();
+        for (const it of items) {
+          if (!it) continue;
+          const code = String(it.artno || it.id || '').toUpperCase();
+          const m = code.match(/^(SK-[A-Z]+)/);
+          if (m) set.add(m[1]);
+          const c = String(it.category || '').toLowerCase();
+          if (c.includes('scen')) set.add('SK-SCN');
+          if (c.includes('ljud') || c.includes('mikrofon') || c.includes('pa')) set.add('SK-LJD');
+          if (c.includes('bild') || c.includes('projektor') || c.includes('skärm') || c.includes('led')) set.add('SK-BLD');
+          if (c.includes('ljus') || c.includes('dmx') || c.includes('rök')) set.add('SK-LJS');
+          if (c.includes('dj')) set.add('SK-DJ');
+        }
+        return set;
+      } catch { return new Set(); }
+    }
+
+    function applyFilter(forceAll) {
+      const groups = Array.from(body.querySelectorAll('.tb-grupp'));
+      const notice = body.querySelector('.tb-popup-notice');
+      if (!groups.length) return;
+      const present = forceAll ? new Set() : presentPrefixes();
+      const meaningful = new Set([...present].filter(p => p !== 'SK-EL'));
+      const shouldFilter = !forceAll && meaningful.size > 0;
+      groups.forEach(sec => {
+        const always = sec.dataset.always === 'true';
+        const prefix = sec.dataset.prefix || '';
+        sec.style.display = (!shouldFilter || always || present.has(prefix)) ? '' : 'none';
+      });
+      if (notice) notice.style.display = shouldFilter ? '' : 'none';
+    }
+
+    async function ensureLoaded() {
+      if (loaded) { applyFilter(false); return; }
+      try {
+        const res = await fetch('/vara-tjanster/tillbehor/');
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const sections = doc.querySelectorAll('.tillbehor-grupp');
+        if (!sections.length) { window.location.href = '/vara-tjanster/tillbehor/'; return; }
+
+        let out = '<div class="tb-popup-notice" style="display:none">🛒 Visar tillbehör som passar din varukorg.<button type="button" id="tbShowAll">Visa alla tillbehör</button></div>';
+        sections.forEach(sec => {
+          const prefix = sec.getAttribute('data-prefix') || '';
+          const always = sec.getAttribute('data-always') || '';
+          const title = sec.querySelector('.sh-h2')?.textContent || '';
+          const intro = sec.querySelector('.sh-lead, .sh-h2 ~ p')?.textContent || '';
+          const grid = sec.querySelector('.grid');
+          out += `<div class="tb-grupp" data-prefix="${prefix}"${always ? ' data-always="true"' : ''}>`
+            + `<div class="tb-grupp-head"><h3 class="tb-grupp-title">${title}</h3></div>`
+            + (intro ? `<p class="tb-grupp-intro">${intro}</p>` : '')
+            + `<div class="tb-grid">${grid ? grid.innerHTML : ''}</div></div>`;
+        });
+        body.innerHTML = out;
+        loaded = true;
+        const showAll = document.getElementById('tbShowAll');
+        if (showAll) showAll.addEventListener('click', () => applyFilter(true));
+        applyFilter(false);
+      } catch {
+        window.location.href = '/vara-tjanster/tillbehor/';
+      }
+    }
+
+    function open() {
+      popup.classList.add('open');
+      popup.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      ensureLoaded();
+    }
+    function close() {
+      popup.classList.remove('open');
+      popup.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    link.addEventListener('click', function (e) {
+      // På mobil: låt länken navigera till sidan (full sida funkar bäst där)
+      if (window.innerWidth <= MOBILE_BP) return;
+      e.preventDefault();
+      open();
+    });
+    popup.querySelectorAll('[data-tb-close]').forEach(el => el.addEventListener('click', close));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && popup.classList.contains('open')) close(); });
+  })();
+</script>
