@@ -11,7 +11,7 @@ const VILLKOR_DATE = '2026-06-01';
 
 const VILLKOR_B2C = [
   ['1. Hyresperiod',
-   'Normal hyresperiod är ett hyresdygn — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Vid längre hyra debiteras utrustning per hyresdygn med flerdygnsrabatt: 50 % rabatt på dag 2 och 3, därefter 75 %. Leverans, montering, rigg och personal är engångsposter och påverkas inte av hyrestidens längd. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
+   'Normal hyresperiod är ett hyresdygn — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Vid längre hyra debiteras utrustning per hyresdygn med flerdygnsrabatt på tillkommande dygn; rabattens storlek framgår av offerten. Leverans, montering, rigg och personal är engångsposter och påverkas inte av hyrestidens längd. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
   ['2. Bokning och betalning',
    'Privatpersoner betalar alltid innan eller i samband med att utrustningen lämnas ut — via Swish, förskottsfaktura eller kortbetalning vid hämtning. Vid kortbetalning tar vi de flesta betalkort på marknaden (Visa, Mastercard, Maestro, American Express) samt Apple Pay och Google Pay. Bokningar inom 72 timmar kräver omedelbar betalning. Bokningsavgift om 49 kr (exkl. moms) tillkommer. Vid utebliven betalning i rätt tid debiteras dröjsmålsränta enligt räntelagen (referensränta + 8 %) samt påminnelseavgift om 60 kr per påminnelse och lagstadgad inkassoavgift om 180 kr enligt lag (1981:739) om ersättning för inkassokostnader m.m.'],
   ['3. Avbokning och ändring',
@@ -38,7 +38,7 @@ const VILLKOR_B2C = [
 
 const VILLKOR_B2B = [
   ['1. Hyresperiod',
-   'Normal hyresperiod är ett hyresdygn — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Vid längre hyra debiteras utrustning per hyresdygn med flerdygnsrabatt: 50 % rabatt på dag 2 och 3, därefter 75 %. Leverans, montering, rigg och personal är engångsposter och påverkas inte av hyrestidens längd. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
+   'Normal hyresperiod är ett hyresdygn — hämtning kl 13:00 och återlämning kl 11:00 påföljande dag. Vid längre hyra debiteras utrustning per hyresdygn med flerdygnsrabatt på tillkommande dygn; rabattens storlek framgår av offerten. Leverans, montering, rigg och personal är engångsposter och påverkas inte av hyrestidens längd. Utrustning som inte återlämnas i tid debiteras extra hyresdag per påbörjat dygn.'],
   ['2. Bokning och betalning',
    'Bokning är bindande och bekräftas skriftligen. Betalning sker normalt mot faktura (vanligen 5–30 dagar). Företag utan kreditmöjlighet kan i stället betala vid hämtning med kort (de flesta betalkort accepteras, samt Apple Pay och Google Pay) eller via Swish. Bokningar inom 72 timmar kräver omedelbar betalning. Bokningsavgift om 49 kr (exkl. moms) tillkommer per faktura. Dröjsmålsränta debiteras vid sen betalning (referensränta + 8 %). Vid utebliven betalning debiteras även påminnelseavgift om 60 kr per påminnelse samt lagstadgad inkassoavgift om 180 kr enligt lag (1981:739) om ersättning för inkassokostnader m.m.'],
   ['3. Beställarens ansvar och behörighet',

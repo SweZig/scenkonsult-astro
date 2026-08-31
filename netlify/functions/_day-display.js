@@ -86,8 +86,13 @@ function fmtN(n) {
 
 /**
  * Förklaringsraden under produktnamnet.
- * "3 hyresdygn · 1 499 kr/dygn · flerdygnsrabatt −33 %"
+ * "3 hyresdygn · 1 499 kr/dygn · flerdygnsrabatt"
  * Tom sträng för engångsposter och endagsrader.
+ *
+ * INGEN PROCENTSATS. Rabattens storlek är intern prispolicy — kunden ska se
+ * VAD hen sparar (överstruket ordinariepris på raden, rabattbeloppet i
+ * totalen), inte HUR satsen är uppbyggd. En publicerad procentsats blir en
+ * förhandlingsposition och låter en kund räkna ut trappan ur två offerter.
  */
 function dayNote(item) {
   if (!isDayPriced(item)) return '';
@@ -97,9 +102,7 @@ function dayNote(item) {
   const full = lineTotalUndiscounted(item);
   const nu = lineTotal(item);
   const parts = [`${d} hyresdygn`, `${fmtN(unit)} kr/dygn`];
-  // Vanligt bindestreck, INTE U+2212 MINUS SIGN: pdfkit ritar Helvetica med
-  // WinAnsi-encoding, där U+2212 saknas och renderas som ett citattecken.
-  if (full > nu) parts.push(`flerdygnsrabatt -${Math.round((1 - nu / full) * 100)} %`);
+  if (full > nu) parts.push('flerdygnsrabatt');
   return parts.join(' · ');
 }
 

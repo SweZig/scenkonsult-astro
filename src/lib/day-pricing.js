@@ -34,8 +34,8 @@ export const DEFAULT_DAY_CONFIG = {
   satser: DAY_RATES,
   standard: [0, 50, 50, 75],
   fortsattning: 75,
-  maxDygn: 30,
-  kundtext: 'Flerdygnsrabatt: 50 % på dag 2–3, 75 % från dag 4.',
+  maxDygn: 120,
+  kundtext: 'Vid hyra över flera dygn lämnar vi flerdygnsrabatt — begär offert så räknar vi fram ert pris.',
 };
 
 /** Artikel-ID:n som aldrig dygnsprissätts — engångstjänster och personal. */
