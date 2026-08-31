@@ -296,6 +296,27 @@
       align-items: center;
       padding: 10px 14px;
     }
+    /* Transportrader — två priskolumner i stället för beskrivning */
+    .prod-row.trp {
+      grid-template-columns: 28px 130px 1fr 108px 108px 1.1fr;
+    }
+    .trp-hint {
+      background: var(--blue-bg);
+      border: 1px solid rgba(96,165,250,0.28);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .trp-hint strong { color: var(--text); font-weight: 600; }
+    .trp-key {
+      font-size: 10px;
+      color: var(--text-faint);
+      margin-top: 3px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
     .prod-row.changed {
       background: rgba(251,191,36,0.06);
       border-left: 3px solid var(--amber);
@@ -666,6 +687,17 @@
       .prod-row .name-cell   { grid-area: name; }
       .prod-row .price-cell  { grid-area: price; }
       .prod-row .desc-cell   { grid-area: desc; }
+      /* Transport har två priskolumner och ingen åtgärdskolumn */
+      .prod-row.trp {
+        grid-template-columns: 28px 1fr 1fr;
+        grid-template-areas:
+          "status name  name"
+          "status artno artno"
+          "status price price2"
+          "status desc  desc";
+      }
+      .prod-row.trp .trp-p1 { grid-area: price; }
+      .prod-row.trp .trp-p2 { grid-area: price2; }
       .form-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -781,6 +813,58 @@
       <div class="modal-foot">
         <button id="new-modal-cancel" class="btn-secondary">Avbryt</button>
         <button id="new-modal-save" class="btn-primary">Skapa produkt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ny transport-modal -->
+  <div id="trp-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="trp-modal-title">+ Ny transport</h2>
+        <button class="close" id="trp-modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+          Skapar ett nytt fordon i <code>tjanster.json → leverans</code>. Det dyker upp som valbart
+          leveransalternativ i varukorgen, scenkonfiguratorn och orderpanelen. Enkelresan skapas
+          automatiskt som en egen post med artikelnummer <code>…-E</code>.
+          Obligatoriska fält är markerade med <span style="color:var(--red)">*</span>.
+        </div>
+        <div class="form-grid">
+          <div>
+            <label>Nyckel <span class="req">*</span></label>
+            <input type="text" id="trp-key" placeholder="lastbil_xl" />
+            <div class="hint">a-z, siffror, understreck. Används i selection_rules.</div>
+          </div>
+          <div>
+            <label>Artno <span class="req">*</span></label>
+            <input type="text" id="trp-artno" placeholder="SK-LEV-0010" />
+            <div class="hint">Enkelresan får samma nummer med -E på slutet</div>
+          </div>
+          <div class="full">
+            <label>Fordonsnamn <span class="req">*</span></label>
+            <input type="text" id="trp-label" placeholder="Lätt lastbil med släp (tur &amp; retur)" />
+          </div>
+          <div>
+            <label>Tur &amp; retur (kr) <span class="req">*</span></label>
+            <input type="number" id="trp-pris" min="0" step="1" placeholder="2998" />
+          </div>
+          <div>
+            <label>Enkelresa (kr) <span class="req">*</span></label>
+            <input type="number" id="trp-enkelresa" min="0" step="1" placeholder="1499" />
+          </div>
+          <div class="full">
+            <label>Not</label>
+            <input type="text" id="trp-note" placeholder="1499 kr × 2 resor" />
+            <div class="hint">Visas som förklaring i varukorg och orderpanel</div>
+          </div>
+        </div>
+        <div id="trp-error" class="vol-error" style="display:none;margin-top:12px"></div>
+      </div>
+      <div class="modal-foot">
+        <button id="trp-modal-cancel" class="btn-secondary">Avbryt</button>
+        <button id="trp-modal-save" class="btn-primary">Skapa transport</button>
       </div>
     </div>
   </div>
@@ -1036,8 +1120,35 @@
 
     // ─── Bygg sections från JSON ───────────────────────────
     // Hittar alla { products: [...] }-block och alla rotnivå-arrayer
+    // Nycklar i leverans-objektet som är rubriker/regler, inte fordon.
+    // Speglar META_KEYS i varukorgen och i admin-products-update.js.
+    const TRANSPORT_META_KEYS = new Set(['label', 'description', 'zon', 'selection_rules']);
+
+    function buildTransportSection(data) {
+      const lev = data.leverans;
+      if (!lev || typeof lev !== 'object' || Array.isArray(lev)) return null;
+      const rows = [];
+      for (const [key, val] of Object.entries(lev)) {
+        if (TRANSPORT_META_KEYS.has(key)) continue;
+        if (!val || typeof val !== 'object' || Array.isArray(val)) continue;
+        rows.push({ levKey: key, obj: val });
+      }
+      if (rows.length === 0) return null;
+      return {
+        key:      '__transport',
+        label:    'Transport',
+        kind:     'transport',
+        basePath: 'leverans',
+        products: rows
+      };
+    }
+
     function buildSections(fil, data) {
       const sections = [];
+      if (fil === 'tjanster') {
+        const trp = buildTransportSection(data);
+        if (trp) sections.push(trp);
+      }
       for (const [key, val] of Object.entries(data)) {
         // Mönster A: objekt som innehåller en eller flera produkt-arrayer
         // (t.ex. { products: [...] } och/eller { lineArray: [...] }).
@@ -1130,6 +1241,12 @@
         $('table-wrap').innerHTML = '<div class="empty">Sektion saknas</div>';
         return;
       }
+      const isTrp = section.kind === 'transport';
+      $('new-product-btn').textContent = isTrp ? '+ Ny transport' : '+ Ny produkt';
+      $('new-product-btn').title = isTrp
+        ? 'Skapa nytt leveransfordon i tjanster.json'
+        : 'Skapa ny produkt i aktuell sektion';
+      if (isTrp) { renderTransportTable(section); return; }
       const filterText = $('filter').value.trim().toLowerCase();
 
       let html = '<div class="prod-table">';
@@ -1221,6 +1338,170 @@
       updateToolbar();
     }
 
+    // ─── Transporttabell (tjanster.json → leverans) ───────
+    // Nycklade objekt i stället för array: varje rad har tur-och-retur-pris
+    // och enkelresepris. Enkelresepriset ligger dubbelt i filen (på raden och
+    // i den nästlade enkel-posten) — vi håller ihop dem vid sparning.
+    const TRP_FIELDS = ['label', 'pris', 'enkelresa', 'note'];
+
+    function trpValue(row, field) {
+      const path = `leverans.${row.levKey}`;
+      const pend = pending.get(path);
+      if (pend && field in pend) return pend[field];
+      if (field === 'enkelresa') {
+        return row.obj.enkelresa ?? row.obj.enkel?.pris ?? 0;
+      }
+      if (field === 'pris') return row.obj.pris ?? 0;
+      return row.obj[field] ?? '';
+    }
+
+    function trpOriginal(row, field) {
+      if (field === 'enkelresa') return row.obj.enkelresa ?? row.obj.enkel?.pris ?? 0;
+      if (field === 'pris') return row.obj.pris ?? 0;
+      return row.obj[field] ?? '';
+    }
+
+    function validateTrpField(field, value) {
+      if (field === 'label') {
+        if (typeof value !== 'string' || value.trim().length === 0) return 'Namn krävs';
+        if (value.length > 120) return 'Max 120 tecken';
+      }
+      if (field === 'pris' || field === 'enkelresa') {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return 'Ogiltigt tal';
+        if (n < 0) return 'Priset kan inte vara negativt';
+        if (!Number.isInteger(n)) return 'Heltal (kr)';
+        if (n > 1_000_000) return 'Pris ologiskt högt';
+      }
+      if (field === 'note') {
+        if (value && value.length > 200) return 'Max 200 tecken';
+      }
+      return null;
+    }
+
+    function renderTransportTable(section) {
+      const filterText = $('filter').value.trim().toLowerCase();
+
+      let html = `<div class="trp-hint">
+        <strong>Transporttjänster.</strong> Fordonen hämtas av varukorgen, scenkonfiguratorn och
+        orderpanelen direkt ur <code>tjanster.json → leverans</code>. Ändrar du ett pris slår det igenom
+        på alla tre. Nya fordon läggs till med <strong>+ Ny transport</strong> och dyker upp i
+        leveransvalet automatiskt — regeln för vilket fordon som föreslås ligger kvar i
+        <code>selection_rules</code> och ändras i filen.
+      </div>`;
+
+      html += '<div class="prod-table">';
+      html += `<div class="prod-row trp header">
+        <div></div>
+        <div>Artno</div>
+        <div>Fordon</div>
+        <div>Tur &amp; retur</div>
+        <div>Enkelresa</div>
+        <div>Not</div>
+      </div>`;
+
+      let visible = 0;
+      section.products.forEach(row => {
+        const path = `leverans.${row.levKey}`;
+        const pend = pending.get(path);
+
+        if (filterText) {
+          const blob = ((row.obj.artno || '') + ' ' + (row.obj.label || '') + ' ' + row.levKey).toLowerCase();
+          if (!blob.includes(filterText)) return;
+        }
+        visible++;
+
+        const isChanged = !!pend && Object.keys(pend).some(k => k !== 'errors' && k !== '__kind');
+        const hasError  = !!(pend && pend.errors && Object.keys(pend.errors).length);
+        let rowClass = 'prod-row trp';
+        if (hasError) rowClass += ' error';
+        else if (isChanged) rowClass += ' changed';
+        const statusColor = hasError ? 'red' : (isChanged ? 'amber' : 'green');
+
+        const fe = (f) => (hasError && pend.errors[f])
+          ? `<div class="field-err">${escapeHtml(pend.errors[f])}</div>` : '';
+
+        html += `<div class="${rowClass}" data-path="${escapeHtml(path)}" data-trp="1">
+          <div class="row-status"><div class="dot ${statusColor}" title="${statusColor === 'green' ? 'Synkad' : statusColor === 'amber' ? 'Osparade ändringar' : 'Valideringsfel'}"></div></div>
+          <div class="artno artno-cell">
+            ${escapeHtml(row.obj.artno || '—')}
+            <div class="trp-key">${escapeHtml(row.levKey)}</div>
+          </div>
+          <div class="name-cell">
+            <input type="text" data-field="label" value="${escapeHtml(trpValue(row, 'label'))}" maxlength="120" />
+            ${fe('label')}
+          </div>
+          <div class="price-cell trp-p1">
+            <div class="price-col-wrap">
+              <input type="number" data-field="pris" value="${trpValue(row, 'pris')}" min="0" step="1" />
+              <span class="suffix">kr</span>
+            </div>
+            ${fe('pris')}
+          </div>
+          <div class="price-cell trp-p2">
+            <div class="price-col-wrap">
+              <input type="number" data-field="enkelresa" value="${trpValue(row, 'enkelresa')}" min="0" step="1" />
+              <span class="suffix">kr</span>
+            </div>
+            ${fe('enkelresa')}
+          </div>
+          <div class="desc-cell">
+            <textarea data-field="note" maxlength="200" rows="2">${escapeHtml(trpValue(row, 'note'))}</textarea>
+            ${fe('note')}
+          </div>
+        </div>`;
+      });
+
+      if (visible === 0) html += '<div class="empty">Inga transporter matchar filtret.</div>';
+      html += '</div>';
+      $('table-wrap').innerHTML = html;
+
+      $('table-wrap').querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('input', onTransportFieldChange);
+      });
+      updateToolbar();
+    }
+
+    function onTransportFieldChange(e) {
+      const rowEl = e.target.closest('.prod-row');
+      const path  = rowEl.dataset.path;
+      const field = e.target.dataset.field;
+      let value   = e.target.value;
+      if (field === 'pris' || field === 'enkelresa') {
+        const num = Number(value);
+        value = Number.isFinite(num) && value !== '' ? num : value;
+      }
+
+      const section = fileData.sections.find(s => s.key === activeSection);
+      const row = section.products.find(r => `leverans.${r.levKey}` === path);
+      if (!row) return;
+      const original = trpOriginal(row, field);
+
+      const pend = pending.get(path) || { __kind: 'transport' };
+      const sameAsOriginal = (field === 'pris' || field === 'enkelresa')
+        ? Number(value) === Number(original)
+        : value === original;
+
+      if (sameAsOriginal) {
+        delete pend[field];
+        if (pend.errors) delete pend.errors[field];
+      } else {
+        pend[field] = value;
+        const err = validateTrpField(field, value);
+        pend.errors = pend.errors || {};
+        if (err) pend.errors[field] = err;
+        else delete pend.errors[field];
+      }
+
+      if (pend.errors && Object.keys(pend.errors).length === 0) delete pend.errors;
+      const hasOtherKeys = Object.keys(pend).filter(k => k !== 'errors' && k !== '__kind').length > 0;
+      if (!hasOtherKeys) pending.delete(path);
+      else pending.set(path, pend);
+
+      updateRowVisual(rowEl, pend);
+      updateToolbar();
+    }
+
     // ─── Field-edit handlers ──────────────────────────────
     function onFieldChange(e) {
       const row = e.target.closest('.prod-row');
@@ -1273,7 +1554,7 @@
     function updateRowVisual(row, pend) {
       const dot = row.querySelector('.row-status .dot');
       const hasError = !!(pend && pend.errors && Object.keys(pend.errors).length);
-      const isChanged = !!pend && Object.keys(pend).some(k => k !== 'errors');
+      const isChanged = !!pend && Object.keys(pend).some(k => k !== 'errors' && k !== '__kind');
 
       row.classList.remove('changed', 'error');
       if (hasError) row.classList.add('error');
@@ -1523,7 +1804,11 @@
     // ─── Ny produkt-modal ─────────────────────────────────
     let newModalVolTiers = [];
 
-    $('new-product-btn').addEventListener('click', openNewModal);
+    $('new-product-btn').addEventListener('click', () => {
+      const section = fileData && fileData.sections.find(s => s.key === activeSection);
+      if (section && section.kind === 'transport') openTrpModal();
+      else openNewModal();
+    });
 
     function openNewModal() {
       if (!fileData) return;
@@ -1703,6 +1988,95 @@
       updateToolbar();
     });
 
+    // ─── Ny transport-modal ───────────────────────────────
+    function openTrpModal() {
+      if (!fileData) return;
+      ['trp-key', 'trp-artno', 'trp-label', 'trp-pris', 'trp-enkelresa', 'trp-note']
+        .forEach(id => { $(id).value = ''; });
+      $('trp-error').style.display = 'none';
+      $('trp-modal').classList.add('open');
+      setTimeout(() => $('trp-key').focus(), 50);
+    }
+
+    function closeTrpModal() { $('trp-modal').classList.remove('open'); }
+
+    $('trp-modal-close').addEventListener('click', closeTrpModal);
+    $('trp-modal-cancel').addEventListener('click', closeTrpModal);
+    $('trp-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeTrpModal();
+    });
+
+    $('trp-modal-save').addEventListener('click', () => {
+      const errs = [];
+      const key       = $('trp-key').value.trim().toLowerCase();
+      const artno     = $('trp-artno').value.trim().toUpperCase();
+      const label     = $('trp-label').value.trim();
+      const pris      = parseInt($('trp-pris').value, 10);
+      const enkelresa = parseInt($('trp-enkelresa').value, 10);
+      const note      = $('trp-note').value.trim();
+
+      if (!key) errs.push('Nyckel krävs');
+      else if (!/^[a-z][a-z0-9_]{1,40}$/.test(key)) errs.push('Nyckel: a-z, siffror, understreck — börja med bokstav');
+      else if (TRANSPORT_META_KEYS.has(key)) errs.push(`"${key}" är reserverad`);
+      else if (fileData.data.leverans && key in fileData.data.leverans) errs.push(`Nyckeln "${key}" finns redan`);
+
+      if (!artno) errs.push('Artno krävs');
+      else if (!/^[A-Z0-9-]+$/.test(artno)) errs.push('Artno: bara versaler/siffror/bindestreck');
+
+      if (!label) errs.push('Fordonsnamn krävs');
+      else if (label.length > 120) errs.push('Fordonsnamn max 120 tecken');
+
+      if (!Number.isInteger(pris) || pris < 0) errs.push('Tur & retur måste vara heltal ≥ 0');
+      if (!Number.isInteger(enkelresa) || enkelresa < 0) errs.push('Enkelresa måste vara heltal ≥ 0');
+      if (note.length > 200) errs.push('Not max 200 tecken');
+
+      const allArtnos = collectArtnos(fileData.data);
+      for (const a of pendingAdditions) {
+        if (a.product.artno) allArtnos.add(a.product.artno);
+        if (a.product.enkel && a.product.enkel.artno) allArtnos.add(a.product.enkel.artno);
+      }
+      const enkelArtno = `${artno}-E`;
+      if (allArtnos.has(artno)) errs.push(`Artno "${artno}" finns redan`);
+      if (allArtnos.has(enkelArtno)) errs.push(`Artno "${enkelArtno}" finns redan`);
+
+      if (errs.length) {
+        $('trp-error').textContent = errs.join('; ');
+        $('trp-error').style.display = 'block';
+        return;
+      }
+
+      const id = `lev-${key.replace(/_/g, '-')}`;
+      const product = {
+        id,
+        label,
+        enkelresa,
+        pris,
+        type:  'service',
+        artno,
+        enkel: {
+          id:    `${id}-e`,
+          label: `${label.replace(/\s*\((tur\s*(&amp;|&|och)\s*retur|tur-och-retur)\)\s*$/i, '')} (enkelresa)`,
+          pris:  enkelresa,
+          note:  'Enkel resa — kund hämtar eller lämnar själv',
+          type:  'service',
+          artno: enkelArtno
+        }
+      };
+      if (note) product.note = note;
+
+      pendingAdditions.push({ kind: 'transport', sectionPath: 'leverans', key, product });
+
+      // Applicera lokalt så raden syns direkt
+      fileData.data.leverans[key] = product;
+      const section = fileData.sections.find(s => s.key === activeSection);
+      if (section && section.kind === 'transport') section.products.push({ levKey: key, obj: product });
+
+      closeTrpModal();
+      renderSectionTabs();
+      renderTable();
+      updateToolbar();
+    });
+
     function collectArtnos(obj, acc) {
       acc = acc || new Set();
       if (Array.isArray(obj)) {
@@ -1721,6 +2095,19 @@
       // Bygg changes-array (inkl. volumePricing)
       const changes = [];
       for (const [path, pend] of pending.entries()) {
+        if (pend.__kind === 'transport') {
+          const fields = {};
+          for (const k of TRP_FIELDS) {
+            if (k in pend) fields[k] = (k === 'pris' || k === 'enkelresa') ? Number(pend[k]) : pend[k];
+          }
+          if (Object.keys(fields).length === 0) continue;
+          changes.push({ kind: 'transport', path, fields });
+          // Enkelresepriset ligger även i den nästlade enkel-posten — håll ihop dem
+          if ('enkelresa' in fields) {
+            changes.push({ kind: 'transport', path: `${path}.enkel`, fields: { pris: fields.enkelresa } });
+          }
+          continue;
+        }
         const fields = {};
         for (const k of ['name', 'price', 'description', 'volumePricing']) {
           if (k in pend) fields[k] = pend[k];
@@ -1731,10 +2118,11 @@
       }
 
       // Additions
-      const additions = pendingAdditions.map(a => ({
-        sectionPath: a.sectionPath,
-        product:     a.product
-      }));
+      const additions = pendingAdditions.map(a => (
+        a.kind === 'transport'
+          ? { kind: 'transport', sectionPath: a.sectionPath, key: a.key, product: a.product }
+          : { sectionPath: a.sectionPath, product: a.product }
+      ));
 
       const totalOps = changes.length + additions.length;
       if (totalOps === 0) return;

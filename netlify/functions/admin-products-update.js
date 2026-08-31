@@ -13,6 +13,13 @@
 //   ]
 // }
 //
+// Transporttjänster (tjanster.json → leverans) är nycklade objekt, inte en
+// array. De redigeras med kind:'transport':
+//   changes:   [{ kind:'transport', path:'leverans.storbil',
+//                 fields:{ label, pris, enkelresa, note, artno } }]
+//   additions: [{ kind:'transport', sectionPath:'leverans', key:'lastbil_xl',
+//                 product:{ id, label, pris, enkelresa, note, type, artno, enkel:{…} } }]
+//
 // Returnerar:
 //   { ok: true, newSha, commitSha, commitUrl, changedCount }
 //   eller { ok: false, error, conflict?: true }  vid 409
@@ -142,6 +149,76 @@ function validateNewProduct(obj, isVolumePricingSection) {
   return null;
 }
 
+// ── Transporttjänster (tjanster.json → leverans) ─────────────
+// Nycklade objekt, inte array. Egna fältnamn: label/pris/enkelresa/note.
+// META_KEYS speglar varukorgens filter i src/pages/varukorg/index.astro —
+// de är rubriker/regler, inte fordon, och får aldrig skrivas över.
+const TRANSPORT_META_KEYS = new Set(['label', 'description', 'zon', 'selection_rules']);
+
+function validateTransportField(key, value) {
+  if (key === 'label') {
+    if (typeof value !== 'string') return `label måste vara text`;
+    if (value.trim().length === 0) return `label får inte vara tomt`;
+    if (value.length > 120) return `label max 120 tecken`;
+    return null;
+  }
+  if (key === 'pris' || key === 'enkelresa') {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return `${key} måste vara ett tal`;
+    if (!Number.isInteger(value)) return `${key} ska vara heltal (kr)`;
+    if (value < 0) return `${key} får inte vara negativt`;
+    if (value > 1_000_000) return `${key} ologiskt högt (>1M)`;
+    return null;
+  }
+  if (key === 'note') {
+    if (typeof value !== 'string') return `note måste vara text`;
+    if (value.length > 200) return `note max 200 tecken`;
+    return null;
+  }
+  if (key === 'artno') {
+    if (typeof value !== 'string') return `artno måste vara text`;
+    if (!/^[A-Z0-9-]+$/.test(value)) return `artno får bara innehålla A-Z, 0-9, bindestreck`;
+    if (value.length > 50) return `artno max 50 tecken`;
+    return null;
+  }
+  if (key === 'id') {
+    if (typeof value !== 'string') return `id måste vara text`;
+    if (!/^[a-z0-9-]+$/.test(value)) return `id får bara innehålla a-z, 0-9, bindestreck`;
+    if (value.length > 60) return `id max 60 tecken`;
+    return null;
+  }
+  if (key === 'type') {
+    if (value !== 'service') return `type måste vara "service"`;
+    return null;
+  }
+  return `okänt transportfält: ${key} (stödjer label, pris, enkelresa, note, artno, id, type)`;
+}
+
+// Validerar ett komplett nytt transportobjekt inkl. nästlad enkelresa.
+function validateNewTransport(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return 'transporten måste vara ett objekt';
+  for (const r of ['id', 'label', 'pris', 'artno']) {
+    if (!(r in obj)) return `fältet "${r}" är obligatoriskt`;
+  }
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'enkel') continue;
+    const e = validateTransportField(k, v);
+    if (e) return e;
+  }
+  if ('enkel' in obj) {
+    const en = obj.enkel;
+    if (!en || typeof en !== 'object' || Array.isArray(en)) return 'enkel måste vara ett objekt';
+    for (const r of ['id', 'label', 'pris', 'artno']) {
+      if (!(r in en)) return `enkel: fältet "${r}" är obligatoriskt`;
+    }
+    for (const [k, v] of Object.entries(en)) {
+      const e = validateTransportField(k, v);
+      if (e) return `enkel: ${e}`;
+    }
+    if (en.artno === obj.artno) return 'enkel.artno måste skilja sig från artno';
+  }
+  return null;
+}
+
 // ── Navigera dot-path i objekt ───────────────────────────────
 // path: 'event.products.0' → returnerar objektet på den platsen
 // (eller null om path inte finns)
@@ -243,11 +320,16 @@ exports.handler = async (event) => {
       continue;
     }
 
-    // Validera alla fält först
+    // Validera alla fält först — transport har egna fältnamn
+    const isTransport = ch.kind === 'transport';
+    if (isTransport && !ch.path.startsWith('leverans.')) {
+      errors.push({ path: ch.path, error: 'transport-ändringar måste ligga under leverans.' });
+      continue;
+    }
     const fieldErrors = [];
     for (const [k, v] of Object.entries(ch.fields)) {
-      const e = validateField(k, v);
-      if (e) fieldErrors.push(`${k}: ${e}`);
+      const e = isTransport ? validateTransportField(k, v) : validateField(k, v);
+      if (e) fieldErrors.push(isTransport ? e : `${k}: ${e}`);
     }
     if (fieldErrors.length) {
       errors.push({ path: ch.path, error: fieldErrors.join('; ') });
@@ -273,6 +355,61 @@ exports.handler = async (event) => {
     const add = _additions[i];
     if (!add || typeof add.sectionPath !== 'string' || !add.product || typeof add.product !== 'object') {
       errors.push({ path: `additions[${i}]`, error: 'Felaktigt addition-format (kräver sectionPath + product)' });
+      continue;
+    }
+
+    // ── Transport: nytt fordon som nyckel i leverans-objektet ──
+    if (add.kind === 'transport') {
+      if (add.sectionPath !== 'leverans') {
+        errors.push({ path: `additions[${i}]`, error: 'transport-tillägg måste ha sectionPath "leverans"' });
+        continue;
+      }
+      const key = add.key;
+      if (typeof key !== 'string' || !/^[a-z][a-z0-9_]{1,40}$/.test(key)) {
+        errors.push({ path: `additions[${i}]`, error: 'nyckel måste vara a-z, siffror och understreck (2–41 tecken, börja med bokstav)' });
+        continue;
+      }
+      if (TRANSPORT_META_KEYS.has(key)) {
+        errors.push({ path: `additions[${i}]`, error: `"${key}" är reserverad och kan inte användas som transportnyckel` });
+        continue;
+      }
+      const levObj = getByPath(data, 'leverans');
+      if (!levObj || typeof levObj !== 'object' || Array.isArray(levObj)) {
+        errors.push({ path: `additions[${i}]`, error: 'leverans saknas eller har fel form i filen' });
+        continue;
+      }
+      if (key in levObj) {
+        errors.push({ path: `additions[${i}]`, error: `transportnyckeln "${key}" finns redan` });
+        continue;
+      }
+      const tErr = validateNewTransport(add.product);
+      if (tErr) {
+        errors.push({ path: `additions[${i}]`, error: tErr });
+        continue;
+      }
+      // Artno-unikhet i hela filen (både huvudrad och enkelresa)
+      const existing = new Set();
+      (function walk(o) {
+        if (Array.isArray(o)) { for (const x of o) walk(x); }
+        else if (o && typeof o === 'object') {
+          if (typeof o.artno === 'string') existing.add(o.artno);
+          for (const k of Object.keys(o)) walk(o[k]);
+        }
+      })(data);
+      const nya = [add.product.artno, add.product.enkel && add.product.enkel.artno].filter(Boolean);
+      const krock = nya.find(a => existing.has(a));
+      if (krock) {
+        errors.push({ path: `additions[${i}]`, error: `Artno "${krock}" finns redan i filen` });
+        continue;
+      }
+
+      levObj[key] = add.product;
+      addedProducts.push({
+        sectionPath: 'leverans',
+        artno:       add.product.artno,
+        name:        add.product.label,
+        newPath:     `leverans.${key}`
+      });
       continue;
     }
 
