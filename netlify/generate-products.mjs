@@ -5,6 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { buildSvenProducts } from '../src/lib/sven-products.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.join(__dirname, '..');
@@ -55,84 +56,12 @@ function prodLine(name, price, priceNote, extra) {
 
 // ── CART-ID-LISTA ─────────────────────────────────────────────────────────────
 
-const cartLines = [];
-
-// Scen
-scenes.products.forEach(p => {
-  if (p.id && p.price) cartLines.push(cartLine(p.name, `scen-${p.id}`, p.price));
-});
-(scenes.modules || []).forEach(p => {
-  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
-});
-(scenes.pipeDrape || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno, p.price));
-});
-
-// Ljud: event, live, music, portable, mixers
-['event','live','music','portable'].forEach(sec => {
-  (ljud[sec]?.products || []).forEach(p => {
-    if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-  });
-});
-// Ljud: kolumnhögtalare utan mik (no-mic varianter)
-(ljud.kolumnNoMic || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-(ljud.mixers || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-
-// Ljud mikrofon tillbehör (bara om slug finns)
-const miks = Array.isArray(ljud.tillbehor_mikrofon)
-  ? ljud.tillbehor_mikrofon
-  : (ljud.tillbehor_mikrofon?.products || []);
-miks.forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-
-// Ljus: paket, effekter, rok products + rok tillbehor
-(ljus.paket?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-(ljus.effekter?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-(ljus.rok?.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-(ljus.rok?.tillbehor || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-
-// DJ utrustning
-Object.values(dj.equipment || {}).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-// DJ paket
-(dj.packages || []).forEach(p => {
-  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
-});
-
-// Karaoke paket
-(karaoke.packages || []).forEach(p => {
-  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
-});
-
-// Tjänster — centraliserade i tjanster.json.services (efter konsolidering)
-(tjanster.services || []).forEach(p => {
-  if (p.artno && p.price) cartLines.push(cartLine(p.name, p.artno, p.price));
-});
-
-// Bild
-(bild.products || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-(bild.dukar || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
-(bild.tillbehor || []).forEach(p => {
-  if (p.slug && p.price) cartLines.push(cartLine(p.name, p.slug || p.artno || p.id, p.price));
-});
+// Byggs från src/lib/sven-products.mjs — samma register som Layout.astro
+// matar in i window.__SK_PRODUCTS__. Håll dem aldrig åtskilda igen:
+// en cart-ID som Sven taggar men frontend saknar filtreras bort tyst.
+const cartLines = Object.entries(buildSvenProducts({
+  scenes, ljud, ljus, dj, bild, tjanster, karaoke, el,
+})).map(([cartId, p]) => cartLine(p.name, cartId, p.price));
 
 const CART_ID_LISTA = cartLines.join('\n');
 

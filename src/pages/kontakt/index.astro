@@ -2,6 +2,11 @@
 import Layout from '../../layouts/Layout.astro';
 import site from '../../data/site.json';
 import ortSidor from '../../data/orter.json';
+import _fraktData from '../../data/tjanster.json';
+
+// Lägsta enkelresepris ur tjanster.json — aldrig hårdkodat, fraktpriserna
+// ändras i adminpanelen och en literal siffra blir tyst fel för kunden.
+const _fraktFran = (_fraktData as any).leverans?.standard?.enkelresa;
 import { getReviews, getSummary } from '../../utils/reviews';
 
 // Kompletta Google-recensioner (nyaste 3 som teaser); komplett lista på /referenser/
@@ -438,7 +443,7 @@ const orter = [
           );
         })}
       </div>
-      <p class="text-gray-400 text-sm">Leverans debiteras per tur-och-retur och anpassas efter hur skrymmande utrustningen är — från 559 kr enkelresa med vanlig bil upp till större bil, släp eller lastbil för skrymmande gods. Exakt fraktpris bekräftas i offerten. Priser exkl. moms, transport tillkommer alltid utöver hyran.</p>
+      <p class="text-gray-400 text-sm">Leverans debiteras per tur-och-retur och anpassas efter hur skrymmande utrustningen är — från {_fraktFran} kr enkelresa med vanlig bil upp till större bil, släp eller lastbil för skrymmande gods. Exakt fraktpris bekräftas i offerten. Priser exkl. moms, transport tillkommer alltid utöver hyran.</p>
     </section>
 
   </div>

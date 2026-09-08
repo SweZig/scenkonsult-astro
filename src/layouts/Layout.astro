@@ -4,86 +4,23 @@ import InlineEditor from '../components/InlineEditor.astro';
 import Tel from '../components/Tel.astro';
 import Mail from '../components/Mail.astro';
 
-// ── Bygg SVEN_PRODUCTS från JSON-filer (auto-synkad vid varje deploy) ──
-import scenesJson from '../data/scenes.json';
-import ljudJson   from '../data/ljud.json';
-import ljusJson   from '../data/ljus.json';
-import djJson     from '../data/dj.json';
-import bildJson   from '../data/bild.json';
+// ── SVEN_PRODUCTS byggs från EN källa: src/lib/sven-products.mjs ──
+// Registret delas med netlify/generate-products.mjs så att chattbubblans
+// cart-knapp och Svens systemprompt aldrig kan glida isär igen.
+// Ny produktsamling läggs till i SVEN_SOURCES där — inte här.
+import { buildSvenProducts } from '../lib/sven-products.mjs';
+import scenesJson   from '../data/scenes.json';
+import ljudJson     from '../data/ljud.json';
+import ljusJson     from '../data/ljus.json';
+import djJson       from '../data/dj.json';
+import bildJson     from '../data/bild.json';
 import tjansterJson from '../data/tjanster.json';
 import karaokeJson  from '../data/karaoke.json';
+import elJson       from '../data/el.json';
 
-type SvenProduct = { name: string; price: number; category: string };
-const svenProducts: Record<string, SvenProduct> = {};
-
-// Scen: cart-id = scen-{id}
-(scenesJson.products as any[]).forEach(p => {
-  if (p.id && p.price) svenProducts[`scen-${p.id}`] = { name: p.name, price: p.price, category: 'Scen' };
-});
-((scenesJson as any).pipeDrape as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Pipe & Drape' };
-});
-
-// Ljud: event / live / music / portable / mixers
-(['event','live','music','portable'] as const).forEach(sec => {
-  ((ljudJson as any)[sec]?.products as any[] || []).forEach((p: any) => {
-    if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
-  });
-});
-((ljudJson as any).mixers as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
-});
-// Kompletterande ljud (subbasar m.m. som kompletterar event-paketen)
-((ljudJson as any).tillbehor_ljud as any[] || []).forEach((p: any) => {
-  if (p.kompletterande && (p.slug || p.artno) && p.price) {
-    svenProducts[p.slug || p.artno] = { name: p.name, price: p.price, category: 'Ljud' };
-  }
-});
-((ljudJson as any).kolumnNoMic as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljud' };
-});
-
-// Ljus: paket / effekter / rok products + rok tillbehör
-(['paket','effekter'] as const).forEach(sec => {
-  ((ljusJson as any)[sec]?.products as any[] || []).forEach((p: any) => {
-    if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljus' };
-  });
-});
-((ljusJson as any).rok?.products as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljus' };
-});
-((ljusJson as any).rok?.tillbehor as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Ljus tillbehör' };
-});
-
-// DJ
-Object.values((djJson as any).equipment || {}).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'DJ' };
-});
-// DJ-paket (saknar slug → nyckel = artno, matchar CART_ID_LISTA)
-((djJson as any).packages as any[] || []).forEach((p: any) => {
-  if (p.artno && p.price) svenProducts[p.artno] = { name: p.name, price: p.price, category: 'DJ-paket' };
-});
-
-// Tjänster (tekniker på plats, scenengineer m.fl.) — nyckel = artno (matchar CART_ID_LISTA)
-((tjansterJson as any).services as any[] || []).forEach((p: any) => {
-  if (p.artno && p.price) svenProducts[p.artno] = { name: p.name, price: p.price, category: 'Tjänster' };
-});
-
-// Karaoke-paket (saknar slug → nyckel = artno)
-((karaokeJson as any).packages as any[] || []).forEach((p: any) => {
-  if (p.artno && p.price) svenProducts[p.artno] = { name: p.name, price: p.price, category: 'Karaoke' };
-});
-
-// Bild
-((bildJson as any).products as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
-});
-((bildJson as any).dukar as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
-});
-((bildJson as any).tillbehor as any[] || []).forEach((p: any) => {
-  if (p.slug && p.price) svenProducts[p.slug] = { name: p.name, price: p.price, category: 'Bild' };
+const svenProducts = buildSvenProducts({
+  scenes: scenesJson, ljud: ljudJson, ljus: ljusJson, dj: djJson,
+  bild: bildJson, tjanster: tjansterJson, karaoke: karaokeJson, el: elJson,
 });
 
 interface Props {

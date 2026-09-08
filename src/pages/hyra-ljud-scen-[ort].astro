@@ -2,6 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import CategoryHero from '../components/CategoryHero.astro';
 import orter from '../data/orter.json';
+import _fraktData from '../data/tjanster.json';
+
+// Lägsta enkelresepris ur tjanster.json — aldrig hårdkodat, fraktpriserna
+// ändras i adminpanelen och en literal siffra blir tyst fel för kunden.
+const _fraktFran = (_fraktData as any).leverans?.standard?.enkelresa;
 import ProductCard from '../components/ProductCard.astro';
 import DynamicPaketCard from '../components/DynamicPaketCard.astro';
 import MediaCard from '../components/MediaCard.astro';
@@ -41,7 +46,7 @@ const faq = [
   },
   {
     q: `Vad kostar leverans till ${ort.namn}?`,
-    a: `Leveranspriset styrs av hur skrymmande utrustningen är — inte av avståndet till ${ort.namn} specifikt. Vi kör i hela Storstockholm och debiterar normalt tur och retur: från 559 kr enkelresa med vanlig bil, mer för större bil, släp eller lastbil vid skrymmande gods (exkl. moms). Exakt fraktpris bekräftas i offerten. Hämtar du själv i Vällingby är det alltid kostnadsfritt.`
+    a: `Leveranspriset styrs av hur skrymmande utrustningen är — inte av avståndet till ${ort.namn} specifikt. Vi kör i hela Storstockholm och debiterar normalt tur och retur: från ${_fraktFran} kr enkelresa med vanlig bil, mer för större bil, släp eller lastbil vid skrymmande gods (exkl. moms). Exakt fraktpris bekräftas i offerten. Hämtar du själv i Vällingby är det alltid kostnadsfritt.`
   },
   {
     q: `Kan jag hyra för en kväll i ${ort.namn}?`,

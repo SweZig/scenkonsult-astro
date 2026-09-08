@@ -73,7 +73,10 @@ function committed() {
   check('tur-och-retur uppdaterat', data.leverans.storbil.pris, 1500);
   check('enkelresa uppdaterad på raden', data.leverans.storbil.enkelresa, 750);
   check('enkelresa uppdaterad i nästlad post', data.leverans.storbil.enkel.pris, 750);
-  check('övriga fordon orörda', data.leverans.lastbil.pris, 2399);
+  // Läs förväntat värde ur källfilen — fraktpriserna ändras i adminpanelen
+  // och en hårdkodad siffra här gör testet rött vid nästa prisjustering.
+  check('övriga fordon orörda', data.leverans.lastbil.pris,
+        JSON.parse(original).leverans.lastbil.pris);
   check('selection_rules orörda', Array.isArray(data.leverans.selection_rules), true);
 
   // ── 2. Ogiltiga värden avvisas ───────────────────────────
