@@ -7,6 +7,15 @@ import ElTillbehorCard from '../../../../components/ElTillbehorCard.astro';
 import ProductCard from '../../../../components/ProductCard.astro';
 import ljusData from '../../../../data/ljus.json';
 import _elData from '../../../../data/el.json';
+import _bildData from '../../../../data/bild.json';
+// Tillbehör som bor i bild.json men även hör hemma på trossen.
+// Refereras via artno så det blir EN artikel och ETT cart-ID, inte en dubblett.
+const TROSS_EXTRA_REFS = [{ source: 'bild', artno: 'SK-BLD-ACC-0026' }];
+const _refSources: Record<string, any> = { bild: _bildData };
+const trossExtra = TROSS_EXTRA_REFS
+  .map(r => (_refSources[r.source]?.tillbehor ?? []).find((p: any) => p.artno === r.artno))
+  .filter(Boolean);
+
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -87,6 +96,9 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
     <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">Tillbehör – Fästen, Trossöverdrag &amp; DMX</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(ljusData.stativ?.tillbehor ?? []).map((p: any) => (
+        <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Stativ tillbehör" artno={p.artno} />
+      ))}
+      {trossExtra.map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Stativ tillbehör" artno={p.artno} />
       ))}
       {(ljusData.dmx?.tillbehor?.filter((p:any) => parseInt(p.artno.slice(-4)) >= 6) ?? []).map((p: any) => (
