@@ -109,6 +109,41 @@ for (const f of kod) {
 check('fraktpriser läses ur tjanster.json', traffar.length === 0,
   traffar.length ? [...new Set(traffar)].join(', ') : `${kod.length} filer skannade`);
 
+console.log('\n6. PAKETPRISER STÄMMER MED KOMPONENTERNA');
+
+// SK-BLD-0013 annonseras som ett fast pris men handlas som cartSplit +
+// linkedServices, där varukorgen prissätter leveransen ur tjanster.json.
+// Höjs frakten utan att monteringen sänks lika mycket betalar kunden mer än
+// sidan lovar. Hände 2026-09-08: storbil_slap 2198 -> 2500 gav 12 301 kr i
+// korgen mot annonserade 11 999.
+const levPris = Object.fromEntries(
+  Object.values(data.tjanster.leverans || {})
+    .filter((v) => v && typeof v === 'object' && v.artno)
+    .map((v) => [v.artno, v.pris]));
+
+function bundles(node, ut = []) {
+  if (Array.isArray(node)) node.forEach((n) => bundles(n, ut));
+  else if (node && typeof node === 'object') {
+    if (Array.isArray(node.linkedServices)) ut.push(node);
+    Object.values(node).forEach((n) => bundles(n, ut));
+  }
+  return ut;
+}
+const paket = FILES.flatMap((f) => bundles(data[f]));
+
+for (const b of paket) {
+  for (const ls of b.linkedServices) {
+    if (levPris[ls.artno] === undefined) continue;
+    check(`${b.artno} · ${ls.artno} matchar tjanster.json`, ls.price === levPris[ls.artno],
+      ls.price === levPris[ls.artno] ? `${ls.price} kr` : `${ls.price} ≠ ${levPris[ls.artno]}`);
+  }
+  const summa = (b.cartSplit || []).reduce((n, c) => n + c.price * (c.qty || 1), 0)
+              + b.linkedServices.reduce((n, s) => n + s.price, 0);
+  check(`${b.artno} · komponenter summerar till annonserat pris`, summa === b.price,
+    summa === b.price ? `${summa} kr` : `${summa} kr mot annonserade ${b.price} kr (${summa - b.price > 0 ? '+' : ''}${summa - b.price})`);
+}
+if (!paket.length) check('paket med linkedServices hittade', false, 'inga — sökningen är trasig');
+
 console.log('');
 if (fails.length) {
   console.log(`❌ ${fails.length} KONTROLL(ER) MISSLYCKADES\n`);
