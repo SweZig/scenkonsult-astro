@@ -34,7 +34,7 @@ exports.handler = async (event) => {
       headers: {
         'Access-Control-Allow-Origin': 'https://scenkonsult.se',
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=60, s-maxage=300',
+        'Cache-Control': 'public, max-age=30, s-maxage=60',
       },
       body: JSON.stringify({ ok: true, clients }),
     };

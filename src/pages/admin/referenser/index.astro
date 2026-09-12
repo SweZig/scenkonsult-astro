@@ -91,7 +91,8 @@ const ORT_NAMN = orterData.map((o) => o.namn);
       i Samtliga-listan. Sätt <b>Ort</b> för att koppla kunden till motsvarande
       <a href="/hyra-ljud-scen-solna/" target="_blank">ortssida</a> — då visas den under
       "Kunder vi levererat till i [ort]". Kryssa <b>Utvald</b> för att visa kunden i
-      utvalda-bannern (företagsfest + ortssidor). Ändringar slår igenom vid nästa publicering.
+      utvalda-bannern (företagsfest + ortssidor). Ändringar syns på sajten inom ca 1 minut
+      (sidan hämtar listan live); den server-renderade versionen uppdateras vid nästa publicering.
     </div>
 
     <div class="catbar" id="catbar"></div>
@@ -188,20 +189,24 @@ function ortOptions(sel) {
 }
 
 function cardHtml(c, i, len) {
+  // Utkast = ny kund som ännu inte finns i databasen (tomt id). Skrivs först vid Spara,
+  // så inga platshållarrader ("Nytt kundnamn") skapas — de krockade tidigare med varandra.
+  const draft = !c.id;
+  const id = escapeHtml(c.id || '');
   return `
-    <div class="card ${!c.active ? 'inactive' : ''}" data-id="${escapeHtml(c.id)}">
+    <div class="card ${!c.active ? 'inactive' : ''}" data-id="${id}"${draft ? ' data-draft="1"' : ''}>
       <div class="row1">
         <div class="grip">
-          <button data-up="${escapeHtml(c.id)}" ${i === 0 ? 'disabled' : ''} title="Flytta upp">▲</button>
-          <button data-down="${escapeHtml(c.id)}" ${i === len - 1 ? 'disabled' : ''} title="Flytta ner">▼</button>
+          <button data-up="${id}" ${(draft || i === 0) ? 'disabled' : ''} title="Flytta upp">▲</button>
+          <button data-down="${id}" ${(draft || i === len - 1) ? 'disabled' : ''} title="Flytta ner">▼</button>
         </div>
         <input type="text" data-field="name" placeholder="Kundnamn" value="${escapeHtml(c.name || '')}" />
         <select data-field="category">${catOptions(c.category)}</select>
         <select data-field="ort" title="Koppla kunden till en ortssida">${ortOptions(c.ort)}</select>
         <label class="switch" title="Visa i utvalda-bannern (foretagsfest + ortssidor)"><input type="checkbox" data-field="featured" ${c.featured ? 'checked' : ''} /> Utvald</label>
         <label class="switch"><input type="checkbox" data-field="active" ${c.active ? 'checked' : ''} /> Aktiv</label>
-        <button class="btn primary" data-save="${escapeHtml(c.id)}">Spara</button>
-        <button class="btn danger" data-delete="${escapeHtml(c.id)}">Ta bort</button>
+        <button class="btn primary" data-save="${id}">Spara</button>
+        <button class="btn danger" data-delete="${id}">${draft ? 'Avbryt' : 'Ta bort'}</button>
       </div>
     </div>
   `;
@@ -228,26 +233,32 @@ function bindCardEvents() {
   document.querySelectorAll('[data-save]').forEach(btn => {
     btn.onclick = async () => {
       const card = btn.closest('.card');
-      const id = card.dataset.id;
-      const existing = items.find(c => c.id === id);
+      const id = card.dataset.id || null;           // null = ny kund → servern sätter unikt id
+      const existing = id ? items.find(c => c.id === id) : null;
       const name = card.querySelector('[data-field="name"]').value.trim();
       const category = card.querySelector('[data-field="category"]').value || null;
       const ort = card.querySelector('[data-field="ort"]').value || null;
       const featured = card.querySelector('[data-field="featured"]').checked;
       const active = card.querySelector('[data-field="active"]').checked;
       if (!name) { toast('Namn krävs'); return; }
+      if (!id && items.some(c => (c.name || '').trim().toLowerCase() === name.toLowerCase())) {
+        toast('Kunden finns redan i listan'); return;
+      }
       try {
-        const res = await api('upsert', { client: {
-          id, name, category, ort, featured, active, sort_order: existing ? existing.sort_order : items.length,
-        }});
+        const payload = { name, category, ort, featured, active, sort_order: existing ? existing.sort_order : items.length };
+        if (id) payload.id = id;
+        const res = await api('upsert', { client: payload });
         if (!res) return;
-        toast('Sparat');
+        toast(id ? 'Sparat' : 'Kund tillagd');
         await loadAll();
       } catch (e) { toast(e.message); }
     };
   });
   document.querySelectorAll('[data-delete]').forEach(btn => {
     btn.onclick = async () => {
+      const card = btn.closest('.card');
+      // Utkast → ta bara bort kortet, inget finns i databasen att radera
+      if (card && card.dataset.draft) { card.remove(); return; }
       if (!confirm('Ta bort kunden? (Döljs från sajten)')) return;
       try { await api('delete', { id: btn.dataset.delete }); toast('Borttaget'); await loadAll(); }
       catch (e) { toast(e.message); }
@@ -267,12 +278,26 @@ async function move(id, dir) {
   catch (e) { toast(e.message); }
 }
 
-document.getElementById('add-btn').onclick = async () => {
-  try {
-    const r = await api('upsert', { client: { name: 'Nytt kundnamn', category: null, active: false, sort_order: items.length } });
-    toast('Tillagd — fyll i namn, välj kategori, kryssa Aktiv och spara');
-    await loadAll();
-  } catch (e) { toast(e.message); }
+// Ny kund = lokalt utkastkort. Raden skapas i databasen först när du klickar Spara,
+// med ett unikt id baserat på det verkliga namnet.
+document.getElementById('add-btn').onclick = () => {
+  const list = document.getElementById('list');
+  const emptyEl = list.querySelector('.empty');
+  if (emptyEl) emptyEl.remove();
+  if (list.querySelector('[data-draft]')) {
+    toast('Spara eller avbryt det påbörjade kortet först');
+    list.querySelector('[data-draft] [data-field="name"]').focus();
+    return;
+  }
+  const wrap = document.createElement('div');
+  wrap.innerHTML = cardHtml({ id: '', name: '', category: null, ort: null, featured: false, active: true }, 0, 1);
+  const card = wrap.firstElementChild;
+  list.appendChild(card);
+  bindCardEvents();
+  const nameInput = card.querySelector('[data-field="name"]');
+  nameInput.focus();
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') card.querySelector('[data-save]').click(); });
+  toast('Fyll i namn, välj kategori och klicka Spara');
 };
 
 function init() {

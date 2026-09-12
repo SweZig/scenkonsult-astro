@@ -4,6 +4,8 @@
 //
 // GET  /.netlify/functions/admin-clients   → alla kunder (inkl inaktiva), sort_order
 // POST { action: 'upsert', client: { id?, name, category?, sort_order?, active? } }
+//        id saknas  → NY kund, id genereras unikt från namnet (krockar får suffix -2, -3 ...)
+//        id angivet → uppdaterar den befintliga raden (id ändras aldrig vid namnbyte)
 // POST { action: 'delete', id }            (mjuk: active=false)
 // POST { action: 'reorder', ids: [...] }
 //
@@ -15,9 +17,31 @@ const { supabase, isAdmin, ok, err, preflight } = require('./_lib');
 const CATEGORIES = ['kommun', 'naringsliv', 'ambassad', 'event'];
 
 function slug(n) {
-  return 'cli-' + String(n || '').toLowerCase()
+  const base = String(n || '').toLowerCase()
     .normalize('NFKD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'cli-' + Date.now().toString(36);
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
+  // OBS: parenteserna är viktiga — utan dem blir '||' alltid falsk (strängen 'cli-' är truthy)
+  return 'cli-' + (base || Date.now().toString(36));
+}
+
+// Unikt id för en NY kund. Tidigare genererades id:t enbart av namnet, vilket gjorde
+// att två kunder med samma (eller tomt/placeholder-) namn fick SAMMA id — och eftersom
+// upsert körs med 'resolution=merge-duplicates' skrev den andra kunden över den första.
+// Nu kontrolleras befintliga id:n och ett suffix (-2, -3, ...) läggs till vid krock.
+async function uniqueId(base, supaUrl, supaKey) {
+  try {
+    const res = await fetch(
+      `${supaUrl}/rest/v1/clients?select=id&id=like.${encodeURIComponent(base + '*')}`,
+      { headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}` } }
+    );
+    if (!res.ok) return `${base}-${Date.now().toString(36)}`;
+    const taken = new Set((await res.json() || []).map((r) => r.id));
+    if (!taken.has(base)) return base;
+    for (let i = 2; i < 200; i++) {
+      if (!taken.has(`${base}-${i}`)) return `${base}-${i}`;
+    }
+  } catch (_) { /* faller igenom till tidsstämpel */ }
+  return `${base}-${Date.now().toString(36)}`;
 }
 
 function validate(c) {
@@ -52,7 +76,10 @@ exports.handler = async (event) => {
       const validationErr = validate(c);
       if (validationErr) return err(validationErr, 400);
 
-      const id = c.id || slug(c.name);
+      const supaUrlPre = process.env.SUPABASE_URL;
+      const supaKeyPre = process.env.SUPABASE_SERVICE_KEY;
+      // Befintlig kund → behåll id:t. Ny kund (inget id skickat) → unikt id.
+      const id = c.id ? String(c.id) : await uniqueId(slug(c.name), supaUrlPre, supaKeyPre);
       const row = {
         id,
         name: c.name.trim(),
@@ -67,8 +94,8 @@ exports.handler = async (event) => {
       if (c.ort && typeof c.ort === 'string' && c.ort.trim()) row.ort = c.ort.trim();
       if (typeof c.featured === 'boolean') row.featured = c.featured;
 
-      const supaUrl = process.env.SUPABASE_URL;
-      const supaKey = process.env.SUPABASE_SERVICE_KEY;
+      const supaUrl = supaUrlPre;
+      const supaKey = supaKeyPre;
       const doUpsert = (payload) => fetch(`${supaUrl}/rest/v1/clients?on_conflict=id`, {
         method: 'POST',
         headers: {
