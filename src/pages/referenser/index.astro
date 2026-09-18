@@ -26,16 +26,20 @@ const eventGallery: Array<{
 }> = [
   {
     src: "/images/event/festival_vinterviken.webp",
+    src2: "/images/event/festival_vinterviken_2.webp",
     alt: "Scenuppbyggnad vid Vintervikens trädgård",
+    alt2: "Publik framför scenen under konsert i Vintervikens trädgård",
     label: "Festival – Vinterviken",
     desc: "Scen & ljud, Vasas Flora & Fauna m.fl.",
     tag: "Festival"
   },
   {
     src: "/images/event/skridskodisco_ostermalm_1.webp",
+    src2: "/images/event/skridskodisco_ostermalm_2.webp",
     alt: "Skridskodisco på Östermalms IP",
+    alt2: "DJ- och ljudsetup för skridskodisco på Östermalms IP",
     label: "Skridskodisco – Östermalms IP",
-    desc: "Stockholms Stad, återkommande event",
+    desc: "Stockholms Stad — DJ & ljud utomhus, återkommande event",
     tag: "Företagsevent"
   },
   {
@@ -61,24 +65,12 @@ const eventGallery: Array<{
   },
   {
     src: "/images/event/uf_strawberry_arena_1.webp",
+    src2: "/images/event/uf_strawberry_arena_2.webp",
     alt: "Ung Företagsamhet på Strawberry Arena",
+    alt2: "Scen- och ljusrigg för Ung Företagsamhet på Strawberry Arena",
     label: "Strawberry Arena – UF",
-    desc: "Ung Företagsamhet, stor scen & PA",
+    desc: "Ung Företagsamhet — stor scen, PA & ljusrigg",
     tag: "Konferens"
-  },
-  {
-    src: "/images/event/uf_strawberry_arena_2.webp",
-    alt: "Ung Företagsamhet scensetup Strawberry Arena",
-    label: "Strawberry Arena – UF setup",
-    desc: "Ung Företagsamhet, scen & ljusrigg",
-    tag: "Konferens"
-  },
-  {
-    src: "/images/event/skridskodisco_ostermalm_2.webp",
-    alt: "Skridskodisco setup Östermalms IP",
-    label: "Skridskodisco – setup",
-    desc: "Stockholms Stad, DJ & ljud utomhus",
-    tag: "Festival"
   },
   {
     src: "/images/event/kundevent_solna_naringsliv.webp",
@@ -89,17 +81,12 @@ const eventGallery: Array<{
   },
   {
     src: "/images/event/kundevent_abg_konferens.webp",
+    src2: "/images/event/uplight_bardisk.webp",
     alt: "ABG Sundal Collier konferens med LED-skärmar och uplight",
+    alt2: "Uplight-belysning på bardisk vid event",
     label: "ABG Sundal Collier – Konferens",
-    desc: "LED-skärmar, uplight & konferens-AV",
+    desc: "LED-skärmar, konferens-AV & uplight i lokalen",
     tag: "Konferens"
-  },
-  {
-    src: "/images/event/uplight_bardisk.webp",
-    alt: "Uplight-belysning på bardisk vid event",
-    label: "Uplight – Bardisk",
-    desc: "LED uplighting för stämningsfull miljö",
-    tag: "Företagsevent"
   },
   {
     src: "/images/event/kundevent_tele2_scenpodie.webp",
@@ -138,6 +125,18 @@ const eventGallery: Array<{
     desc: "Projektorinstallation på tross med ljud",
     tag: "Företagsevent"
   },
+];
+
+// Logotyper för "De litar på oss" — en fil per kund i /images/kunder/
+const clientLogos: Array<{ src: string; name: string; w: number; h: number }> = [
+  { src: "/images/kunder/logo_ica.webp", name: "ICA Sverige", w: 222, h: 114 },
+  { src: "/images/kunder/logo_hornbach.webp", name: "Hornbach", w: 276, h: 52 },
+  { src: "/images/kunder/logo_abg.webp", name: "ABG Sundal Collier", w: 208, h: 115 },
+  { src: "/images/kunder/logo_houdini.webp", name: "Houdini", w: 325, h: 70 },
+  { src: "/images/kunder/logo_mdu.webp", name: "Mälardalens universitet", w: 187, h: 111 },
+  { src: "/images/kunder/logo_hacksaw.webp", name: "Hacksaw Studios", w: 201, h: 61 },
+  { src: "/images/kunder/logo_hardrock.webp", name: "Hard Rock Café", w: 259, h: 150 },
+  { src: "/images/kunder/logo_uf.webp", name: "UF Företagande", w: 236, h: 81 },
 ];
 
 const pageSchema = {
@@ -259,16 +258,20 @@ const pageSchema = {
       <h2 class="text-2xl font-bold text-white mb-2">De litar på oss</h2>
       <p class="text-gray-400">Ett urval av de organisationer vi levererat till.</p>
     </div>
-    <div class="rounded-2xl overflow-hidden">
-      <img
-        src="/images/logos.webp"
-        alt="Referenskunder: ICA Sverige, Hornbach, ABG Sundal Collier, Houdini, Mälardalens Universitet, Hacksaw Studios, Odd Fellow och UF Företagande"
-        width="2240"
-        height="480"
-        class="w-full h-auto block"
-        loading="lazy"
-        decoding="async"
-      />
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      {clientLogos.map((logo) => (
+        <div class="flex items-center justify-center h-20 sm:h-28 px-4 rounded-xl border border-brand-orange/40">
+          <img
+            src={logo.src}
+            alt={logo.name}
+            width={logo.w}
+            height={logo.h}
+            class="max-h-[58%] max-w-[82%] w-auto h-auto object-contain"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ))}
     </div>
   </section>
 
