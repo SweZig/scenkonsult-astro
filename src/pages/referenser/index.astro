@@ -15,7 +15,15 @@ const googleReviews = getReviews();
 const googleSummary = getSummary();
 
 // Riktiga eventfoton
-const eventGallery = [
+const eventGallery: Array<{
+  src: string;
+  src2?: string;
+  alt: string;
+  alt2?: string;
+  label: string;
+  desc: string;
+  tag: string;
+}> = [
   {
     src: "/images/event/festival_vinterviken.webp",
     alt: "Scenuppbyggnad vid Vintervikens trädgård",
@@ -91,6 +99,43 @@ const eventGallery = [
     alt: "Uplight-belysning på bardisk vid event",
     label: "Uplight – Bardisk",
     desc: "LED uplighting för stämningsfull miljö",
+    tag: "Företagsevent"
+  },
+  {
+    src: "/images/event/kundevent_tele2_scenpodie.webp",
+    alt: "Scenpodie med ridå och LED-skärm hos Tele2",
+    label: "Tele2 – Scenpodie",
+    desc: "Scenpodie, ridå & LED-skärm för konferens",
+    tag: "Konferens"
+  },
+  {
+    src: "/images/event/festival_hard_rock_rising.webp",
+    alt: "Liveband på scen under Hard Rock Rising på Hard Rock Café",
+    label: "Hard Rock Café – Hard Rock Rising",
+    desc: "Global Live Music Challenge — ljud & scenljus",
+    tag: "Festival"
+  },
+  {
+    src: "/images/event/installation_german_beerhall_1.webp",
+    src2: "/images/event/installation_german_beerhall_2.webp",
+    alt: "Fast ljusinstallation i taket på German Beerhall",
+    alt2: "LED-ramper och ljusarmaturer i taket på German Beerhall",
+    label: "German Beerhall",
+    desc: "Fast ljusinstallation — LED-ramper & styrning",
+    tag: "Installation"
+  },
+  {
+    src: "/images/event/festival_midnattsloppet.webp",
+    alt: "Ljud- och ljusrigg på flak vid Midnattsloppet",
+    label: "Midnattsloppet – Klara Färdiga Film",
+    desc: "Flak med PA & ljus längs banan",
+    tag: "Festival"
+  },
+  {
+    src: "/images/event/kundevent_galleri_existens.webp",
+    alt: "Projektorinstallation på trosstorn hos Galleri Existens",
+    label: "Galleri Existens",
+    desc: "Projektorinstallation på tross med ljud",
     tag: "Företagsevent"
   },
 ];
@@ -174,16 +219,27 @@ const pageSchema = {
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {eventGallery.map((item) => (
         <div class="group relative bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all cursor-default">
-          <div class="overflow-hidden bg-brand-dark" style="aspect-ratio:3/4">
+          <div class="overflow-hidden bg-brand-dark relative" style="aspect-ratio:3/4">
             <img
               src={item.src}
               alt={item.alt}
               width="600"
               height="800"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              class:list={["w-full h-full object-cover group-hover:scale-105 transition-transform duration-500", item.src2 && "sk-xfade sk-xfade-a"]}
               loading="lazy"
               decoding="async"
             />
+            {item.src2 && (
+              <img
+                src={item.src2}
+                alt={item.alt2 ?? item.alt}
+                width="600"
+                height="800"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 sk-xfade sk-xfade-b"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
           </div>
           <div class="p-4">
             <div class="flex items-start justify-between gap-2 mb-1">
@@ -468,3 +524,30 @@ const pageSchema = {
   </section>
 
 </Layout>
+
+<style>
+  /* Crossfade för eventkort med två bilder (German Beerhall) — 5 s per bild */
+  .sk-xfade {
+    position: absolute;
+    inset: 0;
+  }
+  .sk-xfade-a { animation: sk-xfade-a 10s ease-in-out infinite; }
+  .sk-xfade-b { animation: sk-xfade-b 10s ease-in-out infinite; }
+
+  @keyframes sk-xfade-a {
+    0%, 45% { opacity: 1; }
+    55%, 95% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes sk-xfade-b {
+    0%, 45% { opacity: 0; }
+    55%, 95% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sk-xfade-a { animation: none; opacity: 1; }
+    .sk-xfade-b { animation: none; opacity: 0; }
+  }
+</style>
