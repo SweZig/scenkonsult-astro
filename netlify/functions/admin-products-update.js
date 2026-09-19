@@ -126,7 +126,20 @@ function validateField(key, value) {
     }
     return null;
   }
-  return `okänt fält: ${key} (stödjer name, price, description, volumePricing, priceNote, slug, artno, image, includes)`;
+  // specs = USP-punkterna under produktkortet (ProductCard.astro renderar dem
+  // som ▸-lista). null/[] = ta bort fältet helt, precis som volumePricing.
+  if (key === 'specs') {
+    if (value === null || value === undefined) return null;
+    if (!Array.isArray(value)) return `specs måste vara en array`;
+    if (value.length > 12) return `max 12 USP-punkter`;
+    for (let i = 0; i < value.length; i++) {
+      if (typeof value[i] !== 'string') return `punkt ${i + 1}: måste vara text`;
+      if (value[i].trim().length === 0) return `punkt ${i + 1}: får inte vara tom`;
+      if (value[i].length > 160) return `punkt ${i + 1}: max 160 tecken`;
+    }
+    return null;
+  }
+  return `okänt fält: ${key} (stödjer name, price, description, specs, volumePricing, priceNote, slug, artno, image, includes)`;
 }
 
 // ── Validera komplett ny produkt ─────────────────────────────
@@ -340,8 +353,8 @@ exports.handler = async (event) => {
     const before = {};
     for (const [k, v] of Object.entries(ch.fields)) {
       before[k] = target[k];
-      // Special: tom array eller null på volumePricing = ta bort fältet
-      if (k === 'volumePricing' && (v === null || (Array.isArray(v) && v.length === 0))) {
+      // Special: tom array eller null på volumePricing/specs = ta bort fältet
+      if ((k === 'volumePricing' || k === 'specs') && (v === null || (Array.isArray(v) && v.length === 0))) {
         delete target[k];
       } else {
         target[k] = v;

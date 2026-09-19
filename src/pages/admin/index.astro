@@ -2044,6 +2044,93 @@ import {
 
 const DAY_CFG = dayConfigFrom({ hyresdagar: window.__ADMIN_DAY_CONFIG__ });
 
+// ── VOLYMPRISER (volymtrappa) ─────────────────────────────────
+// Kundvarukorgen räknar om à-priset när antalet passerar en tier
+// (src/pages/varukorg/index.astro → applyVolumePricing). Admin gjorde det
+// INTE, så en manuell offert på 4 st moving heads låg kvar på 1-styckspriset
+// medan kunden såg volympriset på sajten. Här speglas samma logik mot
+// quote-catalog.json, som bär volumePricing per artikel.
+//
+// MODELLEN: volympriset sätter unit_price (listpris/dygn för det antalet) och
+// applyDayPricing() härleder price därifrån. Volymrabatt och flerdygnsrabatt
+// multipliceras alltså — precis som på sajten.
+//
+// LÅSNING: skriver admin in ett eget à-pris på raden sätts _priceLocked och
+// raden rörs aldrig mer av automatiken. Manuellt pris vinner alltid.
+const VOL_TIERS = (() => {
+  const map = {};
+  const put = (key, tiers) => {
+    if (key && !map[key]) map[key] = tiers;
+  };
+  const walk = (node) => {
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node.volumePricing) && node.volumePricing.length > 1) {
+      put(node.artno, node.volumePricing);
+      put(node.id, node.volumePricing);
+    }
+    Object.values(node).forEach(walk);
+  };
+  walk(window.__ADMIN_QUOTE_CATALOG__ || {});
+  return map;
+})();
+
+/** Volymtrappan för en rad, eller null. */
+function volTiersFor(item) {
+  if (!item || item._note || item.custom) return null;
+  return VOL_TIERS[item.artno] || VOL_TIERS[item.id] || null;
+}
+
+/** Listpris per st vid `qty` enligt trappan, eller null om ingen trappa finns. */
+function volUnitPrice(item, qty) {
+  const tiers = volTiersFor(item);
+  if (!tiers) return null;
+  const n = Math.max(1, Number(qty ?? item.qty) || 1);
+  let hit = null;
+  for (const t of tiers) if (n >= t.minQty) hit = t;
+  return hit ? hit.unitPrice : null;
+}
+
+/**
+ * Sätter volympriset på en rad och räknar om dygnspriset.
+ * Returnerar { item, changed, unitPrice } — item är ALLTID ett giltigt objekt.
+ */
+function applyVolPricing(item, qty) {
+  if (!item || item._priceLocked) return { item, changed: false, unitPrice: null };
+  const n = Math.max(1, Number(qty ?? item.qty) || 1);
+  const vp = volUnitPrice(item, n);
+  if (vp === null) return { item, changed: false, unitPrice: null };
+  const cur = Number(item.unit_price ?? item.price) || 0;
+  if (cur === vp) return { item, changed: false, unitPrice: vp };
+  const next = { ...item, qty: n, unit_price: vp };
+  return {
+    item: applyDayPricing(next, next.days, DAY_CFG, next.day_ladder),
+    changed: true,
+    unitPrice: vp,
+  };
+}
+
+/** Liten lavendel-badge under produktnamnet när ett volympris är aktivt. */
+function volMetaHTML(item) {
+  const tiers = volTiersFor(item);
+  if (!tiers) return '';
+  const qty  = Math.max(1, Number(item.qty) || 1);
+  const base = tiers[0]?.unitPrice || 0;
+  const vp   = volUnitPrice(item, qty);
+  if (vp === null) return '';
+  if (item._priceLocked) {
+    return `<div style="margin-top:2px;font-family:'Space Grotesk',sans-serif;font-size:0.62rem;color:rgba(251,191,36,0.85)">Eget pris — volymtrappan är avstängd på raden</div>`;
+  }
+  if (vp >= base) {
+    const nasta = tiers.find(t => t.minQty > qty);
+    return nasta
+      ? `<div style="margin-top:2px;font-family:'Space Grotesk',sans-serif;font-size:0.62rem;color:rgba(196,181,244,0.5)">Volympris från ${nasta.minQty} st: ${fmt(nasta.unitPrice)} kr/st</div>`
+      : '';
+  }
+  const pct = Math.round((1 - vp / base) * 100);
+  return `<div style="margin-top:2px;display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:0.62rem;font-weight:600;color:#4ade80;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);border-radius:5px;padding:0 5px">Volympris ${qty} st · ${fmt(vp)} kr/st −${pct} %</div>`;
+}
+
 // ── STATE ──────────────────────────────────────────────────── v2
 let TOKEN = '';
 let carts = [];
@@ -3649,25 +3736,35 @@ function prodGetItems() {
     const priceRaw = get('price');
     const unitEditRaw = get('unit_price_edit');
     const unitRaw = get('unit_price');
-    const unit_price = unitEditRaw !== '' ? (parseFloat(unitEditRaw) || 0)
-                     : unitRaw !== ''     ? (parseFloat(unitRaw) || 0)
-                     : (parseFloat(priceRaw) || 0);
+    const unitFromDom = unitEditRaw !== '' ? (parseFloat(unitEditRaw) || 0)
+                      : unitRaw !== ''     ? (parseFloat(unitRaw) || 0)
+                      : (parseFloat(priceRaw) || 0);
     const factorRaw = get('day_factor');
     const day_factor = factorRaw === '' ? 1 : (parseFloat(factorRaw) || 1);
     // Härled hellre än att lita på DOM: price = unit_price × faktor. Faller
     // tillbaka på det dolda fältet bara när faktorn saknas.
     const price = priceRaw !== '' && unitEditRaw === ''
       ? (parseFloat(priceRaw) || 0)
-      : Math.round(unit_price * (day_factor || 1));
+      : Math.round(unitFromDom * (day_factor || 1));
+    // Vid ett dygn ÄR det synliga priset dygnspriset. Spegla det till
+    // unit_price (samma regel som quoteEditPrice), annars räknar en senare
+    // dygnsökning — eller volymtrappan — från ett inaktuellt underlag och
+    // det handskrivna priset försvinner tyst.
+    const unit_price = unitEditRaw === '' ? price : unitFromDom;
     const ladderRaw = get('day_ladder');
     let day_ladder = null;
     if (ladderRaw) {
       try { const p = JSON.parse(ladderRaw); if (Array.isArray(p) && p.length) day_ladder = p; } catch (_) {}
     }
     const artno = get('artno') || undefined;
+    // Har admin skrivit in ett eget à-pris på raden? Då rör volymautomatiken
+    // den aldrig mer. Flaggan måste läsas tillbaka ur DOM som allt annat —
+    // annars tappas den vid varje re-render.
+    const _priceLocked = get('price_locked') === '1';
 
     return { id, name: get('name'), category, type, qty, price,
-             days, unit_price, day_factor, day_ladder, ...(artno ? { artno } : {}) };
+             days, unit_price, day_factor, day_ladder,
+             ...(artno ? { artno } : {}), ...(_priceLocked ? { _priceLocked: true } : {}) };
   }).filter(i => i.name?.trim()); // skip empty/whitespace rows
 
   // _note läggs ALLTID sist. Radindex för drag-and-drop och svcStart-logiken
@@ -3717,10 +3814,51 @@ function prodUpdateSum(idx) {
 // Wire up live sum update on input change
 document.addEventListener('input', e => {
   if (e.target.matches('.prod-qty, .prod-price')) {
+    // Handskrivet à-pris låser raden mot volymautomatiken.
+    if (e.target.matches('.prod-price')) {
+      const row = e.target.closest('tr');
+      const lock = row?.querySelector('[data-field="price_locked"]');
+      if (lock) lock.value = '1';
+    }
     const idx = e.target.dataset.idx;
     if (idx !== undefined) prodUpdateSum(idx);
   }
 });
+
+// Antal skrivet för hand i rutan → slå om volympriset när fältet lämnas.
+document.addEventListener('change', e => {
+  if (e.target.matches('.prod-qty')) {
+    const idx = e.target.dataset.idx;
+    if (idx !== undefined) _prodApplyVolPrice(parseInt(idx, 10));
+  }
+});
+
+/**
+ * Sätter volympriset på rad `idx` i Produkter-fliken och ritar om.
+ * Returnerar true om något ändrades (då har fliken redan renderats om).
+ * idx = positionen bland de renderade raderna (samma index som prodDays m.fl.).
+ */
+function _prodApplyVolPrice(idx) {
+  if (!Number.isInteger(idx)) return false;
+  if (typeof currentCart !== 'object' || !currentCart) return false;
+  if (!document.getElementById('prod-tbody')) return false;
+  const items = prodGetItems();
+  const real  = items.filter(i => !i._note);
+  const item  = real[idx];
+  // Utan volymtrappa finns inget att räkna om — och ingen badge som kan bli
+  // inaktuell, så raden behöver inte ritas om.
+  if (!item || !volTiersFor(item)) return false;
+  const res = applyVolPricing(item, item.qty);
+  real[idx] = res.item;
+  const note = items.find(i => i._note);
+  currentCart.items = note ? [...real, note] : real;
+  renderTab('products');   // badgen speglar alltid aktuellt antal
+  if (typeof markPanelDirty === 'function') markPanelDirty();
+  if (res.changed && typeof toast === 'function') {
+    toast(`Volympris: ${fmt(res.unitPrice)} kr/st vid ${item.qty} st`);
+  }
+  return true;
+}
 
 function prodQty(idx, delta) {
   const input = document.querySelector(`[data-field="qty"][data-idx="${idx}"]`);
@@ -3734,6 +3872,8 @@ function prodQty(idx, delta) {
   if (typeof currentCart === 'object' && currentCart) {
     currentCart.items = prodGetItems();
   }
+  // Volymtrappan kan slå om vid det nya antalet — renderar om fliken själv.
+  if (_prodApplyVolPrice(parseInt(idx, 10))) return;
   if (typeof markPanelDirty === 'function') markPanelDirty();
 }
 
@@ -4573,6 +4713,8 @@ function renderProductsTab() {
               : ''}
             <input type="hidden" data-field="day_factor" data-idx="${idx}" value="${item.day_factor ?? 1}">
             <input type="hidden" data-field="day_ladder" data-idx="${idx}" value="${ladder ? JSON.stringify(ladder).replace(/"/g,'&quot;') : ''}">
+            <input type="hidden" data-field="price_locked" data-idx="${idx}" value="${item._priceLocked ? '1' : ''}">
+            ${volMetaHTML(item)}
             ${dayMetaRowHTML(item, idx)}
             <div id="po-${idx}" style="display:none">${popoutContent}</div>
             <div id="dp-${idx}" style="display:none">${dayPanelHTML(item, idx)}</div>
@@ -7510,9 +7652,16 @@ function quotePickerAdd() {
   const SVC_IDS = new Set(['lev-standard','lev-skrymmande','lev-storbil','lev-storbil-slap','lev-lastbil','montering','rigg-teknik','fakturaavgift-49']);
   const isSvc    = SVC_CATALOG_KEYS.includes(selCat) || SVC_IDS.has(id);
 
-  // Om samma produkt redan finns, öka antal
+  // Om samma produkt redan finns, öka antal (och slå på volympriset)
   const existing = quoteItems.find(i => i.id === id && !i.custom);
-  if (existing) { existing.qty++; }
+  if (existing) {
+    const eIdx = quoteItems.indexOf(existing);
+    const nyQty = (Number(existing.qty) || 1) + 1;
+    const res = applyVolPricing({ ...existing, qty: nyQty }, nyQty);
+    quoteItems[eIdx] = res.item;
+    quoteItems[eIdx].qty = nyQty;
+    if (res.changed) toast(`Volympris: ${fmt(res.unitPrice)} kr/st vid ${nyQty} st`);
+  }
   else {
     const newItem = { id, name, price, qty: 1, category: isSvc ? 'Tjänster' : '', type: isSvc ? 'service' : 'product' };
     if (isSvc) {
@@ -7560,7 +7709,7 @@ function quoteRenderTable() {
         ondrop="quoteDrop(event,${idx})" ondragend="quoteDragEnd(event)"
         style="cursor:default">
       <td style="width:18px;padding:0 2px 0 0.5rem;cursor:grab;color:rgba(196,181,244,0.4);font-size:1rem;text-align:center;user-select:none" title="Drag för att ändra ordning">⠿</td>
-      <td>${nameCell}${quoteDayMetaHTML(item, idx)}<div id="qdp-${idx}" style="display:none">${quoteDayPanelHTML(item, idx)}</div></td>
+      <td>${nameCell}${volMetaHTML(item)}${quoteDayMetaHTML(item, idx)}<div id="qdp-${idx}" style="display:none">${quoteDayPanelHTML(item, idx)}</div></td>
       <td style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px">
           <button class="qty-btn" onclick="quoteQtyIdx(${idx},-1)" style="width:22px;height:22px;font-size:0.9rem">−</button>
@@ -7704,6 +7853,7 @@ function quoteEditUnitPrice(idx, val) {
   _quoteRecalcRow(idx, item => {
     const n = parseFloat(String(val).replace(',', '.'));
     item.unit_price = Number.isFinite(n) ? n : (item.unit_price || 0);
+    item._priceLocked = true;   // eget pris vinner över volymtrappan
   });
 }
 
@@ -7742,7 +7892,11 @@ function quoteApplyDaysToAll(days) {
 
 function quoteQtyIdx(idx, delta) {
   if (!quoteItems[idx]) return;
-  quoteItems[idx].qty = Math.max(1, quoteItems[idx].qty + delta);
+  const nyQty = Math.max(1, quoteItems[idx].qty + delta);
+  const res = applyVolPricing({ ...quoteItems[idx], qty: nyQty }, nyQty);
+  quoteItems[idx] = res.item;
+  quoteItems[idx].qty = nyQty;
+  if (res.changed) toast(`Volympris: ${fmt(res.unitPrice)} kr/st vid ${nyQty} st`);
   quoteRenderTable();
 }
 
@@ -7754,6 +7908,9 @@ function quoteEditName(idx, val) {
 function quoteEditPrice(idx, val) {
   if (!quoteItems[idx]) return;
   const p = parseFloat(val) || 0;
+  // Eget pris låser raden mot volymautomatiken — annars skulle nästa
+  // antalsändring tyst skriva över det admin just satt.
+  quoteItems[idx]._priceLocked = true;
   quoteItems[idx].price = p;
   // Vid 1 dygn ÄR priset dygnspriset. Spegla det till unit_price, annars
   // skulle en senare dygnsökning räkna från ett inaktuellt underlag.
@@ -8976,6 +9133,9 @@ function _inheritDays(item, befintliga) {
 }
 
 function _commitTargetItem(item) {
+  // Volympris innan dygnen ärvs: applyDayPricing() härleder price ur
+  // unit_price, så trappan måste ha satt unit_price först.
+  item = applyVolPricing(item, item.qty).item;
   if (_configTarget === 'productsTab') {
     // Skriv direkt på currentCart.items + uppdatera DOM via renderTab.
     // prodGetItems() läser DOM så vi måste synka items till DOM först
@@ -9148,7 +9308,14 @@ function quoteSearchPick(idx) {
     : quoteItems;
   const existing = targetItems.find(i => i.id === p.id && !i.custom);
   if (existing) {
-    existing.qty++;
+    const eIdx = targetItems.indexOf(existing);
+    const nyQty = (Number(existing.qty) || 1) + 1;
+    const volRes = applyVolPricing({ ...existing, qty: nyQty }, nyQty);
+    targetItems[eIdx] = volRes.item;
+    targetItems[eIdx].qty = nyQty;
+    if (volRes.changed && typeof toast === 'function') {
+      toast(`Volympris: ${fmt(volRes.unitPrice)} kr/st vid ${nyQty} st`);
+    }
     if (_configTarget === 'productsTab') {
       currentCart.items = targetItems;
       renderTab('products');

@@ -279,7 +279,7 @@
     }
     .prod-row {
       display: grid;
-      grid-template-columns: 28px 130px 1fr 110px 1.4fr 60px;
+      grid-template-columns: 28px 130px 1fr 110px 1.4fr 96px;
       gap: 10px;
       padding: 10px 14px;
       align-items: start;
@@ -427,13 +427,14 @@
       padding-top: 4px;
       display: flex;
       gap: 4px;
+      flex-wrap: wrap;
       justify-content: flex-end;
     }
     .vol-btn {
       background: none;
       border: 1px solid var(--border);
       color: var(--text-muted);
-      padding: 4px 8px;
+      padding: 4px 6px;
       border-radius: 5px;
       cursor: pointer;
       font-size: 12px;
@@ -611,6 +612,68 @@
       margin-top: 8px;
     }
 
+    /* ── USP-editor (specs) ──────────────────────────────── */
+    .usp-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .usp-row {
+      display: grid;
+      grid-template-columns: 22px 1fr 26px 26px 26px;
+      gap: 6px;
+      align-items: center;
+      padding: 6px;
+      background: var(--bg);
+      border-radius: 6px;
+    }
+    .usp-row .tnum {
+      color: var(--text-faint);
+      font-size: 11px;
+      text-align: center;
+    }
+    .usp-row .mv-btn,
+    .usp-row .rm-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 24px; height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+    }
+    .usp-row .rm-btn { color: var(--red); }
+    .usp-row .mv-btn:disabled,
+    .usp-row .rm-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .usp-row .mv-btn:hover:not(:disabled) { color: var(--brand-lav); border-color: var(--brand-lav); }
+    .usp-row .rm-btn:hover:not(:disabled) { background: var(--red-bg); }
+    .usp-row .cnt {
+      grid-column: 2 / 3;
+      font-size: 10px;
+      color: var(--text-faint);
+      text-align: right;
+    }
+    .usp-preview {
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .usp-preview .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      color: var(--text-faint);
+    }
+    .usp-preview ul { list-style: none; padding: 0; margin: 0; }
+    .usp-preview li { padding: 2px 0; }
+    .usp-preview li::before { content: '▸'; color: var(--green); margin-right: 6px; }
+
     /* ── Form i ny-produkt-modal ─────────────────────────── */
     .form-grid {
       display: grid;
@@ -739,6 +802,34 @@
     </div>
   </div>
 
+  <!-- USP-modal (specs) -->
+  <div id="usp-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="usp-modal-title">▸ USP-punkter</h2>
+        <button class="close" id="usp-modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5">
+          Punktlistan som visas längst ned på produktkortet (fältet <code>specs</code>).
+          Håll dem korta — en teknisk fördel per rad. Max 12 punkter, 160 tecken per punkt.
+        </div>
+        <div id="usp-rows" class="usp-rows"></div>
+        <button id="usp-add-row" class="vol-add-btn">+ Lägg till punkt</button>
+        <div id="usp-error" class="vol-error" style="display:none"></div>
+        <div id="usp-preview" class="usp-preview" style="display:none">
+          <div class="label">Förhandsvisning på produktkortet</div>
+          <ul id="usp-preview-rows"></ul>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button id="usp-modal-remove" class="btn-secondary" style="margin-right:auto;color:var(--red);border-color:var(--red)">Ta bort alla punkter</button>
+        <button id="usp-modal-cancel" class="btn-secondary">Avbryt</button>
+        <button id="usp-modal-save" class="btn-primary">OK — uppdatera lokalt</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Ny produkt-modal -->
   <div id="new-modal" class="modal-overlay">
     <div class="modal">
@@ -785,8 +876,9 @@
             <div class="hint">Bilden måste finnas under public/ — ladda upp separat</div>
           </div>
           <div class="full">
-            <label>Includes (en per rad)</label>
+            <label>USP-punkter (en per rad)</label>
             <textarea id="new-includes" rows="3" placeholder="15×10W RGBAW&#10;DMX-styrning&#10;IP65"></textarea>
+            <div class="hint">Punktlistan längst ned på produktkortet (fältet <code>specs</code>). Max 12 punkter, 160 tecken per punkt.</div>
           </div>
         </div>
 
@@ -1279,6 +1371,11 @@
           ? pend.volumePricing
           : (p.volumePricing || null);
         const hasVolPricing = Array.isArray(curVolPricing) && curVolPricing.length > 0;
+        // Effektiva USP-punkter (specs) — pending overrider original
+        const curSpecs = pend && 'specs' in pend
+          ? pend.specs
+          : (p.specs || null);
+        const hasSpecs = Array.isArray(curSpecs) && curSpecs.length > 0;
 
         const isChanged = !!pend && Object.keys(pend).some(k => k !== 'errors');
         const hasError  = !!(pend && pend.errors && Object.keys(pend.errors).length);
@@ -1288,6 +1385,10 @@
         else if (isChanged) rowClass += ' changed';
 
         const statusColor = hasError ? 'red' : (isChanged ? 'amber' : 'green');
+
+        const uspTitle = hasSpecs
+          ? `USP-punkter (${curSpecs.length} st): ${curSpecs.join(' · ')}`
+          : 'Lägg till USP-punkter (visas längst ned på produktkortet)';
 
         const volTitle = hasVolPricing
           ? `Volymrabatt: ${curVolPricing.length} nivåer (${curVolPricing[0].unitPrice}–${curVolPricing[curVolPricing.length-1].unitPrice} kr/st)`
@@ -1312,6 +1413,7 @@
             ${hasError && pend.errors.description ? `<div class="field-err">${escapeHtml(pend.errors.description)}</div>` : ''}
           </div>
           <div class="row-actions">
+            <button class="vol-btn ${hasSpecs ? 'active' : ''}" data-action="usp" title="${escapeAttr(uspTitle)}">▸</button>
             <button class="vol-btn ${hasVolPricing ? 'active' : ''}" data-action="vol" title="${escapeAttr(volTitle)}">📊</button>
           </div>
         </div>`;
@@ -1331,8 +1433,10 @@
       });
       $('table-wrap').querySelectorAll('.vol-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-          const row = e.target.closest('.prod-row');
-          openVolModal(row.dataset.path);
+          const b = e.target.closest('.vol-btn');
+          const row = b.closest('.prod-row');
+          if (b.dataset.action === 'usp') openUspModal(row.dataset.path);
+          else openVolModal(row.dataset.path);
         });
       });
       updateToolbar();
@@ -1801,6 +1905,172 @@
       updateToolbar();
     });
 
+    // ─── USP-modal (specs) ────────────────────────────────
+    // Punktlistan under produktkortet. Samma pending-mönster som volymtrappan:
+    // tom array = signal till backend att radera fältet helt.
+    let uspModalPath = null;
+    let uspModalRows = [];
+
+    function uspCurrent(path) {
+      const section = fileData.sections.find(s => s.key === activeSection);
+      const idx = parseInt(path.split('.').pop(), 10);
+      const product = section.products[idx];
+      const pend = pending.get(path);
+      if (pend && 'specs' in pend) {
+        return { product, rows: Array.isArray(pend.specs) ? pend.specs.slice() : [] };
+      }
+      return { product, rows: Array.isArray(product.specs) ? product.specs.slice() : [] };
+    }
+
+    function openUspModal(path) {
+      uspModalPath = path;
+      const { product, rows } = uspCurrent(path);
+      uspModalRows = rows.length ? rows : [''];
+      $('usp-modal-title').textContent = `▸ USP-punkter — ${product.artno || product.name}`;
+      renderUspRows();
+      $('usp-modal').classList.add('open');
+      setTimeout(() => $('usp-rows').querySelector('input')?.focus(), 30);
+    }
+
+    function closeUspModal() {
+      $('usp-modal').classList.remove('open');
+      uspModalPath = null;
+      uspModalRows = [];
+    }
+
+    function renderUspRows(focusIdx) {
+      const wrap = $('usp-rows');
+      wrap.innerHTML = uspModalRows.map((s, i) => `
+        <div class="usp-row" data-idx="${i}">
+          <span class="tnum">${i + 1}.</span>
+          <input type="text" data-usp="text" value="${escapeAttr(s)}" maxlength="160" placeholder="t.ex. 19×15W RGBW + 60×0,2W RGB" />
+          <button class="mv-btn" data-mv="up"   data-idx="${i}" ${i === 0 ? 'disabled' : ''} title="Flytta upp">↑</button>
+          <button class="mv-btn" data-mv="down" data-idx="${i}" ${i === uspModalRows.length - 1 ? 'disabled' : ''} title="Flytta ned">↓</button>
+          <button class="rm-btn" data-rm="${i}" title="Ta bort punkten">×</button>
+        </div>
+      `).join('');
+
+      wrap.querySelectorAll('input[data-usp="text"]').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const i = parseInt(e.target.closest('.usp-row').dataset.idx, 10);
+          uspModalRows[i] = e.target.value;
+          updateUspPreview();
+        });
+        // Enter = ny punkt under den aktuella
+        inp.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          const i = parseInt(e.target.closest('.usp-row').dataset.idx, 10);
+          if (uspModalRows.length >= 12) return;
+          uspModalRows.splice(i + 1, 0, '');
+          renderUspRows(i + 1);
+        });
+      });
+      wrap.querySelectorAll('.mv-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const b = e.target.closest('.mv-btn');
+          const i = parseInt(b.dataset.idx, 10);
+          const j = b.dataset.mv === 'up' ? i - 1 : i + 1;
+          if (j < 0 || j >= uspModalRows.length) return;
+          [uspModalRows[i], uspModalRows[j]] = [uspModalRows[j], uspModalRows[i]];
+          renderUspRows(j);
+        });
+      });
+      wrap.querySelectorAll('.rm-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const i = parseInt(e.target.closest('.rm-btn').dataset.rm, 10);
+          uspModalRows.splice(i, 1);
+          renderUspRows();
+        });
+      });
+
+      if (focusIdx !== undefined) {
+        const el = wrap.querySelector(`.usp-row[data-idx="${focusIdx}"] input`);
+        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+      }
+      updateUspPreview();
+    }
+
+    // Tomma rader är tillåtna medan man skriver — de städas bort vid sparning.
+    function uspClean(rows) {
+      return (rows || []).map(s => String(s).trim()).filter(s => s.length > 0);
+    }
+
+    function validateUspRows(rows) {
+      const clean = uspClean(rows);
+      if (clean.length > 12) return 'Max 12 punkter';
+      for (let i = 0; i < clean.length; i++) {
+        if (clean[i].length > 160) return `Punkt ${i + 1}: max 160 tecken (${clean[i].length})`;
+      }
+      return null;
+    }
+
+    function updateUspPreview() {
+      const err = validateUspRows(uspModalRows);
+      const errEl = $('usp-error');
+      if (err) {
+        errEl.textContent = err;
+        errEl.style.display = 'block';
+        $('usp-modal-save').disabled = true;
+      } else {
+        errEl.style.display = 'none';
+        $('usp-modal-save').disabled = false;
+      }
+      const clean = uspClean(uspModalRows);
+      const prev = $('usp-preview');
+      if (!clean.length) { prev.style.display = 'none'; return; }
+      prev.style.display = 'block';
+      $('usp-preview-rows').innerHTML = clean.map(s => `<li>${escapeHtml(s)}</li>`).join('');
+    }
+
+    $('usp-modal-close').addEventListener('click', closeUspModal);
+    $('usp-modal-cancel').addEventListener('click', closeUspModal);
+    $('usp-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeUspModal();
+    });
+
+    $('usp-add-row').addEventListener('click', () => {
+      if (uspModalRows.length >= 12) return;
+      uspModalRows.push('');
+      renderUspRows(uspModalRows.length - 1);
+    });
+
+    $('usp-modal-remove').addEventListener('click', () => {
+      if (!confirm('Ta bort alla USP-punkter från denna produkt? Punktlistan försvinner från produktkortet.')) return;
+      const pend = pending.get(uspModalPath) || {};
+      pend.specs = [];   // tom array = radera fältet i backend
+      pending.set(uspModalPath, pend);
+      closeUspModal();
+      renderTable();
+      updateToolbar();
+    });
+
+    $('usp-modal-save').addEventListener('click', () => {
+      const err = validateUspRows(uspModalRows);
+      if (err) {
+        $('usp-error').textContent = err;
+        $('usp-error').style.display = 'block';
+        return;
+      }
+      const section = fileData.sections.find(s => s.key === activeSection);
+      const idx = parseInt(uspModalPath.split('.').pop(), 10);
+      const product = section.products[idx];
+      const original = Array.isArray(product.specs) ? product.specs : [];
+      const clean = uspClean(uspModalRows);
+      const pend = pending.get(uspModalPath) || {};
+      if (JSON.stringify(original) === JSON.stringify(clean)) {
+        delete pend.specs;
+      } else {
+        pend.specs = clean;   // [] = radera fältet
+      }
+      const hasKeys = Object.keys(pend).filter(k => k !== 'errors').length > 0;
+      if (!hasKeys) pending.delete(uspModalPath);
+      else pending.set(uspModalPath, pend);
+      closeUspModal();
+      renderTable();
+      updateToolbar();
+    });
+
     // ─── Ny produkt-modal ─────────────────────────────────
     let newModalVolTiers = [];
 
@@ -1939,6 +2209,11 @@
 
       if (description.length > 2000) errs.push('Beskrivning max 2000 tecken');
 
+      // USP-punkter (specs) — samma gränser som backend
+      const specsList = includesRaw ? includesRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+      const specsErr = validateUspRows(specsList);
+      if (specsErr) errs.push(`USP-punkter: ${specsErr}`);
+
       // Kolla unika artno mot fileData + pendingAdditions
       const allArtnos = collectArtnos(fileData.data);
       for (const a of pendingAdditions) {
@@ -1966,9 +2241,7 @@
       else product.priceNote = '/dygn'; // alltid med så det syns
       if (description) product.description = description;
       if (image) product.image = image;
-      if (includesRaw) {
-        product.specs = includesRaw.split('\n').map(s => s.trim()).filter(Boolean);
-      }
+      if (specsList.length) product.specs = specsList;
       if (volumePricing) product.volumePricing = volumePricing;
       product.alt = name; // alt = name som default
 
@@ -2109,7 +2382,7 @@
           continue;
         }
         const fields = {};
-        for (const k of ['name', 'price', 'description', 'volumePricing']) {
+        for (const k of ['name', 'price', 'description', 'specs', 'volumePricing']) {
           if (k in pend) fields[k] = pend[k];
         }
         if (Object.keys(fields).length > 0) {
@@ -2171,8 +2444,8 @@
           const target = getByPath(fileData.data, c.path);
           if (target && typeof target === 'object') {
             for (const [k, v] of Object.entries(c.after)) {
-              // Hantera radering av volumePricing
-              if (k === 'volumePricing' && (v === null || (Array.isArray(v) && v.length === 0))) {
+              // Hantera radering av volumePricing / specs
+              if ((k === 'volumePricing' || k === 'specs') && (v === null || (Array.isArray(v) && v.length === 0))) {
                 delete target[k];
               } else {
                 target[k] = v;
