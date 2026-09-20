@@ -34,7 +34,7 @@ const faqSchema = {
   }))
 };
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
-const _heroFranExcl = _low((ljusData as any).paket.products);
+const _heroFranExcl = _low(((ljusData as any).paket.products ?? []).filter((p: any) => p.active !== false));
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 
@@ -87,7 +87,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <SectionHeader eyebrow="Snabbval" h2="Populäraste paketen" lead="De vanligaste valen för bröllop, fester och konserter i Stockholm." />
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {ljusData.paket.products.map(p => (
+        {ljusData.paket.products.filter((p: any) => p.active !== false).map(p => (
           <article class="bg-brand-dark border border-white/10 hover:border-brand-orange/40 rounded-2xl p-5 transition-all" itemscope itemtype="https://schema.org/Product">
             <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
             <meta itemprop="brand" content="Scenkonsult Norden" />

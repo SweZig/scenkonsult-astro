@@ -14,7 +14,7 @@ const evSmall = ljudData.event.products[0];
 const evMedium = ljudData.event.products[1];
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
 const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
-const ljusPaket = ljusData.paket.products[1];
+const ljusPaket = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0002');
 const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0010');
 
 // Karaoke-prisspann från live-JSON (för utrustningslistan)
@@ -46,7 +46,7 @@ const ffPaketDefs: PaketDef[] = [
       { artno: 'SK-LJD-EVE-0002', label: 'PA-system (2× 12″ toppar)' },
       { artno: 'SK-LJD-MIK-0016', label: 'Trådlös handmikrofon' },
       { artno: 'SK-LJD-MIK-0023', label: 'Shure SLXD headset — toastmaster' },
-      { artno: 'SK-LJS-PAK-0004', label: 'Ljuspaket Medium (moving heads)' },
+      { artno: 'SK-LJS-PAK-0025', label: 'Ljuspaket Medium++ (tre stativ, tre effekttyper)' },
       { artno: 'SK-LJS-EFF-0010', label: 'Moving Head Wash', qty: 2 },
       { artno: 'SK-LJS-ROK-0001', label: 'Rökmaskin 1500W' },
     ],

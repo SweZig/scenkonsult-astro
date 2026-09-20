@@ -9,10 +9,11 @@ const rok = ljusData.rok.products as any[];
 
 const jp = (artno: string) => [...paket,...effekter,...rok].find((p:any) => p.artno === artno)?.price ?? 0;
 
-const pakSmall   = paket[0];  // SK-LJS-PAK-0001
-const pakSmallP  = paket[1];  // SK-LJS-PAK-0002
-const pakSmallPP = paket[2];  // SK-LJS-PAK-0003
-const pakMedium  = paket[3];  // SK-LJS-PAK-0004
+const _pak = (a: string) => (paket as any[]).find((p:any) => p.artno === a);
+const pakSmall   = _pak('SK-LJS-PAK-0018');  // Ljuspaket, Small
+const pakSmallP  = _pak('SK-LJS-PAK-0020');  // Ljuspaket, Small+
+const pakSmallPP = _pak('SK-LJS-PAK-0001');  // Ljuspaket, Medium
+const pakMedium  = _pak('SK-LJS-PAK-0025');  // Ljuspaket, Medium++
 const mhWash     = effekter.find(p => p.artno === 'SK-LJS-EFF-0010');
 const ledPar     = effekter.find(p => p.artno === 'SK-LJS-EFF-0001');
 
@@ -20,7 +21,7 @@ const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "Vad kostar det att hyra ljus till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `Ljuspaket Small kostar ${jp('SK-LJS-PAK-0001')} kr/dygn och räcker för 10–30 gäster. För bröllop med 50–120 gäster rekommenderar vi Ljuspaket Small+ eller Small++ (${jp('SK-LJS-PAK-0002')}–${jp('SK-LJS-PAK-0003')} kr/dygn). Vill du ha moving heads och laser ingår det i Medium-paketet (${jp('SK-LJS-PAK-0004')} kr/dygn).` } },
+    { "@type": "Question", "name": "Vad kostar det att hyra ljus till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `Ljuspaket Small kostar ${jp('SK-LJS-PAK-0018')} kr/dygn och räcker upp till 20 gäster. För bröllop upp till 40 gäster rekommenderar vi Ljuspaket Small+ eller Medium (${jp('SK-LJS-PAK-0020')}–${jp('SK-LJS-PAK-0001')} kr/dygn). Vill du ha kaleidoskop, laser och spindelarmatur på tre stativ finns Medium++ (${jp('SK-LJS-PAK-0025')} kr/dygn).` } },
     { "@type": "Question", "name": "Vilken ljussättning passar bäst till bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "Under middagen: varma uplights längs väggarna skapar stämning utan att blända. Under dansgolvet: moving heads och discoljus ger rörelse och färg. Kombinationen av stämningsljus + dansljus är det vanligaste valet för bröllop med 50–150 gäster." } },
     { "@type": "Question", "name": "Behöver man en ljustekniker till bröllopet?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — alla våra ljuspaket kör i automatiskt läge (musik-synkat eller förinställda program) utan tekniker. Vill du ha mer kontroll eller scenljus till levande musik rekommenderar vi tekniker som tillägg." } },
     { "@type": "Question", "name": "Kan man kombinera ljuspaket med moving heads?", "acceptedAnswer": { "@type": "Answer", "text": `Ja — du kan antingen välja ett ljuspaket som inkluderar moving heads (Small++ och uppåt) eller hyra enstaka moving heads separat och kombinera med ett baspaket. Enstaka Moving Head Wash kostar från ${jp('SK-LJS-EFF-0010')} kr/st/dygn.` } },
@@ -57,8 +58,8 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
       <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Ljus för bröllopets tre faser</h2>
       {[
         { fas:"1. Vigseln", icon:"💍", rec:"Diskreta uplights i varm vit eller guld", why:"Sätter stämning utan att dra uppmärksamheten från ceremonin. LED PAR i varm vit längs väggar och vid altaret ger en mjuk glöd.", prod:"LED PAR (14×8W RGBW)", pris:`${jp('SK-LJS-EFF-0001')} kr/st` },
-        { fas:"2. Middagen", icon:"🥂", rec:"Färgade uplights + bordsljus", why:"Välj bröllopsparets favoritfärg i lokalens uplights. Kombinera med levande ljus på borden för maximal stämning.", prod:"Ljuspaket, Small", pris:`${jp('SK-LJS-PAK-0001')} kr` },
-        { fas:"3. Dansgolvet", icon:"🎉", rec:"Moving heads + discoljus + laser", why:"Nu ska det hända saker. Moving heads med rörelse och färg, stroboskop och laser skapar dansstämning på nolltid.", prod:"Ljuspaket, Small++", pris:`${jp('SK-LJS-PAK-0003')} kr` },
+        { fas:"2. Middagen", icon:"🥂", rec:"Färgade uplights + bordsljus", why:"Välj bröllopsparets favoritfärg i lokalens uplights. Kombinera med levande ljus på borden för maximal stämning.", prod:"Ljuspaket, Medium", pris:`${jp('SK-LJS-PAK-0001')} kr` },
+        { fas:"3. Dansgolvet", icon:"🎉", rec:"Moving heads + discoljus + laser", why:"Nu ska det hända saker. Moving heads med rörelse och färg, stroboskop och laser skapar dansstämning på nolltid.", prod:"Ljuspaket, Medium++", pris:`${jp('SK-LJS-PAK-0025')} kr` },
       ].map(f => (
         <div style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem;margin-bottom:1rem;display:flex;gap:1rem;">
           <div style="font-size:1.75rem;flex-shrink:0;">{f.icon}</div>
@@ -93,12 +94,12 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
           </tr></thead>
           <tbody>
             {[
-              { g:"10–30", paket:"Ljuspaket, Small",    innehall:"4× LED PAR + stativ",                             artno:"SK-LJS-PAK-0001" },
-              { g:"20–60", paket:"Ljuspaket, Small+",   innehall:"Moving head + PAR-bank",                          artno:"SK-LJS-PAK-0002" },
-              { g:"20–80", paket:"Ljuspaket, Small++",  innehall:"PAR + moving head + strobe + laser",               artno:"SK-LJS-PAK-0003" },
-              { g:"40–120",paket:"Ljuspaket, Medium",   innehall:"Komplett discoljus med moving heads",              artno:"SK-LJS-PAK-0004" },
-              { g:"40–150",paket:"Ljuspaket, Medium+",  innehall:"Utökat medium + extra moving heads",               artno:"SK-LJS-PAK-0005" },
-              { g:"50–200",paket:"Ljuspaket, Medium++", innehall:"Maxpaket — full täckning",                         artno:"SK-LJS-PAK-0006" },
+              { g:"–20",   paket:"Ljuspaket, Small",    innehall:"Spindelarmatur 8× RGBW på stativ",                 artno:"SK-LJS-PAK-0018" },
+              { g:"–30",   paket:"Ljuspaket, Small+",   innehall:"Kaleidoskop 6-arm med laser på stativ",            artno:"SK-LJS-PAK-0020" },
+              { g:"–40",   paket:"Ljuspaket, Medium",   innehall:"LED T-bar med 4× PAR på stativ",                   artno:"SK-LJS-PAK-0001" },
+              { g:"–40",   paket:"Ljuspaket, Medium+",  innehall:"Trosstorn med moving head 100W COB",               artno:"SK-LJS-PAK-0002" },
+              { g:"–60",   paket:"Ljuspaket, Medium++", innehall:"T-bar + kaleidoskop + spindelarmatur, 3 stativ",   artno:"SK-LJS-PAK-0025" },
+              { g:"60–140",paket:"Ljuspaket, Large",    innehall:"Tross med scanner och 4 moving heads",             artno:"SK-LJS-PAK-0007" },
             ].map(({ g, paket, innehall, artno }, i) => (
               <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
                 <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{g}</td>

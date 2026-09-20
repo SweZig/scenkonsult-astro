@@ -14,7 +14,7 @@ const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno
 const shureHeadset = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
 const tradlosHand = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
 const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0011');
-const ljusPaketSmall = ljusData.paket.products[0];
+const ljusPaketSmall = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0018');
 const scenSmall = sceneData.products[0];
 
 // ---- Bröllopspaket: priser hämtas från live-JSON via artno (delad helper) ----
@@ -42,7 +42,7 @@ const paketDefs: PaketDef[] = [
       { artno: 'SK-LJD-EVE-0002', label: 'PA-system (2× 12″ toppar)' },
       { artno: 'SK-LJD-MIK-0016', label: 'Trådlös handmikrofon — tal' },
       { artno: 'SK-LJD-MIK-0023', label: 'Shure SLXD headset — toastmaster' },
-      { artno: 'SK-LJS-PAK-0003', label: 'Ljuspaket Small++ (PAR, laser, strobe, UV)' },
+      { artno: 'SK-LJS-PAK-0020', label: 'Ljuspaket Small+ (kaleidoskop, laser, strobe)' },
       { artno: 'SK-SCN-0001', label: 'Scenpodie för DJ / trubadur' },
       { artno: 'SK-LJS-EFF-0011', label: 'Moving Head Wash', qty: 2 },
     ],
@@ -54,7 +54,7 @@ const paketDefs: PaketDef[] = [
     rader: [
       { artno: 'SK-LJD-MUS-0003', label: 'Music Medium (2× 12″ + 2× 12″ sub)' },
       { artno: 'SK-LJD-MIK-0026', label: 'Shure SLXD — 2 handmikrofoner' },
-      { artno: 'SK-LJS-PAK-0004', label: 'Ljuspaket Medium (2 trosstorn + moving heads)' },
+      { artno: 'SK-LJS-PAK-0025', label: 'Ljuspaket Medium++ (T-bar, kaleidoskop, spindelarmatur)' },
       { artno: 'SK-SCN-0002', label: 'Scenpodie 2×3 m för band / DJ' },
       { artno: 'SK-LJS-EFF-0011', label: 'Moving Head Wash', qty: 2 },
       { artno: 'SK-LJS-ROK-0001', label: 'Rökmaskin 1500W' },

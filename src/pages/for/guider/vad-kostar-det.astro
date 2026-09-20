@@ -33,25 +33,25 @@ const fmt = (n: number) => n.toLocaleString('sv-SE');
 const paket = [
   {title:"Liten fest, ~50 gäster", rows:[
     {kat:"Ljud", prod:"Portable Medium",            p:lp("SK-LJD-POR-0003"), l:"/vara-tjanster/hyra-ljud/portable/"},
-    {kat:"Ljus", prod:"Ljuspaket Small",            p:jp("SK-LJS-PAK-0001"), l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Ljus", prod:"Ljuspaket Small",            p:jp("SK-LJS-PAK-0018"), l:"/vara-tjanster/hyra-ljus/"},
   ], note:"Hämta själv = 0 kr transport"},
   {title:"Bröllop, ~100 gäster", rows:[
     {kat:"Ljud", prod:"Music Small",                p:lp("SK-LJD-MUS-0001"), l:"/vara-tjanster/hyra-ljud/music/"},
     {kat:"Scen", prod:"Scenpaket Small+ (6 m²)",    p:sp("SK-SCN-0002"),     l:"/vara-tjanster/hyra-scen/"},
     {kat:"Scen", prod:"Scentrapp 60 cm",            p:sp("SK-SCN-ACC-0002"), l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus", prod:"Ljuspaket Medium",           p:jp("SK-LJS-PAK-0004"), l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Ljus", prod:"Ljuspaket Medium",           p:jp("SK-LJS-PAK-0001"), l:"/vara-tjanster/hyra-ljus/"},
   ], note:"Transport och montering tillkommer"},
   {title:"Företagsfest, ~200 gäster", rows:[
     {kat:"Ljud",  prod:"Music Large",               p:lp("SK-LJD-MUS-0004"), l:"/vara-tjanster/hyra-ljud/music/"},
     {kat:"Mixer", prod:"Mixerbord 12+4 kanaler",    p:lp("SK-LJD-MIX-0006"), l:"/vara-tjanster/hyra-ljud/event/"},
     {kat:"Scen",  prod:"Scenpaket Medium++ (16 m²)",p:sp("SK-SCN-0007"),     l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus",  prod:"Ljuspaket Medium++",        p:jp("SK-LJS-PAK-0006"), l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Ljus",  prod:"Ljuspaket Medium++",        p:jp("SK-LJS-PAK-0025"), l:"/vara-tjanster/hyra-ljus/"},
     {kat:"DJ",    prod:"Denon Prime 4+",            p:dp("SK-DJ-0003"),      l:"/vara-tjanster/hyra-dj/"},
   ], note:"Transport och montering tillkommer"},
   {title:"Festival, ~500 gäster utomhus", rows:[
     {kat:"Ljud", prod:"Live XL (konsert-PA)",   p:lp("SK-LJD-MUS-0008"), l:"/vara-tjanster/hyra-ljud/live/"},
     {kat:"Scen", prod:"Scenpaket Large+ inkl. scentak", p:sp("SK-SCN-0010"), l:"/vara-tjanster/hyra-scen/"},
-    {kat:"Ljus", prod:"Ljuspaket Medium++",         p:jp("SK-LJS-PAK-0006"), l:"/vara-tjanster/hyra-ljus/"},
+    {kat:"Ljus", prod:"Ljuspaket Medium++",         p:jp("SK-LJS-PAK-0025"), l:"/vara-tjanster/hyra-ljus/"},
     {kat:"Rök",  prod:"Rökmaskin 1500W",            p:jp("SK-LJS-ROK-0001"), l:"/vara-tjanster/hyra-ljus/"},
   ], note:"Kontakta oss för festivalpris"},
 ].map(pak => ({...pak, total: pak.rows.reduce((s, r) => s + (r.p ?? 0), 0)}));
@@ -63,8 +63,8 @@ const _scenLarge  = sp("SK-SCN-0008");   // 20 m²
 const _scenXL     = sp("SK-SCN-0011");   // 36 m²
 const _musicSmall = lp("SK-LJD-MUS-0001");
 const _musicMed   = lp("SK-LJD-MUS-0003");
-const _ljusSmall  = jp("SK-LJS-PAK-0001");
-const _ljusMed    = jp("SK-LJS-PAK-0004");
+const _ljusSmall  = jp("SK-LJS-PAK-0018");
+const _ljusMed    = jp("SK-LJS-PAK-0001");
 const _ljusXL     = jp("SK-LJS-PAK-0010");
 const _fraktBil   = (fraktData as any).leverans?.standard?.pris ?? 1118;
 const _fraktSlap  = (fraktData as any).leverans?.skrymmande?.pris ?? 1598;

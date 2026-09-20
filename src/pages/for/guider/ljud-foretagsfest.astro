@@ -18,7 +18,7 @@ const musSmall  = ljudData.music.products[0];
 const musMedium = (ljudData.music.products as any[]).find(p => p.artno === 'SK-LJD-MUS-0003');
 const shureHS   = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find(p => p.artno === 'SK-LJD-MIK-0023');
 const shureMygga= ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find(p => p.artno === 'SK-LJD-MIK-0022');
-const ljusPaket = ljusData.paket.products[1]; // Small+
+const ljusPaket = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0002'); // Ljuspaket, Medium+
 
 const faqSchema = {
   "@context": "https://schema.org",
