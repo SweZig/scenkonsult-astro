@@ -1521,8 +1521,9 @@ SK_LJS_EFF_0022 = ProductManual(
 # Ny 2026-09-22. Källa: grandMA2 v2.x-manualen (kinesisk översättning, 709 s.)
 # som följde med bordet. Den beskriver hela grandMA2-familjen och säger inget
 # om just den här kontrollytan. Hårdvarudelen bygger därför på produktbilden
-# (knapplayout) och inte på någon tillverkarspec. Hör av dig innan du lägger
-# till antal DMX-portar, parameterantal eller onPC-version här.
+# (knapplayout) och säljarens spec (1 536 kanaler, A/B-fadrar 100 mm, nivåhjul,
+# inbyggt nätaggregat), bekräftad av Per 2026-09-22. Antal DMX-portar och
+# onPC-version är inte bekräftade — lägg inte till dem utan att kontrollera.
 SK_LJS_DMX_0011 = ProductManual(
     artno="SK-LJS-DMX-0011",
     name="MA2 Fader Wing console",
@@ -1540,11 +1541,13 @@ SK_LJS_DMX_0011 = ProductManual(
     ],
     specs=[
         ("Programvara",     "grandMA2 onPC (Windows) — gratis från malighting.com"),
+        ("Kapacitet",       "1 536 kanaler i realtid tillsammans med grandMA2 onPC"),
         ("Executors",       "6 fader-executors med knappar · 6 knapp-executors (101–106)"),
-        ("Huvudexecutor",   "Fadrar med <b>Go+</b>, <b>Go−</b> och <b>Pause</b>"),
-        ("Programmering",   "4 encoders · nivåhjul · fullt kommandoblock med nummerbord"),
+        ("Huvudexecutor",   "2 A/B-fadrar (100 mm) med <b>Go+</b>, <b>Go−</b> och <b>Pause</b>"),
+        ("Programmering",   "4 encoders · nivåhjul · kommandoblock i MA2-layout"),
         ("Master",          "Grand master-fader och <b>B.O.</b> (blackout)"),
-        ("Sidbyte",         "Ch Pg · Fd Pg · Bt Pg +/−"),
+        ("Knappar",         "Bakgrundsbelysta, dimbara och tysta"),
+        ("Ström",           "Inbyggt universalnätaggregat"),
     ],
     toc=[
         ("1", "Koppla upp bordet",                    "sida 2"),
@@ -1568,7 +1571,8 @@ SK_LJS_DMX_0011 = ProductManual(
              "Ladda ner grandMA2 onPC från <b>malighting.com</b> och installera på en "
              "Windows-dator. Programmet är gratis. Kör det en gång innan bordet ansluts."),
             ("Anslut bordet",
-             "Koppla bordet till datorn och starta sedan grandMA2 onPC."),
+             "Anslut strömkabeln till bordet och koppla bordet till datorn. "
+             "Starta sedan grandMA2 onPC."),
             ("Kontrollera kontakten",
              "Dra i fader 1. Executor 1 på skärmen ska följa med. Gör den inte det "
              "har programmet inte hittat bordet — se felsökningen på sida 7."),
@@ -1593,6 +1597,7 @@ SK_LJS_DMX_0011 = ProductManual(
                 ["Fader 1–6",           "Executor-fadrar — nivå på sekvensen eller gruppen som ligger där"],
                 ["Knappar över/under",  "Executorns knappar — t.ex. Go, Flash, Toggle, beroende på inställning"],
                 ["101–106",             "Knapp-executors utan fader — bra för effekter och makron"],
+                ["A/B-fadrar (100 mm)", "Huvudexecutorns två fadrar — för manuella övertoningar mellan cues"],
                 ["Go+ / Go− / Pause",   "Huvudexecutorn: nästa cue, föregående cue, pausa fade"],
                 ["Grand master",        "Fadern längst till höger — total ljusnivå för allt"],
                 ["B.O.",                "Blackout — släcker allt. Beroende på inställning bara medan knappen hålls in, eller tills du trycker igen"],
