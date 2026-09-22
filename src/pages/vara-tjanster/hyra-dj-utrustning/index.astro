@@ -8,7 +8,7 @@ import dj from '../../../data/dj.json';
 
 // Filtrera fram bara hårdvara (controllers + DJ-bord) — INTE DJ-tjänster (Junior/Senior/PRO)
 const controllers = dj.equipment.filter(p => ['SK-DJ-0001','SK-DJ-0002','SK-DJ-0003','SK-DJ-0004'].includes(p.artno));
-const djBord = dj.equipment.filter(p => ['SK-DJ-0005','SK-DJ-0006'].includes(p.artno));
+const djBord = dj.equipment.filter(p => ['SK-DJ-0005','SK-DJ-0006','SK-DJ-0018'].includes(p.artno));
 
 // Lägsta DJ-tjänstpris (Junior) härlett från equipment[] — för CTA-texten
 const djFromExcl = Math.min(...(dj.equipment as any[])
@@ -96,9 +96,9 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <!-- DJ-bord -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <SectionHeader
-      eyebrow="Bord"
-      h2="DJ-bord — stadigt och proffsigt"
-      lead="Stabila DJ-bord som passar alla våra controllers och mixerbord. Välj en enkel modell eller en med front- och sidopaneler för en mer professionell look."
+      eyebrow="Bord & hörlurar"
+      h2="DJ-bord och hörlurar"
+      lead="Stabila DJ-bord som passar alla våra controllers och mixerbord. Välj en enkel modell eller en med front- och sidopaneler för en mer professionell look — och lägg till ett par slutna hörlurar för att lyssna in nästa låt."
     />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
       {djBord.map(p => (

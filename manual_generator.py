@@ -1262,12 +1262,548 @@ SK_LJS_PAK_0025 = ProductManual(
 
 
 # =============================================================================
+# SK-LJS-EFF-0022 — Moving Beam Bar, dubbelsidig
+# =============================================================================
+# Flyttad hit 2026-09-22 från projektdokumentets version av filen, där den låg
+# under platshållarnumret SK-LJS-EFF-0008 ("Beam Curtain Moving Head —
+# dubbelsidig"). EFF-0008 tillhör Strobe (2-pack) och får inte användas.
+# EFF-0020/0021 är reserverade för Kaleidoskop och Mini Spider styckvis.
+SK_LJS_EFF_0022 = ProductManual(
+    artno="SK-LJS-EFF-0022",
+    name="Moving Beam Bar, dubbelsidig",
+    subtitle="Beam-ridå och strobe i samma armatur, 360° oändlig rotation",
+    description=[
+        "Dubbelsidig moving bar med <b>beam-linser på ena sidan</b> "
+        "(12 × 10 W RGBW) och en <b>strobepanel på den andra</b> (224 RGB-chip + "
+        "56 vita). Armaturen roterar oändligt runt sin egen axel och ger både "
+        "strålridå och blixt från samma enhet.",
+        "Styrs via <b>DMX-512</b> i <b>14 kanaler</b> (enkel styrning) eller "
+        "<b>27 kanaler</b> (dessutom de inbyggda effektprogrammen). Kan även köras "
+        "i auto-, ljud- eller master/slave-läge utan pult.",
+    ],
+    specs=[
+        ("Ljuskälla, beam",   "12 × 10 W RGBW (4-i-1)"),
+        ("Ljuskälla, strobe", "224 × 0,2 W RGB (3-i-1) + 56 × 1 W vit 8000 K"),
+        ("Rörelse",           "360° oändlig rotation"),
+        ("Kanallägen",        "14 / 27 / 84 DMX-kanaler"),
+        ("Styrning",          "DMX-512 · Auto · Ljudstyrt · Master/slave · RDM"),
+        ("Effekter",          "Stroboskop 1–25 blixt/s · 15 inbyggda auto-/ljudlägen · "
+                              "steglös dimmer 0–100 %"),
+        ("Färg och kapsling", "RGBW-blandning (16,7 milj. färger) · IP20, endast inomhus"),
+        ("Strömförsörjning",  "AC 110–250 V, 50/60 Hz · 250 W"),
+        ("Vikt och mått",     "4 kg (5 kg med emballage) · 58 × 17 × 8 cm "
+                              "(paket 73 × 21 × 13 cm)"),
+    ],
+    toc=[
+        ("1", "Montering och säkerhet",              "sida 2"),
+        ("2", "Display och menyfunktioner",          "sida 3"),
+        ("3", "DMX-styrning — 14 kanaler",           "sida 4"),
+        ("4", "DMX-styrning — 27 kanaler",           "sida 5"),
+        ("5", "Auto, ljudstyrt och master/slave",    "sida 6"),
+        ("6", "Felsökning",                          "sida 6"),
+    ],
+    safety_box=InfoBox("Innan du riggar", [
+        "<b>IP20</b> — aldrig regn eller fukt. Bryt strömmen innan kåpan öppnas. "
+        "Riggpunkten ska klara <b>minst 10 × armaturens vikt</b> och säkras med "
+        "säkerhetswire. Minst <b>0,5 m</b> till brännbart material."
+    ], style="warning"),
+    blocks=[
+        # ---------- SIDA 2 ----------
+        H2("1. Montering och säkerhet"),
+        P("Armaturen väger 4 kg och roterar fritt 360° — den behöver fri yta runt "
+          "om och en rigg som tål dynamisk last."),
+        H3("Innan du monterar"),
+        UL([
+            "Packa upp och kontrollera transportskador. Vid skada: montera <b>inte</b> "
+            "armaturen — kontakta oss.",
+            "I kartongen ska finnas: armatur, nätkabel, DMX-kabel, två omega-fästen "
+            "och bruksanvisning.",
+            "Riggpunkten ska klara <b>minst 10 gånger</b> armaturens vikt.",
+            "Säkra alltid med <b>säkerhetswire</b> utöver omega-fästet. Fästet, "
+            "bottenplattan och riggpunkten för säkerhetswiren sitter i samma enhet.",
+        ]),
+        H3("Placering"),
+        UL([
+            "Montera utanför gångstråk, sittplatser och ytor där obehöriga kan nå "
+            "armaturen.",
+            "Minst <b>0,5 meter</b> fritt till brännbart material — dekor, draperi, "
+            "kabelstege.",
+            "Stå aldrig rakt under armaturen vid montering, demontering eller service.",
+            "Fullborda all rigg <b>innan</b> nätkabeln ansluts till vägguttaget.",
+            "Saknar du riggvana — låt någon annan göra monteringen. Felaktig "
+            "infästning kan orsaka personskada.",
+        ]),
+        H3("Signalkablage"),
+        P("DMX ansluts med tvåledad, skärmad kabel med 3-pol XLR: från pultens "
+          "DMX OUT (hona) till armaturens DMX IN (hane), vidare från armaturens "
+          "DMX OUT till nästa enhet. Sätt en <b>120 ohms terminator</b> i sista "
+          "enhetens DMX OUT. Använd aldrig mikrofonkabel."),
+        Break(),
+
+        # ---------- SIDA 3 ----------
+        H2("2. Display och menyfunktioner"),
+        P("Fyra knappar sitter vid displayen på armaturens bakstycke: <b>MENU</b> "
+          "växlar funktion, <b>UP</b>/<b>DOWN</b> ändrar värde eller adress, och "
+          "<b>ENTER</b> sparar. Ett ändrat värde gäller först när du tryckt ENTER."),
+        DataTable(
+            headers=["Visas i display", "Värde", "Funktion"],
+            rows=[
+                ["A001",      "001–512",  "DMX-startadress"],
+                ["27CH",      "14/27/84", "Kanalläge — måste matcha profilen i pulten"],
+                ["CF01–CF30", "00–30",    "Automatprogram för beam. ENTER → hastighet SP01–SP15"],
+                ["EF01–EF30", "00–30",    "Automatprogram för strobe i färg. ENTER → hastighet SP01–SP15"],
+                ["UF01–UF30", "00–30",    "Automatprogram för vit strobe. ENTER → hastighet SP01–SP15"],
+                ["Soud",      "—",        "Ljudstyrt läge. ENTER → känslighet SE01–SE15"],
+                ["r/G/b/U",   "000–255",  "Beam: fast nivå per färgkanal (röd, grön, blå, vit)"],
+                ["r/G/b/U",   "000–255",  "Strobe: fast nivå per färgkanal (röd, grön, blå, vit)"],
+                ["n000",      "000–255",  "Motorns position — grundinställning av utgångsläget"],
+                ["J000",      "000–255",  "Motorns hastighet"],
+            ],
+            col_widths=[26 * mm, 24 * mm, None],
+            mono_cols=[0, 1],
+            tight=True,
+        ),
+        Space(3),
+        InfoBox("Två saker att veta om menyn", [
+            "<b>Spara en manuell färgnivå:</b> ställ värdet med UP/DOWN och tryck "
+            "<b>ENTER två gånger</b> — då ligger nivån kvar i minnet efter strömavbrott.",
+            "<b>Tryckfel i originalmanualen:</b> menyraden för kanalläge listar "
+            "“17/27/84”. Lägena heter i själva verket <b>14, 27 och 84 kanaler</b>, "
+            "vilket kanaltabellerna i tillverkarens egen manual bekräftar.",
+        ]),
+        Space(3),
+        P("<b>84-kanalsläget</b> är ett pixelläge där varje LED-grupp adresseras för "
+          "sig. Det är inte dokumenterat fullständigt av tillverkaren och beskrivs "
+          "inte i den här guiden — hör av dig om du behöver det för ett jobb."),
+        Break(),
+
+        # ---------- SIDA 4 ----------
+        H2("3. DMX-styrning — 14 kanaler"),
+        P("Ställ startadress (<b>A001–A512</b>) och kanalläge i displayen, och "
+          "patcha samma antal kanaler i pulten. 14-kanalsläget räcker för vanlig "
+          "användning: rörelse, dimmer, strobe och färg på båda sidorna. "
+          "Adressavstånd vid flera armaturer: <b>+14 per enhet</b>."),
+        DataTable(
+            headers=["Kanal", "Värde", "Funktion"],
+            rows=[
+                ["CH1",  "0–255", "Motor — rörelse inom 1080°"],
+                ["CH2",  "0–255", "Motor — 360° oändlig rotation"],
+                ["CH3",  "0–255", "Motorhastighet, långsam → snabb"],
+                ["CH4",  "0–255", "Master-dimmer, mörk → ljus"],
+                ["CH5",  "0–255", "Stroboskop, beam-sidan"],
+                ["CH6",  "0–255", "Beam: röd"],
+                ["CH7",  "0–255", "Beam: grön"],
+                ["CH8",  "0–255", "Beam: blå"],
+                ["CH9",  "0–255", "Beam: vit"],
+                ["CH10", "0–255", "Strobe: röd"],
+                ["CH11", "0–255", "Strobe: grön"],
+                ["CH12", "0–255", "Strobe: blå"],
+                ["CH13", "0–255", "Strobe: vit"],
+                ["CH14", "0–255", "Reset"],
+            ],
+            col_widths=[16 * mm, 22 * mm, None],
+            mono_cols=[0, 1],
+            tight=True,
+        ),
+        Space(3),
+        InfoBox("Rök gör effekten", [
+            "Beam-sidan lever på att strålarna syns i luften. Utan rök- eller "
+            "hazemaskin ser publiken bara ljuspunkterna, inte ridån. Räkna med "
+            "haze som en del av effekten när du säljer in eller riggar armaturen.",
+            "<b>Reset (CH14):</b> lägg aldrig reset-kanalen på en fader som kan "
+            "råka röras under show — armaturen nollställer sig mitt i numret.",
+        ]),
+        Break(),
+
+        # ---------- SIDA 5 ----------
+        H2("4. DMX-styrning — 27 kanaler"),
+        P("27-kanalsläget ger samma grundfunktioner som 14-kanalsläget, men lägger "
+          "till <b>inbyggda effektprogram</b>, hastighet och bakgrundsfärg för "
+          "beam- respektive strobesidan var för sig. Adressavstånd: "
+          "<b>+27 per enhet</b>."),
+        DataTable(
+            headers=["Kanal", "Värde", "Funktion"],
+            rows=[
+                ["CH1",  "0–255",   "Motor — rörelse inom 1080°"],
+                ["CH2",  "0–255",   "Motor — 360° oändlig rotation"],
+                ["CH3",  "0–255",   "Motorhastighet"],
+                ["CH4",  "0–255",   "Beam: master-dimmer"],
+                ["CH5",  "0–255",   "Beam: stroboskop"],
+                ["CH6",  "0–255",   "Beam: röd"],
+                ["CH7",  "0–255",   "Beam: grön"],
+                ["CH8",  "0–255",   "Beam: blå"],
+                ["CH9",  "0–255",   "Beam: vit"],
+                ["CH10", "0–249",   "Beam: effektprogram"],
+                ["CH10", "250–255", "Beam: ljudstyrt läge"],
+                ["CH11", "0–255",   "Beam: hastighet i effektprogram"],
+                ["CH12", "0–255",   "Beam: dimmer för bakgrundsfärg"],
+                ["CH13", "0–255",   "Beam: bakgrundsfärg"],
+                ["CH14", "0–255",   "Strobe: master-dimmer"],
+                ["CH15", "0–255",   "Strobe: blixt"],
+                ["CH16", "0–255",   "Strobe: röd"],
+                ["CH17", "0–255",   "Strobe: grön"],
+                ["CH18", "0–255",   "Strobe: blå"],
+                ["CH19", "0–255",   "Strobe: effektprogram (RGB)"],
+                ["CH20", "0–255",   "Strobe: hastighet i effektprogram"],
+                ["CH21", "0–255",   "Strobe: dimmer för bakgrundsfärg"],
+                ["CH22", "0–255",   "Strobe: bakgrundsfärg"],
+                ["CH23", "0–255",   "Strobe: blixt, vita sektionen"],
+                ["CH24", "0–255",   "Strobe: vit"],
+                ["CH25", "10–255",  "Strobe: effektprogram, vit"],
+                ["CH26", "0–255",   "Strobe: hastighet, vitt effektprogram"],
+                ["CH27", "0–255",   "Reset"],
+            ],
+            col_widths=[16 * mm, 22 * mm, None],
+            mono_cols=[0, 1],
+            tight=True,
+        ),
+        Break(),
+
+        # ---------- SIDA 6 ----------
+        H2("5. Auto, ljudstyrt och master/slave"),
+        H3("Automatprogram"),
+        P("Tryck <b>MENU</b> till <b>CF</b> (beam), <b>EF</b> (strobe i färg) eller "
+          "<b>UF</b> (vit strobe). Välj program <b>00–30</b> med UP/DOWN, tryck "
+          "<b>ENTER</b> och ställ hastigheten <b>SP01–SP15</b>. De tre grupperna "
+          "kan köras var för sig."),
+        H3("Ljudstyrt"),
+        P("<b>MENU</b> → <b>Soud</b> → <b>ENTER</b> → känslighet <b>SE01–SE15</b>. "
+          "Armaturen följer musiken via inbyggd mikrofon. Triggar den på allt: sänk "
+          "känsligheten. Står den still under låten: höj den, eller flytta armaturen "
+          "närmare ljudkällan."),
+        H3("Master/slave — flera armaturer utan pult"),
+        Steps([
+            ("Koppla ihop enheterna",
+             "3-pol DMX-kabel mellan armaturerna, DMX OUT → DMX IN."),
+            ("Sätt mastern",
+             "Ställ den armatur som ska styra i ett showläge — automatprogram eller "
+             "ljudstyrt."),
+            ("Slavarna följer",
+             "Ställ övriga armaturer på adress <b>A001</b>. De växlar automatiskt till "
+             "slavläge och följer mastern. I slavläge saknar adressen betydelse."),
+        ]),
+        P("Så snart en DMX-pult skickar giltig signal tar DMX över styrningen."),
+        Space(3),
+        H2("6. Felsökning"),
+        DataTable(
+            headers=["Problem", "Åtgärd"],
+            rows=[
+                ["Fel funktion på fel fader",
+                 "Nästan alltid fel kanalläge. Kontrollera att displayens läge "
+                 "(14 / 27 / 84) stämmer med profilen i pulten — annars förskjuts alla kanaler."],
+                ["Armaturen svarar inte alls",
+                 "Verifiera startadress och att pulten sänder. Skärmad DMX-kabel och "
+                 "120 ohms terminator i sista enhetens DMX OUT."],
+                ["Armaturen står stilla",
+                 "CH3 (motorhastighet) kan ligga på 0. Kontrollera även menyns "
+                 "<b>J</b>-värde (motorhastighet) och <b>n</b>-värde (utgångsläge)."],
+                ["Strålarna syns knappt",
+                 "Luften är för ren. Kör rök- eller hazemaskin — beam-effekten "
+                 "förutsätter partiklar i luften."],
+                ["Armaturen flimrar eller hoppar",
+                 "Dålig DMX-signal. Byt kabel, korta kabellängden, kontrollera terminatorn."],
+                ["Går i automatläge trots inkopplad pult",
+                 "Ingen giltig DMX tas emot. Kontrollera kabel, riktning (OUT → IN) och "
+                 "att pulten faktiskt sänder på rätt universe."],
+                ["Ljudläget triggar på allt / ingenting",
+                 "Justera känsligheten <b>SE01–SE15</b>."],
+            ],
+            col_widths=[55 * mm, None],
+            tight=True,
+        ),
+    ],
+)
+
+
+# =============================================================================
+# SK-LJS-DMX-0011 — MA2 Fader Wing console
+# =============================================================================
+# Ny 2026-09-22. Källa: grandMA2 v2.x-manualen (kinesisk översättning, 709 s.)
+# som följde med bordet. Den beskriver hela grandMA2-familjen och säger inget
+# om just den här kontrollytan. Hårdvarudelen bygger därför på produktbilden
+# (knapplayout) och inte på någon tillverkarspec. Hör av dig innan du lägger
+# till antal DMX-portar, parameterantal eller onPC-version här.
+SK_LJS_DMX_0011 = ProductManual(
+    artno="SK-LJS-DMX-0011",
+    name="MA2 Fader Wing console",
+    subtitle="Ljusbord för grandMA2 onPC — svensk snabbguide",
+    description=[
+        "Kontrollyta i grandMA2-stil som styr programmet <b>grandMA2 onPC</b> på "
+        "en Windows-dator. Du får fysiska fadrar, playback-knappar, encoders och "
+        "hela kommandoblocket — i stället för att klicka med musen.",
+        "grandMA2 är ett <b>kommandoradsbord</b>: knapparna bygger en mening som "
+        "du avslutar med <b>Please</b>. <i>Fixture 1 Thru 4 At 50 Please</i> tänder "
+        "armatur 1–4 på 50 %. Lär dig det mönstret först, så följer resten.",
+        "Den här guiden täcker det du behöver för ett event: koppla upp, patcha, "
+        "programmera cues och köra dem live. Den fullständiga grandMA2-manualen "
+        "finns hos MA Lighting.",
+    ],
+    specs=[
+        ("Programvara",     "grandMA2 onPC (Windows) — gratis från malighting.com"),
+        ("Executors",       "6 fader-executors med knappar · 6 knapp-executors (101–106)"),
+        ("Huvudexecutor",   "Fadrar med <b>Go+</b>, <b>Go−</b> och <b>Pause</b>"),
+        ("Programmering",   "4 encoders · nivåhjul · fullt kommandoblock med nummerbord"),
+        ("Master",          "Grand master-fader och <b>B.O.</b> (blackout)"),
+        ("Sidbyte",         "Ch Pg · Fd Pg · Bt Pg +/−"),
+    ],
+    toc=[
+        ("1", "Koppla upp bordet",                    "sida 2"),
+        ("2", "Knapparna — vad som finns var",        "sida 2"),
+        ("3", "Patcha armaturer",                     "sida 4"),
+        ("4", "Programmera ljus och spara cues",      "sida 5"),
+        ("5", "Köra showen live",                     "sida 6"),
+        ("6", "Felsökning och felmeddelanden",        "sida 7"),
+    ],
+    safety_box=InfoBox("Innan eventdagen", [
+        "Bordet gör ingenting utan en dator med <b>grandMA2 onPC</b>. Installera "
+        "programmet och <b>testa hela kedjan</b> — dator, bord, DMX-kabel och en "
+        "armatur — innan du åker. Ta med datorns laddare. Showfilen sparas på "
+        "datorn, inte i bordet.",
+    ], style="navy"),
+    blocks=[
+        # ---------- SIDA 2 ----------
+        H2("1. Koppla upp bordet"),
+        Steps([
+            ("Installera grandMA2 onPC",
+             "Ladda ner grandMA2 onPC från <b>malighting.com</b> och installera på en "
+             "Windows-dator. Programmet är gratis. Kör det en gång innan bordet ansluts."),
+            ("Anslut bordet",
+             "Koppla bordet till datorn och starta sedan grandMA2 onPC."),
+            ("Kontrollera kontakten",
+             "Dra i fader 1. Executor 1 på skärmen ska följa med. Gör den inte det "
+             "har programmet inte hittat bordet — se felsökningen på sida 7."),
+            ("Starta en ny show",
+             "Tryck <b>Backup</b> → <b>New Show</b> och ge showen ett namn. Börja "
+             "alltid med en tom show när du hyr — då ligger ingen gammal patch kvar."),
+            ("Dra DMX till riggen",
+             "DMX-kabel från bordets DMX-utgång till första armaturens DMX IN, vidare "
+             "armatur till armatur. <b>120 ohms terminator</b> i sista armaturens "
+             "DMX OUT."),
+        ]),
+        Space(3),
+        H2("2. Knapparna — vad som finns var"),
+        P("Bordet har fyra zoner: <b>executors</b> till vänster (det du kör showen "
+          "med), <b>huvudexecutorn</b> med Go-knapparna i mitten, "
+          "<b>kommandoblocket</b> till höger (det du programmerar med) och "
+          "<b>encoders</b> överst."),
+        H3("Executors och playback"),
+        DataTable(
+            headers=["Kontroll", "Funktion"],
+            rows=[
+                ["Fader 1–6",           "Executor-fadrar — nivå på sekvensen eller gruppen som ligger där"],
+                ["Knappar över/under",  "Executorns knappar — t.ex. Go, Flash, Toggle, beroende på inställning"],
+                ["101–106",             "Knapp-executors utan fader — bra för effekter och makron"],
+                ["Go+ / Go− / Pause",   "Huvudexecutorn: nästa cue, föregående cue, pausa fade"],
+                ["Grand master",        "Fadern längst till höger — total ljusnivå för allt"],
+                ["B.O.",                "Blackout — släcker allt. Beroende på inställning bara medan knappen hålls in, eller tills du trycker igen"],
+                ["Fd Pg · Bt Pg +/−",   "Byter sida för fadrar respektive knapp-executors"],
+            ],
+            col_widths=[42 * mm, None],
+            tight=True,
+        ),
+        Break(),
+
+        # ---------- SIDA 3 ----------
+        H3("Kommandoblocket"),
+        DataTable(
+            headers=["Knapp", "Funktion"],
+            rows=[
+                ["Fixture · Channel",   "Väljer armaturer (Fixture) eller dimmerkanaler (Channel)"],
+                ["Group · Preset",      "Väljer grupp eller sparad färg/position"],
+                ["Sequ · Cue · Exec",   "Sekvens, cue respektive executor i kommandoraden"],
+                ["0–9 · . ",            "Nummerbord. <b>. .</b> (två punkter) ger 0 %"],
+                ["Thru · + · −",        "Från–till, lägg till, ta bort: <i>1 Thru 4 + 8</i>"],
+                ["At · Full",           "Sätter nivå: <i>At 50</i>, <i>Full</i> = 100 %"],
+                ["Please",              "Utför kommandot — motsvarar Enter"],
+                ["Store · Update",      "Sparar nytt / uppdaterar det som redan finns"],
+                ["Clear",               "Rensar programmern — se ruta nedan"],
+                ["Oops · Esc",          "Ångrar senaste åtgärd / avbryter kommandoraden"],
+                ["Edit · Del · Copy · Move", "Redigera, radera, kopiera, flytta"],
+                ["Highlt · Solo",       "Visar vald armatur tydligt / bara vald armatur tänd"],
+                ["Blind · Prvw",        "Programmera utan att det syns på scen / förhandsvisa"],
+                ["Prev · Next",         "Stegar mellan valda armaturer, en i taget"],
+                ["Setup · Backup",      "Inställningar och patch / spara och ladda show"],
+                ["Shift-knappen",       "Andra funktionen på en knapp (märkt <b>MA</b> på original-MA)"],
+            ],
+            col_widths=[42 * mm, None],
+            tight=True,
+        ),
+        Space(3),
+        InfoBox("Clear — tre tryck, tre steg", [
+            "<b>1:a trycket</b> avmarkerar armaturerna, men värdena ligger kvar. "
+            "<b>2:a trycket</b> gör värdena inaktiva — de syns kvar men följer inte med vid Store. <b>3:e trycket</b> tömmer "
+            "programmern helt och armaturerna går tillbaka till det som spelas. "
+            "Håll in Clear en sekund för att göra alla tre på en gång.",
+            "Det som står i programmern (rött på skärmen) är <b>inte sparat</b> "
+            "förrän du tryckt Store.",
+        ]),
+        Break(),
+
+        # ---------- SIDA 4 ----------
+        H2("3. Patcha armaturer"),
+        P("Patchen talar om för bordet vilka armaturer som finns och på vilken "
+          "DMX-adress. Ställ först adressen på varje armatur — se armaturens "
+          "egen manual — och lägg sedan in samma adress här."),
+        Steps([
+            ("Öppna patchen",
+             "<b>Setup</b> → fliken <b>Show</b> → <b>Patch &amp; Fixture Schedule</b>."),
+            ("Lägg till armaturer",
+             "Tryck <b>Add</b> → <b>Add new Fixtures</b>. Välj typ med "
+             "<b>Add Fixturetypes from Library</b>: tillverkare, modell och kanalläge. "
+             "Kanalläget måste vara <b>samma som på armaturen</b>."),
+            ("Antal, ID och adress",
+             "Ange antal (t.ex. 4), första Fixture ID (t.ex. 1) och patchadress i "
+             "formen <b>universe.adress</b> — <b>1.001</b> är universe 1, kanal 1. "
+             "Flera armaturer adresseras i följd automatiskt."),
+            ("Bekräfta och lämna",
+             "Tryck <b>Apply</b> / <b>OK</b>, stäng Setup och svara ja på frågan om "
+             "att spara ändringarna."),
+        ]),
+        Space(2),
+        DataTable(
+            headers=["Exempel", "Armatur", "Kanalläge", "Adress i patchen"],
+            rows=[
+                ["Fixture 1–4", "LED PAR (8 kan.)",       "8 kanaler",  "1.001 · 1.009 · 1.017 · 1.025"],
+                ["Fixture 5–6", "Moving Beam Bar",        "14 kanaler", "1.033 · 1.047"],
+                ["Fixture 7",   "Rökmaskin",              "enligt manual", "1.061"],
+            ],
+            col_widths=[24 * mm, 40 * mm, 26 * mm, None],
+            mono_cols=[3],
+            tight=True,
+        ),
+        Space(3),
+        InfoBox("Hittar du inte armaturen i biblioteket?", [
+            "Välj en <b>Generic</b>-typ med samma antal kanaler, eller ring oss — "
+            "vi har profiler till armaturerna vi hyr ut. Patcha aldrig en armatur "
+            "med fel kanalantal: alla kanaler efter den förskjuts.",
+        ]),
+        Break(),
+
+        # ---------- SIDA 5 ----------
+        H2("4. Programmera ljus och spara cues"),
+        H3("Tänd och ställ in"),
+        DataTable(
+            headers=["Du trycker", "Det händer"],
+            rows=[
+                ["Fixture 1 At Full Please",           "Armatur 1 på 100 %"],
+                ["Fixture 1 Thru 4 At 50 Please",      "Armatur 1–4 på 50 %"],
+                ["Fixture 1 Thru 10 − 5 At 70 Please", "1–10 utom 5 på 70 %"],
+                ["Group 1 At Full Please",             "Hela grupp 1 på 100 %"],
+                ["Fixture 3 . . ",                     "Armatur 3 på 0 %"],
+            ],
+            col_widths=[70 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        P("Färg, position och gobo ställs med de <b>fyra encoderna</b>. Skärmen "
+          "visar vilken attributgrupp encoderna styr just nu — dimmer, position, "
+          "färg, beam — och du byter grupp på skärmen. Nivåhjulet ändrar dimmern "
+          "på de valda armaturerna."),
+        H3("Spara som grupp och preset"),
+        P("Välj armaturer, tryck <b>Store</b> och sedan en tom ruta i "
+          "gruppfönstret. Samma sak med färger och positioner i presetfönstren. "
+          "Grupper och presets gör resten av programmeringen mycket snabbare."),
+        H3("Spara cues"),
+        Steps([
+            ("Bygg ljusbilden",
+             "Tänd och ställ in det du vill ha med i cuen."),
+            ("Spara",
+             "<b>Store Please</b> sparar en ny cue på huvudexecutorn. "
+             "<b>Store Cue 5 Please</b> sparar som cue 5. För en annan executor: "
+             "<b>Store</b> och sedan executorns knapp."),
+            ("Töm programmern",
+             "<b>Clear</b> tre gånger innan du bygger nästa cue — annars följer "
+             "värden med som du inte tänkt dig."),
+            ("Rätta en cue",
+             "Spela cuen, ändra det som ska ändras och tryck <b>Update</b>. Välj "
+             "cuen i fönstret som visas. Sparar du på en cue som redan finns frågar "
+             "bordet: <b>Merge</b> lägger till ändringarna, <b>Overwrite</b> "
+             "ersätter hela cuen."),
+        ]),
+        Break(),
+
+        # ---------- SIDA 6 ----------
+        H2("5. Köra showen live"),
+        UL([
+            "<b>Go+</b> spelar nästa cue på huvudexecutorn, <b>Go−</b> backar ett "
+            "steg, <b>Pause</b> fryser en fade som pågår.",
+            "Executor-fadrarna styr nivån på det som ligger på varje executor — "
+            "t.ex. en sekvens på fader 1 och en effekt på fader 2.",
+            "<b>Grand master</b> är den sista räddningen: dra ner och allt blir "
+            "mörkare. <b>B.O.</b> släcker allt på en gång.",
+            "Byt executorsida med <b>Fd Pg +/−</b> om du lagt fler sekvenser än "
+            "fadrarna räcker till.",
+            "Vill du förbereda nästa bild under pågående show: tryck <b>Blind</b>, "
+            "programmera, spara och slå av Blind igen. Publiken ser ingenting.",
+        ]),
+        H3("Spara showen"),
+        P("<b>Backup</b> → <b>Save Show</b>. Gör det efter varje större ändring och "
+          "alltid innan du stänger datorn. Showfilen ligger i datorn — ta en kopia "
+          "på USB-minne om du vill kunna öppna den på en annan dator."),
+        Space(3),
+        InfoBox("Checklista före publiken kommer in", [
+            "Grand master uppe · B.O. av · rätt executorsida · huvudexecutorn står "
+            "på cue 1 eller i blackout · showen sparad · datorn på laddning och "
+            "med <b>viloläge avstängt</b> — somnar datorn slutar bordet att sända.",
+        ], style="navy"),
+        Break(),
+
+        # ---------- SIDA 7 ----------
+        H2("6. Felsökning"),
+        DataTable(
+            headers=["Problem", "Åtgärd"],
+            rows=[
+                ["Fadrarna gör ingenting på skärmen",
+                 "Programmet hittar inte bordet. Stäng grandMA2 onPC, kontrollera "
+                 "kabeln till datorn, prova en annan USB-port och starta programmet igen."],
+                ["Skärmen reagerar men riggen gör ingenting",
+                 "Kontrollera att <b>Grand master</b> är uppe och att <b>B.O.</b> inte "
+                 "är aktiv. Sedan DMX-kabeln, riktningen (OUT → IN) och terminatorn."],
+                ["Bara vissa armaturer svarar",
+                 "Fel adress eller universe i patchen, eller fel kanalläge. Jämför "
+                 "armaturens display med patchen rad för rad."],
+                ["Fel funktion på fel encoder",
+                 "Kanalläget i patchen matchar inte armaturen. Ändra i patchen eller "
+                 "på armaturen så att de är lika."],
+                ["Värden följer med till nästa cue",
+                 "Programmern var inte tömd. <b>Clear</b> tre gånger innan varje ny cue."],
+                ["Något gick fel nyss",
+                 "<b>Oops</b> ångrar senaste åtgärden. <b>Esc</b> avbryter en halvskriven "
+                 "kommandorad."],
+                ["Bordet slutar sända under show",
+                 "Datorn har gått i viloläge eller tappat USB-strömmen. Stäng av "
+                 "viloläge och energisparläge för USB i Windows."],
+            ],
+            col_widths=[52 * mm, None],
+            tight=True,
+        ),
+        Space(3),
+        H3("Vanliga felmeddelanden i kommandoraden"),
+        DataTable(
+            headers=["Nr", "Meddelande", "Betyder"],
+            rows=[
+                ["#1",  "Unknown command",   "Bordet förstår inte kommandot — tryck Esc och börja om"],
+                ["#14", "Object does not exist", "Du pekar på något som inte finns, t.ex. en tom grupp"],
+                ["#27", "Syntax error",      "Fel ordning i kommandot — kontrollera Thru, At och Please"],
+                ["#33", "Destination not empty", "Platsen är upptagen — välj Overwrite, Merge eller en annan"],
+                ["#44", "Insufficient user rights", "Inloggad användare saknar behörighet — logga in som Administrator"],
+            ],
+            col_widths=[14 * mm, 48 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+    ],
+)
+
+
+# =============================================================================
 # PRODUKTLISTA
 # =============================================================================
 # Ljuspaketens manualer ligger här. De fem tidigare armatur-manualerna
 # (SK-LJS-EFF-0004, SK-LJS-DMX-0001, SK-LJS-ROK-0006, SK-LJS-EFF-0007,
 # SK-LJS-EFF-0008) ligger ännu kvar i projektdokumentets version av den här
-# filen och flyttas hit vid nästa revidering av dem.
+# filen och flyttas hit vid nästa revidering av dem. Undantag: EFF-0008 var
+# en platshållare och är flyttad hit 2026-09-22 som SK-LJS-EFF-0022.
 #
 # OBS: SK-LJS-EFF-0009 och SK-LJS-EFF-0010 var PLATSHÅLLARE och är ersatta av
 # SK-LJS-PAK-0020 respektive SK-LJS-PAK-0018. De gamla numren tillhör
@@ -1277,6 +1813,8 @@ PRODUCTS = [
     SK_LJS_PAK_0018,
     SK_LJS_PAK_0020,
     SK_LJS_PAK_0025,
+    SK_LJS_EFF_0022,
+    SK_LJS_DMX_0011,
 ]
 
 
