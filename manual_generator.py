@@ -1522,8 +1522,8 @@ SK_LJS_EFF_0022 = ProductManual(
 # som följde med bordet. Den beskriver hela grandMA2-familjen och säger inget
 # om just den här kontrollytan. Hårdvarudelen bygger därför på produktbilden
 # (knapplayout) och säljarens spec (1 536 kanaler, A/B-fadrar 100 mm, nivåhjul,
-# inbyggt nätaggregat), bekräftad av Per 2026-09-22. Antal DMX-portar och
-# onPC-version är inte bekräftade — lägg inte till dem utan att kontrollera.
+# inbyggt nätaggregat, 2 DMX-utgångar), bekräftad av Per 2026-09-22.
+# onPC-version är inte bekräftad — lägg inte till den utan att kontrollera.
 SK_LJS_DMX_0011 = ProductManual(
     artno="SK-LJS-DMX-0011",
     name="MA2 Fader Wing console",
@@ -1547,7 +1547,7 @@ SK_LJS_DMX_0011 = ProductManual(
         ("Programmering",   "4 encoders · nivåhjul · kommandoblock i MA2-layout"),
         ("Master",          "Grand master-fader och <b>B.O.</b> (blackout)"),
         ("Knappar",         "Bakgrundsbelysta, dimbara och tysta"),
-        ("Ström",           "Inbyggt universalnätaggregat"),
+        ("Anslutningar",    "2 DMX-utgångar · inbyggt universalnätaggregat"),
     ],
     toc=[
         ("1", "Koppla upp bordet",                    "sida 2"),
@@ -1580,7 +1580,8 @@ SK_LJS_DMX_0011 = ProductManual(
              "Tryck <b>Backup</b> → <b>New Show</b> och ge showen ett namn. Börja "
              "alltid med en tom show när du hyr — då ligger ingen gammal patch kvar."),
             ("Dra DMX till riggen",
-             "DMX-kabel från bordets DMX-utgång till första armaturens DMX IN, vidare "
+             "DMX-kabel från en av bordets <b>två DMX-utgångar</b> till första "
+             "armaturens DMX IN, vidare "
              "armatur till armatur. <b>120 ohms terminator</b> i sista armaturens "
              "DMX OUT."),
         ]),
