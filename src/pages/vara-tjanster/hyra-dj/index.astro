@@ -347,6 +347,7 @@ const djFromInkl = Math.round(djFromExcl * 1.25);
           id={p.artno}
           title={p.name}
           images={[p.image]}
+          videos={((p as any).videos ?? []).map((v: string) => `/videos/${v}`)}
           priceExcl={p.price}
           priceSuffix={p.priceNote}
           artno={p.artno}
