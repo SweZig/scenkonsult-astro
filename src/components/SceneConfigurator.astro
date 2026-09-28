@@ -106,7 +106,7 @@ const configData = {
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_slat.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×2 m — slät yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x2-slat']?.price} kr/modul</span></div>
-              <div class="cfg-radio-desc">Bäst om matta läggs över. Mått måste passa i 1×2-moduler.</div>
+              <div class="cfg-radio-desc">Bäst om matta läggs över. Höjd 20, 40 eller 60 cm. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
           <label class="cfg-card-radio">
@@ -114,7 +114,7 @@ const configData = {
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×2 m — halkfri yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x2-halkfri']?.price} kr/modul</span></div>
-              <div class="cfg-radio-desc">Standard halkfri ovansida. Mått måste passa i 1×2-moduler.</div>
+              <div class="cfg-radio-desc">Standard halkfri ovansida. Höjd 20, 40 eller 60 cm. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
         </div>
@@ -153,12 +153,12 @@ const configData = {
           <label class="cfg-pill"><input type="radio" name="height" value="40" /><span>40 cm</span></label>
           <label class="cfg-pill cfg-pill-height-60"><input type="radio" name="height" value="60" checked /><span>60 cm</span></label>
         </div>
-        <p class="cfg-hint cfg-hint-height-20" hidden>20 cm finns endast för 1×2 m-podier.</p>
+        <p class="cfg-hint cfg-hint-height-20" hidden>20 cm finns för 1×2 m-podier — välj 1×2 m som plattformstyp.</p>
       </fieldset>
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">4</span>Trappor</legend>
-        <p class="cfg-hint">Trappans höjd anpassas automatiskt till scenhöjden. Max 2 trappor.</p>
+        <p class="cfg-hint" id="cfg-stair-hint">Trappans höjd anpassas automatiskt till scenhöjden. Max 2 trappor.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="stairCount" value="0" /><span>0</span></label>
           <label class="cfg-pill"><input type="radio" name="stairCount" value="1" checked /><span>1</span></label>
@@ -1019,7 +1019,30 @@ const configData = {
       return new Intl.NumberFormat('sv-SE').format(Math.round(n)) + ' kr';
     }
 
+    // 20 cm-scen: ingen trappa behövs (steget är 20 cm). Trappor finns bara i
+    // 40 och 60 cm, så trappvalet låses till 0 vid 20 cm. Körs först i render()
+    // så att prisrader och montering räknas på rätt rader.
+    function applyStairRules() {
+      const low = state.height === 20 && state.moduleType !== '1x1-halkfri';
+      ['1', '2'].forEach(v => {
+        const el = document.querySelector(`input[name="stairCount"][value="${v}"]`);
+        if (!el) return;
+        el.disabled = low;
+        el.closest('.cfg-pill')?.classList.toggle('cfg-pill-disabled', low);
+      });
+      if (low && state.stairCount > 0) {
+        state.stairCount = 0;
+        const z = document.querySelector('input[name="stairCount"][value="0"]');
+        if (z) z.checked = true;
+      }
+      const hint = document.getElementById('cfg-stair-hint');
+      if (hint) hint.textContent = low
+        ? 'Vid 20 cm behövs ingen trappa — steget upp är lika högt som ett vanligt trappsteg.'
+        : 'Trappans höjd anpassas automatiskt till scenhöjden. Max 2 trappor.';
+    }
+
     function render() {
+      applyStairRules();
       // OBS: renderInstallation kan ändra state.frakt till 'auto' vid obligatorisk
       // montering (≥16 m²). Den måste därför köras FÖRE renderValidation som
       // läser state.frakt och uppdaterar frakt-UI.

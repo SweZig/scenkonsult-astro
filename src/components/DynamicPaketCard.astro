@@ -150,7 +150,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
     </div>
 
     {cfg.heights && cfg.heights.length > 1 && (
-      <div class="paket-control">
+      <div class="paket-control paket-control-wrap">
         <span class="paket-control-label">Höjd</span>
         <div class="paket-pills" role="radiogroup" aria-label="Höjd">
           {cfg.heights.map(h => (
@@ -162,6 +162,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
             >{h} cm</button>
           ))}
         </div>
+        <p class="paket-height-hint" data-paket-height-hint hidden></p>
       </div>
     )}
 
@@ -624,6 +625,8 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       }
       // Räcken ej tillgängligt på 1×1 → nollställ om aktivt.
       if (is1x1(surface) && rail) rail = false;
+      // 20 cm: ingen trappa behövs (trappor finns i 40 och 60 cm).
+      if (height === 20 && stairs > 0) stairs = 0;
 
       const price = computePrice(cfg, surface, stairs, height, rail, skirt);
 
@@ -693,7 +696,21 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       });
       card.querySelectorAll('[data-stairs]').forEach(b => {
         b.setAttribute('aria-pressed', String(parseInt(b.dataset.stairs)) === String(stairs) ? 'true' : 'false');
+        const noStair = height === 20 && parseInt(b.dataset.stairs) > 0;
+        b.disabled = noStair;
+        b.classList.toggle('paket-pill-disabled', noStair);
+        b.title = noStair ? 'Vid 20 cm behövs ingen trappa' : '';
       });
+      const heightHint = card.querySelector('[data-paket-height-hint]');
+      if (heightHint) {
+        const has20 = (cfg.heights || []).includes(20);
+        const txt = !has20 ? ''
+          : is1x1(surface) ? '20 cm finns för 1×2 m-podier — välj en 1×2-yta.'
+          : height === 20 ? 'Vid 20 cm behövs ingen trappa.'
+          : '';
+        heightHint.textContent = txt;
+        heightHint.hidden = !txt;
+      }
       card.querySelectorAll('[data-height]').forEach(b => {
         const h = parseInt(b.dataset.height);
         // 20 cm endast på 1×2-ytor — inaktivera pillen på 1×1.
@@ -998,6 +1015,9 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
 </script>
 
 <style is:global>
+  .paket-control-wrap { flex-wrap: wrap; row-gap: 0.3rem; }
+  .paket-height-hint { flex-basis:100%; margin:0 0 0 calc(56px + 0.65rem); font-size:0.72rem; line-height:1.4; color:rgba(255,255,255,0.55); }
+  .paket-height-hint[hidden] { display:none; }
   .paket-card {
     background: #1e1850;
     border: 1px solid rgba(255,255,255,0.1);
