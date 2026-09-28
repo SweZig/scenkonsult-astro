@@ -61,7 +61,8 @@ def prod(p, item_type='product'):
     #   Ljus-effekter: volumePricing (volymrabatt)
     for k in ('tagline','size','dimensions','capacity','useCase','transport',
               'persons','specs','features',
-              'monteringMin','manualUrl','bulky','volumePricing',
+              'monteringMin','monteringBemanning','monteringSkalning','monteringManuell',
+              'manualUrl','bulky','volumePricing',
               'priceNote','section','linkedServices','cartSplit'):
         v = p.get(k)
         if v is not None and v != '' and v != [] and v != {}:
@@ -318,7 +319,8 @@ def add_flat(prods, cat_name):
         # Passa igenom extra-fält för modal-visning på ordersidan
         for k in ('tagline','size','dimensions','capacity','useCase','transport',
                   'persons','specs','features',
-                  'monteringMin','manualUrl','bulky','volumePricing',
+                  'monteringMin','monteringBemanning','monteringSkalning','monteringManuell',
+                  'manualUrl','bulky','volumePricing',
                   'priceNote','section'):
             v = p.get(k)
             if v is not None and v != '' and v != [] and v != {}:
@@ -456,3 +458,103 @@ if missing:
     sys.exit(1)
 
 print("✅ Sortiment-check OK — alla artiklar finns i offertkatalogen.")
+
+# ── Monteringskatalog (src/data/montering-catalog.json) ──────────────────────
+# Kompakt uppslagstabell för src/lib/montering.cjs. Läses av Layout.astro
+# (window.skMontering på alla sidor), admin och serverfunktionerna. Genereras
+# vid varje bygge — committas ej.
+#   items[artno] = { t: monteringMin, b?: bemanning, s?: skalning, m?: 1 (manuell),
+#                    x?: [[artno, antal], …] (scenpaket = sina moduler + tak) }
+#   alias[slug]  = artno
+MON_MODULE_BY_SURFACE = {
+    '1x1-halkfri': ('SK-SCN-MOD-0001', 1),
+    '1x2-slat':    ('SK-SCN-MOD-0002', 2),
+    '1x2-halkfri': ('SK-SCN-MOD-0003', 2),
+}
+mon_items, mon_alias = {}, {}
+
+def _mon_entry(d):
+    e = {'t': d['monteringMin']}
+    if isinstance(d.get('monteringBemanning'), (int, float)) and d['monteringBemanning'] != 1:
+        e['b'] = d['monteringBemanning']
+    if d.get('monteringSkalning') and d['monteringSkalning'] != 'styck':
+        e['s'] = d['monteringSkalning']
+    if d.get('monteringManuell'):
+        e['m'] = 1
+    return e
+
+def _mon_walk(x, in_service_file=False):
+    if isinstance(x, dict):
+        a = (x.get('artno') or '').strip()
+        if a:
+            if isinstance(x.get('monteringMin'), (int, float)):
+                mon_items[a] = _mon_entry(x)
+            elif in_service_file or x.get('type') == 'service':
+                mon_items.setdefault(a, {'t': 0})
+            for sk in ('slug', 'id'):
+                s = x.get(sk)
+                if isinstance(s, str) and s and s != a and not s.startswith('SK-'):
+                    mon_alias.setdefault(s, a)
+        for k, v in x.items():
+            _mon_walk(v, in_service_file)
+    elif isinstance(x, list):
+        for v in x:
+            _mon_walk(v, in_service_file)
+
+for fn, data in _SOURCE_FILES.items():
+    _mon_walk(data, in_service_file=(fn == 'tjanster.json'))
+# DJ-spel är tjänster även om type saknas på raden
+for a in DJ_SVC_ARTNOS:
+    mon_items.setdefault(a, {'t': 0})
+
+# Scenpaket → moduler (standardyta) + ev. tak
+for p in scenes.get('products', []):
+    a = (p.get('artno') or '').strip()
+    c = p.get('config') or {}
+    mod = MON_MODULE_BY_SURFACE.get(c.get('defaultSurface'))
+    if not a or not mod or not c.get('width') or not c.get('depth'):
+        continue
+    parts = [[mod[0], -(-(c['width'] * c['depth']) // mod[1])]]
+    tak = c.get('tak') or {}
+    if tak.get('artno'):
+        parts.append([tak['artno'].strip(), 1])
+    mon_items[a] = {'x': parts}
+
+mon = frakt.get('montering', {})
+mon_params = {k: mon[k] for k in ('prisPerTimme', 'minDebiteringMin', 'avrundaTillMin', 'bemanning') if k in mon}
+mon_params['modell'] = {k: v for k, v in (mon.get('modell') or {}).items() if not k.startswith('_')}
+mon_path = os.path.join(BASE, 'src/data/montering-catalog.json')
+with open(mon_path, 'w', encoding='utf-8') as f:
+    json.dump({'params': mon_params, 'items': mon_items, 'alias': mon_alias},
+              f, ensure_ascii=False, separators=(',', ':'))
+print(f"\n✅ montering-catalog.json: {len(mon_items)} artiklar, {len(mon_alias)} alias")
+
+# ── Monteringskontroll (varning) ──────────────────────────────────────────────
+# Varje aktiv hyrprodukt ska ha monteringMin (0 = ingen montering). Varnar i dag;
+# kan göras till stopp (sys.exit(1)) när sortimentet är ifyllt.
+MON_EXEMPT = {
+    'SK-BLD-0013',  # LED-vägg på tross — bundle med monteringFast på split-raderna
+}
+mon_missing = []
+def _mon_check(x, fn):
+    if isinstance(x, dict):
+        a = (x.get('artno') or '').strip()
+        if (a and x.get('active', True) is not False and x.get('type') != 'service'
+                and a not in mon_items and a not in MON_EXEMPT and a not in EXCLUDE_ARTNOS):
+            mon_missing.append((a, fn, x.get('name', '')))
+        for k, v in x.items():
+            if k in _NESTED_COMPONENT_KEYS or k == 'linkedServices':
+                continue
+            _mon_check(v, fn)
+    elif isinstance(x, list):
+        for v in x:
+            _mon_check(v, fn)
+for fn, data in _SOURCE_FILES.items():
+    if fn != 'tjanster.json':
+        _mon_check(data, fn)
+if mon_missing:
+    print(f"⚠️  Monteringskontroll: {len(mon_missing)} aktiva artiklar saknar monteringMin:")
+    for a, fn, n in mon_missing:
+        print(f"      • {a}  {n}  ({fn})")
+else:
+    print("✅ Monteringskontroll OK — alla aktiva artiklar har monteringstid.")

@@ -71,7 +71,6 @@ _skirts.forEach(s => {
 
 const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
-const INJ_MONTERING_MIN_PER_MODULE = (tjanster.montering && typeof tjanster.montering.minPerModul === 'number') ? tjanster.montering.minPerModul : 7.5;
 
 // ──────────────────────────────────────────────────────────────────
 // Frakt-priser + montering-pris för "+ Montering X kr & transport Y kr"-noten
@@ -84,10 +83,6 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
     .filter(([k, v]) => !_LEV_META.has(k) && v && typeof v === 'object' && v.id)
     .map(([k, v]) => [k, { name: v.label || k, pris: v.pris || 0 }])
 );
-const INJ_MONTERING_PRICE_PER_HOUR = (tjanster.montering && tjanster.montering.prisPerTimme) || 600;
-const INJ_MONTERING_ROUND_TO_MIN = (tjanster.montering && typeof tjanster.montering.avrundaTillMin === 'number') ? tjanster.montering.avrundaTillMin : 15;
-// Antal tekniker — fysisk tid (assemblyMinutesTotal) oförändrad, men visad kostnad debiteras × bemanning.
-const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering.bemanning === 'number') ? tjanster.montering.bemanning : 1;
 ---
 
 <article
@@ -266,7 +261,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES, INJ_MONTERING_MIN_PER_MODULE, INJ_LEVERANS_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_MONTERING_ROUND_TO_MIN, INJ_MONTERING_BEMANNING }}>
+<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES, INJ_LEVERANS_BY_KEY }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -278,7 +273,6 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
   const RAIL_1M = INJ_RAIL_SEGMENTS['1m'];
   const RAIL_STAIR = INJ_RAIL_SEGMENTS['stair'];
   const SKIRT_BY_HEIGHT = INJ_SKIRT_BY_HEIGHT;
-  const MODULE_MONTERING_MIN = INJ_MONTERING_MIN_PER_MODULE;
 
   function fmt(n) { return Math.round(n).toLocaleString('sv-SE') + ' kr'; }
 
@@ -422,25 +416,12 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
 
   // ──────────────────────────────────────────────────────────────────
   // Montering + transport-not — "+ Montering X kr (Y h) & transport Z kr ..."
-  // Identiskt mönster som LED-vägg-sidan: monteringstid avrundad uppåt till
-  // närmaste 30 min, kostnad = h × prisPerTimme.
+  // Montering räknas av samma motor som varukorgen (window.skMontering,
+  // src/lib/montering.cjs) på exakt de rader kortet lägger i korgen.
   // ──────────────────────────────────────────────────────────────────
-  function computeMonteringMin(modCount, takMonteringMin, railPack) {
-    // Modul-rad: modCount × 7,5 min × 2 (montering + demontering)
-    let total = modCount * MODULE_MONTERING_MIN * 2;
-    // Tak (om paketet har) — också × 2 för montering+demontering
-    if (takMonteringMin) total += takMonteringMin * 2;
-    // Räcken (om valda) — count20/count10/stairRailCount × respektive monteringMin × 2
-    if (railPack) {
-      const railMin =
-        (railPack.count20 || 0) * RAIL_2M.monteringMin +
-        (railPack.count10 || 0) * RAIL_1M.monteringMin +
-        (railPack.stairRailCount || 0) * RAIL_STAIR.monteringMin;
-      total += railMin * 2;
-    }
-    // Avrunda upp till närmaste 30 min
-    const step = INJ_MONTERING_ROUND_TO_MIN;
-    return Math.ceil(total / step) * step;
+  function sceneMontering(lines) {
+    const eng = window.skMontering;
+    return eng ? eng.calc(lines) : { minuter: 0, kronor: 0 };
   }
 
   function formatHours(min) {
@@ -601,6 +582,26 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
     let skirt = false;
     let skirtStyle = 'rak';
 
+    // Artikelrader som kortet lägger i varukorgen (utan pris) — används för
+    // monteringsberäkningen så att kortets visade montering räknas på exakt
+    // samma rader som varukorgen sedan räknar på.
+    function monteringLines() {
+      const lines = [{ artno: MOD_ARTNO[surface], qty: moduleCount(cfg.width, cfg.depth, surface) }];
+      if (stairs > 0 && TRAPP[height]) lines.push({ artno: TRAPP[height].artno, qty: stairs });
+      if (rail) {
+        const pack = computeRailPack(cfg.width, cfg.depth, stairs, skirt);
+        if (pack.count20 > 0) lines.push({ artno: RAIL_2M.artno, qty: pack.count20 });
+        if (pack.count10 > 0) lines.push({ artno: RAIL_1M.artno, qty: pack.count10 });
+        if (pack.stairRailCount > 0) lines.push({ artno: RAIL_STAIR.artno, qty: pack.stairRailCount });
+      }
+      if (skirt) {
+        const sp = computeSkirtPack(cfg.width, cfg.depth, height, rail, skirtStyle);
+        if (sp && sp.count > 0) lines.push({ artno: sp.artno, qty: sp.count });
+      }
+      if (cfg.tak) lines.push({ artno: cfg.tak.artno, qty: 1 });
+      return lines;
+    }
+
     // 1×1-yta: 20 cm-ben och skyddsräcken är ej tillgängliga (bara 1×2 har 20cm-ben;
     // räcken monteras ej på 1×1-podier). Höjd 20 visas/tillåts endast på 1×2-ytor.
     const is1x1 = (s) => s === '1x1-halkfri';
@@ -665,10 +666,9 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
           fraktNoteEl.textContent = '';
         } else {
           const mc = moduleCount(cfg.width, cfg.depth, surface);
-          const takMonteringMin = cfg.tak ? (cfg.tak.monteringMin || 0) : 0;
-          const railPack = rail ? computeRailPack(cfg.width, cfg.depth, stairs, skirt) : null;
-          const monteringMin = computeMonteringMin(mc, takMonteringMin, railPack);
-          const monteringKr = Math.round((monteringMin / 60) * INJ_MONTERING_PRICE_PER_HOUR) * INJ_MONTERING_BEMANNING;
+          const mon = sceneMontering(monteringLines());
+          const monteringMin = mon.minuter;
+          const monteringKr = mon.kronor;
           const frakt = computeFraktDetails(mc, !!cfg.tak, cfg.forceLeverans);
           const transport = card.dataset.paketTransport;
           const prefix = transport === 'krävs' ? '+ ' : 'Vid leverans: + ';
@@ -678,7 +678,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
             prefix +
             'Montering &amp; demontering ' +
             '<span><span class="sk-price-excl">' + mE + '</span><span class="sk-price-incl hidden">' + mI + '</span></span>' +
-            ' (' + formatHours(monteringMin) + ') ' +
+            ' (' + (window.skMontering ? window.skMontering.formatTid(monteringMin) : formatHours(monteringMin)) + ') ' +
             '&amp; transport ' +
             '<span><span class="sk-price-excl">' + tE + '</span><span class="sk-price-incl hidden">' + tI + '</span></span>' +
             ' (' + frakt.name + ') tillkommer i kassan';
@@ -835,14 +835,9 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
       const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(mc, !!cfg.tak)) : null;
 
-      // Option 1: hela scenens monteringstid räknas EN gång (moduler + tak + räcken,
-      // alla × 2 för montering + demontering) och stämplas som assemblyMinutesTotal
-      // på modul-raden. Checkout läser detta verbatim (ingen golvning, ingen × qty)
-      // → kortets visade tid == debiterad tid by design. Per-item monteringMin sätts
-      // INTE på modul/tak/räcke-rader (skulle dubbelräknas + golvas av checkout).
-      const takMonteringMinAdd = cfg.tak ? (cfg.tak.monteringMin || 0) : 0;
-      const railPackAdd = rail ? computeRailPack(cfg.width, cfg.depth, stairs, skirt) : null;
-      const sceneAssemblyMin = computeMonteringMin(mc, takMonteringMinAdd, railPackAdd);
+      // Montering: ingen tid stämplas på raderna — varukorgen slår upp varje
+      // artikels tid i monteringskatalogen (samma motor som kortets not).
+      // autoMontering bockar i Montering i varukorgen, som tidigare.
 
       // skCart.add merger qty på existing item-id men SÄTTER INTE flaggor på en
       // existerande rad. För att flaggor (bulky/requiresAssembly/forceLeverans/
@@ -872,7 +867,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
         price: MOD_PRICE[surface],
         qty: mc,
         category: 'Scen',
-        assemblyMinutesTotal: sceneAssemblyMin, // hela scenens monteringstid (en gång)
+        autoMontering: true,
       };
       if (isBulky) {
         modItem.bulky = true;
@@ -883,7 +878,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       }
       window.skCart.add(modItem);
       // Säkerställ flaggor även om itemet redan fanns i cart (merge-bug-skydd)
-      const modFlags = { assemblyMinutesTotal: sceneAssemblyMin };
+      const modFlags = { autoMontering: true };
       if (isBulky) modFlags.bulky = true;
       if (isKravs) {
         modFlags.requiresAssembly = true;
@@ -969,7 +964,6 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
           category: 'Scen tillbehör',
           bulky: true,
           requiresAssembly: true,
-          // monteringMin sätts EJ — taktiden ingår redan i modul-radens assemblyMinutesTotal.
         };
         // Om paketet har forceLeverans-override på sig (Large+ tak: lastbil),
         // sätt det på tak-raden också så att 'lastbil' definitivt vinner i cart

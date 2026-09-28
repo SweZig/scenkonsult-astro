@@ -1,0 +1,13 @@
+---
+// MonteringEngine.astro — lägger window.skMontering på sidan.
+// Källan är src/lib/montering.cjs (samma fil som serverfunktionerna require:ar)
+// plus den genererade monteringskatalogen. Skriptet är inline och synkront, så
+// placera komponenten FÖRE de skript som använder motorn (Layout gör det först
+// i <body>; admin, som har egen layout, före sitt define:vars-skript).
+import monteringLibSrc from '../lib/montering.cjs?raw';
+import monteringCatalog from '../data/montering-catalog.json';
+const boot = monteringLibSrc +
+  '\n;window.skMontering = window.SkMonteringLib.create(' +
+  JSON.stringify(monteringCatalog).replace(/</g, '\\u003c') + ');';
+---
+<script is:inline set:html={boot}></script>

@@ -6,6 +6,7 @@ import quoteCatalogData from '../../data/quote-catalog.json';
 import scenesData from '../../data/scenes.json';
 import ledData from '../../data/led-paneler.json';
 import tjansterData from '../../data/tjanster.json';
+import MonteringEngine from '../../components/MonteringEngine.astro';
 
 // Förbered data för admin-konfiguratorerna (klient-side använder window-globals)
 // Scen: modules (3 ytor), tak-paket från scenes.products[*].config.tak,
@@ -1505,6 +1506,7 @@ const _dayConfig = tjansterData.hyresdagar || null;
       }
     }
   </style>
+  <MonteringEngine />
   <script is:inline define:vars={{ quoteCatalog: quoteCatalogData, scenConfig: _scenAdminConfig, ledConfig: _ledAdminConfig, fraktConfig: _fraktAdminConfig, monteringConfig: _monteringAdminConfig, dayConfig: _dayConfig }}>
     window.__ADMIN_QUOTE_CATALOG__   = quoteCatalog;
     window.__ADMIN_SCEN_CONFIG__     = scenConfig;
@@ -1884,6 +1886,8 @@ const _dayConfig = tjansterData.hyresdagar || null;
           <button onclick="adminMonteringConfigClose()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.2rem;cursor:pointer;padding:0 0.3rem">×</button>
         </div>
         <div id="mon-cfg-rule" style="background:rgba(196,181,244,0.08);border-left:3px solid rgba(196,181,244,0.5);padding:0.5rem 0.7rem;margin-bottom:0.6rem;font-size:0.78rem;color:rgba(255,255,255,0.8);font-family:'Space Grotesk',sans-serif"></div>
+        <button type="button" onclick="adminMonteringConfigCalc()" class="btn-action" style="width:100%;padding:0.45rem;font-size:0.8rem;margin-bottom:0.6rem;border-color:rgba(196,181,244,0.35);color:rgba(196,181,244,0.95);background:rgba(196,181,244,0.08)">Beräkna från offertens produkter</button>
+        <div id="mon-cfg-calc" style="display:none;background:rgba(0,0,0,0.25);border-radius:6px;padding:0.55rem 0.7rem;margin-bottom:0.6rem;font-size:0.74rem;color:rgba(255,255,255,0.72);font-family:'Space Grotesk',sans-serif;max-height:220px;overflow:auto"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.6rem">
           <div>
             <label class="form-label" style="font-size:0.72rem">Antal timmar (kan vara decimal)</label>
@@ -9786,10 +9790,64 @@ function adminFraktConfigAdd() {
 
 // ─────────────────────────────────────────────────────────────
 // MONTERING-KONFIGURATOR i admin
-// 600 kr/tim, minimum 15 min, kan multiplicieras med antal personer.
-// Demontering räknas normalt 2× monteringstiden i kund-cart men i
-// admin specar admin direkt totaltiden (montering + demontering).
+// "Beräkna från offertens produkter" kör samma motor som varukorgen
+// (window.skMontering, src/lib/montering.cjs) på offertens hårdvarurader och
+// fyller i teknikertiden. Admin kan skriva över; raden märks då "justerad".
+// Tiden är total teknikertid (montering + demontering). Antal personer
+// multiplicerar bara när admin anger tiden för hand.
 // ─────────────────────────────────────────────────────────────
+let _monCalc = null;   // { minuter, fastKr } från senaste beräkningen
+
+function _monTargetItems() {
+  const items = _configTarget === 'productsTab'
+    ? ((typeof prodGetItems === 'function') ? prodGetItems() : (currentCart.items || []))
+    : (typeof quoteItems !== 'undefined' ? quoteItems : []);
+  return (items || []).filter(i => i && !_quoteIsSvc(i));
+}
+
+function adminMonteringConfigCalc() {
+  const eng = window.skMontering;
+  const box = document.getElementById('mon-cfg-calc');
+  if (!eng || !box) return;
+  const items = _monTargetItems();
+  const r = eng.calc(items.map(i => ({ id: i.id, artno: i.artno || i.id, qty: i.qty, name: i.name })));
+  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const catName = (a) => {
+    for (const cat of Object.values(window.__ADMIN_QUOTE_CATALOG__ || {})) {
+      const lists = [cat.products || [], ...Object.values(cat.sub || {})];
+      for (const l of lists) { const hit = l.find(x => x.artno === a); if (hit) return hit.name; }
+    }
+    return a;
+  };
+  const nameOf = (a) => (items.find(i => (i.artno || i.id) === a || i.id === a) || {}).name || catName(a);
+  const fm = (m) => Math.round(m) + ' min';
+  let html = '';
+  if (!items.length) {
+    html = '<span style="color:rgba(255,255,255,0.5)">Offerten har inga produktrader ännu.</span>';
+  } else {
+    const rows = r.rader.filter(x => x.min > 0).map(x =>
+      `<div style="display:flex;justify-content:space-between;gap:0.5rem"><span>${esc(nameOf(x.artno))} × ${x.qty}${x.b > 1 ? ' · ' + x.b + ' tekn.' : ''}${x.s === 'fast' ? ' · fast' : ''}</span><span>${fm(x.min)}</span></div>`);
+    if (r.pott.rader.length) {
+      const n = r.pott.rader.length;
+      rows.push(`<div style="display:flex;justify-content:space-between;gap:0.5rem"><span title="${esc(r.pott.rader.map(x => nameOf(x.artno) + ' × ' + x.qty).join(', '))}">Småtillbehör (${n} ${n === 1 ? 'rad' : 'rader'} samlade)</span><span>${fm(r.pott.min)}</span></div>`);
+    }
+    if (r.extraMin > 0) rows.push(`<div style="display:flex;justify-content:space-between"><span>Egen tid på rader (LED-vägg)</span><span>${fm(r.extraMin)}</span></div>`);
+    html = rows.join('') +
+      `<div style="margin-top:0.35rem;padding-top:0.35rem;border-top:1px solid rgba(255,255,255,0.1)"><strong style="color:white">${eng.formatTid(r.minuter)} teknikertid</strong> (avrundat uppåt till kvart)${r.fastKr ? ' + fast belopp ' + r.fastKr.toLocaleString('sv') + ' kr' : ''}</div>`;
+    if (r.manuella.length) html += `<div style="margin-top:0.35rem;color:#fbbf24">Offereras separat (ingår inte): ${r.manuella.map(a => esc(nameOf(a))).join(', ')}</div>`;
+    if (r.saknas.length) html += `<div style="margin-top:0.35rem;color:#fbbf24">Saknar monteringstid: ${r.saknas.map(a => esc(nameOf(a))).join(', ')}</div>`;
+  }
+  box.innerHTML = html;
+  box.style.display = 'block';
+  _monCalc = { minuter: r.minuter, fastKr: r.fastKr };
+  document.getElementById('mon-cfg-hours').value = String(r.minuter / 60);
+  document.getElementById('mon-cfg-pers').value = '1';
+  adminMonteringConfigUpdate();
+}
+
+function _monIsCalc(hours, pers) {
+  return !!_monCalc && pers === 1 && Math.abs(hours * 60 - _monCalc.minuter) < 0.5;
+}
 function adminMonteringConfigOpen() {
   const panel = document.getElementById('admin-montering-config');
   if (!panel) return;
@@ -9799,11 +9857,16 @@ function adminMonteringConfigOpen() {
 
   const cfg = window.__ADMIN_MONTERING_CONFIG__ || {};
   const ruleEl = document.getElementById('mon-cfg-rule');
-  ruleEl.innerHTML = `💡 <strong>Regel:</strong> ${cfg.prisPerTimme || 600} kr/tim, minimum ${cfg.minDebiteringMin || 15} min. Total tid = montering + demontering.`;
+  ruleEl.innerHTML = `💡 <strong>Regel:</strong> ${cfg.prisPerTimme || 600} kr/tim, minimum ${cfg.minDebiteringMin || 15} min per order. Tiden räknas från produkterna med samma regler som varukorgen och är total teknikertid (montering + demontering).`;
 
+  _monCalc = null;
+  const box = document.getElementById('mon-cfg-calc');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
   panel.style.display = 'block';
   _showConfigBackdrop(true);
-  adminMonteringConfigUpdate();
+  // Förifyll med beräkningen när offerten redan har produkter.
+  if (_monTargetItems().length) adminMonteringConfigCalc();
+  else adminMonteringConfigUpdate();
 }
 
 function adminMonteringConfigClose() {
@@ -9824,10 +9887,13 @@ function adminMonteringConfigUpdate() {
   }
 
   const totalHours = hours * pers;
-  const totalPris = Math.round(totalHours * prisPerTim);
+  const isCalc = _monIsCalc(hours, pers);
+  const fastKr = isCalc ? (_monCalc.fastKr || 0) : 0;
+  const totalPris = Math.round(totalHours * prisPerTim) + fastKr;
+  const tag = _monCalc ? (isCalc ? ' · <span style="color:#86efac">beräknad</span>' : ' · <span style="color:#fbbf24">justerad</span>') : '';
   preview.innerHTML = `
-    <div>${pers} pers × ${hours} tim × ${prisPerTim} kr/tim</div>
-    <div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.1)"><strong style="color:white">Totalt: ${totalPris.toLocaleString('sv')} kr</strong> (${totalHours} debiterade timmar)</div>
+    <div>${pers} pers × ${+hours.toFixed(2)} tim × ${prisPerTim} kr/tim${fastKr ? ' + fast ' + fastKr.toLocaleString('sv') + ' kr' : ''}${tag}</div>
+    <div style="margin-top:0.4rem;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.1)"><strong style="color:white">Totalt: ${totalPris.toLocaleString('sv')} kr</strong> (${+totalHours.toFixed(2)} debiterade timmar)</div>
   `;
 }
 
@@ -9839,8 +9905,14 @@ function adminMonteringConfigAdd() {
   if (hours <= 0) return;
 
   const totalHours = hours * pers;
-  const totalPris = Math.round(totalHours * prisPerTim);
-  const labelExtra = pers > 1 ? ` (${pers} pers × ${hours} tim)` : ` (${hours} tim)`;
+  const isCalc = _monIsCalc(hours, pers);
+  const fastKr = isCalc ? (_monCalc.fastKr || 0) : 0;
+  const totalPris = Math.round(totalHours * prisPerTim) + fastKr;
+  const tidTxt = window.skMontering ? window.skMontering.formatTid(totalHours * 60) : `${totalHours} tim`;
+  const labelExtra = isCalc
+    ? ` (${tidTxt}, beräknad)`
+    : pers > 1 ? ` (${pers} pers × ${+hours.toFixed(2)} tim${_monCalc ? ', justerad' : ''})`
+               : ` (${tidTxt}${_monCalc ? ', justerad' : ''})`;
 
   _commitTargetItem({
     id:    cfg.artno || 'SK-TJN-0001',
@@ -9887,6 +9959,7 @@ window.adminMonteringConfigOpen    = adminMonteringConfigOpen;
 window.adminMonteringConfigClose   = adminMonteringConfigClose;
 window.adminMonteringConfigUpdate  = adminMonteringConfigUpdate;
 window.adminMonteringConfigAdd     = adminMonteringConfigAdd;
+window.adminMonteringConfigCalc    = adminMonteringConfigCalc;
 </script>
 
 </body>

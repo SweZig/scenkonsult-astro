@@ -6,6 +6,12 @@ import SectionHeader from '../../../components/SectionHeader.astro';
 import CartButton from '../../../components/CartButton.astro';
 import MediaCard from '../../../components/MediaCard.astro';
 import dj from '../../../data/dj.json';
+import tjanster from '../../../data/tjanster.json';
+// DJ-paketens rigg och nedplock (fast monteringstid, sköts av DJ:n) — samma
+// värde som varukorgen debiterar via monteringskatalogen.
+const _riggPkg = dj.packages.find(p => p.monteringSkalning === 'fast' && typeof p.monteringMin === 'number');
+const riggMin = _riggPkg ? _riggPkg.monteringMin : 0;
+const riggKr = Math.round(riggMin / 60 * (tjanster.montering?.prisPerTimme || 600));
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -200,7 +206,7 @@ const djFromInkl = Math.round(djFromExcl * 1.25);
       <SectionHeader
         eyebrow="Paket"
         h2="Kompletta DJ-paket"
-        lead="DJ + ljud + ljus i ett paket. 3 timmars speltid ingår. Resa tillkommer."
+        lead={riggMin ? `DJ + ljud + ljus i ett paket. 3 timmars speltid ingår. Rigg och nedplock (${riggMin} min, ${riggKr} kr) och resa tillkommer.` : "DJ + ljud + ljus i ett paket. 3 timmars speltid ingår. Resa tillkommer."}
       />
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -230,7 +236,10 @@ const djFromInkl = Math.round(djFromExcl * 1.25);
               <span class="text-gray-400 text-xs ml-1 sk-price-excl">exkl. moms</span>
               <span class="text-gray-400 text-xs ml-1 sk-price-incl hidden">inkl. moms</span>
             </div>
-            <div class="text-gray-400 text-[10px] italic mb-3">{pkg.note}</div>
+            <div class={`text-gray-400 text-[10px] italic ${pkg.monteringSkalning === 'fast' ? 'mb-1' : 'mb-3'}`}>{pkg.note}</div>
+            {pkg.monteringSkalning === 'fast' && (
+              <div class="text-gray-400 text-[10px] mb-3">Rigg &amp; nedplock ca {pkg.monteringMin} min sköts av DJ:n — {Math.round(pkg.monteringMin / 60 * (tjanster.montering?.prisPerTimme || 600))} kr tillkommer.</div>
+            )}
             <CartButton id={pkg.artno} name={pkg.name} price={pkg.price} category="DJ-paket" size="md" />
           </div>
         </div>

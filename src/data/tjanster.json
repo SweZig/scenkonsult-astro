@@ -144,9 +144,22 @@
     "minDebiteringMin": 15,
     "avrundaTillMin": 15,
     "obligatoriskOverM2": 16,
-    "minPerModul": 5,
-    "bemanning": 2,
-    "note": "Monteringstid per produkt finns angiven i produktinfo. Demonteringstid = monteringstid × 2.",
+    "bemanning": 1,
+    "modell": {
+      "_regel": "Per rad: tid = monteringMin × antal^k (k efter monteringSkalning). Tillbehör med högst pott.maxMin min, bemanning 1 och skalning styck räknas ihop i en pott där de pott.fulla tyngsta raderna räknas fullt och resten × pott.andel. Rader och pott × demonteringFaktor. Skalning fast = tid × antal, ingen demontering. Summa teknikerminuter (tid × bemanning) avrundas uppåt till avrundaTillMin, minst minDebiteringMin, för hela ordern. Beräkningen finns i src/lib/montering.mjs.",
+      "demonteringFaktor": 2,
+      "k": {
+        "styck": 0.65,
+        "tung": 0.85,
+        "yta": 0.37
+      },
+      "pott": {
+        "maxMin": 10,
+        "fulla": 5,
+        "andel": 0.5
+      }
+    },
+    "note": "Tiden räknas från produkterna i varukorgen. Flera av samma produkt går snabbare per styck, och småtillbehör räknas ihop. Demontering ingår. Hela ordern avrundas uppåt till närmaste kvart.",
     "note2": "Obligatorisk vid leverans när scen är över 16 m².",
     "type": "service",
     "artno": "SK-TJN-0001"

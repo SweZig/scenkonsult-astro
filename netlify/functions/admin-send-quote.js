@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight,
         htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
 const { daySummary: _daySummary, itemDays: _itemDays } = require('./_day-display');
+const { checkMontering } = require('./_montering');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -66,6 +67,10 @@ exports.handler = async (event) => {
     type: i.type || (['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49'].includes(i.id) ? 'service' : 'product'),
     category: i.category || (['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49'].includes(i.id) ? 'Tjänster' : ''),
   }));
+  // Montering: jämför med motorn och logga avvikelse. Admin får justera tiden,
+  // så beloppet skrivs inte över här.
+  try { checkMontering(realItems, { enforce: false, tag: 'ADMIN_QUOTE' }); }
+  catch (e) { console.error('MONTERING_CHECK_ERROR:', e.message); }
   const allItems  = [...realItems];
   if (note?.trim()) {
     allItems.push({ _note: true, id: '_note', name: note.trim(), price: 0, qty: 1 });

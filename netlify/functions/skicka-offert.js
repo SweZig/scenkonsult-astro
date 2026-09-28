@@ -8,6 +8,7 @@ const {
   supabase: createSupabase, generateCartToken, logAudit,
   htmlWrapper, sendEmail, MAIL_FROM,
 } = require('./_lib');
+const { checkMontering } = require('./_montering');
 
 const RATE_LIMIT    = {};
 const RATE_WINDOW   = 60 * 1000;
@@ -48,6 +49,11 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltig e-postadress.' }) };
   if (!cart || cart.length === 0)
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Varukorgen är tom.' }) };
+
+  // Montering räknas om på servern med samma motor som varukorgen. Klientens
+  // belopp ersätts vid avvikelse (loggas som MONTERING_AVVIKELSE).
+  try { checkMontering(cart, { enforce: true, tag: 'OFFERT' }); }
+  catch (e) { console.error('MONTERING_CHECK_ERROR:', e.message); }
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey)

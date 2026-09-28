@@ -17,6 +17,9 @@ import bildJson     from '../data/bild.json';
 import tjansterJson from '../data/tjanster.json';
 import karaokeJson  from '../data/karaoke.json';
 import elJson       from '../data/el.json';
+// Monteringsberäkning (window.skMontering) — körs först i <body> så att den finns
+// innan sidornas egna skript, även define:vars-skript i konfigurator och paketkort.
+import MonteringEngine from '../components/MonteringEngine.astro';
 
 const svenProducts = buildSvenProducts({
   scenes: scenesJson, ljud: ljudJson, ljus: ljusJson, dj: djJson,
@@ -240,6 +243,7 @@ const localBusinessSchema = {
   )}
 </head>
 <body>
+  <MonteringEngine />
   <!-- Cookie-banner -->
   <div id="sk-cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(12,10,36,0.97);border-top:1px solid rgba(196,181,244,0.25);padding:1rem 1.5rem;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
     <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.875rem;font-family:'Space Grotesk',sans-serif;max-width:700px;">
@@ -888,7 +892,7 @@ const localBusinessSchema = {
         // Merge flaggor från nya item — om nya item har truthy värde, override existing
         // (skyddar mot fall där samma artno läggs in från flera komponenter, t.ex.
         // konfiguratorn först utan bulky, sen paket-kort som kräver bulky+montering)
-        ['bulky', 'requiresAssembly', 'forceLeverans', 'monteringMin', 'assemblyMinutesTotal', 'monteringFast', 'requiresBakgavel'].forEach(k => {
+        ['bulky', 'requiresAssembly', 'autoMontering', 'forceLeverans', 'monteringMin', 'assemblyMinutesTotal', 'monteringFast', 'requiresBakgavel'].forEach(k => {
           if (item[k] !== undefined && item[k] !== null && item[k] !== false && item[k] !== '') {
             existing[k] = item[k];
           }
