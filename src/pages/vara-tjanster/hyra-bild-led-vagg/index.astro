@@ -718,7 +718,9 @@ const faqSchema = {
                        + M.config_min;
           const roundedMin = Math.ceil(rawMin / M.round_to_min) * M.round_to_min;
           monteringHours = roundedMin / 60;
-          monteringCost = M.price_per_hour_excl * monteringHours;
+          // Tid på plats × antal tekniker (LED-väggar monteras alltid av 2).
+          const bem = M.bemanning || 1;
+          monteringCost = M.price_per_hour_excl * monteringHours * bem;
           const hoursLabel = Number.isInteger(monteringHours)
             ? `${monteringHours} tim`
             : `${monteringHours.toFixed(1).replace('.', ',')} tim`;
@@ -726,7 +728,7 @@ const faqSchema = {
           priceLines.push({
             label: M.name,
             value: monteringCost,
-            sub: `${hoursLabel} (rigg ${sizeLabel} ×2 + ${M.min_per_panel_install}+${M.min_per_panel_demount} min × ${totalPanels} paneler + ${M.config_min} min config)`,
+            sub: `${hoursLabel}${(M.bemanning || 1) > 1 ? ' × ' + M.bemanning + ' tekniker' : ''} (rigg ${sizeLabel} ×2 + ${M.min_per_panel_install}+${M.min_per_panel_demount} min × ${totalPanels} paneler + ${M.config_min} min config)`,
             key: 'montering',
             group: 'tillkommer',
           });
@@ -1227,6 +1229,7 @@ const faqSchema = {
           bulky: true,
           forceLeverans: c.leveransKey,
           assemblyMinutesTotal: cartAssembly,
+          assemblyBemanning: TILL.montering.bemanning || 1,
           qty: c.totalPanels,
         });
 
@@ -1359,7 +1362,7 @@ const faqSchema = {
           // Frakt + montering (visas bara som info-text)
           const monteringMin = calcMonteringMin(totalPanels, area_m2);
           const monteringH = monteringMin / 60;
-          const monteringKr = (monteringMin / 60) * R.montering.price_per_hour_excl;
+          const monteringKr = (monteringMin / 60) * R.montering.price_per_hour_excl * (R.montering.bemanning || 1);
           const leverans = pickLeverans(area_m2);
 
           // DOM-uppdatering
@@ -1385,7 +1388,7 @@ const faqSchema = {
             noteEl.innerHTML =
               '+ Montering &amp; demontering ' +
               '<span><span class="sk-price-excl">' + mE + '</span><span class="sk-price-incl hidden">' + mI + '</span></span>' +
-              ' (' + monteringHLabel + ') &amp; transport ' +
+              ' (' + monteringHLabel + ((R.montering.bemanning || 1) > 1 ? ' × ' + R.montering.bemanning + ' tekniker' : '') + ') &amp; transport ' +
               '<span><span class="sk-price-excl">' + lE + '</span><span class="sk-price-incl hidden">' + lI + '</span></span>' +
               ' (' + leverans.name + ') tillkommer i kassan';
             if (window.skApplyVat) window.skApplyVat();
@@ -1498,6 +1501,7 @@ const faqSchema = {
               bulky: true,
               forceLeverans: leverans.key,
               assemblyMinutesTotal: monteringMin,
+              assemblyBemanning: R.montering.bemanning || 1,
               qty: v.totalPanels,
             });
             // Processor

@@ -55,6 +55,8 @@ if (slugEntry) assert.equal(mon.calc([{ id: slugEntry[0], qty: 10 }]).minuter, 9
 // Varukorgsflaggor: monteringFast (bundle) och assemblyMinutesTotal (LED-vägg)
 assert.equal(mon.calc([{ artno: 'SK-BLD-LED-P26', id: 'SK-BLD-LED-P26__5x3', qty: 15, assemblyMinutesTotal: 300 }]).kronor, 3000);
 assert.equal(mon.calc([{ artno: 'SK-BLD-LED-P26', qty: 12, monteringFast: 4524, assemblyMinutesTotal: 282.6 }]).kronor, 4524);
+// LED-vägg monteras av 2 tekniker: 6 h på plats → 12 h teknikertid
+assert.equal(mon.calc([{ artno: 'SK-BLD-LED-P26', qty: 15, assemblyMinutesTotal: 360, assemblyBemanning: 2 }]).kronor, 7200);
 // Katalogtiden vinner över gammal stämpel på modulraden
 assert.equal(mon.calc([{ artno: 'SK-SCN-MOD-0002', qty: 10, assemblyMinutesTotal: 999 }]).minuter,
              mon.calc(L([['SK-SCN-MOD-0002', 10]])).minuter);

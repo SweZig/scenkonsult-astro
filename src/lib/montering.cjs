@@ -37,8 +37,8 @@
  *
  * VARUKORGSRADER UTAN KATALOGTID
  *   monteringFast (kr)        → fast belopp, t.ex. LED-vägg på tross (bundle)
- *   assemblyMinutesTotal (min)→ egen beräkning på sidan (LED-vägg), debiteras
- *                               som den är
+ *   assemblyMinutesTotal (min)→ egen beräkning på sidan (LED-vägg): tid på plats,
+ *                               × assemblyBemanning (antal tekniker, default 1)
  *   monteringMin (min)        → äldre rader: räknas som styck, bemanning 1
  *   Katalogens tid vinner alltid över radens egna fält.
  * ─────────────────────────────────────────────────────────────────────────────
@@ -162,7 +162,8 @@
         return;
       }
       if (Number(line.assemblyMinutesTotal) > 0) {
-        extraMin += Number(line.assemblyMinutesTotal);
+        var ab = Number(line.assemblyBemanning);
+        extraMin += Number(line.assemblyMinutesTotal) * (ab > 0 ? ab : 1);
         kand = true;
         return;
       }
