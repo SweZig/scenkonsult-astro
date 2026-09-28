@@ -603,8 +603,8 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       return lines;
     }
 
-    // 1×1-yta: 20 cm-ben och skyddsräcken är ej tillgängliga (bara 1×2 har 20cm-ben;
-    // räcken monteras ej på 1×1-podier). Höjd 20 visas/tillåts endast på 1×2-ytor.
+    // 1×1-yta: finns endast i 40 cm, och skyddsräcken monteras ej på 1×1-podier.
+    // 20 och 60 cm tillåts endast på 1×2-ytor.
     const is1x1 = (s) => s === '1x1-halkfri';
 
     const svgEl = card.querySelector('[data-paket-svg]');
@@ -618,11 +618,9 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
 
     function update() {
       // Yta-beroende regler:
-      // - 20 cm-höjd: endast 1×2-ytor. På 1×1 → fall tillbaka till 40.
+      // - 1×1-yta: endast 40 cm. Annan höjd → 40.
       // - Räcken + Scenkjol-knappar kan ha sina egna gating-regler nedan.
-      if (is1x1(surface) && height === 20) {
-        height = (cfg.heights || []).includes(40) ? 40 : (cfg.defaultHeight || 40);
-      }
+      if (is1x1(surface) && height !== 40) height = 40;
       // Räcken ej tillgängligt på 1×1 → nollställ om aktivt.
       if (is1x1(surface) && rail) rail = false;
       // 20 cm: ingen trappa behövs (trappor finns i 40 och 60 cm).
@@ -703,9 +701,9 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       });
       const heightHint = card.querySelector('[data-paket-height-hint]');
       if (heightHint) {
-        const has20 = (cfg.heights || []).includes(20);
-        const txt = !has20 ? ''
-          : is1x1(surface) ? '20 cm finns för 1×2 m-podier — välj en 1×2-yta.'
+        const other = (cfg.heights || []).filter(h => h !== 40);
+        const txt = is1x1(surface) && other.length
+          ? `1×1 m-podier finns i 40 cm. ${other.join(' och ')} cm finns för 1×2 m-podier — välj en 1×2-yta.`
           : height === 20 ? 'Vid 20 cm behövs ingen trappa.'
           : '';
         heightHint.textContent = txt;
@@ -713,13 +711,11 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       }
       card.querySelectorAll('[data-height]').forEach(b => {
         const h = parseInt(b.dataset.height);
-        // 20 cm endast på 1×2-ytor — inaktivera pillen på 1×1.
-        if (h === 20) {
-          const disabled = is1x1(surface);
-          b.disabled = disabled;
-          b.classList.toggle('paket-pill-disabled', disabled);
-          b.title = disabled ? '20 cm finns endast för 1×2 m-podier' : '';
-        }
+        // 1×1-podier finns endast i 40 cm — inaktivera 20 och 60 på 1×1.
+        const disabled = is1x1(surface) && h !== 40;
+        b.disabled = disabled;
+        b.classList.toggle('paket-pill-disabled', disabled);
+        b.title = disabled ? `${h} cm finns endast för 1×2 m-podier` : '';
         b.setAttribute('aria-pressed', h === height ? 'true' : 'false');
       });
       const railBtn = card.querySelector('[data-paket-rail]');
