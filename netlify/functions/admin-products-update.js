@@ -95,6 +95,16 @@ function validateField(key, value) {
     }
     return null;
   }
+  // Monteringstid i minuter (enbart montering — demontering räknas ×2 i
+  // varukorg/konfigurator). null = ta bort fältet (= saknas). 0 = monteras inte.
+  if (key === 'monteringMin') {
+    if (value === null || value === undefined) return null;
+    if (typeof value !== 'number' || !Number.isFinite(value)) return `monteringMin måste vara ett tal`;
+    if (value < 0) return `monteringMin får inte vara negativ`;
+    if (value > 1440) return `monteringMin ologiskt hög (>1440 min)`;
+    if (Math.round(value * 2) !== value * 2) return `monteringMin: hela eller halva minuter`;
+    return null;
+  }
   if (key === 'priceNote') {
     if (typeof value !== 'string') return `priceNote måste vara text`;
     if (value.length > 30) return `priceNote max 30 tecken`;
@@ -139,7 +149,7 @@ function validateField(key, value) {
     }
     return null;
   }
-  return `okänt fält: ${key} (stödjer name, price, description, specs, volumePricing, priceNote, slug, artno, image, includes)`;
+  return `okänt fält: ${key} (stödjer name, price, description, monteringMin, specs, volumePricing, priceNote, slug, artno, image, includes)`;
 }
 
 // ── Validera komplett ny produkt ─────────────────────────────
@@ -354,7 +364,7 @@ exports.handler = async (event) => {
     for (const [k, v] of Object.entries(ch.fields)) {
       before[k] = target[k];
       // Special: tom array eller null på volumePricing/specs = ta bort fältet
-      if ((k === 'volumePricing' || k === 'specs') && (v === null || (Array.isArray(v) && v.length === 0))) {
+      if ((k === 'volumePricing' || k === 'specs' || k === 'monteringMin') && (v === null || (Array.isArray(v) && v.length === 0))) {
         delete target[k];
       } else {
         target[k] = v;

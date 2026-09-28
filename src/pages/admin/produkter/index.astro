@@ -279,7 +279,7 @@
     }
     .prod-row {
       display: grid;
-      grid-template-columns: 28px 130px 1fr 110px 1.4fr 96px;
+      grid-template-columns: 28px 130px 1fr 110px 92px 1.4fr 96px;
       gap: 10px;
       padding: 10px 14px;
       align-items: start;
@@ -740,6 +740,7 @@
         grid-template-areas:
           "status name name info"
           "status artno price info"
+          "status mont mont info"
           "status desc desc info";
         gap: 6px;
       }
@@ -749,6 +750,7 @@
       .prod-row .artno-cell  { grid-area: artno; }
       .prod-row .name-cell   { grid-area: name; }
       .prod-row .price-cell  { grid-area: price; }
+      .prod-row .mont-cell   { grid-area: mont; }
       .prod-row .desc-cell   { grid-area: desc; }
       /* Transport har två priskolumner och ingen åtgärdskolumn */
       .prod-row.trp {
@@ -865,6 +867,11 @@
             <label>Prisangivelse</label>
             <input type="text" id="new-priceNote" value="/dygn" />
             <div class="hint">T.ex. /dygn, /st/dygn, /tim</div>
+          </div>
+          <div>
+            <label>Monteringstid (min)</label>
+            <input type="number" id="new-monteringMin" min="0" step="1" placeholder="t.ex. 10" />
+            <div class="hint">Enbart montering (demontering ×2 räknas automatiskt). 0 = monteras inte.</div>
           </div>
           <div class="full">
             <label>Beskrivning</label>
@@ -1347,6 +1354,7 @@
         <div>Artno</div>
         <div>Namn</div>
         <div>Pris</div>
+        <div title="Monteringstid i minuter (enbart montering — demontering räknas ×2 automatiskt). Tom = saknas, 0 = monteras inte.">Montering</div>
         <div>Beskrivning</div>
         <div></div>
       </div>`;
@@ -1366,6 +1374,10 @@
         const curName  = pend && 'name' in pend  ? pend.name  : (p.name || '');
         const curPrice = pend && 'price' in pend ? pend.price : (p.price ?? 0);
         const curDesc  = pend && 'description' in pend ? pend.description : (p.description || '');
+        // Monteringstid (min). null i pending = radera fältet; tomt fält = saknas.
+        const curMont  = pend && 'monteringMin' in pend
+          ? (pend.monteringMin === null ? '' : pend.monteringMin)
+          : (typeof p.monteringMin === 'number' ? p.monteringMin : '');
         // Effektiv volumePricing — pending overrider original
         const curVolPricing = pend && 'volumePricing' in pend
           ? pend.volumePricing
@@ -1407,6 +1419,13 @@
               <span class="suffix">kr</span>
             </div>
             ${hasError && pend.errors.price ? `<div class="field-err">${escapeHtml(pend.errors.price)}</div>` : ''}
+          </div>
+          <div class="mont-cell">
+            <div class="price-col-wrap">
+              <input type="number" data-field="monteringMin" value="${curMont}" min="0" step="1" placeholder="—" title="Monteringstid i minuter (demontering räknas ×2 automatiskt). Tom = saknas, 0 = monteras inte." />
+              <span class="suffix">min</span>
+            </div>
+            ${hasError && pend.errors.monteringMin ? `<div class="field-err">${escapeHtml(pend.errors.monteringMin)}</div>` : ''}
           </div>
           <div class="desc-cell">
             <textarea data-field="description" maxlength="2000" rows="2">${escapeHtml(curDesc)}</textarea>
@@ -1616,17 +1635,25 @@
         const num = Number(value);
         value = Number.isFinite(num) ? num : value;
       }
+      if (field === 'monteringMin') {
+        // Tomt = radera fältet (null till backend), annars tal
+        if (String(value).trim() === '') value = null;
+        else { const num = Number(value); value = Number.isFinite(num) ? num : value; }
+      }
 
       // Hämta originalvärdet för jämförelse
       const section = fileData.sections.find(s => activeSection === s.key);
       const idx = parseInt(path.split('.').pop(), 10);
       const product = section.products[idx];
-      const original = field === 'price' ? (product.price ?? 0) : (product[field] || '');
+      const original = field === 'price' ? (product.price ?? 0)
+        : field === 'monteringMin' ? (typeof product.monteringMin === 'number' ? product.monteringMin : null)
+        : (product[field] || '');
 
       const pend = pending.get(path) || {};
 
       // Om värdet matchar originalet — ta bort fältet ur pending
-      if (value === original || (field === 'price' && Number(value) === Number(original))) {
+      if (value === original || (field === 'price' && Number(value) === Number(original))
+          || (field === 'monteringMin' && value !== null && original !== null && Number(value) === Number(original))) {
         delete pend[field];
         if (pend.errors) delete pend.errors[field];
       } else {
@@ -1672,19 +1699,28 @@
       // Lägg till/ta bort field-error meddelanden
       row.querySelectorAll('input, textarea').forEach(inp => {
         const field = inp.dataset.field;
-        // Ta bort existerande error om den finns
+        // Felmeddelandet hör till cellen, inte till inputens närmaste förälder —
+        // pris- och monteringsfälten ligger i en flex-rad (input + suffix) där
+        // ett inlagt meddelande annars klämmer ihop fältet och aldrig städas bort.
+        const cell = inp.closest('.name-cell, .price-cell, .mont-cell, .desc-cell') || inp.parentElement;
+        cell.querySelectorAll(`.field-err[data-for="${field}"]`).forEach(el => el.remove());
+        // Äldre meddelanden utan data-for (renderade av renderTable) direkt efter inputen
         let next = inp.nextElementSibling;
         while (next && next.classList.contains('field-err')) {
           const toRemove = next;
           next = next.nextElementSibling;
           toRemove.remove();
         }
+        if (inp.closest('.price-col-wrap')) {
+          cell.querySelectorAll(':scope > .field-err').forEach(el => el.remove());
+        }
         // Lägg till ny om det finns
         if (pend && pend.errors && pend.errors[field]) {
           const div = document.createElement('div');
           div.className = 'field-err';
+          div.dataset.for = field;
           div.textContent = pend.errors[field];
-          inp.parentElement.appendChild(div);
+          cell.appendChild(div);
         }
       });
     }
@@ -1703,6 +1739,14 @@
       }
       if (field === 'description') {
         if (value && value.length > 2000) return 'Max 2000 tecken';
+      }
+      if (field === 'monteringMin') {
+        if (value === null) return null;
+        const n = Number(value);
+        if (!Number.isFinite(n)) return 'Ogiltigt tal';
+        if (n < 0) return 'Kan inte vara negativ';
+        if (n > 1440) return 'Max 1440 min';
+        if (Math.round(n * 2) !== n * 2) return 'Hela eller halva minuter';
       }
       return null;
     }
@@ -2091,6 +2135,7 @@
       $('new-name').value = '';
       $('new-price').value = '';
       $('new-priceNote').value = '/dygn';
+      if ($('new-monteringMin')) $('new-monteringMin').value = '';
       $('new-description').value = '';
       $('new-image').value = '';
       $('new-includes').value = '';
@@ -2191,6 +2236,7 @@
       const name  = $('new-name').value.trim();
       const priceStr = $('new-price').value.trim();
       const priceNote = $('new-priceNote').value.trim() || '/dygn';
+      const monteringStr = ($('new-monteringMin')?.value || '').trim();
       const description = $('new-description').value.trim();
       const image = $('new-image').value.trim();
       const includesRaw = $('new-includes').value.trim();
@@ -2229,6 +2275,10 @@
         else if (newModalVolTiers.length > 0) volumePricing = JSON.parse(JSON.stringify(newModalVolTiers));
       }
 
+      if (monteringStr !== '') {
+        const me = validateField('monteringMin', Number(monteringStr));
+        if (me) errs.push('Monteringstid: ' + me);
+      }
       if (errs.length) {
         $('new-error').textContent = errs.join('; ');
         $('new-error').style.display = 'block';
@@ -2237,6 +2287,7 @@
 
       // Bygg produktobjekt
       const product = { artno, slug, name, price };
+      if (monteringStr !== '') product.monteringMin = Number(monteringStr);
       if (priceNote && priceNote !== '/dygn') product.priceNote = priceNote;
       else product.priceNote = '/dygn'; // alltid med så det syns
       if (description) product.description = description;
@@ -2382,7 +2433,7 @@
           continue;
         }
         const fields = {};
-        for (const k of ['name', 'price', 'description', 'specs', 'volumePricing']) {
+        for (const k of ['name', 'price', 'description', 'monteringMin', 'specs', 'volumePricing']) {
           if (k in pend) fields[k] = pend[k];
         }
         if (Object.keys(fields).length > 0) {
@@ -2445,7 +2496,7 @@
           if (target && typeof target === 'object') {
             for (const [k, v] of Object.entries(c.after)) {
               // Hantera radering av volumePricing / specs
-              if ((k === 'volumePricing' || k === 'specs') && (v === null || (Array.isArray(v) && v.length === 0))) {
+              if ((k === 'volumePricing' || k === 'specs' || k === 'monteringMin') && (v === null || (Array.isArray(v) && v.length === 0))) {
                 delete target[k];
               } else {
                 target[k] = v;
