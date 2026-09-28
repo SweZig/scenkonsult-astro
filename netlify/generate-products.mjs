@@ -340,6 +340,7 @@ svenFacts.push('═══ MONTERING & TEKNIK ═══');
 svenFacts.push('Enklare utrustning levereras för självmontering — det går alltid bra att montera själv.');
 if (_mont.prisPerTimme) svenFacts.push(`Montering & demontering som tillval: ${fmtPrice(_mont.prisPerTimme)}/tim (debiteras per påbörjad 15-minutersperiod à ${fmtPrice(Math.round(_mont.prisPerTimme/4))}).`);
 svenFacts.push('Större scenpaket (Large och uppåt), LED-skärmar och komplex ljusutrustning kräver montering/tekniker — prissätts separat.');
+svenFacts.push('Scen: monteringstiden förutsätter plant, fast underlag (asfalt, betong, trägolv, jämn kortklippt gräsmatta). Höjdskillnad över ca 5 cm över scenytan = ojämnt — då behövs justerbara ben. Be kunden berätta om underlaget vid bokning (gärna med en bild), annars kan det bli extra leverans och längre montering.');
 svenFacts.push('');
 
 // LJUD-TIPS — kompletterande subbasar för event

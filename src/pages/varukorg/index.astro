@@ -248,7 +248,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
         </div>
         <div class="field-group field-full">
           <label class="field-label" for="f-notes">Övrig information</label>
-          <textarea id="f-notes" class="field-input field-textarea" placeholder="Beskriv eventet, önskemål, antal gäster, lokalbeskrivning…" rows="4"></textarea>
+          <textarea id="f-notes" class="field-input field-textarea" placeholder="Beskriv eventet, önskemål, antal gäster, lokal och underlag (t.ex. lutande gräsmatta)…" rows="4"></textarea>
         </div>
       </div>
     </div>
@@ -1243,6 +1243,11 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     }
     if (r.minuter > 0 || r.fastKr > 0) {
       s += (s ? '. ' : '') + 'Priset är beräknat utifrån produkterna och kan justeras när vi gått igenom plats och upplägg';
+    }
+    // Scen i korgen: monteringen förutsätter plant underlag (se hyra-scen/#underlag).
+    const hasScen = getCart().some(i => /^SK-SCN-(MOD|0)/.test(String(i.artno || i.id || '')));
+    if (hasScen) {
+      s += (s ? '. ' : '') + 'Scenmonteringen förutsätter plant underlag. Lutar marken eller är den ojämn, skriv det under Övrig information så tar vi med justerbara ben';
     }
     return s ? s + '.' : s;
   }

@@ -21,13 +21,14 @@ const faqSchema = {
   "mainEntity": [
     { "@type": "Question", "name": "Vad kostar det att hyra en scen i Stockholm?", "acceptedAnswer": { "@type": "Answer", "text": `Scenpaket Small (2×2 m) kostar från ${s('SK-SCN-0001')?.price} kr/dygn. Scenpaket Medium (5×2 m) kostar ${s('SK-SCN-0004')?.price} kr/dygn. Stora scener för festivaler och konserter (5×4 m och uppåt) kostar ${s('SK-SCN-0008')?.price}–${s('SK-SCN-0012')?.price} kr/dygn. Transport och montering tillkommer.` } },
     { "@type": "Question", "name": "Hur stor scen behöver jag?", "acceptedAnswer": { "@type": "Answer", "text": "DJ eller trubadur: 2×2 m (Small) räcker. Liveband med 3–4 musiker: 4×4 m (Medium++). Band med 5+ musiker eller showproduktion: 5×4 m eller större. Som tumregel: minst 2 m² per musiker." } },
-    { "@type": "Question", "name": "Ingår montering i scenhyran?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — montering och demontering är alltid en separat kostnad som offerteras baserat på scenstorlek och plats. Vi monterar i hela Storstockholm. Räkna med 1 000–3 000 kr för montering av ett standardscenpaket." } },
+    { "@type": "Question", "name": "Ingår montering i scenhyran?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — montering och demontering är en separat kostnad som räknas fram i kassan utifrån scenens delar. Vi monterar i hela Storstockholm. Räkna med ca 750–3 000 kr för montering av ett scenpaket utan tak på plant underlag." } },
+    { "@type": "Question", "name": "Vilket underlag behöver scenen?", "acceptedAnswer": { "@type": "Answer", "text": "Scenen ska stå på ett plant och fast underlag, till exempel asfalt, betong, trägolv eller en jämn, kortklippt gräsmatta. Vår beräknade monteringstid utgår från det. Är höjdskillnaden över scenens yta mer än ca 5 cm räknas underlaget som ojämnt, och då använder vi justerbara ben så att scenen står säkert och plant. Berätta det när du bokar, så tar vi med benen och räknar in det i offerten. Upptäcker vi det först på plats kan det bli en extra leverans och längre monteringstid. Skicka gärna en bild på platsen om du är osäker." } },
     { "@type": "Question", "name": "Kan man hyra scen utomhus?", "acceptedAnswer": { "@type": "Answer", "text": "Ja, alla våra scener är byggda för utomhusbruk. Vid risk för regn eller vind rekommenderar vi ett scentak som tillägg. Kontakta oss för rådgivning baserat på er plats och väderprognos." } },
     { "@type": "Question", "name": "Hur tidigt måste jag boka scen?", "acceptedAnswer": { "@type": "Answer", "text": "För events under maj–september (högsäsong) rekommenderar vi 4–8 veckor i förväg. Utanför säsong går ofta kortare varsel. Kontakta oss direkt för att kontrollera tillgänglighet." } }
   ]
 };
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event', href: '/for/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hyra scen — pris' }];
-const pageArticle = { headline: "Hyra Scen Stockholm — Pris & Guide 2026", datePublished: "2025-01-01", dateModified: "2026-06-15" };
+const pageArticle = { headline: "Hyra Scen Stockholm — Pris & Guide 2026", datePublished: "2025-01-01", dateModified: "2026-09-28" };
 ---
 <Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Hyra Scen Stockholm — Pris & Guide 2026 | Scenkonsult"
@@ -93,7 +94,8 @@ const pageArticle = { headline: "Hyra Scen Stockholm — Pris & Guide 2026", dat
       <div style="display:flex; flex-direction:column; gap:0.75rem;">
         {[
           { post: "Transport (leverans + hämtning)", pris: transportSpann, not: "Beroende på fordon och avstånd" },
-          { post: "Montering & demontering", pris: "Offert", not: "Baserat på scenstorlek och plats" },
+          { post: "Montering & demontering", pris: "Beräknas i kassan", not: "Utifrån scenens delar — förutsätter plant underlag" },
+          { post: "Justerbara ben", pris: "Vid behov", not: "Vid lutande eller ojämnt underlag — meddela vid bokning" },
           { post: "Scenkjol", pris: "Från 79 kr", not: "Tillbehör – döljer undersidan av scenen" },
           { post: "Skyddsräcke", pris: "Från 140 kr", not: "Tillbehör – kantskydd, finns i 1,0 m och 2,0 m" },
           { post: "Scentak", pris: "Offert", not: "Vid utomhusbruk med väderskydd" },

@@ -928,7 +928,7 @@ const configData = {
           if (fraktAuto) fraktAuto.checked = true;
         }
         if (installLabel) installLabel.textContent = '🔧 Våra tekniker sköter alltid montering vid scen över 16 m² — för säker hantering';
-        if (installHint) installHint.textContent = `Tillkommer separat: montering + demontering ca ${formatTime(minutes)} teknikertid (${MONTERING_PRICE_PER_HOUR} kr/tim ≈ ${formatKr(pris)}). Vi levererar alltid när vi monterar.`;
+        if (installHint) installHint.textContent = `Tillkommer separat: montering + demontering ca ${formatTime(minutes)} teknikertid (${MONTERING_PRICE_PER_HOUR} kr/tim ≈ ${formatKr(pris)}), beräknat för plant underlag. Vi levererar alltid när vi monterar.`;
       } else {
         if (installCb) installCb.disabled = false;
         // Återaktivera "Hämta själv"-pillen
@@ -937,9 +937,9 @@ const configData = {
         if (installLabel) installLabel.textContent = 'Lägg till montering & demontering — tillkommer separat';
         if (installHint) {
           if (state.installation) {
-            installHint.textContent = `Tillkommer separat: ca ${formatTime(minutes)} teknikertid (${MONTERING_PRICE_PER_HOUR} kr/tim ≈ ${formatKr(pris)}).`;
+            installHint.textContent = `Tillkommer separat: ca ${formatTime(minutes)} teknikertid (${MONTERING_PRICE_PER_HOUR} kr/tim ≈ ${formatKr(pris)}), beräknat för plant underlag.`;
           } else {
-            installHint.textContent = `Vi monterar och demonterar åt dig — för den här scenen ca ${formatTime(minutes)} teknikertid (≈ ${formatKr(pris)}, ${MONTERING_PRICE_PER_HOUR} kr/tim). Tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering.`;
+            installHint.textContent = `Vi monterar och demonterar åt dig — för den här scenen ca ${formatTime(minutes)} teknikertid (≈ ${formatKr(pris)}, ${MONTERING_PRICE_PER_HOUR} kr/tim), beräknat för plant underlag. Tillkommer separat. Vid scen över 16 m² sköter våra tekniker alltid montering.`;
           }
         }
       }
