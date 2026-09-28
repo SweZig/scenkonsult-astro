@@ -193,7 +193,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
     <div class="cart-summary">
       <div class="summ-row"><span>Produkter (exkl. moms)</span><span id="cartSubtotal">–</span></div>
       <div class="summ-row" id="rowLeverans" style="display:none"><span>Leverans</span><span id="summLeverans">–</span></div>
-      <div class="summ-row" id="rowMontering" style="display:none"><span>Montering & demontering</span><span id="summMontering">–</span></div>
+      <div class="summ-row" id="rowMontering" style="display:none"><span>Montering & demontering <span class="summ-estimate-tag">(beräknad)</span></span><span id="summMontering">–</span></div>
       <div id="rowsTillagg"></div>
       <div class="summ-row muted"><span>Bokningsavgift</span><span>49 kr</span></div>
       <div class="summ-row muted"><span>Moms 25%</span><span id="cartVat">–</span></div>
@@ -635,6 +635,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:
 }
 .summ-note { color:rgba(255,255,255,0.55); font-size:0.72rem; margin-top:0.75rem; line-height:1.5; }
 .summ-note-estimate { color:rgba(196,181,244,0.55); margin-top:0.4rem; }
+.summ-estimate-tag { color:rgba(255,255,255,0.55); font-size:0.85em; }
 
 /* ─── KUNDUPPGIFTER ───────────────────────────────────────── */
 .customer-wrap {
@@ -1240,7 +1241,10 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
       const names = r.manuella.map(a => (getCart().find(i => (i.artno || i.id) === a) || {}).name || a);
       s += (s ? '. ' : '') + 'Offereras separat: ' + names.join(', ');
     }
-    return s;
+    if (r.minuter > 0 || r.fastKr > 0) {
+      s += (s ? '. ' : '') + 'Priset är beräknat utifrån produkterna och kan justeras när vi gått igenom plats och upplägg';
+    }
+    return s ? s + '.' : s;
   }
 
   // ── VILLKOR + FORM VALIDATION ──────────────────────────────
@@ -1489,7 +1493,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     }
     if (document.getElementById('chkMontering')?.checked) {
       const mp = calcMon(cart); extras += mp;
-      extraLines.push(`Montering & demontering: ${mp.toLocaleString('sv')} kr`);
+      extraLines.push(`Montering & demontering (beräknad): ${mp.toLocaleString('sv')} kr`);
     }
     document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
       const pris = Number(chk.dataset.pris);
@@ -1520,7 +1524,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     }
     if (document.getElementById('chkMontering')?.checked) {
       const mp = calcMon(cart);
-      submitItems.push({ id: 'montering', name: 'Montering & demontering', price: mp, qty: 1, category: 'Tjänster' });
+      submitItems.push({ id: 'montering', name: 'Montering & demontering (beräknad)', price: mp, qty: 1, category: 'Tjänster' });
     }
     document.querySelectorAll('.chk-tillagg:checked').forEach(chk => {
       const pris = Number(chk.dataset.pris);
