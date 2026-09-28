@@ -3,6 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
+import ScenkjolCard from '../../../components/ScenkjolCard.astro';
 import KunskapBlock from '../../../components/KunskapBlock.astro';
 
 import scenData from '../../../data/scenes.json';
@@ -13,6 +14,8 @@ import elData from '../../../data/el.json';
 
 // Hjälpare: normalisera ett produktobjekt till kort-props
 const arr = (x: any): any[] => Array.isArray(x) ? x : [];
+// Scenkjolar (skirtHeight satt) visas som ett samlat kort i egen grupp.
+const isSkirt = (p: any) => typeof p.skirtHeight === 'number';
 
 // Grupper. El & ström överst (vanligaste tillbehöret man missar, visas alltid).
 // prefix = artikelnummer-prefix i varukorgen som "aktiverar" gruppen.
@@ -30,10 +33,19 @@ const grupper = [
   {
     namn: 'Scen',
     eyebrow: 'Scentillbehör',
-    intro: 'Trappor, räcken, scenkjol, backdrops och tälttak till scenpaketen.',
-    items: arr(scenData.tillbehor),
+    intro: 'Trappor, räcken, rullstolsramp, backdrops, filtmatta och tälttak till scenpaketen.',
+    items: arr(scenData.tillbehor).filter(p => !isSkirt(p)),
     cat: 'Scen — tillbehör',
     prefix: 'SK-SCN',
+  },
+  {
+    namn: 'Scenkjol',
+    eyebrow: 'Scentillbehör',
+    intro: 'Döljer ben och teknik under scenen. Välj höjd (20, 40 eller 60 cm) och modell — rak i 4 m-längder eller veckad i 2 m-längder.',
+    items: arr(scenData.tillbehor).filter(isSkirt),
+    cat: 'Scen — tillbehör',
+    prefix: 'SK-SCN',
+    skirt: true,
   },
   {
     namn: 'Ljud',
@@ -121,6 +133,9 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Tjänster', href
   {grupper.map(g => g.items.length === 0 ? null : (
     <section class="tillbehor-grupp max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-2" data-prefix={g.prefix} data-always={g.always ? 'true' : undefined}>
       <SectionHeader eyebrow={g.eyebrow} h2={g.namn} lead={g.intro} marginBottom="1.25rem" />
+      {(g as any).skirt ? (
+        <div class="lg:w-2/3"><ScenkjolCard skirts={g.items} category={g.cat} large /></div>
+      ) : (
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {g.items.map((p:any) => (
           <ElTillbehorCard
@@ -139,6 +154,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Tjänster', href
           />
         ))}
       </div>
+      )}
     </section>
   ))}
 

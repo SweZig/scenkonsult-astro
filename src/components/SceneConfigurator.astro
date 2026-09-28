@@ -8,14 +8,18 @@ const stairs = (scenData.tillbehor || []).filter(t =>
   ['SK-SCN-ACC-0001', 'SK-SCN-ACC-0002'].includes(t.artno)
 );
 const skirt = (scenData.tillbehor || []).find(t => t.artno === 'SK-SCN-ACC-0003');
-// Scenkjol-segment per höjd — fasta längder (samma sortiment som paketkorten):
-// 20cm=4m (ACC-0011), 40cm=2m (ACC-0009), 60cm=4m (ACC-0003).
+// Scenkjol-segment per höjd och modell — fasta längder (samma sortiment som
+// paketkorten): rak = 4 m-segment (20/40/60 cm), veckad = 2 m-segment (40/60 cm).
+// Struktur: { [höjd]: { rak?: seg, veckad?: seg } }
 const _skirtsByHeight = (scenData.tillbehor || []).filter(
   t => typeof t.skirtHeight === 'number' && typeof t.segmentMeters === 'number'
 );
-const INJ_SKIRT_BY_HEIGHT = Object.fromEntries(
-  _skirtsByHeight.map(s => [s.skirtHeight, { artno: s.artno, name: s.name, price: s.price, segmentMeters: s.segmentMeters }])
-);
+const INJ_SKIRT_BY_HEIGHT = {};
+_skirtsByHeight.forEach(s => {
+  const style = s.skirtStyle || 'rak';
+  (INJ_SKIRT_BY_HEIGHT[s.skirtHeight] ||= {})[style] =
+    { artno: s.artno, name: s.name, price: s.price, segmentMeters: s.segmentMeters };
+});
 const railSegments = (scenData.tillbehor || []).filter(t =>
   ['SK-SCN-ACC-0006', 'SK-SCN-ACC-0007'].includes(t.artno)
 );
@@ -180,10 +184,14 @@ const configData = {
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">5</span>Scenkjol</legend>
-        <p class="cfg-hint">Svart scenkjol som döljer ben och teknik. Pris per sida i hela segment: 20 cm = 4 m/segment, 40 cm = 2 m/segment, 60 cm = 4 m/segment.</p>
+        <p class="cfg-hint">Svart scenkjol som döljer ben och teknik. Rak kjol hyrs i 4 m-segment (99 kr), veckad i 2 m-segment (79 kr) — pris per sida i hela segment. 20 cm finns endast som rak.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="skirtMode" value="none" checked /><span>Ingen</span></label>
           <label class="cfg-pill"><input type="radio" name="skirtMode" value="custom" /><span>Anpassad placering</span></label>
+        </div>
+        <div class="cfg-pill-row cfg-collapsed-row" id="cfg-skirt-style" style="margin-top:0.6rem">
+          <label class="cfg-pill"><input type="radio" name="skirtStyle" value="rak" checked /><span>Rak · 4 m</span></label>
+          <label class="cfg-pill" id="cfg-skirt-style-veckad"><input type="radio" name="skirtStyle" value="veckad" /><span>Veckad · 2 m</span></label>
         </div>
         <div class="cfg-side-grid cfg-collapsed" id="cfg-skirt-sides">
           <label class="cfg-side-check"><input type="checkbox" name="skirt" data-side="fram" /><span>Fram</span></label>
@@ -277,6 +285,7 @@ const configData = {
       stairPositions: ['fram'],
       stairRail: false,
       skirtMode: 'none',
+      skirtStyle: 'rak',
       skirt: { fram: false, vanster: false, hoger: false, bak: false },
       railMode: 'none',
       rail: { fram: false, vanster: false, hoger: false, bak: false },
@@ -322,8 +331,14 @@ const configData = {
     // Per sida: antal segment = tak(sidlängd / segmentlängd) för vald höjd.
     // 20cm→4m-segment, 40cm→2m-segment, 60cm→4m-segment. Returnerar null
     // om ingen kjol finns för höjden.
+    // Vald modell för höjden; finns den inte (t.ex. veckad på 20 cm) → rak.
+    function skirtFor(height, style) {
+      const byStyle = SKIRT_BY_HEIGHT[height];
+      if (!byStyle) return null;
+      return byStyle[style] || byStyle.rak || Object.values(byStyle)[0] || null;
+    }
     function skirtSegmentsForSide(sideMeters, height) {
-      const seg = SKIRT_BY_HEIGHT[height];
+      const seg = skirtFor(height, state.skirtStyle);
       if (!seg || sideMeters <= 0) return null;
       const count = Math.ceil(sideMeters / seg.segmentMeters);
       return { artno: seg.artno, name: seg.name, price: seg.price, count, segmentMeters: seg.segmentMeters };
@@ -606,10 +621,13 @@ const configData = {
         Object.keys(state.skirt).forEach(side => {
           if (!state.skirt[side]) return;
           const t = 6;
-          if (side === 'fram') html += `<rect x="${x0}" y="${y0 + stageD - t}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
-          if (side === 'bak') html += `<rect x="${x0}" y="${y0}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
-          if (side === 'vanster') html += `<rect x="${x0}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
-          if (side === 'hoger') html += `<rect x="${x0 + stageW - t}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"/>`;
+          // Veckad kjol ritas med streckad kant så att modellen syns i skissen.
+          const veckad = state.skirtStyle === 'veckad' && skirtFor(state.height, 'veckad') === (SKIRT_BY_HEIGHT[state.height] || {}).veckad;
+          const dash = veckad ? ' stroke-dasharray="2 2"' : '';
+          if (side === 'fram') html += `<rect x="${x0}" y="${y0 + stageD - t}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"${dash}/>`;
+          if (side === 'bak') html += `<rect x="${x0}" y="${y0}" width="${stageW}" height="${t}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"${dash}/>`;
+          if (side === 'vanster') html += `<rect x="${x0}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"${dash}/>`;
+          if (side === 'hoger') html += `<rect x="${x0 + stageW - t}" y="${y0}" width="${t}" height="${stageD}" fill="#000" stroke="#c4b5f4" stroke-width="0.5"${dash}/>`;
         });
       }
 
@@ -875,6 +893,23 @@ const configData = {
       const skirtSides = document.getElementById('cfg-skirt-sides');
       const railSides = document.getElementById('cfg-rail-sides');
       if (skirtSides) skirtSides.classList.toggle('cfg-collapsed', state.skirtMode !== 'custom');
+      // Modellval: visas när kjol är vald. Veckad saknas för vissa höjder
+      // (20 cm) → inaktivera och fall tillbaka till rak.
+      const styleRow = document.getElementById('cfg-skirt-style');
+      if (styleRow) styleRow.classList.toggle('cfg-collapsed-row', state.skirtMode !== 'custom');
+      const veckadOk = !!(SKIRT_BY_HEIGHT[state.height] && SKIRT_BY_HEIGHT[state.height].veckad);
+      const veckadInput = document.querySelector('input[name="skirtStyle"][value="veckad"]');
+      const veckadLabel = document.getElementById('cfg-skirt-style-veckad');
+      if (veckadInput) {
+        veckadInput.disabled = !veckadOk;
+        if (veckadLabel) {
+          veckadLabel.classList.toggle('cfg-pill-disabled', !veckadOk);
+          veckadLabel.title = veckadOk ? '' : `Veckad kjol finns inte för ${state.height} cm — rak används.`;
+        }
+        if (!veckadOk && state.skirtStyle === 'veckad') state.skirtStyle = 'rak';
+      }
+      const styleRadio = document.querySelector(`input[name="skirtStyle"][value="${state.skirtStyle}"]`);
+      if (styleRadio) styleRadio.checked = true;
       if (railSides) railSides.classList.toggle('cfg-collapsed', state.railMode !== 'custom');
 
       // Frakt-rekommendation + trip-toggle visas bara om Leverans valt
@@ -1063,6 +1098,9 @@ const configData = {
     });
     document.querySelectorAll('input[name="skirt"]').forEach(el => {
       el.addEventListener('change', e => { state.skirt[e.target.dataset.side] = e.target.checked; render(); });
+    });
+    document.querySelectorAll('input[name="skirtStyle"]').forEach(el => {
+      el.addEventListener('change', e => { state.skirtStyle = e.target.value; render(); });
     });
     document.querySelectorAll('input[name="railMode"]').forEach(el => {
       el.addEventListener('change', e => {

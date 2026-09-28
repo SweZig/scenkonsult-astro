@@ -58,13 +58,16 @@ const INJ_RAIL_SEGMENTS = {
   'stair': _railStair ? { artno: _railStair.artno, monteringMin: _railStair.monteringMin || 0 } : { artno: 'SK-SCN-ACC-0008', monteringMin: 8 },
 };
 
-// Scenkjol-segment per höjd — fasta längder (20cm=4m, 40cm=2m, 60cm=4m).
-// Kortets "+ Scenkjol" packar 3 sidor (fram+höger+vänster) genom att avrunda
-// upp löpmeter till hela segment av den valda höjdens segmentlängd.
+// Scenkjol-segment per höjd och modell — fasta längder: rak = 4 m-segment
+// (20/40/60 cm), veckad = 2 m-segment (40/60 cm). Kortets "+ Scenkjol" packar
+// 3 sidor (fram+höger+vänster) genom att avrunda upp löpmeter till hela
+// segment av vald modells segmentlängd. Struktur: { [höjd]: { rak?, veckad? } }
 const _skirts = _tillbehor.filter(t => typeof t.skirtHeight === 'number' && typeof t.segmentMeters === 'number');
-const INJ_SKIRT_BY_HEIGHT = Object.fromEntries(
-  _skirts.map(s => [s.skirtHeight, { artno: s.artno, name: s.name, price: s.price, segmentMeters: s.segmentMeters }])
-);
+const INJ_SKIRT_BY_HEIGHT = {};
+_skirts.forEach(s => {
+  (INJ_SKIRT_BY_HEIGHT[s.skirtHeight] ||= {})[s.skirtStyle || 'rak'] =
+    { artno: s.artno, name: s.name, price: s.price, segmentMeters: s.segmentMeters };
+});
 
 const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
@@ -201,6 +204,14 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       </div>
     </div>
 
+    <div class="paket-control" data-paket-skirt-style-row hidden>
+      <span class="paket-control-label">Kjol</span>
+      <div class="paket-pills" role="radiogroup" aria-label="Scenkjolens modell">
+        <button type="button" class="paket-pill" data-skirt-style="rak" aria-pressed="true" title="Rak scenkjol i 4 m-segment">Rak · 4 m</button>
+        <button type="button" class="paket-pill" data-skirt-style="veckad" aria-pressed="false" title="Veckad scenkjol i 2 m-segment">Veckad · 2 m</button>
+      </div>
+    </div>
+
     <div class="paket-bottom" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
       <meta itemprop="priceCurrency" content="SEK" />
       <meta itemprop="price" content={paket.price} />
@@ -278,8 +289,11 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
   // Antal segment avrundas UPP till hela segment av höjdens segmentlängd
   // (20cm=4m, 40cm=2m, 60cm=4m). Returnerar null om ingen kjol finns.
   // ──────────────────────────────────────────────────────────────────
-  function computeSkirtPack(width, depth, height, railAlso) {
-    const seg = SKIRT_BY_HEIGHT[height];
+  // style = 'rak' | 'veckad'. Saknas vald modell för höjden → rak.
+  function computeSkirtPack(width, depth, height, railAlso, style) {
+    const byStyle = SKIRT_BY_HEIGHT[height];
+    if (!byStyle) return null;
+    const seg = byStyle[style] || byStyle.rak || Object.values(byStyle)[0];
     if (!seg) return null;
     const meters = railAlso ? width : (width + 2 * depth);
     const count = Math.ceil(meters / seg.segmentMeters);
@@ -380,7 +394,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       price += computeRailPack(cfg.width, cfg.depth, stairs, skirt).totalPrice;
     }
     if (skirt) {
-      const sp = computeSkirtPack(cfg.width, cfg.depth, useHeight, rail);
+      const sp = computeSkirtPack(cfg.width, cfg.depth, useHeight, rail, skirt);
       if (sp) price += sp.totalPrice;
     }
     return price;
@@ -583,7 +597,9 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
     let stairs = cfg.defaultStairCount;
     let height = cfg.defaultHeight;
     let rail = false;
+    // skirt = false | 'rak' | 'veckad' (sant = kjol vald, värdet = modell).
     let skirt = false;
+    let skirtStyle = 'rak';
 
     // 1×1-yta: 20 cm-ben och skyddsräcken är ej tillgängliga (bara 1×2 har 20cm-ben;
     // räcken monteras ej på 1×1-podier). Höjd 20 visas/tillåts endast på 1×2-ytor.
@@ -715,12 +731,24 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       }
       const skirtBtn = card.querySelector('[data-paket-skirt]');
       if (skirtBtn) {
-        const sp = computeSkirtPack(cfg.width, cfg.depth, height, rail);
+        const sp = computeSkirtPack(cfg.width, cfg.depth, height, rail, skirtStyle);
         // Inaktivera om ingen kjol finns för vald höjd
         const skirtDisabled = !sp;
         skirtBtn.disabled = skirtDisabled;
         skirtBtn.classList.toggle('paket-pill-disabled', skirtDisabled);
         skirtBtn.setAttribute('aria-pressed', skirt ? 'true' : 'false');
+        // Modellrad: visas när kjol är vald. Veckad saknas för 20 cm → rak.
+        const styleRow = card.querySelector('[data-paket-skirt-style-row]');
+        if (styleRow) {
+          styleRow.hidden = !skirt || skirtDisabled;
+          const veckadOk = !!(SKIRT_BY_HEIGHT[height] && SKIRT_BY_HEIGHT[height].veckad);
+          styleRow.querySelectorAll('[data-skirt-style]').forEach(b => {
+            const ok = b.dataset.skirtStyle !== 'veckad' || veckadOk;
+            b.disabled = !ok;
+            b.classList.toggle('paket-pill-disabled', !ok);
+            b.setAttribute('aria-pressed', b.dataset.skirtStyle === (veckadOk ? skirtStyle : 'rak') ? 'true' : 'false');
+          });
+        }
         if (skirtDisabled) {
           skirtBtn.title = 'Scenkjol saknas för vald höjd';
         } else {
@@ -759,11 +787,19 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
         update();
       });
     }
+    card.querySelectorAll('[data-skirt-style]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        skirtStyle = btn.dataset.skirtStyle;
+        if (skirt) skirt = skirtStyle;
+        update();
+      });
+    });
     const skirtBtn = card.querySelector('[data-paket-skirt]');
     if (skirtBtn) {
       skirtBtn.addEventListener('click', () => {
         if (skirtBtn.disabled) return;
-        skirt = !skirt;
+        skirt = skirt ? false : skirtStyle;
         update();
       });
     }
@@ -909,7 +945,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
       // Scenkjol — fasta segment per höjd. Per-sida-regel mot räcken:
       // endast kjol → fram+höger+vänster; kjol OCH räcken → kjol enbart fram.
       if (skirt) {
-        const sp = computeSkirtPack(cfg.width, cfg.depth, height, rail);
+        const sp = computeSkirtPack(cfg.width, cfg.depth, height, rail, skirtStyle);
         if (sp && sp.count > 0) {
           window.skCart.add({
             id: sp.artno,
@@ -1011,6 +1047,7 @@ const INJ_MONTERING_BEMANNING = (tjanster.montering && typeof tjanster.montering
   .paket-pill-disabled, .paket-pill:disabled { opacity: 0.3; cursor: not-allowed; }
   .paket-pill-rail { border-style: dashed; border-color: rgba(196,181,244,0.35); }
   .paket-pill-rail[aria-pressed="true"] { border-style: solid; }
+  .paket-control[hidden] { display: none; }
   .paket-pill-skirt { border-style: dashed; border-color: rgba(196,181,244,0.35); }
   .paket-pill-skirt[aria-pressed="true"] { border-style: solid; }
 

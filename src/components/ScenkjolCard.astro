@@ -1,0 +1,134 @@
+---
+// ScenkjolCard.astro — ett samlat kort för alla scenkjolar.
+// Kunden väljer höjd (20/40/60 cm) och modell (rak 4 m / veckad 2 m).
+// Varje kombination är en egen artikel i scenes.json (skirtHeight +
+// skirtStyle + segmentMeters). Alla varianters pris och varukorgsknapp
+// renderas statiskt; skriptet visar bara den valda — så CartButton och
+// moms-togglen fungerar precis som på övriga tillbehörskort.
+import CartButton from './CartButton.astro';
+
+interface Skirt {
+  artno: string; slug?: string; name: string; price: number; priceNote?: string;
+  image: string; description?: string;
+  skirtHeight: number; segmentMeters: number; skirtStyle: 'rak' | 'veckad';
+}
+interface Props { skirts: Skirt[]; category?: string; large?: boolean; }
+const { skirts, category = 'Scen tillbehör', large = false } = Astro.props;
+
+const heights = [...new Set(skirts.map(s => s.skirtHeight))].sort((a, b) => a - b);
+const STYLES = [
+  { key: 'rak',    label: 'Rak',    hint: 'slät, stram front' },
+  { key: 'veckad', label: 'Veckad', hint: 'veckad, festlig look' },
+] as const;
+const keyOf = (s: Skirt) => `${s.skirtHeight}-${s.skirtStyle}`;
+// Förval: 40 cm rak om den finns, annars första varianten.
+const def = skirts.find(s => s.skirtHeight === 40 && s.skirtStyle === 'rak') ?? skirts[0];
+const img = def.image;
+---
+<div
+  class:list={["skirt-card bg-brand-navy/60 border border-white/10 rounded-xl p-3 flex flex-col sm:flex-row gap-3 h-full", large ? "skirt-lg" : "col-span-2"]}
+  data-skirt-card
+  data-default={keyOf(def)}
+  data-variants={JSON.stringify(skirts.map(s => ({ k: keyOf(s), h: s.skirtHeight, st: s.skirtStyle })))}
+>
+  <div class="bg-brand-dark overflow-hidden rounded-lg sm:w-1/2 shrink-0" style="aspect-ratio:1024/853">
+    <img src={img} alt="Scenkjolar — rak och veckad modell" width="300" height="250" loading="lazy" class="w-full h-full object-cover" />
+  </div>
+
+  <div class="flex flex-col flex-1 min-w-0">
+    <p class="text-white text-xs font-semibold leading-tight mb-0.5">Scenkjol</p>
+    {skirts.map(s => (
+      <p class="artno-badge skirt-v" data-v={keyOf(s)} style="margin-bottom:0.25rem" hidden={keyOf(s) !== keyOf(def)}>{s.artno}</p>
+    ))}
+    <p class="text-gray-400 text-[10px] leading-tight mb-2">Svart scenkjol som döljer ben och teknik under scenen. Välj höjd efter scenen och modell efter look.</p>
+
+    <span class="skirt-label">Höjd</span>
+    <div class="skirt-pills" role="radiogroup" aria-label="Höjd">
+      {heights.map(h => (
+        <button type="button" class="skirt-pill" data-skirt-h={h} aria-pressed={h === def.skirtHeight ? 'true' : 'false'}>{h} cm</button>
+      ))}
+    </div>
+
+    <span class="skirt-label">Modell</span>
+    <div class="skirt-pills" role="radiogroup" aria-label="Modell">
+      {STYLES.map(st => {
+        const any = skirts.find(s => s.skirtStyle === st.key);
+        return (
+          <button type="button" class="skirt-pill skirt-pill-style" data-skirt-st={st.key} aria-pressed={st.key === def.skirtStyle ? 'true' : 'false'}>
+            <span>{st.label}</span>
+            {any && <span class="skirt-pill-sub">{any.segmentMeters} m</span>}
+          </button>
+        );
+      })}
+    </div>
+    <p class="skirt-note text-[10px] leading-tight mb-1" data-skirt-note hidden>20 cm finns endast som rak kjol.</p>
+
+    <div class="mt-auto pt-2 border-t border-white/10">
+      {skirts.map(s => (
+        <div class="skirt-v flex items-center justify-between gap-1" data-v={keyOf(s)} hidden={keyOf(s) !== keyOf(def)}>
+          <div class="leading-none">
+            <span class="sk-price-excl text-brand-orange text-sm font-bold">{s.price} kr</span>
+            <span class="sk-price-incl hidden text-brand-orange text-sm font-bold">{Math.round(s.price * 1.25)} kr</span>
+            <span class="text-gray-400 text-[10px]">/{s.segmentMeters} m/dygn</span>
+          </div>
+          <CartButton id={s.slug || s.artno} name={s.name} price={s.price} priceNote={s.priceNote ?? '/dygn'} artno={s.artno} category={category} image={s.image} size="sm" iconOnly={true} />
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  .skirt-label { display:block; font-family:'Space Grotesk',sans-serif; font-size:0.62rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.55); margin:0 0 0.3rem; }
+  .skirt-pills { display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.6rem; }
+  .skirt-pill { display:inline-flex; align-items:baseline; gap:0.3rem; padding:0.3rem 0.6rem; border-radius:999px; border:1px solid rgba(255,255,255,0.18); background:transparent; color:rgba(255,255,255,0.8); font-size:0.72rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .skirt-pill:hover:not(:disabled) { border-color:rgba(196,181,244,0.6); }
+  .skirt-pill[aria-pressed="true"] { background:#c4b5f4; border-color:#c4b5f4; color:#0c0a24; }
+  .skirt-pill:disabled { opacity:0.35; cursor:not-allowed; text-decoration:line-through; }
+  .skirt-pill-sub { font-size:0.62rem; font-weight:500; opacity:0.75; }
+  .skirt-note { color:rgba(255,255,255,0.55); }
+  /* Stor variant — egen sektion på scensidan */
+  .skirt-lg { padding:1.1rem; gap:1.25rem; border-radius:1rem; }
+  .skirt-lg > div:first-child { border-radius:0.75rem; }
+  .skirt-lg p.text-white { font-size:1.15rem; margin-bottom:0.25rem; }
+  .skirt-lg p.text-gray-400 { font-size:0.85rem; line-height:1.45; margin-bottom:1rem; }
+  .skirt-lg .skirt-label { font-size:0.7rem; margin-bottom:0.4rem; }
+  .skirt-lg .skirt-pills { gap:0.5rem; margin-bottom:1rem; }
+  .skirt-lg .skirt-pill { padding:0.45rem 0.95rem; font-size:0.85rem; }
+  .skirt-lg .skirt-pill-sub { font-size:0.72rem; }
+  .skirt-lg .skirt-note { font-size:0.78rem; }
+  .skirt-lg .sk-price-excl, .skirt-lg .sk-price-incl { font-size:1.25rem; }
+  .skirt-lg .skirt-v .text-\[10px\] { font-size:0.78rem; }
+  .skirt-card .skirt-v[hidden], .skirt-card .skirt-note[hidden] { display:none; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-skirt-card]').forEach(card => {
+    const variants: { k: string; h: number; st: string }[] = JSON.parse(card.dataset.variants || '[]');
+    let [h, st] = (card.dataset.default || '').split('-');
+    let height = parseInt(h), style = st;
+    const note = card.querySelector<HTMLElement>('[data-skirt-note]');
+    const has = (hh: number, ss: string) => variants.some(v => v.h === hh && v.st === ss);
+
+    function render() {
+      // Saknas vald modell för höjden → välj den som finns (20 cm = endast rak).
+      if (!has(height, style)) style = variants.find(v => v.h === height)?.st ?? style;
+      card.querySelectorAll<HTMLButtonElement>('[data-skirt-h]').forEach(b => {
+        b.setAttribute('aria-pressed', String(parseInt(b.dataset.skirtH!) === height));
+      });
+      card.querySelectorAll<HTMLButtonElement>('[data-skirt-st]').forEach(b => {
+        const ok = has(height, b.dataset.skirtSt!);
+        b.disabled = !ok;
+        b.setAttribute('aria-pressed', String(b.dataset.skirtSt === style));
+      });
+      if (note) note.hidden = variants.filter(v => v.h === height).length > 1;
+      const key = `${height}-${style}`;
+      card.querySelectorAll<HTMLElement>('.skirt-v').forEach(el => { el.hidden = el.dataset.v !== key; });
+    }
+    card.querySelectorAll<HTMLButtonElement>('[data-skirt-h]').forEach(b =>
+      b.addEventListener('click', () => { height = parseInt(b.dataset.skirtH!); render(); }));
+    card.querySelectorAll<HTMLButtonElement>('[data-skirt-st]').forEach(b =>
+      b.addEventListener('click', () => { if (!b.disabled) { style = b.dataset.skirtSt!; render(); } }));
+    render();
+  });
+</script>

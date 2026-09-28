@@ -5,6 +5,7 @@ import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
+import ScenkjolCard from '../../../components/ScenkjolCard.astro';
 import CartButton from '../../../components/CartButton.astro';
 import SceneConfigurator from '../../../components/SceneConfigurator.astro';
 import DynamicPaketCard from '../../../components/DynamicPaketCard.astro';
@@ -59,6 +60,8 @@ const pageSchema = {
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
 const _heroFranExcl = _low((scenData as any).products);
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
+// Alla scenkjolar (skirtHeight satt) visas i ett samlat kort i en egen sektion — inte i tillbehörsgriden.
+const _skirtItems = (scenData.tillbehor as any[]).filter(t => typeof t.skirtHeight === 'number');
 ---
 
 <Layout
@@ -123,7 +126,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
         </div>
 
         <!-- Tips-banner: leder till tillbehörsavsnittet -->
-        <a href="#tillbehor" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin:2.5rem 0 0;padding:1rem 1.4rem;background:rgba(196,181,244,0.07);border:1px solid rgba(196,181,244,0.22);border-radius:12px;text-decoration:none;transition:background 0.18s, border-color 0.18s;" onmouseover="this.style.background='rgba(196,181,244,0.12)';this.style.borderColor='rgba(196,181,244,0.4)'" onmouseout="this.style.background='rgba(196,181,244,0.07)';this.style.borderColor='rgba(196,181,244,0.22)'">
+        <a href="#scenkjol" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin:2.5rem 0 0;padding:1rem 1.4rem;background:rgba(196,181,244,0.07);border:1px solid rgba(196,181,244,0.22);border-radius:12px;text-decoration:none;transition:background 0.18s, border-color 0.18s;" onmouseover="this.style.background='rgba(196,181,244,0.12)';this.style.borderColor='rgba(196,181,244,0.4)'" onmouseout="this.style.background='rgba(196,181,244,0.07)';this.style.borderColor='rgba(196,181,244,0.22)'">
           <span style="display:flex;align-items:center;gap:0.7rem;color:rgba(255,255,255,0.82);font-size:0.92rem;line-height:1.5;">
             <span aria-hidden="true" style="font-size:1.15rem;line-height:1;flex-shrink:0;">💡</span>
             <span><strong style="color:white;font-weight:600;">Glöm inte tillbehören</strong> — trappor, scenkjol, backdrop, skyddsräcke och ködelare kompletterar scenen.</span>
@@ -146,14 +149,49 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <!-- TILLBEHÖR                                                       -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <!-- SCENKJOL — ett samlat kort, egen sektion                        -->
+      <!-- ═══════════════════════════════════════════════════════════════ -->
+      <section id="scenkjol" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
+        <SectionHeader
+          eyebrow="Tillval"
+          h2="Scenkjol"
+          lead="Döljer ben och teknik under scenen och ger ett färdigt intryck. Välj höjd efter scenen och modell efter look — rak för en stram front, veckad för en festligare känsla."
+        />
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2"><ScenkjolCard skirts={_skirtItems} large /></div>
+          <div class="skirt-info">
+            <p class="skirt-info-title">Så hyr du scenkjol</p>
+            <table class="skirt-info-table">
+              <thead><tr><th>Höjd</th><th>Rak</th><th>Veckad</th></tr></thead>
+              <tbody>
+                {[20, 40, 60].map(h => {
+                  const r = _skirtItems.find(x => x.skirtHeight === h && x.skirtStyle === 'rak');
+                  const v = _skirtItems.find(x => x.skirtHeight === h && x.skirtStyle === 'veckad');
+                  return (
+                    <tr>
+                      <td>{h} cm</td>
+                      <td>{r ? <span><span data-exkl={r.price}>{r.price}</span> kr / {r.segmentMeters} m</span> : '—'}</td>
+                      <td>{v ? <span><span data-exkl={v.price}>{v.price}</span> kr / {v.segmentMeters} m</span> : '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <p class="skirt-info-text">Kjolen hyrs i hela längder. Räkna scenens sidor och avrunda uppåt — en 6 m lång framkant behöver två raka (4 m) eller tre veckade (2 m).</p>
+            <p class="skirt-info-text">Bygger du scenen i <a href="#scen-konfigurator">konfiguratorn</a> räknas kjolen ut automatiskt per sida.</p>
+          </div>
+        </div>
+      </section>
+
       <section id="tillbehor" style="margin-bottom:3.5rem;scroll-margin-top:180px;">
         <SectionHeader
           eyebrow="Komplettera"
           h2="Scentillbehör"
-          lead="Trappor, scenkjol, backdrop, skyddsräcke, ködelare och tälttak — tillval för att färdigställa scenen efter behov."
+          lead="Trappor, räcken, rullstolsramp, backdrop, filtmatta, ködelare och tälttak — tillval för att färdigställa scenen efter behov."
         />
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {scenData.tillbehor.map(a => (
+          {scenData.tillbehor.filter((a: any) => typeof a.skirtHeight !== 'number').map(a => (
             <ElTillbehorCard
               img={a.image}
               name={a.name}
@@ -211,3 +249,14 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   />
 
 </Layout>
+
+<style>
+  .skirt-info { background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:1rem; padding:1.25rem; color:rgba(255,255,255,0.72); font-size:0.88rem; line-height:1.55; }
+  .skirt-info-title { color:white; font-weight:700; font-size:1rem; margin:0 0 0.75rem; }
+  .skirt-info-table { width:100%; border-collapse:collapse; margin-bottom:0.9rem; font-size:0.82rem; }
+  .skirt-info-table th { text-align:left; color:rgba(255,255,255,0.55); font-family:'Space Grotesk',sans-serif; font-size:0.66rem; letter-spacing:0.08em; text-transform:uppercase; padding:0 0 0.4rem; border-bottom:1px solid rgba(255,255,255,0.1); }
+  .skirt-info-table td { padding:0.45rem 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .skirt-info-table td:first-child { color:white; font-weight:600; }
+  .skirt-info-text { margin:0 0 0.6rem; }
+  .skirt-info-text a { color:#c4b5f4; text-decoration:underline; }
+</style>
