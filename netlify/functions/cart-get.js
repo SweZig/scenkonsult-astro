@@ -34,10 +34,24 @@ exports.handler = async (event) => {
     // ── Kund: hämta med token ───────────────────────────────
     if (!token) return err('Token krävs', 400);
 
-    const { data: cart, error } = await db.from('carts')
-      .select('id, status, items, customer_name, customer_email, customer_phone, customer_company, customer_type, customer_orgnr, customer_ref, customer_address, customer_invoice_address, invoice_email, use_invoice_email, wants_peppol, peppol_id, invoice_number, event_date, return_date, delivery_time, return_time, event_location, total_excl, expires_at, confirmed_at, last_read_customer, created_at, updated_at, pickup_signed_at, pickup_signature, pickup_id_photo, pickup_sign_ip, pickup_reminder_sent_at, pickup_confirmed_at, sms_sent_at, cart_token, cc_email, delivery_mode')
-      .eq('cart_token', token)
-      .single();
+    const CUSTOMER_COLS = 'id, status, items, customer_name, customer_email, customer_phone, customer_company, customer_type, customer_orgnr, customer_ref, customer_address, customer_invoice_address, invoice_email, use_invoice_email, wants_peppol, peppol_id, invoice_number, event_date, return_date, delivery_time, return_time, event_location, total_excl, expires_at, confirmed_at, last_read_customer, created_at, updated_at, pickup_signed_at, pickup_signature, pickup_id_photo, pickup_sign_ip, pickup_reminder_sent_at, pickup_confirmed_at, sms_sent_at, cart_token, cc_email, delivery_mode';
+    // declined_at/decline_reason kräver migration 2026-09-29 — fall tillbaka på
+    // grundkolumnerna om de saknas, så att ordersidan aldrig slutar fungera.
+    // (_lib.single() kastar vid HTTP-fel, t.ex. okänd kolumn → 400.)
+    let cart, error;
+    try {
+      ({ data: cart, error } = await db.from('carts')
+        .select(CUSTOMER_COLS + ',declined_at,decline_reason')
+        .eq('cart_token', token)
+        .single());
+    } catch (e) {
+      if (!/declined_at|decline_reason/.test(e.message || '')) throw e;
+      console.warn('CART_GET: decline-kolumner saknas (migration 2026-09-29 ej körd)');
+      ({ data: cart, error } = await db.from('carts')
+        .select(CUSTOMER_COLS)
+        .eq('cart_token', token)
+        .single());
+    }
 
     if (error || !cart) {
       console.error('CART_GET_CUSTOMER_ERR:', error?.message || error, '| token_len:', token?.length);

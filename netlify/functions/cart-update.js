@@ -327,6 +327,81 @@ exports.handler = async (event) => {
         return ok({ ok: true, success: true, cart_id: cart.id, updated: Object.keys(updates) });
       }
 
+      // ── Kund tackar nej till offerten (ordersidan) ──────────────────
+      // Alltid POST från dialogen på /order/ — aldrig via GET-länk, eftersom
+      // mailskannrar öppnar länkar automatiskt.
+      if (body.action === 'customer_decline') {
+        if (!['waiting', 'confirmed'].includes(cart.status) || cart.confirmed_at) {
+          return err('Offerten kan inte längre avböjas här — kontakta oss så hjälper vi dig.', 409);
+        }
+        if (cart.declined_at) {
+          return err('Du har redan tackat nej till offerten.', 409);
+        }
+        const REASONS = {
+          need_changed:      'Mitt behov har förändrats',
+          found_alternative: 'Jag hittade en annan lösning som passade bättre',
+        };
+        const reason = body.reason;
+        if (!REASONS[reason]) return err('Välj en anledning', 400);
+        const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 1000) : '';
+        const now = new Date().toISOString();
+
+        await db.update('carts', {
+          status:          'cancelled',
+          declined_at:     now,
+          decline_reason:  reason,
+          decline_comment: comment || null,
+          // Avbruten order sparas 90 dagar (samma som admin-avbrott nedan)
+          expires_at:      new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        }, 'cart_token', body.token);
+
+        await logAudit(db, cart.id, 'customer', 'customer_declined', {
+          from: cart.status, reason, comment: comment || null,
+        });
+
+        // Nej-svaret syns även i chatten för båda parter. Best-effort.
+        const chatText = `❌ Jag tackar nej till offerten.\nAnledning: ${REASONS[reason]}${comment ? `\nKommentar: ${comment}` : ''}`;
+        try {
+          await db.insert('messages', {
+            cart_id: cart.id, sender: 'customer', body: chatText,
+            read_at: null, created_at: now,
+          });
+        } catch (e) {
+          console.warn('DECLINE_CHAT_INSERT_WARN:', e.message);
+        }
+
+        // Intern notis till info@. Best-effort — nej-svaret är redan sparat.
+        const apiKeyDecline = process.env.RESEND_API_KEY;
+        if (apiKeyDecline) {
+          const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => (
+            { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+          try {
+            await sendEmail(apiKeyDecline, {
+              from: MAIL_FROM,
+              to: ['info@scenkonsult.se'],
+              reply_to: cart.customer_email || 'info@scenkonsult.se',
+              subject: `❌ Kunden tackade nej — ${cart.customer_name || ''} (${cart.id})`,
+              html: htmlWrapper(`
+                <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px 18px;margin-bottom:20px;">
+                  <div style="color:#991b1b;font-weight:700;font-size:15px;">Kunden tackade nej till offerten</div>
+                </div>
+                <p style="color:#444;font-size:14px;margin:0 0 10px;"><strong>Kund:</strong> ${esc(cart.customer_name || '–')}${cart.customer_company ? ` (${esc(cart.customer_company)})` : ''}</p>
+                <p style="color:#444;font-size:14px;margin:0 0 10px;"><strong>Order:</strong> ${esc(cart.id)}</p>
+                ${cart.event_date ? `<p style="color:#444;font-size:14px;margin:0 0 10px;"><strong>Eventdatum:</strong> ${esc(cart.event_date)}</p>` : ''}
+                <p style="color:#444;font-size:14px;margin:0 0 10px;"><strong>Anledning:</strong> ${esc(REASONS[reason])}</p>
+                ${comment ? `<p style="color:#444;font-size:14px;margin:0 0 10px;"><strong>Kommentar:</strong> ${esc(comment).replace(/\n/g, '<br>')}</p>` : ''}
+                <p style="margin:20px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;display:inline-block;">Gå till adminpanelen →</a></p>
+              `),
+              text: `Kunden tackade nej till offerten.\n\nKund: ${cart.customer_name || '–'}\nOrder: ${cart.id}\n${cart.event_date ? `Eventdatum: ${cart.event_date}\n` : ''}Anledning: ${REASONS[reason]}\n${comment ? `Kommentar: ${comment}\n` : ''}\nAdminpanel: https://scenkonsult.se/admin/`,
+            });
+          } catch (e) {
+            console.error('DECLINE_NOTIF_ERROR:', e.message);
+          }
+        }
+
+        return ok({ ok: true, success: true, cart_id: cart.id, declined_at: now, decline_reason: reason });
+      }
+
       // Klick-orderbekräftelse — kund signerar digitalt
       if (body.action === 'customer_confirm') {
         if (!['confirmed', 'waiting'].includes(cart.status)) {

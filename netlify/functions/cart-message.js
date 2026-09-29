@@ -3,6 +3,8 @@
 // POST /.netlify/functions/cart-message
 // Body (kund):  { token, body }
 // Body (admin): { cart_id, body }  + Authorization: Bearer <ADMIN_TOKEN>
+//               + event_type: 'reminder_sent', reminder: { template, subject, final, include_decline }
+//                 → skickas som offertpåminnelse med egen mailmall
 
 'use strict';
 const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
@@ -38,6 +40,52 @@ async function sendMail(to, subject, html, text, replyTo, cc) {
     body: JSON.stringify(body)
   });
   if (!res.ok) console.error('Resend error:', await res.text());
+}
+
+// ── Offertpåminnelse (event_type='reminder_sent') ────────────────────────
+// Egen mailmall i stället för chattnotisen: ämnesrad från vald påminnelsemall,
+// primärknapp "Visa och godkänn offerten" och (valfritt) länk för att tacka nej.
+// Nej-länken öppnar bara en dialog på ordersidan — själva nej-svaret kräver ett
+// klick där (POST). Mailskannrar (Outlook Safe Links m.fl.) öppnar länkar
+// automatiskt, så en GET får aldrig ändra något.
+function escHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, ch => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+  ));
+}
+
+// Escapa, gör [text](https://…) till länkar och radbrytningar till <br>
+function reminderTextToHtml(text) {
+  return escHtml(text)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" style="color:#4a3faa;">$1</a>')
+    .replace(/\n/g, '<br>');
+}
+
+function buildReminderMail(cart, msgText, reminder, cartUrl) {
+  const includeDecline = !!(reminder.include_decline && cartUrl);
+  const declineUrl = includeDecline ? `${cartUrl}&svar=nej` : null;
+  const subject = (typeof reminder.subject === 'string' && reminder.subject.trim())
+    ? reminder.subject.trim().slice(0, 200)
+    : 'Påminnelse om din offert — Scenkonsult Norden';
+
+  const html = mailWrapper(`
+    <h2 style="color:#1e1850;margin:0 0 16px;font-size:20px;">Påminnelse om din offert</h2>
+    <div style="color:#333;font-size:15px;line-height:1.7;margin:0 0 24px;">${reminderTextToHtml(msgText)}</div>
+    ${cartUrl ? `<p style="margin:0 0 20px;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:13px 26px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;">Visa och godkänn offerten &rarr;</a></p>` : ''}
+    ${declineUrl ? `<p style="color:#666;font-size:13px;line-height:1.6;margin:0 0 16px;">Behöver du inte utrustningen längre? <a href="${declineUrl}" style="color:#666;text-decoration:underline;">Tacka nej till offerten</a></p>` : ''}
+    <p style="color:#888;font-size:13px;margin:16px 0 0;">Du kan också svara direkt på det här mailet eller skriva till oss i chatten på offertsidan.</p>
+  `);
+
+  const text = [
+    msgText,
+    '',
+    cartUrl ? `Visa och godkänn offerten: ${cartUrl}` : '',
+    declineUrl ? `Behöver du inte utrustningen längre? Tacka nej här: ${declineUrl}` : '',
+    '',
+    'Du kan också svara direkt på det här mailet.',
+  ].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
+
+  return { subject, html, text };
 }
 
 exports.handler = async (event) => {
@@ -147,6 +195,21 @@ exports.handler = async (event) => {
       } catch (e) {
         console.warn('CART_MESSAGE_REMINDER_WARN:', e.message);
       }
+      // Offertpåminnelse v2: logga steget (kräver migration 2026-09-29).
+      // Separat try så att admin_reminder_sent_at ovan alltid sparas.
+      try {
+        const r = body.reminder || {};
+        const entry = {
+          template:        typeof r.template === 'string' ? r.template.slice(0, 60) : null,
+          at:              new Date().toISOString(),
+          final:           !!r.final,
+          include_decline: !!r.include_decline,
+        };
+        const prevLog = Array.isArray(cart.quote_reminder_log) ? cart.quote_reminder_log : [];
+        await db.update('carts', { quote_reminder_log: [...prevLog, entry] }, 'id', cart.id);
+      } catch (e) {
+        console.warn('CART_MESSAGE_REMINDER_LOG_WARN:', e.message);
+      }
     }
 
     // ── Notiser ───────────────────────────────────────────────
@@ -172,7 +235,11 @@ exports.handler = async (event) => {
         );
       }
 
-      if (admin && cart.customer_email) {
+      if (admin && cart.customer_email && body.event_type === 'reminder_sent') {
+        // Admin → offertpåminnelse till kund (egen mall)
+        const m = buildReminderMail(cart, msgText, body.reminder || {}, cartUrl);
+        await sendMail(cart.customer_email, m.subject, m.html, m.text, ADMIN_MAIL, cart.cc_email || null);
+      } else if (admin && cart.customer_email) {
         // Admin → notis till kund
         const html = mailWrapper(`
           <h2 style="color:#1e1850;margin:0 0 16px;">Svar från Scenkonsult Norden</h2>

@@ -648,6 +648,34 @@ import orderCatalog from '../../data/order-catalog-flat.json';
           <textarea class="chat-textarea" id="chatInput" placeholder="Skriv en fråga eller ett önskemål till Scenkonsult Norden…"></textarea>
           <button class="chat-send-btn" id="chatSendBtn">Skicka meddelande →</button>
         </div>
+        <!-- Tacka nej — visas bara för obesvarade offerter (renderDeclineOption) -->
+        <div id="declineWrap" style="display:none;margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.85rem;color:rgba(255,255,255,0.65);line-height:1.55">
+          Behöver ni inte utrustningen längre?
+          <button type="button" onclick="openDeclineModal()" style="background:none;border:none;padding:0;color:#c4b5f4;text-decoration:underline;cursor:pointer;font:inherit">Tacka nej till offerten</button>
+          — då vet vi hur vi ska planera, och ni slipper fler påminnelser.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tacka nej-dialog. Nej-svaret registreras först vid klick på knappen (POST) —
+         aldrig av att länken ?svar=nej öppnas, eftersom mailskannrar besöker länkar. -->
+    <div id="declineModal" role="dialog" aria-modal="true" aria-labelledby="declineTitle" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(12,10,36,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem">
+      <div style="background:#1a1740;border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:1.5rem;max-width:460px;width:100%;max-height:calc(100vh - 2rem);overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6)">
+        <div id="declineTitle" style="font-weight:700;font-size:1.05rem;color:#f0eeff;margin-bottom:0.4rem">Tacka nej till offerten</div>
+        <p style="margin:0 0 1rem;color:rgba(255,255,255,0.72);font-size:0.9rem;line-height:1.55">Tråkigt att höra — tack för att du meddelar oss! Vad beror det på?</p>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;cursor:pointer;margin-bottom:8px;color:rgba(255,255,255,0.85);font-size:0.9rem">
+          <input type="radio" name="declineReason" value="need_changed" style="margin-top:3px;accent-color:#c4b5f4"> Mitt behov har förändrats
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;cursor:pointer;margin-bottom:12px;color:rgba(255,255,255,0.85);font-size:0.9rem">
+          <input type="radio" name="declineReason" value="found_alternative" style="margin-top:3px;accent-color:#c4b5f4"> Jag hittade en annan lösning som passade bättre
+        </label>
+        <label for="declineComment" style="display:block;font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Vill du berätta mer? (valfritt)</label>
+        <textarea id="declineComment" rows="3" maxlength="1000" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:#0f0d2a;color:#f0eeff;color-scheme:dark;font-family:inherit;font-size:0.9rem;resize:vertical"></textarea>
+        <div id="declineError" style="display:none;margin-top:8px;color:#f87171;font-size:0.83rem"></div>
+        <div style="display:flex;gap:8px;margin-top:1rem">
+          <button type="button" id="declineSubmitBtn" onclick="submitDecline()" style="flex:1;padding:0.8rem;background:#c4b5f4;color:#0c0a24;border:none;border-radius:10px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit">Tacka nej till offerten</button>
+          <button type="button" onclick="closeDeclineModal()" style="padding:0.8rem 1.1rem;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);border:1px solid rgba(255,255,255,0.12);border-radius:10px;font-size:0.9rem;cursor:pointer;font-family:inherit">Avbryt</button>
+        </div>
       </div>
     </div>
 
@@ -848,6 +876,10 @@ async function loadOrder() {
     messages = data.messages || [];
     renderMessages();
     show('stateOrder');
+    // Djuplänk från påminnelsemailet: ?svar=nej öppnar dialogen (registrerar inget)
+    if (params.get('svar') === 'nej' && canDecline(data.cart)) {
+      setTimeout(openDeclineModal, 300);
+    }
     // Djuplänk från bekräftelsemail: scrolla till fakturasektionen
     if (location.hash === '#invoiceSection') {
       setTimeout(() => {
@@ -890,8 +922,13 @@ function renderOrder(c) {
   else subtitleParts.push('Här kan du följa status på din order och skicka meddelanden till oss.');
   document.getElementById('orderSubtitle').textContent = subtitleParts.join(' · ');
 
-  // Status
-  const s = STATUS[c.status] || STATUS.open;
+  // Status — kund som själv tackat nej får en egen text i stället för "Avbruten"
+  const s = c.declined_at
+    ? { icon: '🙅', label: 'Du har tackat nej till offerten',
+        desc: `Tack för att du meddelade oss (${fmtTime(c.declined_at)}). Har du ändrat dig eller vill ha ett nytt förslag? Skriv i meddelanderutan nedan så hjälper vi dig.`,
+        cls: 's-cancelled' }
+    : (STATUS[c.status] || STATUS.open);
+  renderDeclineOption(c);
   const banner = document.getElementById('statusBanner');
   banner.className = `status-banner ${s.cls}`;
   document.getElementById('statusIcon').textContent  = s.icon;
@@ -1370,6 +1407,78 @@ async function confirmOrder() {
   }
 }
 
+// ── TACKA NEJ TILL OFFERTEN ─────────────────────────────────────
+function canDecline(c) {
+  return !!c && ['waiting', 'confirmed'].includes(c.status) && !c.confirmed_at && !c.declined_at;
+}
+
+function renderDeclineOption(c) {
+  const wrap = document.getElementById('declineWrap');
+  if (wrap) wrap.style.display = canDecline(c) ? '' : 'none';
+}
+
+function openDeclineModal() {
+  if (!canDecline(window._currentCart)) return;
+  const m = document.getElementById('declineModal');
+  document.getElementById('declineError').style.display = 'none';
+  m.style.display = 'flex';
+}
+
+function closeDeclineModal() {
+  document.getElementById('declineModal').style.display = 'none';
+  // Ta bort ?svar=nej så att dialogen inte öppnas igen vid omladdning
+  try {
+    const u = new URL(location.href);
+    if (u.searchParams.has('svar')) { u.searchParams.delete('svar'); history.replaceState(null, '', u); }
+  } catch {}
+}
+
+async function submitDecline() {
+  const errEl  = document.getElementById('declineError');
+  const btn    = document.getElementById('declineSubmitBtn');
+  const reason = document.querySelector('input[name="declineReason"]:checked')?.value;
+  const comment = document.getElementById('declineComment').value.trim();
+  const showErr = msg => { errEl.textContent = msg; errEl.style.display = ''; };
+  if (!reason) { showErr('Välj en av anledningarna ovan.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Skickar…';
+  try {
+    const res = await fetch('/.netlify/functions/cart-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: cartToken, cart_id: cartId, action: 'customer_decline', reason, comment }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) {
+      showErr(data.error || data.message || 'Något gick fel. Försök igen eller skriv till oss i chatten.');
+      btn.disabled = false;
+      btn.textContent = 'Tacka nej till offerten';
+      return;
+    }
+    const c = window._currentCart;
+    c.status         = 'cancelled';
+    c.declined_at    = data.declined_at || new Date().toISOString();
+    c.decline_reason = reason;
+    closeDeclineModal();
+    renderOrder(c);
+    const REASON_TXT = {
+      need_changed:      'Mitt behov har förändrats',
+      found_alternative: 'Jag hittade en annan lösning som passade bättre',
+    };
+    messages.push({
+      id: Date.now(), sender: 'customer', read_at: null, created_at: c.declined_at,
+      body: `❌ Jag tackar nej till offerten.\nAnledning: ${REASON_TXT[reason]}${comment ? `\nKommentar: ${comment}` : ''}`,
+    });
+    renderMessages();
+    document.getElementById('statusBanner')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch {
+    showErr('Nätverksfel — kontrollera din anslutning och försök igen.');
+    btn.disabled = false;
+    btn.textContent = 'Tacka nej till offerten';
+  }
+}
+
 async function sendMessage() {
   const input = document.getElementById('chatInput');
   const btn   = document.getElementById('chatSendBtn');
@@ -1615,6 +1724,9 @@ async function setDeliveryMode(mode) {
 
 // Exponera funktioner som anropas via onclick i dynamisk HTML
 window.confirmOrder = confirmOrder;
+window.openDeclineModal  = openDeclineModal;
+window.closeDeclineModal = closeDeclineModal;
+window.submitDecline     = submitDecline;
 window.renderInvoiceSection = renderInvoiceSection;
 window.setDeliveryMode = setDeliveryMode;
 

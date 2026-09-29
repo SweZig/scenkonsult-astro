@@ -264,6 +264,23 @@ exports.handler = async (event) => {
       console.warn('ADMIN_QUOTE: kunde inte spara message_id/bounce-rensning:', e.message);
     }
 
+    // Offertpåminnelse v2: påminnelseklockan räknas från när offerten skickades.
+    // En (om)skickad offert startar en ny cykel — nollställ påminnelser och ev.
+    // tidigare nej-svar. Separat try: kolumnerna kräver migration 2026-09-29.
+    try {
+      await db.update('carts', {
+        quote_sent_at:                  new Date().toISOString(),
+        quote_reminder_log:             [],
+        admin_reminder_sent_at:         null,
+        admin_reminder_dismissed_until: null,
+        declined_at:                    null,
+        decline_reason:                 null,
+        decline_comment:                null,
+      }, 'id', cartId);
+    } catch (e) {
+      console.warn('ADMIN_QUOTE: kunde inte nollställa påminnelse-state:', e.message);
+    }
+
     console.log('ADMIN_QUOTE_SENT:', cartId, 'to', customer.email, 'message_id', messageId);
     return {
       statusCode: 200,

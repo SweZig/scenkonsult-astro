@@ -1969,20 +1969,10 @@ const _dayConfig = tjansterData.hyresdagar || null;
 <!-- ── DETAIL PANEL ─────────────────────────────────────────── -->
 <div id="detail-overlay"></div>
 
-<!-- 48h Påminnelse-popup -->
-<div id="reminder-overlay" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(12,10,36,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center">
-  <div style="background:#1a1740;border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:1.5rem;max-width:400px;width:calc(100% - 2rem);box-shadow:0 20px 60px rgba(0,0,0,0.6)">
-    <div style="font-size:1.5rem;margin-bottom:0.5rem">⏰</div>
-    <div style="font-weight:700;font-size:1rem;color:#f0eeff;margin-bottom:0.4rem">Offert utan svar</div>
-    <div id="reminder-msg" style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-bottom:1.2rem;line-height:1.5"></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="reminderAction('yes')" style="flex:1;padding:10px;background:var(--brand-lav,#c4b5f4);color:#0c0a24;font-weight:700;font-size:0.85rem;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✉ Ja, skicka påminnelse</button>
-      <button onclick="reminderAction('no')" style="flex:1;padding:10px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);font-size:0.85rem;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-family:inherit">Nej, inte nu</button>
-    </div>
-    <div style="margin-top:8px;text-align:center">
-      <button onclick="reminderAction('snooze')" style="background:none;border:none;color:rgba(255,255,255,0.60);font-size:0.75rem;cursor:pointer;font-family:inherit">Påminn mig inte om denna offert igen</button>
-    </div>
-  </div>
+<!-- Offertpåminnelse v2: samlingsruta + genomgång per offert. Innehållet
+     i #reminder-box byggs dynamiskt av showReminderSummary()/showNextReminder(). -->
+<div id="reminder-overlay" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(12,10,36,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem">
+  <div id="reminder-box" role="dialog" aria-modal="true" style="position:relative;background:#1a1740;border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:1.5rem;max-width:440px;width:100%;max-height:calc(100vh - 2rem);overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6)"></div>
 </div>
 <div id="detail-panel">
   <div class="panel-header">
@@ -2297,6 +2287,38 @@ const STATUS_LABELS = {
   completed:  { icon: '🏁', label: 'Avslutade',      cls: 's-completed'  },
   cancelled:  { icon: '❌', label: 'Avbruten',       cls: 's-cancelled'  },
 };
+
+// ⏰-märke i "Offert skickad"-kolumnen: antal offerter som väntar på påminnelse.
+// Klick startar genomgången direkt (även under snooze).
+function reminderColBadge() {
+  const n = carts.filter(c => reminderDue(c)).length;
+  if (!n) return '';
+  const snoozed = reminderSnoozedUntil() > Date.now();
+  return `<button type="button" onclick="event.stopPropagation(); reminderStartReview()"
+    title="${n} ${n === 1 ? 'offert väntar' : 'offerter väntar'} på påminnelse${snoozed ? ' (pausat — klicka för att gå igenom nu)' : ''}"
+    style="background:rgba(251,191,36,0.14);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:99px;cursor:pointer;font-family:inherit">⏰ ${n}</button>`;
+}
+
+const DECLINE_REASON_LABELS = {
+  need_changed:      'Behovet har förändrats',
+  found_alternative: 'Hittade en annan lösning',
+};
+
+// Avbrutna kort: kunden tackade nej själv via ordersidan
+function declinedBadge(c) {
+  if (!c.declined_at) return '';
+  const reason = DECLINE_REASON_LABELS[c.decline_reason] || '';
+  return `<span title="Kunden tackade nej ${fmtTime(c.declined_at)}${reason ? ' — ' + reason : ''}" style="background:rgba(248,113,113,0.14);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap">🙅 Tackade nej${reason ? ' · ' + reason : ''}</span>`;
+}
+
+// Väntande kort: hur många offertpåminnelser som skickats
+function remindedBadge(c) {
+  if (c.status !== 'waiting') return '';
+  const log = reminderLog(c);
+  if (!log.length) return '';
+  const final = log.some(e => e.final);
+  return `<span title="Senaste påminnelse ${fmtTime(log[log.length - 1].at)}" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap">⏰ ${final ? 'Sista påminnelse skickad' : 'Påmind 1/2'}</span>`;
+}
 
 // Hjälpfunktion: returnerar badge för Inkommen-kort baserat på om kunden har produkter i varukorgen
 function reqBadge(c) {
@@ -2895,6 +2917,7 @@ function cartCardCompact(c) {
   const rBadge   = readBadge(c, { compact: true });
   const pBadge   = pickupBadge(c, { compact: true });
   const reqB     = reqBadge(c);
+  const declB    = declinedBadge(c) + remindedBadge(c);
   const paidB    = paidBadge(c);
   const overdueB = overdueFlag(c);
   const noDateB  = noDateFlag(c);
@@ -2913,6 +2936,7 @@ function cartCardCompact(c) {
       <div class="cc-row1">
         <span class="cc-name">${htmlEscape(c.customer_name || 'Okänd kund')}</span>
         ${reqB}
+        ${declB}
         ${overdueB}
         ${noDateB}
         ${paidB}
@@ -2955,7 +2979,10 @@ function renderKanban() {
         <div class="kanban-col-header"${sortCfg ? ' style="flex-direction:column;align-items:flex-start;gap:0"' : ''}>
           <div${sortCfg ? ' style="display:flex;align-items:center;justify-content:space-between;width:100%"' : ' style="display:contents"'}>
             <div class="col-title ${s.cls}">${s.icon} ${s.label}</div>
-            <div class="col-count">${colCarts.length}</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              ${status === 'waiting' ? reminderColBadge() : ''}
+              <div class="col-count">${colCarts.length}</div>
+            </div>
           </div>
           ${sortBtnsHtml}
         </div>
@@ -3243,6 +3270,7 @@ function cartCardHTML(c) {
   }
 
   const reqB  = reqBadge(c);
+  const declB = declinedBadge(c) + remindedBadge(c);
   const paidB = paidBadge(c);
   const overdueB = overdueFlag(c);
   const noDateB  = noDateFlag(c);
@@ -3269,7 +3297,7 @@ function cartCardHTML(c) {
         ${intentBadge}
       </div>
       ${daysFlag}
-      ${(reqB || paidB || overdueB || noDateB || svenBadge) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${svenBadge}${reqB}${overdueB}${noDateB}${paidB}</div>` : ''}
+      ${(reqB || declB || paidB || overdueB || noDateB || svenBadge) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${svenBadge}${reqB}${declB}${overdueB}${noDateB}${paidB}</div>` : ''}
       ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
       <div class="cart-card-sub">${c.customer_email || (c.source === 'sven' ? '(kontaktuppgifter saknas — se chattlogg)' : '')}</div>
       ${bounceBadge}
@@ -4142,9 +4170,27 @@ function renderInfoTab() {
       </div>`;
   }
 
+  // Kunden tackade nej via ordersidan
+  const declineBanner = c.declined_at ? `
+    <div style="margin-bottom:14px;padding:12px 14px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);border-radius:10px">
+      <div style="font-weight:700;color:#f87171;font-size:0.92rem">🙅 Kunden tackade nej till offerten</div>
+      <div style="font-size:0.83rem;color:rgba(255,255,255,0.78);margin-top:4px">${fmtTime(c.declined_at)} · ${htmlEscape(DECLINE_REASON_LABELS[c.decline_reason] || 'Ingen anledning angiven')}</div>
+      ${c.decline_comment ? `<div style="font-size:0.83rem;color:rgba(255,255,255,0.72);margin-top:6px;font-style:italic">"${htmlEscape(c.decline_comment)}"</div>` : ''}
+    </div>` : '';
+
+  // Skickade offertpåminnelser
+  const _remLog = reminderLog(c);
+  const reminderInfo = (_remLog.length && ['waiting', 'cancelled'].includes(c.status)) ? `
+    <div style="margin-bottom:14px;padding:10px 14px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:10px;font-size:0.82rem;color:rgba(255,255,255,0.75)">
+      <strong style="color:#fbbf24">⏰ Offertpåminnelser:</strong>
+      ${_remLog.map(e => `${fmtTime(e.at)}${_remTplLabel(e.template) ? ` (${_remTplLabel(e.template)})` : ''}${e.final ? ' — sista' : ''}`).join(' · ')}
+    </div>` : '';
+
   return `
     ${bounceBanner}
     ${svenBanner}
+    ${declineBanner}
+    ${reminderInfo}
     <div class="section-label">Status</div>
     <div class="status-row">
       <select class="status-select" id="status-select" style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;padding-right:2.25rem">
@@ -4994,6 +5040,57 @@ Tusen tack!
 
 let currentChatTemplates = [...CHAT_TEMPLATES_FALLBACK];
 
+// Offertpåminnelser — samma tabell (chat_templates) med kind='reminder' och
+// ämnesrad. Redigeras i "Hantera"-modalen under chatten. Fallback = seedade
+// texterna i migration 2026-09-29, så popupen fungerar även om hämtningen fallerar.
+const REMINDER_TEMPLATES_FALLBACK = [
+  { id: 'paminnelse-formell', kind: 'reminder', label: '🎩 Formell', sort_order: 100,
+    title: 'Formell ton — passar företag och myndigheter',
+    subject: 'Påminnelse: offert {ordernummer} från Scenkonsult Norden',
+    body: `Hej {förnamn},
+
+Vi vill påminna om offerten vi skickat avseende ert evenemang den {datum}. Offerten finns tillgänglig via länken i detta mail, där ni också kan godkänna den direkt.
+
+Har ni frågor eller önskar justeringar är ni välkomna att kontakta oss.
+
+Med vänliga hälsningar
+Scenkonsult Norden` },
+  { id: 'paminnelse-neutral', kind: 'reminder', label: '💬 Neutral', sort_order: 101,
+    title: 'Vänlig men saklig — standard för privatkunder',
+    subject: 'Din offert från Scenkonsult Norden',
+    body: `Hej {förnamn}!
+
+Vi ville bara påminna om offerten inför den {datum}. Du ser och godkänner den via länken nedan.
+
+Hör av dig om något behöver ändras — vi anpassar gärna upplägget.
+
+Vänliga hälsningar
+Scenkonsult Norden` },
+  { id: 'paminnelse-personlig', kind: 'reminder', label: '🙂 Personlig', sort_order: 102,
+    title: 'Personlig ton — för återkommande kunder',
+    subject: 'Hur går planeringen, {förnamn}?',
+    body: `Hej {förnamn}!
+
+Hoppas planeringen inför den {datum} rullar på bra. Jag ville bara höra hur du tänker kring offerten vi skickade.
+
+Säg till om du vill bolla upplägget eller ändra något — det löser vi. 😊
+
+Varma hälsningar
+Scenkonsult Norden` },
+  { id: 'paminnelse-sista', kind: 'reminder', label: '⏳ Sista påminnelse', sort_order: 103,
+    title: 'Sista påminnelsen — eventet är nära, med möjlighet att tacka nej',
+    subject: '{dagar_kvar} kvar till eventet — vill du gå vidare med offerten?',
+    body: `Hej {förnamn}!
+
+Nu är det bara {dagar_kvar} kvar till den {datum}. För att kunna planera leverans och utrustning behöver vi veta om du vill gå vidare med offerten.
+
+Godkänn gärna offerten via länken nedan. Behöver du den inte längre går det bra att tacka nej med ett klick — då vet vi hur vi ska planera, och du slipper fler påminnelser.
+
+Vänliga hälsningar
+Scenkonsult Norden` },
+];
+let currentReminderTemplates = [...REMINDER_TEMPLATES_FALLBACK];
+
 // Tillgängliga variabler i chattmallar — visas också i mall-editorn
 const TEMPLATE_VARIABLES = [
   { name: 'förnamn',     desc: 'Kundens förnamn (första ordet av namnet)' },
@@ -5005,6 +5102,7 @@ const TEMPLATE_VARIABLES = [
   { name: 'datum',       desc: 'Eventdatum (formaterat på svenska)' },
   { name: 'plats',       desc: 'Eventets plats / leveransadress' },
   { name: 'ordernummer', desc: 'Cart-ID (t.ex. SK-A1B2C3D4-E5F6)' },
+  { name: 'dagar_kvar',  desc: 'Tid kvar till eventet, t.ex. "5 dagar" eller "1 dag"' },
 ];
 
 // Ersätt variabler som {förnamn} med värden från currentCart.
@@ -5033,6 +5131,12 @@ function renderTemplate(body, cart) {
     'plats':       cart.event_location || '',
     'ordernummer': cart.id || '',
   };
+  // {dagar_kvar} — lämnas oförändrad om eventdatum saknas eller har passerat
+  if (cart.event_date) {
+    const _today = new Date(); _today.setHours(0, 0, 0, 0);
+    const _d = Math.round((new Date(String(cart.event_date).slice(0, 10) + 'T00:00:00') - _today) / 86400000);
+    if (_d >= 0) vars['dagar_kvar'] = _d === 0 ? 'mindre än ett dygn' : _d === 1 ? '1 dag' : `${_d} dagar`;
+  }
 
   // Matcha {nyckel} med svenska tecken. Okända lämnas oförändrade.
   return body.replace(/\{([a-zåäöA-ZÅÄÖ_]+)\}/g, (match, key) => {
@@ -5048,8 +5152,11 @@ async function loadChatTemplates() {
     });
     if (!r.ok) return; // behåll fallback
     const data = await r.json();
-    if (Array.isArray(data.templates) && data.templates.length > 0) {
-      currentChatTemplates = data.templates;
+    if (Array.isArray(data.templates)) {
+      const chat = data.templates.filter(t => (t.kind || 'chat') === 'chat');
+      const rem  = data.templates.filter(t => t.kind === 'reminder');
+      if (chat.length > 0) currentChatTemplates = chat;
+      if (rem.length > 0)  currentReminderTemplates = rem; // före migrationen: fallback
     }
   } catch (e) {
     console.warn('loadChatTemplates failed, using fallback:', e.message);
@@ -5066,7 +5173,7 @@ function openChatTemplatesModal() {
     modal.innerHTML = `
       <div class="ct-modal" role="dialog" aria-modal="true" aria-labelledby="ct-modal-title">
         <div class="ct-modal-header">
-          <h3 id="ct-modal-title">Hantera snabbmallar</h3>
+          <h3 id="ct-modal-title">Hantera mallar</h3>
           <button type="button" class="ct-close" aria-label="Stäng">×</button>
         </div>
         <div class="ct-modal-body" id="ct-modal-body"></div>
@@ -5093,14 +5200,54 @@ function closeChatTemplatesModal() {
   if (modal) modal.style.display = 'none';
 }
 
+// Öppna mallmodalen scrollad till offertpåminnelserna (från påminnelse-popupen)
+function openReminderTemplatesEditor() {
+  openChatTemplatesModal();
+  setTimeout(() => document.getElementById('ct-reminder-section')?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 50);
+}
+window.openReminderTemplatesEditor = openReminderTemplatesEditor;
+
+function renderReminderTemplatesSection() {
+  return `
+    <div id="ct-reminder-section" style="margin-top:1.5rem;padding-top:1.1rem;border-top:1px solid var(--border)">
+      <div style="font-weight:700;color:var(--text);margin-bottom:0.2rem">⏰ Offertpåminnelser</div>
+      <p class="ct-editor-hint" style="margin:0 0 0.6rem">Används i påminnelse-popupen för offerter utan svar. Ämnesraden blir mailets ämne; mailet får automatiskt knappen "Visa och godkänn offerten".</p>
+      <ul class="ct-list">
+        ${currentReminderTemplates.map(t => {
+          const preview = (t.body || '').replace(/\n/g, ' ').slice(0, 90);
+          return `
+            <li class="ct-row" data-id="${t.id}">
+              <div class="ct-row-info">
+                <div class="ct-row-label">${escapeHtml(t.label)}</div>
+                <div class="ct-row-preview"><strong>Ämne:</strong> ${escapeHtml(t.subject || '–')}</div>
+                <div class="ct-row-preview">${escapeHtml(preview)}${t.body && t.body.length > 90 ? '…' : ''}</div>
+              </div>
+              <div class="ct-row-actions">
+                <button type="button" class="ct-btn-edit-rem" data-id="${t.id}">Redigera</button>
+              </div>
+            </li>`;
+        }).join('')}
+      </ul>
+    </div>`;
+}
+
+function _bindReminderTemplateRows(body) {
+  body.querySelectorAll('.ct-btn-edit-rem').forEach(b => b.addEventListener('click', () => {
+    const t = currentReminderTemplates.find(x => x.id === b.dataset.id);
+    if (t) renderChatTemplateEditor({ ...t, kind: 'reminder' });
+  }));
+}
+
 function renderChatTemplatesList() {
   const body = document.getElementById('ct-modal-body');
   if (!body) return;
   if (currentChatTemplates.length === 0) {
-    body.innerHTML = '<p class="ct-empty">Inga mallar — klicka "+ Ny mall" för att lägga till en.</p>';
+    body.innerHTML = '<p class="ct-empty">Inga snabbmallar — klicka "+ Ny mall" för att lägga till en.</p>' + renderReminderTemplatesSection();
+    _bindReminderTemplateRows(body);
     return;
   }
   body.innerHTML = `
+    <div style="font-weight:700;color:var(--text);margin-bottom:0.5rem">💬 Snabbmallar i chatten</div>
     <ul class="ct-list">
       ${currentChatTemplates.map((t, i) => {
         const preview = (t.body || '').replace(/\n/g, ' ').slice(0, 90);
@@ -5120,7 +5267,9 @@ function renderChatTemplatesList() {
         `;
       }).join('')}
     </ul>
+    ${renderReminderTemplatesSection()}
   `;
+  _bindReminderTemplateRows(body);
   body.querySelectorAll('.ct-btn-edit').forEach(b => b.addEventListener('click', () => {
     const t = currentChatTemplates.find(x => x.id === b.dataset.id);
     if (t) renderChatTemplateEditor(t);
@@ -5134,9 +5283,10 @@ function renderChatTemplateEditor(tpl) {
   const body = document.getElementById('ct-modal-body');
   if (!body) return;
   const t = tpl || { id: '', label: '', title: '', body: '' };
+  const isReminder = t.kind === 'reminder';
   body.innerHTML = `
-    <div class="ct-editor">
-      <p class="ct-editor-hint">${tpl ? 'Redigera mall' : 'Ny mall'} — alla fält sparas till databasen.</p>
+    <div class="ct-editor" data-kind="${isReminder ? 'reminder' : 'chat'}">
+      <p class="ct-editor-hint">${isReminder ? 'Redigera påminnelsemall' : tpl ? 'Redigera mall' : 'Ny mall'} — alla fält sparas till databasen.</p>
       <label class="ct-field">
         <span>Label (knapptext)</span>
         <input type="text" id="ct-field-label" maxlength="80" value="${escapeHtml(t.label)}" placeholder="⭐ Be om Google-recension">
@@ -5145,6 +5295,11 @@ function renderChatTemplateEditor(tpl) {
         <span>Tooltip (visas vid hover, valfri)</span>
         <input type="text" id="ct-field-title" maxlength="200" value="${escapeHtml(t.title || '')}" placeholder="Vänlig förfrågan om recension">
       </label>
+      ${isReminder ? `
+      <label class="ct-field">
+        <span>Ämnesrad i mailet (variabler fungerar)</span>
+        <input type="text" id="ct-field-subject" maxlength="200" value="${escapeHtml(t.subject || '')}" placeholder="Din offert från Scenkonsult Norden">
+      </label>` : ''}
       <label class="ct-field">
         <span>Meddelandetext (markdown-länkar stöds: <code>[text](url)</code>)</span>
         <textarea id="ct-field-body" rows="10" maxlength="5000" placeholder="Hej {förnamn}!&#10;...">${escapeHtml(t.body)}</textarea>
@@ -5156,7 +5311,9 @@ function renderChatTemplateEditor(tpl) {
             `<button type="button" class="ct-var-chip" data-var="${v.name}" title="${escapeHtml(v.desc)}">{${v.name}}</button>`
           ).join('')}
         </div>
-        <div class="ct-vars-hint">Variabler ersätts automatiskt med kundens data när admin klickar på mall-knappen i en chatt. Okända variabler lämnas oförändrade.</div>
+        <div class="ct-vars-hint">${isReminder
+          ? 'Variabler fylls i när påminnelsen öppnas. Saknas eventdatum stryks "den {datum}" automatiskt. Du kan alltid justera texten innan du skickar.'
+          : 'Variabler ersätts automatiskt med kundens data när admin klickar på mall-knappen i en chatt. Okända variabler lämnas oförändrade.'}</div>
       </div>
       <div class="ct-editor-actions">
         <button type="button" class="ct-btn-secondary" id="ct-editor-back">← Tillbaka</button>
@@ -5165,7 +5322,7 @@ function renderChatTemplateEditor(tpl) {
     </div>
   `;
   body.querySelector('#ct-editor-back').addEventListener('click', renderChatTemplatesList);
-  body.querySelector('#ct-editor-save').addEventListener('click', () => saveChatTemplate(tpl?.id || null));
+  body.querySelector('#ct-editor-save').addEventListener('click', () => saveChatTemplate(tpl?.id || null, isReminder ? 'reminder' : 'chat'));
   // Variabel-chips: infoga {variabel} vid markörens position i body-textareat
   body.querySelectorAll('.ct-var-chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -5185,15 +5342,18 @@ function renderChatTemplateEditor(tpl) {
   });
 }
 
-async function saveChatTemplate(existingId) {
+async function saveChatTemplate(existingId, kind = 'chat') {
   const label = document.getElementById('ct-field-label')?.value?.trim();
   const title = document.getElementById('ct-field-title')?.value?.trim();
   const body  = document.getElementById('ct-field-body')?.value?.trim();
+  const subject = document.getElementById('ct-field-subject')?.value?.trim();
   if (!label) { alert('Label krävs'); return; }
   if (!body) { alert('Meddelandetext krävs'); return; }
+  if (kind === 'reminder' && !subject) { alert('Ämnesrad krävs för påminnelsemallar'); return; }
 
+  const list = kind === 'reminder' ? currentReminderTemplates : currentChatTemplates;
   const sortOrder = existingId
-    ? (currentChatTemplates.find(t => t.id === existingId)?.sort_order ?? 0)
+    ? (list.find(t => t.id === existingId)?.sort_order ?? 0)
     : currentChatTemplates.length;
 
   try {
@@ -5202,7 +5362,10 @@ async function saveChatTemplate(existingId) {
       headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'upsert',
-        template: { id: existingId || undefined, label, title: title || null, body, sort_order: sortOrder },
+        template: {
+          id: existingId || undefined, label, title: title || null, body, sort_order: sortOrder,
+          ...(kind === 'reminder' ? { kind: 'reminder', subject } : {}),
+        },
       }),
     });
     if (!r.ok) {
@@ -5211,6 +5374,16 @@ async function saveChatTemplate(existingId) {
       return;
     }
     const data = await r.json();
+    if (kind === 'reminder') {
+      const ri = currentReminderTemplates.findIndex(t => t.id === data.template.id);
+      if (ri >= 0) currentReminderTemplates[ri] = data.template;
+      else currentReminderTemplates.push(data.template);
+      renderChatTemplatesList();
+      // Påminnelse-popupen öppen bakom modalen → visa den nya texten direkt
+      if (_reminderActive && _reminderTplId) selectReminderTemplate(_reminderTplId);
+      toast('Påminnelsemallen sparad');
+      return;
+    }
     // Uppdatera local state: ersätt befintlig eller lägg till
     const idx = currentChatTemplates.findIndex(t => t.id === data.template.id);
     if (idx >= 0) currentChatTemplates[idx] = data.template;
@@ -5412,6 +5585,8 @@ function renderLogTab() {
     'messages_read':      { icon: '✓✓', label: 'Kunden läste meddelanden', color: 'var(--text-muted)' },
     'message_sent':       { icon: '💬', label: 'Meddelande skickat', color: 'var(--text-muted)' },
     'reminder_sent':      { icon: '⏰', label: 'Påminnelse skickad till kund', color: 'var(--amber)', highlight: true },
+    'reminder_dismissed': { icon: '🔕', label: 'Offertpåminnelse pausad', color: 'rgba(255,255,255,0.55)' },
+    'customer_declined':  { icon: '🙅', label: 'Kunden tackade nej till offerten', color: 'var(--red)', highlight: true },
     'status_change':      { icon: '🔄', label: 'Status ändrad', color: 'var(--amber)' },
     'pickup_signed':      { icon: '✍️', label: 'Kund förberedde utlämning',  color: 'var(--brand-lav)', highlight: true },
     'pickup_confirmed':   { icon: '✅', label: 'Utlämning genomförd (motkvitterad)', color: 'var(--green)', highlight: true },
@@ -7133,15 +7308,17 @@ async function convertContactToOrder(cartId) {
 }
 window.convertContactToOrder = convertContactToOrder;
 
-// ── 48h PÅMINNELSE-SYSTEM ──────────────────────────────────────
-// Cross-device-state: tidigare i localStorage ('sk_admin_reminders'),
-// nu på cart-objektet i Supabase:
-//   - admin_reminder_sent_at:        sätts av cart-message.js när action='yes'
-//   - admin_reminder_dismissed_until: sätts av admin-reminder-dismiss.js (snooze)
-// Snoozad-för-alltid använder sentinel 2099-12-31. Snoozad i 24h = NOW()+24h.
-const REMINDER_HOURS = 48;
-let _reminderQueue = [];  // carts som väntar på popup
-let _reminderActive = null; // den cart som visas just nu
+// ── OFFERTPÅMINNELSE v2 — konstanter och state (logik längre ned) ──
+const REMINDER_HOURS             = 48;   // första påminnelsen tidigast 48 h efter skickad offert
+const REMINDER_FINAL_DAYS        = 5;    // sista påminnelsen när eventet är ≤ 5 dagar bort
+const REMINDER_GAP_HOURS         = 48;   // minst 48 h mellan påminnelse 1 och sista
+const REMINDER_SNOOZE_MIN        = 30;
+const REMINDER_SNOOZE_KEY        = 'sk_reminder_snooze_until';
+const REMINDER_FINAL_TEMPLATE_ID = 'paminnelse-sista';
+let _reminderQueue = [];       // cart-ID:n kvar i genomgången
+let _reminderQueueTotal = 0;
+let _reminderActive = null;    // den cart som visas just nu
+let _reminderDueInfo = null;   // { step, final } för _reminderActive
 let _kanbanView = localStorage.getItem('sk_kanban_view') || 'compact'; // 'compact' | 'standard'
 
 // ── KOLUMN-SORTERING ──────────────────────────────────────────
@@ -7203,112 +7380,367 @@ const COLUMN_SORTS = {
 const _columnSorts = {};
 Object.entries(COLUMN_SORTS).forEach(([col, cfg]) => { _columnSorts[col] = cfg.default; });
 
-// Returnerar true om popupen för denna cart är dismissad just nu.
-function isReminderActive(c) {
-  if (c.admin_reminder_sent_at) return false; // redan skickad
-  if (c.admin_reminder_dismissed_until) {
-    const until = new Date(c.admin_reminder_dismissed_until).getTime();
-    if (until > Date.now()) return false; // dismissad, väntar på utgång
-  }
-  return true;
+// ── OFFERTPÅMINNELSE v2 ────────────────────────────────────────
+// Flöde: samlingsruta ("3 offerter väntar") → genomgång en offert i taget
+// med mallväljare (4 redigerbara mallar, kind='reminder' i chat_templates).
+//
+// Två steg per offert:
+//   1. ≥ 48 h efter att offerten skickades (quote_sent_at, fallback updated_at)
+//   2. Sista påminnelsen: eventet ≤ REMINDER_FINAL_DAYS dagar bort och
+//      ≥ 48 h sedan steg 1. Därefter inga fler popups för offerten.
+//
+// Cross-device-state på carten i Supabase:
+//   - quote_reminder_log:             [{template, at, final, include_decline}] (cart-message.js)
+//   - admin_reminder_sent_at:         senaste utskick (bakåtkompat)
+//   - admin_reminder_dismissed_until: "påminn imorgon" / "aldrig" (admin-reminder-dismiss.js)
+// Snooze 30 min / resten av dagen gäller hela kön och sparas per enhet i
+// localStorage ('sk_reminder_snooze_until') — "jag har inte tid vid den här datorn nu".
+function isReminderOverlayOpen() {
+  return document.getElementById('reminder-overlay')?.style.display === 'flex';
 }
 
-function checkReminderQueue() {
-  const now = Date.now();
-  const threshold = REMINDER_HOURS * 3600 * 1000;
+function reminderSnoozedUntil() {
+  try { return parseInt(localStorage.getItem(REMINDER_SNOOZE_KEY) || '0', 10) || 0; }
+  catch { return 0; }
+}
+function setReminderSnooze(untilMs) {
+  try { localStorage.setItem(REMINDER_SNOOZE_KEY, String(untilMs)); } catch {}
+}
+function clearReminderSnooze() {
+  try { localStorage.removeItem(REMINDER_SNOOZE_KEY); } catch {}
+}
 
-  _reminderQueue = carts.filter(c => {
-    if (c.status !== 'waiting') return false;
-    // Kund har redan godkänt ordern digitalt — ingen påminnelse behövs
-    if (c.confirmed_at) return false;
-    if (!isReminderActive(c)) return false;
-    // Offerten måste ha stått som waiting i minst 48h (proxy: updated_at)
-    const age = now - new Date(c.updated_at || c.created_at).getTime();
-    return age >= threshold;
-  });
+// Hela dagar kvar till eventet (0 = idag, negativt = passerat, null = datum saknas)
+function reminderDaysToEvent(c) {
+  if (!c.event_date) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const ev = new Date(String(c.event_date).slice(0, 10) + 'T00:00:00');
+  if (isNaN(ev)) return null;
+  return Math.round((ev - today) / 86400000);
+}
 
-  if (_reminderQueue.length > 0 && !document.getElementById('reminder-overlay').style.display.includes('flex')) {
-    showNextReminder();
+function reminderLog(c) {
+  const log = Array.isArray(c.quote_reminder_log) ? c.quote_reminder_log : [];
+  // Före migrationen: den gamla engångspåminnelsen räknas som steg 1
+  if (log.length === 0 && c.admin_reminder_sent_at) {
+    return [{ template: 'legacy', at: c.admin_reminder_sent_at, final: false }];
   }
+  return log;
+}
+
+function quoteSentAtMs(c) {
+  return new Date(c.quote_sent_at || c.updated_at || c.created_at).getTime();
+}
+
+// null = ingen påminnelse nu, annars { step: 1|2, final: bool }
+function reminderDue(c, now = Date.now()) {
+  if (c.status !== 'waiting' || c.confirmed_at || c.declined_at) return null;
+  if (c.admin_reminder_dismissed_until && new Date(c.admin_reminder_dismissed_until).getTime() > now) return null;
+  const days = reminderDaysToEvent(c);
+  if (days !== null && days < 0) return null;             // eventet har passerat
+  if (now - quoteSentAtMs(c) < REMINDER_HOURS * 3600000) return null;
+  const log = reminderLog(c);
+  if (log.length >= 2 || log.some(e => e.final)) return null;
+  const nearEvent = days !== null && days <= REMINDER_FINAL_DAYS;
+  if (log.length === 0) return { step: 1, final: nearEvent };
+  if (!nearEvent) return null;
+  const lastAt = new Date(log[log.length - 1].at).getTime();
+  if (now - lastAt < REMINDER_GAP_HOURS * 3600000) return null;
+  return { step: 2, final: true };
+}
+
+function dueReminderCarts() {
+  return carts
+    .map(c => ({ c, due: reminderDue(c) }))
+    .filter(x => x.due)
+    .sort((a, b) => {
+      const da = reminderDaysToEvent(a.c), db = reminderDaysToEvent(b.c);
+      if (da === null && db === null) return quoteSentAtMs(a.c) - quoteSentAtMs(b.c);
+      if (da === null) return 1;
+      if (db === null) return -1;
+      return da - db;
+    });
+}
+
+// Körs efter varje loadCarts() (start + var 30:e sekund)
+function checkReminderQueue() {
+  if (isReminderOverlayOpen()) return;
+  if (reminderSnoozedUntil() > Date.now()) return;
+  const due = dueReminderCarts();
+  if (due.length === 0) return;
+  showReminderSummary(due);
+}
+
+function _remDaysLabel(days) {
+  if (days === null) return 'inget eventdatum';
+  if (days === 0) return 'event idag';
+  if (days === 1) return 'event imorgon';
+  return `event om ${days} dagar`;
+}
+
+function showReminderSummary(due) {
+  _reminderQueue = [];
+  _reminderActive = null;
+  const box = document.getElementById('reminder-box');
+  box.style.maxWidth = '440px';
+  const nearCount = due.filter(x => x.due.final).length;
+  const listHtml = due.slice(0, 6).map(({ c, due: d }) => {
+    const days = reminderDaysToEvent(c);
+    const urgent = days !== null && days <= REMINDER_FINAL_DAYS;
+    return `<li style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <span style="color:#f0eeff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${htmlEscape(c.customer_name || 'Okänd kund')}${c.customer_company ? ` <span style="color:rgba(255,255,255,0.55)">· ${htmlEscape(c.customer_company)}</span>` : ''}</span>
+      <span style="flex-shrink:0;font-size:0.75rem;color:${urgent ? '#fbbf24' : 'rgba(255,255,255,0.55)'}">${d.final ? 'Sista · ' : ''}${_remDaysLabel(days)}</span>
+    </li>`;
+  }).join('');
+  const more = due.length > 6 ? `<div style="font-size:0.75rem;color:rgba(255,255,255,0.55);margin-top:6px">+ ${due.length - 6} till</div>` : '';
+
+  box.innerHTML = `
+    <button type="button" onclick="reminderSnooze('30m')" aria-label="Stäng och snooza 30 minuter" title="Stäng — påminn om 30 min" style="position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(255,255,255,0.55);font-size:1.3rem;cursor:pointer;line-height:1">×</button>
+    <div style="font-size:1.5rem;margin-bottom:0.4rem">⏰</div>
+    <div style="font-weight:700;font-size:1.05rem;color:#f0eeff;margin-bottom:0.3rem">${due.length} ${due.length === 1 ? 'offert väntar' : 'offerter väntar'} på svar</div>
+    <div style="font-size:0.83rem;color:rgba(255,255,255,0.65);margin-bottom:0.9rem">${nearCount ? `<strong style="color:#fbbf24">${nearCount} med event inom ${REMINDER_FINAL_DAYS} dagar</strong> — dags för sista påminnelsen.` : 'Kunderna har inte svarat på 48 timmar eller mer.'}</div>
+    <ul style="list-style:none;margin:0 0 1.1rem;padding:0;font-size:0.85rem">${listHtml}</ul>${more}
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" onclick="reminderStartReview()" style="flex:1 1 100%;padding:10px;background:var(--brand-lav,#c4b5f4);color:#0c0a24;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;cursor:pointer;font-family:inherit">Gå igenom nu →</button>
+      <button type="button" onclick="reminderSnooze('30m')" style="flex:1;padding:9px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);font-size:0.83rem;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-family:inherit">⏸ Snooza 30 min</button>
+      <button type="button" onclick="reminderSnooze('day')" style="flex:1;padding:9px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);font-size:0.83rem;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-family:inherit">Resten av dagen</button>
+    </div>`;
+  document.getElementById('reminder-overlay').style.display = 'flex';
+}
+
+// Snooza hela kön på den här enheten. '30m' | 'day'
+function reminderSnooze(kind) {
+  let until;
+  if (kind === 'day') {
+    const end = new Date(); end.setHours(23, 59, 59, 999);
+    until = end.getTime();
+  } else {
+    until = Date.now() + REMINDER_SNOOZE_MIN * 60000;
+  }
+  setReminderSnooze(until);
+  closeReminderPopup();
+  renderKanban(); // uppdatera ⏰-märket
+  toast(kind === 'day'
+    ? 'Offertpåminnelser pausade resten av dagen'
+    : `Offertpåminnelser pausade i ${REMINDER_SNOOZE_MIN} min`);
+}
+
+// Starta genomgången — från samlingsrutan eller ⏰-märket i kanban (bryter snoozen)
+function reminderStartReview() {
+  clearReminderSnooze();
+  _reminderQueue = dueReminderCarts().map(x => x.c.id);
+  _reminderQueueTotal = _reminderQueue.length;
+  if (_reminderQueue.length === 0) {
+    closeReminderPopup();
+    toast('Inga offerter väntar på påminnelse just nu');
+    renderKanban();
+    return;
+  }
+  showNextReminder();
+}
+
+function recommendReminderTemplate(c, due) {
+  const ids = currentReminderTemplates.map(t => t.id);
+  let id;
+  if (due?.final) id = REMINDER_FINAL_TEMPLATE_ID;
+  else if (c.customer_type === 'b2b' || (!c.customer_type && c.customer_company)) id = 'paminnelse-formell';
+  else id = 'paminnelse-neutral';
+  return ids.includes(id) ? id : (ids[0] || null);
+}
+
+// Fyll i mallvariabler. Utan eventdatum stryks "(inför) den {datum}" så att
+// meningen fortfarande håller ("…avseende ert evenemang.").
+function fillReminderText(text, c) {
+  let t = text || '';
+  if (!c.event_date) t = t.replace(/\s(?:inför\s)?den\s\{datum\}/g, '');
+  return renderTemplate(t, c);
 }
 
 function showNextReminder() {
-  // Race-skydd: filtrera mot färska carts-data (auto-refresh kan ha kört
-  // mellan checkReminderQueue() och showNextReminder())
+  _reminderActive = null;
+  _reminderDueInfo = null;
   while (_reminderQueue.length > 0) {
-    const candidate = _reminderQueue.shift();
-    const fresh = carts.find(c => c.id === candidate.id) || candidate;
-    if (!isReminderActive(fresh)) continue;
+    const id = _reminderQueue.shift();
+    const fresh = carts.find(c => c.id === id);
+    const due = fresh && reminderDue(fresh);
+    if (!due) continue;           // hanterad på annan enhet sedan kön byggdes
     _reminderActive = fresh;
+    _reminderDueInfo = due;
     break;
   }
-  if (!_reminderActive) { closeReminderPopup(); return; }
-  const c = _reminderActive;
-  const hours = Math.round((Date.now() - new Date(c.updated_at || c.created_at).getTime()) / 3600000);
-  const dateStr = c.event_date ? ` (event: ${fmtDate(c.event_date)})` : '';
-  const companyStr = c.customer_company
-    ? ` <span style="color:rgba(255,255,255,0.55);font-weight:400">(${c.customer_company})</span>`
-    : '';
+  if (!_reminderActive) { closeReminderPopup(); renderKanban(); return; }
 
-  // Lässtatus: visar om kunden har öppnat sin offertsida någon gång
+  const c = _reminderActive;
+  const due = _reminderDueInfo;
+  const pos = _reminderQueueTotal - _reminderQueue.length;
+  const hours = Math.round((Date.now() - quoteSentAtMs(c)) / 3600000);
+  const sinceTxt = hours >= 72 ? `${Math.floor(hours / 24)} dagar` : `${hours} timmar`;
+  const days = reminderDaysToEvent(c);
+  const companyStr = c.customer_company
+    ? ` <span style="color:rgba(255,255,255,0.55);font-weight:400">(${htmlEscape(c.customer_company)})</span>` : '';
+  const dateStr = c.event_date
+    ? ` · event ${fmtDate(c.event_date)} <span style="color:${days !== null && days <= REMINDER_FINAL_DAYS ? '#fbbf24' : 'rgba(255,255,255,0.55)'}">(${_remDaysLabel(days)})</span>` : '';
+
   const lastRead = c.last_read_customer ? new Date(c.last_read_customer) : null;
   const readLine = lastRead
-    ? `<div style="margin-top:10px;padding:8px 12px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.22);border-radius:6px;color:#4ade80;font-size:0.8rem;font-weight:600;">👁 Kunden har läst offerten ${readAgoText(lastRead)}</div>`
-    : `<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.22);border-radius:6px;color:#fbbf24;font-size:0.8rem;font-weight:600;">⏳ Kunden har <u>inte</u> öppnat offerten ännu</div>`;
+    ? `<div style="margin-top:10px;padding:7px 11px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.22);border-radius:6px;color:#4ade80;font-size:0.78rem;font-weight:600;">👁 Kunden har läst offerten ${readAgoText(lastRead)}</div>`
+    : `<div style="margin-top:10px;padding:7px 11px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.22);border-radius:6px;color:#fbbf24;font-size:0.78rem;font-weight:600;">⏳ Kunden har <u>inte</u> öppnat offerten ännu</div>`;
 
-  document.getElementById('reminder-msg').innerHTML =
-    `Offerten till <strong style="color:#f0eeff">${c.customer_name || 'kunden'}</strong>${companyStr}${dateStr} har legat utan svar i <strong style="color:#c4b5f4">${hours} timmar</strong>.${readLine}<div style="margin-top:12px">Vill du skicka en påminnelse?</div>`;
-  const overlay = document.getElementById('reminder-overlay');
-  overlay.style.display = 'flex';
+  const log = reminderLog(c);
+  const prevLine = log.length
+    ? `<div style="margin-top:8px;font-size:0.78rem;color:rgba(255,255,255,0.6)">Första påminnelsen skickades ${fmtTime(log[0].at)}${_remTplLabel(log[0].template) ? ` (${_remTplLabel(log[0].template)})` : ''}.</div>` : '';
+
+  const stepPill = due.step === 2 || due.final
+    ? `<span style="background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:99px">Sista påminnelsen</span>`
+    : `<span style="background:rgba(196,181,244,0.12);border:1px solid rgba(196,181,244,0.35);color:#c4b5f4;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:99px">Påminnelse 1 av 2</span>`;
+
+  const box = document.getElementById('reminder-box');
+  box.style.maxWidth = '560px';
+  box.innerHTML = `
+    <button type="button" onclick="reminderSnooze('30m')" aria-label="Stäng och snooza 30 minuter" title="Stäng — påminn om 30 min" style="position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(255,255,255,0.55);font-size:1.3rem;cursor:pointer;line-height:1">×</button>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.5rem;padding-right:24px">
+      <span style="font-weight:700;font-size:1rem;color:#f0eeff">⏰ Offert utan svar</span>
+      ${stepPill}
+      <span style="margin-left:auto;font-size:0.72rem;color:rgba(255,255,255,0.5)">${pos} av ${_reminderQueueTotal}</span>
+    </div>
+    <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.5">
+      <strong style="color:#f0eeff">${htmlEscape(c.customer_name || 'Kunden')}</strong>${companyStr}${dateStr}<br>
+      Offerten skickades för <strong style="color:#c4b5f4">${sinceTxt}</strong> sedan.
+      ${prevLine}
+      ${readLine}
+    </div>
+
+    <div style="margin:1rem 0 0.4rem;font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em">Välj mall</div>
+    <div id="rem-tpl-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+
+    <label style="display:block;margin-top:0.8rem;font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em">Ämnesrad
+      <input type="text" id="rem-subject" maxlength="200" style="display:block;width:100%;margin-top:4px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f0d2a;color:#f0eeff;color-scheme:dark;font-family:inherit;font-size:0.88rem;text-transform:none;letter-spacing:0;font-weight:400">
+    </label>
+    <label style="display:block;margin-top:0.7rem;font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em">Meddelande (kan redigeras)
+      <textarea id="rem-body" rows="9" maxlength="4000" style="display:block;width:100%;margin-top:4px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:#0f0d2a;color:#f0eeff;color-scheme:dark;font-family:inherit;font-size:0.88rem;line-height:1.5;resize:vertical;text-transform:none;letter-spacing:0;font-weight:400"></textarea>
+    </label>
+    <label style="display:flex;align-items:flex-start;gap:8px;margin-top:0.7rem;font-size:0.82rem;color:rgba(255,255,255,0.75);cursor:pointer">
+      <input type="checkbox" id="rem-decline" style="margin-top:3px;accent-color:#c4b5f4">
+      <span>Visa länken <em>"Tacka nej till offerten"</em> i mailet <span style="color:rgba(255,255,255,0.5)">(knappen finns alltid på ordersidan)</span></span>
+    </label>
+    <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:0.5rem">Mailet får knappen <strong>Visa och godkänn offerten</strong>. Texten sparas även i Chatt-fliken.</div>
+
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button type="button" id="rem-send-btn" onclick="reminderAction('send')" style="flex:2;padding:10px;background:var(--brand-lav,#c4b5f4);color:#0c0a24;font-weight:700;font-size:0.88rem;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✉ Skicka påminnelse</button>
+      <button type="button" onclick="reminderAction('later')" style="flex:1;padding:10px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);font-size:0.83rem;border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-family:inherit">Påminn imorgon</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:0.75rem">
+      <button type="button" onclick="reminderAction('never')" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;padding:0">Påminn inte om denna offert igen</button>
+      <span style="display:flex;gap:14px">
+        <button type="button" onclick="openReminderTemplatesEditor()" style="background:none;border:none;color:#c4b5f4;cursor:pointer;font-family:inherit;padding:0">⚙️ Redigera mallar</button>
+        <button type="button" onclick="reminderSnooze('30m')" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;padding:0">⏸ Snooza resten 30 min</button>
+      </span>
+    </div>`;
+  document.getElementById('reminder-overlay').style.display = 'flex';
+  selectReminderTemplate(recommendReminderTemplate(c, due), true);
+}
+
+function _remTplLabel(id) {
+  if (!id || id === 'legacy') return '';
+  const t = currentReminderTemplates.find(x => x.id === id);
+  return t ? t.label.replace(/^[^\p{L}]+/u, '') : '';
+}
+
+let _reminderTplId = null;
+let _reminderRecommendedId = null;
+function selectReminderTemplate(id, isInitial = false) {
+  const c = _reminderActive;
+  if (!c) return;
+  const tpl = currentReminderTemplates.find(t => t.id === id);
+  if (!tpl) return;
+  _reminderTplId = id;
+  if (isInitial) _reminderRecommendedId = id;
+
+  const chips = document.getElementById('rem-tpl-chips');
+  if (chips) {
+    chips.innerHTML = currentReminderTemplates.map(t => {
+      const active = t.id === id;
+      const rec = t.id === _reminderRecommendedId;
+      return `<button type="button" onclick="selectReminderTemplate('${t.id}')" title="${htmlEscape(t.title || '')}"
+        style="padding:6px 11px;border-radius:99px;font-size:0.8rem;font-family:inherit;cursor:pointer;
+        background:${active ? 'var(--brand-lav,#c4b5f4)' : 'rgba(255,255,255,0.06)'};
+        color:${active ? '#0c0a24' : 'rgba(255,255,255,0.8)'};
+        border:1px solid ${active ? 'transparent' : 'rgba(255,255,255,0.14)'};font-weight:${active ? 700 : 500}">${htmlEscape(t.label)}${rec ? ' ★' : ''}</button>`;
+    }).join('');
+  }
+  const subj = document.getElementById('rem-subject');
+  const body = document.getElementById('rem-body');
+  if (subj) subj.value = fillReminderText(tpl.subject || '', c);
+  if (body) body.value = fillReminderText(tpl.body || '', c);
+  const dec = document.getElementById('rem-decline');
+  if (dec) dec.checked = id === REMINDER_FINAL_TEMPLATE_ID || !!_reminderDueInfo?.final;
 }
 
 function closeReminderPopup() {
-  document.getElementById('reminder-overlay').style.display = 'none';
+  const ov = document.getElementById('reminder-overlay');
+  if (ov) ov.style.display = 'none';
   _reminderActive = null;
+  _reminderDueInfo = null;
 }
 
 async function reminderAction(action) {
   if (!_reminderActive) return closeReminderPopup();
-  const cartId = _reminderActive.id;
+  const c = _reminderActive;
+  const cartId = c.id;
 
-  if (action === 'yes') {
-    // Skicka påminnelse via cart-message — backend sätter automatiskt
-    // admin_reminder_sent_at på carten (cross-device)
-    const defaultMsg = 'Hej! Vi vill bara påminna om offerten vi skickade – hör gärna av dig om du har frågor eller vill boka. 😊';
+  if (action === 'send') {
+    const msg = document.getElementById('rem-body')?.value.trim();
+    const subject = document.getElementById('rem-subject')?.value.trim();
+    const includeDecline = !!document.getElementById('rem-decline')?.checked;
+    if (!msg) { toast('Meddelandet är tomt', 'error'); return; }
+    if (/\{[a-zåäö_]+\}/i.test(msg + ' ' + subject)) {
+      if (!confirm('Texten innehåller en variabel som inte kunde fyllas i (t.ex. {dagar_kvar}). Skicka ändå?')) return;
+    }
+    const final = !!_reminderDueInfo?.final || _reminderDueInfo?.step === 2 || _reminderTplId === REMINDER_FINAL_TEMPLATE_ID;
+    const btn = document.getElementById('rem-send-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Skickar…'; }
     const { ok } = await api('cart-message', {
       method: 'POST',
-      body: JSON.stringify({ cart_id: cartId, body: defaultMsg, event_type: 'reminder_sent' })
+      body: JSON.stringify({
+        cart_id: cartId,
+        body: msg,
+        event_type: 'reminder_sent',
+        reminder: { template: _reminderTplId, subject, final, include_decline: includeDecline },
+      })
     });
-    if (ok) {
-      toast('Påminnelse skickad! 📩 Syns i Chatt-fliken.');
-      // Optimistisk lokal uppdatering — backend har redan satt fältet
-      const cached = carts.find(c => c.id === cartId);
-      if (cached) cached.admin_reminder_sent_at = new Date().toISOString();
-    } else {
+    if (!ok) {
       toast('Kunde inte skicka påminnelse', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '✉ Skicka påminnelse'; }
+      return; // låt admin försöka igen
     }
-  } else if (action === 'no' || action === 'snooze') {
-    // Påminn imorgon (24h) eller aldrig igen (sentinel) — synkas till Supabase
-    const dismissAction = action === 'snooze' ? 'snooze_forever' : 'snooze_24h';
+    toast('Påminnelse skickad! 📩 Syns i Chatt-fliken.');
+    // Optimistisk lokal uppdatering — backend har redan sparat
+    const nowIso = new Date().toISOString();
+    c.admin_reminder_sent_at = nowIso;
+    c.admin_reminder_dismissed_until = null;
+    c.quote_reminder_log = [...(Array.isArray(c.quote_reminder_log) ? c.quote_reminder_log : []),
+      { template: _reminderTplId, at: nowIso, final, include_decline: includeDecline }];
+  } else if (action === 'later' || action === 'never') {
+    const dismissAction = action === 'never' ? 'snooze_forever' : 'snooze_24h';
     const { ok, data } = await api('admin-reminder-dismiss', {
       method: 'POST',
       body: JSON.stringify({ cart_id: cartId, action: dismissAction })
     });
     if (ok) {
-      // Optimistisk lokal uppdatering
-      const cached = carts.find(c => c.id === cartId);
-      if (cached && data?.dismissed_until) cached.admin_reminder_dismissed_until = data.dismissed_until;
+      if (data?.dismissed_until) c.admin_reminder_dismissed_until = data.dismissed_until;
     } else {
-      toast('Kunde inte spara dismiss-status', 'error');
+      toast('Kunde inte spara', 'error');
     }
   }
 
-  closeReminderPopup();
-  // Visa nästa i kön om det finns fler
-  if (_reminderQueue.length > 0) setTimeout(showNextReminder, 400);
+  if (_reminderQueue.length > 0) showNextReminder();
+  else { closeReminderPopup(); renderKanban(); }
 }
 
 window.reminderAction = reminderAction;
+window.reminderSnooze = reminderSnooze;
+window.reminderStartReview = reminderStartReview;
+window.selectReminderTemplate = selectReminderTemplate;
 
 function setKanbanView(mode) {
   _kanbanView = mode;
@@ -8795,6 +9227,8 @@ const ACTIVITY_EVENT_LABELS = {
   'messages_read':              { icon: '✓✓', label: 'Kunden läste meddelanden',                color: 'rgba(255,255,255,.55)' },
   'message_sent':               { icon: '💬', label: 'Meddelande skickat',                      color: 'rgba(255,255,255,.65)' },
   'reminder_sent':              { icon: '⏰', label: 'Påminnelse skickad',                      color: 'var(--amber)' },
+  'reminder_dismissed':         { icon: '🔕', label: 'Offertpåminnelse pausad',                 color: 'rgba(255,255,255,.55)' },
+  'customer_declined':          { icon: '🙅', label: 'Kunden tackade nej till offerten',        color: 'var(--red)' },
   'status_change':              { icon: '🔄', label: 'Status ändrad',                           color: 'var(--amber)' },
   'pickup_signed':              { icon: '✍️', label: 'Kund förberedde utlämning',                color: 'var(--brand-lav)' },
   'pickup_confirmed':           { icon: '✅', label: 'Utlämning genomförd (motkvitterad)',       color: 'var(--green)' },

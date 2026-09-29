@@ -5,7 +5,8 @@
 //      → returnerar alla aktiva mallar sorterade på sort_order
 //
 // POST /.netlify/functions/admin-chat-templates
-//      Body: { action: 'upsert', template: { id?, label, title?, body, sort_order? } }
+//      Body: { action: 'upsert', template: { id?, label, title?, body, sort_order?, kind?, subject? } }
+//      kind: 'chat' (default, snabbmall) | 'reminder' (offertpåminnelse, har subject)
 //      Body: { action: 'delete', id }                    (mjuk: enabled=false)
 //      Body: { action: 'reorder', ids: [id1, id2, ...] } (uppdaterar sort_order)
 //
@@ -31,6 +32,8 @@ function validate(t) {
   if (!t.body || typeof t.body !== 'string') return 'Body krävs';
   if (t.body.length > 5000) return 'Body får vara max 5000 tecken';
   if (t.title && t.title.length > 200) return 'Title (tooltip) får vara max 200 tecken';
+  if (t.kind && !['chat', 'reminder'].includes(t.kind)) return 'Ogiltig malltyp';
+  if (t.subject && t.subject.length > 200) return 'Ämnesraden får vara max 200 tecken';
   return null;
 }
 
@@ -71,6 +74,12 @@ exports.handler = async (event) => {
         enabled: true,
         updated_at: new Date().toISOString(),
       };
+      // Påminnelsemallar (kind='reminder') har även ämnesrad. Fälten skickas bara
+      // när de används, så snabbmallar fungerar även innan migrationen 2026-09-29 körts.
+      if (t.kind === 'reminder') {
+        row.kind    = 'reminder';
+        row.subject = t.subject?.trim() || null;
+      }
 
       // Använd Supabase upsert via PostgREST: POST med Prefer: resolution=merge-duplicates
       const supaUrl = process.env.SUPABASE_URL;
