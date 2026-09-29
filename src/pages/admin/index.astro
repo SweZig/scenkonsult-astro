@@ -7080,7 +7080,7 @@ function renderPanelFooter() {
   } else if (c.status === 'waiting') {
     makeBtn('✅ Bekräfta order', 'btn-success', confirmOrder);
     if (showResend) makeBtn(resendBtnLabel, resendBtnCls, openQuoteModalGuarded);
-    makeBtn('📩 Påminn kund', '', sendCustomerNotice);
+    makeBtn('📩 Påminn kund', '', openManualReminder);
     makeBtn('❌ Avbryt', 'btn-danger', cancelOrder);
   } else if (c.status === 'confirmed') {
     makeBtn('🧾 Skapa faktura', 'btn-success', () => renderTab('faktura'));
@@ -7319,6 +7319,7 @@ let _reminderQueue = [];       // cart-ID:n kvar i genomgången
 let _reminderQueueTotal = 0;
 let _reminderActive = null;    // den cart som visas just nu
 let _reminderDueInfo = null;   // { step, final } för _reminderActive
+let _reminderManual = false;   // öppnad via "📩 Påminn kund" (en offert, ingen kö)
 let _kanbanView = localStorage.getItem('sk_kanban_view') || 'compact'; // 'compact' | 'standard'
 
 // ── KOLUMN-SORTERING ──────────────────────────────────────────
@@ -7557,6 +7558,7 @@ function fillReminderText(text, c) {
 }
 
 function showNextReminder() {
+  _reminderManual = false;
   _reminderActive = null;
   _reminderDueInfo = null;
   while (_reminderQueue.length > 0) {
@@ -7569,7 +7571,31 @@ function showNextReminder() {
     break;
   }
   if (!_reminderActive) { closeReminderPopup(); renderKanban(); return; }
+  renderReminderPopup();
+}
 
+// "📩 Påminn kund"-knappen i detaljpanelen: öppna samma popup för just den här
+// offerten, oavsett om den är "due" (även tidigt, snoozad eller redan påmind).
+function openManualReminder() {
+  const c = currentCart && (carts.find(x => x.id === currentCart.id) || currentCart);
+  if (!c) return;
+  const days = reminderDaysToEvent(c);
+  const log = reminderLog(c);
+  const nearEvent = days !== null && days >= 0 && days <= REMINDER_FINAL_DAYS;
+  _reminderQueue = [];
+  _reminderQueueTotal = 1;
+  _reminderManual = true;
+  _reminderActive = c;
+  _reminderDueInfo = reminderDue(c) || {
+    step: log.length ? 2 : 1,
+    final: log.length > 0 || nearEvent,
+    manual: true,
+  };
+  renderReminderPopup();
+}
+window.openManualReminder = openManualReminder;
+
+function renderReminderPopup() {
   const c = _reminderActive;
   const due = _reminderDueInfo;
   const pos = _reminderQueueTotal - _reminderQueue.length;
@@ -7594,14 +7620,18 @@ function showNextReminder() {
     ? `<span style="background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:99px">Sista påminnelsen</span>`
     : `<span style="background:rgba(196,181,244,0.12);border:1px solid rgba(196,181,244,0.35);color:#c4b5f4;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:99px">Påminnelse 1 av 2</span>`;
 
+  const manual = _reminderManual;
+  const closeBtn = manual
+    ? `<button type="button" onclick="closeReminderPopup()" aria-label="Stäng" title="Stäng" style="position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(255,255,255,0.55);font-size:1.3rem;cursor:pointer;line-height:1">×</button>`
+    : `<button type="button" onclick="reminderSnooze('30m')" aria-label="Stäng och snooza 30 minuter" title="Stäng — påminn om 30 min" style="position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(255,255,255,0.55);font-size:1.3rem;cursor:pointer;line-height:1">×</button>`;
   const box = document.getElementById('reminder-box');
   box.style.maxWidth = '560px';
   box.innerHTML = `
-    <button type="button" onclick="reminderSnooze('30m')" aria-label="Stäng och snooza 30 minuter" title="Stäng — påminn om 30 min" style="position:absolute;top:10px;right:12px;background:none;border:none;color:rgba(255,255,255,0.55);font-size:1.3rem;cursor:pointer;line-height:1">×</button>
+    ${closeBtn}
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.5rem;padding-right:24px">
-      <span style="font-weight:700;font-size:1rem;color:#f0eeff">⏰ Offert utan svar</span>
+      <span style="font-weight:700;font-size:1rem;color:#f0eeff">${manual ? '📩 Påminn kund' : '⏰ Offert utan svar'}</span>
       ${stepPill}
-      <span style="margin-left:auto;font-size:0.72rem;color:rgba(255,255,255,0.5)">${pos} av ${_reminderQueueTotal}</span>
+      ${manual ? '' : `<span style="margin-left:auto;font-size:0.72rem;color:rgba(255,255,255,0.5)">${pos} av ${_reminderQueueTotal}</span>`}
     </div>
     <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.5">
       <strong style="color:#f0eeff">${htmlEscape(c.customer_name || 'Kunden')}</strong>${companyStr}${dateStr}<br>
@@ -7633,7 +7663,7 @@ function showNextReminder() {
       <button type="button" onclick="reminderAction('never')" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;padding:0">Påminn inte om denna offert igen</button>
       <span style="display:flex;gap:14px">
         <button type="button" onclick="openReminderTemplatesEditor()" style="background:none;border:none;color:#c4b5f4;cursor:pointer;font-family:inherit;padding:0">⚙️ Redigera mallar</button>
-        <button type="button" onclick="reminderSnooze('30m')" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;padding:0">⏸ Snooza resten 30 min</button>
+        ${manual ? '' : `<button type="button" onclick="reminderSnooze('30m')" style="background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;padding:0">⏸ Snooza resten 30 min</button>`}
       </span>
     </div>`;
   document.getElementById('reminder-overlay').style.display = 'flex';
@@ -7681,7 +7711,9 @@ function closeReminderPopup() {
   if (ov) ov.style.display = 'none';
   _reminderActive = null;
   _reminderDueInfo = null;
+  _reminderManual = false;
 }
+window.closeReminderPopup = closeReminderPopup;
 
 async function reminderAction(action) {
   if (!_reminderActive) return closeReminderPopup();
@@ -7720,6 +7752,15 @@ async function reminderAction(action) {
     c.admin_reminder_dismissed_until = null;
     c.quote_reminder_log = [...(Array.isArray(c.quote_reminder_log) ? c.quote_reminder_log : []),
       { template: _reminderTplId, at: nowIso, final, include_decline: includeDecline }];
+    // Detaljpanelen öppen för samma offert → visa påminnelsen i chatten direkt
+    if (currentCart?.id === cartId) {
+      if (currentCart !== c) {
+        currentCart.admin_reminder_sent_at = nowIso;
+        currentCart.quote_reminder_log = c.quote_reminder_log;
+      }
+      currentMessages.push({ id: Date.now(), cart_id: cartId, sender: 'admin', body: msg, read_at: null, created_at: nowIso });
+      if (activeTab === 'chat' || activeTab === 'info') renderTab(activeTab);
+    }
   } else if (action === 'later' || action === 'never') {
     const dismissAction = action === 'never' ? 'snooze_forever' : 'snooze_24h';
     const { ok, data } = await api('admin-reminder-dismiss', {
@@ -7756,23 +7797,8 @@ function setColumnSort(colStatus, key) {
 }
 window.setColumnSort = setColumnSort;
 
-async function sendCustomerNotice() {
-  const msg = prompt('Meddelande till kund (skickas via e-post):');
-  if (!msg?.trim()) return;
-  const { ok } = await api('cart-message', {
-    method: 'POST',
-    body: JSON.stringify({ cart_id: currentCart.id, body: msg.trim() })
-  });
-  if (ok) {
-    toast('Notis skickad till kund! 📩');
-    currentMessages.push({
-      id: Date.now(), cart_id: currentCart.id,
-      sender: 'admin', body: msg.trim(),
-      read_at: null, created_at: new Date().toISOString()
-    });
-    if (activeTab === 'chat') renderTab('chat');
-  } else toast('Kunde inte skicka notis', 'error');
-}
+// sendCustomerNotice() (prompt()-baserad fritext) ersatt 2026-09-29 av openManualReminder()
+// — "📩 Påminn kund" öppnar nu offertpåminnelsens mallväljare.
 
 // ═══ Betalningspåminnelse i 4 nivåer ════════════════════════════════════════
 // Nivåväljare istället för enkel confirm(). Systemet rekommenderar nästa nivå

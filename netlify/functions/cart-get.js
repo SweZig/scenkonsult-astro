@@ -69,14 +69,16 @@ exports.handler = async (event) => {
       return err('Varukorgen har gått ut', 410);
     }
 
-    // Ny förfrågan — kunden har ingen orderlänk ännu, admin har inte skickat offert
-    if (cart.status === 'new') {
-      return err('Offerten är inte klar ännu — vi hör av oss inom kort.', 403);
-    }
+    // Ny förfrågan (ingen offert skickad än): kunden får se sin förfrågan och
+    // chatta med oss — länken nås via chattnotisen från admin. Tidigare 403,
+    // vilket gjorde att kunden inte kunde läsa eller svara på admins meddelanden.
+    // Lässtatus för OFFERTEN loggas däremot inte förrän en offert finns —
+    // annars skulle påminnelseflödet tro att kunden redan läst offerten.
+    const isRequest = cart.status === 'new';
 
     // Uppdatera last_read_customer och logga att kunden läst offerten
     // preview=1 innebär att admin förhandsgranskar — logga inte
-    if (preview !== '1') {
+    if (preview !== '1' && !isRequest) {
       const readNow = new Date().toISOString();
       const isFirstRead = !cart.last_read_customer;
       db.update('carts', { last_read_customer: readNow }, 'cart_token', token).catch(e =>
