@@ -10,6 +10,7 @@ const { supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingF
 const { getVillkor } = require('./_invoice-villkor');
 const { daySummary, dayNote, dayCell, itemQty, itemUnitPrice, lineTotalUndiscounted } = require('./_day-display');
 const PDFDocument = require('pdfkit');
+const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
 const RESEND_API = 'https://api.resend.com/emails';
@@ -173,19 +174,30 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
       return acc;
     }, []);
 
-    // Header
-    doc.rect(50, tableY, W, 20).fill('#f4f4f7');
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY);
-    (MULTI
+    // Tabellhuvud — ritas om överst på varje fortsättningssida
+    const TABLE_HEADERS = MULTI
       ? ['Artikelnr', 'Produkt / Tjänst', 'Antal', 'Dygn', 'Pris/dygn', 'Delsumma']
-      : ['Artikelnr', 'Produkt / Tjänst', 'Antal', 'À-pris', 'Delsumma']
-    ).forEach((h, i) => {
-      const align = i <= 1 ? 'left' : 'right';
-      doc.text(h, cols[i] + 4, tableY + 6, { width: colW[i] - 8, align });
-    });
+      : ['Artikelnr', 'Produkt / Tjänst', 'Antal', 'À-pris', 'Delsumma'];
+    const drawTableHeader = (y) => {
+      doc.rect(50, y, W, 20).fill('#f4f4f7');
+      doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY);
+      TABLE_HEADERS.forEach((h, i) => {
+        const align = i <= 1 ? 'left' : 'right';
+        doc.text(h, cols[i] + 4, y + 6, { width: colW[i] - 8, align });
+      });
+    };
+    // Ram runt tabellsegmentet på aktuell sida
+    const strokeTableSegment = (top, bottom) => {
+      doc.rect(50, top, W, bottom - top).lineWidth(1).stroke('#e0e0e8');
+      doc.moveTo(50, top + 20).lineTo(50 + W, top + 20).stroke('#e0e0e8');
+    };
+    const CONT_LABEL = `Faktura ${invoiceNumber}`;
+    drawTableHeader(tableY);
 
     // Rows
     let ry = tableY + 20;
+    let segTop = tableY;   // överkant på tabellsegmentet på aktuell sida
+    let stripe = 0;        // zebra räknas om per sida
     items.forEach((item, idx) => {
       const qty  = itemQty(item);
       const sum  = (item.price || 0) * qty;
@@ -195,7 +207,18 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
       const rabatterad = MULTI && full > sum;
       const rowH = note ? 27 : 18;
 
-      if (idx % 2 === 1) doc.rect(50, ry, W, rowH).fill('#fafafa');
+      // Får inte raden plats: stäng ramen, ny sida, rita tabellhuvudet igen
+      if (ry + rowH > PAGE_BOTTOM) {
+        strokeTableSegment(segTop, ry);
+        doc.addPage();
+        drawContinuationLabel(doc, CONT_LABEL, GRAY);
+        segTop = CONT_TOP;
+        drawTableHeader(segTop);
+        ry = segTop + 20;
+        stripe = 0;
+      }
+
+      if (stripe++ % 2 === 1) doc.rect(50, ry, W, rowH).fill('#fafafa');
       doc.fontSize(8).font('Helvetica').fillColor(GRAY);
       doc.text(artno, cols[0] + 4, ry + 5, { width: colW[0] - 8, align: 'left' });
       doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
@@ -229,9 +252,8 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
       ry += rowH;
     });
 
-    // Border
-    doc.rect(50, tableY, W, ry - tableY).stroke('#e0e0e8');
-    doc.moveTo(50, tableY + 20).lineTo(50 + W, tableY + 20).stroke('#e0e0e8');
+    // Ram runt sista tabellsegmentet
+    strokeTableSegment(segTop, ry);
 
     // Totals
     ry += 8;
@@ -243,6 +265,9 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     totals.push(['Summa exkl. moms', fmtKr(totalExcl), GRAY, 'Helvetica']);
     totals.push(['Moms 25%',          fmtKr(vat),       GRAY, 'Helvetica']);
     totals.push(['Att betala inkl. moms', fmtKr(totalIncl), NAVY, 'Helvetica-Bold']);
+    // Hela summablocket på samma sida
+    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0);
+    ry = ensureSpace(doc, ry, totalsH, () => drawContinuationLabel(doc, CONT_LABEL, GRAY));
     totals.forEach(([label, amount, color, font]) => {
       doc.fontSize(font === 'Helvetica-Bold' ? 11 : 9).font(font).fillColor(color);
       doc.text(label,  50,   ry, { width: W - 80, align: 'right' });
@@ -250,6 +275,9 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
       ry += font === 'Helvetica-Bold' ? 18 : 14;
     });
 
+    // Betalningsblock + tackrad (~200 pt med Swish-QR) får inte delas mellan sidor
+    ry = ensureSpace(doc, ry, 16 + 10 + (swishQrBuffer ? 170 : 90) + 22,
+      () => drawContinuationLabel(doc, CONT_LABEL, GRAY)) ;
     // ── Betalningsinformation + Avsändare (samma höjd) ──
     ry += 16;
     doc.moveTo(50, ry).lineTo(50 + W, ry).lineWidth(1).stroke(LAV);

@@ -14,6 +14,7 @@
 const { supabase: createSupabase, logAudit, getTakenInvoiceNumbers, isBookingFee } = require('./_lib');
 const { dayNote: _dayNote } = require('./_day-display');
 const PDFDocument = require('pdfkit');
+const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
 
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
@@ -131,14 +132,25 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
     const colW = [ARTNO_W, W - ARTNO_W - 40 - 70 - 70, 40, 70, 70];
     const cols = [50, 50 + colW[0], 50 + colW[0] + colW[1], 50 + colW[0] + colW[1] + colW[2], 50 + colW[0] + colW[1] + colW[2] + colW[3]];
 
-    doc.rect(50, tableY, W, 20).fill('#f4f4f7');
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY);
-    ['Artikelnr', 'Beskrivning', 'Antal', 'À-pris', 'Delsumma'].forEach((h, i) => {
-      const align = i <= 1 ? 'left' : 'right';
-      doc.text(h, cols[i] + 4, tableY + 6, { width: colW[i] - 8, align });
-    });
+    // Tabellhuvud — ritas om överst på varje fortsättningssida
+    const drawTableHeader = (y) => {
+      doc.rect(50, y, W, 20).fill('#f4f4f7');
+      doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY);
+      ['Artikelnr', 'Beskrivning', 'Antal', 'À-pris', 'Delsumma'].forEach((h, i) => {
+        const align = i <= 1 ? 'left' : 'right';
+        doc.text(h, cols[i] + 4, y + 6, { width: colW[i] - 8, align });
+      });
+    };
+    const strokeTableSegment = (top, bottom) => {
+      doc.rect(50, top, W, bottom - top).lineWidth(1).stroke('#e0e0e8');
+      doc.moveTo(50, top + 20).lineTo(50 + W, top + 20).stroke('#e0e0e8');
+    };
+    const CONT_LABEL = `Kreditfaktura ${creditNumber}`;
+    drawTableHeader(tableY);
 
     let ry = tableY + 20;
+    let segTop = tableY;
+    let stripe = 0;
     creditLines.forEach((item, idx) => {
       const qty = item.qty || 1;
       const sum = (item.price || 0) * qty; // redan negativ
@@ -147,7 +159,16 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
       // dokument som motsäger varandra.
       const note = _dayNote(item);
       const rowH = note ? 27 : 18;
-      if (idx % 2 === 1) doc.rect(50, ry, W, rowH).fill('#fafafa');
+      if (ry + rowH > PAGE_BOTTOM) {
+        strokeTableSegment(segTop, ry);
+        doc.addPage();
+        drawContinuationLabel(doc, CONT_LABEL, GRAY);
+        segTop = CONT_TOP;
+        drawTableHeader(segTop);
+        ry = segTop + 20;
+        stripe = 0;
+      }
+      if (stripe++ % 2 === 1) doc.rect(50, ry, W, rowH).fill('#fafafa');
       doc.fontSize(8).font('Helvetica').fillColor(GRAY);
       doc.text(artno, cols[0] + 4, ry + 5, { width: colW[0] - 8, align: 'left' });
       doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e');
@@ -163,8 +184,7 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
       ry += rowH;
     });
 
-    doc.rect(50, tableY, W, ry - tableY).stroke('#e0e0e8');
-    doc.moveTo(50, tableY + 20).lineTo(50 + W, tableY + 20).stroke('#e0e0e8');
+    strokeTableSegment(segTop, ry);
 
     // Totals (negativa)
     ry += 8;
@@ -173,6 +193,8 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
       ['Moms 25%',              fmtKr(vat),      GRAY, 'Helvetica'],
       ['Att återbetala inkl. moms', fmtKr(totalIncl), RED, 'Helvetica-Bold'],
     ];
+    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0);
+    ry = ensureSpace(doc, ry, totalsH, () => drawContinuationLabel(doc, CONT_LABEL, GRAY));
     totals.forEach(([label, amount, color, font]) => {
       doc.fontSize(font === 'Helvetica-Bold' ? 11 : 9).font(font).fillColor(color);
       doc.text(label,  50, ry, { width: W - 80, align: 'right' });
@@ -181,6 +203,7 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
     });
 
     // ── Återbetalningsinformation + Avsändare ──
+    ry = ensureSpace(doc, ry, 140, () => drawContinuationLabel(doc, CONT_LABEL, GRAY));
     ry += 16;
     doc.moveTo(50, ry).lineTo(50 + W, ry).lineWidth(1).stroke(LAV);
     ry += 10;
