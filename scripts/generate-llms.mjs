@@ -105,7 +105,7 @@ L.push('');
 
 L.push('## Företagsinformation');
 L.push('');
-L.push(`- **Namn:** ${co.name}${co.legalName ? ` / ${co.legalName} AB` : ''}`);
+L.push(`- **Namn:** ${co.name}`);
 L.push('- **Organisationsnummer:** 559068-4931');
 L.push(`- **Grundat:** ${co.founded}`);
 L.push(`- **Uthyrningsdepå:** ${addr.street}, ${addr.postalCode} ${addr.city}, Stockholm`);
