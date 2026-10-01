@@ -51,13 +51,16 @@ export default async (req, context) => {
       // Googles felorsak (t.ex. SERVICE_DISABLED, API_KEY_HTTP_REFERRER_BLOCKED,
       // API_KEY_SERVICE_BLOCKED, BILLING_DISABLED) skickas med så att felet går
       // att diagnostisera utan åtkomst till Netlifys loggar. Innehåller aldrig nyckeln.
-      let googleStatus = null, reason = null;
+      let googleStatus = null, reason = null, message = null;
       try {
         const e = JSON.parse(errText).error || {};
         googleStatus = e.status || null;
         reason = (e.details || []).find(d => d.reason)?.reason || null;
+        // Meddelandet saknar ibland reason-fält men säger ändå vad som är fel.
+        // Eventuella nyckelliknande strängar maskas för säkerhets skull.
+        message = (e.message || '').replace(/AIza[0-9A-Za-z_-]{20,}/g, '[key]').slice(0, 300) || null;
       } catch (_) { /* inte JSON */ }
-      return new Response(JSON.stringify({ ok: false, error: `API ${r.status}`, googleStatus, reason }), {
+      return new Response(JSON.stringify({ ok: false, error: `API ${r.status}`, googleStatus, reason, message }), {
         status: 502, headers: errHeaders,
       });
     }
