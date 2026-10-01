@@ -21,6 +21,24 @@ const mapEmbedSrc = MAPS_EMBED_KEY
   ? `https://www.google.com/maps/embed/v1/place?key=${MAPS_EMBED_KEY}&q=place_id:${PLACE_ID}&language=sv&zoom=15`
   : `https://maps.google.com/maps?q=Scenkonsult+Grimstagatan+164+Vällingby&output=embed&hl=sv`;
 
+// Öppettider för öppet/stängt-pillen — från site.json (samma källa som JSON-LD,
+// llms.txt och Sven), i Google Places periods-format. Tidigare hämtades de live
+// från Places API; när det anropet föll (403) försvann pillen helt.
+const _DAYS: Record<string, number> = { Su: 0, Mo: 1, Tu: 2, We: 3, Th: 4, Fr: 5, Sa: 6 };
+const openPeriods = String(site.company.openingHours || '')
+  .split(',')
+  .flatMap((part) => {
+    const m = part.trim().match(/^([A-Z][a-z])(?:-([A-Z][a-z]))?\s+(\d{2}):(\d{2})-(\d{2}):(\d{2})$/);
+    if (!m) return [];
+    const from = _DAYS[m[1]], to = m[2] ? _DAYS[m[2]] : from;
+    const days: number[] = [];
+    for (let d = from; ; d = (d + 1) % 7) { days.push(d); if (d === to) break; }
+    return days.map((day) => ({
+      open: { day, hour: +m[3], minute: +m[4] },
+      close: { day, hour: +m[5], minute: +m[6] },
+    }));
+  });
+
 // Orter med en egen landningssida — namn → slug (för intern länkning)
 const ortSlug = new Map(ortSidor.map(o => [o.namn, o.slug]));
 
@@ -195,7 +213,7 @@ const orter = [
       <div class="flex items-center gap-3 mb-2 flex-wrap">
         <h2 class="text-2xl font-bold text-white" style="font-family:'DM Serif Display',serif">Hitta till oss</h2>
         <!-- Live öppet/stängt-pill — fylls i av script vid pageload -->
-        <span id="kontakt-open-status" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium" style="background:#1e1850;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.55)" hidden>
+        <span id="kontakt-open-status" data-periods={JSON.stringify(openPeriods)} class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium" style="background:#1e1850;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.55)" hidden>
           <span class="status-dot inline-block w-2 h-2 rounded-full" style="background:rgba(255,255,255,0.3)"></span>
           <span class="status-text">Laddar öppettider…</span>
         </span>
@@ -275,37 +293,16 @@ const orter = [
 
     <!-- Live Google-recensioner + öppet/stängt-pill: ersätter hårdkodade fallback vid pageload -->
     <script>
-      (async function loadKontaktGoogleData() {
-        // Recensioner + betygsbadge renderas server-side från src/data/reviews.json.
-        // Detta script hämtar ENDAST öppettider för öppet/stängt-pillen.
-        const CACHE_KEY = 'sk-google-reviews-v3';
-        const CACHE_TTL = 24 * 60 * 60 * 1000;
-
+      (function renderKontaktOpenStatus() {
+        // Öppettiderna kommer från site.json via data-periods (byggs server-side).
+        // Inget nätverksanrop — pillen fungerar även om Google Places API är nere.
         const openStatus = document.getElementById('kontakt-open-status');
+        let periods: any[] = [];
+        try { periods = JSON.parse(openStatus?.dataset.periods || '[]'); } catch (_) { periods = []; }
 
-        let data: any = null;
-        try {
-          const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-          if (cached && cached.expires > Date.now() && cached.data?.ok) data = cached.data;
-        } catch (_) { /* ignorera korrupt cache */ }
-
-        if (!data) {
-          try {
-            const r = await fetch('/api/google-reviews?v=3');
-            if (!r.ok) return;
-            const json = await r.json();
-            if (!json.ok) return;
-            data = json;
-            try {
-              localStorage.setItem(CACHE_KEY, JSON.stringify({ data, expires: Date.now() + CACHE_TTL }));
-            } catch (_) {}
-          } catch (_) { return; }
-        }
-
-        // ── Öppet/stängt-pill (klient-side beräkning från veckostatiska periods) ──
-        if (openStatus && data.openingHours?.periods?.length > 0) {
-          const status = computeOpenStatus(data.openingHours.periods);
-          renderOpenStatus(openStatus, status);
+        // ── Öppet/stängt-pill (klient-side beräkning, Europe/Stockholm) ──
+        if (openStatus && periods.length > 0) {
+          renderOpenStatus(openStatus, computeOpenStatus(periods));
         }
 
         function computeOpenStatus(periods: any[]) {
