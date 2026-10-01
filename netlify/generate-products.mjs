@@ -313,7 +313,7 @@ const svenFacts = [];
 // Kontaktuppgifter — från site.json.company (källa: sajtens strukturerade data)
 const _co = site.company || {};
 const _addr = _co.address || {};
-const _hours = (_co.openingHours || '').replace('Mo-Fr', 'vardagar').replace(/-/g, '–');
+const _hours = (_co.openingHours || '').replace('Mo-Fr', 'mån–fre').replace('Sa-Su', 'lör–sön').replace(/-/g, '–');
 svenFacts.push('═══ KONTAKTINFO ═══');
 if (_co.phone) svenFacts.push(`Tel: ${_co.phone}${_hours ? ` (${_hours}, jour vid pågående uthyrning)` : ''}`);
 if (_co.email) svenFacts.push(`E-post: ${_co.email}`);
