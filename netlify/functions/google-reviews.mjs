@@ -25,10 +25,14 @@ export default async (req, context) => {
     'Cache-Control': 'public, max-age=300, s-maxage=21600, stale-while-revalidate=86400',
   };
 
+  // Felsvar får aldrig cachas på CDN:n — annars ligger ett tillfälligt fel
+  // kvar i 6 h (s-maxage) även efter att nyckeln rättats.
+  const errHeaders = { ...headers, 'Cache-Control': 'no-store' };
+
   const API_KEY = process.env.GOOGLE_PLACES_API_KEY;
   if (!API_KEY) {
     return new Response(JSON.stringify({ ok: false, error: 'API key saknas' }), {
-      status: 503, headers,
+      status: 503, headers: errHeaders,
     });
   }
 
@@ -43,9 +47,18 @@ export default async (req, context) => {
 
     if (!r.ok) {
       const errText = await r.text();
-      console.error('GOOGLE_REVIEWS_ERROR:', r.status, errText.slice(0, 200));
-      return new Response(JSON.stringify({ ok: false, error: `API ${r.status}` }), {
-        status: 502, headers,
+      console.error('GOOGLE_REVIEWS_ERROR:', r.status, errText.slice(0, 500));
+      // Googles felorsak (t.ex. SERVICE_DISABLED, API_KEY_HTTP_REFERRER_BLOCKED,
+      // API_KEY_SERVICE_BLOCKED, BILLING_DISABLED) skickas med så att felet går
+      // att diagnostisera utan åtkomst till Netlifys loggar. Innehåller aldrig nyckeln.
+      let googleStatus = null, reason = null;
+      try {
+        const e = JSON.parse(errText).error || {};
+        googleStatus = e.status || null;
+        reason = (e.details || []).find(d => d.reason)?.reason || null;
+      } catch (_) { /* inte JSON */ }
+      return new Response(JSON.stringify({ ok: false, error: `API ${r.status}`, googleStatus, reason }), {
+        status: 502, headers: errHeaders,
       });
     }
 
@@ -87,7 +100,7 @@ export default async (req, context) => {
   } catch (err) {
     console.error('GOOGLE_REVIEWS_EXCEPTION:', err.message);
     return new Response(JSON.stringify({ ok: false, error: 'Fetch misslyckades' }), {
-      status: 500, headers,
+      status: 500, headers: errHeaders,
     });
   }
 };
