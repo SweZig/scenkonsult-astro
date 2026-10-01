@@ -243,7 +243,7 @@ const sammanfattning = [
   { 'Scenkonsult — Produktkatalog': 'src/data/scenes.json, ljud.json, ljus.json, dj.json, bild.json, karaoke.json, tjanster.json' },
   { 'Scenkonsult — Produktkatalog': '' },
   { 'Scenkonsult — Produktkatalog': '── KONTAKT ──' },
-  { 'Scenkonsult — Produktkatalog': 'Scenkonsult Norden / Sigvardsson Consulting Group' },
+  { 'Scenkonsult — Produktkatalog': 'Scenkonsult Norden / Sigvardsson Consulting AB' },
   { 'Scenkonsult — Produktkatalog': 'Grundat 1986 · Grimstagatan 164, 162 58 Vällingby' },
   { 'Scenkonsult — Produktkatalog': 'Tel: 072-448 10 00 · info@scenkonsult.se · scenkonsult.se' },
 ];

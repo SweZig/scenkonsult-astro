@@ -295,7 +295,7 @@ DOC1 = dict(
         ("h1", "8. Företagsdata"),
         ("table", [
             ["Fält", "Värde"],
-            ["Namn", "Scenkonsult Norden / Sigvardsson Consulting Group AB"],
+            ["Namn", "Scenkonsult Norden / Sigvardsson Consulting AB"],
             ["Org.nr", "559068-4931"],
             ["Tel", "072-448 10 00"],
             ["Besöks- / depåadress", "Grimstagatan 164, 162 58 Vällingby"],

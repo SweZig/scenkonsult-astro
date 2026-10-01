@@ -318,7 +318,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
         doc.moveTo(50, 762).lineTo(545, 762).lineWidth(0.5).stroke('#c4b5f4');
         doc.fontSize(7.5).font('Helvetica').fillColor(GRAY)
            .text(
-             'Scenkonsult Norden (Sigvardsson Consulting Group AB)  ·  Org.nr 559068-4931  ·  Vinsta Skolgränd 4, 162 70 Vällingby  ·  info@scenkonsult.se',
+             'Scenkonsult Norden (Sigvardsson Consulting AB)  ·  Org.nr 559068-4931  ·  Vinsta Skolgränd 4, 162 70 Vällingby  ·  info@scenkonsult.se',
              50, 770, { width: W, align: 'center' }
            );
       };

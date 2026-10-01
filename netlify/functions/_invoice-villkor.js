@@ -79,7 +79,7 @@ function getVillkor(cart) {
     heading:  isB2B
       ? 'Allmänna hyresvillkor — företag och organisationer'
       : 'Allmänna hyresvillkor — privatpersoner',
-    subhead:  `Scenkonsult Norden / Sigvardsson Consulting Group AB · Gäller från ${VILLKOR_DATE}`,
+    subhead:  `Scenkonsult Norden / Sigvardsson Consulting AB · Gäller från ${VILLKOR_DATE}`,
     type:     isB2B ? 'b2b' : 'b2c',
   };
 }

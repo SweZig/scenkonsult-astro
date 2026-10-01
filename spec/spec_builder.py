@@ -95,7 +95,7 @@ def build(doc_no, title, subtitle, version, date, blocks, outdir, slug):
     p.paragraph_format.space_after = Pt(2)
 
     p = d.add_paragraph()
-    r = p.add_run(f"{version} · {date} · Sigvardsson Consulting Group AB · "
+    r = p.add_run(f"{version} · {date} · Sigvardsson Consulting AB · "
                   "Faktiskt repo-tillstånd — verifierat mot main")
     r.font.size = Pt(9); r.font.color.rgb = MUTED
     p.paragraph_format.space_after = Pt(14)
