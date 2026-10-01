@@ -7,15 +7,6 @@ import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import ljudData from '../../../data/ljud.json';
 
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": ljudData.faq.map(f => ({
-    "@type": "Question",
-    "name": f.q,
-    "acceptedAnswer": { "@type": "Answer", "text": f.a }
-  }))
-};
 
 const categoryIcons = ["◎", "◈", "♫", "⬡"];
 const categoryGradients = [
@@ -34,13 +25,37 @@ const extraFaq = [
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
 const _heroFranExcl = Math.min(_low((ljudData as any).portable.products),_low((ljudData as any).event.products),_low((ljudData as any).music.products),_low((ljudData as any).live.products));
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
+
+// Priser slås upp på artno — aldrig index (listorna omordnas i admin).
+const _byArtno = (artno: string) =>
+  ['event', 'music', 'live', 'portable']
+    .flatMap((k) => (ljudData as any)[k].products)
+    .find((p: any) => p.artno === artno)?.price;
+const _fmt = (n: number) => n.toLocaleString('sv-SE').replace(/\u00a0/g, ' ');
+extraFaq.unshift({
+  q: "Vad kostar det att hyra högtalare till en fest för 100 personer?",
+  a: `För fest och dans med upp till 100 gäster räcker Music Small+ med subwoofer, för ${_fmt(_byArtno('SK-LJD-MUS-0002'))} kr/dygn exkl. moms. Ska det bara vara tal eller bakgrundsmusik räcker Event Small från ${_fmt(_byArtno('SK-LJD-EVE-0001'))} kr. Leverans tillkommer om du inte hämtar själv i Vällingby.`,
+});
+
+const metaDescription = ljudData.metaDescription.replace('{fran}', _fmt(_heroFranExcl));
+
+// FAQ-schemat speglar exakt de frågor som visas på sidan.
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [...ljudData.faq, ...extraFaq].map(f => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
 ---
 
-<Layout title={ljudData.metaTitle} description={ljudData.metaDescription} schemaExtra={faqSchema}>
+<Layout title={ljudData.metaTitle} description={metaDescription} schemaExtra={faqSchema}>
 
   <ModernHero
     eyebrow="Ljud · PA & högtalare"
-    h1="Hyra ljud i"
+    h1="Hyra högtalare & ljud i"
     h1Accent="Stockholm"
     intro={ljudData.intro}
     breadcrumbs={[
