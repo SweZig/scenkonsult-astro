@@ -5,15 +5,16 @@
   "scripts": {
     "sync": "git pull --rebase --autostash && npm ci",
     "preflight": "git fetch && git status --short && npm run build",
-    "predev": "npm run generate-catalogs",
+    "predev": "npm run generate-catalogs && npm run generate-llms",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "minify-sven": "terser public/sven-widget.src.js --compress passes=2 --mangle --format comments=false --output public/sven-widget.js",
-    "prebuild": "npm run generate-catalogs && npm run minify-sven && npm run sync-reviews && npm run sync-clients && npm run generate-excel",
+    "prebuild": "npm run generate-catalogs && npm run generate-llms && npm run minify-sven && npm run sync-reviews && npm run sync-clients && npm run generate-excel",
     "sync-reviews": "node netlify/generate-reviews.mjs",
     "sync-clients": "node netlify/generate-clients.mjs",
     "generate-excel": "node generate-excel.mjs",
+    "generate-llms": "node scripts/generate-llms.mjs",
     "generate-catalogs": "node scripts/run-python.mjs generate-quote-catalog.py && node netlify/generate-products.mjs",
     "pretest": "npm run generate-catalogs",
     "test": "node test/montering.test.mjs && node test/day-pricing.test.mjs && node test/admin-days-flow.test.mjs && node test/offertmodal-days.test.mjs && node test/dom-rundtur.test.cjs && node test/kundvyer-e2e.test.cjs && node test/inga-satser-kundvant.test.cjs && node test/admin-transport.test.cjs && node test/admin-transport-ui.test.cjs && node test/produktregister.test.mjs"
