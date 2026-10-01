@@ -9,30 +9,41 @@ Disallow: /wp-admin/
 Disallow: /wp-includes/
 Disallow: /wp-json/
 
-# AI Crawlers – välkomna att indexera sajten
+# AI-crawlers och AI-assistenter – välkomna att indexera och citera sajten.
+# Grupperna nedan ersätter *-gruppen för respektive bot, därför upprepas
+# samma Disallow-rader. Uppdaterad 2026-10-02.
+#
+# OpenAI:     GPTBot (träning), OAI-SearchBot (ChatGPT-sök), ChatGPT-User (hämtning åt användare)
+# Anthropic:  ClaudeBot (träning), Claude-SearchBot (sök), Claude-User (hämtning åt användare)
+# Perplexity: PerplexityBot (index), Perplexity-User (hämtning åt användare)
+# Google:     Google-Extended (Gemini/Vertex), GoogleOther
+# Apple:      Applebot-Extended (Apple Intelligence)
+# Övriga:     CCBot (Common Crawl, används av många språkmodeller), Meta-ExternalAgent, Amazonbot, DuckAssistBot
 User-agent: GPTBot
-Allow: /
-Disallow: /admin/
-Disallow: /order/
-Disallow: /api/
-
-User-agent: Claude-Web
-Allow: /
-Disallow: /admin/
-Disallow: /order/
-Disallow: /api/
-
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
 User-agent: PerplexityBot
-Allow: /
-Disallow: /admin/
-Disallow: /order/
-Disallow: /api/
-
+User-agent: Perplexity-User
+User-agent: Google-Extended
 User-agent: GoogleOther
+User-agent: Applebot-Extended
+User-agent: CCBot
+User-agent: Meta-ExternalAgent
+User-agent: Amazonbot
+User-agent: DuckAssistBot
 Allow: /
 Disallow: /admin/
 Disallow: /order/
 Disallow: /api/
+Disallow: /.netlify/
+Disallow: /wp-content/
+Disallow: /wp-admin/
+Disallow: /wp-includes/
+Disallow: /wp-json/
 
-# Sitemap
+# Sitemap och AI-profil
 Sitemap: https://scenkonsult.se/sitemap-index.xml
+# Maskinläsbar företagsprofil för AI: https://scenkonsult.se/llms.txt
