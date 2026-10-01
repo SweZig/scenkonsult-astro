@@ -197,6 +197,7 @@ const localBusinessSchema = {
           var expires = typeof data === 'object' ? data.expires : null;
           var valid = !expires || Date.now() < expires;
           if (value === 'accepted' && valid) {
+            window.__skGtmLoaded = true;
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -255,14 +256,14 @@ const localBusinessSchema = {
   <!-- Cookie-banner -->
   <div id="sk-cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(12,10,36,0.97);border-top:1px solid rgba(196,181,244,0.25);padding:1rem 1.5rem;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
     <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.875rem;font-family:'Space Grotesk',sans-serif;max-width:700px;">
-      Vi använder cookies för besöksstatistik (Google Analytics) för att förbättra sajten. 
+      Vi använder cookies för besöksstatistik (Google Analytics) för att förbättra sajten. Du kan ändra ditt val när som helst under <em>Cookie-inställningar</em> längst ner på sidan. 
       <a href="/personuppgiftpolicy/" style="color:#c4b5f4;text-decoration:underline;">Läs vår personuppgiftspolicy</a>
     </p>
     <div style="display:flex;gap:0.75rem;flex-shrink:0;">
-      <button id="sk-cookie-decline" style="padding:0.5rem 1.1rem;border-radius:0.5rem;border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);font-size:0.875rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
+      <button id="sk-cookie-decline" style="padding:0.5rem 1.25rem;border-radius:0.5rem;border:1px solid #c4b5f4;background:#c4b5f4;color:#0c0a24;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
         Avvisa
       </button>
-      <button id="sk-cookie-accept" style="padding:0.5rem 1.25rem;border-radius:0.5rem;border:none;background:#c4b5f4;color:#0c0a24;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
+      <button id="sk-cookie-accept" style="padding:0.5rem 1.25rem;border-radius:0.5rem;border:1px solid #c4b5f4;background:#c4b5f4;color:#0c0a24;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
         Godkänn
       </button>
     </div>
@@ -309,6 +310,10 @@ const localBusinessSchema = {
       }
 
       function loadGTM() {
+        // Head-skriptet laddar GTM direkt för återkommande besökare som godkänt.
+        // Utan flaggan laddades GTM två gånger per sidvisning för dem.
+        if (window.__skGtmLoaded) return;
+        window.__skGtmLoaded = true;
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -323,8 +328,29 @@ const localBusinessSchema = {
       });
 
       document.getElementById('sk-cookie-decline')?.addEventListener('click', function() {
+        var wasAccepted = getConsent() === 'accepted';
         setConsent('declined');
         if (banner) banner.style.display = 'none';
+        // Ta bort Google Analytics-cookies (_ga, _ga_XXXX, _gid) på värden och huvuddomänen
+        document.cookie.split(';').forEach(function(c) {
+          var name = c.split('=')[0].trim();
+          if (/^_g(a|id|at)/.test(name)) {
+            ['', '; domain=' + location.hostname, '; domain=.' + location.hostname.replace(/^www\./, '')].forEach(function(dom) {
+              document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + dom;
+            });
+          }
+        });
+        // GTM som redan körs på sidan går inte att stänga av — ladda om utan den
+        if (wasAccepted) location.reload();
+      });
+
+      // Ångra/ändra samtycke: alla element med data-cookie-settings öppnar bannern igen
+      // (länken i sidfoten och knappen i personuppgiftspolicyn).
+      document.addEventListener('click', function(e) {
+        var t = e.target && e.target.closest && e.target.closest('[data-cookie-settings]');
+        if (!t) return;
+        e.preventDefault();
+        if (banner) banner.style.display = 'flex';
       });
     })();
   </script>
@@ -677,7 +703,7 @@ const localBusinessSchema = {
       <span class="footer-copy">
         <a href="/personuppgiftpolicy/" style="color:inherit;">Integritetspolicy</a>
         &nbsp;·&nbsp;
-        <a href="/personuppgiftpolicy/" style="color:inherit;">Cookies</a>
+        <a href="/personuppgiftpolicy/#cookies" data-cookie-settings style="color:inherit;">Cookie-inställningar</a>
         &nbsp;·&nbsp;
         <a href="/hyresvillkor/" style="color:inherit;">Hyresvillkor</a>
       </span>
