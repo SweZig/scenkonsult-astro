@@ -379,7 +379,7 @@ const orter = [
       })();
     </script>
 
-    <!-- Hydrering av recensioner (nyaste 3) + live-antal från Google -->
+    <!-- Hydrering av recensioner (nyaste 3) + antal ur den kompletta listan i admin -->
     <script>
       (async function hydrateKontaktReviews() {
         const grid = document.getElementById('kontakt-google-reviews-grid');
@@ -388,9 +388,8 @@ const orter = [
           { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c] as string
         ));
 
-        const [listRes, gRes] = await Promise.allSettled([
+        const [listRes] = await Promise.allSettled([
           fetch('/.netlify/functions/reviews-list'),
-          fetch('/api/google-reviews?v=3'),
         ]);
 
         let ratingStr: string | null = null, localCount: number | null = null;
@@ -420,15 +419,10 @@ const orter = [
           }
         }
 
-        let googleCount: number | null = null;
-        if (gRes.status === 'fulfilled' && gRes.value.ok) {
-          const g = await gRes.value.json().catch(() => null);
-          if (g && g.ok && g.count != null) googleCount = g.count;
-        }
-        if (badge && (ratingStr || googleCount != null)) {
-          const rStr = ratingStr || badge.textContent!.split('·')[0].trim();
-          const cnt = googleCount != null ? googleCount : localCount;
-          if (cnt != null) badge.textContent = `${rStr} · ${cnt} recensioner`;
+        // Betyg och antal kommer ur listan som underhålls i /admin/recensioner/
+        // (Google Places API används inte längre — beslut 2026-10-02).
+        if (badge && ratingStr && localCount != null) {
+          badge.textContent = `${ratingStr} · ${localCount} recensioner`;
         }
       })();
     </script>

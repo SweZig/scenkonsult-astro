@@ -1,12 +1,13 @@
 ---
 // /admin/recensioner/ — Underhåll av Google-recensioner.
-// Google Places API returnerar max 5 recensioner (och väljer själv vilka), så
-// nya recensioner syns aldrig via API:t. Här underhålls den KOMPLETTA listan.
+// Recensionerna läggs in MANUELLT härifrån. Google Places API används inte
+// (beslut 2026-10-02: kräver betalkonto i Google Cloud, och API:t ger ändå bara
+// max 5 recensioner som Google själv väljer).
 //
 // Data via /.netlify/functions/admin-reviews (service key).
 // Frontend läser /.netlify/functions/reviews-list (publik) + server-renderad
 // snapshot i src/data/reviews.json (regenereras vid varje build).
-// Antalet i badgen på sajten hämtas live från Googles API (userRatingCount).
+// Betyg och antal i badgen på sajten räknas ur den här listan.
 ---
 <!DOCTYPE html>
 <html lang="sv">
@@ -94,18 +95,18 @@
 
   <div class="wrap">
     <div class="hint">
-      Google Places API returnerar bara <b>5 recensioner</b> och väljer själv vilka —
-      nya recensioner syns aldrig via API:t. Här underhåller du den <b>kompletta</b>
-      listan som visas på <a href="/referenser/" target="_blank">referens-</a> och
-      kontaktsidan. Ändringar slår igenom direkt (och bakas in i sajten vid nästa deploy).
-      <b>Antalet</b> i badgen på sajten hämtas live från Google.
+      Här underhåller du listan med Google-recensioner som visas på
+      <a href="/referenser/" target="_blank">referens-</a> och kontaktsidan.
+      Nya recensioner läggs in för hand: öppna Google-profilen, kopiera namn, betyg,
+      datum och text, och klicka <b>+ Ny recension</b>. Ändringar slår igenom direkt
+      (och bakas in i sajten vid nästa deploy). <b>Betyg och antal</b> i badgen på
+      sajten räknas ur den här listan.
     </div>
 
     <div class="gbar">
-      <span class="stat">På Google: <b id="g-count">…</b> recensioner (<b id="g-rating">…</b>★)</span>
+      <a class="stat" href="https://maps.google.com/?cid=5076721930755148492" target="_blank" rel="noopener">Öppna Google-profilen ↗</a>
       <span class="stat">Här inlagda: <b id="local-count">0</b></span>
       <span class="spacer"></span>
-      <button class="btn" id="import-google-btn" title="Hämtar de recensioner Google visar via API (max 5) och lägger till de som saknas">↓ Importera från Google</button>
     </div>
 
     <div id="list"></div>
@@ -228,7 +229,7 @@ function render() {
   const list = document.getElementById('list');
   list.innerHTML = items.length
     ? items.map((r, i) => cardHtml(r, i, items.length)).join('')
-    : '<div class="empty">Inga recensioner ännu — klicka "+ Ny recension" eller "Importera från Google".</div>';
+    : '<div class="empty">Inga recensioner ännu — klicka "+ Ny recension".</div>';
   document.getElementById('local-count').textContent = items.filter(r => r.active).length;
   bindCardEvents();
 }
@@ -296,51 +297,9 @@ document.getElementById('add-btn').onclick = async () => {
   } catch (e) { toast(e.message); }
 };
 
-// Hämtar de recensioner Google visar via API (max 5) och lägger till saknade.
-document.getElementById('import-google-btn').onclick = async () => {
-  const btn = document.getElementById('import-google-btn');
-  btn.disabled = true; btn.textContent = 'Hämtar …';
-  try {
-    const res = await fetch('/api/google-reviews?v=admin');
-    const j = await res.json().catch(() => ({}));
-    if (!j || !j.ok || !Array.isArray(j.reviews)) { toast('Kunde inte hämta från Google'); return; }
-    const existingAuthors = new Set(items.map(r => (r.author || '').trim().toLowerCase()));
-    const toAdd = j.reviews.filter(r => r.author && !existingAuthors.has(r.author.trim().toLowerCase()));
-    if (!toAdd.length) { toast('Inga nya att importera — alla från Google finns redan'); return; }
-    for (const r of toAdd) {
-      await api('upsert', { review: {
-        author: r.author, rating: r.rating || 5, review_text: r.text || '',
-        published_at: r.publishTime || null, active: true, sort_order: 0,
-      }});
-    }
-    toast(`Importerade ${toAdd.length} från Google`);
-    await loadAll();
-  } catch (e) { toast('Fel vid import: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = '↓ Importera från Google'; }
-};
-
-// Live-antal från Googles API (userRatingCount) — samma siffra som badgen på sajten.
-async function loadGoogleCount() {
-  try {
-    const res = await fetch('/api/google-reviews?v=admin');
-    const j = await res.json().catch(() => ({}));
-    if (j && j.ok) {
-      document.getElementById('g-count').textContent = j.count != null ? j.count : '–';
-      document.getElementById('g-rating').textContent = j.rating != null ? String(j.rating).replace('.', ',') : '–';
-    } else {
-      document.getElementById('g-count').textContent = '–';
-      document.getElementById('g-rating').textContent = '–';
-    }
-  } catch (_) {
-    document.getElementById('g-count').textContent = '–';
-    document.getElementById('g-rating').textContent = '–';
-  }
-}
-
 function init() {
   document.getElementById('last-updated').textContent = new Date().toLocaleString('sv-SE');
   loadAll();
-  loadGoogleCount();
 }
 </script>
 

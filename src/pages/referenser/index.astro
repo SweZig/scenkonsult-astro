@@ -458,9 +458,8 @@ const pageSchema = {
         { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]
       ));
 
-      const [listRes, gRes] = await Promise.allSettled([
+      const [listRes] = await Promise.allSettled([
         fetch('/.netlify/functions/reviews-list'),
-        fetch('/api/google-reviews?v=3'),
       ]);
 
       // 1. Kort + betyg från vår kompletta lista (kringgår Googles 5-tak)
@@ -491,16 +490,10 @@ const pageSchema = {
         }
       }
 
-      // 2. Antal live från Google (userRatingCount); betyg från vår lista
-      let googleCount = null;
-      if (gRes.status === 'fulfilled' && gRes.value.ok) {
-        const g = await gRes.value.json().catch(() => null);
-        if (g && g.ok && g.count != null) googleCount = g.count;
-      }
-      if (badge && (ratingStr || googleCount != null)) {
-        const rStr = ratingStr || badge.textContent.split('·')[0].trim();
-        const cnt = googleCount != null ? googleCount : localCount;
-        if (cnt != null) badge.textContent = `${rStr} · ${cnt} recensioner`;
+      // 2. Betyg och antal ur samma lista (Google Places API används inte längre
+      //    — beslut 2026-10-02; recensioner läggs in manuellt i /admin/recensioner/).
+      if (badge && ratingStr && localCount != null) {
+        badge.textContent = `${ratingStr} · ${localCount} recensioner`;
       }
     })();
   </script>

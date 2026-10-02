@@ -4,8 +4,8 @@
 // Server-renderad snapshot finns i src/data/reviews.json (SEO/fallback).
 //
 // Returnerar färdigformaterade objekt (initialer + svensk relativ tid) plus
-// sammanvägt betyg. ANTALET i badgen kommer separat från Googles API
-// (/api/google-reviews, userRatingCount) — inte härifrån.
+// sammanvägt betyg och antal — badgen på sajten använder båda härifrån.
+// (Google Places API används inte längre, beslut 2026-10-02.)
 //
 // GET /.netlify/functions/reviews-list
 

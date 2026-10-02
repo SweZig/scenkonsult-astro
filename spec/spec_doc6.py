@@ -32,7 +32,7 @@ DOC6 = dict(
               "infrastruktur-fällan i projektet."),
         ("ul", [
             "**3.1 CommonJS-funktioner kraschar under type:module.** Fix: `netlify/functions/package.json = {\"type\":\"commonjs\"}` → v1-funktioner (`exports.handler`) laddas korrekt.",
-            "**3.2 v2-funktioner (export default) måste vara `.mjs`** under type:commonjs-mappen. Berörda: admin-auth.mjs, google-reviews.mjs, sms-fallback.mjs, sven-chat.mjs, u-resolve.mjs.",
+            "**3.2 v2-funktioner (export default) måste vara `.mjs`** under type:commonjs-mappen. Berörda: admin-auth.mjs, sms-fallback.mjs, sven-chat.mjs, u-resolve.mjs.",
             "**3.3 `.mjs` med lokal import → esbuild-bundler.** nft tracar inte alltid en relativ .mjs-import. Sätt `node_bundler=\"esbuild\"`. Referensfall: sven-chat.mjs → _products-generated.mjs.",
             "**3.4 Verifiera bundling lokalt** med @netlify/zip-it-and-ship-it. Öppna funktions-URL:en: 401 = kör; \"This function has crashed\" = modulproblem.",
         ]),
