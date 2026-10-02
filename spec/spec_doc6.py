@@ -3,8 +3,8 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v16.0",
-    date="2026-09-21",
+    version="v17.0",
+    date="2026-10-02",
     blocks=[
         ("h1", "1. Arbetssätt"),
         ("p", "Implementera → build-verifiera → safety check → commit → push → Netlify auto-deploy "
@@ -53,6 +53,11 @@ DOC6 = dict(
               "tappar allt som inte får plats — tyst. Förmät (`heightOfString`) + "
               "sidbryt/kolumnbalansera. Referensfall 2026-07-22: faktura-villkorens GDPR-paragraf "
               "försvann."),
+        ("p", "**4.4 PDFKit lägger själv till en sida för varje `text()` under bottenmarginalen.** Med "
+              "absoluta koordinater hamnar då varje element efter en lång tabell på en egen sida — "
+              "faktura K2179 med 25 rader blev 14 sidor, \"Att betala\" och beloppet på olika sidor. "
+              "Kontrollera utrymmet före varje block (`_pdf-paging.js`, `ensureSpace()`), bryt tabeller "
+              "rad för rad och håll ihop summa- och betalningsblock. Rättat 2026-09-30."),
 
         ("h1", "5. DOM- & state-synk"),
         ("p", "Efter DOM-mutation (t.ex. `prodDelete`): synka alltid in-memory-state "
@@ -64,6 +69,20 @@ DOC6 = dict(
             "**Tunt/föräldralöst programmatiskt lokalinnehåll → doorway.** Google indexerar inte mallade närduplikat utan interna länkar. Fix som fick ortssidorna indexerbara: (a) genuint unikt innehåll per sida, (b) intern länkning från relevant sida, (c) korslänkning mellan syskonsidor.",
             "**Sökords-kannibalisering.** Två sidor som konkurrerar om samma head-term splittrar rankingsignalerna. Gör den ena till hub med bred intent och låt barnsidan äga long-tailen. Referens: /hyra-bild/.",
             "**Google Ads:** 74 % av impression share-förlusten berodde på Quality Score/ranking, inte budget — omstrukturera annonsgrupper före ökad spend.",
+            "**Byt titlar och termer utan att byta URL** (2026-10-02). Ljudsidan fick \"högtalare\" i titel och H1 men behöll \"ljudanläggning\" och \"hyra ljud\"; eventsidans H1 lämnades orörd. Det som rankar idag ska ha något kvar att stå på. Begär omindexering i GSC efteråt.",
+        ]),
+        ("h2", "6.1 AI-synlighet — lärdomar (NY 2026-10-02)"),
+        ("ul", [
+            "**AI-assistenter läser llms.txt, JSON-LD och Google-profilen som sanning.** En handskriven llms.txt som stått still i sex månader gav ChatGPT scenpriser ~50 % för höga. Allt som AI kan citera ska genereras ur samma data som sajten.",
+            "**Samma uppgift på flera ställen glider isär.** Öppettiderna stod på fyra olika sätt (specen, JSON-LD, kontaktsidan, Google-profilen), och bolagsnamnet i tre varianter. Välj en källa (`site.json`, Google-profilen för tider) och låt resten läsa därifrån.",
+            "**ChatGPT hämtar betyg och företagskort från Google-profilen** — den syns direkt i svaren. Utfall 2026-10-02: Scenkonsult först på \"ljud, ljus och scen till 100 personer\" men utanför topp 5 på \"hyra högtalare\".",
+            "**Mät upprepbart:** samma fasta frågor varje månad (schemalagt uppdrag, Dok 3 §7). Enskilda AI-svar varierar; trenden är det som säger något.",
+        ]),
+        ("h2", "6.2 Cookies — lärdomar (NY 2026-10-02)"),
+        ("ul", [
+            "**Inget val = inget samtycke.** Besökaren behöver inte tvingas välja; det avgörande är att inget spårande laddas före Godkänn. En cookievägg vore sämre.",
+            "**Ladda tredjepartsskript en gång.** GTM laddades både av head-skriptet och av bannerskriptet för återkommande besökare — dubbla sidvisningar i GA4 utan att något syntes. En flagga (`window.__skGtmLoaded`) räcker.",
+            "**Inbäddningar räknas också.** En Google Maps-iframe laddades före samtycke. Klick-för-att-ladda löser det.",
         ]),
 
         ("h1", "7. Process & arbetsmiljö — lärdomar"),
@@ -72,6 +91,13 @@ DOC6 = dict(
             "**Platshållarvärden i konfig:** föreslagen konfig som ersätter befintliga värden ska fråga efter aktuellt värde eller tydligt markera platshållare. (DMARC-rua-exemplet, Dok 4.)",
             "**Stegvis utrullning av brytande ändringar:** övervakning → delvis → full (reversibel) → enforce. Rena rapporter mellan stegen.",
             "**Cache-fördröjning vid extern ändring:** DNS/DMARC/CDN — downstream ser gammal version 24–72 h. Verifiera direkt mot källan.",
+        ]),
+
+        ("h2", "7.0 Tre lärdomar från 2026-10-02"),
+        ("ul", [
+            "**Cacha aldrig felsvar.** `google-reviews` gav sitt 502-svar samma `Cache-Control` som ett lyckat svar (6 h på CDN, 24 h stale). Ett rättat fel hade fortsatt synas i upp till ett dygn. Felsvar ska vara `no-store`.",
+            "**Skicka med orsaken.** Funktionen returnerade bara \"API 403\"; först när Googles `status`, `reason` och meddelande följde med gick felet att spåra. Nyckeln maskas, orsaken visas.",
+            "**Externa tjänster med testperiod slutar tyst.** Google Cloud-testperioden löpte ut och Places API svarade PERMISSION_DENIED utan reason. Nyckeln var korrekt inställd — det var betalkontot. Kontrollera billing tidigt vid generiska 403.",
         ]),
 
         ("h2", "7.1 Git från device_bash — regeln är upphävd (2026-09-20)"),
@@ -136,7 +162,10 @@ DOC6 = dict(
             "**Nyckla ut logotyper ur en rasterbild:** när en logotyp ligger som enfärgad figur på enfärgad botten kan alfan räknas per pixel — `t = (lum − lum_bakgrund) / (lum_logo − lum_bakgrund)`. Sätt ett litet alfa-golv (~14/255).",
             "**Video:** `ffmpeg -vf scale=1280:-2 -crf 26 -preset slow -an` håller produktvideor under ~15 MB (Dok 1 §3.4).",
             "**DOCX-generering:** `spec_builder.py` + `spec_doc1–6.py` (python-docx) för specen; `docx`-js via Node för övrigt.",
-            "**Extern-API-fullständighet:** Google Places API returnerar max 5 recensioner — underhåll kurerad källa (Supabase).",
+            "**Recensioner:** Google Places API är borttaget (2026-10-02). Recensionerna underhålls manuellt i Supabase via /admin/recensioner/.",
+            "**Sök efter läckta hemligheter i hela historiken:** `gitleaks git <spegelklon> --redact` (mirror-klon ~840 MB, ~20 s). Körning 2026-10-02 över 1 205 commits: bara Supabase anon-nyckel (publik per design) och Astros byggnycklar i gamla `dist/`-filer.",
+            "**Headless-test av sajten i molnet:** `npx serve dist` + Playwright med `executablePath: '/opt/pw-browsers/chromium'` (installera inte webbläsare). Mocka funktionsanrop med `page.route`.",
+            "**Search Console URL-inspektion** kan köras i den inbyggda webbläsaren när användaren är inloggad. Den smala panelen gör att sökfältet öppnas via förstoringsglaset; klicka sedan i fältet innan du skriver.",
         ]),
 
         ("h1", "9. Roadmap"),
@@ -151,6 +180,7 @@ DOC6 = dict(
 
         ("h2", "9.2 Teknisk skuld & härdning"),
         ("ul", [
+            "**Göra GitHub-repot privat (parkerat 2026-10-02).** Inga hemligheter har läckt (gitleaks) och pre-commit-kontrollen skyddar framåt. Före bytet: koppla repot till Claude-sessionernas källor (annars faller molnklon och push), kontrollera Netlify-appens åtkomst och att `GITHUB_TOKEN` gäller just repot. Ta bort `public/manualer/README.md` från sajten (länkar till GitHub).",
             "**Generera inventarielistorna ur repot (NY 2026-09-21).** Komponentlistan (Dok 1 §5.1), sidlistan (Dok 3 §2) och ortslistan blir fel inom en månad när de handskrivs. Ett litet skript som läser `src/components/`, `src/pages/` och `orter.json` och skriver tabellerna vore billigare än att korrigera dem i varje genomgång.",
             "**Flytta de fem äldre armatur-manualerna in i repots `manual_generator.py` (NY 2026-09-21).** `EFF-0004`, `DMX-0001`, `ROK-0006`, `EFF-0007`, `EFF-0008` finns bara i projektdokumentets kopia av generatorn.",
             "**Frontend-härdning:** tydlig felruta med \"Försök igen\" vid nätverksfel.",
@@ -177,7 +207,9 @@ DOC6 = dict(
         ("h2", "9.4 Öppna punkter"),
         ("ul", [
             "**Lokal SEO — ortssidor:** 26 orter. Utvärdera GSC-indexering och trafik; fler orter/stadsdelar vid behov. Stockholm medvetet ej egen sida (kannibalisering).",
-            "**GSC-indexering:** begär omindexering för sidor med content-, länk- och schema-fixar. Submit sitemap (`scenkonsult.se/sitemap-index.xml`).",
+            "**GSC-indexering:** omindexering begärd 2026-10-02 för /vara-tjanster/hyra-ljud/, /hyra-ljud/event/, /for/guider/hyra-pa-system/, eventlokal-guiden och /en/. Följ upp positionerna för \"hyra högtalare stockholm\" och \"hyra ljud stockholm\".",
+            "**/en/:** följ upp om engelska förfrågningar kommer in (märkta \"[ENGLISH ENQUIRY]\"). Nav och sidfot är svenska — utvärdera om det behövs mer än en sida.",
+            "**Netlify:** `GOOGLE_PLACES_API_KEY` kan tas bort.",
             "**DJ Alex:** saknar foto (`DJ_Alex.png` + `dj.json djProfiles`).",
             "**Referenssidan:** fler crossfade-par bland befintliga eventfoton. Kundlogotyperna i högre upplösning; de sju ärvda är nyckade ur en 1600 px-bild.",
             "**Bild-tillbehör (Projektor & skärm):** produktbilder saknas för projektorstativ, 100\" duk, skärmstativ, HDMI, HDMI-splitter, mediaspelare, 23\"-skärm, USB-clicker.",
@@ -189,6 +221,12 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.0", "2026-10-02",
+             "Genomgång av 42 commits sedan v16.0 (montering v2, offertpåminnelse v2, scenkjolar, nya "
+             "produkter, AI-synlighet, cookies, /en/). Nya §4.4 PDFKit-sidbrytning, §6 titlar utan "
+             "URL-byte, §6.1 AI-synlighet, §6.2 cookies, §7.0 felsvar/orsak/testperiod. §8 recensioner, "
+             "gitleaks, headless-test, GSC i webbläsaren. §9.2 GitHub privat (parkerat). §9.4 GSC, /en/, "
+             "Netlify-variabel."],
             ["v16.0", "2026-09-21",
              "Genomgång efter ljuspaket-omstruktureringen och processgenomgången 2026-09-20/21. "
              "Ny §2.6 (indexbaserade uppslag), §7.3 (.gitignore retroaktivt), §7.4 (läs konfigurationen "
@@ -209,12 +247,12 @@ DOC6 = dict(
         ("h1", "11. Dokumentstruktur"),
         ("table", [
             ["Dok", "Innehåll", "Version"],
-            ["Dok 1", "Grund & Design", "v16.0 (2026-09-21)"],
-            ["Dok 2", "Produkter & Data", "v16.0 (2026-09-21)"],
-            ["Dok 3", "Sidor & Navigation", "v16.0 (2026-09-21)"],
-            ["Dok 4", "Kommunikation", "v16.0 (2026-09-21)"],
-            ["Dok 5", "Order, Admin & Infra", "v16.0 (2026-09-21)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v16.0 (2026-09-21)"],
+            ["Dok 1", "Grund & Design", "v17.0 (2026-10-02)"],
+            ["Dok 2", "Produkter & Data", "v17.0 (2026-10-02)"],
+            ["Dok 3", "Sidor & Navigation", "v17.0 (2026-10-02)"],
+            ["Dok 4", "Kommunikation", "v17.0 (2026-10-02)"],
+            ["Dok 5", "Order, Admin & Infra", "v17.0 (2026-10-02)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v17.0 (2026-10-02)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "

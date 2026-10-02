@@ -3,8 +3,8 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v16.0",
-    date="2026-09-21",
+    version="v17.0",
+    date="2026-10-02",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
         ("table", [
@@ -15,6 +15,8 @@ DOC5 = dict(
             ["Kundordersida", "/order/?cart=SK-XXXXXX&token="],
             ["Env-variabler", "SUPABASE_URL, SUPABASE_SERVICE_KEY, ADMIN_TOKEN, RESEND_API_KEY, ANTHROPIC_API_KEY, GITHUB_TOKEN, GA4_OAUTH_*"],
         ]),
+        ("note", "**`GOOGLE_PLACES_API_KEY` används inte längre** (2026-10-02) — `google-reviews.mjs` är "
+                 "borttagen. Variabeln kan tas bort ur Netlify."),
 
         ("h1", "2. Varukorgssystem"),
         ("p", "**Lagring (`localStorage sk-cart`):** `id \"SK-[8HEX]-[4HEX]\"`, `expires` "
@@ -24,6 +26,13 @@ DOC5 = dict(
         ("p", "**Bokningsflöde:** \"Maila offertförfrågan\" → `intent=offert`; \"Boka detta nu\" → "
               "`intent=boka`. Båda låses under utskick, reset vid fel. `sendCopy`-kryssruta styr "
               "kundkopia. Cart-ID skickas med i offert-POST."),
+        ("p", "**Montering i varukorgen (2026-09-28):** raden heter \"Montering & demontering "
+              "(beräknad)\" och räknas av `window.skMontering` ur produkternas tider (Dok 2 §5.1). "
+              "`skicka-offert` räknar om på servern så att kunden inte kan skicka in en egen siffra. "
+              "Med scen i korgen ber varukorgen kunden beskriva underlaget under Övrig information."),
+        ("p", "**Flerdygnsrabatt:** raderna bär `unit_price`, `days`, `day_factor` och `price` "
+              "(Dok 2 §5.2). Formeln `price × qty = radsumma` gäller överallt — fakturor, statistik och "
+              "varukorg behöver inte känna till rabatten."),
         ("note", "**Ordern lagrar egen kopia av namn och pris.** `carts.items` är JSONB — en order från "
                  "2025 visar det namn och pris som gällde då, även om produkten sedan bytt namn. "
                  "Det är den mekanism som gör namnbyten i sortimentet ofarliga. Se Dok 2 §7."),
@@ -34,7 +43,7 @@ DOC5 = dict(
             ["Flik", "Funktion"],
             ["Info", "Status (dropdown), kundinformation, intern anteckning"],
             ["Produkter", "Redigerbar produkttabell — lägg till/ta bort rader, ändra antal/à-pris, spara till DB"],
-            ["Chatt", "Meddelandehistorik + skicka meddelanden till kund"],
+            ["Chatt", "Meddelandehistorik + skicka meddelanden till kund. Hantera mallar: snabbmallar och offertpåminnelser (§3.7)"],
             ["Logg", "Audit-trail (läs-only)"],
         ]),
 
@@ -46,9 +55,22 @@ DOC5 = dict(
             "Topbar: 🕒 Aktivitet · ↻ Uppdatera (shift = hård reload) · Ny offert · Sajten · Sven · Katalog · Produkter · Innehåll ▾ · Logga ut.",
         ]),
 
+        ("p", "**Montering i offerten:** monteringsrutan har knappen \"Beräkna från offertens "
+              "produkter\" (samma motor som varukorgen). `admin-send-quote` loggar om offertens "
+              "monteringsbelopp avviker från beräkningen."),
+
         ("h2", "3.3 Fakturering"),
         ("p", "B2B-fakturadetaljblock på `/order/` (org.nr, referens, fakturaadress, Peppol), "
               "kreditfakturor, `skip_pickup_flow`-toggle."),
+        ("note", "**Sidbrytning (2026-09-30):** `_pdf-paging.js` (`ensureSpace()` + fortsättningsetikett) "
+                 "används av `invoice-send`, `invoice-pdf-download` (faktura + order) och `invoice-credit`. "
+                 "Produkttabellen bryts rad för rad och tabellhuvudet ritas om överst på nästa sida "
+                 "(\"Faktura K… (forts.)\"); summa- och betalningsblocket (inkl. Swish-QR) hålls ihop. "
+                 "Före rättningen gav 25 rader 14 sidor — PDFKit lade en ny sida för varje `text()` under "
+                 "bottenmarginalen. Verifierat med 25 och 60 rader."),
+        ("note", "**Juridisk avsändare (rättad 2026-10-02):** fakturornas sidfot och villkor anger "
+                 "**Scenkonsult Norden (Sigvardsson Consulting AB) · Org.nr 559068-4931**. Två ställen "
+                 "sa tidigare \"Consulting Group AB\"."),
         ("note", "**PDF-generering:** PDFKit i Netlify-funktioner (`invoice-pdf-download.js`). Använd "
                  "`.replace(/ /g, \" \")` i `fmtKr` för att undvika non-breaking-space-artefakter från "
                  "`toLocaleString(\"sv-SE\")`."),
@@ -77,7 +99,9 @@ DOC5 = dict(
               "synkar `src/data/clients.json` (prebuild). **Recensioner** — självförsörjande via "
               "Supabase-tabellen `reviews`: `admin-reviews.js`, `reviews-list.js`, "
               "`/admin/recensioner/`. `netlify/generate-reviews.mjs` synkar `src/data/reviews.json`. "
-              "Migration: `2026-07-18_reviews.sql`."),
+              "Migration: `2026-07-18_reviews.sql`. **Sedan 2026-10-02 läggs nya recensioner in "
+              "manuellt** — \"Importera från Google\" och live-antalet från Places API är borttagna "
+              "(Dok 3 §4.3). Admin-sidan länkar till Google-profilen."),
         ("note", "**Kolumnerna `ort` och `featured`** på clients-tabellen kopplar kund → ortssida "
                  "respektive driver utvalda-bannern via `getFeaturedClients()` (fallback = kurerad "
                  "kodlista). `featuredClients` är borttaget ur `site.json`. Defensivt mönster: valfria "
@@ -85,18 +109,39 @@ DOC5 = dict(
                  "kolumnen saknas → deploy-ordningen ofarlig."),
 
         ("h2", "3.6 Prebuild-kedjan"),
-        ("code", "prebuild: generate-catalogs → minify-sven → sync-reviews → sync-clients → generate-excel\n"
-                 "predev:   generate-catalogs\n"
-                 "pretest:  generate-catalogs"),
+        ("code", "prebuild: generate-catalogs → generate-llms → minify-sven → sync-reviews → sync-clients → generate-excel\n"
+                 "predev:   generate-catalogs → generate-llms\n"
+                 "pretest:  generate-catalogs\n"
+                 "prepare:  git config core.hooksPath .githooks || true   (körs av npm ci/install)"),
+        ("p", "`generate-catalogs` = `generate-quote-catalog.py` (quote-, order- och "
+              "montering-katalogen) + `generate-products.mjs` (Svens register). `generate-llms` = "
+              "`scripts/generate-llms.mjs` → `public/llms.txt`."),
         ("note", "**`predev` och `pretest` tillagda 2026-09-20.** `astro dev` och `npm test` kör inte "
                  "`prebuild`, så utvecklingsservern och testerna gick tidigare mot inaktuella kataloger "
                  "utan att något sa ifrån. `generate-catalogs` anropar Python via "
                  "`node scripts/run-python.mjs` — se Dok 1 §1.1."),
 
+        ("h2", "3.7 Offertpåminnelser v2 (NY 2026-09-29)"),
+        ("ul", [
+            "**Samlingsruta** vid start när offerter väntar på svar: \"Gå igenom nu\", \"Snooza 30 min\" eller \"Resten av dagen\". Snoozen ligger i `localStorage` (`sk_reminder_snooze_until`) och gäller per enhet. ⏰-märke med antal i kolumnen Offert skickad.",
+            "**Två steg** räknat från `quote_sent_at` (sätts av `admin-send-quote`, nollställs inte av adminändringar): påminnelse 1 tidigast 48 h efter offerten, sista påminnelsen när eventet är ≤ 5 dagar bort och minst 48 h efter steg 1. Konstanter `REMINDER_HOURS`, `REMINDER_FINAL_DAYS`, `REMINDER_GAP_HOURS` i `admin/index.astro`.",
+            "**Fyra mallar** — Formell, Neutral, Personlig, Sista påminnelse — med redigerbar ämnesrad och text och valbar nej-länk (förvald för sista). Förval efter kundtyp och steg. Mallarna lagras i `chat_templates` (`kind = 'reminder'`, `subject`) med inbyggda fallback-mallar.",
+            "**📩 Påminn kund** i detaljpanelen öppnar samma mallväljare för en enskild offert, även om den inte står på tur. Ersätter den tidigare `prompt()`-fritexten.",
+            "**Kunden kan tacka nej** — på ordersidan i chattsektionen eller via mailets länk (`?svar=nej`). Två orsaker (`need_changed`, `found_alternative`) + valfri kommentar. `cart-update` `customer_decline` sätter `status = cancelled`, `declined_at`, `decline_reason`, `decline_comment`, loggar `customer_declined` och mailar info@. Admin visar 🙅-badge, banner i Info och påminnelsehistorik.",
+            "**Ordersidan för status `new`** (2026-09-29): `cart-get` gav tidigare 403, så kunden kunde varken läsa admins chattmeddelanden eller svara — även \"Se din förfrågan\"-länken från kontaktformuläret föll. Nu visas förfrågan + chatten. Läsmarkering av offerten loggas först när en offert skickats.",
+        ]),
+        ("note", "**Migrationen `2026-09-29_quote_reminder_v2.sql` måste vara körd i Supabase** "
+                 "(`quote_sent_at`, `quote_reminder_log`, `declined_at`, `decline_reason`, "
+                 "`decline_comment` på `carts`; `kind` + `subject` på `chat_templates`). Utan den "
+                 "misslyckas nej-svar och påminnelsemallar kan inte sparas. Idempotent."),
+
         ("h1", "4. GitHub Contents API (produktredigeraren)"),
         ("p", "`/admin/produkter/` läser och skriver JSON-filer via GitHub Contents API "
               "(`admin-products-list.js` + `admin-products-update.js`), autentiserat med Netlify "
               "env-var `GITHUB_TOKEN`."),
+        ("p", "**Kolumnen Montering (2026-09-28):** `monteringMin` underhålls per produkt i alla "
+              "datafiler. Tomt fält = fältet tas bort (saknas), 0 = monteras inte, hela eller halva "
+              "minuter, max 1440. `admin-products-update` validerar."),
         ("note", "**Admin-panelen rör aldrig den lokala klonen.** Den läser filen via API:t, ändrar "
                  "JSON i minnet och committar direkt till `main`. Netlify bygger om och regenererar "
                  "katalogerna. **Konsekvensen är att `origin` regelbundet går före den lokala klonen "
@@ -143,8 +188,16 @@ DOC5 = dict(
                  "med genererade filer, verktygscacher och raderingar som inte hörde till batchen. "
                  "Den gamla receptraden i denna paragraf löd `git add -A` — den är ersatt."),
         ("p", "**Sparläge / batch-push:** inga pushes förrän en hel batch är klar — varje push till "
-              "`main` triggar en Netlify-deploy. Git-identitet: `user.email=\"swezig@scenkonsult.se\"`, "
-              "`user.name=\"SweZig\"`."),
+              "`main` triggar en Netlify-deploy. Git-identitet: `user.email=\"swezig@gmail.com\"`, "
+              "`user.name=\"SweZig\"` (rättat 2026-10-02 — specen angav swezig@scenkonsult.se; "
+              "nästan all historik sedan september har gmail-adressen)."),
+        ("note", "**Pre-commit-kontroll mot hemligheter (2026-10-02).** `.githooks/pre-commit` kör "
+                 "`scripts/check-secrets.mjs` på de stagade, **tillagda** raderna: Google-, Anthropic-, "
+                 "OpenAI-, Resend-, GitHub- och Netlify-nycklar, privata nycklar, lösenord i URL:er och "
+                 "JWT:er med annan roll än `anon` (Supabase `service_role` stoppas). Filer som `.env*`, "
+                 "`.secrets/` och `*.pem` stoppas oavsett innehåll. `prepare` i `package.json` sätter "
+                 "`core.hooksPath`, så `npm run sync` aktiverar den i varje klon. Vid falsklarm: "
+                 "`git commit --no-verify`. Admin-panelens commits via API passerar inte hooken."),
 
         ("h2", "6.2 Push med token"),
         ("code", 'TOK=$(tr -d " \\r\\n" < .secrets/gh-pat.txt)\n'
@@ -155,6 +208,11 @@ DOC5 = dict(
             "**TLS-verifiering stängs aldrig av.** `http.sslVerify=false` förekommer i anteckningar från 2026-08; det behövs inte och exponerar token vid push.",
             "Skriv aldrig ut tokenvärdet — läs in det i en variabel och filtrera bort det ur utskrifter.",
         ]),
+        ("note", "**Molnsessioner (2026-10-02):** git-proxyn i molncontainern injicerar inga credentials "
+                 "för repot, så push därifrån nekas fortfarande (403). Arbetsgången: committa i "
+                 "molnklonen → `git bundle` → skriv till `Claude outputs/` → i datorns VM: färsk klon i "
+                 "hemkatalogen, hämta bundlen, pusha med PAT:en ur `.secrets/gh-pat.txt` → radera bundlen. "
+                 "Den lokala arbetskopian rörs inte. Se Dok 1 §1.3."),
         ("note", "**Rättat 2026-09-21 — den gamla miljötabellen gäller inte längre.** v15.1 slog fast "
                  "att molncontainern inte kan pusha (git-proxyn nekade på repo-nivå innan credentials "
                  "kom till tals) och att det inte gick att åtgärda i efterhand. Med ett fine-grained PAT "
@@ -185,6 +243,7 @@ DOC5 = dict(
             "Ändra ALDRIG `netlify.toml` (undantag: dokumenterade node_bundler-block). Committa ALDRIG `dist/`. Byt ALDRIG CJS-funktioner till `.cjs`.",
             "Desktop-appen lägger förhandsvisningar i `Claude outputs/` i projektmappen — gitignorerad sedan 2026-09-18.",
             "Lägg aldrig en tokenfil någon annanstans än i `.secrets/`, och kontrollera att mappen står i `.gitignore` innan filen skapas.",
+            "`public/llms.txt` och `src/data/montering-catalog.json` är genererade och gitignorerade (Dok 2 §2.1). llms.txt avspårades med `git rm --cached` i samma commit som ignore-raden.",
         ]),
 
         ("h1", "7. Manualer & dokumentation"),
@@ -202,6 +261,14 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.0", "2026-10-02",
+             "Ny §3.7 Offertpåminnelser v2 (samlingsruta/snooze, två steg från quote_sent_at, fyra "
+             "mallar i chat_templates, Påminn kund, kunden tackar nej, ordersidan för status new) + "
+             "migrationsnot. §2 beräknad montering och flerdygnsrabatt i varukorgen. §3.1 monteringsknapp "
+             "i offerten. §3.3 PDF-sidbrytning (_pdf-paging.js) och juridisk avsändare. §3.5 recensioner "
+             "manuellt. §3.6 prebuild med generate-llms och prepare. §4 kolumnen Montering. §6.1 git-"
+             "e-post rättad + pre-commit-kontroll. §6.2 molnsessionernas push via bundle. §1 "
+             "GOOGLE_PLACES_API_KEY kan tas bort."],
             ["v16.0", "2026-09-21",
              "§6 helt omskriven: npm run sync / preflight, git add -A förbjudet, push-syntax med "
              "användarnamn, .gitattributes, node_modules avspårat, .gitignore-regeln. Den gamla "

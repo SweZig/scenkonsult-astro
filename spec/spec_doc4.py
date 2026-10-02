@@ -3,8 +3,8 @@ DOC4 = dict(
     slug="Kommunikation",
     title="Kommunikation",
     subtitle="E-post (Resend/SES), DNS & DMARC, SMS (46elks), Sven-chatbot",
-    version="v16.0",
-    date="2026-09-21",
+    version="v17.0",
+    date="2026-10-02",
     blocks=[
         ("h1", "1. E-postsystem (Resend)"),
         ("h2", "1.1 Arkitektur"),
@@ -30,6 +30,10 @@ DOC4 = dict(
             ["skicka-kontakt.js", "/.netlify/functions/skicka-kontakt", "v1"],
             ["skicka-feedback.js", "/.netlify/functions/skicka-feedback", "v1"],
         ]),
+        ("p", "**`skicka-kontakt` används även av det engelska formuläret på `/en/`** (2026-10-02): "
+              "`typ: Företag`, `sendCopy: false` eftersom kundkvittot bara finns på svenska, och "
+              "meddelandet börjar med **\"[ENGLISH ENQUIRY — svara på engelska]\"** så att den som "
+              "svarar ser språket direkt i inkorgen och i Trello. `hittade` = \"Engelska sidan /en/\"."),
         ("p", "v1-funktioner (`exports.handler`) svarar på `/.netlify/functions/`. v2-funktioner "
               "(`export default` + `export const config={path}`) registreras ENBART på sin explicita "
               "path. Modulsystem (CJS vs .mjs): Dok 6 §3."),
@@ -55,6 +59,22 @@ DOC4 = dict(
             "`text`-version skickas alltid med HTML (Gmail penaliserar HTML-only)",
             "`height:auto` på logo-img (aldrig hårdkodat `height=\"40\"`)",
         ]),
+
+        ("h2", "1.6 Offertpåminnelser och nej-svar (NY 2026-09-29)"),
+        ("p", "Påminnelser skickas från admin (Dok 5 §3.7) som ett chattmeddelande med "
+              "`event_type: 'reminder_sent'` via `cart-message.js`, som då bygger ett **eget "
+              "påminnelsemail**: rubrik \"Påminnelse om din offert\", ämnesrad från mallen (fallback "
+              "\"Påminnelse om din offert — Scenkonsult Norden\"), primärknapp **\"Visa och godkänn "
+              "offerten\"** och, om `include_decline` är valt, en länk **Tacka nej** till "
+              "`/order/?cart=…&token=…&svar=nej`."),
+        ("note", "**Länken registrerar aldrig ett nej.** `?svar=nej` öppnar bara dialogen på "
+                 "ordersidan; nej-svaret sparas först när kunden klickar i dialogen (POST "
+                 "`customer_decline` till `cart-update`). Säkerhetsskannrar som Outlook Safe Links besöker "
+                 "länkar i mail automatiskt — en GET som tackade nej hade avbokat offerter utan att "
+                 "kunden gjort något."),
+        ("p", "Vid nej skickar `cart-update` en notis till info@ (`RESEND_API_KEY`) och lägger svaret "
+              "som chattmeddelande. Påminnelsemallarna redigeras i admin under Chatt → Hantera mallar "
+              "(`chat_templates`, `kind = 'reminder'` + `subject`)."),
 
         ("h1", "2. DNS-konfiguration"),
         ("h2", "2.1 SPF / DKIM"),
@@ -143,8 +163,12 @@ DOC4 = dict(
                  "        ↓  import\n"
                  "netlify/functions/sven-chat.mjs"),
         ("p", "`sven-chat.mjs` importerar exakt tre symboler: `CART_ID_LISTA`, "
-              "`PRODUKTER_OCH_PRISER` och `SVEN_FACTS`. Byggkörningen 2026-09-21 gav **301 cart-ID:n**, "
-              "156 produktrader, 345 poster i QUOTE_CATALOG och 71 rader i SVEN_FACTS."),
+              "`PRODUKTER_OCH_PRISER` och `SVEN_FACTS` (modulen exporterar även `QUOTE_CATALOG`). "
+              "Byggkörningen 2026-10-02 gav **317 cart-ID:n** (301 den 2026-09-21) och 72 rader i "
+              "SVEN_FACTS. Siffrorna ändras med sortimentet — läs dem ur bygget, inte härifrån."),
+        ("p", "**SVEN_FACTS** byggs ur `site.json` och `tjanster.json`: kontaktuppgifter med öppettider "
+              "ur `company.openingHours` (\"mån–fre 09:00–17:00, lör–sön 12:00–15:00\" sedan "
+              "2026-10-02), frakt, montering och sedan 2026-09-28 regeln om plant underlag för scen."),
         ("note", "**Rättelse:** flera äldre beskrivningar talade om \"80 produkter i "
                  "`SVEN_PRODUCTS`-objektet i `Layout.astro`\". Det stämmer inte sedan `d63a3f86`. "
                  "Det finns inget `SVEN_PRODUCTS`-objekt i `Layout.astro` — bara en kommentar som pekar "
@@ -167,6 +191,11 @@ DOC4 = dict(
         ("h1", "5. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.0", "2026-10-02",
+             "Ny §1.6 Offertpåminnelser och nej-svar (påminnelsemail via cart-message, nej-länken "
+             "registrerar aldrig något, notis vid nej, mallar i chat_templates). §1.2 skicka-kontakt "
+             "används av /en/ med språkmarkering. §4.1 317 cart-ID:n, QUOTE_CATALOG-exporten, "
+             "SVEN_FACTS-källor inkl. öppettider och underlagsregeln."],
             ["v16.0", "2026-09-21",
              "Ny §4.1 Produktregistret — en källa, med kedjan sven-products.mjs → generate-products.mjs "
              "→ _products-generated.mjs, de faktiska exportnamnen (CART_ID_LISTA, PRODUKTER_OCH_PRISER, "

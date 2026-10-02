@@ -3,8 +3,8 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v16.0",
-    date="2026-09-21",
+    version="v17.0",
+    date="2026-10-02",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
         ("note", "**Hårdkoda ALDRIG produkter i .astro-filer.** Allt produktinnehåll bor i "
@@ -23,17 +23,17 @@ DOC2 = dict(
         ("h1", "2. Datafiler i src/data/"),
         ("table", [
             ["Fil", "Innehåll"],
-            ["site.json", "Företagsdata, globala texter (featuredClients BORTTAGET — se not nedan)"],
+            ["site.json", "Företagsdata (`company`: name, legalName, orgNr, openingHours …), globala texter (featuredClients BORTTAGET — se not nedan)"],
             ["scenes.json", "Scen-paket + tillbehör (tillbehor[])"],
             ["ljud.json", "Ljud: portable / event / music / live / mixers"],
-            ["ljus.json", "Ljus: paket (paketLayout, §6), effekter, rök/pyro, stativ/tross"],
+            ["ljus.json", "Ljus: paket (paketLayout + gruppen scenpaket, §6), effekter, rök/pyro, stativ/tross, dmx.tillbehor (bord i prisordning → splitter/förstärkare → kablar)"],
             ["bild.json", "Bild: projektor/skärm, intro, categories[]"],
             ["led-paneler.json", "LED-vägg-paneler"],
             ["dj.json", "DJ-paket + djProfiles"],
             ["dj-konkurrentdata.json", "Jämförelsedata DJ-guide"],
             ["el.json", "El-tillbehör (SK-EL-0001..0014)"],
             ["karaoke.json", "Karaoke-kategori"],
-            ["tjanster.json", "Tjänster + leverans/montering/tillägg/fakturaavgift"],
+            ["tjanster.json", "Tjänster + leverans/montering (inkl. `montering.modell`, §5.1)/tillägg/fakturaavgift/hyresdagar (§5.2)"],
             ["ljudtekniker.json", "Ljudtekniker-profiler"],
             ["orter.json", "Orter för lokal SEO — 26 orter (Dok 3 §2.6)"],
             ["clients.json", "Referenskunder — synkas från Supabase vid build"],
@@ -54,13 +54,19 @@ DOC2 = dict(
             ["src/data/order-catalog-flat.json", "generate-quote-catalog.py"],
             ["netlify/functions/_products-generated.mjs", "netlify/generate-products.mjs"],
             ["public/Scenkonsult_Produktkatalog.xlsx", "generate-excel.mjs"],
+            ["src/data/montering-catalog.json", "generate-quote-catalog.py (NY 2026-09-28, §5.1)"],
+            ["public/llms.txt", "scripts/generate-llms.mjs (NY 2026-10-02 — Dok 3 §7)"],
         ]),
         ("note", "**Avspårade ur git 2026-09-20.** Ignore-reglerna skrevs redan i juni men fick aldrig "
                  "effekt, eftersom `git rm --cached` aldrig kördes — `.gitignore` gäller aldrig "
                  "retroaktivt. Filerna låg därför kvar som spårade och dök upp som modifierade i varje "
                  "`git status`. Se Dok 6 §7.3."),
-        ("p", "De två katalog-JSON-filerna ligger fysiskt i `src/data/` men är byggartefakter, inte "
+        ("p", "Katalog-JSON-filerna ligger fysiskt i `src/data/` men är byggartefakter, inte "
               "innehåll. Redigera dem aldrig för hand."),
+        ("note", "**llms.txt var handskriven fram till 2026-10-02 och stod still sedan april** — scenpriser "
+                 "~50 % för höga, gamla ljuspaketnamn, fel DJ- och leveranspriser, en projektor som inte "
+                 "fanns. ChatGPT citerade den. Nu byggs den ur datafilerna; utgångna produkter och "
+                 "redirect-sidor filtreras bort, och länkar utan sida i `src/pages/` loggas som varning."),
 
         ("h1", "3. Kategori-prioriteringsordning"),
         ("note", "**Genomgående ordning för all kommunikation: Scen · Ljud · Bild · Ljus · DJ**"),
@@ -84,15 +90,24 @@ DOC2 = dict(
               "`[...live.products, ...music.products.filter(p => p.categories?.includes(\"live\"))]`."),
 
         ("h2", "4.3 scenes.json"),
-        ("p", "`accessories[]` borttaget (var dubblettkopia). Endast `tillbehor[]` kvar med 6 "
-              "scen-tillbehör (Scentrapp 40/60, Scenkjol, Backdrop 3,5×2,5, Skyddsräcke 1,0/2,0). "
-              "`SceneConfigurator` + `DynamicPaketCard` använder `tillbehor`."),
+        ("p", "`products[]` (scenpaket), `tillbehor[]` (18 poster 2026-10-02), `pipeDrape[]` och "
+              "`modules[]` (plattformarna 1×1 och 1×2). `accessories[]` är borttaget. "
+              "`SceneConfigurator` och `DynamicPaketCard` läser `tillbehor`; scen- och tillbehörssidan filtrerar "
+              "fram kjolarna ur `tillbehor` och skickar dem till `ScenkjolCard`."),
+        ("ul", [
+            "**Scenkjolar (2026-09-28):** rak 4 m för 20/40/60 cm (ACC-0011/0017/0003) och veckad 2 m för 40/60 cm (ACC-0009/0018). Fältet `skirtStyle` anger modellen. Visas som ett `ScenkjolCard` med höjd- och modellval, inte som separata tillbehörskort. Konfiguratorn räknar segment per vald modell (`SKIRT_BY_HEIGHT[höjd][modell]`).",
+            "**Höjdregler (2026-09-28):** 1×2-plattformen finns i 20, 40 och 60 cm; 1×1 endast i 40 cm. Vid 20 cm låses trappor till 0.",
+            "**Underlag:** monteringen förutsätter plant underlag (tumregel ca 5 cm höjdskillnad). Justerbara ben om kunden meddelar vid bokning — står på scensidan (#underlag), i FAQ, i varukorgen och i Svens fakta.",
+            "**Nya tillbehör sedan v16:** Filtmatta svart ACC-0015 (149 kr/m²) och Rullstolsramp i aluminium ACC-0016.",
+        ]),
 
         ("h2", "4.4 Tjänster (tjanster.json.services)"),
         ("p", "6 unika produktkortstjänster med `categories[]`. Duplikat eliminerade. Bevarat orört: "
               "leverans/montering/tillägg/fakturaavgift (checkout/cart auto-logik)."),
-        ("note", "**Leverans-data:** SK-LEV-0003 (Lätt lastbil) — 1299 kr enkel resa · 2399 kr tur & "
-                 "retur (medveten rabatt som bryter enkelresa×2-mönstret; övriga LEV-poster följer ×2)."),
+        ("note", "**Leverans-data (rättad 2026-10-02):** alla LEV-poster följer nu tur & retur = "
+                 "enkelresa × 2 — även SK-LEV-0003 (Lätt lastbil), vars tidigare rabatt (1 299/2 399 kr) "
+                 "inte längre gäller. Aktuella priser står i `tjanster.json → leverans`; specen listar "
+                 "dem inte."),
 
         ("h1", "5. Fraktflaggor"),
         ("note", "**Kärnregel:** transport, frakt och montering **ingår ALDRIG** i priset — inte ens för "
@@ -109,6 +124,46 @@ DOC2 = dict(
         ("p", "**Regel:** `bulky=true` räknas i bulkyCount-regeln (≥2 → storbil_slap). `forceLeverans` "
               "tvingar specifik leverans. `ProductCard.astro` accepterar `bulky` + `forceLeverans` i "
               "Props. `CartButton` har `data-force-leverans`."),
+
+        ("h2", "5.1 Montering — en gemensam beräkning (NY 2026-09-28)"),
+        ("p", "Montering och demontering räknas fram ur produkternas egna tider av **en** motor, "
+              "`src/lib/montering.cjs` (UMD: `require` i Netlify-funktioner, inline i `Layout.astro` som "
+              "`window.SkMonteringLib` / `window.skMontering`). Varukorgen, scenkonfiguratorn, "
+              "scenpaketkorten, admins offert och serverfunktionerna (`skicka-offert` räknar om, "
+              "`admin-send-quote` loggar avvikelse) använder samma kod. Test: `test/montering.test.mjs`."),
+        ("note", "**Undantag: LED-väggen** räknar sin tid själv på LED-sidan ur "
+                 "`led-paneler.json → tillbehor.montering` (avrundning 30 min) och lägger den på "
+                 "varukorgsraden som `assemblyMinutesTotal` + `assemblyBemanning` (2 tekniker). Motorn "
+                 "multiplicerar bara — sida och kassa visar därför samma belopp."),
+        ("table", [
+            ["Fält på produkten", "Betydelse"],
+            ["monteringMin", "Minuter per styck (total tid, inte per person). Tomt = saknas, 0 = monteras inte. Underhålls i /admin/produkter/ (kolumn Montering)"],
+            ["monteringBemanning", "Antal tekniker (default `tjanster.json → montering.bemanning` = 1). LED-väggen: `led-paneler.json → tillbehor.montering.bemanning` = 2"],
+            ["monteringSkalning", "`styck` (default) · `tung` · `yta` · `fast` (t.ex. DJ-paketens rigg 60 min, ingen demontering)"],
+            ["monteringManuell", "Offereras separat (LED-trailrar)"],
+        ]),
+        ("p", "Parametrarna står i `tjanster.json → montering.modell`: radtid = tid × antal^k "
+              "(k styck 0,65 / tung 0,85 / yta 0,37), småtillbehör räknas i en gemensam pott, montering "
+              "+ demontering = × 2, teknikerminuter för **hela ordern** avrundas uppåt till 15 min "
+              "(minst 15). Timpris och minimidebitering står i `tjanster.json → montering`. "
+              "`generate-quote-catalog.py` bygger `montering-catalog.json` och **varnar för aktiva "
+              "produkter utan tid**."),
+        ("note", "**Kundvänt heter raden \"Montering & demontering (beräknad)\".** Varukorgen visar "
+                 "beräknad teknikertid och att priset kan justeras efter genomgång av plats och "
+                 "upplägg. Ingen tid stämplas längre på varukorgsraderna — motorn slår upp den på "
+                 "artikelnummer vid varje beräkning."),
+
+        ("h2", "5.2 Hyresdygn och flerdygnsrabatt"),
+        ("p", "Infört 2026-08 men saknades i specen före v17. Raden bär `unit_price` (listpris per dygn — "
+              "ändras aldrig av rabatt), `days`, `day_factor` (Σ (1 − rabatt/100)) och "
+              "`price = round(unit_price × day_factor)`; `qty` är alltid antal enheter, aldrig "
+              "antal × dagar. Logiken ligger i `src/lib/day-pricing.js`, parametrarna i "
+              "`tjanster.json → hyresdagar` (`satser`, `standard`, `fortsattning`, `maxDygn`, "
+              "`kundtext`). Tester: `day-pricing`, `admin-days-flow`, `offertmodal-days`, "
+              "`inga-satser-kundvant`."),
+        ("note", "**Rabattstegen är intern prispolicy och publiceras aldrig.** Kundvända vyer visar "
+                 "dygnspriset och vad kunden sparar i kronor — aldrig satserna. Testet "
+                 "`inga-satser-kundvant` vaktar det. Kunden ser bara `hyresdagar.kundtext`."),
 
         ("h1", "6. Ljuspaket — omstrukturerade 2026-09-20"),
         ("table", [
@@ -129,6 +184,8 @@ DOC2 = dict(
             "`PAK-0003`–`0006` är pensionerade: `active: false` + namnsuffix `(utgått)`.",
             "`0012`–`0015` är oanvända luckor — återanvänds inte.",
             "`SK-LJS-EFF-0020/0021` är reserverade om Kaleidoskop och Mini Spider ska kunna hyras styckvis.",
+            "**Gruppen `scenpaket`** (fältet `group`) samlar Scenpaket I (PAK-0016), Scenpaket II (PAK-0017) och Följespot Eurolite SL-575 (PAK-0026, ny 2026-09-28). Den renderas i en egen sektion på Färdiga paket, utanför `paketLayout`.",
+            "Large–XL+ (PAK-0007–0011) är `single`-platser i `paketLayout`.",
         ]),
         ("note", "**Slugarna på `PAK-0001` och `0002` rördes inte.** De heter fortfarande `ljus-small` "
                  "och `ljus-small-plus` trots att produkterna nu heter Medium och Medium+. Hade "
@@ -192,6 +249,15 @@ DOC2 = dict(
         ("h1", "11. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.0", "2026-10-02",
+             "Ny §5.1 Montering — en gemensam beräkning (montering.cjs, monteringMin/-Bemanning/"
+             "-Skalning/-Manuell, montering-catalog.json). Ny §5.2 Hyresdygn och flerdygnsrabatt "
+             "(saknades sedan augusti). §4.3 scenes.json omskriven: 18 tillbehör (var felaktigt 6), "
+             "scenkjolar rak/veckad, höjdregler, underlag, nya tillbehör. §4.4 leveransnoten rättad "
+             "(LEV-0003 följer nu ×2). §6 gruppen scenpaket inkl. Följespot PAK-0026. §2/§2.1 site.json-"
+             "fält, ljus.json dmx, genererade montering-catalog.json och llms.txt + not. Produkter och "
+             "prisändringar 09-22–09-28 (EFF-0022, DMX-0011–0018, DJ-0018, BLD-0015, DJ-paket +800 kr, "
+             "AI-specialist 2 500 kr) ligger i datafilerna och listas inte här."],
             ["v16.0", "2026-09-21",
              "**Nytt §7 Artikelnummerprinciper** — reglerna som styr sortimentet och skyddar "
              "orderhistoriken saknades helt i specen. §6 ljuspaketen omstrukturerade (10 aktiva artnos, "

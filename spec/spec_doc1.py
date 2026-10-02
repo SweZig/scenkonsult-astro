@@ -3,8 +3,8 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v16.0",
-    date="2026-09-21",
+    version="v17.0",
+    date="2026-10-02",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
         ("table", [
@@ -29,10 +29,11 @@ DOC1 = dict(
             "`node netlify/generate-products.mjs`",
             "`npx astro build`",
         ]),
-        ("p", "De genererade katalogfilerna (`quote-catalog.json`, `order-catalog-flat.json`, "
-              "`_products-generated.mjs`) är gitignorerade och **avspårade sedan 2026-09-20**. "
-              "De byggs om vid varje Netlify-deploy. `generate-excel.mjs` körs i `prebuild` och "
-              "auto-genererar `public/Scenkonsult_Produktkatalog.xlsx`. `build_excel_v3.py` är obsolet."),
+        ("p", "De genererade filerna (`quote-catalog.json`, `order-catalog-flat.json`, "
+              "`montering-catalog.json`, `_products-generated.mjs`, `public/llms.txt`) är gitignorerade "
+              "och byggs om vid varje Netlify-deploy. `generate-quote-catalog.py` skriver även "
+              "`montering-catalog.json` (Dok 2 §5.1). `generate-llms.mjs` och `generate-excel.mjs` körs i "
+              "`prebuild`. Hela kedjan: Dok 5 §3.6. `build_excel_v3.py` är obsolet."),
         ("note", "**Python anropas via wrappern, inte direkt** (NY 2026-09-20). `python3` rakt av träffar "
                  "Microsoft Stores platshållare i PowerShell och bryter hela byggkedjan tyst. "
                  "`scripts/run-python.mjs` provar `python3`, `python` och `py -3` och validerar varje "
@@ -53,8 +54,14 @@ DOC1 = dict(
             ["Miljö", "Används till"],
             ["Windows / PowerShell", "Normal arbetsväg: redigering, build, git, push"],
             ["device_bash (Cowork-VM på datorn)", "Läsa, söka, redigera och konvertera filer i den monterade repo-mappen. Git går numera bra här — `.gitattributes` tog bort de falska radslutsdiffarna"],
-            ["Cowork-molncontainer", "Klonar repot separat (`--depth 1 --filter=blob:none` + sparse-checkout) för att verifiera bygget, ~26 s från ingenting till verifierat bygge"],
+            ["Cowork-molncontainer", "Klonar repot separat (`--depth 1 --filter=blob:none` + sparse-checkout) för att verifiera bygget, ~26 s från ingenting till verifierat bygge. **Kan inte pusha** — git-proxyn injicerar inga credentials för repot (verifierat 2026-10-02)"],
         ]),
+        ("note", "**Push från en molnsession (2026-10-02):** färdiga commits paketeras som `git bundle` "
+                 "och skrivs till `Claude outputs/` (gitignorerad). I datorns VM klonas repot färskt i "
+                 "VM:ens hemkatalog, bundlen hämtas in och pushas med PAT:en ur `.secrets/gh-pat.txt` "
+                 "inläst i en variabel. Den lokala arbetskopian rörs aldrig. Bundlen raderas efteråt. "
+                 "Byggverifiering i VM:en är inte praktiskt — `npm ci` där tar flera minuter för 72 MB. "
+                 "Blir repot privat måste det kopplas till Claude-sessionernas källor först (Dok 6 §9.4)."),
         ("note", "**Bygget kan inte verifieras i den monterade mappen från molnsessionens sida** — "
                  "`node_modules` där är installerat för Windows. Därför molnklonen. "
                  "Den tidigare regeln \"kör aldrig git från device_bash\" är upphävd: "
@@ -225,6 +232,14 @@ DOC1 = dict(
                  "därför inte med crossfaden. Scopat `<style>` räcker här eftersom bilderna renderas i "
                  "samma fil — till skillnad från Sven-widgeten, som kräver `<style is:global>` (§6)."),
 
+        ("h2", "4.8 Språk och hreflang (NY 2026-10-02)"),
+        ("p", "`Layout.astro` har två props för flerspråkiga sidor: `lang` (`'sv'` default | `'en'`) och "
+              "`alternates` (`[{ hreflang, href }]`). `lang` styr `<html lang>`, `og:locale` "
+              "(`sv_SE`/`en_GB`) och cookiebannerns text. `alternates` ger `<link rel=\"alternate\" "
+              "hreflang>` för sidan själv, alternativen och `x-default` (svenska) — absoluta URL:er. "
+              "Används av `/` (pekar på `/en/`) och `/en/` (pekar på `/`). Nav och sidfot är svenska "
+              "även på `/en/`."),
+
         ("h1", "5. Produktkort — standardlayout"),
         ("code", '<article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40\n'
                  '  rounded-2xl overflow-hidden transition-all group flex flex-col">\n'
@@ -240,7 +255,7 @@ DOC1 = dict(
         ("note", "**ProductCard-props:** skicka alltid `bulky={p.bulky}` och "
                  "`forceLeverans={p.forceLeverans}`. Se Dok 2 §5 för fraktflaggor."),
 
-        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-09-21 — 21 filer)"),
+        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-10-02 — 23 filer)"),
         ("table", [
             ["Komponent", "Status / roll"],
             ["Price.astro", "Aktiv"],
@@ -250,7 +265,9 @@ DOC1 = dict(
             ["PaketVariantCard.astro",
              "Aktiv — **NY 2026-09-20.** MediaCards bildgalleri (pilar, dots, autoplay-video) kombinerat "
              "med MixerModelCards variantväljare. Används för färdiga ljuspaket där flera varianter delar kort."],
-            ["DynamicPaketCard.astro", "Aktiv — konfigurerbart scenkort (yta/trappor/kjol, live-pris)"],
+            ["DynamicPaketCard.astro", "Aktiv — konfigurerbart scenkort (yta/höjd/trappor/kjol, live-pris, beräknad montering)"],
+            ["ScenkjolCard.astro", "Aktiv — **NY 2026-09-28.** Ett kort för alla scenkjolar med höjd- och modellval (rak 4 m / veckad 2 m; 20 cm endast rak). Ersätter separata kjolkort på hyra-scen och tillbehörssidan"],
+            ["MonteringEngine.astro", "Aktiv — **NY 2026-09-28.** Laddar `src/lib/montering.cjs` inline i `Layout.astro` → `window.skMontering`. Samma motor som serverfunktionerna (Dok 2 §5.1)"],
             ["SceneConfigurator.astro", "Aktiv (scensidan)"],
             ["YtaJamforelse.astro", "Aktiv (scensidan)"],
             ["SceneLinkCard.astro", "Aktiv — kompakt scen-länkkort till scensidans konfigurator"],
@@ -295,15 +312,21 @@ DOC1 = dict(
         ("h1", "8. Företagsdata"),
         ("table", [
             ["Fält", "Värde"],
-            ["Namn", "Scenkonsult Norden / Sigvardsson Consulting AB"],
+            ["Namn (utåt)", "**Scenkonsult Norden** — särskilt företagsnamn, används på alla publika ytor"],
+            ["Juridisk person", "**Sigvardsson Consulting AB** — anges i villkor, personuppgiftspolicy och fakturor. Inte \"Consulting Group AB\" (fel som rättades 2026-10-02)"],
             ["Org.nr", "559068-4931"],
             ["Tel", "072-448 10 00"],
             ["Besöks- / depåadress", "Grimstagatan 164, 162 58 Vällingby"],
             ["Fakturaadress", "Vinsta Skolgränd 4, 162 70 Vällingby"],
             ["Grundat", "1986"],
-            ["Öppet", "Mån–sön 08:00–20:00"],
+            ["Öppettider", "Mån–fre 09–17, lör–sön 12–15 — **samma som Google-profilen**. Källa: `site.json → company.openingHours` (`\"Mo-Fr 09:00-17:00, Sa-Su 12:00-15:00\"`), JSON-LD i `Layout.astro`. Läses även av llms.txt, Sven och kontaktsidans öppet/stängt-pill"],
             ["Serviceområde", "Hela Storstockholm"],
         ]),
+
+        ("note", "**Öppettiderna stod som mån–sön 08–20 i specen och instruktionsfältet medan sajten sa "
+                 "mån–fre 09–17 — och Google-profilen en tredje sak.** Beslut 2026-10-02: Google-profilen "
+                 "gäller. Ändras de, ändra `site.json`, JSON-LD i `Layout.astro`, ortsidornas schema och "
+                 "Google-profilen i samma svep."),
 
         ("h1", "9. Analytics & tracking"),
         ("table", [
@@ -312,13 +335,26 @@ DOC1 = dict(
             ["GA4 Measurement ID", "G-TZB1J3FF4P"],
             ["GA4 Property ID", "417375423"],
             ["Search Console", "sc-domain:scenkonsult.se"],
-            ["Cookie consent", "localStorage sk_cookie_consent, 395 dagar; GTM laddas vid page load om consent finns"],
+            ["Cookie consent", "localStorage `sk_cookie_consent`, 395 dagar. Inget val = inget samtycke: GTM laddas bara efter Godkänn"],
             ["Conversion", "\"Submit lead form\" triggar på /tack/"],
+        ]),
+        ("h2", "9.1 Cookiebannern (omarbetad 2026-10-02)"),
+        ("ul", [
+            "**Avvisa och Godkänn har identisk stil** — samtycke ska vara lika lätt att neka som att ge.",
+            "**Ångra/ändra:** alla element med `data-cookie-settings` öppnar bannern igen — länken \"Cookie-inställningar\" i sidfoten och knappen i personuppgiftspolicyn §6. Avvisa efter tidigare Godkänn tar bort `_ga`/`_gid`-cookies och laddar om sidan utan GTM.",
+            "**GTM laddas en gång:** head-skriptet sätter `window.__skGtmLoaded`; bannerskriptets `loadGTM()` avbryter om flaggan finns. Före 2026-10-02 laddades GTM två gånger per sidvisning för återkommande besökare som godkänt — GA4-siffror före dess kan vara dubbelräknade.",
+            "**Inget tredjepartsinnehåll före samtycke:** Google Maps på /kontakt/ laddas först vid klick på \"Visa karta\"; YouTube (youtube-nocookie) först när besökaren startar en video.",
         ]),
 
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.0", "2026-10-02",
+             "§8 namn (Scenkonsult Norden utåt, Sigvardsson Consulting AB juridiskt) och öppettider "
+             "(Google-profilen, källa site.json) + not. Ny §9.1 cookiebannern. Ny §4.8 språk och hreflang "
+             "(lang/alternates). §5.1 23 komponenter (ScenkjolCard, MonteringEngine). §1.1 genererade "
+             "filer inkl. montering-catalog.json och llms.txt. §1.3 molnet kan inte pusha — "
+             "bundle-via-VM-flödet."],
             ["v16.0", "2026-09-21",
              "§1 Repo lokalt rättat till Windows-sökvägen; ny §1.3 Arbetsmiljöer (molnklon för "
              "byggverifiering, device_bash-git tillåtet efter .gitattributes) ersätter den upphävda "

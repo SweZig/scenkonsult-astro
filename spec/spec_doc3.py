@@ -2,9 +2,9 @@ DOC3 = dict(
     doc_no=3,
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
-    subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde",
-    version="v16.0",
-    date="2026-09-21",
+    subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
+    version="v17.0",
+    date="2026-10-02",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
         ("h2", "1.1 Top-level nav"),
@@ -22,11 +22,15 @@ DOC3 = dict(
         ("p", "Hamburger-meny med accordion för underkategorier. Varukorg-ikon till vänster om "
               "hamburger."),
 
+        ("h2", "1.4 Sidfot (uppdaterad 2026-10-02)"),
+        ("p", "Nedersta raden: `© {årtal} Scenkonsult Norden` — årtalet räknas fram vid bygget — "
+              "och länkarna Integritetspolicy · **Cookie-inställningar** (öppnar cookiebannern igen, "
+              "Dok 1 §9.1) · Hyresvillkor · **In English** (`/en/`)."),
+
         ("h1", "2. Sidträd"),
-        ("note", "**Sidräkning (rättad 2026-09-21): 82 `.astro`-filer i `src/pages/` som bygger 107 "
-                 "sidor.** 81 statiska filer plus `hyra-ljud-scen-[ort].astro`, som genererar 26 "
-                 "ortssidor via `getStaticPaths`. Tidigare versioner angav 44 respektive ~79 — båda för "
-                 "låga."),
+        ("note", "**Sidräkning (2026-10-02): 83 `.astro`-filer i `src/pages/` som bygger 108 "
+                 "sidor.** 82 statiska filer plus `hyra-ljud-scen-[ort].astro`, som genererar 26 "
+                 "ortssidor via `getStaticPaths`. Ny sedan v16: `/en/`."),
         ("note", "**Sidlistan nedan är en inventarielista och blir inaktuell inom en månad.** Den bör "
                  "genereras ur `src/pages/` i stället för att handskrivas — se Dok 6 §9.2. "
                  "Läs den som en karta över strukturen, inte som facit på vilka filer som finns."),
@@ -38,7 +42,7 @@ DOC3 = dict(
             ["Hyra scen", "/vara-tjanster/hyra-scen/ (+ /pipe-drape/)"],
             ["Hyra ljud (hub)", "/vara-tjanster/hyra-ljud/"],
             ["— Portable / Event / Music / Live", "/vara-tjanster/hyra-ljud/{portable,event,music,live}/"],
-            ["— PA-anläggning / Kolumnhögtalare", "/vara-tjanster/hyra-ljud/{pa-anlaggning,kolumnhogtalare}/"],
+            ["— Kolumnhögtalare", "/vara-tjanster/hyra-ljud/kolumnhogtalare/"],
             ["Hyra bild (hub)", "/vara-tjanster/hyra-bild/"],
             ["— Projektor & skärm / LED-vägg", "/vara-tjanster/{hyra-bild-projektorer-skarmar,hyra-bild-led-vagg}/"],
             ["Hyra ljus (hub) + undersidor", "/vara-tjanster/hyra-ljus/ (fardiga-paket, ljuseffekter, rok-pyro, stativ-tross, moving-heads)"],
@@ -48,12 +52,22 @@ DOC3 = dict(
         ("note", "**Bild-par:** /hyra-bild/ = SEO-hub (bred intent), /hyra-bild-projektorer-skarmar/ = "
                  "den \"riktiga\" produktsidan (long-tail). **DJ-par:** /hyra-dj/ = boka DJ (tjänst), "
                  "/hyra-dj-utrustning/ = hyra hårdvara — separerade på intent, ingen kannibalisering."),
+        ("note", "**Ljud-paret (2026-10-02):** /hyra-ljud/ äger \"hyra ljud\", \"hyra högtalare\" och "
+                 "\"ljudanläggning\" (titel \"Hyra Högtalare & Ljudanläggning Stockholm\", H1 \"Hyra "
+                 "högtalare & ljud i Stockholm\", ingress ur `ljud.json → intro`). /hyra-ljud/event/ "
+                 "har inte längre \"Ljudanläggning\" i titeln så att den slutar konkurrera; H1 lämnades "
+                 "orörd. Inga URL:er ändrades. Metabeskrivningens lägsta pris räknas ur datan "
+                 "(`{fran}` i `ljud.json → metaDescription`)."),
+        ("p", "Projektor- och skärmsidan har sedan 2026-09-23 samma \"Glöm inte tillbehören\"-banner "
+              "som scensidan, under LED-skärmarna; den leder till projektordukarna (`#projektorduk`)."),
 
         ("h2", "2.2 Färdiga ljuspaket — omstrukturerad 2026-09-20"),
         ("p", "`/vara-tjanster/hyra-ljus/fardiga-paket/` drivs sedan 2026-09-20 av `paketLayout` i "
-              "`ljus.json` (Dok 2 §6.1) i stället för av produktarrayens ordning. Sidan renderar "
-              "**tio kort i stället för tolv fristående** — fyra av dem är `PaketVariantCard` med "
-              "knappväljare där flera artikelnummer delar ett kort:"),
+              "`ljus.json` (Dok 2 §6.1) i stället för av produktarrayens ordning. `paketLayout` har "
+              "**tio platser** — fyra `PaketVariantCard` med knappväljare där flera artikelnummer delar "
+              "ett kort, och sex enkla kort (Medium++ och Large–XL+, PAK-0025 och 0007–0011). "
+              "Därefter en egen sektion för gruppen `scenpaket`: Scenpaket I, Scenpaket II och "
+              "Följespot (PAK-0016/0017/0026). Variantkorten:"),
         ("table", [
             ["Kort", "Varianter"],
             ["Ljuspaket, Small", "PAK-0018 · PAK-0019 (Duo)"],
@@ -77,6 +91,9 @@ DOC3 = dict(
               "rokvatska-guide, sdi-hdmi-fiber-guide, ljud-brollop, ljud-foretagsfest, ljus-brollop, "
               "dj-brollop-pris, konferens-av-checklista, studentflak-checklista, "
               "led-vagg-kalkylator [301-redirect])."),
+        ("p", "**Titlar 2026-10-02:** sex guidetitlar hade \"2025\" och bytte till 2026. "
+              "`hyra-pa-system` heter nu \"Hyra Högtalare & PA-system Stockholm — Priser 2026\" med H1 "
+              "\"… priser per gästantal\" (samma URL). Prisguidens etikett säger \"Prisguide 2026\"."),
         ("note", "**Guide- och eventsidor slår upp produkter på `artno`, aldrig på index.** Sju sidor "
                  "(for/brollop, for/foretagsfest, ljud-brollop, ljud-foretagsfest, ljus-brollop, "
                  "ljussattning-tips, vad-kostar-det) pekade på fel produkt efter ljuspaket-"
@@ -85,7 +102,13 @@ DOC3 = dict(
         ("h2", "2.5 Övrigt"),
         ("p", "Frontpage `/`, Varukorg, Bokningssida, Om oss, Kontakt, FAQ, Eventlokal-guide, "
               "Festguide, Hyresvillkor (hub + privatperson/foretag), Personuppgiftpolicy, Feedback, "
-              "Referenser, Kundorder `/order/`, `/sign/`, `/tack/`, `/svens-kunskapsskola/`."),
+              "Referenser, Kundorder `/order/`, `/sign/`, `/tack/`, `/svens-kunskapsskola/`, "
+              "**`/en/`**."),
+        ("ul", [
+            "**`/en/` (NY 2026-10-02)** — engelsk landningssida för internationella företag, ambassader och organisationer samt utländska eventbyråer. Tjänster med \"från\"-priser ur datan, referenskunder ur `clients.json`, FAQ med `FAQPage`-schema (`inLanguage: en`). Detaljlänkar går till de svenska produktsidorna. Formuläret postar till `skicka-kontakt` med `typ: Företag`, `sendCopy: false` (kundkvittot finns bara på svenska) och meddelandet märkt **\"[ENGLISH ENQUIRY — svara på engelska]\"**. Tack visas på sidan. `lang=\"en\"` + hreflang (Dok 1 §4.8).",
+            "**/kontakt/** — kartan (Google Maps) laddas först vid klick på \"Visa karta\". Öppet/stängt-pillen räknas ur `site.json → company.openingHours` (byggs server-side som `data-periods`), inte längre ur Google Places API.",
+            "**Eventlokal-guiden** — faktagranskad 2026-10-02 (3Arena, Spegelsalen 70–300, Münchenbryggeriet 10–3 500, Annexet, Cirkus m.fl.). Antalet år sedan 1986 räknas fram.",
+        ]),
 
         ("h2", "2.6 Admin (/admin/)"),
         ("table", [
@@ -93,7 +116,7 @@ DOC3 = dict(
             ["Kanban / order", "/admin/"],
             ["Produkter", "/admin/produkter/"],
             ["Referenskunder", "/admin/referenser/ (Ort-dropdown + Utvald-kryssruta)"],
-            ["Recensioner", "/admin/recensioner/"],
+            ["Recensioner", "/admin/recensioner/ (manuell inläggning, länk till Google-profilen)"],
             ["Bulletin", "/admin/bulletin/"],
             ["Statistik", "/admin/stats/ (+ /stats/forsaljning/)"],
             ["Sven-analytics", "/admin/sven/"],
@@ -167,17 +190,45 @@ DOC3 = dict(
         ("h2", "4.3 Kunddata och recensioner"),
         ("note", "Kundlistan hämtas från Supabase-tabellen `clients` (via `clients.json` + live "
                  "clients-list). Utvalda kunder styrs av `featured`-flaggan; kunder kan taggas med ort "
-                 "för ortssidorna (Dok 5). Google Reviews renderas server-side från Supabase-tabellen "
-                 "`reviews` (alla recensioner, inte längre max 5)."),
+                 "för ortssidorna (Dok 5). Google-recensioner renderas server-side från Supabase-tabellen "
+                 "`reviews` och hydreras live via `reviews-list`."),
+        ("note", "**Google Places API används inte längre (beslut 2026-10-02).** Den gav bara max 5 "
+                 "recensioner, och efter att Google Cloud-testperioden löpt ut svarade den "
+                 "PERMISSION_DENIED. Badgens betyg och antal på /referenser/ och /kontakt/ räknas nu ur "
+                 "samma lista som korten. Nya recensioner läggs in för hand i /admin/recensioner/."),
 
         ("h1", "5. Bokningsflöde (kund)"),
         ("p", "\"Begär offert\" → `/bokningssida/`. Produkter läggs i varukorg → skickas via "
               "\"Maila offertförfrågan\" (`intent=offert`) eller \"Boka detta nu\" (`intent=boka`). "
-              "Ingen betaltjänst (avsiktligt). Detaljer om order/admin i Dok 5."),
+              "Ingen betaltjänst (avsiktligt). Varukorgen visar \"Montering & demontering "
+              "(beräknad)\" (Dok 2 §5.1) och ber kunden beskriva underlaget när en scen ligger i "
+              "korgen. Engelsktalande kunder använder formuläret på `/en/`. Detaljer om order/admin "
+              "i Dok 5."),
 
-        ("h1", "6. Ändringshistorik"),
+        ("h1", "7. SEO- och AI-filer (NY 2026-10-02)"),
+        ("table", [
+            ["Fil / källa", "Innehåll och regel"],
+            ["public/robots.txt", "Alla får läsa sajten; /admin/, /order/, /api/, /.netlify/ och wp-sökvägarna är spärrade. AI-agenterna (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot, Claude-User, PerplexityBot, Perplexity-User, Google-Extended, GoogleOther, Applebot-Extended, CCBot, Meta-ExternalAgent, Amazonbot, DuckAssistBot) står i **en** gemensam grupp med samma Disallow — en namngiven grupp ersätter `*`-gruppen för den boten"],
+            ["public/llms.txt", "**Genereras** av `scripts/generate-llms.mjs` i prebuild/predev ur datafilerna (Dok 2 §2.1). Redigeras aldrig för hand"],
+            ["sitemap-index.xml", "@astrojs/sitemap"],
+            ["JSON-LD LocalBusiness", "`Layout.astro`: name Scenkonsult Norden, legalName Sigvardsson Consulting AB, taxID, vatID, openingHoursSpecification (mån–fre + lör–sön), `sameAs` + `hasMap` = Google-profilens cid-URL, Facebook, Instagram, LinkedIn. Ingen AggregateRating (self-serving, borttaget 2026-06-15)"],
+            ["hreflang", "`/` ↔ `/en/` + x-default (Dok 1 §4.8)"],
+        ]),
+        ("p", "**AI-synligheten mäts månadsvis** av ett schemalagt uppdrag (den 2:a kl 08:52): tre fasta "
+              "ChatGPT-frågor, 15 sökfrågor via Claudes webbsök och en teknisk kontroll av robots.txt, "
+              "llms.txt och JSON-LD. Rapporten skrivs till projektet som "
+              "`claude/AI_Synlighet_Test_<datum>.md`. Baslinje: 2026-10-02."),
+
+        ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.0", "2026-10-02",
+             "Ny §7 SEO- och AI-filer (robots.txt, genererad llms.txt, JSON-LD, hreflang, månadsmätning "
+             "av AI-synlighet). Ny §1.4 Sidfot. §2 108 sidor / 83 filer, ny `/en/` och not om "
+             "kontaktsidan och eventlokal-guiden. §2.1 /hyra-ljud/pa-anlaggning/ borttagen (fanns inte) "
+             "+ not om ljud-paret och tillbehörsbannern. §2.2 tio layoutplatser + scenpaket-sektionen. "
+             "§2.4 titlar 2026. §4.3 Google Places API borttaget. §5 beräknad montering, /en/. "
+             "Historiken flyttad till §8."],
             ["v16.0", "2026-09-21",
              "§2 sidräkningen rättad till 82 filer / 107 sidor (var ~79) + not om att sidlistan bör "
              "genereras. Ny §2.2 Färdiga ljuspaket — paketLayout-driven, 10 kort varav 4 med "

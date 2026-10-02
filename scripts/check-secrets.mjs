@@ -26,7 +26,7 @@ const PATTERNS = [
   ['Lösenord i URL', /[a-z]+:\/\/[^\s:/@]+:[^\s:/@]{6,}@/i],
 ];
 
-const BLOCKED_FILES = [/(^|\/)\.env(\.|$)/, /(^|\/)\.secrets\//, /\.(pem|p12|pfx|key)$/i, /gh-pat/i];
+const BLOCKED_FILES = [/(^|\/)\.env(\.(?!example$)|$)/, /(^|\/)\.secrets\//, /\.(pem|p12|pfx|key)$/i, /gh-pat/i];
 
 function jwtRole(token) {
   try {
