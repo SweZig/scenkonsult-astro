@@ -230,6 +230,7 @@ const pages = [
   ['Referenser', '/referenser/'],
   ['Om oss', '/om-oss/'],
   ['Kontakt', '/kontakt/'],
+  ['In English (landing page for international companies, embassies and agencies)', '/en/'],
 ];
 for (const [t, u] of pages) L.push(`- ${t}: ${link(u)}`);
 L.push('');

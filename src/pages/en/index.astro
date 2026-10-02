@@ -1,0 +1,260 @@
+---
+// /en/ — English landing page for international companies, embassies,
+// organisations and foreign event agencies (decision 2026-10-02).
+// One page only: links to the Swedish product pages for details.
+// All prices are read from src/data — never hard-coded here.
+import Layout from '../../layouts/Layout.astro';
+import ModernHero from '../../components/ModernHero.astro';
+import Tel from '../../components/Tel.astro';
+import Mail from '../../components/Mail.astro';
+import site from '../../data/site.json';
+import scenes from '../../data/scenes.json';
+import ljud from '../../data/ljud.json';
+import ljus from '../../data/ljus.json';
+import bild from '../../data/bild.json';
+import dj from '../../data/dj.json';
+import tjanster from '../../data/tjanster.json';
+import clientsData from '../../data/clients.json';
+import { getSummary } from '../../utils/reviews';
+
+const active = (arr: any[] = []) => arr.filter((p) => p && p.active !== false && !/\(utgått\)/i.test(p.name || ''));
+const minPrice = (...lists: any[][]) =>
+  Math.min(...lists.flatMap((l) => active(l).map((p) => Number(p.price)).filter((n) => n > 0)));
+const sek = (n: number) => `${n.toLocaleString('en-GB')} SEK`;
+
+const prices = {
+  stage: minPrice(scenes.products),
+  sound: minPrice((ljud as any).event.products, (ljud as any).music.products, (ljud as any).live.products, (ljud as any).portable.products),
+  light: minPrice((ljus as any).paket.products),
+  av: minPrice(bild.products),
+  dj: minPrice((dj as any).packages),
+  delivery: (tjanster as any).leverans.standard.pris,
+  hourly: (tjanster as any).montering.prisPerTimme,
+};
+
+const reviews = getSummary();
+
+// Reference clients relevant to this audience — names as listed in clients.json
+const wanted = ['Brasiliens Ambassad', 'Indiens Ambassad', 'EY', 'Tele2', 'ICA Sverige', 'ABG Sundal Collier',
+  'Akademiska Hus', 'Stockholm Stad', 'Mälardalens Universitet', 'Internationella Engelska Skolan', 'Hacksaw Studios'];
+const enName: Record<string, string> = {
+  'Brasiliens Ambassad': 'Embassy of Brazil',
+  'Indiens Ambassad': 'Embassy of India',
+  'Stockholm Stad': 'City of Stockholm',
+  'Mälardalens Universitet': 'Mälardalen University',
+};
+const clientNames = new Set(((clientsData as any).clients || []).map((c: any) => c.name));
+const clients = wanted.filter((n) => clientNames.has(n)).map((n) => enName[n] || n);
+
+const services = [
+  { title: 'Stages', from: prices.stage, unit: 'per day', text: 'Modular steel stage decks from 2×2 m to 8×6 m, indoor and outdoor, with stairs, skirts and roof options.', href: '/vara-tjanster/hyra-scen/' },
+  { title: 'Sound & PA', from: prices.sound, unit: 'per day', text: 'Speech systems for conferences, PA with subwoofers for parties, live sound for bands — 20 to 4,000 guests. Wireless microphones and mixers.', href: '/vara-tjanster/hyra-ljud/' },
+  { title: 'Lighting', from: prices.light, unit: 'per day', text: 'Plug-and-play lighting packages, uplights, moving heads, haze and stage lighting with DMX control.', href: '/vara-tjanster/hyra-ljus/' },
+  { title: 'Projectors, screens & LED', from: prices.av, unit: 'per day', text: 'Full HD and 4K projectors, 65–85″ screens and modular LED walls on truss for presentations and stage backdrops.', href: '/vara-tjanster/hyra-bild/' },
+  { title: 'DJ packages', from: prices.dj, unit: 'incl. sound & light', text: 'Professional DJs with sound and lighting for receptions, gala dinners and after-parties — 80 to 350 guests.', href: '/vara-tjanster/hyra-dj/' },
+  { title: 'Technicians & crew', from: prices.hourly, unit: 'per hour', text: 'Sound engineers and technicians on site for soundcheck, operation during the event and troubleshooting.', href: '/vara-tjanster/hyra-ljudtekniker/' },
+];
+
+const audiences = [
+  { title: 'International companies', text: 'Conferences, kick-offs, product launches and gala dinners in Stockholm — one supplier for stage, sound, light and screens, set up before your guests arrive.' },
+  { title: 'Embassies & organisations', text: 'National day receptions, seminars and cultural events. We handle discreet speech systems, podium microphones and lighting for formal settings.' },
+  { title: 'Event agencies abroad', text: 'Need a reliable local AV partner in Stockholm? We deliver, rig and operate according to your rider and stay in contact with your producer throughout.' },
+];
+
+const steps = [
+  { n: '01', title: 'Tell us about the event', text: 'Date, venue, number of guests and what the programme looks like. The form below is enough.' },
+  { n: '02', title: 'Quote with fixed prices', text: 'We reply in English with an itemised quote — equipment, delivery, setup and any technician hours.' },
+  { n: '03', title: 'Delivery & setup', text: 'We deliver to the venue, rig and test everything before the event starts.' },
+  { n: '04', title: 'Pick-up', text: 'We dismantle and collect after the event. You don\'t need to handle any equipment.' },
+];
+
+const faq = [
+  { q: 'Do you work in English?', a: 'Yes. Quotes, emails, phone calls and on-site communication can all be in English.' },
+  { q: 'What area do you cover?', a: 'All of Greater Stockholm — the city, Solna, Nacka, Lidingö, Täby and surrounding municipalities. We are based in Vällingby, west Stockholm. For venues further away, ask us for a quote.' },
+  { q: 'How are prices quoted?', a: `Prices are per rental day (22 hours) in Swedish kronor, excluding 25 % Swedish VAT. Delivery and collection within Stockholm starts at ${sek(prices.delivery)}, and setup is charged at ${sek(prices.hourly)} per hour based on the equipment ordered. Longer rentals get a multi-day discount.` },
+  { q: 'Can you invoice our company?', a: 'Yes, we invoice companies and organisations, normally with 5–30 days payment terms. If your organisation is outside Sweden, include your billing details and VAT number in the enquiry and we will confirm the invoicing setup in the quote.' },
+  { q: 'Can you provide a technician for the whole event?', a: `Yes. A technician or sound engineer can stay for soundcheck and run the event, from ${sek(prices.hourly)} per hour.` },
+  { q: 'How far in advance should we book?', a: 'Popular weekends — May–June, midsummer and December — book up 2–4 months ahead. For weekdays we can often help at short notice — contact us and we will check availability.' },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  inLanguage: 'en',
+  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<Layout
+  lang="en"
+  alternates={[{ hreflang: 'sv', href: '/' }]}
+  title="Stage, Sound & AV Rental in Stockholm | Scenkonsult Norden"
+  description={`Rent stages, sound systems, lighting, projectors and LED screens in Stockholm — with delivery, setup and English-speaking technicians. Since ${site.company.founded}.`}
+  schemaExtra={faqSchema}
+>
+  <ModernHero
+    eyebrow={`Stockholm · Since ${site.company.founded} · We speak English`}
+    h1="Stage, sound & AV rental in"
+    h1Accent="Stockholm"
+    intro="Event technology for conferences, receptions, gala dinners and concerts in Stockholm. We deliver, set up and operate stages, sound, lighting and screens — so your team can focus on the programme."
+    chips={[
+      `Stages from ${sek(prices.stage)}/day`,
+      '20–4,000 guests',
+      'Delivery & setup across Greater Stockholm',
+      'Technicians on site',
+      `${reviews.rating.toFixed(1)} ★ on Google`,
+    ]}
+  />
+
+  <!-- WHO WE WORK WITH -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {audiences.map((a) => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+          <h2 class="text-white text-xl font-bold mb-2" style="font-family:'DM Serif Display',serif">{a.title}</h2>
+          <p class="text-gray-400 text-sm leading-relaxed">{a.text}</p>
+        </div>
+      ))}
+    </div>
+    {clients.length > 0 && (
+      <p class="text-gray-400 text-sm mt-8 text-center">
+        <span class="text-white font-semibold">Clients include</span> {clients.join(' · ')}
+      </p>
+    )}
+  </section>
+
+  <!-- SERVICES -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <p class="text-sm font-semibold uppercase tracking-wide mb-2" style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif">What we rent out</p>
+    <h2 class="text-3xl font-bold text-white mb-8" style="font-family:'DM Serif Display',serif">Everything for the technical side of your event</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {services.map((s) => (
+        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-6 flex flex-col transition-all">
+          <h3 class="text-white text-lg font-bold mb-2">{s.title}</h3>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-1">{s.text}</p>
+          <div class="flex items-end justify-between border-t border-white/10 pt-3 gap-3">
+            <div class="leading-none">
+              <span class="text-gray-400 text-xs">from </span>
+              <span class="text-brand-orange font-extrabold text-xl">{sek(s.from)}</span>
+              <span class="text-gray-400 text-xs"> {s.unit}</span>
+            </div>
+            <a href={s.href} class="text-xs" style="color:#c4b5f4" hreflang="sv">Details (Swedish) →</a>
+          </div>
+        </article>
+      ))}
+    </div>
+    <p class="text-gray-400 text-xs mt-4">All prices in Swedish kronor, excluding 25 % VAT, per rental day unless stated. Delivery from {sek(prices.delivery)}.</p>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-3xl font-bold text-white mb-8" style="font-family:'DM Serif Display',serif">How it works</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {steps.map((s) => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
+          <div class="text-brand-orange font-bold mb-2" style="font-family:'Space Grotesk',sans-serif">{s.n}</div>
+          <h3 class="text-white font-bold mb-2">{s.title}</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">{s.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- CONTACT FORM -->
+  <section id="enquiry" class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 sm:p-8">
+      <h2 class="text-3xl font-bold text-white mb-2" style="font-family:'DM Serif Display',serif">Send an enquiry</h2>
+      <p class="text-gray-400 text-sm mb-6">We reply in English, normally within one working day. Prefer to talk? Call <Tel label="+46 72 448 10 00" class="text-white underline" /> or email <Mail class="text-white underline" />.</p>
+      <form id="en-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4" novalidate>
+        <label class="text-sm text-gray-400">Name *<input id="en-name" required autocomplete="name" class="en-in" /></label>
+        <label class="text-sm text-gray-400">Company / organisation *<input id="en-company" required autocomplete="organization" class="en-in" /></label>
+        <label class="text-sm text-gray-400">Email *<input id="en-email" type="email" required autocomplete="email" class="en-in" /></label>
+        <label class="text-sm text-gray-400">Phone (with country code) *<input id="en-phone" type="tel" required autocomplete="tel" class="en-in" /></label>
+        <label class="text-sm text-gray-400">Event date<input id="en-date" type="date" class="en-in" /></label>
+        <label class="text-sm text-gray-400">Number of guests<input id="en-guests" inputmode="numeric" class="en-in" /></label>
+        <label class="text-sm text-gray-400 sm:col-span-2">Venue / address<input id="en-venue" class="en-in" /></label>
+        <label class="text-sm text-gray-400 sm:col-span-2">What do you need? *<textarea id="en-message" rows="5" required class="en-in" placeholder="e.g. conference for 150 people: speech system with 4 wireless mics, projector and screen, technician for the day"></textarea></label>
+        <input id="en-website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
+        <div class="sm:col-span-2 flex flex-wrap items-center gap-4">
+          <button id="en-submit" type="submit" class="px-6 py-3 rounded-lg font-semibold hover:bg-brand-orange-light transition-colors" style="background:#c4b5f4;color:#0c0a24;border:0;cursor:pointer">Send enquiry</button>
+          <p id="en-status" class="text-sm" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <h2 class="text-3xl font-bold text-white mb-6" style="font-family:'DM Serif Display',serif">Frequently asked questions</h2>
+    <div class="space-y-3">
+      {faq.map((f) => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl p-5">
+          <summary class="text-white font-semibold cursor-pointer">{f.q}</summary>
+          <p class="text-gray-400 text-sm leading-relaxed mt-3">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- COMPANY -->
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 text-center">
+    <p class="text-gray-400 text-sm">
+      <span class="text-white font-semibold">{site.company.name}</span> · {site.company.address.street}, {site.company.address.postalCode} {site.company.address.city}, Stockholm ·
+      Company reg. no. {(site.company as any).orgNr} · Office hours Mon–Fri 09–17, Sat–Sun 12–15
+    </p>
+    <p class="text-gray-400 text-xs mt-2"><a href="/" hreflang="sv" style="color:#c4b5f4">Svenska →</a></p>
+  </section>
+
+  <style>
+    .en-in {
+      display: block; width: 100%; margin-top: 0.35rem; padding: 0.65rem 0.8rem;
+      border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.15);
+      background: #12102d; color: #fff; color-scheme: dark; font-size: 0.95rem;
+    }
+    .en-in:focus { outline: 2px solid #c4b5f4; outline-offset: 1px; }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var form = document.getElementById('en-form');
+      if (!form) return;
+      var v = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+      var status = document.getElementById('en-status');
+      var btn = document.getElementById('en-submit');
+      var say = function (msg, ok) { status.textContent = msg; status.style.color = ok ? '#86efac' : '#fca5a5'; };
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var name = v('en-name'), company = v('en-company'), email = v('en-email'), phone = v('en-phone'), msg = v('en-message');
+        if (!name || !company || !email || !phone || !msg) { say('Please fill in name, company, email, phone and what you need.', false); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say('Please check the email address.', false); return; }
+        btn.disabled = true; btn.textContent = 'Sending…'; say('', true);
+        var venue = v('en-venue');
+        // skicka-kontakt is shared with the Swedish form; the marker tells staff to reply in English.
+        var meddelande = '[ENGLISH ENQUIRY — svara på engelska]\n' + (venue ? 'Venue: ' + venue + '\n' : '') + '\n' + msg;
+        try {
+          var r = await fetch('/.netlify/functions/skicka-kontakt', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              namn: name, foretag: company, epost: email, telefon: phone, meddelande: meddelande,
+              typ: 'Företag', gaster: v('en-guests'), datum: v('en-date'),
+              leverans: 'delivery', hittade: 'Engelska sidan /en/', website: v('en-website'), sendCopy: false,
+            }),
+          });
+          var j = await r.json().catch(function () { return {}; });
+          if (r.ok && j.ok) {
+            form.reset();
+            say('Thank you — we have received your enquiry and will reply in English, normally within one working day.', true);
+            btn.textContent = 'Sent';
+          } else {
+            say('Something went wrong. Please try again, or use the phone number or email link above.', false);
+            btn.disabled = false; btn.textContent = 'Send enquiry';
+          }
+        } catch (_) {
+          say('Network error. Please try again, or use the phone number or email link above.', false);
+          btn.disabled = false; btn.textContent = 'Send enquiry';
+        }
+      });
+    })();
+  </script>
+</Layout>

@@ -34,6 +34,10 @@ interface Props {
   noindex?: boolean;
   breadcrumbs?: { label: string; href?: string }[];
   article?: { headline: string; datePublished?: string; dateModified?: string; image?: string };
+  /** Sidans språk. Styr <html lang>, og:locale och cookiebannerns text. */
+  lang?: 'sv' | 'en';
+  /** hreflang-alternativ, t.ex. [{ hreflang: 'en', href: '/en/' }]. Sidan själv läggs till automatiskt. */
+  alternates?: { hreflang: string; href: string }[];
 }
 
 const {
@@ -44,7 +48,19 @@ const {
   noindex = false,
   breadcrumbs = [],
   article,
+  lang = 'sv',
+  alternates = [],
 } = Astro.props;
+const isEn = lang === 'en';
+// hreflang: sidan själv + angivna alternativ + x-default (svenska) — absoluta URL:er
+const _abs = (h: string) => new URL(h, 'https://scenkonsult.se').href;
+const hreflangLinks = alternates.length
+  ? [
+      { hreflang: lang, href: _abs(Astro.url.pathname) },
+      ...alternates.map((a) => ({ hreflang: a.hreflang, href: _abs(a.href) })),
+      { hreflang: 'x-default', href: _abs(isEn ? alternates.find((a) => a.hreflang === 'sv')?.href || '/' : Astro.url.pathname) },
+    ]
+  : [];
 
 // OG-bild per sida: explicit image-prop vinner, annars härleds en relevant
 // kategori-banner från URL:en. Faller tillbaka på hero-bilden.
@@ -182,7 +198,7 @@ const localBusinessSchema = {
 
 ---
 <!DOCTYPE html>
-<html lang="sv">
+<html lang={lang}>
 <head>
   <!-- GTM laddas endast efter cookie-samtycke -->
   <script>
@@ -213,13 +229,14 @@ const localBusinessSchema = {
   <meta name="description" content={description} />
   {noindex && <meta name="robots" content="noindex, nofollow" />}
   <link rel="canonical" href={canonicalURL} />
+  {hreflangLinks.map((l) => <link rel="alternate" hreflang={l.hreflang} href={l.href} />)}
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content={canonicalURL} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:image" content={`https://scenkonsult.se${_resolvedOg}`} />
-  <meta property="og:locale" content="sv_SE" />
+  <meta property="og:locale" content={isEn ? "en_GB" : "sv_SE"} />
   <meta property="og:site_name" content="Scenkonsult Norden" />
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -256,15 +273,16 @@ const localBusinessSchema = {
   <!-- Cookie-banner -->
   <div id="sk-cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(12,10,36,0.97);border-top:1px solid rgba(196,181,244,0.25);padding:1rem 1.5rem;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
     <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.875rem;font-family:'Space Grotesk',sans-serif;max-width:700px;">
-      Vi använder cookies för besöksstatistik (Google Analytics) för att förbättra sajten. Du kan ändra ditt val när som helst under <em>Cookie-inställningar</em> längst ner på sidan. 
-      <a href="/personuppgiftpolicy/" style="color:#c4b5f4;text-decoration:underline;">Läs vår personuppgiftspolicy</a>
+      {isEn
+        ? <Fragment>We use cookies for visitor statistics (Google Analytics) to improve the site. You can change your choice at any time under <em>Cookie-inställningar</em> at the bottom of the page. <a href="/personuppgiftpolicy/" style="color:#c4b5f4;text-decoration:underline;">Privacy policy (Swedish)</a></Fragment>
+        : <Fragment>Vi använder cookies för besöksstatistik (Google Analytics) för att förbättra sajten. Du kan ändra ditt val när som helst under <em>Cookie-inställningar</em> längst ner på sidan. <a href="/personuppgiftpolicy/" style="color:#c4b5f4;text-decoration:underline;">Läs vår personuppgiftspolicy</a></Fragment>}
     </p>
     <div style="display:flex;gap:0.75rem;flex-shrink:0;">
       <button id="sk-cookie-decline" style="padding:0.5rem 1.25rem;border-radius:0.5rem;border:1px solid #c4b5f4;background:#c4b5f4;color:#0c0a24;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
-        Avvisa
+        {isEn ? 'Decline' : 'Avvisa'}
       </button>
       <button id="sk-cookie-accept" style="padding:0.5rem 1.25rem;border-radius:0.5rem;border:1px solid #c4b5f4;background:#c4b5f4;color:#0c0a24;font-size:0.875rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;">
-        Godkänn
+        {isEn ? 'Accept' : 'Godkänn'}
       </button>
     </div>
   </div>
@@ -706,6 +724,8 @@ const localBusinessSchema = {
         <a href="/personuppgiftpolicy/#cookies" data-cookie-settings style="color:inherit;">Cookie-inställningar</a>
         &nbsp;·&nbsp;
         <a href="/hyresvillkor/" style="color:inherit;">Hyresvillkor</a>
+        &nbsp;·&nbsp;
+        <a href="/en/" hreflang="en" lang="en" style="color:inherit;">In English</a>
       </span>
     </div>
   </footer>
