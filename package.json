@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "sync": "git pull --rebase --autostash && npm ci",
+    "prepare": "git config core.hooksPath .githooks || true",
     "preflight": "git fetch && git status --short && npm run build",
     "predev": "npm run generate-catalogs && npm run generate-llms",
     "dev": "astro dev",
