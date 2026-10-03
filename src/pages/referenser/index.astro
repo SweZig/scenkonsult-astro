@@ -156,12 +156,13 @@ const eventGallery: Array<{
 ];
 
 // Logotyper för "De litar på oss" — en fil per kund i /images/kunder/
-const clientLogos: Array<{ src: string; name: string; w: number; h: number }> = [
+// tall: höga märken (rundlar, sköldar) får 92 % av kortets höjd i stället för 58 %
+const clientLogos: Array<{ src: string; name: string; w: number; h: number; tall?: boolean }> = [
   { src: "/images/kunder/logo_ica.webp", name: "ICA Sverige", w: 222, h: 114 },
   { src: "/images/kunder/logo_hornbach.webp", name: "Hornbach", w: 276, h: 52 },
   { src: "/images/kunder/logo_abg.webp", name: "ABG Sundal Collier", w: 208, h: 115 },
   { src: "/images/kunder/logo_houdini.webp", name: "Houdini", w: 325, h: 70 },
-  { src: "/images/kunder/logo_mdu.webp", name: "Mälardalens universitet", w: 187, h: 111 },
+  { src: "/images/kunder/logo_german_beerhall.webp", name: "German Beer Hall", w: 311, h: 360, tall: true },
   { src: "/images/kunder/logo_hacksaw.webp", name: "Hacksaw Studios", w: 201, h: 61 },
   { src: "/images/kunder/logo_hardrock.webp", name: "Hard Rock Café", w: 259, h: 150 },
   { src: "/images/kunder/logo_uf.webp", name: "UF Företagande", w: 236, h: 81 },
@@ -298,7 +299,7 @@ const pageSchema = {
             alt={logo.name}
             width={logo.w}
             height={logo.h}
-            class="max-h-[58%] max-w-[82%] w-auto h-auto object-contain"
+            class:list={["max-w-[82%] w-auto h-auto object-contain", logo.tall ? "max-h-[92%]" : "max-h-[58%]"]}
             loading="lazy"
             decoding="async"
           />
