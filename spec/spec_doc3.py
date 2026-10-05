@@ -3,8 +3,8 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v17.0",
-    date="2026-10-02",
+    version="v17.1",
+    date="2026-10-05",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
         ("h2", "1.1 Top-level nav"),
@@ -16,7 +16,9 @@ DOC3 = dict(
         ("h2", "1.2 Dropdown \"Tjänster\""),
         ("p", "Hover-aktiverad 3-kolumns panel, `min-width:720px`, glassmorphism "
               "`rgba(15,12,40,0.98)`, lavendel-rubriker, 2,5 s stängningsfördröjning. "
-              "Kategoriordning: **Scen · Ljud · Bild · Ljus · DJ**. Bild som hub + sub-länkar."),
+              "Kategoriordning: **Scen · Ljud · Bild · Ljus · DJ · Karaoke**. Bild som hub + sub-länkar. "
+              "**Karaoke har egen rubrik sedan 2026-10-05** (låg tidigare under \"DJ & Karaoke\"): "
+              "hub \"Hyra karaoke\" + \"Bygg din karaoke\" (`#bygg`). Mobilmenyn har samma två länkar."),
 
         ("h2", "1.3 Mobil"),
         ("p", "Hamburger-meny med accordion för underkategorier. Varukorg-ikon till vänster om "
@@ -58,6 +60,12 @@ DOC3 = dict(
                  "har inte längre \"Ljudanläggning\" i titeln så att den slutar konkurrera; H1 lämnades "
                  "orörd. Inga URL:er ändrades. Metabeskrivningens lägsta pris räknas ur datan "
                  "(`{fran}` i `ljud.json → metaDescription`)."),
+        ("note", "**Karaokesidan (2026-10-05)** är byggd kring `KaraokeBuilder.astro` (Dok 2 §10): scen med "
+                 "bildlager, snabbval, \"Hjälp mig välja\" och flikar. Mobil är primär layout (≈60 % av "
+                 "besökarna): horisontella rader för snabbval, flikar och alternativ, fast nederkant med "
+                 "summa och varukorgsknapp (momstogglen döljs och Sven lyfts medan den syns), lista i "
+                 "bottenblad. Desktop: sammanfattning i sticky kolumn och klickbara markörer i scenen. "
+                 "Paketkorten och tillbehörssektionen är borttagna; Singa-blocket och FAQ ligger kvar."),
         ("p", "Projektor- och skärmsidan har sedan 2026-09-23 samma \"Glöm inte tillbehören\"-banner "
               "som scensidan, under LED-skärmarna; den leder till projektordukarna (`#projektorduk`)."),
 
@@ -222,6 +230,8 @@ DOC3 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.1", "2026-10-05",
+             "§1.2 Karaoke egen rubrik i menyn. §2.1 not om karaokesidan med byggaren."],
             ["v17.0", "2026-10-02",
              "Ny §7 SEO- och AI-filer (robots.txt, genererad llms.txt, JSON-LD, hreflang, månadsmätning "
              "av AI-synlighet). Ny §1.4 Sidfot. §2 108 sidor / 83 filer, ny `/en/` och not om "

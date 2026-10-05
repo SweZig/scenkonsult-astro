@@ -3,8 +3,8 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v17.0",
-    date="2026-10-02",
+    version="v17.1",
+    date="2026-10-05",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
         ("note", "**Hårdkoda ALDRIG produkter i .astro-filer.** Allt produktinnehåll bor i "
@@ -241,14 +241,53 @@ DOC2 = dict(
                  "AV-teknik Stockholm\") så den inte kannibaliserar projektorer-skarmar-sidans long-tail "
                  "(\"Hyra Projektor & Storbildsskärm\"). Frontpage-kortet pekar på hubben (Dok 3)."),
 
-        ("h1", "10. Redaktionellt undantag"),
+        ("h1", "10. Karaokebyggaren (NY 2026-10-05)"),
+        ("p", "`/vara-tjanster/hyra-karaoke/` säljer inte längre färdiga paket. Kunden bygger sin "
+              "uppsättning av vanliga artiklar och varje val läggs i varukorgen som egen rad. "
+              "`karaoke.json → builder` innehåller **bara artikelnummer** — namn, pris, cart-ID och "
+              "fraktflaggor slås upp i ljud/bild/ljus/dj.json av `src/lib/karaoke-builder.mjs`, som "
+              "använder samma källor och cart-ID-regel som Svens register."),
+        ("table", [
+            ["Del av builder", "Innehåll"],
+            ["slots", "En post per val: `options[]` med `id`, `artno` (null = kundens egen), `qty`, "
+                      "`label`, `sub`. `required` = måste väljas, `toggle` = av/på, `showIf` = visas bara "
+                      "för en viss bildtyp (duk och projektorbord med projektor, golvstativ med skärm), "
+                      "`groups` = bildtyperna Egen skärm / Projektor / Skärm"],
+            ["tabs", "Flikarnas ordning: Högtalare · Mikrofoner · Mixer · Bild · Dator · Ljus · Rök"],
+            ["presets", "Snabbvalen Hemmafest / Fest / Gala (`sel` = fullständigt urval)"],
+            ["guide", "\"Hjälp mig välja\": tre frågor (antal gäster, var texten ska synas, hur mycket "
+                      "fest) där varje svar sätter en del av urvalet"],
+        ]),
+        ("ul", [
+            "**Från-priset** (karaokesidans titel/hero, startsidans banner, företagsfest, llms.txt, "
+            "Sven) = billigaste obligatoriska uppsättning, `minTotal()`. Skrivs aldrig in för hand; "
+            "`{fran}` i `karaoke.json → metaTitle/metaDescription` ersätts vid bygget.",
+            "**SK-KAR-PAK-0001–0006** är `active: false` + `(utgått)`. De ligger kvar för gamla "
+            "ordrar; Sven och llms.txt tar bara med aktiva paket.",
+            "**Ny artikel SK-BLD-ACC-0029 Bärbar dator** (500 kr, `bild.json → tillbehor`, grupp "
+            "`signal`). Neutralt nummer — datorn hyrs även till presentationer.",
+            "**DJ-bord SK-DJ-0005** heter \"Teknikbord\" i byggaren. Samma artikel, annan etikett.",
+            "Mikrofoner: 2 st kabel eller trådlösa (qty 2) eller Shure SLXD (ett system med två mikrofoner). "
+            "Mixerbordet är alltid med.",
+        ]),
+        ("note", "**Scenens bildlager** ligger i `public/images/karaoke/scen/` (1600×900 + `-800`-variant, "
+                 "transparent WebP). Varje komponent är redan placerad i bilden, så sidan staplar bara "
+                 "lager. Koordinaterna för dukytor, projektorer och ljusarmaturer står i "
+                 "`src/data/karaoke-scen.json` och hör ihop med bilderna — byts en bild ska geometrin "
+                 "göras om samtidigt. Namn: `<plats>_<artno>.webp`."),
+
+        ("h1", "11. Redaktionellt undantag"),
         ("p", "`varfor-numark-denon-rane.astro` behåller **avsiktligt** redaktionellt innehåll "
               "(beskrivning/bra_for/spec) i `const guideContent` — guidens röst ≠ produktdata, markerat "
               "med kodkommentar. Namn, pris och schema dras dock från JSON."),
 
-        ("h1", "11. Ändringshistorik"),
+        ("h1", "12. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v17.1", "2026-10-05",
+             "Ny §10 Karaokebyggaren: karaoke.json.builder (slots/tabs/presets/guide), "
+             "karaoke-builder.mjs, karaoke-scen.json och bildlagren. KAR-PAK-0001–0006 utgångna. Ny "
+             "artikel SK-BLD-ACC-0029 Bärbar dator. §10–11 omnumrerade."],
             ["v17.0", "2026-10-02",
              "Ny §5.1 Montering — en gemensam beräkning (montering.cjs, monteringMin/-Bemanning/"
              "-Skalning/-Manuell, montering-catalog.json). Ny §5.2 Hyresdygn och flerdygnsrabatt "
