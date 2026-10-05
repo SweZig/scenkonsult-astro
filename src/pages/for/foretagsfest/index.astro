@@ -5,6 +5,12 @@ import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 import karaokeData from '../../../data/karaoke.json';
+import _bildData from '../../../data/bild.json';
+import _djData from '../../../data/dj.json';
+import _scenesData from '../../../data/scenes.json';
+import _tjData from '../../../data/tjanster.json';
+import _elData from '../../../data/el.json';
+import { resolveBuilder, minTotal } from '../../../lib/karaoke-builder.mjs';
 import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
 import { getFeaturedClients } from '../../../utils/clients';
 
@@ -17,12 +23,8 @@ const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_m
 const ljusPaket = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0002');
 const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0010');
 
-// Karaoke-prisspann från live-JSON (för utrustningslistan)
-const _karPaket = ((karaokeData as any).packages ?? []) as any[];
-const _karPriser = _karPaket.map((p:any) => p.price).filter((n:any) => typeof n === 'number');
-const karMin = _karPriser.length ? Math.min(..._karPriser) : 0;
-const karMax = _karPriser.length ? Math.max(..._karPriser) : 0;
-const karAntal = _karPaket.length;
+// Karaoke: från-pris = billigaste uppsättningen i karaokebyggaren
+const karMin = minTotal(resolveBuilder(karaokeData, { karaoke: karaokeData, ljud: ljudData, ljus: ljusData, bild: _bildData, dj: _djData, scenes: _scenesData, tjanster: _tjData, el: _elData }));
 
 // Företagsfest-paket — priser från live-JSON via artno
 const ffPaketDefs: PaketDef[] = [
@@ -203,7 +205,7 @@ const pageSchema = {
           { title: "Ljus", items: ["LED par-lampor för stämning", "Moving heads & effektljus", "Rökmaskin & haze", "Uplights längs väggarna"], link: "/vara-tjanster/hyra-ljus/" },
           { title: "Scen", items: ["Modulscenar 2×2 m upp till 8×6 m", "Halkfri eller slät yta", "Scentrappor, scenkjol & räcken", "Tak till större scenpaket"], link: "/vara-tjanster/hyra-scen/" },
           { title: "Bild", items: ["BenQ Full HD/4K-projektor + duk", "Skärmar 65–85\" på golvstativ", "LED-väggar för storbild", "Mobila LED-trailers 7–28 m²"], link: "/vara-tjanster/hyra-bild/" },
-          { title: "Karaoke", items: [<span>{karAntal} färdiga karaokepaket (<span data-exkl={karMin}>{karMin.toLocaleString('sv-SE')}</span>–<span data-exkl={karMax}>{karMax.toLocaleString('sv-SE')}</span> kr/dygn)</span>, "Trådlösa mikar i större paket", "65″ skärm eller projektor för sångtexter", "Singa-appen — 80 000+ låtar"], link: "/vara-tjanster/hyra-karaoke/" }
+          { title: "Karaoke", items: [<span>Bygg din egen karaoke — från <span data-exkl={karMin}>{karMin.toLocaleString('sv-SE')}</span> kr/dygn</span>, "Sladd- eller trådlösa mikrofoner", "65″ skärm eller projektor för sångtexter", "Singa-appen — 80 000+ låtar"], link: "/vara-tjanster/hyra-karaoke/" }
         ].map(block => (
           <div style="margin-bottom:2rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">

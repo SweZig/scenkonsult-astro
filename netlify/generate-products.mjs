@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildSvenProducts } from '../src/lib/sven-products.mjs';
+import { resolveBuilder, itemsFor, totalFor, minTotal } from '../src/lib/karaoke-builder.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.join(__dirname, '..');
@@ -170,11 +171,21 @@ sects.push('DJ-PAKET (inkl. ljud & ljus) → /vara-tjanster/hyra-dj/');
 sects.push('');
 
 // Karaoke
-sects.push('KARAOKE-PAKET → /vara-tjanster/hyra-karaoke/');
-(karaoke.packages || []).forEach(p => {
-  sects.push(prodLine(p.name + ' (' + p.tagline + ')', p.price, ' exkl. moms'));
-});
-sects.push('');
+// Karaoke byggs av vanliga artiklar på /vara-tjanster/hyra-karaoke/ — de färdiga
+// karaokepaketen är utgångna (active:false) och ska inte rekommenderas.
+{
+  const kb = resolveBuilder(karaoke, { scenes, ljud, ljus, dj, bild, tjanster, karaoke, el });
+  sects.push('KARAOKE — kunden bygger själv på /vara-tjanster/hyra-karaoke/ (från ' + minTotal(kb) + ' kr/dygn exkl. moms)');
+  sects.push('Välj högtalare, mikrofoner, mixer, bild (egen skärm/projektor/skärm), dator, ljus och rök. Varje del är en vanlig artikel och kan [CART:]-taggas med sitt ID.');
+  for (const p of kb.presets) {
+    const ids = itemsFor(kb, p.sel).map(i => i.qty > 1 ? i.cartId + ' (' + i.qty + ' st)' : i.cartId).join(', ');
+    sects.push('- Snabbval ' + p.label + ' (' + p.sub + '): ' + totalFor(kb, p.sel) + ' kr/dygn exkl. moms — ' + ids);
+  }
+  for (const p of (karaoke.packages || []).filter(p => p.active !== false)) {
+    sects.push(prodLine(p.name + ' (' + p.tagline + ')', p.price, ' exkl. moms'));
+  }
+  sects.push('');
+}
 
 // TEKNIKER & TJÄNSTER (centraliserade i tjanster.json.services efter konsolidering)
 const _svcLjud = (tjanster.services || []).filter(s => s.categories?.includes('ljud'));

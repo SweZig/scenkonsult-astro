@@ -3,12 +3,16 @@ import Layout from '../../../layouts/Layout.astro';
 import KunskapBlock from '../../../components/KunskapBlock.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
-import CartButton from '../../../components/CartButton.astro';
-import ProductCard from '../../../components/ProductCard.astro';
+import KaraokeBuilder from '../../../components/KaraokeBuilder.astro';
 import karaoke from '../../../data/karaoke.json';
 import bild from '../../../data/bild.json';
 import ljud from '../../../data/ljud.json';
 import ljus from '../../../data/ljus.json';
+import dj from '../../../data/dj.json';
+import scenes from '../../../data/scenes.json';
+import tjanster from '../../../data/tjanster.json';
+import el from '../../../data/el.json';
+import { resolveBuilder, minTotal } from '../../../lib/karaoke-builder.mjs';
 
 const faqSchema = {
   "@context": "https://schema.org",
@@ -20,39 +24,16 @@ const faqSchema = {
   }))
 };
 
-// Lös upp tillbehörsreferenser från sina källfiler.
-// Söker rekursivt i respektive JSON efter matchande artno.
-function findByArtno(obj: any, target: string): any {
-  if (obj && typeof obj === 'object') {
-    if (obj.artno === target) return obj;
-    for (const v of Object.values(obj)) {
-      const r = findByArtno(v, target);
-      if (r) return r;
-    }
-  } else if (Array.isArray(obj)) {
-    for (const v of obj) {
-      const r = findByArtno(v, target);
-      if (r) return r;
-    }
-  }
-  return null;
-}
-const sourceMap: Record<string, any> = { bild, ljud, ljus };
-const tillbehor = karaoke.tillbehor
-  .map((ref: { source: string; artno: string }) => {
-    const src = sourceMap[ref.source];
-    const obj = src ? findByArtno(src, ref.artno) : null;
-    return obj ? { ...obj, _category: ref.source } : null;
-  })
-  .filter(Boolean);
-const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
-const _heroFranExcl = _low((karaoke as any).packages);
+// Från-pris = billigaste möjliga uppsättning i byggaren (räknas ur datafilerna)
+const _resolved = resolveBuilder(karaoke, { karaoke, ljud, ljus, bild, dj, scenes, tjanster, el });
+const _heroFranExcl = minTotal(_resolved);
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
+const _fran = _heroFranExcl.toLocaleString('sv-SE');
 ---
 <Layout
   schemaExtra={faqSchema}
-  title={karaoke.metaTitle}
-  description={karaoke.metaDescription}
+  title={karaoke.metaTitle.replace('{fran}', _fran)}
+  description={karaoke.metaDescription.replace('{fran}', _fran)}
 >
 
   <ModernHero
@@ -67,90 +48,14 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
     ]}
     chips={[
       { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
-      "6 färdiga paket",
+      "Bygg själv eller välj snabbval",
       "Trådlösa mikar",
       "80 000+ låtar via Singa",
       "Sångtexter på skärm",
     ]}
   />
 
-  <!-- Snabbnavigation -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-6">
-    <div class="flex flex-wrap gap-3 text-xs text-gray-300 items-center">
-      <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
-        🎤 Paket från
-        <span class="sk-price-excl font-semibold text-brand-orange">699&nbsp;kr</span>
-        <span class="sk-price-incl hidden font-semibold text-brand-orange">874&nbsp;kr</span>
-        /dygn
-      </span>
-      <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
-        📺 Med 65″ skärm från
-        <span class="sk-price-excl font-semibold text-brand-orange">4 999&nbsp;kr</span>
-        <span class="sk-price-incl hidden font-semibold text-brand-orange">6 249&nbsp;kr</span>
-        /dygn
-      </span>
-      <span class="bg-brand-navy border border-white/10 rounded-full px-3 py-1">
-        🚚 Leverans i Stockholm
-      </span>
-      <a href="#karaoke-tillbehor" class="ml-auto text-brand-orange/80 hover:text-brand-orange text-xs font-semibold transition-colors flex items-center gap-1">
-        Tillbehör ↓
-      </a>
-    </div>
-  </div>
-
-  <!-- KARAOKEPAKET -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <div class="mb-6">
-      <SectionHeader eyebrow="Snabbval" h2="Kompletta karaokepaket" lead="Sex färdiga paket — välj efter publik och ambitionsnivå. Resa tillkommer." />
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {karaoke.packages.map(pkg => (
-        <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden flex flex-col hover:border-brand-orange/50 transition-colors">
-          <!-- Bild -->
-          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-            <img
-              src={pkg.image}
-              alt={pkg.name}
-              width="1024"
-              height="853"
-              loading="lazy"
-              class="w-full h-full object-contain"
-            />
-          </div>
-          <!-- Innehåll -->
-          <div class="p-5 flex flex-col flex-1">
-            <div class="mb-3">
-              <div class="text-brand-orange/80 text-xs font-semibold uppercase tracking-wide mb-1">{pkg.tagline}</div>
-              <h3 class="text-white font-bold text-lg">{pkg.name}</h3>
-            </div>
-            <ul class="space-y-1.5 mb-4 flex-1">
-              {pkg.specs.map(item => (
-                <li class="flex gap-2 text-xs text-gray-300">
-                  <span class="text-green-400 shrink-0">✓</span>{item}
-                </li>
-              ))}
-            </ul>
-            <div class="border-t border-white/10 pt-3 mt-auto">
-              <div class="mb-3">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{pkg.price.toLocaleString('sv')}&nbsp;kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{pkg.priceInkl.toLocaleString('sv')}&nbsp;kr</span>
-                <span class="text-gray-400 text-xs ml-1">/dygn</span>
-              </div>
-              <CartButton
-                id={pkg.artno}
-                name={pkg.name}
-                price={pkg.price}
-                category="Karaoke"
-                size="md"
-                image={pkg.image}
-                forceLeverans={pkg.forceLeverans}
-              />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </section>
+  <KaraokeBuilder />
 
   <!-- SINGA KARAOKE-APP -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
@@ -189,34 +94,6 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
           ))}
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- TILLBEHÖR -->
-  <section id="karaoke-tillbehor" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <div class="mb-6">
-      <SectionHeader eyebrow="Komplettera" h2="Bra tillbehör till karaokepaketet" lead="Lägg till efter behov — projektorduk om du saknar fri vägg, ljuspaket för fest-känslan." />
-    </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      {tillbehor.map(t => (
-        <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-xl overflow-hidden transition-all group flex flex-col">
-          <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-            <img src={t.image} alt={t.name} width="1024" height="853" loading="lazy"
-              class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
-          </div>
-          <div class="p-3 flex flex-col flex-1">
-            <h3 class="font-bold text-white text-xs mb-2 leading-tight">{t.name}</h3>
-            <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-2 gap-2">
-              <div class="leading-none">
-                <span class="sk-price-excl text-brand-orange font-extrabold text-sm">{t.price.toLocaleString('sv')}&nbsp;kr</span>
-                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-sm">{Math.round(t.price * 1.25).toLocaleString('sv')}&nbsp;kr</span>
-                <span class="text-gray-400 text-[10px]">/dygn</span>
-              </div>
-              <CartButton id={t.artno} name={t.name} price={t.price} category="Tillbehör" size="sm" iconOnly={true} image={t.image} />
-            </div>
-          </div>
-        </article>
-      ))}
     </div>
   </section>
 

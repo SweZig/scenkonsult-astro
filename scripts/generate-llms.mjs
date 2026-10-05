@@ -15,6 +15,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { resolveBuilder, totalFor, minTotal } from '../src/lib/karaoke-builder.mjs';
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'public', 'llms.txt');
@@ -183,9 +184,12 @@ L.push(`Mer info: ${link('/vara-tjanster/hyra-dj/')}`);
 L.push('');
 
 // Karaoke
-if (active(karaoke.packages).length) {
+{
+  const kb = resolveBuilder(karaoke, { site, scenes, ljud, ljus, bild, dj, karaoke, tjanster, el: load('el.json') });
   L.push('### Karaoke');
-  L.push(...productLines(karaoke.packages, { extra: (p) => p.tagline }));
+  L.push(`Bygg din egen karaoke: välj högtalare, mikrofoner, mixer, skärm eller projektor för sångtexten, dator med Singa, ljus och rök — från ${kr(minTotal(kb))}/dygn exkl. moms.`);
+  for (const p of kb.presets) L.push(`- Snabbval ${p.label} (${p.sub}): ${kr(totalFor(kb, p.sel))}/dygn exkl. moms`);
+  if (active(karaoke.packages).length) L.push(...productLines(karaoke.packages, { extra: (p) => p.tagline }));
   L.push(`Mer info: ${link('/vara-tjanster/hyra-karaoke/')}`);
   L.push('');
 }

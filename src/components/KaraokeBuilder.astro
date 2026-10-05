@@ -1,0 +1,573 @@
+---
+// KaraokeBuilder.astro — interaktiv karaokebyggare (hyra-karaoke).
+//
+// Kunden väljer per område (högtalare, mikrofoner, mixer, bild, dator, ljus,
+// rök) och scenen ritas om med frilagda foton. Två ingångar i samma vy:
+//   • Snabbval + "Hjälp mig välja" (tre frågor) för den som är ny
+//   • Flikar med alla alternativ för den som vet vad den vill ha
+//
+// Data: karaoke.json.builder (artikelnummer) → src/lib/karaoke-builder.mjs
+// slår upp namn/pris/cart-ID i ljud/bild/ljus/dj.json. Inga priser här.
+// Scenens bildlager: public/images/karaoke/scen/, geometri i karaoke-scen.json.
+// Mobil (≈60 % av besökarna) är primär layout; desktop får sammanfattning
+// i en sticky kolumn och klickbara markörer i scenen.
+import karaoke from '../data/karaoke.json';
+import ljud from '../data/ljud.json';
+import ljus from '../data/ljus.json';
+import bild from '../data/bild.json';
+import dj from '../data/dj.json';
+import scenes from '../data/scenes.json';
+import tjanster from '../data/tjanster.json';
+import el from '../data/el.json';
+import scen from '../data/karaoke-scen.json';
+import { resolveBuilder } from '../lib/karaoke-builder.mjs';
+
+const resolved = resolveBuilder(karaoke, { karaoke, ljud, ljus, bild, dj, scenes, tjanster, el });
+if (resolved.missing.length) {
+  throw new Error('[KaraokeBuilder] Artikelnummer saknas i datafilerna: ' + resolved.missing.join(', '));
+}
+const payload = JSON.stringify({ resolved, scen });
+---
+<section id="bygg" class="kb max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14" aria-labelledby="kb-h2">
+  <div class="kb-head">
+    <p class="kb-eyebrow">Bygg din karaoke</p>
+    <h2 id="kb-h2" class="kb-h2">Välj det du behöver — se uppställningen växa fram</h2>
+  </div>
+
+  <div class="kb-start">
+    <div class="kb-presets" id="kb-presets" role="group" aria-label="Snabbval"></div>
+    <button type="button" class="kb-guide-btn" id="kb-guide-open">
+      <span class="kb-guide-ico" aria-hidden="true">?</span>
+      <span><b>Hjälp mig välja</b><small>Tre snabba frågor</small></span>
+    </button>
+  </div>
+
+  <div class="kb-grid">
+    <div class="kb-main">
+      <div class="kb-scene" id="kb-scene">
+        <svg viewBox="0 0 1600 900" role="img" aria-label="Din karaokeuppställning" id="kb-svg">
+          <defs>
+            <radialGradient id="kb-hz"><stop offset="0" stop-color="#d9d2ff" stop-opacity=".55"/><stop offset="1" stop-color="#d9d2ff" stop-opacity="0"/></radialGradient>
+            <linearGradient id="kb-bm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          </defs>
+          <g id="kb-layers"></g>
+        </svg>
+        <div class="kb-hots" id="kb-hots"></div>
+      </div>
+
+      <div class="kb-guide" id="kb-guide" hidden></div>
+
+      <div id="kb-editor">
+        <div class="kb-tabs" role="tablist" aria-label="Områden" id="kb-tabs"></div>
+        <div class="kb-panel" id="kb-panel" role="tabpanel"></div>
+      </div>
+    </div>
+
+    <aside class="kb-sum" id="kb-sum" aria-label="Din karaokeuppsättning"></aside>
+  </div>
+
+  <div class="kb-bar" id="kb-bar" aria-hidden="true">
+    <button type="button" class="kb-bar-total" id="kb-bar-total" aria-label="Visa vad som ingår">
+      <small id="kb-bar-count"></small>
+      <span><b id="kb-bar-sum"></b> <small class="kb-bar-vat" id="kb-bar-vat"></small></span>
+    </button>
+    <button type="button" class="kb-cta" id="kb-bar-add">Lägg i varukorg</button>
+  </div>
+
+  <div class="kb-sheet" id="kb-sheet" hidden>
+    <div class="kb-sheet-bg" data-kb-close></div>
+    <div class="kb-sheet-card" role="dialog" aria-modal="true" aria-label="Din karaokeuppsättning">
+      <button type="button" class="kb-sheet-x" data-kb-close aria-label="Stäng">×</button>
+      <div id="kb-sheet-body"></div>
+    </div>
+  </div>
+
+  <script type="application/json" id="kb-data" set:html={payload}></script>
+</section>
+
+<script>
+  import { itemsFor, chosenOption, slotVisible } from '../lib/karaoke-builder.mjs';
+
+  const root = document.getElementById('bygg');
+  const { resolved: R, scen: G } = JSON.parse(document.getElementById('kb-data')!.textContent || '{}');
+  const S: Record<string, any> = {};
+  const $ = (id: string) => document.getElementById(id)!;
+  const esc = (s: any) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' } as any)[c]);
+  const kr = (n: number) => `<span data-exkl="${n}">${n.toLocaleString('sv-SE')}</span>&nbsp;kr`;
+  const STORE = 'sk-karaoke-val';
+
+  // ── state ────────────────────────────────────────────────────
+  function applySet(set: Record<string, any>) {
+    for (const [k, v] of Object.entries(set)) S[k] = v;
+  }
+  // Byte av bildtyp: rimliga standardval för typens tillägg
+  const GROUP_DEFAULTS: Record<string, Record<string, any>> = {
+    egen: { bild: 'telefon' },
+    projektor: { bild: 'proj-smart', duk: '100', projektorbord: true },
+    skarm: { bild: 'skarm-65', tvstativ: true },
+  };
+  function loadState() {
+    applySet(R.presets.find((p: any) => p.id === 'fest').sel);
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+      if (saved && typeof saved === 'object') {
+        for (const k of Object.keys(R.slots)) if (k in saved) S[k] = saved[k];
+      }
+    } catch {}
+    // Sparat val som inte längre finns (t.ex. borttaget alternativ) → standard
+    const fest = R.presets.find((p: any) => p.id === 'fest').sel;
+    for (const [k, slot] of Object.entries<any>(R.slots)) {
+      if (slot.toggle) { S[k] = !!S[k]; continue; }
+      if (S[k] != null && !slot.options.some((o: any) => o.id === S[k])) S[k] = fest[k] ?? null;
+      if (slot.required && S[k] == null) S[k] = fest[k];
+    }
+  }
+  function saveState() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch {} }
+  function activePreset() {
+    return R.presets.find((p: any) => Object.keys(R.slots).every((k) =>
+      (chosenOption(R.slots, S, k)?.id ?? null) === (chosenOption(R.slots, p.sel, k)?.id ?? null)));
+  }
+
+  // ── scene ────────────────────────────────────────────────────
+  const svg = $('kb-svg') as unknown as SVGSVGElement;
+  const layersEl = $('kb-layers');
+  const C = ['#c4b5f4', '#ff7ab6', '#6fd3ff', '#ffd36f'];
+  function src(name: string) {
+    const w = (svg.clientWidth || 800) * (window.devicePixelRatio || 1);
+    return `/images/karaoke/scen/${name}${w <= 900 ? '-800' : ''}.webp`;
+  }
+  const img = (name: string) => `<image href="${src(name)}" x="0" y="0" width="1600" height="900"/>`;
+  const txt = (x: number, y: number, s: string, size = 18, op = 0.45) =>
+    `<text x="${x}" y="${y}" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="${size}" fill="#fff" fill-opacity="${op}">${esc(s)}</text>`;
+  const lyrics = (x: number, y: number, w: number, h: number) =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#2b2470"/>` +
+    `<text x="${x + w / 2}" y="${y + h * 0.46}" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="${h * 0.1}" fill="#fff" fill-opacity=".55">♪ Första raden i låten</text>` +
+    `<text x="${x + w / 2}" y="${y + h * 0.64}" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-weight="700" font-size="${h * 0.12}" fill="#c4b5f4">♪ Nu sjunger du här</text>`;
+  const opt = (k: string) => chosenOption(R.slots, S, k);
+
+  function sceneLayers(): [string, string][] {
+    const L: [string, string][] = [];
+    L.push(['bg', img('bakgrund')]);
+    // Ljus — strålar bakom armaturerna
+    const lj = opt('ljus');
+    if (lj) {
+      let bm = '';
+      (G.lightHeads[lj.artno] || []).forEach(([x, y]: number[], i: number) => {
+        const dir = i % 4 < 2 ? -1 : 1, spread = i % 4 === 0 || i % 4 === 3 ? 260 : 120;
+        bm += `<polygon class="kb-beam${i % 2 ? ' d2' : ''}" points="${x - 8},${y} ${x + 8},${y} ${x + dir * spread + 70},740 ${x + dir * spread - 70},740" fill="${C[i % 4]}" opacity=".42"/>`;
+      });
+      if (S.ljus === 'disco') {
+        const [kx, ky] = G.kaleido, [sx, sy, sh] = G.spider;
+        for (let i = 0; i < 9; i++) { const a = (200 + i * 17.5) * Math.PI / 180; bm += `<line class="kb-beam${i % 2 ? ' d2' : ''}" x1="${kx}" y1="${ky}" x2="${kx + Math.cos(a) * 760}" y2="${ky - Math.sin(a) * 760}" stroke="${C[i % 4]}" stroke-width="9" stroke-opacity=".3"/>`; }
+        for (let i = 0; i < 8; i++) { const x0 = sx - 14 + (i % 2) * 28, y0 = sy - sh / 2 + 8 + Math.floor(i / 2) * (sh / 4.5), tx = sx + (i - 3.5) * 120; bm += `<polygon class="kb-beam${i % 2 ? ' d2' : ''}" points="${x0 - 3},${y0} ${x0 + 3},${y0} ${tx + 14},760 ${tx - 14},760" fill="${['#ff4d6d', '#6fd3ff', '#9b7bff', '#7dffb0'][i % 4]}" opacity=".3"/>`; }
+      }
+      L.push(['ljus:' + lj.id, bm + img('ljus_' + lj.artno)]);
+    }
+    // Bild
+    const b = opt('bild');
+    if (b?.group === 'projektor') {
+      const duk = opt('duk');
+      const d = duk ? G.surfaces[duk.artno] : [600, 190, 400, 225];
+      let m = duk ? img('duk_' + duk.artno)
+        : `<rect x="${d[0]}" y="${d[1]}" width="${d[2]}" height="${d[3]}" fill="none" stroke="#fff" stroke-opacity=".25" stroke-dasharray="8 8"/>` + txt(800, d[1] - 14, 'Projicerat på vägg');
+      m += `<g opacity=".92">${lyrics(d[0], d[1], d[2], d[3])}</g>`;
+      const p = G.projectors[b.artno], lx = p[0] + p[2] * 0.66, ly = p[1] + p[3] * 0.5;
+      m += `<polygon points="${lx - 4},${ly} ${lx + 4},${ly} ${d[0] + d[2]},${d[1] + d[3]} ${d[0] + d[2]},${d[1]} ${d[0]},${d[1]} ${d[0]},${d[1] + d[3]}" fill="url(#kb-bm)" opacity=".3"/>`;
+      L.push(['bild:' + b.id + ':' + (duk?.id || '-'), m]);
+      const bord = opt('projektorbord');
+      L.push(['pbord:' + !!bord + b.id, (bord ? img('projektorbord_' + bord.artno) : `<g opacity=".7"><rect x="740" y="${p[1] + p[3]}" width="120" height="8" rx="2" fill="#3b3570"/><line x1="755" y1="${p[1] + p[3] + 8}" x2="755" y2="880" stroke="#3b3570" stroke-width="6"/><line x1="845" y1="${p[1] + p[3] + 8}" x2="845" y2="880" stroke="#3b3570" stroke-width="6"/></g>${txt(800, 900 - 8, 'Lokalens bord', 15)}`) + img('projektor_' + b.artno)]);
+    } else if (b?.group === 'skarm') {
+      const [x, y, w, h] = G.surfaces[b.artno];
+      const st = opt('tvstativ');
+      const under = st ? img('tvstativ_' + st.artno)
+        : `<rect x="${x + 30}" y="${y + h + 14}" width="${w - 60}" height="${650 - y - h - 14}" rx="4" fill="#2a2257" stroke="#3b3570" stroke-width="2" opacity=".8"/>` + txt(800, y + h + 54, 'Lokalens bänk', 16, 0.4);
+      L.push(['bild:' + b.id + ':' + !!st, under + img('skarm_' + b.artno) + lyrics(x, y, w, h)]);
+    } else if (b?.id === 'egen-tv') {
+      L.push(['bild:egen', `<rect x="600" y="190" width="400" height="225" fill="none" stroke="#c4b5f4" stroke-opacity=".6" stroke-width="3" stroke-dasharray="12 10"/>` + txt(800, 310, 'Er egen TV eller projektor', 22, 0.8)]);
+    } else {
+      L.push(['bild:telefon', `<rect x="730" y="430" width="140" height="190" rx="14" fill="#050410" stroke="#4a4390" stroke-width="3"/>${lyrics(740, 442, 120, 166)}` + txt(800, 410, 'Er telefon eller surfplatta', 16)]);
+    }
+    // Högtalare
+    const hg = opt('hogtalare');
+    if (hg) L.push(['hog:' + hg.id, img('hogtalare_' + hg.artno)]);
+    // Bord, mixer, dator
+    const tb = opt('teknikbord');
+    L.push(['bord:' + !!tb, tb ? img('teknikbord_' + tb.artno)
+      : `<g opacity=".7"><rect x="1090" y="707" width="270" height="12" rx="3" fill="#3b3570"/><line x1="1105" y1="719" x2="1105" y2="880" stroke="#3b3570" stroke-width="7"/><line x1="1345" y1="719" x2="1345" y2="880" stroke="#3b3570" stroke-width="7"/></g>` + txt(1225, 765, 'Lokalens bord', 16)]);
+    const mx = opt('mixer');
+    if (mx) L.push(['mix:' + mx.id, img('mixer_' + mx.artno)]);
+    const dt = opt('dator');
+    if (dt?.artno) L.push(['dator', img('dator_' + dt.artno)]);
+    // Mikrofoner
+    const mk = opt('mik'), ms = opt('mikstativ');
+    if (mk) L.push(['mik:' + mk.id + ':' + !!ms, (ms ? img('mikstativ_' + ms.artno) : '') + img(`mik_${mk.artno}_${ms ? 'stativ' : 'bord'}`)]);
+    // Rök
+    const rk = opt('rok');
+    if (rk) {
+      const two = (rk.qty || 1) > 1, op = rk.id === 'lite' ? 0.5 : two ? 1 : 0.8;
+      L.push(['rok:' + rk.id, `<g class="kb-haze" opacity="${op}"><ellipse cx="400" cy="840" rx="500" ry="90" fill="url(#kb-hz)"/><ellipse cx="900" cy="860" rx="520" ry="80" fill="url(#kb-hz)"/>${two ? '<ellipse cx="1300" cy="840" rx="480" ry="90" fill="url(#kb-hz)"/>' : ''}</g>` + img(`rok_${rk.artno}${two ? '_x2' : ''}`)]);
+    }
+    return L;
+  }
+  const NS = 'http://www.w3.org/2000/svg';
+  function renderScene() {
+    const want = sceneLayers();
+    const have = new Map<string, Element>();
+    for (const g of Array.from(layersEl.children)) have.set((g as HTMLElement).dataset.k!, g);
+    const keep = new Set<string>();
+    for (const [k, markup] of want) {
+      let g = have.get(k);
+      if (!g) {
+        g = document.createElementNS(NS, 'g');
+        (g as HTMLElement).dataset.k = k;
+        if (k !== 'bg') g.setAttribute('class', 'kb-fade');
+        g.innerHTML = markup;
+      }
+      layersEl.appendChild(g); // flyttar till rätt ordning
+      keep.add(k);
+    }
+    for (const [k, g] of have) if (!keep.has(k)) g.remove();
+  }
+
+  // ── UI ───────────────────────────────────────────────────────
+  let tab = R.tabs[0].id;
+  function renderPresets() {
+    const a = activePreset()?.id;
+    $('kb-presets').innerHTML = R.presets.map((p: any) => {
+      const sum = itemsFor(R, p.sel).reduce((s: number, i: any) => s + i.total, 0);
+      return `<button type="button" class="kb-preset${a === p.id ? ' on' : ''}" data-preset="${p.id}" aria-pressed="${a === p.id}"><b>${esc(p.label)}</b><small>${esc(p.sub)}</small><span>${kr(sum)}</span></button>`;
+    }).join('');
+  }
+  function renderTabs() {
+    $('kb-tabs').innerHTML = R.tabs.map((t: any) => {
+      const chosen = t.slots.map((k: string) => opt(k)).filter(Boolean)[0];
+      const val = chosen ? chosen.label : (R.slots[t.slots[0]].noneLabel || '—');
+      return `<button type="button" role="tab" class="kb-tab" id="kb-tab-${t.id}" aria-selected="${tab === t.id}" data-tab="${t.id}"><span>${esc(t.label)}</span><small>${esc(val)}</small></button>`;
+    }).join('');
+    // Håll aktiv flik synlig i den horisontella raden utan att scrolla sidan
+    const box = $('kb-tabs'), a = box.querySelector('[aria-selected="true"]') as HTMLElement | null;
+    if (a) {
+      const br = box.getBoundingClientRect(), ar = a.getBoundingClientRect();
+      if (ar.left < br.left || ar.right > br.right) box.scrollBy({ left: ar.left - br.left - (br.width - ar.width) / 2, behavior: 'smooth' });
+    }
+  }
+  function card(slot: string, id: any, label: string, sub: string, price: number, on: boolean, none = false) {
+    return `<button type="button" class="kb-opt${none ? ' none' : ''}" aria-pressed="${on}" data-slot="${slot}" data-val="${id === null ? '' : esc(id)}">` +
+      `<b>${esc(label)}</b><small>${esc(sub || '')}</small>` +
+      `<span class="kb-opt-p">${price ? '+ ' + kr(price) : none ? '' : '0&nbsp;kr'}</span></button>`;
+  }
+  function slotHTML(k: string) {
+    const s = R.slots[k];
+    if (!slotVisible(R.slots, S, k)) return '';
+    if (s.toggle) {
+      const o = s.options[0], on = !!S[k];
+      return `<label class="kb-tog"><input type="checkbox" data-tog="${k}" ${on ? 'checked' : ''}/><span class="kb-sw" aria-hidden="true"></span>` +
+        `<span class="kb-tog-t"><b>${esc(o.label)}</b><small>${esc(o.sub)}</small></span><span class="kb-opt-p">+ ${kr(o.price * o.qty)}</span></label>`;
+    }
+    let h = `<div class="kb-slot"><h3 class="kb-slot-h">${esc(s.title)}</h3>`;
+    let opts = s.options;
+    if (s.groups) {
+      const cur = s.options.find((o: any) => o.id === S[k])?.group;
+      h += `<div class="kb-groups">${s.groups.map((g: any) => `<button type="button" class="kb-grp${cur === g.id ? ' on' : ''}" data-grp="${g.id}" aria-pressed="${cur === g.id}">${esc(g.label)}</button>`).join('')}</div>`;
+      opts = s.options.filter((o: any) => o.group === cur);
+    }
+    h += '<div class="kb-opts">';
+    if (!s.required) h += card(k, null, s.noneLabel || 'Inget', s.noneSub || '', 0, S[k] == null, true);
+    h += opts.map((o: any) => card(k, o.id, o.label, o.sub + (o.artno ? ' · ' + o.name : ''), o.price * o.qty, S[k] === o.id)).join('');
+    return h + '</div></div>';
+  }
+  function renderPanel() {
+    const t = R.tabs.find((x: any) => x.id === tab);
+    $('kb-panel').setAttribute('aria-labelledby', 'kb-tab-' + tab);
+    const main = slotHTML(t.slots[0]);
+    const extra = t.slots.slice(1).map(slotHTML).filter(Boolean).join('');
+    $('kb-panel').innerHTML = main + (extra ? `<div class="kb-addons">${extra}</div>` : '');
+  }
+  function sumHTML(compact = false) {
+    const it = itemsFor(R, S);
+    const tot = it.reduce((s: number, i: any) => s + i.total, 0);
+    const own = ['bild', 'dator'].map((k) => opt(k)).filter((o: any) => o && !o.artno);
+    return `<h3 class="kb-sum-h">Din karaoke</h3>` +
+      `<ul class="kb-list">${it.map((i: any) => `<li><span>${i.qty > 1 ? i.qty + ' × ' : ''}${esc(i.name)}</span><span>${kr(i.total)}</span></li>`).join('')}` +
+      own.map((o: any) => `<li class="own"><span>${esc(o.label)} (eget)</span><span>0&nbsp;kr</span></li>`).join('') + `</ul>` +
+      `<div class="kb-tot"><span>Per dygn</span><b>${kr(tot)}</b></div>` +
+      `<p class="kb-note">Leverans och montering räknas i varukorgen. Resa tillkommer.</p>` +
+      (compact ? '' : `<button type="button" class="kb-cta kb-add" data-add>Lägg ${it.length} artiklar i varukorgen</button><p class="kb-added" hidden></p>`);
+  }
+  function renderSum() {
+    $('kb-sum').innerHTML = sumHTML();
+    const it = itemsFor(R, S);
+    const tot = it.reduce((s: number, i: any) => s + i.total, 0);
+    $('kb-bar-sum').innerHTML = kr(tot);
+    $('kb-bar-count').textContent = `${it.length} artiklar · per dygn`;
+    const sheet = $('kb-sheet');
+    if (!sheet.hidden) $('kb-sheet-body').innerHTML = sumHTML();
+  }
+  function renderAll() {
+    renderScene(); renderPresets(); renderTabs(); renderPanel(); renderSum(); renderHots();
+    (window as any).skApplyVat?.();
+    updateVatLabel();
+    saveState();
+  }
+  function renderHots() {
+    $('kb-hots').innerHTML = G.hotspots.map((h: any) => {
+      const t = R.tabs.find((x: any) => x.id === h.tab);
+      return `<button type="button" class="kb-hot${tab === h.tab ? ' on' : ''}" style="left:${h.x}%;top:${h.y}%" data-tab="${h.tab}" aria-label="Välj ${esc(t.label)}"><span>${esc(t.label)}</span></button>`;
+    }).join('');
+  }
+
+  // ── guide ────────────────────────────────────────────────────
+  let gStep = -1;
+  function renderGuide() {
+    const g = $('kb-guide');
+    if (gStep < 0) { g.hidden = true; $('kb-editor').hidden = false; return; }
+    g.hidden = false; $('kb-editor').hidden = true;
+    const n = R.guide.length;
+    if (gStep >= n) {
+      const tot = itemsFor(R, S).reduce((s: number, i: any) => s + i.total, 0);
+      g.innerHTML = `<p class="kb-g-step">Klart</p><h3 class="kb-g-q">Här är vårt förslag</h3>` +
+        `<p class="kb-g-lead">${itemsFor(R, S).length} artiklar för ${kr(tot)} per dygn. Ändra det du vill under flikarna, eller lägg allt i varukorgen direkt.</p>` +
+        `<div class="kb-g-end"><button type="button" class="kb-cta" data-add>Lägg i varukorgen</button><button type="button" class="kb-ghost" data-guide-close>Finjustera själv</button></div><p class="kb-added" hidden></p>`;
+    } else {
+      const q = R.guide[gStep];
+      g.innerHTML = `<div class="kb-g-top"><p class="kb-g-step">Fråga ${gStep + 1} av ${n}</p><button type="button" class="kb-link" data-guide-close>Jag väljer själv</button></div>` +
+        `<div class="kb-g-bar"><i style="width:${(gStep / n) * 100}%"></i></div>` +
+        `<h3 class="kb-g-q">${esc(q.q)}</h3><div class="kb-g-opts">` +
+        q.options.map((o: any, i: number) => `<button type="button" class="kb-g-opt" data-answer="${i}"><b>${esc(o.label)}</b><small>${esc(o.sub || '')}</small></button>`).join('') +
+        `</div>` + (gStep > 0 ? `<button type="button" class="kb-link" data-guide-back>← Tillbaka</button>` : '');
+    }
+    (window as any).skApplyVat?.();
+  }
+
+  // ── varukorg ─────────────────────────────────────────────────
+  function addAll(btn?: HTMLElement) {
+    const cart = (window as any).skCart;
+    if (!cart) return;
+    const it = itemsFor(R, S);
+    for (const i of it) {
+      cart.add({ id: i.cartId, name: i.name, price: i.price, priceNote: '/dygn', category: i.category, image: i.image, artno: i.artno,
+        bulky: i.bulky, forceLeverans: i.forceLeverans || undefined, monteringMin: i.monteringMin, qty: i.qty });
+    }
+    try { (window as any).dataLayer?.push({ event: 'karaoke_lagg_i_varukorg', artiklar: it.length, varde: it.reduce((s: number, i: any) => s + i.total, 0) }); } catch {}
+    if (btn && btn.id === 'kb-bar-add') openSheet();
+    root?.querySelectorAll('.kb-added').forEach((p) => {
+      (p as HTMLElement).hidden = false;
+      p.innerHTML = `✓ ${it.length} artiklar ligger i varukorgen. <a href="/varukorg/">Gå till varukorgen →</a>`;
+    });
+    const bar = $('kb-bar-add');
+    bar.textContent = '✓ Tillagt';
+    setTimeout(() => { bar.textContent = 'Lägg i varukorg'; }, 1800);
+  }
+
+  // ── mobil: fast nederkant + blad ─────────────────────────────
+  function openSheet() { $('kb-sheet-body').innerHTML = sumHTML(); $('kb-sheet').hidden = false; document.body.classList.add('kb-sheet-open'); (window as any).skApplyVat?.(); }
+  function closeSheet() { $('kb-sheet').hidden = true; document.body.classList.remove('kb-sheet-open'); }
+  function vatMode() { try { return localStorage.getItem('sk-vat') === 'incl' ? 'incl' : 'excl'; } catch { return 'excl'; } }
+  function updateVatLabel() { $('kb-bar-vat').textContent = vatMode() === 'incl' ? 'inkl. moms' : 'exkl. moms'; }
+  const bar = $('kb-bar');
+  const io = new IntersectionObserver(([e]) => {
+    const on = e.isIntersecting;
+    bar.classList.toggle('on', on);
+    bar.setAttribute('aria-hidden', String(!on));
+    (bar as any).inert = !on;
+    document.body.classList.toggle('kb-bar-on', on);
+  }, { threshold: 0.15 });
+  io.observe($('kb-scene').closest('.kb-grid')!);
+
+  // ── events ───────────────────────────────────────────────────
+  root?.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    const el = t.closest('[data-preset],[data-tab],[data-slot],[data-grp],[data-add],[data-answer],[data-guide-close],[data-guide-back],[data-kb-close],#kb-guide-open,#kb-bar-total,#kb-bar-add,.kb-bar-vat') as HTMLElement | null;
+    if (!el) return;
+    const d = el.dataset;
+    if (d.preset) { applySet(R.presets.find((p: any) => p.id === d.preset).sel); gStep = -1; renderGuide(); }
+    else if (d.tab) { tab = d.tab; if (gStep >= 0) { gStep = -1; renderGuide(); } if (el.classList.contains('kb-hot')) $('kb-tabs').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    else if (d.slot) { S[d.slot] = d.val === '' ? null : d.val; }
+    else if (d.grp) {
+      const same = R.slots.bild.options.find((o: any) => o.id === S.bild)?.group === d.grp;
+      if (!same) applySet(GROUP_DEFAULTS[d.grp] || {});
+    }
+    else if ('add' in d) { addAll(el); return; }
+    else if (d.answer !== undefined) { applySet(R.guide[gStep].options[+d.answer].set); gStep++; renderGuide(); }
+    else if ('guideClose' in d) { gStep = -1; renderGuide(); }
+    else if ('guideBack' in d) { gStep = Math.max(0, gStep - 1); renderGuide(); }
+    else if ('kbClose' in d) { closeSheet(); return; }
+    else if (el.id === 'kb-guide-open') { gStep = 0; renderGuide(); $('kb-scene').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+    else if (el.id === 'kb-bar-total') { openSheet(); return; }
+    else if (el.id === 'kb-bar-add') { addAll(el); return; }
+    else if (el.classList.contains('kb-bar-vat')) { return; }
+    renderAll();
+  });
+  root?.addEventListener('change', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.dataset.tog) { S[t.dataset.tog] = t.checked; renderAll(); }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+  // Momsknapparna i sidans globala toggle ändrar texten i den fasta raden
+  document.getElementById('sk-vat-excl')?.addEventListener('click', () => setTimeout(updateVatLabel));
+  document.getElementById('sk-vat-incl')?.addEventListener('click', () => setTimeout(updateVatLabel));
+  $('kb-bar-vat').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById(vatMode() === 'incl' ? 'sk-vat-excl' : 'sk-vat-incl')?.click();
+    setTimeout(updateVatLabel);
+  });
+  let lastW = 0;
+  window.addEventListener('resize', () => {
+    const w = svg.clientWidth; if (Math.abs(w - lastW) < 200) return; lastW = w;
+    layersEl.innerHTML = ''; renderScene();
+  });
+
+  loadState();
+  lastW = svg.clientWidth;
+  renderAll();
+  renderGuide();
+</script>
+
+<style is:global>
+  .kb [hidden] { display: none !important; }
+  .kb { --kb-line: rgba(255,255,255,.10); --kb-lav: #c4b5f4; --kb-lav2: #e2dcfb; --kb-navy: #1e1850; --kb-dark: #0c0a24; scroll-margin-top: 150px; }
+  .kb-head { margin-bottom: 1rem; }
+  .kb-eyebrow { font: 700 .72rem 'Space Grotesk', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--kb-lav); margin: 0 0 .35rem; }
+  .kb-h2 { font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; color: #fff; font-size: clamp(1.45rem, 4.5vw, 2.1rem); line-height: 1.15; margin: 0; text-wrap: balance; }
+
+  .kb-start { display: grid; gap: .5rem; margin-bottom: 1rem; }
+  .kb-presets { display: flex; gap: .5rem; overflow-x: auto; scrollbar-width: none; margin: 0 -1rem; padding: 0 1rem .25rem; scroll-snap-type: x proximity; }
+  .kb-presets::-webkit-scrollbar { display: none; }
+  .kb-presets, .kb-tabs, .kb-opts { scroll-padding-inline: 1rem; }
+  body.kb-sheet-open #sven-chat-widget { display: none !important; }
+  .kb-guide-btn { order: -1; }
+  .kb-preset, .kb-guide-btn { flex: 0 0 auto; scroll-snap-align: start; display: grid; gap: 1px; text-align: left; background: var(--kb-navy); border: 1px solid var(--kb-line); border-radius: 14px; padding: .55rem .85rem; color: #fff; cursor: pointer; font-family: 'Space Grotesk', sans-serif; min-height: 44px; }
+  .kb-preset b { font-size: .9rem; }
+  .kb-preset small, .kb-guide-btn small { font-size: .7rem; color: rgba(255,255,255,.55); }
+  .kb-preset span { font-size: .78rem; font-weight: 700; color: var(--kb-lav); }
+  .kb-preset.on { border-color: var(--kb-lav); background: rgba(196,181,244,.14); box-shadow: inset 0 0 0 1px var(--kb-lav); }
+  .kb-guide-btn { display: flex; align-items: center; gap: .6rem; border-style: dashed; border-color: rgba(196,181,244,.5); }
+  .kb-guide-btn > span:last-child { display: grid; }
+  .kb-guide-btn b { font-size: .9rem; }
+  .kb-guide-ico { width: 28px; height: 28px; border-radius: 50%; background: var(--kb-lav); color: var(--kb-dark); display: grid; place-items: center; font-weight: 700; }
+
+  .kb-grid { display: grid; gap: 1rem; }
+  .kb-main { min-width: 0; }
+  .kb-scene { scroll-margin-top: 140px; position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--kb-line); background: #14112f; aspect-ratio: 16 / 9; }
+  .kb-scene svg { display: block; width: 100%; height: 100%; }
+  .kb-fade { animation: kbFade .3s ease; }
+  @keyframes kbFade { from { opacity: 0 } to { opacity: 1 } }
+  .kb-beam { animation: kbPulse 3s ease-in-out infinite alternate; }
+  .kb-beam.d2 { animation-delay: -1.5s; }
+  @keyframes kbPulse { from { opacity: .35 } to { opacity: .9 } }
+  .kb-haze { animation: kbDrift 9s ease-in-out infinite alternate; }
+  @keyframes kbDrift { from { transform: translateX(-30px) } to { transform: translateX(30px) } }
+  @media (prefers-reduced-motion: reduce) { .kb-fade, .kb-beam, .kb-haze, .kb-hot::after { animation: none !important; } }
+
+  .kb-hots { display: none; }
+  .kb-hot { position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--kb-lav); background: rgba(12,10,36,.7); cursor: pointer; padding: 0; }
+  .kb-hot::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid rgba(196,181,244,.5); animation: kbRing 2.2s ease-out infinite; }
+  @keyframes kbRing { from { transform: scale(.8); opacity: 1 } to { transform: scale(1.45); opacity: 0 } }
+  .kb-hot span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; white-space: nowrap; font: 600 .7rem 'Space Grotesk', sans-serif; color: #fff; background: rgba(12,10,36,.85); padding: 2px 7px; border-radius: 4px; opacity: 0; transition: opacity .15s; pointer-events: none; }
+  .kb-hot:hover span, .kb-hot:focus-visible span, .kb-hot.on span { opacity: 1; }
+  .kb-hot.on { background: var(--kb-lav); }
+
+  .kb-tabs { display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; margin: .85rem -1rem 0; padding: 0 1rem .2rem; scroll-snap-type: x proximity; }
+  .kb-tabs::-webkit-scrollbar { display: none; }
+  .kb-tab { flex: 0 0 auto; scroll-snap-align: start; display: grid; text-align: left; gap: 1px; min-width: 92px; padding: .5rem .75rem; border-radius: 12px; border: 1px solid var(--kb-line); background: transparent; color: rgba(255,255,255,.72); font-family: 'Space Grotesk', sans-serif; cursor: pointer; min-height: 44px; }
+  .kb-tab span { font-size: .8rem; font-weight: 700; }
+  .kb-tab small { font-size: .68rem; color: rgba(255,255,255,.55); white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+  .kb-tab[aria-selected="true"] { background: var(--kb-lav); border-color: var(--kb-lav); color: var(--kb-dark); }
+  .kb-tab[aria-selected="true"] small { color: rgba(12,10,36,.7); }
+
+  .kb-panel { padding-top: .85rem; display: grid; gap: .85rem; }
+  .kb-slot { display: grid; gap: .5rem; }
+  .kb-slot-h { margin: 0; font: 700 .72rem 'Space Grotesk', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
+  .kb-groups { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .kb-grp { font: 600 .8rem 'Space Grotesk', sans-serif; color: #fff; background: var(--kb-navy); border: 1px solid var(--kb-line); border-radius: 999px; padding: .5rem .9rem; cursor: pointer; min-height: 40px; }
+  .kb-grp.on { background: var(--kb-lav); color: var(--kb-dark); border-color: var(--kb-lav); }
+  .kb-opts { display: flex; gap: .5rem; overflow-x: auto; scrollbar-width: none; margin: 0 -1rem; padding: .15rem 1rem .35rem; scroll-snap-type: x mandatory; }
+  .kb-opts::-webkit-scrollbar { display: none; }
+  .kb-opt { flex: 0 0 min(46%, 190px); scroll-snap-align: start; display: grid; align-content: start; gap: 2px; text-align: left; padding: .7rem .8rem; border-radius: 12px; border: 1px solid var(--kb-line); background: var(--kb-navy); color: #fff; cursor: pointer; font-family: 'Space Grotesk', sans-serif; min-height: 92px; }
+  .kb-opt b { font-size: .92rem; }
+  .kb-opt small { font-family: 'Source Sans 3', sans-serif; font-size: .76rem; line-height: 1.3; color: #9ca3af; }
+  .kb-opt-p { font: 700 .82rem 'Space Grotesk', sans-serif; color: var(--kb-lav); margin-top: auto; padding-top: 4px; white-space: nowrap; }
+  .kb-opt.none b { color: rgba(255,255,255,.72); }
+  .kb-opt[aria-pressed="true"] { border-color: var(--kb-lav); background: rgba(196,181,244,.13); box-shadow: inset 0 0 0 1px var(--kb-lav); }
+  .kb-opt:hover, .kb-preset:hover, .kb-tab:hover, .kb-grp:hover { border-color: rgba(196,181,244,.5); }
+  .kb :focus-visible { outline: 2px solid var(--kb-lav); outline-offset: 2px; }
+
+  .kb-addons { display: grid; gap: .5rem; border-top: 1px solid var(--kb-line); padding-top: .85rem; }
+  .kb-tog { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .75rem; padding: .6rem .8rem; border: 1px solid var(--kb-line); border-radius: 12px; background: var(--kb-navy); cursor: pointer; min-height: 52px; }
+  .kb-tog input { position: absolute; opacity: 0; pointer-events: none; }
+  .kb-sw { width: 40px; height: 24px; border-radius: 999px; background: rgba(255,255,255,.18); position: relative; transition: background .15s; }
+  .kb-sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  .kb-tog input:checked + .kb-sw { background: var(--kb-lav); }
+  .kb-tog input:checked + .kb-sw::after { transform: translateX(16px); background: var(--kb-dark); }
+  .kb-tog input:focus-visible + .kb-sw { outline: 2px solid var(--kb-lav); outline-offset: 2px; }
+  .kb-tog-t { display: grid; min-width: 0; }
+  .kb-tog-t b { font: 700 .88rem 'Space Grotesk', sans-serif; color: #fff; }
+  .kb-tog-t small { font-size: .76rem; color: #9ca3af; }
+
+  .kb-guide { margin-top: .85rem; background: var(--kb-navy); border: 1px solid rgba(196,181,244,.35); border-radius: 16px; padding: 1rem; display: grid; gap: .75rem; }
+  .kb-g-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+  .kb-g-step { margin: 0; font: 700 .7rem 'Space Grotesk', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--kb-lav); }
+  .kb-g-bar { height: 4px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
+  .kb-g-bar i { display: block; height: 100%; background: var(--kb-lav); transition: width .25s; }
+  .kb-g-q { margin: 0; font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; font-size: 1.45rem; color: #fff; }
+  .kb-g-lead { margin: 0; color: rgba(255,255,255,.72); font-size: .95rem; }
+  .kb-g-opts { display: grid; gap: .5rem; }
+  .kb-g-opt { display: grid; gap: 2px; text-align: left; padding: .85rem 1rem; border-radius: 12px; border: 1px solid var(--kb-line); background: rgba(12,10,36,.5); color: #fff; cursor: pointer; min-height: 56px; }
+  .kb-g-opt b { font: 700 1rem 'Space Grotesk', sans-serif; }
+  .kb-g-opt small { color: #9ca3af; font-size: .82rem; }
+  .kb-g-opt:hover { border-color: var(--kb-lav); }
+  .kb-g-end { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .kb-link { background: none; border: 0; color: var(--kb-lav); font: 600 .82rem 'Space Grotesk', sans-serif; cursor: pointer; padding: .4rem 0; justify-self: start; }
+
+  .kb-cta { display: inline-flex; align-items: center; justify-content: center; background: var(--kb-lav); color: var(--kb-dark); font: 700 .95rem 'Space Grotesk', sans-serif; border: 0; border-radius: 12px; padding: .8rem 1.1rem; cursor: pointer; min-height: 48px; }
+  .kb-cta:hover { background: var(--kb-lav2); }
+  .kb-ghost { background: none; color: #fff; border: 1px solid var(--kb-line); border-radius: 12px; padding: .8rem 1.1rem; font: 600 .9rem 'Space Grotesk', sans-serif; cursor: pointer; min-height: 48px; }
+  .kb-ghost:hover { border-color: var(--kb-lav); }
+  .kb-added { margin: 0; font-size: .85rem; color: rgba(255,255,255,.72); }
+  .kb-added a { color: var(--kb-lav); font-weight: 600; }
+
+  .kb-sum { display: none; }
+  .kb-sum-h { margin: 0 0 .5rem; font: 700 .72rem 'Space Grotesk', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
+  .kb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; font-size: .88rem; }
+  .kb-list li { display: flex; justify-content: space-between; gap: .75rem; color: rgba(255,255,255,.8); }
+  .kb-list li span:last-child { white-space: nowrap; font-family: 'Space Grotesk', sans-serif; font-variant-numeric: tabular-nums; }
+  .kb-list li.own { color: rgba(255,255,255,.55); }
+  .kb-tot { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--kb-line); margin-top: .75rem; padding-top: .75rem; color: rgba(255,255,255,.55); font-size: .85rem; }
+  .kb-tot b { font: 800 1.6rem 'Space Grotesk', sans-serif; color: var(--kb-lav); font-variant-numeric: tabular-nums; }
+  .kb-note { margin: .35rem 0 .85rem; font-size: .78rem; color: rgba(255,255,255,.55); }
+  .kb-sum .kb-cta, .kb-sheet .kb-cta { width: 100%; }
+
+  .kb-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; display: flex; gap: .6rem; align-items: center; padding: .6rem 1rem calc(.6rem + env(safe-area-inset-bottom, 0px)); background: rgba(16,13,46,.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(196,181,244,.25); transform: translateY(110%); transition: transform .25s; }
+  .kb-bar.on { transform: none; }
+  .kb-bar-total { flex: 1; min-width: 0; display: grid; text-align: left; background: none; border: 0; color: #fff; cursor: pointer; padding: 0; }
+  .kb-bar-total small { font-size: .7rem; color: rgba(255,255,255,.55); }
+  .kb-bar-total b { font: 800 1.25rem 'Space Grotesk', sans-serif; color: var(--kb-lav); }
+  .kb-bar-vat { text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+  .kb-bar .kb-cta { padding: .7rem 1rem; }
+  @media (max-width: 1023px) {
+    body.kb-bar-on #sk-vat-toggle { display: none !important; }
+    body.kb-bar-on #sven-chat-widget { bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; transition: bottom .25s; }
+  }
+
+  .kb-sheet { position: fixed; inset: 0; z-index: 460; }
+  .kb-sheet-bg { position: absolute; inset: 0; background: rgba(5,4,20,.6); }
+  .kb-sheet-card { position: absolute; left: 0; right: 0; bottom: 0; max-height: 80vh; overflow-y: auto; background: #17133f; border-radius: 18px 18px 0 0; padding: 1.25rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(196,181,244,.3); }
+  .kb-sheet-x { position: absolute; top: .5rem; right: .75rem; width: 40px; height: 40px; background: none; border: 0; color: #fff; font-size: 1.6rem; cursor: pointer; }
+
+  @media (min-width: 640px) {
+    .kb-start { display: flex; flex-wrap: wrap; align-items: stretch; }
+    .kb-presets { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+    .kb-guide-btn { order: 0; }
+    .kb-tabs { margin: .85rem 0 0; padding: 0 0 .2rem; }
+    .kb-opts { flex-wrap: wrap; overflow: visible; margin: 0; padding: .15rem 0 .35rem; }
+    .kb-opt { flex: 1 1 150px; max-width: 240px; }
+    .kb-g-opts { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .kb-grid { grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; align-items: start; }
+    .kb-scene { scroll-margin-top: 180px; }
+    .kb-sum { display: block; position: sticky; top: 180px; background: var(--kb-navy); border: 1px solid var(--kb-line); border-radius: 16px; padding: 1.1rem; }
+    .kb-hots { display: block; }
+    .kb-bar, .kb-sheet { display: none !important; }
+  }
+</style>

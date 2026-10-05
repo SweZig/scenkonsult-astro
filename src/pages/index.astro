@@ -5,6 +5,10 @@ import scenesData from '../data/scenes.json';
 import ljudData from '../data/ljud.json';
 import bildData from '../data/bild.json';
 import ljusData from '../data/ljus.json';
+import _karaokeData from '../data/karaoke.json';
+import _tjData from '../data/tjanster.json';
+import _elData from '../data/el.json';
+import { resolveBuilder as _kbResolve, minTotal as _kbMin } from '../lib/karaoke-builder.mjs';
 
 // Frånpriser härleds från JSON-katalogen (hänger med vid prisjustering).
 const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price).map((p: any) => p.price));
@@ -38,6 +42,7 @@ const homeSchema = {
     { "@type": "Question", "name": "Sedan när har Scenkonsult Norden funnits?", "acceptedAnswer": { "@type": "Answer", "text": "Scenkonsult Norden grundades 1986 och har sedan dess levererat scen, ljud och ljus till hundratals event per år i Storstockholm." } }
   ]
 };
+const _kbFran = _kbMin(_kbResolve(_karaokeData, { karaoke: _karaokeData, ljud: ljudData, ljus: ljusData, bild: bildData, dj: djData, scenes: scenesData, tjanster: _tjData, el: _elData }));
 ---
 
 <Layout
@@ -273,11 +278,11 @@ const homeSchema = {
       <div class="svc2-cta-text">
         <span class="svc2-cta-emoji">🎤</span>
         <div>
-          <h3 class="svc2-cta-title">Hyr karaoke-utrustning — 6 färdiga paket <span class="svc2-cta-badge">Nytt</span></h3>
-          <p class="svc2-cta-desc">Från enkel BT-uppställning till full setup med 65″ skärm. Trådlösa mikar, sångtexter och Singa-app — från 699 kr/dygn.</p>
+          <h3 class="svc2-cta-title">Bygg din egen karaoke <span class="svc2-cta-badge">Nytt</span></h3>
+          <p class="svc2-cta-desc">Välj högtalare, mikrofoner, skärm eller projektor, ljus och rök — och se uppställningen växa fram. Singa-app med 80 000+ låtar — från <span data-exkl={_kbFran}>{_kbFran.toLocaleString('sv-SE')}</span> kr/dygn.</p>
         </div>
       </div>
-      <a href="/vara-tjanster/hyra-karaoke/" class="svc2-cta-btn">Se karaokepaket</a>
+      <a href="/vara-tjanster/hyra-karaoke/#bygg" class="svc2-cta-btn">Bygg din karaoke</a>
     </div>
   </div>
 
