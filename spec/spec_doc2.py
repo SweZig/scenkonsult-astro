@@ -255,8 +255,8 @@ DOC2 = dict(
                       "`groups` = bildtyperna Egen skärm / Projektor / Skärm"],
             ["tabs", "Flikarnas ordning: Högtalare · Mikrofoner · Mixer · Bild · Dator · Ljus · Rök"],
             ["presets", "Snabbvalen Hemmafest / Fest / Gala (`sel` = fullständigt urval)"],
-            ["guide", "\"Hjälp mig välja\": tre frågor (antal gäster, var texten ska synas, hur mycket "
-                      "fest) där varje svar sätter en del av urvalet"],
+            ["guide", "\"Hjälp mig välja\": fyra frågor (antal gäster, var texten ska synas, hur mycket "
+                      "fest, karaokevärd) där varje svar sätter en del av urvalet"],
         ]),
         ("ul", [
             "**Från-priset** (karaokesidans titel/hero, startsidans banner, företagsfest, llms.txt, "
@@ -267,6 +267,12 @@ DOC2 = dict(
             "**Ny artikel SK-BLD-ACC-0029 Bärbar dator** (500 kr, `bild.json → tillbehor`, grupp "
             "`signal`). Neutralt nummer — datorn hyrs även till presentationer.",
             "**DJ-bord SK-DJ-0005** heter \"Teknikbord\" i byggaren. Samma artikel, annan etikett.",
+            "**Karaokevärd SK-TJN-0004** (900 kr/tim, `tjanster.json → services`, `type: service`, resa "
+            "tillkommer). Valen 2/3/4 timmar sätter `qty` = timmar. Byggaren summerar värden separat "
+            "från dygnshyran, och raden dygnsprissätts aldrig (SK-TJN-prefixet).",
+            "Builder-alternativen anger artikeln i fältet **`art`**, inte `artno` — annars läser "
+            "katalog- och monteringsgeneratorerna dem som egna produkter och skapar falska alias "
+            "(`ja`, `fest`, `100` …). Upptäckt och rättat 2026-10-05.",
             "Mikrofoner: 2 st kabel eller trådlösa (qty 2) eller Shure SLXD (ett system med två mikrofoner). "
             "Mixerbordet är alltid med.",
         ]),
@@ -287,7 +293,7 @@ DOC2 = dict(
             ["v17.1", "2026-10-05",
              "Ny §10 Karaokebyggaren: karaoke.json.builder (slots/tabs/presets/guide), "
              "karaoke-builder.mjs, karaoke-scen.json och bildlagren. KAR-PAK-0001–0006 utgångna. Ny "
-             "artikel SK-BLD-ACC-0029 Bärbar dator. §10–11 omnumrerade."],
+             "artikel SK-BLD-ACC-0029 Bärbar dator och tjänsten SK-TJN-0004 Karaokevärd. §10–11 omnumrerade."],
             ["v17.0", "2026-10-02",
              "Ny §5.1 Montering — en gemensam beräkning (montering.cjs, monteringMin/-Bemanning/"
              "-Skalning/-Manuell, montering-catalog.json). Ny §5.2 Hyresdygn och flerdygnsrabatt "

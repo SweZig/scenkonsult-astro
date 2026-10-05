@@ -212,11 +212,11 @@ def take(rows):
     return out
 
 # Personal — services från tjanster.json.services (centraliserat efter konsolidering)
-# Filtrera på 'ljud' eller 'ljus' i categories[]
+# Filtrera på 'ljud', 'ljus' eller 'karaoke' (karaokevärd SK-TJN-0004) i categories[]
 personal = []
 for s in frakt.get('services', []):
     cats = s.get('categories', [])
-    if 'ljud' in cats or 'ljus' in cats:
+    if 'ljud' in cats or 'ljus' in cats or 'karaoke' in cats:
         personal.append(svc_from_service(s))
 # Lägg också till tillagg (legacy fallback — tjanster.json.tillagg används av varukorgens
 # checkbox-UI, har egen struktur). SK-TJN-0002 finns redan i services ovan men tillagg

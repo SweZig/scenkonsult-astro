@@ -53,12 +53,16 @@ export function resolveBuilder(karaoke, data) {
   const slots = {};
   for (const [key, slot] of Object.entries(b.slots)) {
     const options = slot.options.map((o) => {
-      if (!o.artno) return { ...o, qty: 0, price: 0, name: o.label };
-      const hit = findProduct(data, o.artno);
-      if (!hit) { missing.push(o.artno); return null; }
+      // I karaoke.json heter fältet `art` (inte `artno`) så att katalog- och
+      // monteringsgeneratorerna inte läser byggarens val som egna produkter.
+      const { art, ...rest } = o;
+      if (!art) return { ...rest, artno: null, qty: 0, price: 0, name: o.label };
+      const hit = findProduct(data, art);
+      if (!hit) { missing.push(art); return null; }
       const { p, cartId, category } = hit;
       return {
-        ...o,
+        ...rest,
+        artno: art,
         qty: o.qty || 1,
         name: p.name,
         price: Number(p.price) || 0,
@@ -68,6 +72,8 @@ export function resolveBuilder(karaoke, data) {
         bulky: !!p.bulky,
         forceLeverans: p.forceLeverans || '',
         monteringMin: p.monteringMin ?? null,
+        priceNote: p.priceNote || '/dygn',
+        type: p.type || '',
       };
     }).filter(Boolean);
     slots[key] = { key, ...slot, options };
@@ -104,6 +110,9 @@ export function itemsFor(resolved, sel) {
 export function totalFor(resolved, sel) {
   return itemsFor(resolved, sel).reduce((s, i) => s + i.total, 0);
 }
+
+/** Personal (t.ex. karaokevärd, pris per timme) räknas separat från dygnshyran. */
+export const isService = (i) => i.type === 'service' || i.priceNote === '/tim';
 
 /** Billigaste möjliga uppsättning: billigaste alternativet i varje obligatorisk slot. */
 export function minTotal(resolved) {

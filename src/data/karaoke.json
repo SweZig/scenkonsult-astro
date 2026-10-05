@@ -126,6 +126,10 @@
       "a": "Nej, du kan hyra vår bärbara dator med Singa förinstallerad — välj Vår dator under Dator. Har du en egen dator eller telefon med appen fungerar den lika bra."
     },
     {
+      "q": "Vad gör en karaokevärd?",
+      "a": "Värden håller i kvällen: startar musiken, hjälper gästerna att hitta låtar, håller ordning på kön och får igång publiken — så att ni kan vara gäster på er egen fest. Värden kostar 900 kr/tim exkl. moms och resekostnad tillkommer. Välj antal timmar under Värd, eller skriv i offertförfrågan om ni behöver fler."
+    },
+    {
       "q": "Ska jag välja sladd eller trådlösa mikrofoner?",
       "a": "Sladdmikrofoner räcker när alla sjunger nära högtalarna. Trådlöst är skönare när sångarna rör sig eller lämnar över mikrofonen i publiken. Proffs är Shures digitala system med längre räckvidd och stabilare signal för större lokaler."
     },
@@ -221,6 +225,13 @@
         "slots": [
           "rok"
         ]
+      },
+      {
+        "id": "vard",
+        "label": "Värd",
+        "slots": [
+          "vard"
+        ]
       }
     ],
     "slots": {
@@ -230,19 +241,19 @@
         "options": [
           {
             "id": "sallskap",
-            "artno": "SK-LJD-LIV-0001",
+            "art": "SK-LJD-LIV-0001",
             "label": "Sällskap",
             "sub": "20–60 personer"
           },
           {
             "id": "fest",
-            "artno": "SK-LJD-MUS-0001",
+            "art": "SK-LJD-MUS-0001",
             "label": "Fest",
             "sub": "20–80 personer · med sub-bas"
           },
           {
             "id": "dansgolv",
-            "artno": "SK-LJD-MUS-0004",
+            "art": "SK-LJD-MUS-0004",
             "label": "Dansgolv",
             "sub": "120–250 personer · 2 sub-basar"
           }
@@ -254,21 +265,21 @@
         "options": [
           {
             "id": "sladd",
-            "artno": "SK-LJD-MIK-0006",
+            "art": "SK-LJD-MIK-0006",
             "label": "Sladd",
             "sub": "2 st kabelmikrofoner",
             "qty": 2
           },
           {
             "id": "tradlos",
-            "artno": "SK-LJD-MIK-0016",
+            "art": "SK-LJD-MIK-0016",
             "label": "Trådlös",
             "sub": "2 st, ca 30 m räckvidd",
             "qty": 2
           },
           {
             "id": "proffs",
-            "artno": "SK-LJD-MIK-0026",
+            "art": "SK-LJD-MIK-0026",
             "label": "Proffs",
             "sub": "Shure digitalt trådlöst, 2 mikrofoner"
           }
@@ -280,7 +291,7 @@
         "options": [
           {
             "id": "ja",
-            "artno": "SK-LJD-MIK-0004",
+            "art": "SK-LJD-MIK-0004",
             "label": "2 mikrofonstativ",
             "sub": "Sjung med händerna fria",
             "qty": 2
@@ -293,13 +304,13 @@
         "options": [
           {
             "id": "enkel",
-            "artno": "SK-LJD-MIX-0001",
+            "art": "SK-LJD-MIX-0001",
             "label": "Enkel",
             "sub": "2 mikkanaler · Bluetooth"
           },
           {
             "id": "effekter",
-            "artno": "SK-LJD-MIX-0002",
+            "art": "SK-LJD-MIX-0002",
             "label": "Med effekter",
             "sub": "4 mikkanaler · inbyggda effekter"
           }
@@ -325,56 +336,56 @@
         "options": [
           {
             "id": "telefon",
-            "artno": null,
+            "art": null,
             "label": "Telefon eller surfplatta",
             "sub": "Texten visas i appen",
             "group": "egen"
           },
           {
             "id": "egen-tv",
-            "artno": null,
+            "art": null,
             "label": "Er TV eller projektor",
             "sub": "Vi kopplar in i er",
             "group": "egen"
           },
           {
             "id": "proj-fhd",
-            "artno": "SK-BLD-0002",
+            "art": "SK-BLD-0002",
             "label": "Full HD",
             "sub": "Ljusstark, klarar dagsljus",
             "group": "projektor"
           },
           {
             "id": "proj-smart",
-            "artno": "SK-BLD-0014",
+            "art": "SK-BLD-0014",
             "label": "Full HD Smart",
             "sub": "Med inbyggd streaming",
             "group": "projektor"
           },
           {
             "id": "proj-4k",
-            "artno": "SK-BLD-0007",
+            "art": "SK-BLD-0007",
             "label": "4K",
             "sub": "Skarpast bild",
             "group": "projektor"
           },
           {
             "id": "skarm-65",
-            "artno": "SK-BLD-0003",
+            "art": "SK-BLD-0003",
             "label": "65″",
             "sub": "Upp till ca 50 personer",
             "group": "skarm"
           },
           {
             "id": "skarm-75",
-            "artno": "SK-BLD-0004",
+            "art": "SK-BLD-0004",
             "label": "75″",
             "sub": "Upp till ca 80 personer",
             "group": "skarm"
           },
           {
             "id": "skarm-85",
-            "artno": "SK-BLD-0005",
+            "art": "SK-BLD-0005",
             "label": "85″",
             "sub": "För stora sällskap",
             "group": "skarm"
@@ -392,19 +403,19 @@
         "options": [
           {
             "id": "70",
-            "artno": "SK-BLD-ACC-0010",
+            "art": "SK-BLD-ACC-0010",
             "label": "70″",
             "sub": "Ca 1,5 m bred"
           },
           {
             "id": "100",
-            "artno": "SK-BLD-ACC-0002",
+            "art": "SK-BLD-ACC-0002",
             "label": "100″",
             "sub": "Ca 2,2 m bred"
           },
           {
             "id": "166",
-            "artno": "SK-BLD-0010",
+            "art": "SK-BLD-0010",
             "label": "166″",
             "sub": "Ramduk, ca 3,7 m bred"
           }
@@ -420,7 +431,7 @@
         "options": [
           {
             "id": "ja",
-            "artno": "SK-BLD-ACC-0001",
+            "art": "SK-BLD-ACC-0001",
             "label": "Projektorbord",
             "sub": "Rätt höjd och vinkel mot duken"
           }
@@ -436,7 +447,7 @@
         "options": [
           {
             "id": "ja",
-            "artno": "SK-BLD-ACC-0003",
+            "art": "SK-BLD-ACC-0003",
             "label": "Golvstativ",
             "sub": "Skärmen på ca 1,7 m höjd"
           }
@@ -448,13 +459,13 @@
         "options": [
           {
             "id": "egen",
-            "artno": null,
+            "art": null,
             "label": "Egen",
             "sub": "Er dator eller telefon kör appen"
           },
           {
             "id": "var",
-            "artno": "SK-BLD-ACC-0029",
+            "art": "SK-BLD-ACC-0029",
             "label": "Vår dator",
             "sub": "Singa förinstallerad"
           }
@@ -466,7 +477,7 @@
         "options": [
           {
             "id": "ja",
-            "artno": "SK-DJ-0005",
+            "art": "SK-DJ-0005",
             "label": "Teknikbord",
             "sub": "Hopfällbart bord för mixer och dator"
           }
@@ -479,19 +490,19 @@
         "options": [
           {
             "id": "farg",
-            "artno": "SK-LJS-PAK-0001",
+            "art": "SK-LJS-PAK-0001",
             "label": "Färgljus",
             "sub": "T-bar, upp till 40 personer"
           },
           {
             "id": "dubbelt",
-            "artno": "SK-LJS-PAK-0022",
+            "art": "SK-LJS-PAK-0022",
             "label": "Dubbelt",
             "sub": "2 T-bars, en på varje sida"
           },
           {
             "id": "disco",
-            "artno": "SK-LJS-PAK-0025",
+            "art": "SK-LJS-PAK-0025",
             "label": "Discoshow",
             "sub": "T-bar, kaleidoskop och spindel"
           }
@@ -504,22 +515,51 @@
         "options": [
           {
             "id": "lite",
-            "artno": "SK-LJS-ROK-0001",
+            "art": "SK-LJS-ROK-0001",
             "label": "Lite rök",
             "sub": "1 maskin"
           },
           {
             "id": "mer",
-            "artno": "SK-LJS-ROK-0002",
+            "art": "SK-LJS-ROK-0002",
             "label": "Mer rök",
             "sub": "1 maskin med färgljus"
           },
           {
             "id": "full",
-            "artno": "SK-LJS-ROK-0002",
+            "art": "SK-LJS-ROK-0002",
             "label": "Full scen",
             "sub": "2 maskiner med färgljus",
             "qty": 2
+          }
+        ]
+      },
+      "vard": {
+        "title": "Karaokevärd",
+        "noneLabel": "Ingen värd",
+        "noneSub": "Vi sköter det själva",
+        "note": "900 kr/tim · resekostnad tillkommer",
+        "options": [
+          {
+            "id": "2h",
+            "art": "SK-TJN-0004",
+            "label": "2 timmar",
+            "sub": "Kort kväll eller mingel",
+            "qty": 2
+          },
+          {
+            "id": "3h",
+            "art": "SK-TJN-0004",
+            "label": "3 timmar",
+            "sub": "En vanlig karaokekväll",
+            "qty": 3
+          },
+          {
+            "id": "4h",
+            "art": "SK-TJN-0004",
+            "label": "4 timmar",
+            "sub": "Hela festen",
+            "qty": 4
           }
         ]
       }
@@ -541,7 +581,8 @@
           "dator": "egen",
           "teknikbord": false,
           "ljus": null,
-          "rok": null
+          "rok": null,
+          "vard": null
         }
       },
       {
@@ -560,7 +601,8 @@
           "dator": "var",
           "teknikbord": true,
           "ljus": "farg",
-          "rok": null
+          "rok": null,
+          "vard": null
         }
       },
       {
@@ -579,7 +621,8 @@
           "dator": "var",
           "teknikbord": true,
           "ljus": "disco",
-          "rok": "full"
+          "rok": "full",
+          "vard": null
         }
       }
     ],
@@ -685,6 +728,32 @@
             "set": {
               "ljus": "disco",
               "rok": "full"
+            }
+          }
+        ]
+      },
+      {
+        "q": "Vill ni ha en karaokevärd?",
+        "options": [
+          {
+            "label": "Nej, vi sköter det själva",
+            "sub": "Vi visar hur allt fungerar vid leveransen",
+            "set": {
+              "vard": null
+            }
+          },
+          {
+            "label": "Ja, en värd i 3 timmar",
+            "sub": "Startar låtarna, håller kön och får igång publiken",
+            "set": {
+              "vard": "3h"
+            }
+          },
+          {
+            "label": "Ja, hela kvällen",
+            "sub": "4 timmar — mer tid går att boka i offerten",
+            "set": {
+              "vard": "4h"
             }
           }
         ]

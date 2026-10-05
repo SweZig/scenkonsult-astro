@@ -3,7 +3,7 @@
 //
 // Kunden väljer per område (högtalare, mikrofoner, mixer, bild, dator, ljus,
 // rök) och scenen ritas om med frilagda foton. Två ingångar i samma vy:
-//   • Snabbval + "Hjälp mig välja" (tre frågor) för den som är ny
+//   • Snabbval + "Hjälp mig välja" (fyra frågor) för den som är ny
 //   • Flikar med alla alternativ för den som vet vad den vill ha
 //
 // Data: karaoke.json.builder (artikelnummer) → src/lib/karaoke-builder.mjs
@@ -38,7 +38,7 @@ const payload = JSON.stringify({ resolved, scen });
     <div class="kb-presets" id="kb-presets" role="group" aria-label="Snabbval"></div>
     <button type="button" class="kb-guide-btn" id="kb-guide-open">
       <span class="kb-guide-ico" aria-hidden="true">?</span>
-      <span><b>Hjälp mig välja</b><small>Tre snabba frågor</small></span>
+      <span><b>Hjälp mig välja</b><small>Fyra snabba frågor</small></span>
     </button>
   </div>
 
@@ -86,7 +86,7 @@ const payload = JSON.stringify({ resolved, scen });
 </section>
 
 <script>
-  import { itemsFor, chosenOption, slotVisible } from '../lib/karaoke-builder.mjs';
+  import { itemsFor, chosenOption, slotVisible, isService } from '../lib/karaoke-builder.mjs';
 
   const root = document.getElementById('bygg');
   const { resolved: R, scen: G } = JSON.parse(document.getElementById('kb-data')!.textContent || '{}');
@@ -264,7 +264,7 @@ const payload = JSON.stringify({ resolved, scen });
       return `<label class="kb-tog"><input type="checkbox" data-tog="${k}" ${on ? 'checked' : ''}/><span class="kb-sw" aria-hidden="true"></span>` +
         `<span class="kb-tog-t"><b>${esc(o.label)}</b><small>${esc(o.sub)}</small></span><span class="kb-opt-p">+ ${kr(o.price * o.qty)}</span></label>`;
     }
-    let h = `<div class="kb-slot"><h3 class="kb-slot-h">${esc(s.title)}</h3>`;
+    let h = `<div class="kb-slot"><h3 class="kb-slot-h">${esc(s.title)}</h3>` + (s.note ? `<p class="kb-slot-note">${esc(s.note)}</p>` : '');
     let opts = s.options;
     if (s.groups) {
       const cur = s.options.find((o: any) => o.id === S[k])?.group;
@@ -283,23 +283,30 @@ const payload = JSON.stringify({ resolved, scen });
     const extra = t.slots.slice(1).map(slotHTML).filter(Boolean).join('');
     $('kb-panel').innerHTML = main + (extra ? `<div class="kb-addons">${extra}</div>` : '');
   }
-  function sumHTML(compact = false) {
+  // Utrustning hyrs per dygn; personal (karaokevärd) per timme — summeras var för sig
+  function totals() {
     const it = itemsFor(R, S);
-    const tot = it.reduce((s: number, i: any) => s + i.total, 0);
+    const gear = it.filter((i: any) => !isService(i)).reduce((s: number, i: any) => s + i.total, 0);
+    const svc = it.filter(isService).reduce((s: number, i: any) => s + i.total, 0);
+    return { it, gear, svc, tot: gear + svc };
+  }
+  const qtyLabel = (i: any) => isService(i) ? `${i.qty} tim × ` : i.qty > 1 ? `${i.qty} × ` : '';
+  function sumHTML(compact = false) {
+    const { it, gear, svc, tot } = totals();
     const own = ['bild', 'dator'].map((k) => opt(k)).filter((o: any) => o && !o.artno);
     return `<h3 class="kb-sum-h">Din karaoke</h3>` +
-      `<ul class="kb-list">${it.map((i: any) => `<li><span>${i.qty > 1 ? i.qty + ' × ' : ''}${esc(i.name)}</span><span>${kr(i.total)}</span></li>`).join('')}` +
+      `<ul class="kb-list">${it.map((i: any) => `<li><span>${qtyLabel(i)}${esc(i.name)}</span><span>${kr(i.total)}</span></li>`).join('')}` +
       own.map((o: any) => `<li class="own"><span>${esc(o.label)} (eget)</span><span>0&nbsp;kr</span></li>`).join('') + `</ul>` +
-      `<div class="kb-tot"><span>Per dygn</span><b>${kr(tot)}</b></div>` +
-      `<p class="kb-note">Leverans och montering räknas i varukorgen. Resa tillkommer.</p>` +
+      (svc ? `<div class="kb-sub"><span>Utrustning per dygn</span><span>${kr(gear)}</span></div><div class="kb-sub"><span>Karaokevärd</span><span>${kr(svc)}</span></div>` : '') +
+      `<div class="kb-tot"><span>${svc ? 'Totalt' : 'Per dygn'}</span><b>${kr(tot)}</b></div>` +
+      `<p class="kb-note">Leverans och montering räknas i varukorgen. Resa tillkommer${svc ? ', även för värden' : ''}.</p>` +
       (compact ? '' : `<button type="button" class="kb-cta kb-add" data-add>Lägg ${it.length} artiklar i varukorgen</button><p class="kb-added" hidden></p>`);
   }
   function renderSum() {
     $('kb-sum').innerHTML = sumHTML();
-    const it = itemsFor(R, S);
-    const tot = it.reduce((s: number, i: any) => s + i.total, 0);
+    const { it, svc, tot } = totals();
     $('kb-bar-sum').innerHTML = kr(tot);
-    $('kb-bar-count').textContent = `${it.length} artiklar · per dygn`;
+    $('kb-bar-count').textContent = `${it.length} artiklar · ${svc ? 'inkl. värd' : 'per dygn'}`;
     const sheet = $('kb-sheet');
     if (!sheet.hidden) $('kb-sheet-body').innerHTML = sumHTML();
   }
@@ -324,9 +331,9 @@ const payload = JSON.stringify({ resolved, scen });
     g.hidden = false; $('kb-editor').hidden = true;
     const n = R.guide.length;
     if (gStep >= n) {
-      const tot = itemsFor(R, S).reduce((s: number, i: any) => s + i.total, 0);
+      const { it, gear, svc } = totals();
       g.innerHTML = `<p class="kb-g-step">Klart</p><h3 class="kb-g-q">Här är vårt förslag</h3>` +
-        `<p class="kb-g-lead">${itemsFor(R, S).length} artiklar för ${kr(tot)} per dygn. Ändra det du vill under flikarna, eller lägg allt i varukorgen direkt.</p>` +
+        `<p class="kb-g-lead">${it.length} artiklar för ${kr(gear)} per dygn${svc ? ` plus karaokevärd ${kr(svc)} (resa tillkommer)` : ''}. Ändra det du vill under flikarna, eller lägg allt i varukorgen direkt.</p>` +
         `<div class="kb-g-end"><button type="button" class="kb-cta" data-add>Lägg i varukorgen</button><button type="button" class="kb-ghost" data-guide-close>Finjustera själv</button></div><p class="kb-added" hidden></p>`;
     } else {
       const q = R.guide[gStep];
@@ -345,7 +352,7 @@ const payload = JSON.stringify({ resolved, scen });
     if (!cart) return;
     const it = itemsFor(R, S);
     for (const i of it) {
-      cart.add({ id: i.cartId, name: i.name, price: i.price, priceNote: '/dygn', category: i.category, image: i.image, artno: i.artno,
+      cart.add({ id: i.cartId, name: i.name, price: i.price, priceNote: i.priceNote || '/dygn', type: i.type || undefined, category: i.category, image: i.image, artno: i.artno,
         bulky: i.bulky, forceLeverans: i.forceLeverans || undefined, monteringMin: i.monteringMin, qty: i.qty });
     }
     try { (window as any).dataLayer?.push({ event: 'karaoke_lagg_i_varukorg', artiklar: it.length, varde: it.reduce((s: number, i: any) => s + i.total, 0) }); } catch {}
@@ -478,6 +485,10 @@ const payload = JSON.stringify({ resolved, scen });
   .kb-panel { padding-top: .85rem; display: grid; gap: .85rem; }
   .kb-slot { display: grid; gap: .5rem; }
   .kb-slot-h { margin: 0; font: 700 .72rem 'Space Grotesk', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
+  .kb-slot-note { margin: -.2rem 0 0; font-size: .8rem; color: rgba(255,255,255,.55); }
+  .kb-sub { display: flex; justify-content: space-between; gap: .75rem; font-size: .82rem; color: rgba(255,255,255,.55); margin-top: .35rem; }
+  .kb-sub:first-of-type { border-top: 1px solid var(--kb-line); margin-top: .75rem; padding-top: .6rem; }
+  .kb-sub span:last-child { font-family: 'Space Grotesk', sans-serif; font-variant-numeric: tabular-nums; }
   .kb-groups { display: flex; gap: .4rem; flex-wrap: wrap; }
   .kb-grp { font: 600 .8rem 'Space Grotesk', sans-serif; color: #fff; background: var(--kb-navy); border: 1px solid var(--kb-line); border-radius: 999px; padding: .5rem .9rem; cursor: pointer; min-height: 40px; }
   .kb-grp.on { background: var(--kb-lav); color: var(--kb-dark); border-color: var(--kb-lav); }
