@@ -78,8 +78,11 @@ exports.handler = async (event) => {
     }
 
     // Hämta varukorgar
+    // OBS: kanbankorten och påminnelse-popupen läser BARA fälten i den här listan.
+    // Nya kolumner som korten använder måste läggas till här (quote_reminder_log
+    // saknades 2026-09-29 → "Påmind 1/2" stod kvar efter sista påminnelsen).
     // Hämta alla varukorgar — service key bypasser RLS, inga radfilter behövs
-    let q = `${supaUrl}/rest/v1/carts?select=id,status,items,customer_name,customer_company,customer_type,customer_orgnr,customer_ref,customer_invoice_address,invoice_email,use_invoice_email,wants_peppol,peppol_id,customer_email,customer_phone,event_date,return_date,delivery_time,return_time,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,invoice_due_date,bounce_status,bounce_at,bounce_reason,last_quote_message_id,pickup_signed_at,pickup_confirmed_at,admin_reminder_sent_at,admin_reminder_dismissed_until,source,sven_session_id,sven_forward_type,created_at,updated_at&id=not.like.SK-RESERVE-*&order=updated_at.desc`;
+    let q = `${supaUrl}/rest/v1/carts?select=id,status,items,customer_name,customer_company,customer_type,customer_orgnr,customer_ref,customer_invoice_address,invoice_email,use_invoice_email,wants_peppol,peppol_id,customer_email,customer_phone,event_date,return_date,delivery_time,return_time,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,invoice_due_date,bounce_status,bounce_at,bounce_reason,last_quote_message_id,pickup_signed_at,pickup_confirmed_at,admin_reminder_sent_at,admin_reminder_dismissed_until,quote_sent_at,quote_reminder_log,declined_at,decline_reason,decline_comment,source,sven_session_id,sven_forward_type,created_at,updated_at&id=not.like.SK-RESERVE-*&order=updated_at.desc`;
     if (status) q += `&status=eq.${status}`;
     if (from_date) q += `&event_date=gte.${from_date}`;
     if (to_date)   q += `&event_date=lte.${to_date}`;
