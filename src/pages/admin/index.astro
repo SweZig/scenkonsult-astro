@@ -2035,6 +2035,7 @@ import {
   DAY_RATES, dayRungs, dayFactor, applyDayPricing, autoDays, isDayPriced,
   clampDays, lineTotalUndiscounted, cartDaySummary, dayConfigFrom, dayDiscountPct,
 } from '../../lib/day-pricing.js';
+import QRCode from 'qrcode';
 
 const DAY_CFG = dayConfigFrom({ hyresdagar: window.__ADMIN_DAY_CONFIG__ });
 
@@ -3510,7 +3511,7 @@ function renderTab(tab) {
     }
   }
   if (tab === 'plocklista') body.innerHTML = renderPlocklistaTab();
-  if (tab === 'faktura')  { body.innerHTML = renderFakturaTab(); invLoadPreviewNumber(); invLoadRecent(); }
+  if (tab === 'faktura')  { body.innerHTML = renderFakturaTab(); invLoadPreviewNumber(); invLoadRecent(); invRenderSwishQr(); }
   // Force browser to respect dark styling on form elements
   requestAnimationFrame(() => {
     document.querySelectorAll('.status-select, .admin-note-area, .prod-input, .chat-textarea').forEach(el => {
@@ -5805,8 +5806,75 @@ function renderFakturaTab() {
 
       </div>
     </details>
+
+    <!-- ═══ Swish-QR (samma kod som på fakturan) ═══ -->
+    <div class="section-label" style="margin-top:16px">Betala med Swish</div>
+    ${c.invoice_number ? (() => {
+      const q = swishQrData(c);
+      return `
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+        <div onclick="invShowSwishQrLarge()" title="Visa stort" style="background:#fff;border-radius:8px;padding:6px;cursor:zoom-in;line-height:0">
+          <img id="inv-swish-qr" alt="Swish QR-kod" width="168" height="168" style="width:168px;height:168px;display:block">
+        </div>
+        <div style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">
+          ${isPaid ? '<div style="color:var(--green);font-weight:600;margin-bottom:4px">💚 Fakturan är redan markerad betald</div>' : ''}
+          <div>Swish <strong style="color:var(--text)">123 136 59 07</strong></div>
+          <div>Belopp <strong style="color:var(--brand-lav)">${fmt(q.amount)} kr</strong></div>
+          <div>Meddelande <strong style="color:var(--text)">${c.invoice_number}</strong></div>
+          <button class="btn-action" onclick="invShowSwishQrLarge()" style="font-size:0.78rem;margin-top:6px">⛶ Visa stort för kunden</button>
+        </div>
+      </div>`;
+    })() : `
+      <div style="font-size:0.78rem;color:var(--text-faint);padding:10px 12px;background:var(--surface);border:1px dashed var(--border);border-radius:8px">
+        QR-koden visas här när fakturan är skapad — den bygger på fakturanumret.
+      </div>`}
   `;
 }
+
+// ── Swish-QR i Faktura-fliken ────────────────────────────────
+// Måste ge EXAKT samma sträng som fakturans QR (invoice-send.js och
+// invoice-pdf-download.js): C<nummer>;<belopp med komma>;<meddelande>;<lock_mask>.
+// Belopp = Math.ceil(exkl × 1,25), meddelande = fakturanumret, inget redigerbart.
+// Ändras formatet där måste det ändras här också.
+function swishQrData(c) {
+  const items     = (c.items||[]).filter(i=>!i._note&&i.name);
+  const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
+  const amount    = Math.ceil(totalExcl * 1.25);
+  const amountStr = amount.toFixed(2).replace('.', ',');
+  const msg       = encodeURIComponent(c.invoice_number);
+  return { amount, content: `C1231365907;${amountStr};${msg};0` };
+}
+
+async function invRenderSwishQr() {
+  const img = document.getElementById('inv-swish-qr');
+  if (!img || !currentCart?.invoice_number) return;
+  try {
+    img.src = await QRCode.toDataURL(swishQrData(currentCart).content,
+      { width: 336, margin: 2, errorCorrectionLevel: 'M' });
+  } catch (e) { console.error('SWISH_QR_ERROR:', e); }
+}
+
+async function invShowSwishQrLarge() {
+  if (!currentCart?.invoice_number) return;
+  const q = swishQrData(currentCart);
+  let url;
+  try { url = await QRCode.toDataURL(q.content, { width: 720, margin: 2, errorCorrectionLevel: 'M' }); }
+  catch (e) { toast('Kunde inte skapa QR-kod', 'error'); return; }
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(12,10,36,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;cursor:zoom-out';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:12px;line-height:0">
+      <img src="${url}" alt="Swish QR-kod" style="width:min(80vw,62vh,420px);height:auto;display:block">
+    </div>
+    <div style="color:#f0eeff;font-size:1.1rem;font-weight:700;text-align:center">${fmt(q.amount)} kr · ${currentCart.invoice_number}</div>
+    <div style="color:rgba(255,255,255,0.55);font-size:0.85rem">Swish 123 136 59 07 · tryck var som helst för att stänga</div>`;
+  const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  ov.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+}
+window.invShowSwishQrLarge = invShowSwishQrLarge;
 
 async function invSetNextNumber() {
   const input = document.getElementById('inv-next-num');
