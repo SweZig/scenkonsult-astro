@@ -410,6 +410,23 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
 
+  // Internt filnamn efter kunden (Faktura_K2186_Valter_Meyerhoffer.pdf) så att
+  // kopiorna i info-inkorgen går att söka på kund. Kunden får fortfarande
+  // Faktura_Kxxxx_Scenkonsult.pdf. ASCII-translitterering: åäö och mellanslag i
+  // bilagenamn hanteras olika av mailklienter och Windows.
+  const custSlug = (cart.customer_name || cart.customer_company || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/Æ/g, 'AE').replace(/æ/g, 'ae').replace(/Ø/g, 'O').replace(/ø/g, 'o').replace(/ß/g, 'ss')
+    .replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60);
+  const internalFilename = `Faktura_${invoiceNumber}_${custSlug || 'Scenkonsult'}.pdf`;
+
+  // Offert skapad + ledtid till faktura (för leadtime-statistik)
+  const sthlmDate = d => new Date(d).toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
+  const quoteCreated = cart.created_at ? sthlmDate(cart.created_at) : null;
+  const leadDays = cart.created_at
+    ? Math.round((new Date(sthlmDate(Date.now())) - new Date(quoteCreated)) / 86400000)
+    : null;
+
   // Intern kopia med tydlig ämnesrad (fire-and-forget)
   const internalHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
@@ -425,7 +442,8 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
   <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${invoiceToEmail}${invoiceToEmail!==cart.customer_email?" <span style=\"font-size:11px;color:#888\">(alternativ adress)</span>":""}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${cart.customer_name || '—'}${cart.customer_company ? ' / ' + cart.customer_company : ''}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Belopp:</strong> ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms</p>
-  <p style="color:#444;font-size:14px;margin:0;"><strong>Cart-ID:</strong> ${cart.id}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Cart-ID:</strong> ${cart.id}</p>
+  <p style="color:#444;font-size:14px;margin:0;"><strong>Offert skapad:</strong> ${quoteCreated || '—'}${leadDays !== null ? ` <span style="color:#888;font-size:12px">(ledtid ${leadDays} ${leadDays === 1 ? 'dag' : 'dagar'} till faktura)</span>` : ''}</p>
 </td></tr>
 <tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:16px 32px;text-align:center;">
   <p style="margin:0;color:rgba(255,255,255,0.5);font-size:11px;">Scenkonsult Norden · Grimstagatan 164, 162 58 Vällingby</p>
@@ -442,9 +460,9 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
       reply_to: cart.customer_email,
       subject: `Faktura ${invoiceNumber} skickad → ${invoiceToEmail}`,
       html: internalHtml,
-      text: `Faktura ${invoiceNumber} skickad till: ${cart.customer_email}\nKund: ${cart.customer_name||'—'}\nCart-ID: ${cart.id}`,
+      text: `Faktura ${invoiceNumber} skickad till: ${cart.customer_email}\nKund: ${cart.customer_name||'—'}\nCart-ID: ${cart.id}\nOffert skapad: ${quoteCreated || '—'}${leadDays !== null ? ` (ledtid ${leadDays} d)` : ''}`,
       attachments: [{
-        filename: `Faktura_${invoiceNumber}_Scenkonsult.pdf`,
+        filename: internalFilename,
         content:  pdfBuffer.toString('base64'),
       }],
     }),
