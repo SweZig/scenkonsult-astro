@@ -86,7 +86,7 @@ const payload = JSON.stringify({ resolved, scen });
 </section>
 
 <script>
-  import { itemsFor, chosenOption, slotVisible, isService } from '../lib/karaoke-builder.mjs';
+  import { itemsFor, chosenOption, slotVisible, isService, discountFor, totalFor } from '../lib/karaoke-builder.mjs';
 
   const root = document.getElementById('bygg');
   const { resolved: R, scen: G } = JSON.parse(document.getElementById('kb-data')!.textContent || '{}');
@@ -234,7 +234,7 @@ const payload = JSON.stringify({ resolved, scen });
   function renderPresets() {
     const a = activePreset()?.id;
     $('kb-presets').innerHTML = R.presets.map((p: any) => {
-      const sum = itemsFor(R, p.sel).reduce((s: number, i: any) => s + i.total, 0);
+      const sum = totalFor(R, p.sel);
       return `<button type="button" class="kb-preset${a === p.id ? ' on' : ''}" data-preset="${p.id}" aria-pressed="${a === p.id}"><b>${esc(p.label)}</b><small>${esc(p.sub)}</small><span>${kr(sum)}</span></button>`;
     }).join('');
   }
@@ -288,16 +288,23 @@ const payload = JSON.stringify({ resolved, scen });
     const it = itemsFor(R, S);
     const gear = it.filter((i: any) => !isService(i)).reduce((s: number, i: any) => s + i.total, 0);
     const svc = it.filter(isService).reduce((s: number, i: any) => s + i.total, 0);
-    return { it, gear, svc, tot: gear + svc };
+    const disc = discountFor(R.rabatt, it);
+    const net = gear - disc.amount;
+    return { it, gear, net, disc, svc, tot: net + svc };
   }
+  const minus = (n: number) => `−${kr(n)}`;
+  const plural = (n: number) => n === 1 ? '1 produkt' : `${n} produkter`;
   const qtyLabel = (i: any) => isService(i) ? `${i.qty} tim × ` : i.qty > 1 ? `${i.qty} × ` : '';
   function sumHTML(compact = false) {
-    const { it, gear, svc, tot } = totals();
+    const { it, gear, net, disc, svc, tot } = totals();
     const own = ['bild', 'dator'].map((k) => opt(k)).filter((o: any) => o && !o.artno);
+    const rab = R.rabatt;
     return `<h3 class="kb-sum-h">Din karaoke</h3>` +
       `<ul class="kb-list">${it.map((i: any) => `<li><span>${qtyLabel(i)}${esc(i.name)}</span><span>${kr(i.total)}</span></li>`).join('')}` +
-      own.map((o: any) => `<li class="own"><span>${esc(o.label)} (eget)</span><span>0&nbsp;kr</span></li>`).join('') + `</ul>` +
-      (svc ? `<div class="kb-sub"><span>Utrustning per dygn</span><span>${kr(gear)}</span></div><div class="kb-sub"><span>Karaokevärd</span><span>${kr(svc)}</span></div>` : '') +
+      own.map((o: any) => `<li class="own"><span>${esc(o.ownLabel || o.label)}</span><span>—</span></li>`).join('') + `</ul>` +
+      (disc.pct ? `<div class="kb-sub"><span>Utrustning</span><span>${kr(gear)}</span></div><div class="kb-sub kb-rab"><span>${esc(rab?.label || 'Karaokerabatt')} ${disc.pct}&nbsp;%</span><span>${minus(disc.amount)}</span></div>` : '') +
+      (svc ? `<div class="kb-sub"><span>Utrustning per dygn</span><span>${kr(net)}</span></div><div class="kb-sub"><span>Karaokevärd</span><span>${kr(svc)}</span></div>` : '') +
+      (disc.next ? `<p class="kb-nudge">Lägg till ${plural(disc.next.saknas)} till så får du ${disc.next.procent}&nbsp;% ${disc.pct ? 'i stället' : 'rabatt'}.</p>` : '') +
       `<div class="kb-tot"><span>${svc ? 'Totalt' : 'Per dygn'}</span><b>${kr(tot)}</b></div>` +
       `<p class="kb-note">Leverans och montering räknas i varukorgen. Resa tillkommer${svc ? ', även för värden' : ''}.</p>` +
       (compact ? '' : `<button type="button" class="kb-cta kb-add" data-add>Lägg ${it.length} artiklar i varukorgen</button><p class="kb-added" hidden></p>`);
@@ -331,9 +338,9 @@ const payload = JSON.stringify({ resolved, scen });
     g.hidden = false; $('kb-editor').hidden = true;
     const n = R.guide.length;
     if (gStep >= n) {
-      const { it, gear, svc } = totals();
+      const { it, net, disc, svc } = totals();
       g.innerHTML = `<p class="kb-g-step">Klart</p><h3 class="kb-g-q">Här är vårt förslag</h3>` +
-        `<p class="kb-g-lead">${it.length} artiklar för ${kr(gear)} per dygn${svc ? ` plus karaokevärd ${kr(svc)} (resa tillkommer)` : ''}. Ändra det du vill under flikarna, eller lägg allt i varukorgen direkt.</p>` +
+        `<p class="kb-g-lead">${it.length} artiklar för ${kr(net)} per dygn${disc.pct ? ` (inklusive ${disc.pct}&nbsp;% karaokerabatt)` : ''}${svc ? ` plus karaokevärd ${kr(svc)} (resa tillkommer)` : ''}. Ändra det du vill under flikarna, eller lägg allt i varukorgen direkt.</p>` +
         `<div class="kb-g-end"><button type="button" class="kb-cta" data-add>Lägg i varukorgen</button><button type="button" class="kb-ghost" data-guide-close>Finjustera själv</button></div><p class="kb-added" hidden></p>`;
     } else {
       const q = R.guide[gStep];
@@ -353,7 +360,9 @@ const payload = JSON.stringify({ resolved, scen });
     const it = itemsFor(R, S);
     for (const i of it) {
       cart.add({ id: i.cartId, name: i.name, price: i.price, priceNote: i.priceNote || '/dygn', type: i.type || undefined, category: i.category, image: i.image, artno: i.artno,
-        bulky: i.bulky, forceLeverans: i.forceLeverans || undefined, monteringMin: i.monteringMin, qty: i.qty });
+        bulky: i.bulky, forceLeverans: i.forceLeverans || undefined, monteringMin: i.monteringMin, qty: i.qty,
+        // kb = lagd via karaokebyggaren → räknas in i karaokerabatten i varukorgen
+        ...(isService(i) ? {} : { kb: 1 }) });
     }
     try { (window as any).dataLayer?.push({ event: 'karaoke_lagg_i_varukorg', artiklar: it.length, varde: it.reduce((s: number, i: any) => s + i.total, 0) }); } catch {}
     if (btn && btn.id === 'kb-bar-add') openSheet();
@@ -545,6 +554,8 @@ const payload = JSON.stringify({ resolved, scen });
   .kb-list li.own { color: rgba(255,255,255,.55); }
   .kb-tot { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--kb-line); margin-top: .75rem; padding-top: .75rem; color: rgba(255,255,255,.55); font-size: .85rem; }
   .kb-tot b { font: 800 1.6rem 'Space Grotesk', sans-serif; color: var(--kb-lav); font-variant-numeric: tabular-nums; }
+  .kb-rab span { color: #86efac; }
+  .kb-nudge { margin: .6rem 0 0; font-size: .8rem; color: var(--kb-lav); }
   .kb-note { margin: .35rem 0 .85rem; font-size: .78rem; color: rgba(255,255,255,.55); }
   .kb-sum .kb-cta, .kb-sheet .kb-cta { width: 100%; }
 

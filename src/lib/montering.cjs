@@ -139,6 +139,8 @@
 
     (lines || []).forEach(function (line) {
       if (!line) return;
+      // Rabattrader (t.ex. karaokerabatten) är inga produkter och monteras inte
+      if (line.type === 'rabatt' || line.kbDiscount) return;
       var qty = Number(line.qty);
       if (!(qty > 0)) qty = 1;
       var artno = resolveArtno(line, catalog);

@@ -267,6 +267,14 @@ DOC2 = dict(
             "**Ny artikel SK-BLD-ACC-0029 Bärbar dator** (500 kr, `bild.json → tillbehor`, grupp "
             "`signal`). Neutralt nummer — datorn hyrs även till presentationer.",
             "**DJ-bord SK-DJ-0005** heter \"Teknikbord\" i byggaren. Samma artikel, annan etikett.",
+            "**Karaokerabatt** (`builder.rabatt.steg`): 0–5 produkter 0 %, 6–8 5 %, 9–12 8 %, 13+ 10 %. "
+            "Räknas på **antal produkter i styck** (2 mikrofoner = 2) som lagts via byggaren — raderna "
+            "får flaggan `kb`. Tjänster rabatteras inte. I varukorgen är rabatten en egen rad "
+            "(id `karaoke-rabatt`, `type: rabatt`, negativt pris, kategori Tillägg) som räknas om vid "
+            "varje ändring och följer med offerten. Montering hoppar över rabattrader; flerdygn "
+            "rabatteras inte om raden (Tillägg).",
+            "**Kundens egna saker** (egen skärm, egen dator) visas i sammanfattningen med `ownLabel`, t.ex. "
+            "\"Karaokeappen körs på er egen dator eller telefon\". De läggs inte i varukorgen.",
             "**Karaokevärd SK-TJN-0004** (900 kr/tim, `tjanster.json → services`, `type: service`, resa "
             "tillkommer). Valen 2/3/4 timmar sätter `qty` = timmar. Byggaren summerar värden separat "
             "från dygnshyran, och raden dygnsprissätts aldrig (SK-TJN-prefixet).",
@@ -293,7 +301,8 @@ DOC2 = dict(
             ["v17.1", "2026-10-05",
              "Ny §10 Karaokebyggaren: karaoke.json.builder (slots/tabs/presets/guide), "
              "karaoke-builder.mjs, karaoke-scen.json och bildlagren. KAR-PAK-0001–0006 utgångna. Ny "
-             "artikel SK-BLD-ACC-0029 Bärbar dator och tjänsten SK-TJN-0004 Karaokevärd. §10–11 omnumrerade."],
+             "artikel SK-BLD-ACC-0029 Bärbar dator och tjänsten SK-TJN-0004 Karaokevärd. Karaokerabatt "
+             "(rabattrad i varukorgen). §10–11 omnumrerade."],
             ["v17.0", "2026-10-02",
              "Ny §5.1 Montering — en gemensam beräkning (montering.cjs, monteringMin/-Bemanning/"
              "-Skalning/-Manuell, montering-catalog.json). Ny §5.2 Hyresdygn och flerdygnsrabatt "

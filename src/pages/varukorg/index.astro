@@ -311,6 +311,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
 <style is:global>
 /* ─── PRODUKTVÄLJARE ──────────────────────────────────────── */
 .cart-row-clickable { cursor: pointer; transition: background 0.15s; }
+.cart-row-discount .cart-pname, .cart-row-discount .td-price, .cart-row-discount .td-total { color: #86efac; }
 .cart-row-clickable:hover { background: rgba(196,181,244,0.06); }
 .cart-row-clickable:hover .cart-pname { color: #c4b5f4; }
 /* ─── GLOBAL ─────────────────────────────────────────────── */
@@ -869,7 +870,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   function updateNavBadge() {
     // Uppdatera badge i nav via window.skCart om tillgängligt, annars direkt
     if (window.skCart?.badge) { window.skCart.badge(); return; }
-    const total = getCart().reduce((s,i) => s + (i.qty||1), 0);
+    const total = getCart().filter(i => !i.kbDiscount).reduce((s,i) => s + (i.qty||1), 0);
     ['navCartBadge','mobileCartBadge'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -888,6 +889,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   import _bildJson  from '../../data/bild.json';
   import _elJson      from '../../data/el.json';
   import _karaokeJson from '../../data/karaoke.json';
+  import { applyCartDiscount, DISCOUNT_ID } from '../../lib/karaoke-builder.mjs';
 
   function _buildCatalog() {
     const cat = {};
@@ -1061,6 +1063,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   };
 
   function _getCatIcon(item) {
+    if (item.kbDiscount) return { emoji: '🏷️', color: '#86efac' };
     const artno = item.artno || item.id || '';
     // Matcha längst prefix först
     for (const [prefix, ico] of Object.entries(CAT_ICONS)) {
@@ -1288,6 +1291,15 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
   function renderCart() {
     // Applicera volympriser baserat på current qty vid varje rendering
     let cart = applyVolumePricing(getCart());
+    // Karaokerabatt: rabattraden räknas om ur raderna som karaokebyggaren lagt i
+    // (flaggan kb) och sparas, så att den följer med offertförfrågan.
+    cart = applyCartDiscount(_karaokeJson.builder?.rabatt, cart);
+    {
+      const ny = cart.find(i => i.id === DISCOUNT_ID) || null;
+      const raw = getCart();
+      const gammal = raw.find(i => i.id === DISCOUNT_ID) || null;
+      if (JSON.stringify(ny) !== JSON.stringify(gammal)) saveCart([...raw.filter(i => i.id !== DISCOUNT_ID), ...(ny ? [ny] : [])]);
+    }
     // Defensiv: filtrera bort trasiga items (saknar id eller name) så hela sidan
     // inte kraschar om ett enskilt item är fel-format. Logga varning så vi kan
     // hitta orsaken i framtiden.
@@ -1311,7 +1323,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
       const imgSrc = _getImg(item);
       const safeQty = item.qty || 1;
       return `
-      <tr data-id="${item.id}" class="cart-row-clickable" title="Klicka för mer info">
+      <tr data-id="${item.id}" class="${item.kbDiscount ? 'cart-row-discount' : 'cart-row-clickable'}" ${item.kbDiscount ? `title="${(_karaokeJson.builder?.rabatt?.note || '').replace(/"/g, '&quot;')}"` : 'title="Klicka för mer info"'}>
         <td>
           <div class="cart-product">
             ${imgSrc
@@ -1322,7 +1334,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
               <div class="cart-pname">${item.name}</div>
               ${(item.artno || PROD_CATALOG[item.id]?.artno) ? `<div class="cart-partno">${item.artno || PROD_CATALOG[item.id]?.artno}</div>` : ''}
               <div class="cart-pcat">${item.category || ''}</div>
-              <div class="cart-pnote">${item.priceNote || '/dygn'}</div>
+              <div class="cart-pnote">${item.kbDiscount ? `på ${item.rabattAntal} produkter från karaokebyggaren` : (item.priceNote || '/dygn')}</div>
             </div>
           </div>
         </td>
@@ -1333,21 +1345,21 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
             : ''}
         </td>
         <td class="td-qty">
-          <div class="qty-stepper">
+          ${item.kbDiscount ? '' : `<div class="qty-stepper">
             <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
             <input class="qty-input" type="text" inputmode="numeric" value="${safeQty}" data-id="${item.id}" readonly />
             <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
-          </div>
+          </div>`}
         </td>
         <td class="td-total">${fmt(item.price * item.qty)}</td>
         <td class="td-remove">
-          <button class="remove-btn" data-id="${item.id}" aria-label="Ta bort">
+          ${item.kbDiscount ? '' : `<button class="remove-btn" data-id="${item.id}" aria-label="Ta bort">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"/>
               <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
               <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
             </svg>
-          </button>
+          </button>`}
         </td>
       </tr>
     `}).join('');

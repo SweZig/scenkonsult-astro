@@ -922,7 +922,7 @@ const localBusinessSchema = {
     }
     function skCartTotal() {
       return skGetCart()
-        .filter(i => i && i.id && i.name)
+        .filter(i => i && i.id && i.name && !i.kbDiscount) // karaokerabatten är ingen produkt
         .reduce((sum, item) => sum + (item.qty || 1), 0);
     }
     function skUpdateBadge() {

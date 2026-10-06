@@ -78,7 +78,7 @@ export function resolveBuilder(karaoke, data) {
     }).filter(Boolean);
     slots[key] = { key, ...slot, options };
   }
-  return { tabs: b.tabs, slots, presets: b.presets, guide: b.guide, missing };
+  return { tabs: b.tabs, slots, presets: b.presets, guide: b.guide, rabatt: b.rabatt || null, missing };
 }
 
 /** Är sloten synlig för det här urvalet? (t.ex. duk bara med projektor) */
@@ -107,12 +107,51 @@ export function itemsFor(resolved, sel) {
   return out;
 }
 
-export function totalFor(resolved, sel) {
-  return itemsFor(resolved, sel).reduce((s, i) => s + i.total, 0);
-}
-
 /** Personal (t.ex. karaokevärd, pris per timme) räknas separat från dygnshyran. */
 export const isService = (i) => i.type === 'service' || i.priceNote === '/tim';
+
+// ── Karaokerabatt ───────────────────────────────────────────────────────────
+// Rabattrappa på antal produkter (styck, inte rader) som hyrs via byggaren.
+// Tjänster (karaokevärd) räknas inte och rabatteras inte. Stegen står i
+// karaoke.json → builder.rabatt.steg. I varukorgen ligger rabatten som en egen
+// rad (id DISCOUNT_ID, negativt pris) som räknas om vid varje ändring, så att
+// den följer med in i offerten och ordern.
+export const DISCOUNT_ID = 'karaoke-rabatt';
+
+/** @param {{steg:{fran:number,procent:number}[]}} rabatt  @param {{price:number,qty:number,type?:string,priceNote?:string}[]} items */
+export function discountFor(rabatt, items) {
+  const prod = (items || []).filter((i) => i && !isService(i) && Number(i.price) > 0);
+  const units = prod.reduce((s, i) => s + (Number(i.qty) || 1), 0);
+  const base = prod.reduce((s, i) => s + Number(i.price) * (Number(i.qty) || 1), 0);
+  const steg = [...(rabatt?.steg || [])].sort((a, b) => a.fran - b.fran);
+  let pct = 0;
+  for (const st of steg) if (units >= st.fran) pct = st.procent;
+  const next = steg.find((st) => st.fran > units && st.procent > pct) || null;
+  return { units, base, pct, amount: Math.round((base * pct) / 100), next: next ? { procent: next.procent, saknas: next.fran - units } : null };
+}
+
+/** Totalsumma för ett urval, med karaokerabatten avdragen. */
+export function totalFor(resolved, sel) {
+  const it = itemsFor(resolved, sel);
+  const gross = it.reduce((s, i) => s + i.total, 0);
+  return gross - discountFor(resolved.rabatt, it).amount;
+}
+
+/**
+ * Varukorgen: räknar om rabattraden ur raderna som byggaren lagt i (flaggan
+ * `kb`). Returnerar en ny array; rabattraden läggs sist, eller tas bort när
+ * inget steg nås.
+ */
+export function applyCartDiscount(rabatt, cart) {
+  const rest = (cart || []).filter((i) => i && i.id !== DISCOUNT_ID);
+  const d = discountFor(rabatt, rest.filter((i) => i.kb));
+  if (!d.pct || !d.amount) return rest;
+  return [...rest, {
+    id: DISCOUNT_ID, name: `${rabatt.label || 'Karaokerabatt'} ${d.pct} %`, price: -d.amount, qty: 1,
+    priceNote: '', category: 'Tillägg', type: 'rabatt', artno: '', image: '', kbDiscount: true,
+    rabattProcent: d.pct, rabattAntal: d.units,
+  }];
+}
 
 /** Billigaste möjliga uppsättning: billigaste alternativet i varje obligatorisk slot. */
 export function minTotal(resolved) {
