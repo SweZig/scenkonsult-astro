@@ -242,7 +242,7 @@ const pageSchema = {
       </div>
       <div class="w-px bg-white/10 hidden sm:block"></div>
       <div class="flex items-center gap-2">
-        <span class="text-2xl font-extrabold" style="color:#c4b5f4">50+</span>
+        <span class="text-2xl font-extrabold" style="color:#c4b5f4">75+</span>
         <span class="text-gray-400 text-sm">referenskunder</span>
       </div>
       <div class="w-px bg-white/10 hidden sm:block"></div>
@@ -258,6 +258,29 @@ const pageSchema = {
     </div>
     <p class="text-gray-400 text-sm mt-4">Utöver organisationer har vi hjälpt hundratals privatpersoner med bröllop, fester och studentfiranden i Storstockholm.</p>
   </header>
+
+  <!-- Logobanner -->
+  <section class="sk-logobanner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-white mb-2">De litar på oss</h2>
+      <p class="text-gray-400">Ett urval av de organisationer vi levererat till.</p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      {clientLogos.map((logo) => (
+        <div class="flex items-center justify-center h-20 sm:h-28 px-4 rounded-xl border border-brand-orange/40">
+          <img
+            src={logo.src}
+            alt={logo.name}
+            width={logo.w}
+            height={logo.h}
+            class:list={["max-w-[82%] w-auto h-auto object-contain", logo.tall ? "max-h-[92%]" : "max-h-[58%]"]}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ))}
+    </div>
+  </section>
 
   <!-- Event-galleri -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
@@ -304,29 +327,6 @@ const pageSchema = {
         </div>
         );
       })}
-    </div>
-  </section>
-
-  <!-- Logobanner -->
-  <section class="sk-logobanner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-white mb-2">De litar på oss</h2>
-      <p class="text-gray-400">Ett urval av de organisationer vi levererat till.</p>
-    </div>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-      {clientLogos.map((logo) => (
-        <div class="flex items-center justify-center h-20 sm:h-28 px-4 rounded-xl border border-brand-orange/40">
-          <img
-            src={logo.src}
-            alt={logo.name}
-            width={logo.w}
-            height={logo.h}
-            class:list={["max-w-[82%] w-auto h-auto object-contain", logo.tall ? "max-h-[92%]" : "max-h-[58%]"]}
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-      ))}
     </div>
   </section>
 
