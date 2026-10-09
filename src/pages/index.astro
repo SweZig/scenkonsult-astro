@@ -13,6 +13,9 @@ import { resolveBuilder as _kbResolve, minTotal as _kbMin } from '../lib/karaoke
 // Frånpriser härleds från JSON-katalogen (hänger med vid prisjustering).
 const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price).map((p: any) => p.price));
 const fmt = (n: number) => n.toLocaleString('sv');
+// Fraktpriser till FAQ-schemat — ur tjanster.json, aldrig hårdkodade.
+const _lev = (_tjData as any).leverans || {};
+const _fraktFaq = `Leverans med vanlig bil kostar ${fmt(_lev.standard?.pris)} kr tur och retur, stor bil ${fmt(_lev.storbil?.pris)} kr och lätt lastbil ${fmt(_lev.lastbil?.pris)} kr. Fordonet väljs efter hur mycket och hur skrymmande utrustningen är. Hämtar du själv i Vällingby är det gratis. Priser exkl. moms.`;
 
 const scenFran = _low((scenesData as any).products);
 // Ljud: lägsta över alla sektioner (portable är billigast)
@@ -38,7 +41,7 @@ const homeSchema = {
     { "@type": "Question", "name": "Vad kan man hyra av Scenkonsult Norden?", "acceptedAnswer": { "@type": "Answer", "text": "Vi hyr ut scen, ljud (PA-system), ljus (LED PAR, moving heads, laser), bild (projektorer och LED-skärmar) och DJ-utrustning. Vi erbjuder även kompletta event-paket med leverans och montering i hela Storstockholm." } },
     { "@type": "Question", "name": "Var i Stockholm levererar Scenkonsult?", "acceptedAnswer": { "@type": "Answer", "text": "Vi levererar inom ca 4 mils radie från Vällingby — det täcker hela Storstockholm inklusive Solna, Sundbyberg, Nacka, Huddinge, Täby och angränsande kommuner. Längre transporter offerteras separat." } },
     { "@type": "Question", "name": "Hur lång är hyresperioden?", "acceptedAnswer": { "@type": "Answer", "text": "Normal hyresperiod är 22 timmar — hämtning eller leverans kl 13:00 och återlämning kl 11:00 påföljande dag. Längre perioder kan arrangeras mot tillägg." } },
-    { "@type": "Question", "name": "Vad kostar leverans av utrustning?", "acceptedAnswer": { "@type": "Answer", "text": "Leverans med vanlig bil kostar 1 118 kr tur och retur. Bil med släpvagn för skrymmande utrustning kostar 1 598 kr. Lastbil offerteras separat. Priser exkl. moms." } },
+    { "@type": "Question", "name": "Vad kostar leverans av utrustning?", "acceptedAnswer": { "@type": "Answer", "text": _fraktFaq } },
     { "@type": "Question", "name": "Sedan när har Scenkonsult Norden funnits?", "acceptedAnswer": { "@type": "Answer", "text": "Scenkonsult Norden grundades 1986 och har sedan dess levererat scen, ljud och ljus till hundratals event per år i Storstockholm." } }
   ]
 };

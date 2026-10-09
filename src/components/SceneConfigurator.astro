@@ -48,7 +48,6 @@ const INJ_MODULE_BY_KEY = Object.fromEntries(
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
 const INJ_SKIRT_PRICE_PER_METER = skirt?.pricePerMeter || 24.75;
-const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
 const configData = {
   modules,
@@ -251,7 +250,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -287,7 +286,7 @@ const configData = {
     const MODULE_ARTNO  = Object.fromEntries(Object.entries(INJ_MODULE_BY_KEY).map(([k,v]) => [k, v.artno]));
     const MODULE_NAME   = Object.fromEntries(Object.entries(INJ_MODULE_BY_KEY).map(([k,v]) => [k, v.name]));
     const FRAKT_DATA = cfg.frakt || {};
-    const FRAKT_LABELS = { storbil: 'Stor bil', storbil_slap: 'Stor bil + släp', lastbil: 'Lätt lastbil' };
+    const FRAKT_LABELS = { standard: 'Vanlig bil', storbil: 'Stor bil', lastbil: 'Lätt lastbil' };
     const SKIRT_PRICE_PER_METER = INJ_SKIRT_PRICE_PER_METER;
     const SKIRT_BY_HEIGHT = INJ_SKIRT_BY_HEIGHT;
     const MONTERING_PRICE_PER_HOUR = INJ_MONTERING_PRICE_PER_HOUR;
@@ -340,25 +339,16 @@ const configData = {
       return (state.width * state.depth) / 2;
     }
 
+    // Fordonet väljs av den gemensamma fraktmotorn (window.skFrakt,
+    // src/lib/frakt.cjs) på scenens plattformar — samma motor som varukorgen.
+    // Matris (tjanster.json): 1×1 1–4 st vanlig bil, 5+ stor bil;
+    // 1×2 1–8 st stor bil, 9+ lätt lastbil.
     function getRecommendedFrakt() {
       if (!isDimValid()) return null;
       const mc = moduleCount();
       if (mc === 0) return null;
-      // Simulera samma selection_rules-logik som varukorgen.
-      // I konfiguratorn finns inget tak — bara moduler. bulkyCount = modCount.
-      const bulkyCount = mc;
-      for (const rule of INJ_SELECTION_RULES) {
-        if (rule.if === 'anyItemForces') {
-          // Ej tillämpbart i standalone-konfiguratorn
-          continue;
-        } else if (rule.if === 'bulkyCount') {
-          const min = rule.min || 1;
-          if (bulkyCount >= min && FRAKT_DATA[rule.use]) return rule.use;
-        } else if (rule.if === 'default') {
-          return rule.use;
-        }
-      }
-      return 'storbil_slap';
+      const rader = [{ artno: MODULE_ARTNO[state.moduleType], qty: mc }];
+      return (window.skFrakt && window.skFrakt.keyFor(rader)) || 'lastbil';
     }
 
     // state.frakt är 'none' eller 'auto' — vehicle bestäms av getRecommendedFrakt().
@@ -890,7 +880,7 @@ const configData = {
         if (recEl) {
           if (rec) {
             const pris = formatKr(fraktPrice());
-            recEl.textContent = `Vi väljer ${FRAKT_LABELS[rec]} baserat på ${moduleCount()} moduler — ${pris}.`;
+            recEl.textContent = `Vi väljer ${FRAKT_LABELS[rec] || FRAKT_DATA[rec]?.label || rec} baserat på ${moduleCount()} plattformar — ${pris}.`;
           } else {
             recEl.textContent = '';
           }

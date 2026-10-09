@@ -7,6 +7,7 @@ import scenesData from '../../data/scenes.json';
 import ledData from '../../data/led-paneler.json';
 import tjansterData from '../../data/tjanster.json';
 import MonteringEngine from '../../components/MonteringEngine.astro';
+import FraktEngine from '../../components/FraktEngine.astro';
 
 // Förbered data för admin-konfiguratorerna (klient-side använder window-globals)
 // Scen: modules (3 ytor), tak-paket från scenes.products[*].config.tak,
@@ -1507,6 +1508,7 @@ const _dayConfig = tjansterData.hyresdagar || null;
     }
   </style>
   <MonteringEngine />
+  <FraktEngine />
   <script is:inline define:vars={{ quoteCatalog: quoteCatalogData, scenConfig: _scenAdminConfig, ledConfig: _ledAdminConfig, fraktConfig: _fraktAdminConfig, monteringConfig: _monteringAdminConfig, dayConfig: _dayConfig }}>
     window.__ADMIN_QUOTE_CATALOG__   = quoteCatalog;
     window.__ADMIN_SCEN_CONFIG__     = scenConfig;
@@ -10210,21 +10212,19 @@ function _fraktAnalyzeQuote() {
     if (id.startsWith('SK-SCN-MOD') || id.startsWith('SK-SCN-0')) scenRows++;
     if (id.startsWith('SK-SCN-TAK') || name.includes('SCENTAK')) hasTak = true;
     if (id.startsWith('SK-BLD-LED-P')) ledPanels += (it.qty || 1);
-    if (name.includes('LINE ARRAY') || name.includes('CONCERT')) hasLineArray = true;
+    if (name.includes('LINE ARRAY') || name.includes('CONCERT') || id === 'SK-LJD-MUS-0008') hasLineArray = true;
   }
-  return { scenRows, ledPanels, hasLineArray, hasTak };
+  return { scenRows, ledPanels, hasLineArray, hasTak, items };
 }
 
 function _fraktRecommendKey(analysis) {
-  // Heuristik baserat på selection_rules-anda:
-  //  - LED-paneler eller tak eller line array → lastbil
-  //  - 2+ scen-rader eller skrymmande gods → storbil_slap
-  //  - 1 scen-rad → skrymmande
-  //  - inget bulky → standard
+  // LED-paneler, scentak och line array/concert/Live XL → alltid lastbil.
+  // Övrigt: samma fraktmotor som kundens varukorg (window.skFrakt) — scen-
+  // plattformar räknas på artikelnummer och antal (1×1 1–4 vanlig bil, 5+ stor
+  // bil; 1×2 1–8 stor bil, 9+ lätt lastbil). Släpvagn föreslås aldrig — den
+  // väljs bara manuellt som undantag.
   if (analysis.hasLineArray || analysis.hasTak || analysis.ledPanels > 0) return 'lastbil';
-  if (analysis.scenRows >= 2) return 'storbil_slap';
-  if (analysis.scenRows >= 1) return 'skrymmande';
-  return 'standard';
+  return (window.skFrakt && window.skFrakt.keyFor(analysis.items || [])) || 'standard';
 }
 
 function adminFraktConfigOpen() {
@@ -10241,7 +10241,7 @@ function adminFraktConfigOpen() {
   const opts = [];
   for (const [key, item] of Object.entries(lev)) {
     if (!item || typeof item !== 'object' || !item.artno) continue;
-    opts.push({ key, artno: item.artno, label: item.label || key, pris: item.pris || 0, enkel: item.enkel });
+    opts.push({ key, artno: item.artno, label: item.label || key, pris: item.pris || 0, enkel: item.enkel, undantag: !!item.undantag });
   }
 
   // Rekommendation
@@ -10264,7 +10264,7 @@ function adminFraktConfigOpen() {
   // Bygg select
   const sel = document.getElementById('frakt-cfg-type');
   sel.innerHTML = opts.map(o =>
-    `<option value="${o.key}" data-artno="${o.artno}" data-label="${o.label.replace(/"/g,'&quot;')}" data-pris="${o.pris}" data-enkel-artno="${o.enkel?.artno || ''}" data-enkel-label="${(o.enkel?.label || '').replace(/"/g,'&quot;')}" data-enkel-pris="${o.enkel?.pris || ''}" ${o.key === recKey ? 'selected' : ''}>${o.label} — ${o.pris.toLocaleString('sv')} kr</option>`
+    `<option value="${o.key}" data-artno="${o.artno}" data-label="${o.label.replace(/"/g,'&quot;')}" data-pris="${o.pris}" data-enkel-artno="${o.enkel?.artno || ''}" data-enkel-label="${(o.enkel?.label || '').replace(/"/g,'&quot;')}" data-enkel-pris="${o.enkel?.pris || ''}" ${o.key === recKey ? 'selected' : ''}>${o.label}${o.undantag ? ' · undantag' : ''} — ${o.pris.toLocaleString('sv')} kr</option>`
   ).join('');
 
   panel.style.display = 'block';

@@ -9,11 +9,15 @@ import tjansterData from '../../../data/tjanster.json';
 
 const paneler = ledData.paneler;
 const paket = ledData.paket || [];
-// Leveranspriser från tjanster.json — single source of truth
+// Leverans: LED-vägg går alltid med samma fordon (led-paneler.json →
+// tillbehor.leverans_regel.fordon, i dag Lätt lastbil). Pris ur tjanster.json.
+const LED_FORDON = ledData.tillbehor.leverans_regel.fordon;
+const _ledLev = (tjansterData.leverans as any)[LED_FORDON];
 const LEVERANSER = {
-  storbil_slap: { artno: tjansterData.leverans.storbil_slap.artno, name: tjansterData.leverans.storbil_slap.label, pris: tjansterData.leverans.storbil_slap.pris },
-  lastbil:      { artno: tjansterData.leverans.lastbil.artno,      name: tjansterData.leverans.lastbil.label,      pris: tjansterData.leverans.lastbil.pris },
+  [LED_FORDON]: { artno: _ledLev.artno, name: _ledLev.label, pris: _ledLev.pris },
 };
+const ledLevKort = `${fmtKrStatic(_ledLev.pris)} (${String(_ledLev.label).replace(/\s*—.*$|\s*\(.*\)\s*$/g, '')})`;
+function fmtKrStatic(n: number) { return new Intl.NumberFormat('sv-SE').format(n) + ' kr'; }
 const faq = ledData.faq;
 
 // Härledda värden för rubriker (synkat med led-paneler.json)
@@ -219,7 +223,7 @@ const faqSchema = {
                     <span>Hårdvara</span>
                     <span><span class="sk-price-excl" data-row-total-excl></span><span class="sk-price-incl hidden" data-row-total-incl></span> <span style="color:rgba(255,255,255,0.5);font-weight:400;font-size:0.78rem;">/dygn</span></span>
                   </div>
-                  <p data-paket-frakt-note style="color:rgba(255,255,255,0.45);font-size:0.7rem;line-height:1.4;margin:0.4rem 0 0;">+ Montering &amp; demontering 5 100 kr &amp; transport 2 998 kr (Lätt lastbil) tillkommer i kassan</p>
+                  <p data-paket-frakt-note style="color:rgba(255,255,255,0.45);font-size:0.7rem;line-height:1.4;margin:0.4rem 0 0;">+ Montering &amp; demontering 5 100 kr &amp; transport {ledLevKort} tillkommer i kassan</p>
                 </div>
 
                 <button
@@ -734,17 +738,14 @@ const faqSchema = {
           });
         }
 
-        // Transport — välj baserat på yta enligt regel i JSON
-        const totalArea_m2 = (r.actualW * r.actualH) / 1_000_000;
-        const leveransKey = totalArea_m2 <= TILL.leverans_regel.tröskel_m2
-          ? TILL.leverans_regel.under_eller_lika
-          : TILL.leverans_regel.över;
+        // Transport — LED-vägg går alltid med fordonet i leverans_regel.fordon
+        const leveransKey = TILL.leverans_regel.fordon;
         const leverans = LEVERANSER[leveransKey];
         const transportCost = leverans.pris;
         priceLines.push({
           label: leverans.name,
           value: transportCost,
-          sub: `Vi levererar — fordon väljs utifrån väggens yta (${totalArea_m2.toFixed(2).replace(/\.?0+$/, '').replace('.', ',')} m²)`,
+          sub: 'Vi levererar — LED-vägg körs alltid med lätt lastbil med bakgavellift för flightcasen',
           key: 'transport',
           group: 'tillkommer',
         });
@@ -1291,7 +1292,7 @@ const faqSchema = {
   </script>
 
   <!-- Cart-handler + dynamisk prisuppdatering för Färdiga paket -->
-  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "panel_w_mm": 500, "panel_h_mm": 1000, "image": "/images/bild/pp_bld_led_500x1000.webp"}}, INJ_RULES: { montering: ledData.tillbehor.montering, ground_per_kolumn: ledData.tillbehor.rigg.price_per_column, tross_per_kolumn: ledData.tillbehor.tross.price_per_column, tröskel_m2: ledData.tillbehor.leverans_regel['tröskel_m2'], leverans_under: ledData.tillbehor.leverans_regel.under_eller_lika, leverans_över: ledData.tillbehor.leverans_regel['över'] }, INJ_LEV: LEVERANSER }}>
+  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "panel_w_mm": 500, "panel_h_mm": 1000, "image": "/images/bild/pp_bld_led_500x1000.webp"}}, INJ_RULES: { montering: ledData.tillbehor.montering, ground_per_kolumn: ledData.tillbehor.rigg.price_per_column, tross_per_kolumn: ledData.tillbehor.tross.price_per_column, leverans_fordon: ledData.tillbehor.leverans_regel.fordon }, INJ_LEV: LEVERANSER }}>
     (function () {
       'use strict';
 
@@ -1326,8 +1327,9 @@ const faqSchema = {
         return Math.ceil(raw / M.round_to_min) * M.round_to_min;
       }
 
-      function pickLeverans(area_m2) {
-        const key = area_m2 <= R.tröskel_m2 ? R.leverans_under : R.leverans_över;
+      // LED-vägg: alltid samma fordon (Lätt lastbil), oavsett yta.
+      function pickLeverans() {
+        const key = R.leverans_fordon;
         return { key, ...LEV[key] };
       }
 

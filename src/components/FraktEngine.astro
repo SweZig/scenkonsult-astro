@@ -1,0 +1,17 @@
+---
+// FraktEngine.astro — lägger window.skFrakt på sidan.
+// Källan är src/lib/frakt.cjs (samma fil som testerna require:ar) plus
+// tjanster.json (fordon + selection_rules) och scenes.json (plattformar).
+// Skriptet är inline och synkront, så placera komponenten FÖRE de skript som
+// använder motorn (Layout gör det först i <body>; admin före sitt define:vars).
+import fraktLibSrc from '../lib/frakt.cjs?raw';
+import tjanster from '../data/tjanster.json';
+import scenes from '../data/scenes.json';
+// @ts-ignore — UMD-filen exporterar via module.exports
+import fraktLib from '../lib/frakt.cjs';
+const data = fraktLib.dataFran(tjanster, scenes);
+const boot = fraktLibSrc +
+  '\n;window.skFrakt = window.SkFraktLib.create(' +
+  JSON.stringify(data).replace(/</g, '\\u003c') + ');';
+---
+<script is:inline set:html={boot}></script>

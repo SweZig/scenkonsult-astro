@@ -1095,10 +1095,10 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
   const _SVC_DETAILS = {
     'SK-LEV-0001': { desc:'Utrustning levereras med vanlig bil. Chauffören kör tur & retur — utlämning och återlämning ingår.', rows:[['Resor','Tur & retur'],['Fordon','Vanlig bil'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
-    'SK-LEV-0002': { desc:'Leverans med bil och släpvagn för skrymmande gods. Aktiveras automatiskt när varukorgen innehåller skrymmande produkt.', rows:[['Resor','Tur & retur'],['Fordon','Bil med släpvagn'],['Täckning','Hela Storstockholm'],['Enkelresa', _enkelresa('SK-LEV-0002') + ' (kund hämtar/lämnar)'],['Obs','Tillämpas automatiskt för skrymmande produkter']] },
-    'SK-LEV-0003': { desc:'Lätt lastbil för extra skrymmande gods, t.ex. större scenpaket. Väljs manuellt av admin.', rows:[['Resor','Tur & retur'],['Fordon','Lätt lastbil'],['Enkelresa', _enkelresa('SK-LEV-0003')],['Täckning','Hela Storstockholm']] },
-    'SK-LEV-0005': { desc:'Stor bil för större laster som inte ryms i vanlig bil men inte kräver släp. Väljs automatiskt vid mindre skrymmande paket.', rows:[['Resor','Tur & retur'],['Fordon','Stor bil'],['Enkelresa', _enkelresa('SK-LEV-0005') + ' (kund hämtar/lämnar)'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
-    'SK-LEV-0006': { desc:'Stor bil med släpvagn för medel- och stora paket. Väljs automatiskt när varukorgen innehåller flera skrymmande produkter.', rows:[['Resor','Tur & retur'],['Fordon','Stor bil med släpvagn'],['Enkelresa', _enkelresa('SK-LEV-0006') + ' (kund hämtar/lämnar)'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
+    'SK-LEV-0002': { desc:'Bil med släpvagn. Undantagslösning som vi bara väljer efter överenskommelse — standard är vanlig bil, stor bil eller lätt lastbil.', rows:[['Resor','Tur & retur'],['Fordon','Bil med släpvagn'],['Täckning','Hela Storstockholm'],['Enkelresa', _enkelresa('SK-LEV-0002') + ' (kund hämtar/lämnar)'],['Obs','Undantag — väljs manuellt']] },
+    'SK-LEV-0003': { desc:'Lätt lastbil med bakgavellift för tungt och skrymmande gods — LED-väggar, line array, Live XL och scener med fler än 8 plattformar 1×2 m (över 16 m²). Väljs automatiskt.', rows:[['Resor','Tur & retur'],['Fordon','Lätt lastbil'],['Enkelresa', _enkelresa('SK-LEV-0003')],['Täckning','Hela Storstockholm']] },
+    'SK-LEV-0005': { desc:'Stor bil för skrymmande gods som inte ryms i vanlig bil — t.ex. scener upp till 8 plattformar 1×2 m eller fler än 4 plattformar 1×1 m. Väljs automatiskt.', rows:[['Resor','Tur & retur'],['Fordon','Stor bil'],['Enkelresa', _enkelresa('SK-LEV-0005') + ' (kund hämtar/lämnar)'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
+    'SK-LEV-0006': { desc:'Stor bil med släpvagn. Undantagslösning som vi bara väljer efter överenskommelse — standard är vanlig bil, stor bil eller lätt lastbil.', rows:[['Resor','Tur & retur'],['Fordon','Stor bil med släpvagn'],['Enkelresa', _enkelresa('SK-LEV-0006') + ' (kund hämtar/lämnar)'],['Täckning','Hela Storstockholm'],['Obs','Transport tillkommer alltid utöver hyrespriset']] },
     'SK-TJN-0001': { desc:'Vår personal monterar och demonterar utrustningen på plats. Tiden räknas från produkterna i varukorgen, och hela ordern avrundas uppåt till närmaste kvart.', rows:[['Pris','600 kr/tim (150 kr/15 min)'],['Minsta debitering','15 minuter per order'],['Demontering','Ingår i tiden'],['Flera av samma','Går snabbare per styck'],['Obs','Obligatorisk för scen över 16 m²']] },
     'SK-TJN-0002': { desc:'Certifierad tekniker på plats under hela eventet. Hanterar ljud, ljus och AV-utrustning.', rows:[['Pris','600 kr/tim'],['Minimum','2 timmar'],['Täcker','Ljud, ljus och AV-utrustning']] },
     'SK-TJN-0004': { desc:'Karaokevärd som håller i kvällen — startar musiken, hjälper gästerna att hitta låtar, håller ordning på kön och får igång publiken.', rows:[['Pris','900 kr/tim'],['Antal','Ange timmar som antal'],['Resa','Resekostnad tillkommer']] },
@@ -1162,36 +1162,11 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     });
   }
 
-  // Leverans: JSON-driven regelmotor.
-  // Regler ligger i tjanster.json under leverans.selection_rules och evalueras
-  // i ordning — första matchande regel vinner. Stöd för:
-  //   if=anyItemForces  + use=FROM_PRODUCT  → använd cartens första forceLeverans
-  //   if=bulkyCount, min=N + use=<key>      → matcha om antal bulky-items >= N
-  //   if=default + use=<key>                → fallback (bör vara sist)
-  function _bulkyCount(cart) {
-    return (cart || []).filter(i => i && i.bulky === true).reduce((n, i) => n + (i.qty || 1), 0);
-  }
-  function _firstForceLeverans(cart) {
-    const item = (cart || []).find(i => i && typeof i.forceLeverans === 'string' && i.forceLeverans.trim());
-    return item ? item.forceLeverans.trim() : null;
-  }
+  // Leverans: fordonet väljs av den gemensamma fraktmotorn (src/lib/frakt.cjs
+  // via window.skFrakt, se FraktEngine i Layout.astro) ur tjanster.json →
+  // leverans.selection_rules. Samma motor som scenkorten och konfiguratorn.
   function resolveLevKey(cart) {
-    const rules = FRAKT?.leverans?.selection_rules || [];
-    for (const rule of rules) {
-      if (!rule || !rule.use) continue;
-      const cond = rule.if;
-      if (cond === 'anyItemForces') {
-        const forced = _firstForceLeverans(cart);
-        if (forced && FRAKT.leverans[forced]) return forced;
-        // Om use=FROM_PRODUCT men ingen produkt har forceLeverans, hoppa vidare
-      } else if (cond === 'bulkyCount') {
-        const min = typeof rule.min === 'number' ? rule.min : 1;
-        if (_bulkyCount(cart) >= min) return rule.use;
-      } else if (cond === 'default' || !cond) {
-        return rule.use;
-      }
-    }
-    return 'standard'; // sista fallback om regler är tomma
+    return (window.skFrakt && window.skFrakt.keyFor(cart)) || 'standard';
   }
 
   function calcLev(cart) {
@@ -1206,12 +1181,13 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     const price = enkelresa
       ? (lev.enkelresa || Math.round(lev.pris / 2))
       : lev.pris;
+    const label = enkelresa && lev.enkel?.label ? lev.enkel.label : lev.label;
 
     // Uppdatera preview i admin-panelen
     const preview = document.getElementById('adminLevPreview');
     if (preview) preview.textContent = price.toLocaleString('sv-SE') + ' kr';
 
-    return { price, label: lev.label, note: lev.note };
+    return { price, label, note: lev.note };
   }
 
   // Montering & demontering — räknas av den gemensamma motorn
@@ -1401,7 +1377,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     const levEl = document.getElementById('leveransPrice');
     if (levEl) levEl.textContent = fmt(lp);
     const levNote = document.getElementById('leveransNote');
-    if (levNote) levNote.textContent = ll + (_bulkyCount(cart) > 0 ? ' — bil med släp' : '');
+    if (levNote) levNote.textContent = ll;
     const monEl = document.getElementById('monteringPrice');
     if (monEl) monEl.textContent = fmt(mp);
     const monTid = document.getElementById('monteringTid');
@@ -1473,7 +1449,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
       if (META_KEYS.has(key)) continue;
       if (!val || typeof val !== 'object' || !val.id) continue;
       // Läsbar label från JSON, ta bort '(tur & retur)' som är redundant i dropdown
-      const label = (val.label || key).replace(/\s*\(tur\s*&?\s*retur\)\s*/i, '');
+      const label = (val.label || key).replace(/\s*\(tur\s*&?\s*retur\)\s*/i, '') + (val.undantag ? ' — undantag' : '');
       fragments.push(`<option value="${key}">${label}</option>`);
     }
     if (fragments.length) sel.insertAdjacentHTML('beforeend', fragments.join(''));
@@ -1538,7 +1514,9 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     const submitItems = [...cart];
     if (document.getElementById('chkLeverans')?.checked) {
       const lp = calcLev(cart);
-      submitItems.push({ id: 'lev-standard', name: 'Leverans & upphämtning (t&r)', price: lp.price, qty: 1, category: 'Tjänster' });
+      // id förblir 'lev-standard' — serverfunktionernas tjänste-listor (hyresdygn,
+      // montering) känner igen raden på id. Fordonet följer med i namnet.
+      submitItems.push({ id: 'lev-standard', name: 'Leverans & upphämtning — ' + lp.label, price: lp.price, qty: 1, category: 'Tjänster' });
     }
     if (document.getElementById('chkMontering')?.checked) {
       const mp = calcMon(cart);
@@ -1789,8 +1767,8 @@ ${custRows ? `<h2>Kontaktuppgifter</h2><table><tbody>${custRows}</tbody></table>
   // STRIKTA regler — endast EXPLICITA "transport krävs"-flaggor styr auto-bock.
   //
   // SEMANTISK SKILLNAD:
-  // - bulky: EGENSKAP (för fraktregeln "bulkyCount >= 1 → bil med släp" som
-  //   används NÄR kunden valt leverans). Triggar INTE auto-bock — kunden kan
+  // - bulky: EGENSKAP (räknas av fraktmotorn som skrymmande gods NÄR kunden
+  //   valt leverans). Triggar INTE auto-bock — kunden kan
   //   hämta själv om hen vill.
   // - forceLeverans / requiresBakgavel: KRAV (transport måste ske). Triggar auto-bock.
   // - requiresAssembly: KRAV (montering måste ske). Triggar auto-bock.

@@ -1,5 +1,6 @@
 {
   "_comment": "Alla priser exkl. moms. Uppdatera priser här — inga kodfiler behöver ändras.",
+  "_frakt": "Beslut 2026-10-09. Alla regler prövas och STÖRSTA fordonet (högst rang) vinner — ordningen spelar ingen roll. Motorn: src/lib/frakt.cjs (window.skFrakt), samma för varukorg, scenkort, scenkonfigurator och admin. Standardfordon: Vanlig bil, Stor bil, Lätt lastbil. Fordon med undantag=true (släpvagn) väljs aldrig automatiskt och visas aldrig kundvänt — bara admin kan välja dem manuellt. ersattAv = vad en äldre forceLeverans till fordonet räknas som.",
   "leverans": {
     "label": "Leverans & upphämtning",
     "description": "Vi kör ut och hämtar upp utrustningen. Priset avser tur-och-retur.",
@@ -8,30 +9,39 @@
       {
         "if": "anyItemForces",
         "use": "FROM_PRODUCT",
-        "comment": "Om någon produkt har forceLeverans-flagga, använd den"
+        "comment": "Produkt med forceLeverans (LED-vägg, Line Array, Live XL, scen > 16 m² m.fl.)"
       },
       {
-        "if": "bulkyCount",
-        "min": 17,
-        "use": "lastbil",
-        "comment": "≥17 skrymmande enheter — stora scen-konfigurationer (XL och uppåt)"
-      },
-      {
-        "if": "bulkyCount",
+        "if": "plattformCount",
+        "typ": "1x2",
         "min": 9,
-        "use": "storbil_slap",
-        "comment": "9–16 skrymmande enheter — medel/stora paket (Medium, Large, etc.)"
+        "use": "lastbil",
+        "comment": "Scenplattform 1×2 m: 9 st eller fler → Lätt lastbil"
+      },
+      {
+        "if": "plattformCount",
+        "typ": "1x2",
+        "min": 1,
+        "use": "storbil",
+        "comment": "Scenplattform 1×2 m: 1–8 st → Stor bil"
+      },
+      {
+        "if": "plattformCount",
+        "typ": "1x1",
+        "min": 5,
+        "use": "storbil",
+        "comment": "Scenplattform 1×1 m: 5 st eller fler → Stor bil (1–4 st ryms i vanlig bil)"
       },
       {
         "if": "bulkyCount",
         "min": 1,
         "use": "storbil",
-        "comment": "1–8 skrymmande enheter — små paket (Small, Small+, Small++)"
+        "comment": "Övrigt skrymmande gods (ej scenplattformar) → Stor bil"
       },
       {
         "if": "default",
         "use": "standard",
-        "comment": "Default: vanlig bil (inga skrymmande produkter)"
+        "comment": "Inget skrymmande → Vanlig bil"
       }
     ],
     "standard": {
@@ -49,7 +59,8 @@
         "note": "Enkel resa — kund hämtar eller lämnar själv",
         "type": "service",
         "artno": "SK-LEV-0001-E"
-      }
+      },
+      "rang": 1
     },
     "storbil": {
       "id": "lev-storbil",
@@ -66,14 +77,15 @@
         "note": "Enkel resa — kund hämtar eller lämnar själv",
         "type": "service",
         "artno": "SK-LEV-0005-E"
-      }
+      },
+      "rang": 2
     },
     "skrymmande": {
       "id": "lev-skrymmande",
       "label": "Bil med släpvagn — skrymmande gods (tur & retur)",
       "enkelresa": 1000,
       "pris": 2000,
-      "note": "1000 kr × 2 resor — tillämpas automatiskt om varukorgen innehåller skrymmande produkt",
+      "note": "1000 kr × 2 resor · Undantag — väljs bara manuellt av oss",
       "type": "service",
       "artno": "SK-LEV-0002",
       "enkel": {
@@ -83,14 +95,17 @@
         "note": "Enkel resa",
         "type": "service",
         "artno": "SK-LEV-0002-E"
-      }
+      },
+      "rang": 2,
+      "undantag": true,
+      "ersattAv": "storbil"
     },
     "storbil_slap": {
       "id": "lev-storbil-slap",
       "label": "Stor bil med släpvagn (tur & retur)",
       "enkelresa": 1250,
       "pris": 2500,
-      "note": "1250 kr × 2 resor · 2500 kr tur & retur",
+      "note": "1250 kr × 2 resor · Undantag — väljs bara manuellt av oss",
       "type": "service",
       "artno": "SK-LEV-0006",
       "enkel": {
@@ -100,7 +115,10 @@
         "note": "Enkel resa",
         "type": "service",
         "artno": "SK-LEV-0006-E"
-      }
+      },
+      "rang": 3,
+      "undantag": true,
+      "ersattAv": "lastbil"
     },
     "lastbil": {
       "id": "lev-lastbil",
@@ -117,7 +135,8 @@
         "note": "Enkel resa",
         "type": "service",
         "artno": "SK-LEV-0003-E"
-      }
+      },
+      "rang": 4
     },
     "extern_lev": {
       "id": "lev-extern",
@@ -134,7 +153,8 @@
         "note": "Enkel resa — hämtning eller leverans en väg",
         "type": "service",
         "artno": "SK-LEV-0007-E"
-      }
+      },
+      "rang": 5
     }
   },
   "montering": {

@@ -199,6 +199,7 @@ L.push('### Leverans, montering och personal');
 const lev = tjanster.leverans || {};
 for (const [k, v] of Object.entries(lev)) {
   if (!v || typeof v !== 'object' || Array.isArray(v) || typeof v.pris !== 'number' || v.pris <= 0) continue;
+  if (v.undantag || v.ersattAv) continue; // släpvagn — undantag, inte kundvänt
   L.push(`- ${v.label}: ${kr(v.pris)} exkl. moms`);
 }
 if (tjanster.montering?.prisPerTimme)

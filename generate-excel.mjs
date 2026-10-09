@@ -80,7 +80,7 @@ const leverans = [];
 const lvKeys = ['standard', 'storbil', 'skrymmande', 'storbil_slap', 'lastbil', 'extern_lev'];
 lvKeys.forEach(k => {
   const lv = tjanster.leverans[k];
-  if (!lv || !lv.pris) return;
+  if (!lv || !lv.pris || lv.undantag || lv.ersattAv) return; // släpvagn = undantag, inte i kundkatalogen
   // Tur & retur
   leverans.push({
     'Typ': 'Tur & retur',
@@ -144,56 +144,32 @@ tjansterAvgifter.push({
 });
 
 // ── FLIK 4: Fraktlogik ─────────────────────────────────────────────────────
+// Speglar src/lib/frakt.cjs: alla regler prövas, största fordonet vinner.
+const _lvNamn = (k) => {
+  const lv = tjanster.leverans[k];
+  return lv ? `${(lv.label || k).replace(/\s*\(tur & retur\)/i, '')} (${lv.pris} kr)` : k;
+};
 const fraktlogik = [
-  { 'Sektion': 'GENERELL FRAKT', 'Regel': '', 'Använder': '', 'Förklaring': '' },
-  { 'Sektion': 'selection_rules', 'Regel': 'Reglerna utvärderas uppifrån och ned — första matchen vinner', 'Använder': '', 'Förklaring': '' },
+  { 'Sektion': 'FRAKT', 'Regel': '', 'Använder': '', 'Förklaring': '' },
+  { 'Sektion': 'Princip', 'Regel': 'Alla regler prövas — det största fordonet som någon regel kräver används', 'Använder': '', 'Förklaring': 'Standardfordon: vanlig bil, stor bil och lätt lastbil' },
 ];
 (tjanster.leverans.selection_rules || []).forEach((r, i) => {
   let regel;
-  if (r.if === 'anyItemForces') regel = 'Någon produkt har forceLeverans-flagga';
-  else if (r.if === 'bulkyCount') regel = `bulkyCount ≥ ${r.min}`;
-  else if (r.if === 'default') regel = 'Inget av ovanstående matchar';
+  if (r.if === 'anyItemForces') regel = 'Någon produkt kräver ett visst fordon (forceLeverans)';
+  else if (r.if === 'plattformCount') regel = `Scenplattform ${r.typ.replace('x', '×')} m: ${r.min} st eller fler`;
+  else if (r.if === 'bulkyCount') regel = `Övrigt skrymmande gods: ${r.min} st eller fler`;
+  else if (r.if === 'default') regel = 'Inget skrymmande';
   else regel = JSON.stringify(r);
-  let anvander;
-  if (r.use === 'FROM_PRODUCT') anvander = 'Värdet från produktens forceLeverans-flagga';
-  else anvander = (tjanster.leverans[r.use]?.label || r.use) +
-    (tjanster.leverans[r.use]?.pris ? ` (${tjanster.leverans[r.use].pris} kr)` : '');
   fraktlogik.push({
-    'Sektion': `Steg ${i + 1}`,
+    'Sektion': `Regel ${i + 1}`,
     'Regel': regel,
-    'Använder': anvander,
+    'Använder': r.use === 'FROM_PRODUCT' ? 'Produktens fordon' : _lvNamn(r.use),
     'Förklaring': r.comment || ''
   });
 });
-
-// Scen-specifik frakt
 fraktlogik.push({ 'Sektion': '', 'Regel': '', 'Använder': '', 'Förklaring': '' });
-fraktlogik.push({ 'Sektion': 'SCEN-SPECIFIK FRAKT', 'Regel': 'fraktByModuleCount i scenes.json (åsidosätter generell frakt för scen-konfigurator)', 'Använder': '', 'Förklaring': '' });
-(scenes.fraktByModuleCount || []).forEach((rule, i) => {
-  const lv = tjanster.leverans[rule.fordon];
-  fraktlogik.push({
-    'Sektion': `Steg ${i + 1}`,
-    'Regel': `Antal moduler ≤ ${rule.maxModules === 999 ? '∞' : rule.maxModules}`,
-    'Använder': (lv?.label || rule.fordon) + (lv?.pris ? ` (${lv.pris} kr)` : ''),
-    'Förklaring': ''
-  });
-});
-
-// Produktflaggor
-fraktlogik.push({ 'Sektion': '', 'Regel': '', 'Använder': '', 'Förklaring': '' });
-fraktlogik.push({ 'Sektion': 'PRODUKTFLAGGOR', 'Regel': '', 'Använder': '', 'Förklaring': '' });
-fraktlogik.push({
-  'Sektion': 'bulky: true',
-  'Regel': 'Räknas i bulkyCount-regeln (≥2 → storbil_slap, =1 → skrymmande)',
-  'Använder': '',
-  'Förklaring': 'Sätts på produkter som tar mer plats än normalt (subbaser, line array m.m.)'
-});
-fraktlogik.push({
-  'Sektion': 'forceLeverans: "<key>"',
-  'Regel': 'Tvingar specifik leveransnyckel — anyItemForces matchar och använder denna',
-  'Använder': 'Värdet (t.ex. "storbil", "lastbil", "extern_lev")',
-  'Förklaring': 'Sätts på produkter som kräver specifik bil (Karaoke Large+, LED-trailers m.fl.)'
-});
+fraktlogik.push({ 'Sektion': 'Alltid lätt lastbil', 'Regel': 'LED-vägg, line array, Live XL, scenpaket över 16 m², pipe & drape-vagn', 'Använder': _lvNamn('lastbil'), 'Förklaring': 'Tungt gods — bakgavellift' });
+if (tjanster.leverans.extern_lev) fraktlogik.push({ 'Sektion': 'Mobil LED-skärm (trailer)', 'Regel': 'Fraktas från annan stad', 'Använder': _lvNamn('extern_lev'), 'Förklaring': '' });
 
 // ── FLIK 5: Tjänstelogik ───────────────────────────────────────────────────
 const tjanstelogik = [

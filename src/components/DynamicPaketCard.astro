@@ -69,7 +69,6 @@ _skirts.forEach(s => {
     { artno: s.artno, name: s.name, price: s.price, segmentMeters: s.segmentMeters };
 });
 
-const INJ_SELECTION_RULES = (tjanster.leverans && tjanster.leverans.selection_rules) || [];
 
 
 // ──────────────────────────────────────────────────────────────────
@@ -262,7 +261,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_SELECTION_RULES, INJ_LEVERANS_BY_KEY }}>
+<script define:vars={{ INJ_MOD_BY_KEY, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_LEVERANS_BY_KEY }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -395,24 +394,16 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
     return price;
   }
 
-  // Simulera samma selection_rules-logik som varukorgen, men för ett ensamt
-  // paket. modCount = antal modul-rader (qty), hasTak = om paketet har tak.
-  // Alla scen-moduler är bulky=true → bidrar 1 per modul till bulkyCount.
-  // Tak räknas som +1 ytterligare bulky-rad.
-  function getRecommendedFrakt(modCount, hasTak) {
-    const bulkyCount = (modCount || 0) + (hasTak ? 1 : 0);
-    for (const rule of INJ_SELECTION_RULES) {
-      if (rule.if === 'anyItemForces') {
-        // Ej tillämpbart för standalone paket-kort (hanteras av forceLeverans-arg)
-        continue;
-      } else if (rule.if === 'bulkyCount') {
-        const min = rule.min || 1;
-        if (bulkyCount >= min && INJ_LEVERANS_BY_KEY[rule.use]) return rule.use;
-      } else if (rule.if === 'default') {
-        return rule.use;
-      }
-    }
-    return 'standard';
+  // Fordonet väljs av den gemensamma fraktmotorn (window.skFrakt, src/lib/frakt.cjs)
+  // på samma rader som kortet lägger i korgen: plattformar av vald yta, plus
+  // taket som skrymmande gods och paketets eventuella forceLeverans.
+  // Matris (tjanster.json): 1×1 1–4 st vanlig bil, 5+ stor bil;
+  // 1×2 1–8 st stor bil, 9+ lätt lastbil.
+  function getRecommendedFrakt(modCount, hasTak, surface, forceLeverans) {
+    const rader = [{ artno: MOD_ARTNO[surface], qty: modCount || 0 }];
+    if (hasTak) rader.push({ artno: 'tak', bulky: true, qty: 1 });
+    if (forceLeverans) rader.push({ artno: 'paket', forceLeverans, qty: 1 });
+    return (window.skFrakt && window.skFrakt.keyFor(rader)) || forceLeverans || 'standard';
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -432,9 +423,9 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
     return h.toFixed(1).replace('.', ',') + ' h';
   }
 
-  function computeFraktDetails(modCount, hasTak, forceLeverans) {
-    const key = forceLeverans || getRecommendedFrakt(modCount, hasTak);
-    const lev = INJ_LEVERANS_BY_KEY[key] || INJ_LEVERANS_BY_KEY.storbil_slap || INJ_LEVERANS_BY_KEY.standard;
+  function computeFraktDetails(modCount, hasTak, forceLeverans, surface) {
+    const key = getRecommendedFrakt(modCount, hasTak, surface, forceLeverans);
+    const lev = INJ_LEVERANS_BY_KEY[key] || INJ_LEVERANS_BY_KEY.lastbil || INJ_LEVERANS_BY_KEY.standard;
     return { key, name: lev.name, pris: lev.pris };
   }
 
@@ -670,7 +661,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
           const mon = sceneMontering(monteringLines());
           const monteringMin = mon.minuter;
           const monteringKr = mon.kronor;
-          const frakt = computeFraktDetails(mc, !!cfg.tak, cfg.forceLeverans);
+          const frakt = computeFraktDetails(mc, !!cfg.tak, cfg.forceLeverans, surface);
           const transport = card.dataset.paketTransport;
           const prefix = transport === 'krävs' ? '+ ' : 'Vid leverans: + ';
           const mE = fmt(monteringKr), mI = fmt(Math.round(monteringKr * 1.25));
@@ -842,12 +833,12 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       const isKravs = transport === 'krävs';
       // bulky läses från JSON-flaggan paket.bulky (data-paket-bulky="1") — INTE
       // härlett från transport. Det innebär att ett 'tillägg'-paket fortfarande
-      // räknas som skrymmande gods när kunden väljer leverans i kundkorgen, så
-      // fraktregeln "bulkyCount >= 1 → Bil med släp" matchar korrekt.
+      // räknas som skrymmande gods när kunden väljer leverans i kundkorgen.
+      // (Fordonet för plattformarna väljs ändå på artikelnummer och antal.)
       const isBulky = card.dataset.paketBulky === '1';
       // Krävs: forceLeverans (override eller auto-rekommenderat fordon)
       // Tillägg: ingen forceLeverans → kunden får välja själv i varukorgen
-      const lev = isKravs ? (cfg.forceLeverans || getRecommendedFrakt(mc, !!cfg.tak)) : null;
+      const lev = isKravs ? getRecommendedFrakt(mc, !!cfg.tak, surface, cfg.forceLeverans) : null;
 
       // Montering: ingen tid stämplas på raderna — varukorgen slår upp varje
       // artikels tid i monteringskatalogen (samma motor som kortets not).
@@ -870,8 +861,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
 
       // Modul-rad.
       // - bulky: sätts från JSON-flaggan paket.bulky (oavsett transport) —
-      //   används av fraktregeln "bulkyCount >= 1 → Bil med släp" när
-      //   kunden VÄLJER leverans. Triggar INTE auto-bock av leverans i varukorgen.
+      //   följer med raden till varukorgen när kunden VÄLJER leverans. Triggar INTE auto-bock av leverans i varukorgen.
       // - requiresAssembly + forceLeverans: bara om paketet kräver transport.
       //   Dessa flaggor är "transport krävs"-signaler och triggar auto-bock.
       const modItem = {

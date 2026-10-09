@@ -20,6 +20,7 @@ import elJson       from '../data/el.json';
 // Monteringsberäkning (window.skMontering) — körs först i <body> så att den finns
 // innan sidornas egna skript, även define:vars-skript i konfigurator och paketkort.
 import MonteringEngine from '../components/MonteringEngine.astro';
+import FraktEngine from '../components/FraktEngine.astro';
 
 const svenProducts = buildSvenProducts({
   scenes: scenesJson, ljud: ljudJson, ljus: ljusJson, dj: djJson,
@@ -270,6 +271,7 @@ const localBusinessSchema = {
 </head>
 <body>
   <MonteringEngine />
+  <FraktEngine />
   <!-- Cookie-banner -->
   <div id="sk-cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(12,10,36,0.97);border-top:1px solid rgba(196,181,244,0.25);padding:1rem 1.5rem;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
     <p style="margin:0;color:rgba(255,255,255,0.7);font-size:0.875rem;font-family:'Space Grotesk',sans-serif;max-width:700px;">
