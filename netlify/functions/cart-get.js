@@ -4,7 +4,7 @@
 // GET /.netlify/functions/cart-get?id=<cart_id>  (admin only)
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
+const { supabase, isAdmin, itemsRev, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
@@ -13,7 +13,7 @@ exports.handler = async (event) => {
   const ip = event.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
   if (rateLimit(ip, 30)) return err('För många förfrågningar', 429);
 
-  const { token, id, preview } = event.queryStringParameters || {};
+  const { token, id, preview, rev } = event.queryStringParameters || {};
 
   const db = supabase();
 
@@ -56,6 +56,15 @@ exports.handler = async (event) => {
     if (error || !cart) {
       console.error('CART_GET_CUSTOMER_ERR:', error?.message || error, '| token_len:', token?.length);
       return err('Varukorg hittades ej eller har gått ut', 404);
+    }
+
+    cart.items_rev = itemsRev(cart.items);
+
+    // rev=1: ordersidans tysta koll när kunden kommer tillbaka till fliken —
+    // bara revision och status, ingen läslogg, inga meddelanden markeras lästa.
+    if (rev === '1') {
+      return ok({ rev: cart.items_rev, status: cart.status,
+                  confirmed_at: cart.confirmed_at || null, declined_at: cart.declined_at || null });
     }
 
     // Kolla TTL — men bekräftade/avslutade ordrar har ingen TTL och ska aldrig

@@ -132,8 +132,20 @@ const corsHeaders = {
   'Access-Control-Allow-Origin':  'https://scenkonsult.se',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Content-Type':                 'application/json'
+  'Content-Type':                 'application/json',
+  // API-svar får aldrig cachas — kundens ordersida ska alltid visa den
+  // sparade offerten, inte en gammal kopia ur webbläsarens eller ett proxys cache.
+  'Cache-Control':                'no-store, max-age=0'
 };
+
+// Revision av en offerts rader — kort hash av items. Ordersidan skickar med den
+// den visar när kunden godkänner; ändrad offert → godkännandet avvisas och sidan
+// laddas om. (updated_at duger inte: cart-get själv bumpar den vid varje läsning.)
+function itemsRev(items) {
+  return require('crypto').createHash('sha1')
+    .update(JSON.stringify(Array.isArray(items) ? items : []))
+    .digest('hex').slice(0, 12);
+}
 
 function ok(body, status = 200) {
   return { statusCode: status, headers: corsHeaders, body: JSON.stringify(body) };
@@ -386,4 +398,4 @@ async function getTakenInvoiceNumbers() {
   return { taken, highest, START_NUM };
 }
 
-module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, getTakenInvoiceNumbers, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };
+module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, getTakenInvoiceNumbers, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };

@@ -3320,9 +3320,7 @@ function cartCardHTML(c) {
 async function openDetail(cartId) {
   // Om föregående panel hade osparade ändringar, varna innan vi byter
   if (panelDirty && currentCart && currentCart.id !== cartId) {
-    if (!confirm('Du har osparade ändringar i den öppna ordern. Lämna ändå?\n\nOK = lämna utan att spara\nAvbryt = stanna kvar')) {
-      return;
-    }
+    if (!(await resolveDirtyPanel('Spara först &amp; öppna nästa order'))) return;
   }
   clearPanelDirty();
   currentCart = null;
@@ -3394,7 +3392,7 @@ function renderPanelTabs() {
             return;
           }
         }
-        // 'discard' faller igenom
+        if (choice === 'discard') await discardPanelChanges();
       }
       clearPanelDirty();
       activeTab = newTab;
@@ -3407,7 +3405,7 @@ function renderPanelTabs() {
 
 // 3-vals dialog för osparade ändringar.
 // Returnerar 'save' | 'discard' | 'cancel'.
-function askDirtyChoice() {
+function askDirtyChoice(saveLabel = 'Spara först &amp; byt flik') {
   return new Promise(resolve => {
     // Bygg overlay inline för att slippa modal-infrastruktur
     const wrap = document.createElement('div');
@@ -3420,7 +3418,7 @@ function askDirtyChoice() {
         </p>
         <div style="display:flex;flex-direction:column;gap:.6rem">
           <button data-action="save" style="background:#c4b5f4;color:#0c0a24;border:none;border-radius:8px;padding:.7rem 1rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit">
-            💾 Spara först &amp; byt flik
+            💾 ${saveLabel}
           </button>
           <button data-action="discard" style="background:rgba(255,255,255,.06);color:#f0eeff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:.7rem 1rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit">
             Lämna utan att spara
@@ -3458,6 +3456,34 @@ async function saveDirtyTabIfPossible() {
     return !panelDirty;
   }
   // Andra flikar har egen logik — fall tillbaka på discard
+  return true;
+}
+
+// "Lämna utan att spara" måste kasta ändringarna på riktigt. Produkter-fliken
+// skriver redigeringar direkt i currentCart.items (prodQty/prodDelete/
+// _commitTargetItem) innan något sparats — utan omladdning såg osparade
+// ändringar sparade ut i admin medan kundlänken visade den gamla offerten
+// (rättat 2026-10-09). Hämta därför ordern från servern igen.
+async function discardPanelChanges() {
+  clearPanelDirty();
+  await refreshCurrentCart();
+  if (typeof renderPanelFooter === 'function') renderPanelFooter();
+  toast('Osparade ändringar kastade — visar sparad version');
+}
+
+// Gemensam fråga när panelen ska lämnas (stäng / byt order / skicka) med
+// osparade ändringar. Returnerar true om det är OK att gå vidare.
+async function resolveDirtyPanel(saveLabel) {
+  if (!panelDirty) return true;
+  const choice = await askDirtyChoice(saveLabel);
+  if (choice === 'cancel') return false;
+  if (choice === 'save') {
+    const saved = await saveDirtyTabIfPossible();
+    if (!saved) { toast('Kunde inte spara — avbryter', 'error'); return false; }
+    clearPanelDirty();
+    return true;
+  }
+  await discardPanelChanges();
   return true;
 }
 
@@ -5526,6 +5552,9 @@ async function sendMessage() {
   const btn   = $('chat-send-btn');
   const text  = input?.value.trim();
   if (!text) return;
+  // Osparade ändringar i ordern? Kunden ser bara det som är sparat — fråga
+  // innan ett "offerten är uppdaterad"-meddelande går ut.
+  if (!(await resolveDirtyPanel('Spara ändringarna först &amp; skicka'))) return;
 
   btn.disabled = true;
   btn.textContent = 'Skickar…';
@@ -7277,7 +7306,7 @@ async function deleteCancelledCart(cartId) {
   if (ok) {
     toast(`Order raderad: ${customer}`);
     // Om detaljpanelen råkar visa just denna cart — stäng den
-    if (currentCart && currentCart.id === cartId) closePanel();
+    if (currentCart && currentCart.id === cartId) { clearPanelDirty(); closePanel(); }   // raderad — inget att spara
     loadCarts();
   } else {
     console.error('CART_DELETE_FAIL:', cartId, data);
@@ -7322,13 +7351,15 @@ window.dismissSvenForward = dismissSvenForward;
 // lämnar datum, tider, produkter och anmärkning tomma. När admin klickar
 // "✉ Skicka offert" i modalen skapas en helt ny cart i databasen — den
 // gamla offerten lämnas orörd.
-function cloneCustomerToNewQuote(c) {
+async function cloneCustomerToNewQuote(c) {
   if (!c?.customer_name || !c?.customer_email) {
     toast('Kundinfo saknas — kan inte klona', 'error');
     return;
   }
+  // Osparade ändringar i den öppna ordern avgörs först, sedan stängs panelen
+  if (!(await resolveDirtyPanel('Spara först &amp; fortsätt'))) return;
   // Stäng detaljpanelen så fokus hamnar på offert-modalen
-  closePanel();
+  await closePanel();
   // VIKTIGT: nollställ currentCart så existing_cart_id blir null i sendQuote
   currentCart = null;
   // Förifyll endast kundrelaterad info — INGA items, INGET datum
@@ -7797,6 +7828,7 @@ async function reminderAction(action) {
   const cartId = c.id;
 
   if (action === 'send') {
+    if (currentCart && currentCart.id === cartId && !(await resolveDirtyPanel('Spara ändringarna först &amp; skicka'))) return;
     const msg = document.getElementById('rem-body')?.value.trim();
     const subject = document.getElementById('rem-subject')?.value.trim();
     const includeDecline = !!document.getElementById('rem-decline')?.checked;
@@ -8060,8 +8092,10 @@ function openQuoteModal(prefill) {
   if (prefill?.items?.length) {
     prefill.items.filter(i => !i._note).forEach(i => {
       const cat = i.category || (SVC_IDS_PREFILL.has(i.id) ? 'Tjänster' : '');
-      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1, category: cat,
-                        ...(i.artno ? { artno: i.artno } : {}), ..._monFalt(i) });
+      // Hela raden följer med: hyresdygn (days, unit_price, day_factor,
+      // day_ladder), artno, låst pris och monteringsfält. Tidigare plockades
+      // bara id/namn/pris/antal — en omskickad flerdygnsoffert tappade dygnen.
+      quoteItems.push({ ...i, id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1, category: cat });
     });
     const note = prefill.items.find(i => i._note);
     if (note) $('qc-note').value = note.name;
@@ -8097,15 +8131,7 @@ function openQuoteModalForCart(cart) {
 // öppnades modalen med gamla värden, helt utan varning. Produkter-flikens
 // "Spara & skicka offert" har alltid frågat; nu gör footern det också.
 async function openQuoteModalGuarded() {
-  if (panelDirty) {
-    const choice = await askDirtyChoice();
-    if (choice === 'cancel') return;
-    if (choice === 'save') {
-      const saved = await saveDirtyTabIfPossible();
-      if (!saved) { toast('Kunde inte spara — avbryter', 'error'); return; }
-    }
-    clearPanelDirty();
-  }
+  if (!(await resolveDirtyPanel('Spara först &amp; skriv offert'))) return;
   openQuoteModalForCart(currentCart);
 }
 window.openQuoteModalGuarded = openQuoteModalGuarded;
@@ -8617,12 +8643,10 @@ document.addEventListener('keydown', e => {
   closePanel();
 });
 
-function closePanel() {
-  if (panelDirty) {
-    if (!confirm('Du har osparade ändringar. Stäng ändå?\n\nOK = stäng utan att spara\nAvbryt = stanna kvar')) {
-      return;
-    }
-  }
+async function closePanel() {
+  // Tidigare confirm() där OK = släng ändringarna — lätt att klicka av vana.
+  // Nu samma tre val som vid flikbyte, med Spara först överst.
+  if (panelDirty && !(await resolveDirtyPanel('Spara först &amp; stäng'))) return;
   clearPanelDirty();
   stopPanelPolling();
   $('detail-overlay').classList.remove('open');

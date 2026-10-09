@@ -64,7 +64,7 @@ check('två bundlar = dubbelt belopp', eng.calc(trossTvå).kronor, pnl.montering
 console.log('\n4. KODEN FÖR VIDARE FÄLTEN');
 const admin = fs.readFileSync(path.join(ROOT, 'src', 'pages', 'admin', 'index.astro'), 'utf8');
 check('admin: beräkningen får hela raden', /eng\.calc\(items\.map\([^)]*\.\.\._monFalt\(i\)/.test(admin), true);
-check('admin: offertmodalen behåller fälten', /quoteItems\.push\(\{[^}]*category: cat,[\s\S]{0,120}_monFalt\(i\)/.test(admin), true);
+check('admin: offertmodalen behåller fälten (hela raden)', /quoteItems\.push\(\{ \.\.\.i, id:/.test(admin), true);
 check('admin: Produkter-fliken läser tillbaka fälten', admin.includes("get('mon_falt')"), true);
 check('admin: LED-konfiguratorn sätter tiden', /ledMinuter\(totalPanels/.test(admin), true);
 const layout = fs.readFileSync(path.join(ROOT, 'src', 'layouts', 'Layout.astro'), 'utf8');

@@ -865,6 +865,49 @@ function show(id) {
   });
 }
 
+// ── Håll sidan aktuell ────────────────────────────────────────
+// Kunden har ofta ordersidan kvar öppen i en flik. Klickar hen på länken igen
+// (t.ex. efter "offerten är uppdaterad") kan webbläsaren visa den gamla fliken
+// utan att ladda om. Därför: tyst koll mot servern när fliken blir synlig igen,
+// när sidan återställs ur bakåt-cachen och en gång i minuten medan den syns.
+// Ändrad offert → sidan hämtas på nytt och kunden får en notis.
+let _shownRev = null;
+let _revCheckBusy = false;
+async function checkOfferUpdated() {
+  if (!cartId || !cartToken || !_shownRev || _revCheckBusy || document.hidden) return;
+  _revCheckBusy = true;
+  try {
+    const res = await fetch(`/.netlify/functions/cart-get?token=${cartToken}&rev=1`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const d = await res.json();
+    const c = window._currentCart || {};
+    const changed = (d.rev && d.rev !== _shownRev) || d.status !== c.status ||
+                    (d.confirmed_at || null) !== (c.confirmed_at || null) ||
+                    (d.declined_at || null) !== (c.declined_at || null);
+    if (changed) {
+      await loadOrder();
+      showOfferUpdatedNotice();
+    }
+  } catch (_) { /* tyst — nästa koll försöker igen */ }
+  finally { _revCheckBusy = false; }
+}
+function showOfferUpdatedNotice() {
+  let n = document.getElementById('offerUpdatedNotice');
+  if (!n) {
+    n = document.createElement('div');
+    n.id = 'offerUpdatedNotice';
+    n.setAttribute('role', 'status');
+    n.style.cssText = 'position:fixed;left:50%;bottom:1.25rem;transform:translateX(-50%);z-index:9999;background:#c4b5f4;color:#0c0a24;font-weight:700;font-size:0.9rem;padding:0.75rem 1.1rem;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:calc(100% - 2rem);text-align:center';
+    document.body.appendChild(n);
+  }
+  n.textContent = '🔄 Offerten har uppdaterats — du ser nu den senaste versionen.';
+  clearTimeout(n._t);
+  n._t = setTimeout(() => n.remove(), 6000);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkOfferUpdated(); });
+window.addEventListener('pageshow', (e) => { if (e.persisted) checkOfferUpdated(); });
+setInterval(checkOfferUpdated, 60000);
+
 async function loadOrder() {
   const params = new URLSearchParams(location.search);
   cartId    = params.get('cart');
@@ -873,9 +916,10 @@ async function loadOrder() {
   if (!cartId || !cartToken) { show('stateError'); return; }
 
   try {
-    const res  = await fetch(`/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`);
+    const res  = await fetch(`/.netlify/functions/cart-get?id=${cartId}&token=${cartToken}`, { cache: 'no-store' });
     const data = await res.json();
     if (!res.ok) { show('stateError'); return; }
+    _shownRev = data.cart.items_rev || null;
     renderOrder(data.cart);
     messages = data.messages || [];
     renderMessages();
@@ -1380,9 +1424,17 @@ async function confirmOrder() {
         cart_id:           cartId,
         action:            'customer_confirm',
         confirmation_text: confirmationText,
+        items_rev:         c.items_rev || null,
       })
     });
     const data = await res.json();
+    // Offerten ändrades medan sidan var öppen — visa den nya innan kunden godkänner.
+    if (res.status === 409 && data.code === 'stale') {
+      await loadOrder();
+      showOfferUpdatedNotice();
+      alert(data.error);
+      return;
+    }
     if (res.ok && !data.error) {
       // Update UI — show signed state
       const ctaEl = document.getElementById('statusCta');

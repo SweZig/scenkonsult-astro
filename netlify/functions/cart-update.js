@@ -5,7 +5,7 @@
 // Body (admin): { cart_id, items?, notes_admin?, event_date?, event_location?, status?, total_excl? }
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
+const { supabase, isAdmin, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
 const RESEND_API = 'https://api.resend.com/emails';
 
 async function sendConfirmationEmail(cart) {
@@ -410,6 +410,13 @@ exports.handler = async (event) => {
         if (cart.confirmed_at) {
           return err('Ordern är redan bekräftad', 409);
         }
+        // Kunden får bara godkänna den version som faktiskt är sparad. Har
+        // offerten ändrats sedan sidan laddades avvisas godkännandet och
+        // ordersidan laddar om. (Äldre sidor utan items_rev släpps igenom.)
+        if (body.items_rev && body.items_rev !== itemsRev(cart.items)) {
+          return { statusCode: 409, headers: require('./_lib').corsHeaders,
+                   body: JSON.stringify({ error: 'Offerten har uppdaterats sedan du öppnade den. Sidan laddas om så att du ser den senaste versionen.', code: 'stale' }) };
+        }
         const ip = event.headers['x-forwarded-for']?.split(',')[0]?.trim()
                 || event.headers['x-real-ip']
                 || 'unknown';
@@ -417,7 +424,14 @@ exports.handler = async (event) => {
         updates.confirmed_at           = new Date().toISOString();
         updates.confirmed_ip           = ip;
         updates.confirmed_user_agent   = ua;
-        updates.confirmation_text      = body.confirmation_text || `Order ${cart.id} bekräftad digitalt`;
+        // Avtalstexten byggs av servern ur den sparade offerten — inte av
+        // summan kunden råkade ha på skärmen.
+        {
+          const _rader = (cart.items || []).filter(i => i && !i._note && i.name);
+          const _sum = _rader.reduce((s, i) => s + (i.price || 0) * (i.qty || i.quantity || 1), 0);
+          updates.confirmation_text = `Order ${cart.id} bekräftad av kund. Hyresvillkor §1–§15 godkända. ` +
+            `Totalt ${Math.round(_sum)} kr exkl. moms (${_rader.length} rader, version ${itemsRev(cart.items)}).`;
+        }
         updates.status                 = 'confirmed';
         updates.expires_at             = null; // Bekräftad order har ingen TTL — annars dör kundlänken 21 dagar efter offerten skickades
 
