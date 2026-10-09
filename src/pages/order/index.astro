@@ -790,9 +790,13 @@ function openOrderProductModal(item) {
     specRows.push(`<span style="color:rgba(255,255,255,.55)">👥 Räcker för:</span> <strong style="color:#fff">${info.persons}</strong>`);
   }
 
-  // Montering (ljud/ljus-paket)
-  if (info.monteringMin) {
-    specRows.push(`<span style="color:rgba(255,255,255,.55)">⏱️ Montering:</span> <strong style="color:#fff">~${info.monteringMin} min</strong>`);
+  // Montering — samma motor som varukorgen och offerten (window.skMontering):
+  // montering + demontering för radens antal, inklusive antal tekniker.
+  // Produktens grundtid (monteringMin) visas aldrig rått — den är tid per styck
+  // åt ett håll och stämde inte med beloppet på monteringsraden.
+  const _mon = window.skMontering ? window.skMontering.calc([item]) : null;
+  if (_mon && _mon.minuter > 0) {
+    specRows.push(`<span style="color:rgba(255,255,255,.55)">⏱️ Montering:</span> <strong style="color:#fff">ca ${window.skMontering.formatTid(_mon.minuter)}</strong> <span style="color:rgba(255,255,255,.45)">(montering + demontering, teknikertid)</span>`);
   }
 
   // Transport (scen)

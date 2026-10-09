@@ -39,8 +39,21 @@
  *   monteringFast (kr)        → fast belopp, t.ex. LED-vägg på tross (bundle)
  *   assemblyMinutesTotal (min)→ egen beräkning på sidan (LED-vägg): tid på plats,
  *                               × assemblyBemanning (antal tekniker, default 1)
+ *   assemblyUnitQty (st)      → antal på raden som motsvarar EN vägg/ett paket.
+ *                               monteringFast och assemblyMinutesTotal gäller per
+ *                               enhet; enheter = round(qty / assemblyUnitQty), minst 1.
+ *                               Läggs samma LED-paket två gånger slås raderna ihop
+ *                               (qty fördubblas) — då fördubblas även tiden.
+ *   monteringIngar (true)     → tillbehör vars tid redan ingår i en annan rad
+ *                               (LED-väggens processor och upphängning, trossbundlens
+ *                               delar). Räknas som 0 och flaggas inte som saknad.
  *   monteringMin (min)        → äldre rader: räknas som styck, bemanning 1
  *   Katalogens tid vinner alltid över radens egna fält.
+ *
+ * RADFALT lista fälten som bär montering på en rad. Kod som bygger om rader
+ * (admin, serverfunktioner) måste föra dem vidare — annars räknas LED-väggen
+ * och trossbundlen som 0 kr. ledMinuter() är LED-väggens tidsformel
+ * (led-paneler.json → tillbehor.montering), gemensam för LED-sidan och admin.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 (function (root, factory) {
@@ -146,8 +159,13 @@
       var artno = resolveArtno(line, catalog);
       var entry = items[artno];
 
+      var enh = enheter(line, qty);
+      if (line.monteringIngar === true && !(Number(line.monteringFast) > 0) && !(Number(line.assemblyMinutesTotal) > 0)) {
+        kand = true;
+        return;
+      }
       if (Number(line.monteringFast) > 0) {
-        fastKr += Number(line.monteringFast);
+        fastKr += Number(line.monteringFast) * enh;
         kand = true;
         return;
       }
@@ -165,7 +183,7 @@
       }
       if (Number(line.assemblyMinutesTotal) > 0) {
         var ab = Number(line.assemblyBemanning);
-        extraMin += Number(line.assemblyMinutesTotal) * (ab > 0 ? ab : 1);
+        extraMin += Number(line.assemblyMinutesTotal) * (ab > 0 ? ab : 1) * enh;
         kand = true;
         return;
       }
@@ -230,6 +248,35 @@
     };
   }
 
+  /** Antal väggar/paket på en rad med assemblyUnitQty (annars 1). */
+  function enheter(line, qty) {
+    var u = Number(line && line.assemblyUnitQty);
+    return u > 0 ? Math.max(1, Math.round(qty / u)) : 1;
+  }
+
+  var RADFALT = ['monteringFast', 'assemblyMinutesTotal', 'assemblyBemanning', 'assemblyUnitQty', 'monteringIngar'];
+
+  /** Plocka monteringsfälten från en rad (för kod som bygger om rader). */
+  function radFalt(line) {
+    var ut = {};
+    RADFALT.forEach(function (k) {
+      if (line && line[k] !== undefined && line[k] !== null && line[k] !== '') ut[k] = line[k];
+    });
+    return ut;
+  }
+
+  /**
+   * LED-väggens tid på plats i minuter (per vägg, före × bemanning):
+   * 2 × ground/tross + (montering + demontering per panel) × paneler + config,
+   * avrundat uppåt till M.round_to_min. M = led-paneler.json → tillbehor.montering.
+   */
+  function ledMinuter(totalPanels, area_m2, M) {
+    if (!M || !(totalPanels > 0)) return 0;
+    var ground = area_m2 <= M.ground_tross_threshold_m2 ? M.ground_tross_min_small : M.ground_tross_min_large;
+    var raw = 2 * ground + (M.min_per_panel_install + M.min_per_panel_demount) * totalPanels + M.config_min;
+    return Math.ceil(raw / (M.round_to_min || 1)) * (M.round_to_min || 1);
+  }
+
   /** "1 h 45 min", "30 min", "2 h". */
   function formatTid(min) {
     min = Math.round(min);
@@ -247,8 +294,11 @@
       calc: function (lines) { return calc(lines, catalog); },
       resolveArtno: function (line) { return resolveArtno(line, catalog); },
       formatTid: formatTid,
+      radFalt: radFalt,
+      ledMinuter: ledMinuter,
     };
   }
 
-  return { calc: calc, create: create, resolveArtno: resolveArtno, formatTid: formatTid, normParams: normParams, DEFAULT_PARAMS: DEFAULT_PARAMS };
+  return { calc: calc, create: create, resolveArtno: resolveArtno, formatTid: formatTid, normParams: normParams,
+           radFalt: radFalt, RADFALT: RADFALT, ledMinuter: ledMinuter, DEFAULT_PARAMS: DEFAULT_PARAMS };
 });

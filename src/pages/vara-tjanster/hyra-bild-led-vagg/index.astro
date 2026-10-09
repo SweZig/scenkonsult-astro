@@ -714,13 +714,8 @@ const faqSchema = {
         if (inclMontering.checked) {
           const M = TILL.montering;
           const area_m2_local = (r.actualW * r.actualH) / 1_000_000;
-          const groundTross = area_m2_local <= M.ground_tross_threshold_m2
-            ? M.ground_tross_min_small
-            : M.ground_tross_min_large;
-          const rawMin = 2 * groundTross
-                       + (M.min_per_panel_install + M.min_per_panel_demount) * totalPanels
-                       + M.config_min;
-          const roundedMin = Math.ceil(rawMin / M.round_to_min) * M.round_to_min;
+          // Samma formel som admin: SkMonteringLib.ledMinuter (src/lib/montering.cjs)
+          const roundedMin = window.SkMonteringLib.ledMinuter(totalPanels, area_m2_local, M);
           monteringHours = roundedMin / 60;
           // Tid på plats × antal tekniker (LED-väggar monteras alltid av 2).
           const bem = M.bemanning || 1;
@@ -1231,6 +1226,7 @@ const faqSchema = {
           forceLeverans: c.leveransKey,
           assemblyMinutesTotal: cartAssembly,
           assemblyBemanning: TILL.montering.bemanning || 1,
+          assemblyUnitQty: c.totalPanels,   // tiden gäller per vägg — läggs samma vägg två gånger dubblas den
           qty: c.totalPanels,
         });
 
@@ -1243,6 +1239,7 @@ const faqSchema = {
             price: c.processor.price_per_day_excl,
             priceNote: '/dygn',
             category: 'LED-vägg',
+            monteringIngar: true,   // tiden ingår i väggens assemblyMinutesTotal
             bulky: false,
             qty: 1,
           });
@@ -1260,6 +1257,7 @@ const faqSchema = {
             price: TILL.rigg.price_per_column * c.cols,
             priceNote: '/dygn',
             category: 'LED-vägg',
+            monteringIngar: true,   // tiden ingår i väggens assemblyMinutesTotal
             bulky: true,
             qty: 1,
           });
@@ -1271,6 +1269,7 @@ const faqSchema = {
             price: TILL.tross.price_per_column * c.cols,
             priceNote: '/dygn',
             category: 'LED-vägg',
+            monteringIngar: true,   // tiden ingår i väggens assemblyMinutesTotal
             bulky: true,
             qty: 1,
           });
@@ -1316,15 +1315,9 @@ const faqSchema = {
         return PROC.large;
       }
 
+      // Samma formel som konfiguratorn och admin (src/lib/montering.cjs).
       function calcMonteringMin(totalPanels, area_m2) {
-        const M = R.montering;
-        const groundTross = area_m2 <= M.ground_tross_threshold_m2
-          ? M.ground_tross_min_small
-          : M.ground_tross_min_large;
-        const raw = 2 * groundTross
-                  + (M.min_per_panel_install + M.min_per_panel_demount) * totalPanels
-                  + M.config_min;
-        return Math.ceil(raw / M.round_to_min) * M.round_to_min;
+        return window.SkMonteringLib.ledMinuter(totalPanels, area_m2, R.montering);
       }
 
       // LED-vägg: alltid samma fordon (Lätt lastbil), oavsett yta.
@@ -1504,6 +1497,7 @@ const faqSchema = {
               forceLeverans: leverans.key,
               assemblyMinutesTotal: monteringMin,
               assemblyBemanning: R.montering.bemanning || 1,
+              assemblyUnitQty: v.totalPanels,   // tid per vägg — dubblas om paketet läggs två gånger
               qty: v.totalPanels,
             });
             // Processor
@@ -1514,6 +1508,7 @@ const faqSchema = {
               price: proc.price,
               priceNote: '/dygn',
               category: 'LED-vägg',
+              monteringIngar: true,   // tiden ingår i väggens assemblyMinutesTotal
               bulky: false,
               qty: 1,
             });
@@ -1525,6 +1520,7 @@ const faqSchema = {
               price: mount.per_kolumn * v.cols,
               priceNote: '/dygn',
               category: 'LED-vägg',
+              monteringIngar: true,   // tiden ingår i väggens assemblyMinutesTotal
               bulky: true,
               qty: 1,
             });

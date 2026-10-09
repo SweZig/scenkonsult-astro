@@ -3796,10 +3796,15 @@ function prodGetItems() {
     // den aldrig mer. Flaggan måste läsas tillbaka ur DOM som allt annat —
     // annars tappas den vid varje re-render.
     const _priceLocked = get('price_locked') === '1';
+    // Monteringsfälten (LED-väggens tid, trossbundlens fasta belopp) — utan dem
+    // räknar admin LED-väggen som 0 kr och de försvinner vid nästa Spara.
+    let monFalt = {};
+    const monRaw = get('mon_falt');
+    if (monRaw) { try { monFalt = JSON.parse(monRaw) || {}; } catch (_) {} }
 
     return { id, name: get('name'), category, type, qty, price,
              days, unit_price, day_factor, day_ladder,
-             ...(artno ? { artno } : {}), ...(_priceLocked ? { _priceLocked: true } : {}) };
+             ...(artno ? { artno } : {}), ...(_priceLocked ? { _priceLocked: true } : {}), ...monFalt };
   }).filter(i => i.name?.trim()); // skip empty/whitespace rows
 
   // _note läggs ALLTID sist. Radindex för drag-and-drop och svcStart-logiken
@@ -4767,6 +4772,7 @@ function renderProductsTab() {
             <input type="hidden" data-field="day_factor" data-idx="${idx}" value="${item.day_factor ?? 1}">
             <input type="hidden" data-field="day_ladder" data-idx="${idx}" value="${ladder ? JSON.stringify(ladder).replace(/"/g,'&quot;') : ''}">
             <input type="hidden" data-field="price_locked" data-idx="${idx}" value="${item._priceLocked ? '1' : ''}">
+            <input type="hidden" data-field="mon_falt" data-idx="${idx}" value="${_monFaltAttr(item)}">
             ${volMetaHTML(item)}
             ${dayMetaRowHTML(item, idx)}
             <div id="po-${idx}" style="display:none">${popoutContent}</div>
@@ -8054,7 +8060,8 @@ function openQuoteModal(prefill) {
   if (prefill?.items?.length) {
     prefill.items.filter(i => !i._note).forEach(i => {
       const cat = i.category || (SVC_IDS_PREFILL.has(i.id) ? 'Tjänster' : '');
-      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1, category: cat });
+      quoteItems.push({ id: i.id||'', name: i.name, price: i.price||0, qty: i.qty||1, category: cat,
+                        ...(i.artno ? { artno: i.artno } : {}), ..._monFalt(i) });
     });
     const note = prefill.items.find(i => i._note);
     if (note) $('qc-note').value = note.name;
@@ -10147,14 +10154,20 @@ function adminLedConfigAdd() {
   const actualH_mm = rows * (parseInt(panelOpt.dataset.hMm) || 0);
   const dimStr = `${(actualW_mm/1000).toFixed(2).replace(/\.?0+$/,'')}×${(actualH_mm/1000).toFixed(2).replace(/\.?0+$/,'')} m`;
 
-  // 1) Panel-rad
+  // 1) Panel-rad — med LED-väggens monteringstid, samma formel som LED-sidan
+  // (SkMonteringLib.ledMinuter), så att 🔧 Montering räknar med väggen.
+  const M = cfg.tillbehor?.montering;
+  const area_m2 = (actualW_mm * actualH_mm) / 1_000_000;
+  const ledMin = (window.SkMonteringLib && M) ? window.SkMonteringLib.ledMinuter(totalPanels, area_m2, M) : 0;
   _commitTargetItem({
     id:    panelArtno + '__' + cols + 'x' + rows,
+    artno: panelArtno,
     name:  `${panelName} — ${cols}×${rows} = ${totalPanels} st · ${dimStr}`,
     price: panelPrice,
     qty:   totalPanels,
     category: 'LED-vägg',
     type: 'product',
+    ...(ledMin > 0 ? { assemblyMinutesTotal: ledMin, assemblyBemanning: M.bemanning || 1, assemblyUnitQty: totalPanels } : {}),
   });
 
   // 2) Processor
@@ -10168,6 +10181,7 @@ function adminLedConfigAdd() {
       price: proc.price_per_day_excl,
       qty:   1,
       category: 'LED-vägg',
+      monteringIngar: true,   // tiden ingår i panelradens assemblyMinutesTotal
       type: 'product',
     });
   }
@@ -10181,6 +10195,7 @@ function adminLedConfigAdd() {
       price: (mountRow.price_per_column || 0) * cols,
       qty:   1,
       category: 'LED-vägg',
+      monteringIngar: true,   // tiden ingår i panelradens assemblyMinutesTotal
       type: 'product',
     });
   }
@@ -10326,6 +10341,16 @@ function adminFraktConfigAdd() {
 // ─────────────────────────────────────────────────────────────
 let _monCalc = null;   // { minuter, fastKr } från senaste beräkningen
 
+// Monteringsfälten på en rad (src/lib/montering.cjs → RADFALT). Förs vidare
+// överallt där admin bygger om rader.
+function _monFalt(i) {
+  return (window.SkMonteringLib && window.SkMonteringLib.radFalt) ? window.SkMonteringLib.radFalt(i) : {};
+}
+function _monFaltAttr(i) {
+  const f = _monFalt(i);
+  return Object.keys(f).length ? JSON.stringify(f).replace(/&/g, '&amp;').replace(/"/g, '&quot;') : '';
+}
+
 function _monTargetItems() {
   const items = _configTarget === 'productsTab'
     ? ((typeof prodGetItems === 'function') ? prodGetItems() : (currentCart.items || []))
@@ -10338,7 +10363,9 @@ function adminMonteringConfigCalc() {
   const box = document.getElementById('mon-cfg-calc');
   if (!eng || !box) return;
   const items = _monTargetItems();
-  const r = eng.calc(items.map(i => ({ id: i.id, artno: i.artno || i.id, qty: i.qty, name: i.name })));
+  // Hela raden till motorn: LED-väggens assemblyMinutesTotal och trossbundlens
+  // monteringFast måste med, annars blir de 0 kr (samma beräkning som varukorgen).
+  const r = eng.calc(items.map(i => ({ id: i.id, artno: i.artno || i.id, qty: i.qty, name: i.name, ..._monFalt(i) })));
   const esc = (t) => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const catName = (a) => {
     for (const cat of Object.values(window.__ADMIN_QUOTE_CATALOG__ || {})) {

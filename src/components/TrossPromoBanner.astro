@@ -166,6 +166,8 @@ const inkl = (n: number) => Math.round(n * 1.25);
             forceLeverans: row.forceLeverans || undefined,
             assemblyMinutesTotal: row.assemblyMinutesTotal || undefined,
             monteringFast: row.monteringFast || undefined,
+            assemblyUnitQty: row.monteringFast ? (row.qty || 1) : undefined,   // fast belopp per bundle
+            monteringIngar: (!row.monteringFast && SPLIT.some((r) => r.monteringFast)) || undefined,   // ingår i bundlens fasta belopp
             qty: row.qty || 1,
           });
         });
