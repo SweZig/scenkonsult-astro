@@ -64,7 +64,11 @@ const orter = [
     </nav>
 
     <h1 class="text-4xl font-extrabold text-white mb-3" style="font-family:'DM Serif Display',serif">Kontakta oss</h1>
-    <p class="text-gray-400 text-lg mb-10">Vi svarar mån–fre 09:00–17:00 och lör–sön 12:00–15:00. Jour kvällar gäller enbart för pågående uthyrningar.</p>
+    <p class="text-gray-400 text-lg mb-4">Snabbast når du oss genom formuläret nedan — eller lägg produkterna i varukorgen och begär offert. Vi återkommer så snart vi kan.</p>
+    <div class="rounded-xl px-5 py-4 mb-10 text-sm leading-relaxed" style="background:rgba(196,181,244,0.07);border:1px solid rgba(196,181,244,0.2);color:rgba(255,255,255,0.72)">
+      <strong class="text-white">Telefon:</strong> mån–fre 09–17.
+      <strong class="text-white">Helger:</strong> depån har öppet lör–sön 12–15 för hämtning och återlämning, men telefonen bemannas då <strong class="text-white">enbart som jour för pågående uthyrningar</strong>. Har du en ny förfrågan på helgen — skriv till oss, så hör vi av oss.
+    </div>
 
     <!-- Kontaktinfo + Formulär -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-14 lg:items-stretch">
@@ -76,9 +80,9 @@ const orter = [
           <div class="flex items-start gap-3">
             <span class="text-xl mt-0.5" style="color:#c4b5f4">📞</span>
             <div>
-              <div class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Telefon & Jour</div>
+              <div class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Telefon</div>
               <a data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" class="text-white font-semibold hover:underline" style="color:#c4b5f4;cursor:pointer"><noscript>072-448 10 00</noscript></a>
-              <div class="text-gray-400 text-xs mt-0.5">Mån–Fre 09–17 · Lör–Sön 12–15 · Jour vid pågående hyra</div>
+              <div class="text-gray-400 text-xs mt-0.5">Mån–fre 09–17 · Helger: endast jour vid pågående uthyrning</div>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -203,7 +207,7 @@ const orter = [
             class="w-full py-3.5 rounded-xl font-bold text-lg transition-colors cursor-pointer" style="background:#c4b5f4;color:#0c0a24;border:none">
             Skicka meddelande
           </button>
-          <p class="text-xs text-gray-600 text-center">Svarstid mån–fre 09–17, lör–sön 12–15 · Jour vid pågående uthyrning</p>
+          <p class="text-xs text-gray-400 text-center">Skickar du på helgen återkommer vi så snart vi kan — senast nästa vardag</p>
         </div>
       </div>
     </div>
@@ -256,7 +260,7 @@ const orter = [
         </div>
         <div class="rounded-xl p-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
           <div class="font-bold text-white mb-1">⏰ Hämtning</div>
-          <div class="text-gray-400 text-sm">Tid bestäms vid bokning · Ring i förväg</div>
+          <div class="text-gray-400 text-sm">Mån–fre 09–17 · Lör–sön 12–15 · Tid bestäms vid bokning</div>
         </div>
       </div>
     </section>
@@ -345,7 +349,9 @@ const orter = [
               const closeStr = p.close
                 ? `${String(p.close.hour).padStart(2, '0')}:${String(p.close.minute || 0).padStart(2, '0')}`
                 : 'midnatt';
-              return { open: true, message: `Öppet nu — stänger ${closeStr}` };
+              return { open: true, message: (today === 0 || today === 6)
+                ? `Depån öppen för hämtning & retur — stänger ${closeStr} · Telefon endast jour`
+                : `Öppet nu — stänger ${closeStr}` };
             }
             // Om vi inte börjat ännu idag
             if (nowMins < openMins) {

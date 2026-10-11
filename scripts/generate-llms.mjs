@@ -114,7 +114,8 @@ L.push(`- **Uthyrningsdepå:** ${addr.street}, ${addr.postalCode} ${addr.city}, 
 L.push(`- **Telefon:** ${co.phone}`);
 L.push(`- **E-post:** ${co.email}`);
 L.push(`- **Webbplats:** ${SITE_URL}/`);
-if (hours) L.push(`- **Öppettider:** ${hours}. Jour vid pågående uthyrning.`);
+if (hours) L.push(`- **Öppettider depå (hämtning och återlämning):** ${hours}.`);
+if (co.phoneHours) L.push(`- **Telefontid:** ${hoursSv(co.phoneHours)}. Kvällar och helger endast jour vid pågående uthyrning — nya förfrågningar på helger tas via kontaktformuläret eller varukorgen.`);
 if (Array.isArray(co.serviceArea) && co.serviceArea.length)
   L.push(`- **Serviceområde:** Hela Storstockholm, bl.a. ${co.serviceArea.join(', ')}`);
 L.push('');
