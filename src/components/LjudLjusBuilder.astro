@@ -142,12 +142,38 @@ const payload = JSON.stringify({ R: resolved, G: scen });
   }
   const img = (name: string) => `<image href="${src(name)}" x="0" y="0" width="1600" height="900"/>`;
   const imgs = (o: any) => (o?.scen?.img || []).map(img).join('');
-  const slide = (x: number, y: number, w: number, h: number) =>
-    `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#1e1850"/>` +
-    `<rect x="${x + w * 0.08}" y="${y + h * 0.2}" width="${w * 0.42}" height="${h * 0.09}" rx="3" fill="#c4b5f4"/>` +
-    `<rect x="${x + w * 0.08}" y="${y + h * 0.42}" width="${w * 0.6}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".45"/>` +
-    `<rect x="${x + w * 0.08}" y="${y + h * 0.54}" width="${w * 0.5}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".35"/>` +
-    `<rect x="${x + w * 0.08}" y="${y + h * 0.66}" width="${w * 0.55}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".35"/>`;
+  // Innehåll på duk/skärm efter kundtyp och fokus: agenda för företag,
+  // program vid tal, bildspel vid fest.
+  function slide(x: number, y: number, w: number, h: number) {
+    const t = (tx: number, ty: number, size: number, txt: string, o: string) =>
+      `<text x="${x + w * tx}" y="${y + h * ty}" font-size="${h * size}" ${o}>${esc(txt)}</text>`;
+    const sg = "font-family=\"Space Grotesk,sans-serif\"", serif = "font-family=\"DM Serif Display,Georgia,serif\"";
+    let g = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#1e1850"/>` +
+      `<rect x="${x}" y="${y + h * 0.9}" width="${w}" height="${h * 0.1}" fill="#c4b5f4" opacity=".9"/>`;
+    const lines = (rows: [string, string][], top: number) => rows.map(([tm, txt], i) =>
+      t(0.08, top + i * 0.13, 0.075, tm, `${sg} font-weight="700" fill="#c4b5f4"`) +
+      t(0.24, top + i * 0.13, 0.075, txt, `${sg} fill="#fff" fill-opacity=".85"`)).join('');
+    if (A.seg === 'foretag') {
+      g += t(0.08, 0.2, 0.07, 'KICKOFF 2027', `${sg} font-weight="700" letter-spacing="2" fill="#c4b5f4"`) +
+        t(0.08, 0.4, 0.16, 'Välkomna!', `${serif} fill="#fff"`) +
+        lines([['09.00', 'Kaffe & mingel'], ['09.30', 'Året som gått'], ['11.00', 'Vägen framåt']], 0.56);
+    } else if (A.focus === 'tal') {
+      g += t(0.08, 0.2, 0.07, 'PROGRAM', `${sg} font-weight="700" letter-spacing="2" fill="#c4b5f4"`) +
+        t(0.08, 0.4, 0.16, 'Varmt välkomna', `${serif} fill="#fff"`) +
+        lines([['18.00', 'Välkomstdrink'], ['19.00', 'Middag & tal'], ['21.00', 'Kaffe & tårta']], 0.56);
+    } else {
+      g += t(0.08, 0.22, 0.13, 'Välkommen till festen!', `${serif} fill="#fff"`);
+      const fw = w * 0.25, fh = h * 0.42, fy = y + h * 0.33;
+      ['#ff7ab6', '#6fd3ff', '#ffd36f'].forEach((c, i) => {
+        const fx = x + w * 0.08 + i * (fw + w * 0.05);
+        g += `<rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="${h * 0.02}" fill="${c}" opacity=".85"/>` +
+          `<circle cx="${fx + fw * 0.72}" cy="${fy + fh * 0.3}" r="${fh * 0.1}" fill="#fff" opacity=".9"/>` +
+          `<polygon points="${fx},${fy + fh} ${fx + fw * 0.35},${fy + fh * 0.45} ${fx + fw * 0.6},${fy + fh * 0.75} ${fx + fw * 0.78},${fy + fh * 0.55} ${fx + fw},${fy + fh}" fill="#1e1850" opacity=".55"/>`;
+      });
+      g += t(0.08, 0.86, 0.06, 'Bildspel · 1 / 48', `${sg} fill="#fff" fill-opacity=".7"`);
+    }
+    return g;
+  }
   const opt = (a: string) => findOption(R, a, A.seg, S[a]);
   const has = (o: any, k: string) => (o?.scen?.draw || '').split(' ').includes(k);
   // Strålar ur en armatur. fan = solfjäder nedåt (spindel, scanner, ljuspaket),
@@ -188,13 +214,13 @@ const payload = JSON.stringify({ R: resolved, G: scen });
     if (b?.scen?.proj) {
       const d = G.surfaces[b.scen.duk] || [600, 190, 400, 225];
       const p = G.projectors[b.scen.proj], lx = p[0] + p[2] * 0.66, ly = p[1] + p[3] * 0.5;
-      L.push(['bild:' + b.id, img('duk_' + b.scen.duk) + `<g opacity=".92">${slide(d[0], d[1], d[2], d[3])}</g>` +
+      L.push(['bild:' + b.id + ':' + A.seg + A.focus + ':' + (S.projbord || '-'), img('duk_' + b.scen.duk) + `<g opacity=".92">${slide(d[0], d[1], d[2], d[3])}</g>` +
         `<polygon points="${lx - 4},${ly} ${lx + 4},${ly} ${d[0] + d[2]},${d[1] + d[3]} ${d[0] + d[2]},${d[1]} ${d[0]},${d[1]} ${d[0]},${d[1] + d[3]}" fill="url(#llb-bm)" opacity=".3"/>` +
-        `<g opacity=".7"><rect x="740" y="${p[1] + p[3]}" width="120" height="8" rx="2" fill="#3b3570"/><line x1="755" y1="${p[1] + p[3] + 8}" x2="755" y2="880" stroke="#3b3570" stroke-width="6"/><line x1="845" y1="${p[1] + p[3] + 8}" x2="845" y2="880" stroke="#3b3570" stroke-width="6"/></g>` +
+        (opt('projbord') ? imgs(opt('projbord')) : `<g opacity=".7"><rect x="740" y="${p[1] + p[3]}" width="120" height="8" rx="2" fill="#3b3570"/><line x1="755" y1="${p[1] + p[3] + 8}" x2="755" y2="880" stroke="#3b3570" stroke-width="6"/><line x1="845" y1="${p[1] + p[3] + 8}" x2="845" y2="880" stroke="#3b3570" stroke-width="6"/></g>`) +
         img('projektor_' + b.scen.proj)]);
     } else if (b?.scen?.skarm) {
       const [x, y, w, h] = G.surfaces[b.scen.skarm];
-      L.push(['bild:' + b.id, `<rect x="${x + 30}" y="${y + h + 14}" width="${w - 60}" height="${650 - y - h - 14}" rx="4" fill="#2a2257" stroke="#3b3570" stroke-width="2" opacity=".8"/>` +
+      L.push(['bild:' + b.id + ':' + A.seg + A.focus, `<rect x="${x + 30}" y="${y + h + 14}" width="${w - 60}" height="${650 - y - h - 14}" rx="4" fill="#2a2257" stroke="#3b3570" stroke-width="2" opacity=".8"/>` +
         img('skarm_' + b.scen.skarm) + slide(x, y, w, h)]);
     }
     // Ljus: strålar bakom armaturerna. heads = karaokebyggarens geometri (T-bar),
@@ -213,8 +239,9 @@ const payload = JSON.stringify({ R: resolved, G: scen });
     const hg = opt('ljud');
     if (hg) L.push(['hog:' + hg.id, imgs(hg)]);
     // Bord + mixer
-    const mx = opt('mixer');
-    if (mx) L.push(['mix:' + mx.id, `<g opacity=".7"><rect x="1090" y="707" width="270" height="12" rx="3" fill="#3b3570"/><line x1="1105" y1="719" x2="1105" y2="880" stroke="#3b3570" stroke-width="7"/><line x1="1345" y1="719" x2="1345" y2="880" stroke="#3b3570" stroke-width="7"/></g>` + imgs(mx)]);
+    const mx = opt('mixer'), tb = opt('teknikbord');
+    const bord = tb ? imgs(tb) : `<g opacity=".7"><rect x="1090" y="707" width="270" height="12" rx="3" fill="#3b3570"/><line x1="1105" y1="719" x2="1105" y2="880" stroke="#3b3570" stroke-width="7"/><line x1="1345" y1="719" x2="1345" y2="880" stroke="#3b3570" stroke-width="7"/></g>`;
+    if (mx || tb) L.push(['mix:' + (mx?.id || '-') + ':' + (tb ? 'tb' : '-'), bord + imgs(mx)]);
     // Mikrofon
     const mk = opt('mik');
     if (mk) L.push(['mik:' + mk.id, imgs(mk)]);
@@ -301,6 +328,12 @@ const payload = JSON.stringify({ R: resolved, G: scen });
     let h = t.note ? `<p class="llb-note-t">${esc(t.note)}</p>` : '';
     h += optsHTML(tab, shown);
     if (hidden > 0 || showAll) h += `<button type="button" class="llb-link" data-showall>${showAll ? 'Visa bara det som passar er' : `Visa alla alternativ (${hidden} till)`}</button>`;
+    if (tab === 'mixer') {
+      h += `<div class="llb-addon"><h3 class="llb-slot-h">Teknikerbord <span>– tillval</span></h3>${optsHTML('teknikbord', R.options.teknikbord)}</div>`;
+    }
+    if (tab === 'bild' && opt('bild')?.scen?.proj) {
+      h += `<div class="llb-addon"><h3 class="llb-slot-h">Projektorbord <span>– tillval</span></h3>${optsHTML('projbord', R.options.projbord)}</div>`;
+    }
     if (tab === 'ljus') {
       h += `<p class="llb-note-t">Ljuspaket och moving heads styrs automatiskt till musiken. Vill ni styra ljuset från ett ljusbord (DMX) ordnar vi det på <a href="/bokningssida/">separat offert</a>.</p>`;
       h += `<div class="llb-addon"><h3 class="llb-slot-h">Rök &amp; dimma <span>– tillval</span></h3>${optsHTML('rok', R.options.rok)}</div>`;

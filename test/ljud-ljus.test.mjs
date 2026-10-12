@@ -23,7 +23,7 @@ for (const seg of ['privat', 'foretag']) {
       const tag = `${seg}/${focus}/${g.id}`;
       const row = R.recommend[seg][focus];
       for (const a of AREAS) {
-        const id = row[a][R.guests.indexOf(g)];
+        const id = row[a]?.[R.guests.indexOf(g)] ?? null;
         check(id === null || !!findOption(R, a, seg, id), `${tag}: ${a}=${id} finns inte`);
       }
       const sel = recommend(R, seg, g.id, focus);
@@ -50,6 +50,10 @@ check(s1.mixer === null, 'en mikrofon + kolumn ska klara sig utan mixer');
 const s3 = fixMixer(R, { ljud: 'mus-m', mixer: null, mik: null, ljus: null, rok: null, bild: null }, 'privat');
 check(!!s3.mixer, 'Music-paket utan mixer ska få mixer');
 check(minRecommended(R) > 0, 'från-pris saknas');
+const s4 = fixMixer(R, { ljud: 'mus-m', mixer: 'mix-42', mik: null, ljus: null, rok: null, bild: 'tv-65', projbord: 'projbord', teknikbord: null }, 'privat');
+check(s4.projbord === null, 'projektorbord ska försvinna utan projektor');
+const s5 = fixMixer(R, { ljud: 'mus-m', mixer: 'mix-42', mik: null, ljus: null, rok: null, bild: 'proj-s', projbord: 'projbord', teknikbord: 'teknikbord' }, 'privat');
+check(s5.projbord === 'projbord' && itemsFor(R, s5, 'privat').some((i) => i.artno === 'SK-DJ-0005'), 'bord med projektor ska ligga kvar och räknas');
 
 console.log(fel ? `❌ ${fel} fel, ${ok} ok` : `✅ ALLA ${ok} KONTROLLER GRÖNA`);
 if (fel) process.exit(1);

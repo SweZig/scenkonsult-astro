@@ -14,8 +14,8 @@
 
 import { findProduct } from './karaoke-builder.mjs';
 
-export const AREAS = ['ljud', 'mixer', 'mik', 'ljus', 'rok', 'bild'];
-const OPTION_LISTS = ['ljud', 'mixer', 'mik', 'ljusPrivat', 'ljusForetag', 'rok', 'bild'];
+export const AREAS = ['ljud', 'mixer', 'mik', 'ljus', 'rok', 'bild', 'projbord', 'teknikbord'];
+const OPTION_LISTS = ['ljud', 'mixer', 'mik', 'ljusPrivat', 'ljusForetag', 'rok', 'bild', 'projbord', 'teknikbord'];
 
 /** Enhetspris med volymtrappa (samma regel som varukorgen: högsta steg som nås). */
 export function unitPrice(item, qty) {
@@ -88,9 +88,13 @@ export function builtInMixerOk(R, sel, seg) {
   return !!ljud?.builtInMixer && (mik?.mics || 0) <= 1;
 }
 
-/** Lägger till mixer när den inbyggda inte räcker. Returnerar en ny sel. */
+/**
+ * Håller urvalet konsekvent: lägger till mixer när den inbyggda inte räcker och
+ * tar bort projektorbordet när ingen projektor är vald. Returnerar en ny sel.
+ */
 export function fixMixer(R, sel, seg) {
   const out = { ...sel };
+  if (out.projbord && !findOption(R, 'bild', seg, out.bild)?.scen?.proj) out.projbord = null;
   if (!out.mixer && !builtInMixerOk(R, out, seg)) {
     const mics = findOption(R, 'mik', seg, out.mik)?.mics || 0;
     out.mixer = mics >= 2 ? 'mix-42' : 'mix-22';
