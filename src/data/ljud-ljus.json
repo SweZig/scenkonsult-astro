@@ -1,0 +1,1234 @@
+{
+  "_comment": "Ljud- och ljuskonfiguratorn på /vara-tjanster/hyra-ljud-och-ljus/. Alternativen pekar ut artiklar med `art` (inte `artno`, så att katalog- och monteringsgeneratorerna inte läser dem som egna produkter). Namn och pris slås upp i ljud/ljus/bild.json av src/lib/ljud-ljus-builder.mjs — skriv aldrig priser här. `recommend` = förslaget per kundtyp × fokus, en kolumn per gästband (g1–g4). null = inget val (mixer null = kolumnens inbyggda mixer).",
+  "metaTitle": "Hyra Ljud och Ljus i Stockholm — Fest, Bröllop & Konferens",
+  "metaDescription": "Hyr ljud och ljus i ett paket i Stockholm – från {fran} kr/dygn. Svara på tre frågor så sätter vi ihop högtalare, mixer, mikrofoner, ljus och bild för er fest, bröllop eller konferens. Leverans och montering.",
+  "intro": "Ljud, ljus och – om ni vill – bild, dimensionerat för samma lokal och samma gäster. Berätta vilka ni är, hur många ni blir och vad som är viktigast, så sätter vi ihop resten.",
+  "builder": {
+    "segments": [
+      {
+        "id": "privat",
+        "label": "Privat",
+        "sub": "Fest, bröllop, födelsedag",
+        "guestNoun": "gäster",
+        "focus": [
+          {
+            "id": "tal",
+            "label": "Fokus tal",
+            "sub": "Minnesstund, tal, ceremoni"
+          },
+          {
+            "id": "musik",
+            "label": "Fokus musik",
+            "sub": "Fest och dans"
+          },
+          {
+            "id": "bada",
+            "label": "Båda delarna",
+            "sub": "Middag med tal, sedan dans"
+          }
+        ]
+      },
+      {
+        "id": "foretag",
+        "label": "Företag",
+        "sub": "Konferens, mingel, företagsfest",
+        "guestNoun": "deltagare",
+        "focus": [
+          {
+            "id": "tal",
+            "label": "Fokus tal",
+            "sub": "Konferens, presentation, panel"
+          },
+          {
+            "id": "musik",
+            "label": "Fokus musik",
+            "sub": "Mingel, AW, fest"
+          },
+          {
+            "id": "bada",
+            "label": "Båda delarna",
+            "sub": "Kickoff: dagen tal, kvällen fest"
+          }
+        ]
+      }
+    ],
+    "guests": [
+      {
+        "id": "g1",
+        "label": "Upp till 50",
+        "hi": 50
+      },
+      {
+        "id": "g2",
+        "label": "50–100",
+        "hi": 100
+      },
+      {
+        "id": "g3",
+        "label": "100–200",
+        "hi": 200
+      },
+      {
+        "id": "g4",
+        "label": "Över 200",
+        "hi": 300
+      }
+    ],
+    "tabs": [
+      {
+        "id": "ljud",
+        "label": "Ljud"
+      },
+      {
+        "id": "mixer",
+        "label": "Mixer"
+      },
+      {
+        "id": "mik",
+        "label": "Mikrofoner"
+      },
+      {
+        "id": "ljus",
+        "label": "Ljus & rök",
+        "labelForetag": "Ljus, uplights & rök"
+      },
+      {
+        "id": "bild",
+        "label": "Bild",
+        "note": "Tillval – bildspel, presentation eller livebild."
+      }
+    ],
+    "options": {
+      "ljud": [
+        {
+          "id": "kol-s",
+          "label": "Kolumn Small",
+          "sub": "8″ bas · 40–80 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-POR-0003-NM",
+              "qty": 1
+            }
+          ],
+          "type": "kolumn",
+          "max": 80,
+          "single": true,
+          "builtInMixer": true,
+          "scen": {
+            "draw": "kolumn1"
+          }
+        },
+        {
+          "id": "kol-m",
+          "label": "Kolumn Medium",
+          "sub": "12″ bas · 60–100 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-POR-0004-NM",
+              "qty": 1
+            }
+          ],
+          "type": "kolumn",
+          "max": 100,
+          "single": true,
+          "builtInMixer": true,
+          "scen": {
+            "draw": "kolumn1"
+          }
+        },
+        {
+          "id": "kol-l",
+          "label": "Kolumn Large",
+          "sub": "2×8″ bas · 80–120 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-POR-0006-NM",
+              "qty": 1
+            }
+          ],
+          "type": "kolumn",
+          "max": 120,
+          "single": true,
+          "builtInMixer": true,
+          "scen": {
+            "draw": "kolumn1"
+          }
+        },
+        {
+          "id": "kol-sd",
+          "label": "Kolumn Small Duo",
+          "sub": "2×8″ bas · 60–100 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-POR-0008-NM",
+              "qty": 1
+            }
+          ],
+          "type": "kolumn",
+          "max": 100,
+          "scen": {
+            "draw": "kolumn2"
+          }
+        },
+        {
+          "id": "kol-md",
+          "label": "Kolumn Medium Duo",
+          "sub": "2×12″ bas · 100–200 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-POR-0009-NM",
+              "qty": 1
+            }
+          ],
+          "type": "kolumn",
+          "max": 200,
+          "scen": {
+            "draw": "kolumn2"
+          }
+        },
+        {
+          "id": "kol-ld",
+          "label": "Kolumn Large Duo",
+          "sub": "4×8″ bas · 100–240 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-POR-0011-NM",
+              "qty": 1
+            }
+          ],
+          "type": "kolumn",
+          "max": 240,
+          "scen": {
+            "draw": "kolumn2"
+          }
+        },
+        {
+          "id": "eve-s",
+          "label": "Event & konferens, Small",
+          "sub": "Tal · upp till 100 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-EVE-0001",
+              "qty": 1
+            }
+          ],
+          "type": "event",
+          "max": 100,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-LIV-0001"
+            ]
+          }
+        },
+        {
+          "id": "eve-m",
+          "label": "Event & konferens, Medium",
+          "sub": "Tal · upp till 180 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-EVE-0002",
+              "qty": 1
+            }
+          ],
+          "type": "event",
+          "max": 180,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-LIV-0001"
+            ]
+          }
+        },
+        {
+          "id": "eve-sp",
+          "label": "Event & konferens, Small+",
+          "sub": "4 högtalare · upp till 240 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-EVE-0003",
+              "qty": 1
+            }
+          ],
+          "type": "event",
+          "max": 240,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-LIV-0001"
+            ]
+          }
+        },
+        {
+          "id": "eve-l",
+          "label": "Event & konferens, Large",
+          "sub": "Tal · upp till 280 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-EVE-0005",
+              "qty": 1
+            }
+          ],
+          "type": "event",
+          "max": 280,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-LIV-0001"
+            ]
+          }
+        },
+        {
+          "id": "eve-mp",
+          "label": "Event & konferens, Medium+",
+          "sub": "4 högtalare · upp till 380 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-EVE-0004",
+              "qty": 1
+            }
+          ],
+          "type": "event",
+          "max": 380,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-LIV-0001"
+            ]
+          }
+        },
+        {
+          "id": "eve-lp",
+          "label": "Event & konferens, Large+",
+          "sub": "4 högtalare · upp till 560 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-EVE-0006",
+              "qty": 1
+            }
+          ],
+          "type": "event",
+          "max": 560,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-LIV-0001"
+            ]
+          }
+        },
+        {
+          "id": "mus-s",
+          "label": "Music, Small",
+          "sub": "Dans, 12″ sub · 20–80 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-MUS-0001",
+              "qty": 1
+            }
+          ],
+          "type": "music",
+          "max": 80,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-MUS-0001"
+            ]
+          }
+        },
+        {
+          "id": "mus-sp",
+          "label": "Music, Small+",
+          "sub": "Dans, 2 sub · 40–100 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-MUS-0002",
+              "qty": 1
+            }
+          ],
+          "type": "music",
+          "max": 100,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-MUS-0004"
+            ]
+          }
+        },
+        {
+          "id": "mus-m",
+          "label": "Music, Medium",
+          "sub": "Dans, 2 sub · 60–120 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-MUS-0003",
+              "qty": 1
+            }
+          ],
+          "type": "music",
+          "max": 120,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-MUS-0004"
+            ]
+          }
+        },
+        {
+          "id": "mus-l",
+          "label": "Music, Large",
+          "sub": "Dans · 120–250 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-MUS-0004",
+              "qty": 1
+            }
+          ],
+          "type": "music",
+          "max": 250,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-MUS-0004"
+            ]
+          }
+        },
+        {
+          "id": "mus-xl",
+          "label": "Music, XL",
+          "sub": "Dans · 180–350 pers.",
+          "items": [
+            {
+              "art": "SK-LJD-MUS-0005",
+              "qty": 1
+            }
+          ],
+          "type": "music",
+          "max": 350,
+          "scen": {
+            "img": [
+              "hogtalare_SK-LJD-MUS-0004"
+            ]
+          }
+        }
+      ],
+      "mixer": [
+        {
+          "id": "mix-22",
+          "label": "Mixer 2+2 kanaler",
+          "sub": "1–2 mikrofoner + musik, Bluetooth",
+          "items": [
+            {
+              "art": "SK-LJD-MIX-0001",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "img": [
+              "mixer_SK-LJD-MIX-0001"
+            ]
+          }
+        },
+        {
+          "id": "mix-42",
+          "label": "Mixer 4+2 kanaler",
+          "sub": "Upp till 4 mikrofoner, effekter",
+          "items": [
+            {
+              "art": "SK-LJD-MIX-0002",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "img": [
+              "mixer_SK-LJD-MIX-0002"
+            ]
+          }
+        },
+        {
+          "id": "mix-64",
+          "label": "Mixer 6+4 kanaler",
+          "sub": "Tal + dator + musik",
+          "items": [
+            {
+              "art": "SK-LJD-MIX-0005",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "img": [
+              "mixer_SK-LJD-MIX-0002"
+            ]
+          }
+        },
+        {
+          "id": "mix-124",
+          "label": "Mixer 12+4 kanaler",
+          "sub": "Panel, band, flera källor",
+          "items": [
+            {
+              "art": "SK-LJD-MIX-0006",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "img": [
+              "mixer_SK-LJD-MIX-0002"
+            ]
+          }
+        }
+      ],
+      "mik": [
+        {
+          "id": "kabel",
+          "label": "Handmikrofon med kabel",
+          "sub": "Enklast · 6 m kabel ingår",
+          "items": [
+            {
+              "art": "SK-LJD-MIK-0006",
+              "qty": 1
+            }
+          ],
+          "mics": 1,
+          "scen": {
+            "img": [
+              "mikstativ_SK-LJD-MIK-0004",
+              "mik_SK-LJD-MIK-0006_stativ"
+            ]
+          }
+        },
+        {
+          "id": "hand",
+          "label": "Trådlös handmikrofon",
+          "sub": "Tal, skålar",
+          "items": [
+            {
+              "art": "SK-LJD-MIK-0016",
+              "qty": 1
+            }
+          ],
+          "mics": 1,
+          "scen": {
+            "img": [
+              "mikstativ_SK-LJD-MIK-0004",
+              "mik_SK-LJD-MIK-0016_stativ"
+            ]
+          }
+        },
+        {
+          "id": "slxd-2",
+          "label": "Shure SLXD, 2 mikrofoner",
+          "sub": "Tal, toastmaster",
+          "items": [
+            {
+              "art": "SK-LJD-MIK-0026",
+              "qty": 1
+            }
+          ],
+          "mics": 2,
+          "scen": {
+            "img": [
+              "mikstativ_SK-LJD-MIK-0004",
+              "mik_SK-LJD-MIK-0026_stativ"
+            ]
+          }
+        },
+        {
+          "id": "slxd-2h",
+          "label": "Shure SLXD, 2 headset",
+          "sub": "Talare som rör sig",
+          "items": [
+            {
+              "art": "SK-LJD-MIK-0028",
+              "qty": 1
+            }
+          ],
+          "mics": 2,
+          "scen": {
+            "img": [
+              "mik_SK-LJD-MIK-0026_bord"
+            ]
+          }
+        }
+      ],
+      "ljusPrivat": [
+        {
+          "id": "pak-s",
+          "label": "Ljuspaket, Small",
+          "sub": "Upp till 20 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0018",
+              "qty": 1
+            }
+          ],
+          "max": 20,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0001"
+            ],
+            "heads": "SK-LJS-PAK-0001"
+          }
+        },
+        {
+          "id": "pak-sp",
+          "label": "Ljuspaket, Small+",
+          "sub": "Upp till 30 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0020",
+              "qty": 1
+            }
+          ],
+          "max": 30,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0001"
+            ],
+            "heads": "SK-LJS-PAK-0001"
+          }
+        },
+        {
+          "id": "pak-m",
+          "label": "Ljuspaket, Medium",
+          "sub": "Upp till 40 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0001",
+              "qty": 1
+            }
+          ],
+          "max": 40,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0001"
+            ],
+            "heads": "SK-LJS-PAK-0001"
+          }
+        },
+        {
+          "id": "pak-mp",
+          "label": "Ljuspaket, Medium+",
+          "sub": "Upp till 40 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0002",
+              "qty": 1
+            }
+          ],
+          "max": 40,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0001"
+            ],
+            "heads": "SK-LJS-PAK-0001"
+          }
+        },
+        {
+          "id": "pak-md",
+          "label": "Ljuspaket, Medium Duo",
+          "sub": "Upp till 60 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0022",
+              "qty": 1
+            }
+          ],
+          "max": 60,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0022"
+            ],
+            "heads": "SK-LJS-PAK-0022"
+          }
+        },
+        {
+          "id": "pak-mpd",
+          "label": "Ljuspaket, Medium+ Duo",
+          "sub": "Upp till 60 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0023",
+              "qty": 1
+            }
+          ],
+          "max": 60,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0022"
+            ],
+            "heads": "SK-LJS-PAK-0022"
+          }
+        },
+        {
+          "id": "pak-l",
+          "label": "Ljuspaket, Large",
+          "sub": "60–140 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0007",
+              "qty": 1
+            }
+          ],
+          "max": 140,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0022"
+            ],
+            "heads": "SK-LJS-PAK-0022"
+          }
+        },
+        {
+          "id": "up-8",
+          "label": "Uplights, 8 st",
+          "sub": "Färgsätter väggarna",
+          "items": [
+            {
+              "art": "SK-LJS-EFF-0001",
+              "qty": 8
+            }
+          ],
+          "scen": {
+            "draw": "up"
+          }
+        },
+        {
+          "id": "pak-mpd-up",
+          "label": "Medium+ Duo + 8 uplights",
+          "sub": "Dansgolv + väggfärg",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0023",
+              "qty": 1
+            },
+            {
+              "art": "SK-LJS-EFF-0001",
+              "qty": 8
+            }
+          ],
+          "max": 60,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0022"
+            ],
+            "heads": "SK-LJS-PAK-0022",
+            "draw": "up"
+          }
+        },
+        {
+          "id": "pak-l-up",
+          "label": "Large + 8 uplights",
+          "sub": "Dansgolv + väggfärg · 60–140 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0007",
+              "qty": 1
+            },
+            {
+              "art": "SK-LJS-EFF-0001",
+              "qty": 8
+            }
+          ],
+          "max": 140,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0022"
+            ],
+            "heads": "SK-LJS-PAK-0022",
+            "draw": "up"
+          }
+        }
+      ],
+      "ljusForetag": [
+        {
+          "id": "up-8",
+          "label": "Uplights, 8 st",
+          "sub": "Färgsätter väggarna · LED PAR",
+          "items": [
+            {
+              "art": "SK-LJS-EFF-0001",
+              "qty": 8
+            }
+          ],
+          "scen": {
+            "draw": "up"
+          }
+        },
+        {
+          "id": "up-12",
+          "label": "Uplights, 12 st",
+          "sub": "Större lokal · LED PAR",
+          "items": [
+            {
+              "art": "SK-LJS-EFF-0001",
+              "qty": 12
+            }
+          ],
+          "scen": {
+            "draw": "up2"
+          }
+        },
+        {
+          "id": "up-bat",
+          "label": "Uplights trådlösa, 8 st",
+          "sub": "Batteri, inga kablar",
+          "items": [
+            {
+              "art": "SK-LJS-EFF-0005",
+              "qty": 8
+            }
+          ],
+          "scen": {
+            "draw": "up"
+          }
+        },
+        {
+          "id": "mh-4",
+          "label": "Moving heads, 4 st",
+          "sub": "Wash, musikstyrda · 2 stativ",
+          "items": [
+            {
+              "art": "SK-LJS-EFF-0012",
+              "qty": 4
+            },
+            {
+              "art": "SK-LJS-STV-0001",
+              "qty": 2
+            }
+          ],
+          "scen": {
+            "draw": "mh"
+          }
+        },
+        {
+          "id": "up-mh",
+          "label": "Uplights 12 + moving heads 4",
+          "sub": "Väggfärg + rörligt ljus",
+          "items": [
+            {
+              "art": "SK-LJS-EFF-0001",
+              "qty": 12
+            },
+            {
+              "art": "SK-LJS-EFF-0012",
+              "qty": 4
+            },
+            {
+              "art": "SK-LJS-STV-0001",
+              "qty": 2
+            }
+          ],
+          "scen": {
+            "draw": "up2 mh"
+          }
+        },
+        {
+          "id": "pak-md",
+          "label": "Ljuspaket, Medium Duo",
+          "sub": "Färdigt dansgolvsljus · upp till 60 pers.",
+          "items": [
+            {
+              "art": "SK-LJS-PAK-0022",
+              "qty": 1
+            }
+          ],
+          "max": 60,
+          "scen": {
+            "img": [
+              "ljus_SK-LJS-PAK-0022"
+            ],
+            "heads": "SK-LJS-PAK-0022"
+          }
+        }
+      ],
+      "rok": [
+        {
+          "id": "rok",
+          "label": "Rökmaskin",
+          "sub": "Fest och dansgolv · inkl. 1 l vätska",
+          "items": [
+            {
+              "art": "SK-LJS-ROK-0001",
+              "qty": 1
+            },
+            {
+              "art": "SK-LJS-ROK-ACC-0005",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "img": [
+              "rok_SK-LJS-ROK-0001"
+            ],
+            "fx": "haze"
+          }
+        },
+        {
+          "id": "hazer",
+          "label": "Hazer",
+          "sub": "Synliggör ljusstrålarna · inkl. 5 l vätska",
+          "items": [
+            {
+              "art": "SK-LJS-ROK-0005",
+              "qty": 1
+            },
+            {
+              "art": "SK-LJS-ROK-ACC-0008",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "img": [
+              "rok_SK-LJS-ROK-0001"
+            ],
+            "fx": "haze"
+          }
+        },
+        {
+          "id": "tung",
+          "label": "Tungrök",
+          "sub": "Moln längs golvet · inkl. 5 l vätska",
+          "items": [
+            {
+              "art": "SK-LJS-ROK-0007",
+              "qty": 1
+            },
+            {
+              "art": "SK-LJS-ROK-ACC-0013",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "img": [
+              "rok_SK-LJS-ROK-0002"
+            ],
+            "fx": "low"
+          }
+        }
+      ],
+      "bild": [
+        {
+          "id": "proj-s",
+          "label": "Projektor + 100″ duk",
+          "sub": "Bildspel, mindre lokal",
+          "items": [
+            {
+              "art": "SK-BLD-0014",
+              "qty": 1
+            },
+            {
+              "art": "SK-BLD-ACC-0002",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "proj": "SK-BLD-0014",
+            "duk": "SK-BLD-ACC-0002"
+          }
+        },
+        {
+          "id": "proj-4k",
+          "label": "Projektor 4K + 166″ duk",
+          "sub": "Presentation, stor lokal",
+          "items": [
+            {
+              "art": "SK-BLD-0007",
+              "qty": 1
+            },
+            {
+              "art": "SK-BLD-0010",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "proj": "SK-BLD-0007",
+            "duk": "SK-BLD-0010"
+          }
+        },
+        {
+          "id": "tv-65",
+          "label": "65″ skärm",
+          "sub": "Ljusa lokaler",
+          "items": [
+            {
+              "art": "SK-BLD-0003",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "skarm": "SK-BLD-0003"
+          }
+        },
+        {
+          "id": "tv-75",
+          "label": "75″ skärm",
+          "sub": "Ljusa lokaler",
+          "items": [
+            {
+              "art": "SK-BLD-0004",
+              "qty": 1
+            }
+          ],
+          "scen": {
+            "skarm": "SK-BLD-0004"
+          }
+        }
+      ]
+    },
+    "noneLabels": {
+      "mixer": "Ingen extern mixer",
+      "mik": "Ingen mikrofon",
+      "ljus": "Inget ljus",
+      "rok": "Ingen rök",
+      "bild": "Ingen bild"
+    },
+    "noneSubs": {
+      "mixer": "Kolumnens inbyggda: 1 mik + telefon via Bluetooth"
+    },
+    "recommend": {
+      "privat": {
+        "tal": {
+          "ljud": [
+            "kol-s",
+            "kol-l",
+            "eve-m",
+            "eve-l"
+          ],
+          "mixer": [
+            null,
+            null,
+            "mix-22",
+            "mix-42"
+          ],
+          "mik": [
+            "kabel",
+            "hand",
+            "hand",
+            "hand"
+          ],
+          "ljus": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "rok": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "bild": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "musik": {
+          "ljud": [
+            "kol-s",
+            "kol-l",
+            "mus-l",
+            "mus-xl"
+          ],
+          "mixer": [
+            null,
+            null,
+            "mix-22",
+            "mix-42"
+          ],
+          "mik": [
+            null,
+            "kabel",
+            "kabel",
+            "kabel"
+          ],
+          "ljus": [
+            "pak-m",
+            "pak-md",
+            "pak-l",
+            "pak-l"
+          ],
+          "rok": [
+            null,
+            null,
+            "rok",
+            "rok"
+          ],
+          "bild": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "bada": {
+          "ljud": [
+            "kol-m",
+            "mus-sp",
+            "mus-l",
+            "mus-xl"
+          ],
+          "mixer": [
+            null,
+            "mix-42",
+            "mix-42",
+            "mix-42"
+          ],
+          "mik": [
+            "kabel",
+            "slxd-2",
+            "slxd-2",
+            "slxd-2"
+          ],
+          "ljus": [
+            "pak-m",
+            "pak-mpd-up",
+            "pak-l-up",
+            "pak-l-up"
+          ],
+          "rok": [
+            null,
+            null,
+            "rok",
+            "rok"
+          ],
+          "bild": [
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      },
+      "foretag": {
+        "tal": {
+          "ljud": [
+            "eve-s",
+            "eve-s",
+            "eve-m",
+            "eve-l"
+          ],
+          "mixer": [
+            "mix-64",
+            "mix-64",
+            "mix-124",
+            "mix-124"
+          ],
+          "mik": [
+            "hand",
+            "slxd-2h",
+            "slxd-2h",
+            "slxd-2h"
+          ],
+          "ljus": [
+            "up-8",
+            "up-8",
+            "up-12",
+            "up-12"
+          ],
+          "rok": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "bild": [
+            "proj-s",
+            "proj-s",
+            "proj-4k",
+            "proj-4k"
+          ]
+        },
+        "musik": {
+          "ljud": [
+            "kol-sd",
+            "mus-sp",
+            "mus-l",
+            "mus-xl"
+          ],
+          "mixer": [
+            "mix-22",
+            "mix-22",
+            "mix-22",
+            "mix-124"
+          ],
+          "mik": [
+            "hand",
+            "hand",
+            "hand",
+            "hand"
+          ],
+          "ljus": [
+            "pak-md",
+            "mh-4",
+            "up-mh",
+            "up-mh"
+          ],
+          "rok": [
+            null,
+            null,
+            "hazer",
+            "hazer"
+          ],
+          "bild": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "bada": {
+          "ljud": [
+            "kol-sd",
+            "mus-sp",
+            "mus-l",
+            "mus-xl"
+          ],
+          "mixer": [
+            "mix-64",
+            "mix-64",
+            "mix-124",
+            "mix-124"
+          ],
+          "mik": [
+            "hand",
+            "slxd-2",
+            "slxd-2",
+            "slxd-2"
+          ],
+          "ljus": [
+            "pak-md",
+            "mh-4",
+            "up-mh",
+            "up-mh"
+          ],
+          "rok": [
+            null,
+            null,
+            "hazer",
+            "hazer"
+          ],
+          "bild": [
+            "proj-s",
+            "proj-s",
+            "proj-4k",
+            "proj-4k"
+          ]
+        }
+      }
+    }
+  },
+  "faq": [
+    {
+      "q": "Hur mycket ljud och ljus behöver vi?",
+      "a": "Det beror främst på hur många ni blir och om fokus är tal, musik eller båda. Svara på de tre frågorna i konfiguratorn så får ni ett förslag som är dimensionerat för ert gästantal – sedan kan ni justera fritt."
+    },
+    {
+      "q": "Behöver vi ett mixerbord?",
+      "a": "Kolumnhögtalarna Small, Medium och Large har inbyggd mixer och Bluetooth – där räcker det att koppla in en mikrofon och telefonen för musik. Med fler mikrofoner, dator eller de större paketen behövs ett mixerbord, och det läggs till automatiskt."
+    },
+    {
+      "q": "Kan ljuset följa musiken?",
+      "a": "Ja. Ljuspaketen och moving heads styrs automatiskt till musiken. Vill ni styra ljuset från ett ljusbord (DMX) ordnar vi det på separat offert, eftersom det kräver extra tillbehör."
+    },
+    {
+      "q": "Ingår leverans och montering?",
+      "a": "Ni kan hämta själva i Vällingby eller välja leverans och montering i varukorgen. Montering räknas fram per produkt, så att ljud, ljus och bild riggas i samma besök."
+    },
+    {
+      "q": "Kan vi lägga till bild?",
+      "a": "Ja. Projektor med duk eller skärm finns som tillval i konfiguratorn – för bildspel, presentationer eller livebild."
+    }
+  ]
+}

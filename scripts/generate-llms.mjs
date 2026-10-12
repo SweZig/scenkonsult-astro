@@ -16,6 +16,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveBuilder, totalFor, minTotal } from '../src/lib/karaoke-builder.mjs';
+import { resolveLjudLjus, recommend as llRecommend, totalFor as llTotal, minRecommended } from '../src/lib/ljud-ljus-builder.mjs';
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'public', 'llms.txt');
@@ -31,6 +32,7 @@ const bild = load('bild.json');
 const dj = load('dj.json');
 const karaoke = load('karaoke.json');
 const tjanster = load('tjanster.json');
+const ljudLjus = load('ljud-ljus.json');
 
 const co = site.company || {};
 const addr = co.address || {};
@@ -172,6 +174,19 @@ if (effekt) L.push(`- Lösa ljuseffekter och armaturer: från ${kr(effekt)}/dygn
 if (rok) L.push(`- Rök, hazer och effekter: från ${kr(rok)}/dygn — ${link('/vara-tjanster/hyra-ljus/rok-pyro/')}`);
 L.push('');
 
+// Ljud + ljus i ett paket (konfiguratorn) — exempel ur förslagsmatrisen
+{
+  const R = resolveLjudLjus(ljudLjus, { scenes, ljud, ljus, bild, dj, karaoke, tjanster, el: load('el.json') });
+  if (!R.missing.length) {
+    L.push('### Ljud + ljus i ett paket');
+    L.push(`Paket med ljud och ljus (bild som tillval) för privatfest, bröllop, konferens och företagsfest. Kunden anger privat/företag, antal gäster och fokus (tal, musik eller båda) och får ett förslag – från ${kr(minRecommended(R))}/dygn exkl. moms. Exempel:`);
+    const ex = [['privat', 'g1', 'musik', 'Hemmafest upp till 50 gäster'], ['privat', 'g2', 'bada', 'Bröllop eller fest 50–100 gäster, tal + dans'], ['foretag', 'g2', 'tal', 'Konferens 50–100 deltagare'], ['foretag', 'g3', 'bada', 'Kickoff/företagsfest 100–200 deltagare']];
+    for (const [seg, g, f, label] of ex) L.push(`- ${label}: ${kr(llTotal(R, llRecommend(R, seg, g, f), seg))}/dygn exkl. moms`);
+    L.push(`Bygg paket: ${link('/vara-tjanster/hyra-ljud-och-ljus/')}`);
+    L.push('');
+  }
+}
+
 // Bild
 L.push('### Bild — projektorer, skärmar och LED');
 L.push(...productLines(bild.products));
@@ -235,6 +250,7 @@ const pages = [
   ['Alla tjänster', '/vara-tjanster/'],
   ['Hyra ljud och högtalare', '/vara-tjanster/hyra-ljud/'],
   ['Hyra ljus', '/vara-tjanster/hyra-ljus/'],
+  ['Hyra ljud och ljus i ett paket', '/vara-tjanster/hyra-ljud-och-ljus/'],
   ['Hyra bild och AV', '/vara-tjanster/hyra-bild/'],
   ['Konferensteknik', '/vara-tjanster/konferens-av/'],
   ['Tillbehör', '/vara-tjanster/tillbehor/'],

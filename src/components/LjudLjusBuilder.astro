@@ -1,0 +1,544 @@
+---
+// LjudLjusBuilder.astro — konfigurator för ljud + ljus (+ bild) på
+// /vara-tjanster/hyra-ljud-och-ljus/.
+//
+// Tre frågor (privat/företag, gästantal, fokus tal/musik/båda) ger ett förslag
+// ur ljud-ljus.json → builder.recommend. Kunden justerar per flik; flikarna visar
+// bara alternativ som passar svaren, med "Visa alla" för resten. Scenen ritas om
+// med karaokebyggarens bildlager (public/images/karaoke/scen/) och ritade former
+// där foto saknas (kolumner, uplights, moving heads).
+//
+// Data: ljud-ljus.json (artikelnummer) → src/lib/ljud-ljus-builder.mjs slår upp
+// namn/pris/cart-ID i ljud/ljus/bild.json. Inga priser i komponenten.
+// Mobil är primär layout; desktop får sammanfattningen i en sticky kolumn.
+import config from '../data/ljud-ljus.json';
+import ljud from '../data/ljud.json';
+import ljus from '../data/ljus.json';
+import bild from '../data/bild.json';
+import dj from '../data/dj.json';
+import scenes from '../data/scenes.json';
+import tjanster from '../data/tjanster.json';
+import karaoke from '../data/karaoke.json';
+import el from '../data/el.json';
+import scen from '../data/karaoke-scen.json';
+import { resolveLjudLjus } from '../lib/ljud-ljus-builder.mjs';
+const resolved = resolveLjudLjus(config, { ljud, ljus, bild, dj, scenes, tjanster, karaoke, el });
+if (resolved.missing.length) {
+  throw new Error('[LjudLjusBuilder] Artikelnummer saknas eller är utgångna: ' + resolved.missing.join(', '));
+}
+const payload = JSON.stringify({ R: resolved, G: scen });
+---
+<section id="bygg" class="llb max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14" aria-labelledby="llb-h2">
+  <div class="llb-head">
+    <p class="llb-eyebrow">Bygg ert paket</p>
+    <h2 id="llb-h2" class="llb-h2">Svara på tre frågor – se uppställningen växa fram</h2>
+  </div>
+
+  <div class="llb-qs">
+    <fieldset class="llb-q">
+      <legend class="llb-ql">1 · Vem hyr?</legend>
+      <div class="llb-seg" id="llb-seg"></div>
+    </fieldset>
+    <fieldset class="llb-q">
+      <legend class="llb-ql" id="llb-guests-l">2 · Hur många blir ni?</legend>
+      <div class="llb-chips" id="llb-guests"></div>
+    </fieldset>
+    <fieldset class="llb-q llb-q-wide">
+      <legend class="llb-ql">3 · Vad är viktigast?</legend>
+      <div class="llb-focus" id="llb-focus"></div>
+    </fieldset>
+  </div>
+  <p class="llb-reco" id="llb-reco" aria-live="polite"></p>
+
+  <div class="llb-grid">
+    <div class="llb-main">
+      <div class="llb-scene" id="llb-scene">
+        <svg viewBox="0 0 1600 900" role="img" aria-label="Er uppställning" id="llb-svg">
+          <defs>
+            <radialGradient id="llb-hz"><stop offset="0" stop-color="#d9d2ff" stop-opacity=".55"/><stop offset="1" stop-color="#d9d2ff" stop-opacity="0"/></radialGradient>
+            <linearGradient id="llb-bm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+            <filter id="llb-blur" x="-60%" y="-30%" width="220%" height="160%"><feGaussianBlur stdDeviation="38"/></filter>
+            <linearGradient id="llb-fog" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f0eeff" stop-opacity=".8"/><stop offset="1" stop-color="#f0eeff" stop-opacity="0"/></linearGradient>
+          </defs>
+          <g id="llb-layers"></g>
+        </svg>
+      </div>
+      <div class="llb-tabs" role="tablist" aria-label="Områden" id="llb-tabs"></div>
+      <div class="llb-panel" id="llb-panel" role="tabpanel"></div>
+    </div>
+    <aside class="llb-sum" id="llb-sum" aria-label="Ert paket"></aside>
+  </div>
+
+  <div class="llb-bar" id="llb-bar" aria-hidden="true">
+    <button type="button" class="llb-bar-total" id="llb-bar-total" aria-label="Visa vad som ingår">
+      <small id="llb-bar-count"></small>
+      <span><b id="llb-bar-sum"></b> <small class="llb-bar-vat" id="llb-bar-vat"></small></span>
+    </button>
+    <button type="button" class="llb-cta" id="llb-bar-add">Lägg i varukorg</button>
+  </div>
+  <div class="llb-sheet" id="llb-sheet" hidden>
+    <div class="llb-sheet-bg" data-llb-close></div>
+    <div class="llb-sheet-card" role="dialog" aria-modal="true" aria-label="Ert paket">
+      <button type="button" class="llb-sheet-x" data-llb-close aria-label="Stäng">×</button>
+      <div id="llb-sheet-body"></div>
+    </div>
+  </div>
+  <script type="application/json" id="llb-data" set:html={payload}></script>
+</section>
+
+<script>
+  import { AREAS, listFor, findOption, builtInMixerOk, fixMixer, recommend, shownFor, itemsFor } from '../lib/ljud-ljus-builder.mjs';
+  const root = document.getElementById('bygg');
+  const { R, G } = JSON.parse(document.getElementById('llb-data')!.textContent || '{}');
+  const $ = (id: string) => document.getElementById(id)!;
+  const esc = (s: any) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' } as any)[c]);
+  const kr = (n: number) => `<span data-exkl="${n}">${n.toLocaleString('sv-SE')}</span>&nbsp;kr`;
+  const STORE = 'sk-ljudljus-val';
+
+  // ── state ────────────────────────────────────────────────────
+  type Ans = { seg: string; guests: string; focus: string };
+  let A: Ans = { seg: 'privat', guests: 'g2', focus: 'bada' };
+  let S: Record<string, string | null> = {};
+  let custom = false, showAll = false, tab = 'ljud';
+  const segDef = () => R.segments.find((s: any) => s.id === A.seg) || R.segments[0];
+
+  function valid(a: any) {
+    return a && R.segments.some((s: any) => s.id === a.seg) && R.guests.some((g: any) => g.id === a.guests) && ['tal', 'musik', 'bada'].includes(a.focus);
+  }
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+      if (saved && valid(saved.ans)) {
+        A = saved.ans;
+        S = recommend(R, A.seg, A.guests, A.focus);
+        if (saved.custom && saved.sel) {
+          // Sparade val som inte längre finns faller tillbaka på förslaget
+          for (const a of AREAS) {
+            const v = saved.sel[a];
+            if (v == null || findOption(R, a, A.seg, v)) S[a] = v ?? null;
+          }
+          S = fixMixer(R, S, A.seg);
+          custom = true;
+        }
+        return;
+      }
+    } catch {}
+    S = recommend(R, A.seg, A.guests, A.focus);
+  }
+  function saveState() { try { localStorage.setItem(STORE, JSON.stringify({ ans: A, sel: S, custom })); } catch {} }
+  function answer(patch: Partial<Ans>) {
+    A = { ...A, ...patch };
+    S = recommend(R, A.seg, A.guests, A.focus);
+    custom = false; showAll = false;
+  }
+
+  // ── scene ────────────────────────────────────────────────────
+  const svg = $('llb-svg') as unknown as SVGSVGElement;
+  const layersEl = $('llb-layers');
+  const C = ['#c4b5f4', '#ff7ab6', '#6fd3ff', '#ffd36f'];
+  function src(name: string) {
+    const w = (svg.clientWidth || 800) * (window.devicePixelRatio || 1);
+    return `/images/karaoke/scen/${name}${w <= 900 ? '-800' : ''}.webp`;
+  }
+  const img = (name: string) => `<image href="${src(name)}" x="0" y="0" width="1600" height="900"/>`;
+  const imgs = (o: any) => (o?.scen?.img || []).map(img).join('');
+  const slide = (x: number, y: number, w: number, h: number) =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#1e1850"/>` +
+    `<rect x="${x + w * 0.08}" y="${y + h * 0.2}" width="${w * 0.42}" height="${h * 0.09}" rx="3" fill="#c4b5f4"/>` +
+    `<rect x="${x + w * 0.08}" y="${y + h * 0.42}" width="${w * 0.6}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".45"/>` +
+    `<rect x="${x + w * 0.08}" y="${y + h * 0.54}" width="${w * 0.5}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".35"/>` +
+    `<rect x="${x + w * 0.08}" y="${y + h * 0.66}" width="${w * 0.55}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".35"/>`;
+  const opt = (a: string) => findOption(R, a, A.seg, S[a]);
+  const has = (o: any, k: string) => (o?.scen?.draw || '').split(' ').includes(k);
+  // Kolumnhögtalare saknar fotolager — ritas som smala pelare med fot
+  const column = (x: number) => {
+    let grill = '';
+    for (let y = 352; y < 612; y += 13) grill += `<line x1="${x - 17}" y1="${y}" x2="${x + 17}" y2="${y}" stroke="#2c2860" stroke-width="5" stroke-linecap="round"/>`;
+    return `<g><ellipse cx="${x}" cy="712" rx="90" ry="14" fill="#000" opacity=".45"/>` +
+      `<rect x="${x - 27}" y="334" width="54" height="300" rx="12" fill="#121028"/>` + grill +
+      `<rect x="${x - 27}" y="334" width="54" height="300" rx="12" fill="none" stroke="#3d3770" stroke-width="2"/>` +
+      `<rect x="${x - 7}" y="634" width="14" height="22" fill="#1a1738"/>` +
+      `<rect x="${x - 58}" y="654" width="116" height="52" rx="10" fill="#121028" stroke="#3d3770" stroke-width="2"/>` +
+      `<circle cx="${x}" cy="680" r="15" fill="#1d1a42" stroke="#2c2860" stroke-width="3"/></g>`;
+  };
+  function sceneLayers(): [string, string][] {
+    const L: [string, string][] = [];
+    L.push(['bg', img('bakgrund')]);
+    const lj = opt('ljus');
+    // Uplights: färgtvätt nerifrån på bakväggen
+    if (has(lj, 'up') || has(lj, 'up2')) {
+      const xs = has(lj, 'up2') ? [110, 330, 560, 1040, 1270, 1490] : [110, 330, 1270, 1490];
+      let g = '', f = '';
+      xs.forEach((x, i) => {
+        g += `<ellipse class="llb-pulse${i % 2 ? ' d2' : ''}" cx="${x}" cy="650" rx="95" ry="330" fill="${C[i % 4]}" opacity=".5" filter="url(#llb-blur)"/>`;
+        f += `<path d="M${x - 22},652 h44 l-6,-18 h-32 z" fill="#121028" stroke="#3d3770" stroke-width="2"/>`;
+      });
+      L.push(['up:' + xs.length, `<g style="mix-blend-mode:screen">${g}</g>${f}`]);
+    }
+    // Ljuspaket: strålar bakom armaturerna (samma geometri som karaokebyggaren)
+    const heads = lj?.scen?.heads ? (G.lightHeads[lj.scen.heads] || []) : [];
+    if (heads.length) {
+      let bm = '';
+      heads.forEach(([x, y]: number[], i: number) => {
+        const dir = i % 4 < 2 ? -1 : 1, spread = i % 4 === 0 || i % 4 === 3 ? 260 : 120;
+        bm += `<polygon class="llb-pulse${i % 2 ? ' d2' : ''}" points="${x - 8},${y} ${x + 8},${y} ${x + dir * spread + 70},740 ${x + dir * spread - 70},740" fill="${C[i % 4]}" opacity=".42"/>`;
+      });
+      L.push(['pak:' + lj.id, bm + imgs(lj)]);
+    }
+    // Bild
+    const b = opt('bild');
+    if (b?.scen?.proj) {
+      const d = G.surfaces[b.scen.duk] || [600, 190, 400, 225];
+      const p = G.projectors[b.scen.proj], lx = p[0] + p[2] * 0.66, ly = p[1] + p[3] * 0.5;
+      L.push(['bild:' + b.id, img('duk_' + b.scen.duk) + `<g opacity=".92">${slide(d[0], d[1], d[2], d[3])}</g>` +
+        `<polygon points="${lx - 4},${ly} ${lx + 4},${ly} ${d[0] + d[2]},${d[1] + d[3]} ${d[0] + d[2]},${d[1]} ${d[0]},${d[1]} ${d[0]},${d[1] + d[3]}" fill="url(#llb-bm)" opacity=".3"/>` +
+        `<g opacity=".7"><rect x="740" y="${p[1] + p[3]}" width="120" height="8" rx="2" fill="#3b3570"/><line x1="755" y1="${p[1] + p[3] + 8}" x2="755" y2="880" stroke="#3b3570" stroke-width="6"/><line x1="845" y1="${p[1] + p[3] + 8}" x2="845" y2="880" stroke="#3b3570" stroke-width="6"/></g>` +
+        img('projektor_' + b.scen.proj)]);
+    } else if (b?.scen?.skarm) {
+      const [x, y, w, h] = G.surfaces[b.scen.skarm];
+      L.push(['bild:' + b.id, `<rect x="${x + 30}" y="${y + h + 14}" width="${w - 60}" height="${650 - y - h - 14}" rx="4" fill="#2a2257" stroke="#3b3570" stroke-width="2" opacity=".8"/>` +
+        img('skarm_' + b.scen.skarm) + slide(x, y, w, h)]);
+    }
+    // Moving heads: två stativ med rörliga strålar
+    if (has(lj, 'mh')) {
+      let m = '';
+      [[470, -1], [1130, 1]].forEach(([x, dir], i) => {
+        m += `<polygon class="llb-sweep${i ? ' d2' : ''}" style="transform-origin:${x}px 318px" points="${x - 10},318 ${x + 10},318 ${x + dir * 330 + 60},0 ${x + dir * 330 - 60},0" fill="#e2dcfb" opacity=".26"/>` +
+          `<polygon class="llb-sweep d2" style="transform-origin:${x}px 318px" points="${x - 8},318 ${x + 8},318 ${x - dir * 120 + 50},0 ${x - dir * 120 - 50},0" fill="${C[2 + i]}" opacity=".22"/>`;
+        m += `<line x1="${x}" y1="356" x2="${x}" y2="735" stroke="#3b3570" stroke-width="7"/>` +
+          `<line x1="${x - 46}" y1="735" x2="${x + 46}" y2="735" stroke="#3b3570" stroke-width="7"/>` +
+          `<path d="M${x - 30},346 v-34 M${x + 30},346 v-34" stroke="#3d3770" stroke-width="7" stroke-linecap="round"/>` +
+          `<rect x="${x - 34}" y="342" width="68" height="14" rx="4" fill="#121028" stroke="#3d3770" stroke-width="2"/>` +
+          `<ellipse cx="${x}" cy="318" rx="24" ry="20" fill="#121028" stroke="#8a83c9" stroke-width="3"/>` +
+          `<circle cx="${x}" cy="312" r="9" fill="#e2dcfb" opacity=".85"/>`;
+      });
+      L.push(['mh', m]);
+    }
+    // Högtalare
+    const hg = opt('ljud');
+    if (hg?.scen?.draw === 'kolumn1') L.push(['hog:' + hg.id, column(150)]);
+    else if (hg?.scen?.draw === 'kolumn2') L.push(['hog:' + hg.id, column(150) + column(1450)]);
+    else if (hg) L.push(['hog:' + hg.id, imgs(hg)]);
+    // Bord + mixer
+    const mx = opt('mixer');
+    if (mx) L.push(['mix:' + mx.id, `<g opacity=".7"><rect x="1090" y="707" width="270" height="12" rx="3" fill="#3b3570"/><line x1="1105" y1="719" x2="1105" y2="880" stroke="#3b3570" stroke-width="7"/><line x1="1345" y1="719" x2="1345" y2="880" stroke="#3b3570" stroke-width="7"/></g>` + imgs(mx)]);
+    // Mikrofon
+    const mk = opt('mik');
+    if (mk) L.push(['mik:' + mk.id, imgs(mk)]);
+    // Rök
+    const rk = opt('rok');
+    if (rk) {
+      const fx = rk.scen?.fx === 'low'
+        ? `<g class="llb-drift"><rect x="0" y="700" width="1600" height="200" fill="url(#llb-fog)"/><ellipse cx="500" cy="860" rx="620" ry="70" fill="url(#llb-hz)"/><ellipse cx="1150" cy="870" rx="600" ry="60" fill="url(#llb-hz)"/></g>`
+        : `<g class="llb-drift" opacity=".8"><ellipse cx="400" cy="840" rx="500" ry="90" fill="url(#llb-hz)"/><ellipse cx="900" cy="860" rx="520" ry="80" fill="url(#llb-hz)"/><rect x="0" y="0" width="1600" height="900" fill="#d9d2ff" opacity=".05"/></g>`;
+      L.push(['rok:' + rk.id, fx + imgs(rk)]);
+    }
+    return L;
+  }
+  const NS = 'http://www.w3.org/2000/svg';
+  function renderScene() {
+    const want = sceneLayers();
+    const have = new Map<string, Element>();
+    for (const g of Array.from(layersEl.children)) have.set((g as HTMLElement).dataset.k!, g);
+    const keep = new Set<string>();
+    for (const [k, markup] of want) {
+      let g = have.get(k);
+      if (!g) {
+        g = document.createElementNS(NS, 'g');
+        (g as HTMLElement).dataset.k = k;
+        if (k !== 'bg') g.setAttribute('class', 'llb-fade');
+        g.innerHTML = markup;
+      }
+      layersEl.appendChild(g);
+      keep.add(k);
+    }
+    for (const [k, g] of have) if (!keep.has(k)) g.remove();
+    const names = itemsFor(R, S, A.seg).map((i: any) => i.name);
+    svg.setAttribute('aria-label', 'Er uppställning: ' + (names.join(', ') || 'tom'));
+  }
+
+  // ── frågor ───────────────────────────────────────────────────
+  const pressed = (on: boolean) => `aria-pressed="${on}"`;
+  function renderQuestions() {
+    $('llb-seg').innerHTML = R.segments.map((s: any) =>
+      `<button type="button" class="llb-segb" data-seg="${s.id}" ${pressed(A.seg === s.id)}><b>${esc(s.label)}</b><small>${esc(s.sub)}</small></button>`).join('');
+    $('llb-guests-l').textContent = `2 · Hur många ${segDef().guestNoun} blir ni?`;
+    $('llb-guests').innerHTML = R.guests.map((g: any) =>
+      `<button type="button" class="llb-chip" data-guests="${g.id}" ${pressed(A.guests === g.id)}>${esc(g.label)}</button>`).join('');
+    $('llb-focus').innerHTML = segDef().focus.map((f: any) =>
+      `<button type="button" class="llb-fc" data-focus="${f.id}" ${pressed(A.focus === f.id)}><b>${esc(f.label)}</b><small>${esc(f.sub)}</small></button>`).join('');
+    $('llb-reco').textContent = custom
+      ? 'Ni har justerat förslaget. Ändra ett svar ovan för att få ett nytt förslag.'
+      : 'Här är vårt förslag – justera fritt under flikarna.';
+  }
+
+  // ── flikar och alternativ ────────────────────────────────────
+  const tabLabel = (t: any) => (A.seg === 'foretag' && t.labelForetag) || t.label;
+  function renderTabs() {
+    $('llb-tabs').innerHTML = R.tabs.map((t: any) => {
+      const o = opt(t.id);
+      const val = o ? o.label : (t.id === 'mixer' && builtInMixerOk(R, S, A.seg) ? 'Inbyggd' : 'Inget');
+      return `<button type="button" role="tab" class="llb-tab" id="llb-tab-${t.id}" aria-selected="${tab === t.id}" data-tab="${t.id}"><span>${esc(tabLabel(t))}</span><small>${esc(val)}</small></button>`;
+    }).join('');
+    const box = $('llb-tabs'), a = box.querySelector('[aria-selected="true"]') as HTMLElement | null;
+    if (a) {
+      const br = box.getBoundingClientRect(), ar = a.getBoundingClientRect();
+      if (ar.left < br.left || ar.right > br.right) box.scrollBy({ left: ar.left - br.left - (br.width - ar.width) / 2, behavior: 'smooth' });
+    }
+  }
+  function card(area: string, id: string | null, label: string, sub: string, price: number, on: boolean, none = false) {
+    return `<button type="button" class="llb-opt${none ? ' none' : ''}" aria-pressed="${on}" data-area="${area}" data-val="${id === null ? '' : esc(id)}">` +
+      `<b>${esc(label)}</b><small>${esc(sub || '')}</small>` +
+      `<span class="llb-opt-p">${price ? '+ ' + kr(price) : none ? '' : '0&nbsp;kr'}</span></button>`;
+  }
+  // "Inget"-kort: mixer bara när kolumnens inbyggda räcker; ljudet är alltid obligatoriskt
+  function noneCard(area: string) {
+    if (area === 'ljud') return '';
+    if (area === 'mixer' && !builtInMixerOk(R, { ...S, mixer: null }, A.seg)) return '';
+    return card(area, null, R.noneLabels[area] || 'Inget', R.noneSubs?.[area] || '', 0, S[area] == null, true);
+  }
+  function optsHTML(area: string, list: any[]) {
+    return `<div class="llb-opts">${noneCard(area)}${list.map((o: any) => card(area, o.id, o.label, o.sub, o.total, S[area] === o.id)).join('')}</div>`;
+  }
+  function renderPanel() {
+    const t = R.tabs.find((x: any) => x.id === tab);
+    $('llb-panel').setAttribute('aria-labelledby', 'llb-tab-' + tab);
+    const shown = shownFor(R, tab, A, S, showAll);
+    const hidden = listFor(R, tab, A.seg).length - shown.length;
+    let h = t.note ? `<p class="llb-note-t">${esc(t.note)}</p>` : '';
+    h += optsHTML(tab, shown);
+    if (hidden > 0 || showAll) h += `<button type="button" class="llb-link" data-showall>${showAll ? 'Visa bara det som passar er' : `Visa alla alternativ (${hidden} till)`}</button>`;
+    if (tab === 'ljus') {
+      h += `<p class="llb-note-t">Ljuspaket och moving heads styrs automatiskt till musiken. Vill ni styra ljuset från ett ljusbord (DMX) ordnar vi det på <a href="/bokningssida/">separat offert</a>.</p>`;
+      h += `<div class="llb-addon"><h3 class="llb-slot-h">Rök &amp; dimma <span>– tillval</span></h3>${optsHTML('rok', R.options.rok)}</div>`;
+    }
+    $('llb-panel').innerHTML = h;
+    // Mobil: alternativen scrollar i sidled — håll valt kort synligt utan att scrolla sidan
+    $('llb-panel').querySelectorAll('.llb-opts').forEach((box) => {
+      const on = box.querySelector('[aria-pressed="true"]') as HTMLElement | null;
+      if (!on || box.scrollWidth <= box.clientWidth) return;
+      const br = box.getBoundingClientRect(), r = on.getBoundingClientRect();
+      if (r.left < br.left || r.right > br.right) box.scrollLeft += r.left - br.left - 16;
+    });
+  }
+
+  // ── sammanfattning ───────────────────────────────────────────
+  const qtyLabel = (i: any) => i.qty > 1 ? `${i.qty} × ` : '';
+  function sumHTML(compact = false) {
+    const it = itemsFor(R, S, A.seg);
+    const tot = it.reduce((s: number, i: any) => s + i.total, 0);
+    const g = R.guests.find((x: any) => x.id === A.guests);
+    const f = segDef().focus.find((x: any) => x.id === A.focus);
+    const builtIn = builtInMixerOk(R, S, A.seg) && !S.mixer;
+    return `<p class="llb-sum-k">${esc(segDef().label)} · ${esc(g?.label)} · ${esc(f?.label)}</p><h3 class="llb-sum-h">Ert paket</h3>` +
+      `<ul class="llb-list">${it.map((i: any) => `<li><span>${qtyLabel(i)}${esc(i.name)}</span><span>${kr(i.total)}</span></li>`).join('')}</ul>` +
+      (builtIn ? `<p class="llb-hint">Kolumnen har inbyggd mixer och Bluetooth – koppla in mikrofonen och telefonen direkt.</p>` : '') +
+      `<div class="llb-tot"><span>Per dygn</span><b>${kr(tot)}</b></div>` +
+      `<p class="llb-note">Leverans, montering och flerdygnsrabatt räknas i varukorgen.</p>` +
+      (compact ? '' : `<button type="button" class="llb-cta llb-add" data-add>Lägg ${it.length} artiklar i varukorgen</button><a class="llb-offert" href="/bokningssida/">Hellre en offert? Skicka förfrågan</a><p class="llb-added" hidden></p>`);
+  }
+  function vatMode() { try { return localStorage.getItem('sk-vat') === 'incl' ? 'incl' : 'excl'; } catch { return 'excl'; } }
+  function updateVatLabel() { $('llb-bar-vat').textContent = vatMode() === 'incl' ? 'inkl. moms' : 'exkl. moms'; }
+  function renderSum() {
+    $('llb-sum').innerHTML = sumHTML();
+    const it = itemsFor(R, S, A.seg);
+    $('llb-bar-sum').innerHTML = kr(it.reduce((s: number, i: any) => s + i.total, 0));
+    $('llb-bar-count').textContent = `${it.length} artiklar · per dygn`;
+    if (!$('llb-sheet').hidden) $('llb-sheet-body').innerHTML = sumHTML();
+  }
+  function renderAll() {
+    renderScene(); renderQuestions(); renderTabs(); renderPanel(); renderSum();
+    (window as any).skApplyVat?.();
+    updateVatLabel();
+    saveState();
+  }
+
+  // ── varukorg ─────────────────────────────────────────────────
+  function addAll(btn?: HTMLElement) {
+    const cart = (window as any).skCart;
+    if (!cart) return;
+    const it = itemsFor(R, S, A.seg);
+    for (const i of it) {
+      cart.add({ id: i.cartId, name: i.name, price: i.price, priceNote: i.priceNote || '/dygn', category: i.category, image: i.image, artno: i.artno,
+        bulky: i.bulky, forceLeverans: i.forceLeverans || undefined, monteringMin: i.monteringMin, qty: i.qty });
+    }
+    try { (window as any).dataLayer?.push({ event: 'ljudljus_lagg_i_varukorg', kundtyp: A.seg, gaster: A.guests, fokus: A.focus, justerat: custom, artiklar: it.length, varde: it.reduce((s: number, i: any) => s + i.total, 0) }); } catch {}
+    if (btn && btn.id === 'llb-bar-add') openSheet();
+    root?.querySelectorAll('.llb-added').forEach((p) => {
+      (p as HTMLElement).hidden = false;
+      p.innerHTML = `✓ ${it.length} artiklar ligger i varukorgen. <a href="/varukorg/">Gå till varukorgen →</a>`;
+    });
+    const bar = $('llb-bar-add');
+    bar.textContent = '✓ Tillagt';
+    setTimeout(() => { bar.textContent = 'Lägg i varukorg'; }, 1800);
+  }
+
+  // ── mobil: fast nederkant + blad ─────────────────────────────
+  function openSheet() { $('llb-sheet-body').innerHTML = sumHTML(); $('llb-sheet').hidden = false; document.body.classList.add('llb-sheet-open'); (window as any).skApplyVat?.(); }
+  function closeSheet() { $('llb-sheet').hidden = true; document.body.classList.remove('llb-sheet-open'); }
+  const bar = $('llb-bar');
+  const io = new IntersectionObserver(([e]) => {
+    const on = e.isIntersecting;
+    bar.classList.toggle('on', on);
+    bar.setAttribute('aria-hidden', String(!on));
+    (bar as any).inert = !on;
+    document.body.classList.toggle('llb-bar-on', on);
+  }, { threshold: 0.15 });
+  io.observe(root!.querySelector('.llb-grid')!);
+
+  // ── events ───────────────────────────────────────────────────
+  root?.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement).closest('[data-seg],[data-guests],[data-focus],[data-tab],[data-area],[data-showall],[data-add],[data-llb-close],#llb-bar-total,#llb-bar-add,.llb-bar-vat') as HTMLElement | null;
+    if (!el) return;
+    const d = el.dataset;
+    if (d.seg) { if (d.seg === A.seg) return; answer({ seg: d.seg }); }
+    else if (d.guests) answer({ guests: d.guests });
+    else if (d.focus) answer({ focus: d.focus });
+    else if (d.tab) { tab = d.tab; showAll = false; }
+    else if (d.area) {
+      S = fixMixer(R, { ...S, [d.area]: d.val === '' ? null : d.val! }, A.seg);
+      custom = true;
+    }
+    else if ('showall' in d) showAll = !showAll;
+    else if ('add' in d) { addAll(el); return; }
+    else if ('llbClose' in d) { closeSheet(); return; }
+    else if (el.id === 'llb-bar-total') { openSheet(); return; }
+    else if (el.id === 'llb-bar-add') { addAll(el); return; }
+    else if (el.classList.contains('llb-bar-vat')) return;
+    renderAll();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+  document.getElementById('sk-vat-excl')?.addEventListener('click', () => setTimeout(updateVatLabel));
+  document.getElementById('sk-vat-incl')?.addEventListener('click', () => setTimeout(updateVatLabel));
+  $('llb-bar-vat').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById(vatMode() === 'incl' ? 'sk-vat-excl' : 'sk-vat-incl')?.click();
+    setTimeout(updateVatLabel);
+  });
+  let lastW = 0;
+  window.addEventListener('resize', () => {
+    const w = svg.clientWidth; if (Math.abs(w - lastW) < 200) return; lastW = w;
+    layersEl.innerHTML = ''; renderScene();
+  });
+
+  loadState();
+  lastW = svg.clientWidth;
+  renderAll();
+</script>
+
+<style is:global>
+  .llb [hidden] { display: none !important; }
+  .llb { --llb-line: rgba(255,255,255,.10); --llb-lav: #c4b5f4; --llb-lav2: #e2dcfb; --llb-navy: #1e1850; --llb-dark: #0c0a24; scroll-margin-top: 150px; }
+  .llb-head { margin-bottom: 1.25rem; }
+  .llb-eyebrow { font: 700 .72rem 'Space Grotesk', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--llb-lav); margin: 0 0 .35rem; }
+  .llb-h2 { font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; color: #fff; font-size: clamp(1.45rem, 4.5vw, 2.1rem); line-height: 1.15; margin: 0; text-wrap: balance; }
+
+  .llb-qs { display: grid; gap: 1.1rem; }
+  .llb-q { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .llb-ql { font: 600 .82rem 'Space Grotesk', sans-serif; color: rgba(255,255,255,.72); margin-bottom: .55rem; padding: 0; }
+  .llb-seg { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .llb-segb, .llb-fc { display: grid; gap: 2px; text-align: left; padding: .75rem .9rem; border-radius: 14px; border: 1px solid var(--llb-line); background: var(--llb-navy); color: #fff; cursor: pointer; min-height: 56px; font-family: 'Space Grotesk', sans-serif; }
+  .llb-segb b { font-size: 1.05rem; }
+  .llb-fc b { font-size: .95rem; }
+  .llb-segb small, .llb-fc small { font-family: 'Source Sans 3', sans-serif; font-size: .78rem; color: rgba(255,255,255,.6); line-height: 1.3; }
+  .llb-segb[aria-pressed="true"] { background: var(--llb-lav); border-color: var(--llb-lav); color: var(--llb-dark); }
+  .llb-segb[aria-pressed="true"] small { color: rgba(12,10,36,.72); }
+  .llb-chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .llb-chip { font: 600 .9rem 'Space Grotesk', sans-serif; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: .55rem 1rem; min-height: 44px; cursor: pointer; }
+  .llb-chip[aria-pressed="true"] { background: var(--llb-lav); border-color: var(--llb-lav); color: var(--llb-dark); }
+  .llb-focus { display: grid; gap: .5rem; }
+  .llb-fc[aria-pressed="true"] { border-color: var(--llb-lav); background: rgba(196,181,244,.14); box-shadow: inset 0 0 0 1px var(--llb-lav); }
+  .llb-reco { margin: 1rem 0; font-size: .92rem; color: rgba(255,255,255,.72); }
+
+  .llb-grid { display: grid; gap: 1rem; }
+  .llb-main { min-width: 0; }
+  .llb-scene { scroll-margin-top: 140px; position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--llb-line); background: #14112f; aspect-ratio: 16 / 9; }
+  .llb-scene svg { display: block; width: 100%; height: 100%; }
+  .llb-fade { animation: llbFade .3s ease; }
+  @keyframes llbFade { from { opacity: 0 } to { opacity: 1 } }
+  .llb-pulse { animation: llbPulse 3s ease-in-out infinite alternate; }
+  .llb-pulse.d2 { animation-delay: -1.5s; }
+  @keyframes llbPulse { from { opacity: .3 } to { opacity: .75 } }
+  .llb-sweep { animation: llbSweep 5s ease-in-out infinite alternate; }
+  .llb-sweep.d2 { animation-delay: -2.5s; }
+  @keyframes llbSweep { from { transform: rotate(-9deg) } to { transform: rotate(9deg) } }
+  .llb-drift { animation: llbDrift 9s ease-in-out infinite alternate; }
+  @keyframes llbDrift { from { transform: translateX(-30px) } to { transform: translateX(30px) } }
+  @media (prefers-reduced-motion: reduce) { .llb-fade, .llb-pulse, .llb-sweep, .llb-drift { animation: none !important; } }
+
+  .llb-tabs { display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; margin: .85rem -1rem 0; padding: 0 1rem .2rem; scroll-snap-type: x proximity; }
+  .llb-tabs::-webkit-scrollbar { display: none; }
+  .llb-tab { flex: 0 0 auto; scroll-snap-align: start; display: grid; text-align: left; gap: 1px; min-width: 92px; padding: .5rem .75rem; border-radius: 12px; border: 1px solid var(--llb-line); background: transparent; color: rgba(255,255,255,.72); font-family: 'Space Grotesk', sans-serif; cursor: pointer; min-height: 44px; }
+  .llb-tab span { font-size: .8rem; font-weight: 700; }
+  .llb-tab small { font-size: .68rem; color: rgba(255,255,255,.55); white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+  .llb-tab[aria-selected="true"] { background: var(--llb-lav); border-color: var(--llb-lav); color: var(--llb-dark); }
+  .llb-tab[aria-selected="true"] small { color: rgba(12,10,36,.7); }
+
+  .llb-panel { padding-top: .85rem; display: grid; gap: .7rem; }
+  .llb-note-t { margin: 0; font-size: .85rem; color: rgba(255,255,255,.6); }
+  .llb-note-t a { color: var(--llb-lav); }
+  .llb-slot-h { margin: 0 0 .5rem; font: 700 .72rem 'Space Grotesk', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
+  .llb-slot-h span { color: rgba(255,255,255,.55); font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .llb-addon { border-top: 1px solid var(--llb-line); padding-top: .85rem; }
+  .llb-opts { display: flex; gap: .5rem; overflow-x: auto; scrollbar-width: none; margin: 0 -1rem; padding: .15rem 1rem .35rem; scroll-snap-type: x mandatory; }
+  .llb-opts::-webkit-scrollbar { display: none; }
+  .llb-opt { flex: 0 0 min(46%, 200px); scroll-snap-align: start; display: grid; align-content: start; gap: 2px; text-align: left; padding: .7rem .8rem; border-radius: 12px; border: 1px solid var(--llb-line); background: var(--llb-navy); color: #fff; cursor: pointer; font-family: 'Space Grotesk', sans-serif; min-height: 92px; }
+  .llb-opt b { font-size: .92rem; }
+  .llb-opt small { font-family: 'Source Sans 3', sans-serif; font-size: .76rem; line-height: 1.3; color: #9ca3af; }
+  .llb-opt-p { font: 700 .82rem 'Space Grotesk', sans-serif; color: var(--llb-lav); margin-top: auto; padding-top: 4px; white-space: nowrap; }
+  .llb-opt.none b { color: rgba(255,255,255,.72); }
+  .llb-opt[aria-pressed="true"] { border-color: var(--llb-lav); background: rgba(196,181,244,.13); box-shadow: inset 0 0 0 1px var(--llb-lav); }
+  .llb-opt:hover, .llb-tab:hover, .llb-chip:hover, .llb-segb:hover, .llb-fc:hover { border-color: rgba(196,181,244,.5); }
+  .llb :focus-visible { outline: 2px solid var(--llb-lav); outline-offset: 2px; }
+  .llb-link { background: none; border: 0; color: var(--llb-lav); font: 600 .85rem 'Space Grotesk', sans-serif; cursor: pointer; padding: .4rem 0; justify-self: start; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; }
+
+  .llb-cta { display: inline-flex; align-items: center; justify-content: center; background: var(--llb-lav); color: var(--llb-dark); font: 700 .95rem 'Space Grotesk', sans-serif; border: 0; border-radius: 12px; padding: .8rem 1.1rem; cursor: pointer; min-height: 48px; }
+  .llb-cta:hover { background: var(--llb-lav2); }
+  .llb-offert { display: block; text-align: center; margin-top: .6rem; font-size: .85rem; color: var(--llb-lav); }
+  .llb-added { margin: .5rem 0 0; font-size: .85rem; color: rgba(255,255,255,.72); }
+  .llb-added a { color: var(--llb-lav); font-weight: 600; }
+
+  .llb-sum { display: none; }
+  .llb-sum-k { margin: 0 0 .2rem; font: 600 .7rem 'Space Grotesk', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--llb-lav); }
+  .llb-sum-h { margin: 0 0 .6rem; font: 700 1.05rem 'Space Grotesk', sans-serif; color: #fff; }
+  .llb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; font-size: .88rem; }
+  .llb-list li { display: flex; justify-content: space-between; gap: .75rem; color: rgba(255,255,255,.8); }
+  .llb-list li span:last-child { white-space: nowrap; font-family: 'Space Grotesk', sans-serif; font-variant-numeric: tabular-nums; }
+  .llb-hint { margin: .75rem 0 0; font-size: .82rem; color: rgba(255,255,255,.75); background: rgba(196,181,244,.1); border-radius: 10px; padding: .55rem .7rem; }
+  .llb-tot { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--llb-line); margin-top: .75rem; padding-top: .75rem; color: rgba(255,255,255,.55); font-size: .85rem; }
+  .llb-tot b { font: 800 1.6rem 'Space Grotesk', sans-serif; color: var(--llb-lav); font-variant-numeric: tabular-nums; }
+  .llb-note { margin: .35rem 0 .85rem; font-size: .78rem; color: rgba(255,255,255,.55); }
+  .llb-sum .llb-cta, .llb-sheet .llb-cta { width: 100%; }
+
+  .llb-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; display: flex; gap: .6rem; align-items: center; padding: .6rem 1rem calc(.6rem + env(safe-area-inset-bottom, 0px)); background: rgba(16,13,46,.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(196,181,244,.25); transform: translateY(110%); transition: transform .25s; }
+  .llb-bar.on { transform: none; }
+  .llb-bar-total { flex: 1; min-width: 0; display: grid; text-align: left; background: none; border: 0; color: #fff; cursor: pointer; padding: 0; }
+  .llb-bar-total small { font-size: .7rem; color: rgba(255,255,255,.55); }
+  .llb-bar-total b { font: 800 1.25rem 'Space Grotesk', sans-serif; color: var(--llb-lav); }
+  .llb-bar-vat { text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+  .llb-bar .llb-cta { padding: .7rem 1rem; }
+  body.llb-sheet-open #sven-chat-widget { display: none !important; }
+  @media (max-width: 1023px) {
+    body.llb-bar-on #sk-vat-toggle { display: none !important; }
+    body.llb-bar-on #sven-chat-widget { bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; transition: bottom .25s; }
+  }
+  .llb-sheet { position: fixed; inset: 0; z-index: 460; }
+  .llb-sheet-bg { position: absolute; inset: 0; background: rgba(5,4,20,.6); }
+  .llb-sheet-card { position: absolute; left: 0; right: 0; bottom: 0; max-height: 80vh; overflow-y: auto; background: #17133f; border-radius: 18px 18px 0 0; padding: 1.25rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(196,181,244,.3); }
+  .llb-sheet-x { position: absolute; top: .5rem; right: .75rem; width: 40px; height: 40px; background: none; border: 0; color: #fff; font-size: 1.6rem; cursor: pointer; }
+
+  @media (min-width: 640px) {
+    .llb-focus { grid-template-columns: repeat(3, 1fr); }
+    .llb-tabs { margin: .85rem 0 0; padding: 0 0 .2rem; }
+    .llb-opts { flex-wrap: wrap; overflow: visible; margin: 0; padding: .15rem 0 .35rem; }
+    .llb-opt { flex: 1 1 160px; max-width: 250px; }
+  }
+  @media (min-width: 1024px) {
+    .llb-qs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 2rem; }
+    .llb-q-wide { grid-column: 1 / -1; }
+    .llb-grid { grid-template-columns: minmax(0, 1fr) 330px; gap: 1.5rem; align-items: start; }
+    .llb-scene { scroll-margin-top: 180px; }
+    .llb-sum { display: block; position: sticky; top: 180px; background: var(--llb-navy); border: 1px solid var(--llb-line); border-radius: 16px; padding: 1.1rem; }
+    .llb-bar, .llb-sheet { display: none !important; }
+  }
+</style>

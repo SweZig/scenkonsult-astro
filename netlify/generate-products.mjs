@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildSvenProducts } from '../src/lib/sven-products.mjs';
 import { resolveBuilder, itemsFor, totalFor, minTotal } from '../src/lib/karaoke-builder.mjs';
+import * as LL from '../src/lib/ljud-ljus-builder.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.join(__dirname, '..');
@@ -24,6 +25,7 @@ const ljus   = readJson('ljus.json');
 const dj     = readJson('dj.json');
 const bild   = readJson('bild.json');
 const karaoke = readJson('karaoke.json');
+const ljudLjus = readJson('ljud-ljus.json');
 const tjanster = readJson('tjanster.json');
 const el     = readJson('el.json');
 const site   = readJson('site.json');
@@ -183,6 +185,18 @@ sects.push('');
   }
   for (const p of (karaoke.packages || []).filter(p => p.active !== false)) {
     sects.push(prodLine(p.name + ' (' + p.tagline + ')', p.price, ' exkl. moms'));
+  }
+  sects.push('');
+}
+
+// LJUD + LJUS I ETT PAKET — konfiguratorn på /vara-tjanster/hyra-ljud-och-ljus/
+{
+  const R = LL.resolveLjudLjus(ljudLjus, { scenes, ljud, ljus, dj, bild, tjanster, karaoke, el });
+  sects.push('LJUD + LJUS I ETT PAKET — kunden svarar privat/företag, gästantal och fokus (tal/musik/båda) på /vara-tjanster/hyra-ljud-och-ljus/ (från ' + LL.minRecommended(R) + ' kr/dygn exkl. moms). Hänvisa dit när kunden vill ha både ljud och ljus. Förslag:');
+  for (const seg of ['privat', 'foretag']) for (const focus of ['tal', 'musik', 'bada']) for (const g of R.guests) {
+    const sel = LL.recommend(R, seg, g.id, focus);
+    const ids = LL.itemsFor(R, sel, seg).map(i => i.qty > 1 ? i.cartId + ' (' + i.qty + ' st)' : i.cartId).join(', ');
+    sects.push('- ' + seg + ', ' + g.label + ', ' + focus + ': ' + LL.totalFor(R, sel, seg) + ' kr/dygn — ' + ids);
   }
   sects.push('');
 }

@@ -1,0 +1,144 @@
+---
+// /vara-tjanster/hyra-ljud-och-ljus/ — äger kombinationssökningarna
+// ("hyra ljud och ljus stockholm"). Ljud- och ljushubbarna ligger kvar för
+// den som bara behöver det ena; den här sidan länkar ner till båda.
+import Layout from '../../../layouts/Layout.astro';
+import ModernHero from '../../../components/ModernHero.astro';
+import SectionHeader from '../../../components/SectionHeader.astro';
+import LjudLjusBuilder from '../../../components/LjudLjusBuilder.astro';
+import config from '../../../data/ljud-ljus.json';
+import ljud from '../../../data/ljud.json';
+import ljus from '../../../data/ljus.json';
+import bild from '../../../data/bild.json';
+import dj from '../../../data/dj.json';
+import scenes from '../../../data/scenes.json';
+import tjanster from '../../../data/tjanster.json';
+import karaoke from '../../../data/karaoke.json';
+import el from '../../../data/el.json';
+import { resolveLjudLjus, minRecommended } from '../../../lib/ljud-ljus-builder.mjs';
+
+// Från-pris = billigaste förslaget konfiguratorn kan ge (räknas ur datafilerna)
+const R = resolveLjudLjus(config, { ljud, ljus, bild, dj, scenes, tjanster, karaoke, el });
+const franExcl = minRecommended(R);
+const franInkl = Math.round(franExcl * 1.25);
+const fran = franExcl.toLocaleString('sv-SE');
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": config.faq.map((f: { q: string; a: string }) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Hyra ljud och ljus i Stockholm",
+  "serviceType": "Uthyrning av ljud- och ljusutrustning",
+  "url": "https://scenkonsult.se/vara-tjanster/hyra-ljud-och-ljus/",
+  "areaServed": { "@type": "AdministrativeArea", "name": "Storstockholm" },
+  "provider": { "@type": "LocalBusiness", "name": "Scenkonsult Norden", "url": "https://scenkonsult.se/" },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "SEK",
+    "lowPrice": franExcl,
+    "priceSpecification": { "@type": "UnitPriceSpecification", "price": franExcl, "priceCurrency": "SEK", "unitText": "dygn", "valueAddedTaxIncluded": false }
+  }
+};
+
+const hubbar = [
+  { href: '/vara-tjanster/hyra-ljud/', label: 'Hyra ljud i Stockholm', text: 'Högtalare, PA-system, mixer och mikrofoner.' },
+  { href: '/vara-tjanster/hyra-ljus/', label: 'Hyra ljus i Stockholm', text: 'Ljuspaket, uplights, moving heads, rök och tross.' },
+  { href: '/vara-tjanster/hyra-bild/', label: 'Hyra bild i Stockholm', text: 'Projektorer, skärmar och LED-vägg.' },
+];
+const steg = [
+  { n: '01', h: 'Leverans', t: 'Vi kör ut i hela Storstockholm, eller så hämtar ni själva i Vällingby. Frakten räknas i varukorgen.' },
+  { n: '02', h: 'Montering', t: 'Välj montering i varukorgen – den räknas fram per produkt, och ljud, ljus och bild riggas i samma besök.' },
+  { n: '03', h: 'På plats', t: 'Allt är testat innan vi lämnar. Vill ni ha en tekniker kvar under eventet ordnar vi det.' },
+];
+---
+<Layout
+  schemaExtra={[serviceSchema, faqSchema]}
+  title={config.metaTitle}
+  description={config.metaDescription.replace('{fran}', fran)}
+>
+  <ModernHero
+    eyebrow="Ljud + ljus · Privat och företag"
+    h1="Hyra ljud och ljus i"
+    h1Accent="Stockholm"
+    intro={config.intro}
+    breadcrumbs={[
+      { label: "Hem", href: "/" },
+      { label: "Våra tjänster", href: "/vara-tjanster/" },
+      { label: "Hyra ljud och ljus" }
+    ]}
+    chips={[
+      { html: `Från <span class="sk-price-excl">${franExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${franInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
+      "Fest, bröllop och konferens",
+      "Bild som tillval",
+      "Leverans och montering",
+      "Sedan 1986",
+    ]}
+  />
+
+  <LjudLjusBuilder />
+
+  <!-- Bara det ena -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader eyebrow="Hyr separat" h2="Behöver ni bara det ena?" marginBottom="1.25rem" />
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {hubbar.map((h) => (
+        <a href={h.href} class="block bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl p-5 transition-colors">
+          <span class="block text-white font-semibold text-lg mb-1">{h.label} →</span>
+          <span class="block text-gray-400 text-sm">{h.text}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Leverans och montering -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader eyebrow="Så går det till" h2="Leverans, montering och på plats" marginBottom="1.25rem" />
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {steg.map((s) => (
+        <div class="bg-brand-navy border border-white/10 rounded-2xl p-5">
+          <span class="block text-brand-orange text-xs font-semibold mb-2" style="font-family:'Space Grotesk',sans-serif">{s.n} · {s.h}</span>
+          <p class="text-gray-400 text-sm leading-relaxed m-0">{s.t}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <SectionHeader eyebrow="Vanliga frågor" h2="Vanliga frågor om att hyra ljud och ljus" marginBottom="1.5rem" />
+    <div class="space-y-3">
+      {config.faq.map((f) => (
+        <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
+          <summary class="px-5 py-4 text-white font-semibold cursor-pointer text-sm hover:text-brand-orange transition-colors list-none flex justify-between items-center">
+            {f.q}
+            <span class="text-brand-orange text-lg">+</span>
+          </summary>
+          <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-3">
+            {f.a}
+          </div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <!-- Guider -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4" style="font-family:'Space Grotesk',sans-serif">Relaterade guider</p>
+    <div class="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+      <a href="/for/guider/hur-stor-pa/" class="text-gray-300 hover:text-brand-orange">Hur stor PA behöver vi?</a>
+      <a href="/for/guider/ljud-brollop/" class="text-gray-300 hover:text-brand-orange">Ljud till bröllop</a>
+      <a href="/for/guider/ljus-brollop/" class="text-gray-300 hover:text-brand-orange">Ljus till bröllop</a>
+      <a href="/for/guider/ljud-foretagsfest/" class="text-gray-300 hover:text-brand-orange">Ljud till företagsfest</a>
+      <a href="/for/guider/hyra-uplights/" class="text-gray-300 hover:text-brand-orange">Hyra uplights</a>
+      <a href="/for/guider/vad-kostar-det/" class="text-gray-300 hover:text-brand-orange">Vad kostar det?</a>
+    </div>
+  </section>
+</Layout>
