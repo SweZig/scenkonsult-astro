@@ -5,8 +5,8 @@
 // Tre frågor (privat/företag, gästantal, fokus tal/musik/båda) ger ett förslag
 // ur ljud-ljus.json → builder.recommend. Kunden justerar per flik; flikarna visar
 // bara alternativ som passar svaren, med "Visa alla" för resten. Scenen ritas om
-// med karaokebyggarens bildlager (public/images/karaoke/scen/) och ritade former
-// där foto saknas (kolumner, uplights, moving heads).
+// med bildlager i public/images/karaoke/scen/ (karaokebyggarens + egna, byggda
+// av frilagda produktfoton) och ritade strålar, uplight-sken och rök.
 //
 // Data: ljud-ljus.json (artikelnummer) → src/lib/ljud-ljus-builder.mjs slår upp
 // namn/pris/cart-ID i ljud/ljus/bild.json. Inga priser i komponenten.
@@ -150,42 +150,35 @@ const payload = JSON.stringify({ R: resolved, G: scen });
     `<rect x="${x + w * 0.08}" y="${y + h * 0.66}" width="${w * 0.55}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".35"/>`;
   const opt = (a: string) => findOption(R, a, A.seg, S[a]);
   const has = (o: any, k: string) => (o?.scen?.draw || '').split(' ').includes(k);
-  // Kolumnhögtalare saknar fotolager — ritas som smala pelare med fot
-  const column = (x: number) => {
-    let grill = '';
-    for (let y = 352; y < 612; y += 13) grill += `<line x1="${x - 17}" y1="${y}" x2="${x + 17}" y2="${y}" stroke="#2c2860" stroke-width="5" stroke-linecap="round"/>`;
-    return `<g><ellipse cx="${x}" cy="712" rx="90" ry="14" fill="#000" opacity=".45"/>` +
-      `<rect x="${x - 27}" y="334" width="54" height="300" rx="12" fill="#121028"/>` + grill +
-      `<rect x="${x - 27}" y="334" width="54" height="300" rx="12" fill="none" stroke="#3d3770" stroke-width="2"/>` +
-      `<rect x="${x - 7}" y="634" width="14" height="22" fill="#1a1738"/>` +
-      `<rect x="${x - 58}" y="654" width="116" height="52" rx="10" fill="#121028" stroke="#3d3770" stroke-width="2"/>` +
-      `<circle cx="${x}" cy="680" r="15" fill="#1d1a42" stroke="#2c2860" stroke-width="3"/></g>`;
-  };
+  // Strålar ur en armatur. fan = nedåt mot golvet (spindel, scanner, ljuspaket),
+  // sweep = uppåt och svepande (moving heads). Ritas bakom armaturbilden.
+  function beam(x: number, y: number, kind: string, i: number) {
+    if (kind === 'sweep') {
+      const dir = i % 2 ? 1 : -1, c = C[(i + 2) % 4];
+      return `<polygon class="llb-sweep${i % 2 ? ' d2' : ''}" style="transform-origin:${x}px ${y}px" points="${x - 8},${y} ${x + 8},${y} ${x + dir * 300 + 55},0 ${x + dir * 300 - 55},0" fill="#e2dcfb" opacity=".24"/>` +
+        `<polygon class="llb-sweep d2" style="transform-origin:${x}px ${y}px" points="${x - 6},${y} ${x + 6},${y} ${x - dir * 110 + 45},0 ${x - dir * 110 - 45},0" fill="${c}" opacity=".2"/>`;
+    }
+    let g = '';
+    for (let k = 0; k < 4; k++) {
+      const tx = x + (k - 1.5) * 190;
+      g += `<polygon class="llb-pulse${k % 2 ? ' d2' : ''}" points="${x - 6},${y} ${x + 6},${y} ${tx + 55},740 ${tx - 55},740" fill="${C[(k + i) % 4]}" opacity=".36"/>`;
+    }
+    return g;
+  }
   function sceneLayers(): [string, string][] {
     const L: [string, string][] = [];
     L.push(['bg', img('bakgrund')]);
     const lj = opt('ljus');
-    // Uplights: färgtvätt nerifrån på bakväggen
+    // Uplights: färgtvätt nerifrån på bakväggen (armaturerna ligger i bildlagret)
     if (has(lj, 'up') || has(lj, 'up2')) {
       const xs = has(lj, 'up2') ? [110, 330, 560, 1040, 1270, 1490] : [110, 330, 1270, 1490];
-      let g = '', f = '';
+      let g = '';
       xs.forEach((x, i) => {
         g += `<ellipse class="llb-pulse${i % 2 ? ' d2' : ''}" cx="${x}" cy="650" rx="95" ry="330" fill="${C[i % 4]}" opacity=".5" filter="url(#llb-blur)"/>`;
-        f += `<path d="M${x - 22},652 h44 l-6,-18 h-32 z" fill="#121028" stroke="#3d3770" stroke-width="2"/>`;
       });
-      L.push(['up:' + xs.length, `<g style="mix-blend-mode:screen">${g}</g>${f}`]);
+      L.push(['up:' + xs.length, `<g style="mix-blend-mode:screen">${g}</g>`]);
     }
-    // Ljuspaket: strålar bakom armaturerna (samma geometri som karaokebyggaren)
-    const heads = lj?.scen?.heads ? (G.lightHeads[lj.scen.heads] || []) : [];
-    if (heads.length) {
-      let bm = '';
-      heads.forEach(([x, y]: number[], i: number) => {
-        const dir = i % 4 < 2 ? -1 : 1, spread = i % 4 === 0 || i % 4 === 3 ? 260 : 120;
-        bm += `<polygon class="llb-pulse${i % 2 ? ' d2' : ''}" points="${x - 8},${y} ${x + 8},${y} ${x + dir * spread + 70},740 ${x + dir * spread - 70},740" fill="${C[i % 4]}" opacity=".42"/>`;
-      });
-      L.push(['pak:' + lj.id, bm + imgs(lj)]);
-    }
-    // Bild
+    // Bild (bakväggen — ljusriggar står framför)
     const b = opt('bild');
     if (b?.scen?.proj) {
       const d = G.surfaces[b.scen.duk] || [600, 190, 400, 225];
@@ -199,26 +192,21 @@ const payload = JSON.stringify({ R: resolved, G: scen });
       L.push(['bild:' + b.id, `<rect x="${x + 30}" y="${y + h + 14}" width="${w - 60}" height="${650 - y - h - 14}" rx="4" fill="#2a2257" stroke="#3b3570" stroke-width="2" opacity=".8"/>` +
         img('skarm_' + b.scen.skarm) + slide(x, y, w, h)]);
     }
-    // Moving heads: två stativ med rörliga strålar
-    if (has(lj, 'mh')) {
-      let m = '';
-      [[470, -1], [1130, 1]].forEach(([x, dir], i) => {
-        m += `<polygon class="llb-sweep${i ? ' d2' : ''}" style="transform-origin:${x}px 318px" points="${x - 10},318 ${x + 10},318 ${x + dir * 330 + 60},0 ${x + dir * 330 - 60},0" fill="#e2dcfb" opacity=".26"/>` +
-          `<polygon class="llb-sweep d2" style="transform-origin:${x}px 318px" points="${x - 8},318 ${x + 8},318 ${x - dir * 120 + 50},0 ${x - dir * 120 - 50},0" fill="${C[2 + i]}" opacity=".22"/>`;
-        m += `<line x1="${x}" y1="356" x2="${x}" y2="735" stroke="#3b3570" stroke-width="7"/>` +
-          `<line x1="${x - 46}" y1="735" x2="${x + 46}" y2="735" stroke="#3b3570" stroke-width="7"/>` +
-          `<path d="M${x - 30},346 v-34 M${x + 30},346 v-34" stroke="#3d3770" stroke-width="7" stroke-linecap="round"/>` +
-          `<rect x="${x - 34}" y="342" width="68" height="14" rx="4" fill="#121028" stroke="#3d3770" stroke-width="2"/>` +
-          `<ellipse cx="${x}" cy="318" rx="24" ry="20" fill="#121028" stroke="#8a83c9" stroke-width="3"/>` +
-          `<circle cx="${x}" cy="312" r="9" fill="#e2dcfb" opacity=".85"/>`;
+    // Ljus: strålar bakom armaturerna. heads = karaokebyggarens geometri (T-bar),
+    // beams = egna strålpunkter ur ljud-ljus.json (genererade med bildlagren).
+    if (lj) {
+      let bm = '';
+      const heads = lj.scen?.heads ? (G.lightHeads[lj.scen.heads] || []) : [];
+      heads.forEach(([x, y]: number[], i: number) => {
+        const dir = i % 4 < 2 ? -1 : 1, spread = i % 4 === 0 || i % 4 === 3 ? 260 : 120;
+        bm += `<polygon class="llb-pulse${i % 2 ? ' d2' : ''}" points="${x - 8},${y} ${x + 8},${y} ${x + dir * spread + 70},740 ${x + dir * spread - 70},740" fill="${C[i % 4]}" opacity=".42"/>`;
       });
-      L.push(['mh', m]);
+      (lj.scen?.beams || []).forEach(([x, y, kind]: [number, number, string], i: number) => { bm += beam(x, y, kind, i); });
+      if (bm || imgs(lj)) L.push(['ljus:' + lj.id, bm + imgs(lj)]);
     }
     // Högtalare
     const hg = opt('ljud');
-    if (hg?.scen?.draw === 'kolumn1') L.push(['hog:' + hg.id, column(150)]);
-    else if (hg?.scen?.draw === 'kolumn2') L.push(['hog:' + hg.id, column(150) + column(1450)]);
-    else if (hg) L.push(['hog:' + hg.id, imgs(hg)]);
+    if (hg) L.push(['hog:' + hg.id, imgs(hg)]);
     // Bord + mixer
     const mx = opt('mixer');
     if (mx) L.push(['mix:' + mx.id, `<g opacity=".7"><rect x="1090" y="707" width="270" height="12" rx="3" fill="#3b3570"/><line x1="1105" y1="719" x2="1105" y2="880" stroke="#3b3570" stroke-width="7"/><line x1="1345" y1="719" x2="1345" y2="880" stroke="#3b3570" stroke-width="7"/></g>` + imgs(mx)]);
