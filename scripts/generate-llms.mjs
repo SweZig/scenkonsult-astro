@@ -135,6 +135,9 @@ L.push(`Mer info: ${link('/vara-tjanster/hyra-scen/')}`);
 L.push('');
 
 // Ljud
+L.push('### Ljud — översikt');
+L.push(`Hyra ljud i Stockholm: högtalare, PA-system, ljudanläggningar och mikrofoner för konferens, fest, bröllop och konsert, dimensionerade efter gästantal. Leverans, montering och ljudtekniker som tillval. Översikt och alla ljudpaket: ${link('/vara-tjanster/hyra-ljud/')}`);
+L.push('');
 const ljudSections = [
   ['event', 'Ljud — Event/konferens (tal och presentation, utan subwoofer)', '/vara-tjanster/hyra-ljud/event/'],
   ['music', 'Ljud — Music (fest, DJ och dans, med subwoofer)', '/vara-tjanster/hyra-ljud/music/'],
@@ -157,6 +160,9 @@ if (mic) {
 }
 
 // Ljus
+L.push('### Ljus — översikt');
+L.push(`Hyra ljus i Stockholm: färdiga ljuspaket, uplights, moving heads, laser, rök och hazer, stativ och tross för fest, bröllop, event och scen. Översikt och alla ljuspaket: ${link('/vara-tjanster/hyra-ljus/')}`);
+L.push('');
 L.push('### Ljus — färdiga ljuspaket (plug & play)');
 L.push(...productLines(ljus.paket?.products, { extra: (p) => p.variantLabel || p.persons }));
 L.push(`Mer info: ${link('/vara-tjanster/hyra-ljus/fardiga-paket/')}`);
