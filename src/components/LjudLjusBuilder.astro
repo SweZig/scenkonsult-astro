@@ -150,13 +150,18 @@ const payload = JSON.stringify({ R: resolved, G: scen });
     `<rect x="${x + w * 0.08}" y="${y + h * 0.66}" width="${w * 0.55}" height="${h * 0.05}" rx="2" fill="#fff" fill-opacity=".35"/>`;
   const opt = (a: string) => findOption(R, a, A.seg, S[a]);
   const has = (o: any, k: string) => (o?.scen?.draw || '').split(' ').includes(k);
-  // Strålar ur en armatur. fan = nedåt mot golvet (spindel, scanner, ljuspaket),
-  // sweep = uppåt och svepande (moving heads). Ritas bakom armaturbilden.
+  // Strålar ur en armatur. fan = solfjäder nedåt (spindel, scanner, ljuspaket),
+  // sweep = uppåt och svepande (stående moving heads), down = hängande moving head. Ritas bakom armaturbilden.
   function beam(x: number, y: number, kind: string, i: number) {
     if (kind === 'sweep') {
       const dir = i % 2 ? 1 : -1, c = C[(i + 2) % 4];
       return `<polygon class="llb-sweep${i % 2 ? ' d2' : ''}" style="transform-origin:${x}px ${y}px" points="${x - 8},${y} ${x + 8},${y} ${x + dir * 300 + 55},0 ${x + dir * 300 - 55},0" fill="#e2dcfb" opacity=".24"/>` +
         `<polygon class="llb-sweep d2" style="transform-origin:${x}px ${y}px" points="${x - 6},${y} ${x + 6},${y} ${x - dir * 110 + 45},0 ${x - dir * 110 - 45},0" fill="${c}" opacity=".2"/>`;
+    }
+    if (kind === 'down') {
+      // Hängande moving head: svepande stråle ner mot golvet
+      const dir = i % 2 ? 1 : -1;
+      return `<polygon class="llb-sweep${i % 2 ? ' d2' : ''}" style="transform-origin:${x}px ${y}px" points="${x - 7},${y} ${x + 7},${y} ${x + dir * 160 + 60},740 ${x + dir * 160 - 60},740" fill="${C[(i + 1) % 4]}" opacity=".34"/>`;
     }
     let g = '';
     for (let k = 0; k < 4; k++) {
