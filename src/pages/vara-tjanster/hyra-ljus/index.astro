@@ -8,6 +8,7 @@ import ljusData from '../../../data/ljus.json';
 import elData from '../../../data/el.json';
 import tjanster from '../../../data/tjanster.json';
 import PopularaPaket from '../../../components/PopularaPaket.astro';
+import EventBilder from '../../../components/EventBilder.astro';
 import LeveransMonteringEl from '../../../components/LeveransMonteringEl.astro';
 
 // Praktiska frågor — belopp och gästantal läses ur datafilerna, aldrig handskrivna.
@@ -103,6 +104,8 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <LjudLjusPromo />
 
   <PopularaPaket data={ljusData} category="Ljus" lead="Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket." allaHref="/vara-tjanster/hyra-ljus/fardiga-paket/" allaLabel="Se alla ljuspaket →" />
+
+  <EventBilder items={(ljusData as any).eventbilder} lead="Ett urval av ljussättningar vi levererat i Stockholm." />
 
   <LeveransMonteringEl data={ljusData} typ="ljus" exempel={['SK-LJS-PAK-0001', 'SK-LJS-PAK-0023', 'SK-LJS-PAK-0007']} />
 

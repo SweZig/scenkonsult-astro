@@ -1,0 +1,33 @@
+---
+/**
+ * EventBilder.astro — "Från våra event" på ljud- och ljushubben.
+ * Bilderna är samma filer som på /referenser/ (public/images/event/) och
+ * listas i datafilens `eventbilder`: [{ src, alt, label, desc, pos? }].
+ * pos = object-position när beskärningen till 4:3 annars tappar motivet.
+ */
+import SectionHeader from './SectionHeader.astro';
+
+interface Props { items: Array<{ src: string; alt: string; label: string; desc: string; pos?: string }>; lead?: string }
+const { items = [], lead } = Astro.props;
+---
+{items.length > 0 && (
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+    <SectionHeader eyebrow="Referenser" h2="Från våra event" lead={lead} />
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {items.map((it) => (
+        <a href="/referenser/" class="group block bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all">
+          <div class="overflow-hidden bg-brand-dark" style="aspect-ratio:4/3">
+            <img src={it.src} alt={it.alt} width="800" height="600" loading="lazy" decoding="async" style={it.pos ? `object-position:${it.pos}` : undefined} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          </div>
+          <div class="p-4">
+            <p class="font-semibold text-white text-sm leading-snug mb-1">{it.label}</p>
+            <p class="text-gray-400 text-xs">{it.desc}</p>
+          </div>
+        </a>
+      ))}
+    </div>
+    <div class="mt-6 text-center">
+      <a href="/referenser/" class="text-brand-orange hover:text-white transition-colors text-sm font-semibold">Fler referenser och kundomdömen →</a>
+    </div>
+  </section>
+)}

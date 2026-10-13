@@ -70,5 +70,12 @@ for (const f of ['ljud', 'ljus']) {
   }
 }
 
-console.log(fel ?`❌ ${fel} fel, ${ok} ok` : `✅ ALLA ${ok} KONTROLLER GRÖNA`);
+// Hubbarnas eventbilder ska finnas i public/
+for (const f of ['ljud', 'ljus']) {
+  for (const b of data[f].eventbilder ?? []) {
+    check(fs.existsSync(path.join(process.cwd(), 'public', b.src)), `${f}.json: eventbild saknas: ${b.src}`);
+  }
+}
+
+console.log(fel ? `❌ ${fel} fel, ${ok} ok` : `✅ ALLA ${ok} KONTROLLER GRÖNA`);
 if (fel) process.exit(1);

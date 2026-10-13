@@ -8,6 +8,7 @@ import ljudData from '../../../data/ljud.json';
 import elData from '../../../data/el.json';
 import tjanster from '../../../data/tjanster.json';
 import PopularaPaket from '../../../components/PopularaPaket.astro';
+import EventBilder from '../../../components/EventBilder.astro';
 import LeveransMonteringEl from '../../../components/LeveransMonteringEl.astro';
 
 
@@ -153,6 +154,8 @@ const faqSchema = {
 
   <!-- POPULÄRASTE PAKETEN — grupperat efter tillfälle (ljud.json → populara) -->
   <PopularaPaket data={ljudData} category="Ljud" lead="Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket." allaHref="/vara-tjanster/hyra-ljud/event/" allaLabel="Se alla ljudpaket →" />
+
+  <EventBilder items={(ljudData as any).eventbilder} lead="Ett urval av ljudsystem vi levererat i Stockholm." />
 
   <!-- LEVERANS, MONTERING & EL — belopp ur tjanster.json, montering.cjs och el.json -->
   <LeveransMonteringEl data={ljudData} typ="ljud" exempel={['SK-LJD-EVE-0001', 'SK-LJD-MUS-0002', 'SK-LJD-LIV-0003']} />
