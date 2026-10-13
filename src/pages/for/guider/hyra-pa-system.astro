@@ -13,9 +13,9 @@ const lp = (artno: string) => allProds.find(p => p.artno === artno)?.price ?? 0;
 
 const portSmall  = (ljudData.portable.products as any[]).find(p => p.artno === 'SK-LJD-POR-0001');
 const portMedium = (ljudData.portable.products as any[]).find(p => p.artno === 'SK-LJD-POR-0003');
-const evSmall    = ljudData.event.products[0];
+const evSmall    = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0001');
 const evMedium   = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0002');
-const musSmall   = ljudData.music.products[0];
+const musSmall   = (ljudData.music.products as any[]).find(p => p.artno === 'SK-LJD-MUS-0001');
 const musMedium  = (ljudData.music.products as any[]).find(p => p.artno === 'SK-LJD-MUS-0003');
 
 const faqSchema = {
@@ -142,6 +142,7 @@ const pageArticle = { headline: "Hyra PA-system Stockholm — Guide & Priser 202
       </div>
       <div class="mt-5 flex flex-wrap gap-3">
         <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla PA-system →</a>
+        <a href="/vara-tjanster/hyra-ljud-och-ljus/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Hyra ljud och ljus i ett paket →</a>
       </div>
     </section>
 

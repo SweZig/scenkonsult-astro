@@ -4,6 +4,8 @@ import ProductCard from '../../../components/ProductCard.astro';
 import djData from '../../../data/dj.json';
 import ljudData from '../../../data/ljud.json';
 import sceneData from '../../../data/scenes.json';
+import tjData from '../../../data/tjanster.json';
+const levFran = (tjData as any).leverans.standard.pris;
 
 const eq = djData.equipment as any[];
 // DJ-tjänst pristabell härledd från equipment[] (master). Inkl moms = ×1.25.
@@ -21,7 +23,7 @@ const sp = (artno: string) => (sceneData.products as any[]).find(p => p.artno ==
 const scenSmallPris = sp('SK-SCN-0001');  // Scenpaket Small — DJ-bord
 
 // Ljudpaket för bröllop
-const evSmall  = ljudData.event.products[0];
+const evSmall  = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0001');
 const evMedium = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0002');
 
 const faqSchema = {
@@ -144,7 +146,7 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
           ["Junior DJ, 4 tim", `${svcTable[2].junior} kr`],
           ["PA-system (Event Medium)", `${evMedium?.price ?? 0} kr`],
           ["Scenpaket Small (DJ-bord)", `${scenSmallPris} kr`],
-          ["Leverans & hämtning", "Offert"],
+          ["Leverans & hämtning", `från ${levFran.toLocaleString('sv-SE')} kr`],
         ].map(([l, v]) => (
           <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.07);">
             <span style="color:rgba(255,255,255,0.5);font-size:0.88rem;">{l}</span>

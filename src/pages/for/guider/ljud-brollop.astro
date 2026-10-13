@@ -4,13 +4,13 @@ import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
 
-const evSmall    = ljudData.event.products[0];   // SK-LJD-EVE-0001
+const evSmall    = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0001');   // SK-LJD-EVE-0001
 const evMedium   = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0002');
 const portMed    = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
-const musicSmall = ljudData.music.products[0];   // SK-LJD-MUS-0001
+const musicSmall = (ljudData.music.products as any[]).find(p => p.artno === 'SK-LJD-MUS-0001');   // SK-LJD-MUS-0001
 const musicMed   = (ljudData.music.products as any[]).find((p:any) => p.artno === 'SK-LJD-MUS-0003');
 const musicXLp   = (ljudData.music.products as any[]).find((p:any) => p.artno === 'SK-LJD-MUS-0006');
-const liveSmall  = ljudData.live.products[0];    // SK-LJD-LIV-0001
+const liveSmall  = (ljudData.live.products as any[]).find(p => p.artno === 'SK-LJD-LIV-0001');    // SK-LJD-LIV-0001
 const liveMedium = (ljudData.live.products as any[]).find((p:any) => p.artno === 'SK-LJD-LIV-0002');
 const ljusSmall  = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0018');
 const ljusMed    = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0025');
@@ -157,6 +157,7 @@ const pageArticle = { headline: "Ljud till Bröllop Stockholm — Guide & Priser
       <div class="mt-5 flex flex-wrap gap-3">
         <a href="/for/brollop/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Mer om bröllopsteknik →</a>
         <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Hyra ljud i Stockholm →</a>
+        <a href="/vara-tjanster/hyra-ljud-och-ljus/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Hyra ljud och ljus i ett paket →</a>
         <a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Kolumnhögtalare →</a>
       </div>
     </section>
