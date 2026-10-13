@@ -55,5 +55,20 @@ check(s4.projbord === null, 'projektorbord ska försvinna utan projektor');
 const s5 = fixMixer(R, { ljud: 'mus-m', mixer: 'mix-42', mik: null, ljus: null, rok: null, bild: 'proj-s', projbord: 'projbord', teknikbord: 'teknikbord' }, 'privat');
 check(s5.projbord === 'projbord' && itemsFor(R, s5, 'privat').some((i) => i.artno === 'SK-DJ-0005'), 'bord med projektor ska ligga kvar och räknas');
 
-console.log(fel ? `❌ ${fel} fel, ${ok} ok` : `✅ ALLA ${ok} KONTROLLER GRÖNA`);
+// Hubbarnas "Populäraste paketen" (ljud.json/ljus.json → populara): varje artno
+// ska finnas och vara aktiv, annars försvinner kortet tyst från hubben.
+for (const f of ['ljud', 'ljus']) {
+  const d = data[f];
+  const alla = Object.values(d).filter((v) => v && Array.isArray(v.products)).flatMap((v) => v.products);
+  check(Array.isArray(d.populara) && d.populara.length >= 3, `${f}.json: populara saknas`);
+  for (const g of d.populara ?? []) {
+    check(!!(g.rubrik && g.gaster && g.lead), `${f}.json: populara-grupp utan rubrik/gäster/lead`);
+    for (const a of g.artnos) {
+      const p = alla.find((x) => x.artno === a);
+      check(!!p && p.active !== false, `${f}.json: populara ${g.rubrik} → ${a} saknas eller är utgången`);
+    }
+  }
+}
+
+console.log(fel ?`❌ ${fel} fel, ${ok} ok` : `✅ ALLA ${ok} KONTROLLER GRÖNA`);
 if (fel) process.exit(1);

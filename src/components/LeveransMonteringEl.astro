@@ -1,0 +1,81 @@
+---
+/**
+ * LeveransMonteringEl.astro — sektionen "Leverans, montering & el" på ljud- och
+ * ljushubben. Alla belopp räknas ur datafilerna och motorerna, inget skrivs
+ * för hand:
+ *   leverans  → tjanster.json → leverans (samma fordon som fraktmotorn väljer)
+ *   montering → src/lib/montering.cjs + montering-catalog.json (samma motor
+ *               som varukorgen), räknat per exempelpaket
+ *   el        → el.json (elverk, grenuttag) slås upp på artno
+ */
+import tjanster from '../data/tjanster.json';
+import el from '../data/el.json';
+import monteringCatalog from '../data/montering-catalog.json';
+import monteringSrc from '../lib/montering.cjs?raw';
+
+interface Props {
+  data: any;              // ljud.json eller ljus.json
+  exempel: string[];      // artno för monteringsexemplen
+  typ: 'ljud' | 'ljus';
+}
+const { data, exempel, typ } = Astro.props;
+
+const mod: any = { exports: {} };
+new Function('module', 'exports', monteringSrc)(mod, mod.exports);
+const M = mod.exports.create(monteringCatalog);
+
+const alla: any[] = Object.values(data)
+  .filter((v: any) => v && typeof v === 'object' && Array.isArray(v.products))
+  .flatMap((v: any) => v.products);
+const prod = (a: string) => alla.find((p) => p.artno === a && p.active !== false);
+const exempelRader = exempel.map(prod).filter(Boolean).map((p: any) => {
+  const r = M.calc([{ artno: p.artno, qty: 1 }]);
+  return { name: p.name, kronor: r.kronor, tid: M.formatTid(r.minuter) };
+}).filter((r: any) => r.kronor > 0);
+
+const L: any = (tjanster as any).leverans;
+const P = M.params;
+const elPris = (a: string) => (el as any).products.find((p: any) => p.artno === a)?.price;
+const elverkLiten = elPris('SK-EL-0012');
+const elverkStor = elPris('SK-EL-0013');
+const rulle25 = elPris('SK-EL-0008');
+const kr = (n: number) => n.toLocaleString('sv-SE');
+---
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14" id="leverans">
+  <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 sm:p-8">
+    <p class="text-brand-orange text-xs font-bold uppercase tracking-widest mb-2" style="font-family:'Space Grotesk',sans-serif">Praktiskt</p>
+    <h2 class="text-2xl text-white mb-6" style="font-family:'DM Serif Display',serif;">Leverans, montering &amp; el</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
+        <h3 class="font-bold text-white mb-2">Hämta själv</h3>
+        <p class="text-gray-400 text-sm leading-relaxed">Kostnadsfritt i Vällingby. Hämtning från kl 13:00, återlämning senast kl 11:00 nästa dag. Allt är packat och testat.</p>
+      </div>
+      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
+        <h3 class="font-bold text-white mb-2">Leverans &amp; upphämtning</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-3">I hela Storstockholm, tur och retur. Fordonet väljs efter vad du hyr och priset syns direkt i varukorgen.</p>
+        <ul class="text-sm space-y-1">
+          <li class="flex justify-between gap-3"><span class="text-gray-400">Vanlig bil</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={L.standard.pris}>{kr(L.standard.pris)}</span> kr</span></li>
+          <li class="flex justify-between gap-3"><span class="text-gray-400">Stor bil</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={L.storbil.pris}>{kr(L.storbil.pris)}</span> kr</span></li>
+          <li class="flex justify-between gap-3"><span class="text-gray-400">Lätt lastbil</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={L.lastbil.pris}>{kr(L.lastbil.pris)}</span> kr</span></li>
+        </ul>
+      </div>
+      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
+        <h3 class="font-bold text-white mb-2">Montering &amp; demontering</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-3">Vi ställer upp, testar och plockar ned. <span data-exkl={P.prisPerTimme}>{kr(P.prisPerTimme)}</span> kr/tim, avrundat uppåt till närmaste kvart. Exempel:</p>
+        <ul class="text-sm space-y-1">
+          {exempelRader.map((r: any) => (
+            <li class="flex justify-between gap-3"><span class="text-gray-400">{r.name.replace(/^Ljuspaket, /, '')}</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={r.kronor}>{kr(r.kronor)}</span> kr</span></li>
+          ))}
+        </ul>
+      </div>
+      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
+        <h3 class="font-bold text-white mb-2">El</h3>
+        {typ === 'ljus'
+          ? <p class="text-gray-400 text-sm leading-relaxed">LED-paketen går på vanliga vägguttag. Hyr ni både ljud och ljus, eller en rigg med rökmaskiner, fördela på två säkringsgrupper. Utan el: elverk från <span data-exkl={elverkLiten}>{kr(elverkLiten)}</span> kr/dygn.</p>
+          : <p class="text-gray-400 text-sm leading-relaxed">Aktiva högtalare går på vanliga vägguttag. Lägg ljud och ljus på olika säkringsgrupper. Utan el: batterihögtalare, eller elverk från <span data-exkl={elverkLiten}>{kr(elverkLiten)}</span> kr/dygn.</p>}
+        <p class="text-gray-400 text-xs mt-3">Grenuttag på rulle 25 m <span data-exkl={rulle25}>{kr(rulle25)}</span> kr · elverk 6 000 W <span data-exkl={elverkStor}>{kr(elverkStor)}</span> kr</p>
+      </div>
+    </div>
+    <p class="text-gray-400 text-xs mt-5">{L.zon}</p>
+  </div>
+</section>
