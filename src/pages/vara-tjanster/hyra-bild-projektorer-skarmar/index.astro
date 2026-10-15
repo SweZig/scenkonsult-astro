@@ -212,7 +212,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
       marginBottom="1.5rem"
     />
     <div class="duk-grid">
-      {bildData.dukar?.map((d) => (
+      {bildData.dukar?.filter((d: any) => d.active !== false).map((d) => (
         <article class="duk-card group" data-sk-product={dukSkJson(d)} tabindex="0" role="button" aria-label={`Visa info om ${d.name}`} style="cursor:pointer">
           <div class="duk-card-img bg-brand-dark overflow-hidden" style="position:relative;">
             <img src={d.image} alt={d.alt ?? d.name} loading="lazy"

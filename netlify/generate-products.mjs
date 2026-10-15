@@ -225,7 +225,7 @@ sects.push('');
 // PROJEKTORDUKAR
 if (bild.dukar?.length) {
   sects.push('PROJEKTORDUKAR → /vara-tjanster/hyra-bild-projektorer-skarmar/');
-  bild.dukar.forEach(p => {
+  bild.dukar.filter(p => p.active !== false).forEach(p => {
     if (p.price) sects.push(prodLine(p.name, p.price, '/dygn'));
   });
   sects.push('');
@@ -297,7 +297,7 @@ QUOTE_CAT['Karaoke'] = { products:
 // Bild
 QUOTE_CAT['Bild'] = { sub: {
   'Projektorer & skärmar': (bild.products||[]).filter(p=>p.slug&&p.price).map(qp),
-  'Projektordukar':        (bild.dukar||[]).filter(p=>p.slug&&p.price).map(qp),
+  'Projektordukar':        (bild.dukar||[]).filter(p=>p.slug&&p.price&&p.active!==false).map(qp),
   'Tillbehör':             (bild.tillbehor||[]).filter(p=>p.slug&&p.price).map(qp),
 }};
 
