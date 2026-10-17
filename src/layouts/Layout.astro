@@ -2266,7 +2266,15 @@ const localBusinessSchema = {
         var val = kort.querySelector('[data-sk-ankare-val="' + art + '"]');
         if (val && val.getAttribute('aria-pressed') !== 'true') val.click();
         kort.style.scrollMarginTop = 'calc(var(--nav-offset, 166px) + 1rem)';
-        kort.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Direkt hopp, inte smooth: en mjuk scroll körs inte i en flik i
+        // bakgrunden och hamnar fel när lata bilder ovanför laddar under
+        // animationen. Ett andra hopp rättar efter bilderna — om besökaren
+        // inte redan själv har scrollat.
+        kort.scrollIntoView({ behavior: 'instant', block: 'start' });
+        var y = window.scrollY;
+        setTimeout(function () {
+          if (Math.abs(window.scrollY - y) < 2) kort.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }, 700);
         kort.classList.add('sk-ankare-mal');
         setTimeout(function () { kort.classList.remove('sk-ankare-mal'); }, 2600);
       }
