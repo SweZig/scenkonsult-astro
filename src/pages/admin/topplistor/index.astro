@@ -1,0 +1,455 @@
+---
+// /admin/topplistor/ — Underhåll av "Populäraste paketen" per kategori.
+//
+// Grupperna och kategorikonfigurationen ligger i Supabase (content_categories,
+// popular_groups, popular_group_items) och läses av netlify/generate-popular.mjs
+// vid prebuild, som skriver src/data/popular.json. Ändringar här syns på sajten
+// efter nästa publicering — inte direkt, till skillnad från kundlistan.
+//
+// Data via /.netlify/functions/admin-popular (service key).
+// Rankningsförslaget hämtas från /.netlify/functions/admin-stats-sales, som
+// redan aggregerar per artno — ingen statistik räknas om här.
+import katalog from '../../../data/order-catalog-flat.json';
+
+// Kompakt uppslag artno → namn (katalogen är nycklad på både artno och slug).
+const PRODUKTER: Array<{ artno: string; name: string }> = Object.values(
+  Object.fromEntries(
+    Object.values(katalog as Record<string, any>)
+      .filter((p: any) => p && p.artno && p.name)
+      .map((p: any) => [p.artno, { artno: p.artno, name: p.name }])
+  )
+);
+PRODUKTER.sort((a, b) => a.artno.localeCompare(b.artno, 'sv'));
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Topplistor — Admin</title>
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+    .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
+    .topbar a:hover { color: #c4b5f4; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
+    .topbar-right { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.40); }
+
+    .wrap { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    .hint { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.1rem; line-height: 1.5; }
+    .hint b { color: #e2dcfb; }
+    .hint a { color: #c4b5f4; }
+
+    .catbar { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .catchip { font-size: 0.78rem; color: rgba(255,255,255,0.7); background: #1e1850; border: 1px solid rgba(196,181,244,0.18); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: inherit; }
+    .catchip:hover { border-color: rgba(196,181,244,0.5); }
+    .catchip.on { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
+    .catchip .n { opacity: 0.6; font-size: 0.72rem; }
+    .catchip.on .n { opacity: 0.7; }
+
+    .panel { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 1rem; }
+    .panel h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: #c4b5f4; margin-bottom: 0.7rem; }
+    .fieldrow { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.5rem; }
+    label.f { font-size: 0.72rem; color: rgba(255,255,255,0.5); min-width: 92px; }
+    input[type="text"], select, textarea { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 9px; font-family: inherit; font-size: 0.82rem; color-scheme: dark; }
+    input.grow { flex: 1; min-width: 180px; }
+    textarea { width: 100%; min-height: 48px; resize: vertical; }
+
+    .group { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.8rem 0.9rem; margin-bottom: 0.7rem; }
+    .group.inactive { opacity: 0.45; }
+    .ghead { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .grip { display: flex; flex-direction: column; gap: 1px; color: rgba(255,255,255,0.25); }
+    .grip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.62rem; padding: 1px; }
+    .grip button:hover { color: #c4b5f4; }
+    .grip button:disabled { opacity: 0.2; cursor: default; }
+
+    .items { list-style: none; margin: 0.5rem 0 0; padding: 0; }
+    .items li { display: flex; align-items: center; gap: 0.5rem; padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.8rem; }
+    .items li .artno { color: #c4b5f4; font-size: 0.72rem; min-width: 128px; }
+    .items li .nm { flex: 1; color: rgba(255,255,255,0.8); }
+    .items li .src { font-size: 0.66rem; color: rgba(255,255,255,0.35); }
+    .items li .x { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 0.9rem; }
+    .items li .x:hover { color: #fca5a5; }
+
+    .btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.75); border-radius: 8px; padding: 5px 11px; font-size: 0.76rem; cursor: pointer; font-family: inherit; }
+    .btn:hover { border-color: rgba(196,181,244,0.5); color: #e2dcfb; }
+    .btn.primary { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
+    .btn.primary:hover { background: #e2dcfb; }
+    .btn.danger:hover { border-color: rgba(252,165,165,0.5); color: #fca5a5; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .spacer { margin-left: auto; }
+
+    .add-btn { display: block; width: 100%; background: rgba(196,181,244,0.08); border: 1px dashed rgba(196,181,244,0.35); color: #c4b5f4; border-radius: 12px; padding: 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 0.4rem; }
+    .add-btn:hover { background: rgba(196,181,244,0.14); }
+    .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 1.3rem; font-size: 0.85rem; }
+
+    dialog { background: #1e1850; color: #f0eeff; border: 1px solid rgba(196,181,244,0.3); border-radius: 14px; padding: 1.1rem; max-width: 560px; width: 92vw; font-family: inherit; }
+    dialog::backdrop { background: rgba(5,3,20,0.7); }
+    dialog h3 { color: #c4b5f4; font-size: 0.95rem; margin-bottom: 0.3rem; }
+    dialog p.sub { font-size: 0.76rem; color: rgba(255,255,255,0.5); margin-bottom: 0.8rem; }
+    .rank { list-style: none; max-height: 46vh; overflow-y: auto; margin: 0 0 0.8rem; padding: 0; }
+    .rank li { display: flex; align-items: center; gap: 0.6rem; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.07); font-size: 0.8rem; }
+    .rank li .pos { color: rgba(255,255,255,0.35); min-width: 20px; font-size: 0.75rem; }
+    .rank li .nm { flex: 1; }
+    .rank li .antal { color: #c4b5f4; font-size: 0.76rem; }
+    .rank li input { accent-color: #c4b5f4; }
+
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1e1850; border: 1px solid rgba(196,181,244,0.4); color: #e2dcfb; padding: 8px 16px; border-radius: 10px; font-size: 0.82rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
+    .toast.show { opacity: 1; }
+
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; }
+    .auth-box h2 { color: #c4b5f4; font-size: 1.1rem; margin-bottom: 1rem; }
+    .auth-box input { width: 100%; background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 10px 12px; font-family: inherit; margin-bottom: 0.75rem; color-scheme: dark; }
+    .auth-box button { width: 100%; background: #c4b5f4; color: #1a1430; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .auth-box button:hover { background: #e2dcfb; }
+    .auth-err { color: #fca5a5; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1rem; }
+  </style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Topplistor</h2>
+    <input type="password" id="pw-input" placeholder="Adminlösenord" autocomplete="current-password" />
+    <button id="pw-btn">Logga in</button>
+    <div class="auth-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="topbar">
+    <a href="/admin/">← Admin</a>
+    <h1>🏆 Topplistor</h1>
+    <div class="topbar-right" id="status"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="hint">
+      Grupperna styr sektionen <b>"Populäraste paketen"</b> på kategorihubbarna. Varje grupp
+      är ett tillfälle med ett gästantal — <b>kundens ord</b>, inte produktserien. Lägg till
+      artiklar manuellt eller tryck <b>Fyll från bokningsdata</b> för att se de mest uthyrda
+      artiklarna i kategorin de senaste tolv månaderna.
+      <b>Ändringar syns först efter nästa publicering</b>, eftersom sidorna byggs statiskt.
+    </div>
+
+    <div class="catbar" id="catbar"></div>
+    <div id="catconf"></div>
+    <div id="groups"></div>
+    <button class="add-btn" id="add-group">+ Ny grupp</button>
+  </div>
+</div>
+
+<dialog id="rank-dlg">
+  <h3>Mest uthyrda — <span id="rank-cat"></span></h3>
+  <p class="sub" id="rank-sub">Antal uthyrningar senaste tolv månaderna. Kryssa i de du vill lägga till i gruppen.</p>
+  <ul class="rank" id="rank-list"></ul>
+  <div style="display:flex;gap:0.5rem;justify-content:flex-end">
+    <button class="btn" id="rank-close">Avbryt</button>
+    <button class="btn primary" id="rank-add">Lägg till valda</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script define:vars={{ PRODUKTER }}>
+  window.SK_PRODUKTER = PRODUKTER;
+</script>
+
+<script>
+const ADMIN_KEY = 'sk_admin_token';
+let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
+let categories = [], groups = [], items = [];
+let aktiv = '';
+let rankTarget = null, rankRows = [];
+
+const NAMN = new Map((window.SK_PRODUKTER || []).map(p => [p.artno, p.name]));
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+function setStatus(s){ document.getElementById('status').textContent = s; }
+
+async function tryLogin(pw) {
+  try {
+    const res = await fetch('/api/admin-auth?_=' + Date.now(), {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return !!j.ok;
+  } catch (e) { return false; }
+}
+
+document.getElementById('pw-btn').onclick = async () => {
+  const pw = document.getElementById('pw-input').value.trim();
+  if (!pw) return;
+  if (await tryLogin(pw)) {
+    adminToken = pw; sessionStorage.setItem(ADMIN_KEY, pw);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    loadAll();
+  } else { document.getElementById('pw-err').textContent = 'Fel lösenord'; }
+};
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
+
+if (adminToken) {
+  tryLogin(adminToken).then(okResp => {
+    if (okResp) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      loadAll();
+    } else { sessionStorage.removeItem(ADMIN_KEY); adminToken = ''; }
+  });
+}
+
+async function api(action, extra) {
+  const res = await fetch('/.netlify/functions/admin-popular', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...extra }),
+  });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return null; }
+  if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'Serverfel'); }
+  return res.json();
+}
+
+async function loadAll() {
+  setStatus('Hämtar…');
+  const res = await fetch('/.netlify/functions/admin-popular', { headers: { 'Authorization': 'Bearer ' + adminToken } });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return; }
+  const j = await res.json();
+  categories = j.categories || []; groups = j.groups || []; items = j.items || [];
+  if (!aktiv && categories.length) aktiv = categories[0].slug;
+  setStatus(`${categories.length} kategorier · ${groups.filter(g=>g.active).length} grupper`);
+  render();
+}
+
+const gruppItems = (gid) => items.filter(i => i.group_id === gid).sort((a,b)=>a.sort_order-b.sort_order);
+const kategoriGrupper = () => groups.filter(g => g.category === aktiv).sort((a,b)=>a.sort_order-b.sort_order);
+
+function render() {
+  document.getElementById('catbar').innerHTML = categories.map(c => {
+    const n = groups.filter(g => g.category === c.slug && g.active).length;
+    const arv = (c.source_categories || []).length ? ' ↩' : '';
+    return `<button class="catchip ${c.slug===aktiv?'on':''}" data-cat="${escapeHtml(c.slug)}">${escapeHtml(c.label)}${arv} <span class="n">${n}</span></button>`;
+  }).join('');
+
+  const c = categories.find(x => x.slug === aktiv) || {};
+  const arvd = (c.source_categories || []).length;
+  document.getElementById('catconf').innerHTML = `
+    <div class="panel">
+      <h3>Rubrik och länk för ${escapeHtml(c.label || aktiv)}</h3>
+      <div class="fieldrow"><label class="f">Rubrik</label>
+        <input type="text" class="grow" id="c-heading" value="${escapeHtml(c.popular_heading||'')}" placeholder="Populäraste paketen" /></div>
+      <div class="fieldrow"><label class="f">Ingress</label>
+        <input type="text" class="grow" id="c-lead" value="${escapeHtml(c.popular_lead||'')}" placeholder="(valfri)" /></div>
+      <div class="fieldrow"><label class="f">Se alla-länk</label>
+        <input type="text" class="grow" id="c-href" value="${escapeHtml(c.alla_href||'')}" placeholder="/vara-tjanster/…" />
+        <input type="text" class="grow" id="c-label" value="${escapeHtml(c.alla_label||'')}" placeholder="Se alla … →" /></div>
+      <div class="fieldrow">
+        <button class="btn primary" id="c-save">Spara rubriker</button>
+        ${arvd ? `<span style="font-size:0.74rem;color:rgba(255,255,255,0.5)">↩ Hämtar grupper från <b style="color:#c4b5f4">${(c.source_categories||[]).join(' + ')}</b> — egna grupper används inte.</span>` : ''}
+      </div>
+    </div>`;
+
+  const gs = kategoriGrupper();
+  document.getElementById('groups').innerHTML = gs.length ? gs.map((g,i) => groupHtml(g,i,gs.length)).join('')
+    : `<div class="empty">Inga grupper för ${escapeHtml(c.label || aktiv)} än.</div>`;
+  document.getElementById('add-group').style.display = arvd ? 'none' : 'block';
+  bind();
+}
+
+function groupHtml(g, i, len) {
+  const its = gruppItems(g.id);
+  return `
+  <div class="group ${g.active?'':'inactive'}" data-gid="${escapeHtml(g.id)}">
+    <div class="ghead">
+      <div class="grip">
+        <button data-up="${escapeHtml(g.id)}" ${i===0?'disabled':''} title="Flytta upp">▲</button>
+        <button data-down="${escapeHtml(g.id)}" ${i===len-1?'disabled':''} title="Flytta ner">▼</button>
+      </div>
+      <input type="text" class="grow" data-f="rubrik" value="${escapeHtml(g.rubrik)}" placeholder="Rubrik" />
+      <input type="text" data-f="gaster" value="${escapeHtml(g.gaster||'')}" placeholder="Upp till 180 gäster" style="width:180px" />
+    </div>
+    <div class="fieldrow"><input type="text" class="grow" data-f="lead" value="${escapeHtml(g.lead||'')}" placeholder="Ingress (valfri)" /></div>
+    <ul class="items">
+      ${its.length ? its.map(it => `
+        <li>
+          <span class="artno">${escapeHtml(it.artno)}</span>
+          <span class="nm">${escapeHtml(NAMN.get(it.artno) || '— finns inte i katalogen —')}</span>
+          ${it.source === 'data' ? '<span class="src">från data</span>' : ''}
+          <button class="x" data-rm="${escapeHtml(it.artno)}" title="Ta bort">✕</button>
+        </li>`).join('')
+      : '<li style="color:rgba(255,255,255,0.4)">Inga artiklar</li>'}
+    </ul>
+    <div class="fieldrow" style="margin-top:0.6rem">
+      <input type="text" data-f="newartno" list="artnolist" placeholder="SK-LJD-EVE-0002" style="width:190px" />
+      <button class="btn" data-add="${escapeHtml(g.id)}">Lägg till</button>
+      <button class="btn" data-rank="${escapeHtml(g.id)}">Fyll från bokningsdata</button>
+      <span class="spacer"></span>
+      <button class="btn primary" data-save="${escapeHtml(g.id)}">Spara</button>
+      <button class="btn danger" data-del="${escapeHtml(g.id)}">Ta bort</button>
+    </div>
+  </div>`;
+}
+
+function bind() {
+  document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { aktiv = b.dataset.cat; render(); });
+  const save = document.getElementById('c-save');
+  if (save) save.onclick = async () => {
+    try {
+      await api('upsert-category', { category: {
+        slug: aktiv,
+        popular_heading: document.getElementById('c-heading').value,
+        popular_lead: document.getElementById('c-lead').value,
+        alla_href: document.getElementById('c-href').value,
+        alla_label: document.getElementById('c-label').value,
+      }});
+      toast('Rubriker sparade'); await loadAll();
+    } catch (e) { toast('Fel: ' + e.message); }
+  };
+
+  document.querySelectorAll('[data-up]').forEach(b => b.onclick = () => flytta(b.dataset.up, -1));
+  document.querySelectorAll('[data-down]').forEach(b => b.onclick = () => flytta(b.dataset.down, 1));
+  document.querySelectorAll('[data-save]').forEach(b => b.onclick = () => sparaGrupp(b.dataset.save));
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => raderaGrupp(b.dataset.del));
+  document.querySelectorAll('[data-add]').forEach(b => b.onclick = () => laggTill(b.dataset.add));
+  document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    const gid = b.closest('.group').dataset.gid;
+    sattItems(gid, nuvarande(gid).filter(a => a.artno !== b.dataset.rm));
+  });
+  document.querySelectorAll('[data-rank]').forEach(b => b.onclick = () => oppnaRank(b.dataset.rank));
+}
+
+async function flytta(gid, delta) {
+  const gs = kategoriGrupper();
+  const i = gs.findIndex(g => g.id === gid);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= gs.length) return;
+  [gs[i], gs[j]] = [gs[j], gs[i]];
+  try { await api('reorder-groups', { ids: gs.map(g => g.id) }); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function sparaGrupp(gid) {
+  const el = document.querySelector(`.group[data-gid="${CSS.escape(gid)}"]`);
+  const v = (f) => el.querySelector(`[data-f="${f}"]`).value.trim();
+  if (!v('rubrik')) { toast('Rubrik krävs'); return; }
+  const g = groups.find(x => x.id === gid);
+  try {
+    await api('upsert-group', { group: { id: gid, category: aktiv, rubrik: v('rubrik'), gaster: v('gaster'), lead: v('lead'), sort_order: g ? g.sort_order : 0, active: true } });
+    toast('Grupp sparad'); await loadAll();
+  } catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function raderaGrupp(gid) {
+  if (!confirm('Ta bort gruppen? Den döljs men finns kvar i databasen.')) return;
+  try { await api('delete-group', { id: gid }); toast('Borttagen'); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function laggTill(gid) {
+  const el = document.querySelector(`.group[data-gid="${CSS.escape(gid)}"]`);
+  const inp = el.querySelector('[data-f="newartno"]');
+  const artno = inp.value.trim().toUpperCase();
+  if (!artno) return;
+  if (!NAMN.has(artno)) { toast('Okänt artikelnummer — finns inte i katalogen'); return; }
+  const nu = nuvarande(gid);
+  if (nu.some(a => a.artno === artno)) { toast('Artikeln finns redan i gruppen'); return; }
+  inp.value = '';
+  await sattItems(gid, [...nu, { artno, source: 'manual' }]);
+}
+
+// Gruppens lista som { artno, source } — varje rad behåller sitt ursprung när
+// listan skrivs om, så "från data"-märkningen inte smittar av sig.
+const nuvarande = (gid) => gruppItems(gid).map(i => ({ artno: i.artno, source: i.source || 'manual' }));
+
+async function sattItems(gid, artnos) {
+  try { await api('set-items', { group_id: gid, artnos }); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+document.getElementById('add-group').onclick = async () => {
+  const rubrik = prompt('Rubrik för gruppen, t.ex. "Fest, bröllop & dans"');
+  if (!rubrik || !rubrik.trim()) return;
+  try {
+    await api('upsert-group', { group: { category: aktiv, rubrik: rubrik.trim(), sort_order: kategoriGrupper().length } });
+    toast('Grupp skapad'); await loadAll();
+  } catch (e) { toast('Fel: ' + e.message); }
+};
+
+// ── Fyll från bokningsdata ────────────────────────────────────────────────
+async function oppnaRank(gid) {
+  const c = categories.find(x => x.slug === aktiv) || {};
+  const statCats = c.stats_categories || [];
+  if (!statCats.length) { toast('Kategorin saknar koppling till försäljningsstatistiken'); return; }
+
+  rankTarget = gid;
+  document.getElementById('rank-cat').textContent = statCats.join(' + ');
+  document.getElementById('rank-list').innerHTML = '<li>Hämtar…</li>';
+  document.getElementById('rank-dlg').showModal();
+
+  const to = new Date();
+  const from = new Date(to.getTime()); from.setFullYear(from.getFullYear() - 1);
+  const iso = (d) => d.toISOString().slice(0, 10);
+  try {
+    const res = await fetch(`/.netlify/functions/admin-stats-sales?from=${iso(from)}&to=${iso(to)}`, {
+      headers: { 'Authorization': 'Bearer ' + adminToken },
+    });
+    if (!res.ok) throw new Error('kunde inte hämta statistiken');
+    const j = await res.json();
+    // Summera antal per artno över alla månadsperioder i fönstret.
+    const sum = new Map();
+    Object.values((j.periods && j.periods.month) || {}).forEach(b => {
+      (b.products || []).forEach(p => {
+        if (!p.artno || !statCats.includes(p.category)) return;
+        sum.set(p.artno, (sum.get(p.artno) || 0) + (p.antal || 0));
+      });
+    });
+    const redan = new Set(gruppItems(gid).map(i => i.artno));
+    rankRows = [...sum.entries()]
+      .filter(([artno]) => NAMN.has(artno))
+      .map(([artno, antal]) => ({ artno, antal, namn: NAMN.get(artno), redan: redan.has(artno) }))
+      .sort((a, b) => b.antal - a.antal)
+      .slice(0, 25);
+
+    document.getElementById('rank-list').innerHTML = rankRows.length ? rankRows.map((r, i) => `
+      <li>
+        <span class="pos">${i + 1}</span>
+        <input type="checkbox" data-pick="${escapeHtml(r.artno)}" ${r.redan ? 'disabled checked' : ''} />
+        <span class="nm">${escapeHtml(r.namn)} <span class="src">${escapeHtml(r.artno)}</span></span>
+        <span class="antal">${r.antal} st</span>
+      </li>`).join('')
+      : '<li>Inga uthyrningar i kategorin under perioden.</li>';
+  } catch (e) {
+    document.getElementById('rank-list').innerHTML = `<li style="color:#fca5a5">Fel: ${escapeHtml(e.message)}</li>`;
+  }
+}
+
+document.getElementById('rank-close').onclick = () => document.getElementById('rank-dlg').close();
+document.getElementById('rank-add').onclick = async () => {
+  const valda = [...document.querySelectorAll('[data-pick]:checked:not(:disabled)')].map(i => i.dataset.pick);
+  document.getElementById('rank-dlg').close();
+  if (!valda.length) return;
+  const nu = nuvarande(rankTarget);
+  await sattItems(rankTarget, [...nu, ...valda.map(artno => ({ artno, source: 'data' }))]);
+  toast(`${valda.length} artiklar tillagda`);
+};
+</script>
+
+<datalist id="artnolist"></datalist>
+<script>
+  // Datalist för artno-fälten — fylls en gång, används av alla grupper.
+  const dl = document.getElementById('artnolist');
+  (window.SK_PRODUKTER || []).forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.artno; o.label = p.name;
+    dl.appendChild(o);
+  });
+</script>
+
+</body>
+</html>

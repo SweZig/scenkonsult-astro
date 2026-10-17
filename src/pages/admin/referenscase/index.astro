@@ -1,0 +1,469 @@
+---
+// /admin/referenscase/ — Underhåll av referenscasen: eventgalleriet på
+// /referenser/ och raderna "Från våra event" på kategorihubbarna.
+//
+// Modellen: caset äger fakta (rubrik, text, tagg, bilder). Hubbraden äger
+// vinkeln — varje kategori väljer en av casets bilder och får sätta egen
+// rubrik, text och alt-text. En bild utan "I galleriet" hör till caset men
+// visas bara på hubben.
+//
+// Data ligger i Supabase (event_cases, event_case_images, event_case_hub) och
+// läses av netlify/generate-event-cases.mjs vid prebuild, som skriver
+// src/data/event-cases.json. Ändringar syns efter nästa publicering.
+//
+// Data via /.netlify/functions/admin-event-cases (service key).
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Bildfilerna i public/images/event/ listas vid bygget och blir datalist +
+// väljare, så att ingen behöver skriva sökvägar för hand.
+let BILDER: string[] = [];
+try {
+  const dir = path.resolve('public/images/event');
+  BILDER = fs.readdirSync(dir)
+    .filter((f) => /\.(webp|png|jpe?g|avif)$/i.test(f))
+    .sort((a, b) => a.localeCompare(b, 'sv'))
+    .map((f) => `/images/event/${f}`);
+} catch (_) { BILDER = []; }
+---
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Referenscase — Admin</title>
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0c0a24; color: #f0eeff; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+
+    .topbar { background: rgba(30,24,80,0.97); border-bottom: 1px solid rgba(196,181,244,0.15); padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+    .topbar a { color: rgba(196,181,244,0.6); font-size: 0.85rem; text-decoration: none; }
+    .topbar a:hover { color: #c4b5f4; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; color: #c4b5f4; }
+    .topbar-right { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.40); }
+
+    .wrap { max-width: 980px; margin: 0 auto; padding: 1.5rem; }
+    .hint { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 1.1rem; line-height: 1.5; }
+    .hint b { color: #e2dcfb; }
+
+    .catbar { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .catchip { font-size: 0.78rem; color: rgba(255,255,255,0.7); background: #1e1850; border: 1px solid rgba(196,181,244,0.18); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-family: inherit; }
+    .catchip:hover { border-color: rgba(196,181,244,0.5); }
+    .catchip.on { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
+    .catchip .n { opacity: 0.6; font-size: 0.72rem; }
+    .catchip.on .n { opacity: 0.7; }
+
+    .case { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.85rem 0.95rem; margin-bottom: 0.8rem; }
+    .case.inactive { opacity: 0.45; }
+    .chead { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .grip { display: flex; flex-direction: column; gap: 1px; color: rgba(255,255,255,0.25); }
+    .grip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.62rem; padding: 1px; }
+    .grip button:hover { color: #c4b5f4; }
+    .grip button:disabled { opacity: 0.2; cursor: default; }
+
+    .fieldrow { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.45rem; }
+    label.f { font-size: 0.72rem; color: rgba(255,255,255,0.5); min-width: 86px; }
+    input[type="text"], select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 9px; font-family: inherit; font-size: 0.82rem; color-scheme: dark; }
+    input.grow { flex: 1; min-width: 170px; }
+    input[type="checkbox"] { accent-color: #c4b5f4; }
+
+    .cats { display: flex; gap: 0.55rem; flex-wrap: wrap; font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+    .cats label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+
+    .sub { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: #c4b5f4; margin: 0.8rem 0 0.4rem; }
+
+    .imgs { list-style: none; margin: 0; padding: 0; }
+    .imgs li { display: flex; align-items: center; gap: 0.5rem; padding: 5px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+    .imgs img { width: 54px; height: 40px; object-fit: cover; border-radius: 5px; background: #0c0a24; flex: none; }
+    .imgs .fn { font-size: 0.68rem; color: rgba(255,255,255,0.45); width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: none; }
+    .imgs .galleri { font-size: 0.68rem; color: rgba(255,255,255,0.5); display: inline-flex; align-items: center; gap: 4px; flex: none; }
+    .imgs .x { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 0.9rem; }
+    .imgs .x:hover { color: #fca5a5; }
+
+    .hubrow { display: flex; align-items: flex-start; gap: 0.5rem; padding: 7px 0; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+    .hubrow .tagg { font-size: 0.72rem; color: #c4b5f4; min-width: 92px; padding-top: 7px; font-weight: 700; }
+    .hubrow .fields { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 0.35rem; }
+
+    .btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.75); border-radius: 8px; padding: 5px 11px; font-size: 0.76rem; cursor: pointer; font-family: inherit; }
+    .btn:hover { border-color: rgba(196,181,244,0.5); color: #e2dcfb; }
+    .btn.primary { background: #c4b5f4; color: #1a1430; border-color: #c4b5f4; font-weight: 700; }
+    .btn.primary:hover { background: #e2dcfb; }
+    .btn.danger:hover { border-color: rgba(252,165,165,0.5); color: #fca5a5; }
+    .spacer { margin-left: auto; }
+
+    .add-btn { display: block; width: 100%; background: rgba(196,181,244,0.08); border: 1px dashed rgba(196,181,244,0.35); color: #c4b5f4; border-radius: 12px; padding: 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 0.4rem; }
+    .add-btn:hover { background: rgba(196,181,244,0.14); }
+    .empty { text-align: center; color: rgba(255,255,255,0.4); padding: 1.3rem; font-size: 0.85rem; }
+
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1e1850; border: 1px solid rgba(196,181,244,0.4); color: #e2dcfb; padding: 8px 16px; border-radius: 10px; font-size: 0.82rem; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; max-width: 90vw; text-align: center; }
+    .toast.show { opacity: 1; }
+
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-box { background: #1e1850; border: 1px solid rgba(196,181,244,0.2); border-radius: 16px; padding: 2rem; width: 320px; }
+    .auth-box h2 { color: #c4b5f4; font-size: 1.1rem; margin-bottom: 1rem; }
+    .auth-box input { width: 100%; background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 10px 12px; font-family: inherit; margin-bottom: 0.75rem; color-scheme: dark; }
+    .auth-box button { width: 100%; background: #c4b5f4; color: #1a1430; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .auth-box button:hover { background: #e2dcfb; }
+    .auth-err { color: #fca5a5; font-size: 0.8rem; margin-top: 0.5rem; min-height: 1rem; }
+  </style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Referenscase</h2>
+    <input type="password" id="pw-input" placeholder="Adminlösenord" autocomplete="current-password" />
+    <button id="pw-btn">Logga in</button>
+    <div class="auth-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none">
+  <div class="topbar">
+    <a href="/admin/">← Admin</a>
+    <h1>📷 Referenscase</h1>
+    <div class="topbar-right" id="status"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="hint">
+      Casen driver eventgalleriet på <b>/referenser/</b>. Bilder med <b>I galleriet</b>
+      roterar i kortet; en bild utan bocken hör till caset men visas bara på en hubb.
+      Under <b>På kategorihubbar</b> väljer varje kategori en av casets bilder och får
+      egen rubrik och text — ljudhubben lyfter ljudet, ljushubben ljuset.
+      <b>Ändringar syns först efter nästa publicering</b>, eftersom sidorna byggs statiskt.
+    </div>
+
+    <div class="catbar" id="catbar"></div>
+    <div id="cases"></div>
+    <button class="add-btn" id="add-case">+ Nytt case</button>
+  </div>
+</div>
+
+<datalist id="bildlist"></datalist>
+<div class="toast" id="toast"></div>
+
+<script define:vars={{ BILDER }}>
+  window.SK_BILDER = BILDER;
+</script>
+
+<script>
+const ADMIN_KEY = 'sk_admin_token';
+let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
+let categories = [], cases = [], images = [], hub = [];
+let filter = '*';
+
+const BILDER = window.SK_BILDER || [];
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200); }
+function setStatus(s){ document.getElementById('status').textContent = s; }
+
+async function tryLogin(pw) {
+  try {
+    const res = await fetch('/api/admin-auth?_=' + Date.now(), {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const j = await res.json().catch(() => ({}));
+    return !!j.ok;
+  } catch (e) { return false; }
+}
+
+document.getElementById('pw-btn').onclick = async () => {
+  const pw = document.getElementById('pw-input').value.trim();
+  if (!pw) return;
+  if (await tryLogin(pw)) {
+    adminToken = pw; sessionStorage.setItem(ADMIN_KEY, pw);
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    loadAll();
+  } else { document.getElementById('pw-err').textContent = 'Fel lösenord'; }
+};
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pw-btn').click(); });
+
+if (adminToken) {
+  tryLogin(adminToken).then(okResp => {
+    if (okResp) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+      loadAll();
+    } else { sessionStorage.removeItem(ADMIN_KEY); adminToken = ''; }
+  });
+}
+
+async function api(action, extra) {
+  const res = await fetch('/.netlify/functions/admin-event-cases', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + adminToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, ...extra }),
+  });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return null; }
+  if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || 'Serverfel'); }
+  return res.json();
+}
+
+async function loadAll() {
+  setStatus('Hämtar…');
+  const res = await fetch('/.netlify/functions/admin-event-cases', { headers: { 'Authorization': 'Bearer ' + adminToken } });
+  if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return; }
+  const j = await res.json();
+  categories = j.categories || []; cases = j.cases || []; images = j.images || []; hub = j.hub || [];
+  setStatus(`${cases.filter(c=>c.active).length} case · ${images.length} bilder · ${hub.length} hubbrader`);
+  render();
+}
+
+const caseBilder = (id) => images.filter(i => i.case_id === id).sort((a,b)=>a.sort_order-b.sort_order);
+const caseHub = (id) => hub.filter(h => h.case_id === id).sort((a,b)=>a.sort_order-b.sort_order);
+const sorterade = () => cases.slice().sort((a,b)=>a.sort_order-b.sort_order);
+const synliga = () => sorterade().filter(c => filter === '*' || (c.categories || []).includes(filter));
+
+function render() {
+  const alla = sorterade();
+  document.getElementById('catbar').innerHTML =
+    `<button class="catchip ${filter==='*'?'on':''}" data-cat="*">Alla <span class="n">${alla.length}</span></button>` +
+    categories.map(c => {
+      const n = alla.filter(x => (x.categories||[]).includes(c.slug)).length;
+      return `<button class="catchip ${c.slug===filter?'on':''}" data-cat="${escapeHtml(c.slug)}">${escapeHtml(c.label)} <span class="n">${n}</span></button>`;
+    }).join('');
+
+  const vis = synliga();
+  document.getElementById('cases').innerHTML = vis.length
+    ? vis.map((c,i) => caseHtml(c, alla.indexOf(c), alla.length)).join('')
+    : '<div class="empty">Inga case i den här kategorin.</div>';
+  bind();
+}
+
+function bildOptions(selected) {
+  return BILDER.map(b => `<option value="${escapeHtml(b)}" ${b===selected?'selected':''}>${escapeHtml(b.replace('/images/event/',''))}</option>`).join('');
+}
+
+function caseHtml(c, i, len) {
+  const bilder = caseBilder(c.id);
+  const hubbar = caseHub(c.id);
+  const lediga = categories.filter(k => !hubbar.some(h => h.category === k.slug));
+  return `
+  <div class="case ${c.active?'':'inactive'}" data-cid="${escapeHtml(c.id)}">
+    <div class="chead">
+      <div class="grip">
+        <button data-up="${escapeHtml(c.id)}" ${i===0?'disabled':''} title="Flytta upp">▲</button>
+        <button data-down="${escapeHtml(c.id)}" ${i===len-1?'disabled':''} title="Flytta ner">▼</button>
+      </div>
+      <input type="text" class="grow" data-f="label" value="${escapeHtml(c.label)}" placeholder="Rubrik, t.ex. Festival – Vinterviken" />
+      <input type="text" data-f="tag" value="${escapeHtml(c.tag||'')}" placeholder="Tagg" style="width:140px" />
+    </div>
+    <div class="fieldrow"><input type="text" class="grow" data-f="descr" value="${escapeHtml(c.descr||'')}" placeholder="Beskrivning" /></div>
+    <div class="fieldrow"><label class="f">Kategorier</label>
+      <span class="cats">${categories.map(k => `<label><input type="checkbox" data-kat="${escapeHtml(k.slug)}" ${(c.categories||[]).includes(k.slug)?'checked':''} /> ${escapeHtml(k.label)}</label>`).join('')}</span>
+    </div>
+
+    <div class="sub">Bilder</div>
+    <ul class="imgs">
+      ${bilder.length ? bilder.map((im, j) => `
+        <li data-src="${escapeHtml(im.src)}">
+          <div class="grip">
+            <button data-imgup="${escapeHtml(im.src)}" ${j===0?'disabled':''}>▲</button>
+            <button data-imgdown="${escapeHtml(im.src)}" ${j===bilder.length-1?'disabled':''}>▼</button>
+          </div>
+          <img src="${escapeHtml(im.src)}" alt="" loading="lazy" />
+          <span class="fn" title="${escapeHtml(im.src)}">${escapeHtml(im.src.replace('/images/event/',''))}</span>
+          <input type="text" class="grow" data-imgalt value="${escapeHtml(im.alt||'')}" placeholder="Alt-text" />
+          <label class="galleri"><input type="checkbox" data-imggal ${im.in_gallery===false?'':'checked'} /> I galleriet</label>
+          <button class="x" data-imgrm="${escapeHtml(im.src)}" title="Ta bort">✕</button>
+        </li>`).join('')
+      : '<li style="color:rgba(255,255,255,0.4);font-size:0.8rem">Inga bilder — caset renderas inte förrän minst en bild finns.</li>'}
+    </ul>
+    <div class="fieldrow" style="margin-top:0.5rem">
+      <select data-f="newimg"><option value="">Välj bildfil…</option>${bildOptions('')}</select>
+      <input type="text" class="grow" data-f="newalt" placeholder="Alt-text för bilden" />
+      <button class="btn" data-imgadd="${escapeHtml(c.id)}">Lägg till bild</button>
+    </div>
+
+    <div class="sub">På kategorihubbar</div>
+    ${hubbar.length ? hubbar.map(h => {
+      const k = categories.find(x => x.slug === h.category);
+      return `
+      <div class="hubrow" data-hubcat="${escapeHtml(h.category)}">
+        <span class="tagg">${escapeHtml(k ? k.label : h.category)}</span>
+        <div class="fields">
+          <div class="fieldrow" style="margin:0">
+            <select data-hf="image_src">${bildOptions(h.image_src)}</select>
+            <input type="text" data-hf="pos" value="${escapeHtml(h.pos||'')}" placeholder="object-position (valfri)" style="width:170px" />
+          </div>
+          <div class="fieldrow" style="margin:0">
+            <input type="text" class="grow" data-hf="label" value="${escapeHtml(h.label||'')}" placeholder="Egen rubrik (annars casets)" />
+          </div>
+          <div class="fieldrow" style="margin:0">
+            <input type="text" class="grow" data-hf="descr" value="${escapeHtml(h.descr||'')}" placeholder="Egen text (annars casets)" />
+          </div>
+          <div class="fieldrow" style="margin:0">
+            <input type="text" class="grow" data-hf="alt" value="${escapeHtml(h.alt||'')}" placeholder="Egen alt-text (annars bildens)" />
+            <button class="btn primary" data-hubsave="${escapeHtml(h.category)}">Spara raden</button>
+            <button class="btn danger" data-hubrm="${escapeHtml(h.category)}">Ta bort</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('') : '<p style="font-size:0.8rem;color:rgba(255,255,255,0.4)">Caset visas inte på någon hubb.</p>'}
+    ${lediga.length ? `
+    <div class="fieldrow" style="margin-top:0.5rem">
+      <select data-f="newhub"><option value="">Lägg på hubb…</option>${lediga.map(k=>`<option value="${escapeHtml(k.slug)}">${escapeHtml(k.label)}</option>`).join('')}</select>
+      <button class="btn" data-hubadd="${escapeHtml(c.id)}">Lägg till hubbrad</button>
+      <span style="font-size:0.72rem;color:rgba(255,255,255,0.4)">Använder första bilden — justera sedan raden.</span>
+    </div>` : ''}
+
+    <div class="fieldrow" style="margin-top:0.7rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:0.7rem">
+      <span style="font-size:0.68rem;color:rgba(255,255,255,0.3)">${escapeHtml(c.id)}</span>
+      <span class="spacer"></span>
+      <button class="btn primary" data-save="${escapeHtml(c.id)}">Spara case och bilder</button>
+      <button class="btn danger" data-del="${escapeHtml(c.id)}">Ta bort</button>
+    </div>
+  </div>`;
+}
+
+function bind() {
+  document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { filter = b.dataset.cat; render(); });
+  document.querySelectorAll('[data-up]').forEach(b => b.onclick = () => flytta(b.dataset.up, -1));
+  document.querySelectorAll('[data-down]').forEach(b => b.onclick = () => flytta(b.dataset.down, 1));
+  document.querySelectorAll('[data-save]').forEach(b => b.onclick = () => sparaCase(b.dataset.save));
+  document.querySelectorAll('[data-del]').forEach(b => b.onclick = () => raderaCase(b.dataset.del));
+  document.querySelectorAll('[data-imgadd]').forEach(b => b.onclick = () => laggBild(b.dataset.imgadd));
+  document.querySelectorAll('[data-imgrm]').forEach(b => b.onclick = () => taBort(b.closest('.case').dataset.cid, b.dataset.imgrm));
+  document.querySelectorAll('[data-imgup]').forEach(b => b.onclick = () => flyttaBild(b.closest('.case').dataset.cid, b.dataset.imgup, -1));
+  document.querySelectorAll('[data-imgdown]').forEach(b => b.onclick = () => flyttaBild(b.closest('.case').dataset.cid, b.dataset.imgdown, 1));
+  document.querySelectorAll('[data-hubsave]').forEach(b => b.onclick = () => sparaHub(b.closest('.case').dataset.cid, b.dataset.hubsave));
+  document.querySelectorAll('[data-hubrm]').forEach(b => b.onclick = () => taBortHub(b.closest('.case').dataset.cid, b.dataset.hubrm));
+  document.querySelectorAll('[data-hubadd]').forEach(b => b.onclick = () => laggHub(b.dataset.hubadd));
+}
+
+const kort = (cid) => document.querySelector(`.case[data-cid="${CSS.escape(cid)}"]`);
+
+// Läser bildlistan ur DOM så att alt-texter och galleribockar följer med.
+function bildrader(cid) {
+  return [...kort(cid).querySelectorAll('.imgs li[data-src]')].map(li => ({
+    src: li.dataset.src,
+    alt: li.querySelector('[data-imgalt]').value.trim(),
+    in_gallery: li.querySelector('[data-imggal]').checked,
+  }));
+}
+
+async function flytta(cid, delta) {
+  const cs = sorterade();
+  const i = cs.findIndex(c => c.id === cid);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= cs.length) return;
+  [cs[i], cs[j]] = [cs[j], cs[i]];
+  try { await api('reorder-cases', { ids: cs.map(c => c.id) }); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function sparaCase(cid) {
+  const el = kort(cid);
+  const v = (f) => el.querySelector(`[data-f="${f}"]`).value.trim();
+  if (!v('label')) { toast('Rubrik krävs'); return; }
+  if (!v('descr')) { toast('Beskrivning krävs'); return; }
+  if (!v('tag')) { toast('Tagg krävs'); return; }
+  const kategorier = [...el.querySelectorAll('[data-kat]:checked')].map(i => i.dataset.kat);
+  const rader = bildrader(cid);
+  const utanAlt = rader.find(r => !r.alt);
+  if (utanAlt) { toast('Alt-text saknas för ' + utanAlt.src.replace('/images/event/','')); return; }
+  const c = cases.find(x => x.id === cid);
+  try {
+    await api('upsert-case', { case: {
+      id: cid, label: v('label'), descr: v('descr'), tag: v('tag'),
+      categories: kategorier, sort_order: c ? c.sort_order : 0, active: true,
+    }});
+    await api('set-images', { case_id: cid, images: rader });
+    toast('Sparat'); await loadAll();
+  } catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function raderaCase(cid) {
+  if (!confirm('Ta bort caset? Det döljs men finns kvar i databasen.')) return;
+  try { await api('delete-case', { id: cid }); toast('Borttaget'); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function laggBild(cid) {
+  const el = kort(cid);
+  const src = el.querySelector('[data-f="newimg"]').value;
+  const alt = el.querySelector('[data-f="newalt"]').value.trim();
+  if (!src) { toast('Välj en bildfil'); return; }
+  if (!alt) { toast('Alt-text krävs'); return; }
+  const rader = bildrader(cid);
+  if (rader.some(r => r.src === src)) { toast('Bilden finns redan i caset'); return; }
+  try {
+    await api('set-images', { case_id: cid, images: [...rader, { src, alt, in_gallery: true }] });
+    toast('Bild tillagd'); await loadAll();
+  } catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function taBort(cid, src) {
+  const rader = bildrader(cid).filter(r => r.src !== src);
+  try { await api('set-images', { case_id: cid, images: rader }); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function flyttaBild(cid, src, delta) {
+  const rader = bildrader(cid);
+  const i = rader.findIndex(r => r.src === src);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= rader.length) return;
+  [rader[i], rader[j]] = [rader[j], rader[i]];
+  try { await api('set-images', { case_id: cid, images: rader }); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function sparaHub(cid, kategori) {
+  const row = kort(cid).querySelector(`.hubrow[data-hubcat="${CSS.escape(kategori)}"]`);
+  const v = (f) => row.querySelector(`[data-hf="${f}"]`).value.trim();
+  const h = caseHub(cid).find(x => x.category === kategori);
+  try {
+    await api('set-hub', { hub: {
+      case_id: cid, category: kategori, image_src: v('image_src'),
+      label: v('label'), descr: v('descr'), alt: v('alt'), pos: v('pos'),
+      sort_order: h ? h.sort_order : 0,
+    }});
+    toast('Hubbraden sparad'); await loadAll();
+  } catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function taBortHub(cid, kategori) {
+  try { await api('remove-hub', { case_id: cid, category: kategori }); toast('Hubbraden borttagen'); await loadAll(); }
+  catch (e) { toast('Fel: ' + e.message); }
+}
+
+async function laggHub(cid) {
+  const kategori = kort(cid).querySelector('[data-f="newhub"]').value;
+  if (!kategori) { toast('Välj en kategori'); return; }
+  const bilder = caseBilder(cid);
+  if (!bilder.length) { toast('Caset behöver minst en sparad bild först'); return; }
+  const n = hub.filter(h => h.category === kategori).length;
+  try {
+    await api('set-hub', { hub: { case_id: cid, category: kategori, image_src: bilder[0].src, sort_order: n } });
+    toast('Hubbrad tillagd'); await loadAll();
+  } catch (e) { toast('Fel: ' + e.message); }
+}
+
+document.getElementById('add-case').onclick = async () => {
+  const label = prompt('Rubrik för caset, t.ex. "Festival – Vinterviken"');
+  if (!label || !label.trim()) return;
+  try {
+    const j = await api('upsert-case', { case: {
+      label: label.trim(), descr: 'Beskrivning saknas', tag: 'Företagsevent',
+      categories: filter === '*' ? [] : [filter], sort_order: cases.length,
+    }});
+    toast('Case skapat — fyll i text, tagg och bilder');
+    await loadAll();
+    const el = j && j.case ? kort(j.case.id) : null;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (e) { toast('Fel: ' + e.message); }
+};
+
+// Datalist över bildfilerna — används av fritextfält om något läggs till senare.
+const dl = document.getElementById('bildlist');
+BILDER.forEach(b => { const o = document.createElement('option'); o.value = b; dl.appendChild(o); });
+</script>
+
+</body>
+</html>

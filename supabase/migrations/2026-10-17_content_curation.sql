@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS content_categories (
   popular_lead      TEXT,
   cases_lead        TEXT,                             -- lead över referensraden
   source_categories TEXT[] NOT NULL DEFAULT '{}',     -- tomt = sig själv. ljud-och-ljus = {ljud,ljus}
+  stats_categories  TEXT[] NOT NULL DEFAULT '{}',     -- toppkategorier i admin-stats-sales som rankningen läser
   sort_order        INTEGER NOT NULL DEFAULT 0,
   active            BOOLEAN NOT NULL DEFAULT TRUE,
   updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -114,15 +115,15 @@ END $$;
 
 -- Seed — exakt dagens innehåll. Sajten ska se likadan ut efter etapp 0.
 
-INSERT INTO content_categories (slug, label, hub_path, alla_href, alla_label, popular_heading, popular_lead, source_categories, cases_lead, sort_order) VALUES
-  ('ljud', 'Ljud', '/vara-tjanster/hyra-ljud/', '/vara-tjanster/hyra-ljud/event/', 'Se alla ljudpaket →', 'Populäraste paketen', 'Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket.', '{}', 'Ett urval av ljudsystem vi levererat i Stockholm.', 0),
-  ('ljus', 'Ljus', '/vara-tjanster/hyra-ljus/', '/vara-tjanster/hyra-ljus/fardiga-paket/', 'Se alla ljuspaket →', 'Populäraste paketen', 'Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket.', '{}', 'Ett urval av ljussättningar vi levererat i Stockholm.', 1),
-  ('bild', 'Bild', '/vara-tjanster/hyra-bild/', '/vara-tjanster/hyra-bild-projektorer-skarmar/', 'Se alla bildpaket →', 'Topplista Bild', NULL, '{}', NULL, 2),
-  ('scen', 'Scen', '/vara-tjanster/hyra-scen/', '/vara-tjanster/hyra-scen/', 'Se alla scenpaket →', 'Topplista Scen', NULL, '{}', NULL, 3),
-  ('dj', 'DJ', '/vara-tjanster/hyra-dj/', '/vara-tjanster/hyra-dj-utrustning/', 'Se all DJ-utrustning →', 'Topplista DJ', NULL, '{}', NULL, 4),
-  ('karaoke', 'Karaoke', '/vara-tjanster/hyra-karaoke/', '/vara-tjanster/hyra-karaoke/', 'Se alla karaokepaket →', 'Topplista Karaoke', NULL, '{}', NULL, 5),
-  ('konferens', 'Konferens-AV', '/vara-tjanster/konferens-av/', '/vara-tjanster/konferens-av/', 'Se all konferensteknik →', 'Topplista Konferens', NULL, '{}', NULL, 6),
-  ('ljud-och-ljus', 'Ljud & ljus', '/vara-tjanster/hyra-ljud-och-ljus/', '/vara-tjanster/hyra-ljud-och-ljus/', 'Se alla paket →', 'Populäraste paketen', 'Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket.', ARRAY['ljud','ljus'], NULL, 7)
+INSERT INTO content_categories (slug, label, hub_path, alla_href, alla_label, popular_heading, popular_lead, source_categories, stats_categories, cases_lead, sort_order) VALUES
+  ('ljud', 'Ljud', '/vara-tjanster/hyra-ljud/', '/vara-tjanster/hyra-ljud/event/', 'Se alla ljudpaket →', 'Populäraste paketen', 'Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket.', '{}', ARRAY['Ljud'], 'Ett urval av ljudsystem vi levererat i Stockholm.', 0),
+  ('ljus', 'Ljus', '/vara-tjanster/hyra-ljus/', '/vara-tjanster/hyra-ljus/fardiga-paket/', 'Se alla ljuspaket →', 'Populäraste paketen', 'Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket.', '{}', ARRAY['Ljus'], 'Ett urval av ljussättningar vi levererat i Stockholm.', 1),
+  ('bild', 'Bild', '/vara-tjanster/hyra-bild/', '/vara-tjanster/hyra-bild-projektorer-skarmar/', 'Se alla bildpaket →', 'Topplista Bild', NULL, '{}', ARRAY['Bild'], NULL, 2),
+  ('scen', 'Scen', '/vara-tjanster/hyra-scen/', '/vara-tjanster/hyra-scen/', 'Se alla scenpaket →', 'Topplista Scen', NULL, '{}', ARRAY['Scen'], NULL, 3),
+  ('dj', 'DJ', '/vara-tjanster/hyra-dj/', '/vara-tjanster/hyra-dj-utrustning/', 'Se all DJ-utrustning →', 'Topplista DJ', NULL, '{}', ARRAY['DJ'], NULL, 4),
+  ('karaoke', 'Karaoke', '/vara-tjanster/hyra-karaoke/', '/vara-tjanster/hyra-karaoke/', 'Se alla karaokepaket →', 'Topplista Karaoke', NULL, '{}', ARRAY['Karaoke'], NULL, 5),
+  ('konferens', 'Konferens-AV', '/vara-tjanster/konferens-av/', '/vara-tjanster/konferens-av/', 'Se all konferensteknik →', 'Topplista Konferens', NULL, '{}', ARRAY['Bild','Ljud','Scen'], NULL, 6),
+  ('ljud-och-ljus', 'Ljud & ljus', '/vara-tjanster/hyra-ljud-och-ljus/', '/vara-tjanster/hyra-ljud-och-ljus/', 'Se alla paket →', 'Populäraste paketen', 'Välj efter tillfälle och hur många ni blir – gästantalet står på varje paket.', ARRAY['ljud','ljus'], ARRAY['Ljud','Ljus'], NULL, 7)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO popular_groups (id, category, rubrik, gaster, lead, sort_order) VALUES

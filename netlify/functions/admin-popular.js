@@ -15,8 +15,10 @@
 // POST { action: 'delete-group', id }                     (mjuk: active=false)
 // POST { action: 'reorder-groups', ids: [...] }
 // POST { action: 'set-items', group_id, artnos: [...], source? }
-//        Ersätter gruppens hela lista. source='data' märker rader som kom från
-//        bokningsstatistiken ("Fyll från bokningsdata" i admin).
+//        Ersätter gruppens hela lista. Varje post är ett artikelnummer eller
+//        { artno, source }; source='data' märker rader som kom från
+//        bokningsstatistiken ("Fyll från bokningsdata" i admin). `source` på
+//        toppnivå är förval för poster som inte anger eget.
 //
 // Rankningsunderlaget hämtas av admin-sidan direkt från admin-stats-sales —
 // den aggregerar redan per artno, så ingen statistik räknas om här.
@@ -153,9 +155,20 @@ exports.handler = async (event) => {
       const gid = body.group_id;
       if (!gid) return err('group_id krävs', 400);
       if (!Array.isArray(body.artnos)) return err('artnos måste vara array', 400);
-      const source = body.source === 'data' ? 'data' : 'manual';
-      // Dubbletter tas bort — (group_id, artno) är primärnyckel.
-      const artnos = [...new Set(body.artnos.map((a) => String(a).trim()).filter(Boolean))];
+      const fallback = body.source === 'data' ? 'data' : 'manual';
+      // Varje rad får behålla sitt eget ursprung: en post kan vara en sträng
+      // eller { artno, source }. Dubbletter tas bort — (group_id, artno) är
+      // primärnyckel, och första förekomsten vinner.
+      const sedda = new Set();
+      const artnos = [];
+      for (const a of body.artnos) {
+        const artno = String(typeof a === 'string' ? a : (a && a.artno) || '').trim();
+        if (!artno || sedda.has(artno)) continue;
+        sedda.add(artno);
+        const s = typeof a === 'object' && a && a.source === 'data' ? 'data'
+          : typeof a === 'object' && a && a.source === 'manual' ? 'manual' : fallback;
+        artnos.push({ artno, source: s });
+      }
       if (artnos.length > 24) return err('Max 24 artiklar per grupp', 400);
 
       await rest(`popular_group_items?group_id=eq.${encodeURIComponent(gid)}`, { method: 'DELETE' });
@@ -163,7 +176,7 @@ exports.handler = async (event) => {
         await rest('popular_group_items', {
           method: 'POST',
           headers: { ...headers(), Prefer: 'return=minimal' },
-          body: JSON.stringify(artnos.map((artno, i) => ({ group_id: gid, artno, sort_order: i, source }))),
+          body: JSON.stringify(artnos.map((a, i) => ({ group_id: gid, artno: a.artno, sort_order: i, source: a.source }))),
         });
       }
       console.log('POPULAR_ITEMS_SET:', gid, '=', artnos.length, `(${source})`);
