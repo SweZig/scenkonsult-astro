@@ -94,6 +94,12 @@ export function buildSvenProducts(data) {
   for (const src of SVEN_SOURCES) {
     for (const p of at(data[src.file], src.path)) {
       if (!p || typeof p !== 'object' || !p.price || !p.name) continue;
+      // Utgångna produkter (active:false) ligger kvar i datafilerna för gamla
+      // ordrar, men Sven ska aldrig kunna lägga dem i en varukorg. Före
+      // 2026-10-17 låg tretton sådana i registret, bl.a. den pensionerade
+      // PAK-0004 under sluggen "ljus-medium". Ordrar och offerter slår upp i
+      // order-catalog-flat.json, som behåller dem.
+      if (p.active === false) continue;
       const id = cartIdFor(p, src.key);
       if (!id) continue;
       out[id] = { name: p.name, price: p.price, category: src.category };

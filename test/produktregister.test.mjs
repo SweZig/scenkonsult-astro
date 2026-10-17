@@ -38,11 +38,26 @@ for (const src of SVEN_SOURCES) {
   let node = data[src.file];
   for (const seg of src.path) node = node?.[seg];
   const items = Array.isArray(node) ? node : node && typeof node === 'object' ? Object.values(node) : [];
-  const priced = items.filter((p) => p && typeof p === 'object' && p.price && p.name);
+  // Utgångna produkter (active:false) ska INTE finnas i registret (2026-10-17).
+  const priced = items.filter((p) => p && typeof p === 'object' && p.price && p.name && p.active !== false);
   const missing = priced.filter((p) => !reg[cartIdFor(p, src.key)]);
   check(`${src.file}.${src.path.join('.')}`, missing.length === 0,
     missing.length ? `${missing.length} utan cart-ID: ${missing.map((m) => m.name).slice(0, 3).join(', ')}`
                    : `${priced.length} st`);
+}
+
+// Omvänt: ingen utgången produkt får finnas i registret — då kan Sven lägga den
+// i en varukorg. Före 2026-10-17 låg tretton där.
+{
+  const utgangna = [];
+  for (const src of SVEN_SOURCES) {
+    let node = data[src.file];
+    for (const seg of src.path) node = node?.[seg];
+    const items = Array.isArray(node) ? node : node && typeof node === 'object' ? Object.values(node) : [];
+    for (const p of items) if (p && p.active === false && reg[cartIdFor(p, src.key)]?.name === p.name) utgangna.push(p.name);
+  }
+  check('inga utgångna produkter i registret', utgangna.length === 0,
+    utgangna.length ? `${utgangna.length}: ${utgangna.slice(0, 3).join(', ')}` : '');
 }
 
 console.log('\n2. REGRESSIONSVAKT — samlingarna som saknades 2026-09-08');
@@ -51,7 +66,7 @@ for (const [namn, items, key] of [
   ['ljus.stativ.tillbehor', data.ljus.stativ?.tillbehor || [], undefined],
   ['el.products',           data.el.products || [],            undefined],
 ]) {
-  const priced = items.filter((p) => p.price);
+  const priced = items.filter((p) => p.price && p.active !== false);
   const inReg = priced.filter((p) => reg[cartIdFor(p, key)]);
   check(namn + ' finns i Svens register', inReg.length === priced.length,
     `${inReg.length}/${priced.length}`);
