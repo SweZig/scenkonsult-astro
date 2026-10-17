@@ -3,7 +3,7 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v18.0",
+    version="v18.1",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
@@ -121,8 +121,8 @@ DOC5 = dict(
               "GSC `sc-domain:scenkonsult.se`."),
 
         ("h2", "3.5 Innehålls-admin (Referenser, Recensioner, Bulletin, Topplistor, Referenscase)"),
-        ("p", "En \"Innehåll\"-dropdown i admin-topbaren samlar Referenskunder, Recensioner, Bulletin, "
-              "Topplistor och Referenscase. Innehållet underhålls i **Supabase** och synkas till "
+        ("p", "En \"Innehåll\"-dropdown i admin-topbaren samlar Referenskunder, Referenscase, "
+              "Recensioner, Bulletin och Topplistor (ordningen sedan 2026-10-17). Innehållet underhålls i **Supabase** och synkas till "
               "committade JSON-filer vid build (med säker fallback); sidorna läser JSON server-side. "
               "**Produktadmin skriver till repot (§4) — innehållsadmin skriver till databasen.** "
               "Ändringar i innehållsadmin syns först efter nästa deploy, eftersom sidorna byggs statiskt."),
@@ -140,6 +140,8 @@ DOC5 = dict(
             "**`set-images`** ersätter casets bildlista och svarar **409** om en borttagen bild används av en hubbrad — hellre ett fel än en föräldralös rad. Sökvägar valideras mot `/images/…\\.(webp|png|jpg|jpeg|avif)`; alt-text krävs.",
             "**`set-hub`** kräver att bilden hör till caset. Bildväljaren i admin listar filerna i `public/images/event/` vid bygget, så ingen skriver sökvägar för hand.",
             "Båda endpoints bakom `ADMIN_TOKEN`; service-nyckeln skriver förbi RLS.",
+            "**Ordning i admin (2026-10-17):** artiklarna i en topplistegrupp flyttas med pilar eller dra-och-släpp; varje rad behåller sitt ursprung. /admin/referenser/ listar kunderna i bokstavsordning (svensk sortering, Å/Ä/Ö sist) — ordningen på referenssidan styrs inte därifrån.",
+            "**Tester (2026-10-17):** `test/admin-innehall.test.cjs` kör varje action i båda endpoints mot en mockad PostgREST — 29 kontroller, bl.a. 401, ursprung per rad i `set-items`, taket 24 och att 409 i `set-images` inte raderar något. Ingår i `npm test`; testet fångar 500-felet som `set-items` hade.",
         ]),
         ("note", "**Databasen först, push sedan** — gäller allt innehåll som har en committad fallback. "
                  "Se Dok 2 §12.3. Rader som Claude författar levereras som SQL som körs i Supabase SQL "
@@ -325,6 +327,8 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.1", "2026-10-17",
+             "§3.5 menyordningen, flytta artiklar i topplistor, referenskunder i bokstavsordning, test/admin-innehall.test.cjs i npm test."],
             ["v18.0", "2026-10-17",
              "§1 /admin/topplistor/ och /admin/referenscase/. §2 frakt via skFrakt med fordonet i "
              "leveransraden, karaokerabattens rad. §3.2 monteringsfälten följer med i admin, "

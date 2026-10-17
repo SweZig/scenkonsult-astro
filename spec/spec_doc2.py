@@ -3,7 +3,7 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v18.0",
+    version="v18.1",
     date="2026-10-17",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
@@ -61,6 +61,11 @@ DOC2 = dict(
             ["src/data/montering-catalog.json", "generate-quote-catalog.py (NY 2026-09-28, §5.1)"],
             ["public/llms.txt", "scripts/generate-llms.mjs (NY 2026-10-02 — Dok 3 §7)"],
         ]),
+        ("note", "**Utgångna produkter i katalogerna (2026-10-17).** `quote-catalog.json` är "
+                 "admins produktväljare i offerter och källan till Excel-katalogen; den utesluter nu "
+                 "`active: false` (363 → 350 poster). Den fulla katalogen behålls internt i "
+                 "`generate-quote-catalog.py`, så `order-catalog-flat.json` och sortimentskontrollen "
+                 "har kvar dem — gamla ordrar och offerter slår upp där."),
         ("note", "**Avspårade ur git 2026-09-20.** Ignore-reglerna skrevs redan i juni men fick aldrig "
                  "effekt, eftersom `git rm --cached` aldrig kördes — `.gitignore` gäller aldrig "
                  "retroaktivt. Filerna låg därför kvar som spårade och dök upp som modifierade i varje "
@@ -292,7 +297,7 @@ DOC2 = dict(
                  "AV-teknik Stockholm\") så den inte kannibaliserar projektorer-skarmar-sidans long-tail "
                  "(\"Hyra Projektor & Storbildsskärm\"). Frontpage-kortet pekar på hubben (Dok 3)."),
         ("ul", [
-            "**200\" Valerion-duk (2026-10-15):** ny SK-BLD-0016 200\" Projektorduk Frontview, 3 799 kr/dygn, egen produktbild `pp_bild_200-duk.webp`. SK-BLD-0008 190\" Frontview `active: false` + `(utgått)`; SK-BLD-0009 190\" Rearview `active: false` (dold tills vidare). Dukgriden och Svens prislista filtrerar bort `active: false` — men **cart-ID-listan gör det inte**: `projektorduk-190-fv` och `-rv` ligger kvar i `CART_ID_LISTA` och räknas in i de 320 (Dok 6 §9.2).",
+            "**200\" Valerion-duk (2026-10-15):** ny SK-BLD-0016 200\" Projektorduk Frontview, 3 799 kr/dygn, egen produktbild `pp_bild_200-duk.webp`. SK-BLD-0008 190\" Frontview `active: false` + `(utgått)`; SK-BLD-0009 190\" Rearview `active: false` (dold tills vidare). Dukgriden och Svens prislista filtrerar bort `active: false` — och sedan 2026-10-17 gör Svens cart-ID-lista och admins offertväljare det också (§2.1, Dok 4 §4.1).",
             "**Hubben sedan 2026-10-17:** den handkodade sektionen \"Populärast hos oss\" (tre artnos i sidans frontmatter) är ersatt av topplistan och referensraden ur databasen (§12, Dok 3 §6).",
         ]),
 
@@ -447,6 +452,8 @@ DOC2 = dict(
         ("h1", "14. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.1", "2026-10-17",
+             "§2.1 offertväljaren och Excel-katalogen utan utgångna produkter; order-catalog-flat.json oförändrad. §10 cart-ID-listan filtrerar active: false."],
             ["v18.0", "2026-10-17",
              "§5 frakt omskrivet: tre standardfordon, släp som undantag, frakt.cjs (största fordonet "
              "vinner), plattformsmatrisen, forceLeverans-listan; kärnregeln skärpt för obligatorisk men "

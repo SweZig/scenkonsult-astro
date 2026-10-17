@@ -3,7 +3,7 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v18.0",
+    version="v18.1",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
@@ -286,6 +286,8 @@ DOC3 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.1", "2026-10-17",
+             "Scensidans ingress räknar antalet paket ur scenes.json; startsidans scenkort räknar antal och storleksspann. Montering-formuleringarna på /vara-tjanster/, /for/festival/ och bildhubben rättade."],
             ["v18.0", "2026-10-17",
              "§1.2 Hyra ljud och ljus i Ljud-kolumnen. §2 86 filer / 111 sidor. §2.1 konfiguratorsidan, "
              "ljudhubbens titel, undersidornas titlar efter sökord. §2.4 guidegenomgången och elrådet. "

@@ -3,7 +3,7 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v18.0",
+    version="v18.1",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Arbetssätt"),
@@ -212,9 +212,9 @@ DOC6 = dict(
             "**admin/index.astro (9 200+ rader):** dela upp i komponenter. Trigger: när det blir flaskhals att redigera.",
             "**hyra-bild-led-vagg (1 600 rader):** bryt ut LED-konfiguratorn.",
             "**Katalogkonsolidering:** `order-catalog-flat.json` vs `quote-catalog.json` — gemensam källa. Trigger: tredje konsument.",
-            "**Admin-endpoints saknar tester (NY 2026-10-17).** `admin-popular.js` och `admin-event-cases.js` kördes bara mot en mockad PostgREST för hand (alla elva actions + GET + 401). Ett test i `npm test` hade fångat 500-felet i `set-items`. Kräver en ändring i `package.json` → uttryckligt beslut.",
-            "**Helgtexten är hårdkodad i sex sidor (NY 2026-10-17).** `phoneHours`/`weekendNote` i site.json läses bara av Sven och llms.txt; kontakt, bokningssida, order, studentflak, ortssidorna och /en/ har texten inskriven. Samma uppgift på flera ställen glider isär (§6.1).",
-            "**Svens cart-ID-lista tar med utgångna produkter (NY 2026-10-17).** `buildSvenProducts` filtrerar inte `active: false` — de två 190\"-dukarna ligger kvar i `CART_ID_LISTA`. Prislistan filtrerar, så Sven föreslår dem inte, men en `[CART:…]`-tagg med dem skulle godtas.",
+            "**Admin-endpoints saknar tester — LÖST 2026-10-17.** `test/admin-innehall.test.cjs`, 29 kontroller, ingår i `npm test` (Dok 5 §3.5).",
+            "**Hårdkodade tider — LÖST 2026-10-17.** Klockslagen hämtas ur site.json via `src/utils/hours.ts` (Dok 1 §9).",
+            "**Utgångna produkter i Svens register och offertväljaren — LÖST 2026-10-17.** Tretton i registret (307 cart-ID:n kvar) och tretton i väljaren (350 poster kvar); `order-catalog-flat.json` behåller dem. Testet i `produktregister.test.mjs` kontrollerar nu åt båda hållen.",
             "**LjudLjusBuilder och KaraokeBuilder delar inte CSS (NY 2026-10-17).** Konfiguratorns stilar är kopierade med prefixet `llb-`. Kandidat för en gemensam fil. Trigger: en tredje byggare, eller en designändring som måste göras två gånger.",
             "**Utvalda kunder → admin — LÖST.** `featured`-kolumnen och kryssrutan i /admin/referenser/ finns; kodlistan `FEATURED_CLIENT_NAMES` i `src/utils/clients.ts` är bara fallback. Posten står fortfarande som öppen i `claude/Teknisk_Skuld_Backlog.md`.",
             "**FAQ-nyckelstandardisering — LÖST** (allt q/a, Dok 2 §8). Verifierat 2026-09-20: noll förekomster av question/answer.",
@@ -240,8 +240,9 @@ DOC6 = dict(
             "**Netlify:** `GOOGLE_PLACES_API_KEY` kan tas bort.",
             "**DJ Alex:** saknar foto (`DJ_Alex.png` + `dj.json djProfiles`).",
             "**Referenssidan:** kundlogotyperna i högre upplösning; de ärvda är nyckade ur en 1600 px-bild. (Crossfade-paren är utbyggda — 12 av 19 kort har 2–4 bilder.)",
-            "**\"Montering ingår vid behov\" (NY 2026-10-17):** `/vara-tjanster/` har rubriken *Montering ingår vid behov* ovanför brödtexten *600 kr/tim*, och `/for/festival/` säger om modulscenerna att \"montering ingår vid behov\". Båda läses som gratis montering och motsäger Dok 2 §5 och scenprisguiden. Beslut behövs: medveten formulering eller fel.",
-            "**Scensidan säger \"Tolv färdigkomponerade scenpaket\"** i ingressen, men `scenes.json` har elva och sidan renderar elva. Kundvänd text — rätta texten eller räkna fram antalet ur datan.",
+            "**\"Montering ingår vid behov\" — LÖST 2026-10-17.** Rubriken på /vara-tjanster/ är nu *Montering när du behöver* med timpriset ur tjanster.json, och festivalsidan säger att montering tillkommer. (Ursprunglig notering: `/vara-tjanster/` har rubriken *Montering ingår vid behov* ovanför brödtexten *600 kr/tim*, och `/for/festival/` säger om modulscenerna att \"montering ingår vid behov\". Båda läses som gratis montering och motsäger Dok 2 §5 och scenprisguiden. Beslut behövs: medveten formulering eller fel.)",
+            "**Scensidans \"Tolv\" — LÖST 2026-10-17.** Antalet räknas ur `scenes.json` (aktiva paket), liksom startsidans scenkort.",
+            "**Festivalsidan (NY 2026-10-17):** \"Hopfällbara scener från 4×3 m\" — minsta scenpaketet är 2×2 m. Samma sida slår upp `ljudData.live.products[0]` på index, inte artno (projektinstruktionens princip).",
             "**DJ-hubbens referensrad:** bara Skridskodisco har DJ dokumenterat. Systembolaget och Läkarförbundet är festevent med ljud och ljus. Byt i /admin/referenscase/ när fler DJ-uppdrag finns med foto.",
             "**Topplistans rader länkar ingenstans.** Skissen hade \"länk till paketen\". Bildprodukterna har inga egna sidor, och alla-sidan har bara ankarna `#led-trailer`, `#projektorduk`, `#tillbehor`. Ett valfritt länkfält per grupp i `popular_groups` löser det.",
             "**Kategorin `ljud-och-ljus`** finns i databasen (ärver ljud + ljus via `source_categories`) men kombinationssidan anropar inte komponenterna. Arvet ger 24 produkter — för långt för en kombinationssida. Behöver egna korta grupper om sektionen ska in.",
@@ -255,6 +256,8 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.1", "2026-10-17",
+             "§9.2 admin-tester, hårdkodade tider och utgångna produkter i registret/väljaren lösta. §9.4 montering-formuleringarna och scensidans antal lösta; festivalsidans 4×3 m och indexuppslag tillagda."],
             ["v18.0", "2026-10-17",
              "Genomgång av 49 commits sedan v17.0, varav fyra prisändringar från admin (frakt med en motor, montering i admin, offerten alltid "
              "sparad, karaokerabatt, ljud & ljus-konfiguratorn, referenssidan, kurateringslagret i "
@@ -289,12 +292,12 @@ DOC6 = dict(
         ("h1", "11. Dokumentstruktur"),
         ("table", [
             ["Dok", "Innehåll", "Version"],
-            ["Dok 1", "Grund & Design", "v18.0 (2026-10-17)"],
-            ["Dok 2", "Produkter & Data", "v18.0 (2026-10-17)"],
-            ["Dok 3", "Sidor & Navigation", "v18.0 (2026-10-17)"],
-            ["Dok 4", "Kommunikation", "v18.0 (2026-10-17)"],
-            ["Dok 5", "Order, Admin & Infra", "v18.0 (2026-10-17)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.0 (2026-10-17)"],
+            ["Dok 1", "Grund & Design", "v18.1 (2026-10-17)"],
+            ["Dok 2", "Produkter & Data", "v18.1 (2026-10-17)"],
+            ["Dok 3", "Sidor & Navigation", "v18.1 (2026-10-17)"],
+            ["Dok 4", "Kommunikation", "v18.1 (2026-10-17)"],
+            ["Dok 5", "Order, Admin & Infra", "v18.1 (2026-10-17)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.1 (2026-10-17)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "

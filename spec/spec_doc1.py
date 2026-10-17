@@ -3,7 +3,7 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v18.0",
+    version="v18.1",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
@@ -342,7 +342,7 @@ DOC1 = dict(
             ["Fakturaadress", "Vinsta Skolgränd 4, 162 70 Vällingby"],
             ["Grundat", "1986"],
             ["Öppettider", "Mån–fre 09–17, lör–sön 12–15 — **samma som Google-profilen**. Källa: `site.json → company.openingHours` (`\"Mo-Fr 09:00-17:00, Sa-Su 12:00-15:00\"`), JSON-LD i `Layout.astro`. Läses även av llms.txt, Sven och kontaktsidans öppet/stängt-pill"],
-            ["Telefon och helger", "**Telefon mån–fre 09–17.** Lör–sön 12–15 är **depåtider för hämtning och återlämning**; **kvällar och helger är telefonen endast jour** för kunder med pågående uthyrning; nya förfrågningar går via formulär eller varukorg (2026-10-11). Fälten `site.json → company.phoneHours` och `weekendNote` läses bara av Svens fakta (båda) och llms.txt (`phoneHours`). Kontakt, bokningssida, order, studentflak, ortssidorna och /en/ har helgtexten **hårdkodad** — ändras tiderna måste sidorna ändras för hand (Dok 6 §9.2)"],
+            ["Telefon och helger", "**Telefon mån–fre 09–17.** Lör–sön 12–15 är **depåtider för hämtning och återlämning**; **kvällar och helger är telefonen endast jour** för kunder med pågående uthyrning; nya förfrågningar går via formulär eller varukorg (2026-10-11). Klockslagen hämtas sedan 2026-10-17 ur `site.json → company.phoneHours` och `openingHours` via `src/utils/hours.ts` — `telefon()`, `vardag()` och `helg()` med valen `lang` (sv/en), `kort` (09–17 eller 09:00–17:00) och `versal`. Kontakt, om-oss, bokningssida, order, studentflak, fyra guider, ortssidorna och /en/ använder den. Sidorna skriver egna meningar; bara tiderna är datadrivna. Sven och llms.txt läser fälten direkt, `weekendNote` bara Sven"],
             ["Serviceområde", "Hela Storstockholm"],
         ]),
 
@@ -372,6 +372,8 @@ DOC1 = dict(
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.1", "2026-10-17",
+             "Telefon och helger: tiderna formateras av `src/utils/hours.ts` i stället för att stå inskrivna i elva filer."],
             ["v18.0", "2026-10-17",
              "§1.1 popular.json/event-cases.json är committade fallbacks, inte byggartefakter. §1.3 git i "
              "den monterade mappen kräver raderingsrättighet; bundlarna blir kvar i Claude outputs/. §3.2 "

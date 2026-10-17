@@ -3,7 +3,7 @@ DOC4 = dict(
     slug="Kommunikation",
     title="Kommunikation",
     subtitle="E-post (Resend/SES), DNS & DMARC, SMS (46elks), Sven-chatbot",
-    version="v18.0",
+    version="v18.1",
     date="2026-10-17",
     blocks=[
         ("h1", "1. E-postsystem (Resend)"),
@@ -170,8 +170,10 @@ DOC4 = dict(
                  "        ↓  import\n"
                  "netlify/functions/sven-chat.mjs"),
         ("p", "`sven-chat.mjs` importerar exakt tre symboler: `CART_ID_LISTA`, "
-              "`PRODUKTER_OCH_PRISER` och `SVEN_FACTS` (modulen exporterar även `QUOTE_CATALOG`). "
-              "Byggkörningen 2026-10-17 gav **320 cart-ID:n** (317 den 2026-10-02, 301 den 2026-09-21), "
+              "`PRODUKTER_OCH_PRISER` och `SVEN_FACTS` (modulen exporterar även `QUOTE_CATALOG`, som ingen "
+              "importerar). `buildSvenProducts` hoppar över `active: false` sedan 2026-10-17 — tretton "
+              "utgångna produkter låg tidigare i registret, bl.a. PAK-0004 under sluggen `ljus-medium`. "
+              "Byggkörningen efter filtret gav **307 cart-ID:n** (320 före, 317 den 2026-10-02), "
               "180 produktrader, 361 poster i QUOTE_CATALOG och 72 rader i SVEN_FACTS. Siffrorna ändras "
               "med sortimentet — läs dem ur bygget (`generate-products.mjs` skriver ut dem), inte härifrån."),
         ("p", "**SVEN_FACTS** byggs ur `site.json` och `tjanster.json`: kontaktuppgifter med öppettider "
@@ -210,6 +212,8 @@ DOC4 = dict(
         ("h1", "5. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.1", "2026-10-17",
+             "§4.1 utgångna produkter ur Svens register: 307 cart-ID:n. QUOTE_CATALOG-exporten importeras inte av någon."],
             ["v18.0", "2026-10-17",
              "Ny §1.7 Faktura-mail (internkopians bilaga döps efter kund, Offert skapad + ledtid). §4.1 "
              "320 cart-ID:n, 180 produktrader, 361 QUOTE_CATALOG-poster; SVEN_FACTS med helger som jour, "
