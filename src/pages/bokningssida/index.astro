@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { telefon, helg } from '../../utils/hours';
 ---
 
 <Layout
@@ -45,7 +46,7 @@ import Layout from '../../layouts/Layout.astro';
         <li class="flex gap-3"><span style="color:#c4b5f4">✓</span> <span><strong>Bokningsavgift</strong> — 49 kr (exkl. moms) tillkommer för att täcka våra betalnings- och administrativa kostnader.</span></li>
         <li class="flex gap-3"><span style="color:#c4b5f4">✓</span> <span><strong>Avbokning utrustning</strong> — mer än 7 dagar: full återbetalning. 3–7 dagar: 50%. Under 3 dagar: ingen återbetalning.</span></li>
         <li class="flex gap-3"><span style="color:#c4b5f4">✓</span> <span><strong>Avbokning DJ</strong> — mer än 60 dagar: full återbetalning. 30–60 dagar: 50%. Under 30 dagar: ingen återbetalning. Se fullständiga <a href="/hyresvillkor/" class="hover:underline" style="color:#c4b5f4">hyresvillkor</a>.</span></li>
-        <li class="flex gap-3"><span style="color:#c4b5f4">✓</span> <span><strong>Snabbt svar</strong> — telefon mån–fre 09:00–17:00. På helger svarar vi i telefon enbart som jour vid pågående uthyrning — skicka förfrågan här så återkommer vi så snart vi kan. Depån har öppet lör–sön 12:00–15:00 för hämtning och återlämning.</span></li>
+        <li class="flex gap-3"><span style="color:#c4b5f4">✓</span> <span><strong>Snabbt svar</strong> — telefon {telefon({ kort: false })}. På helger svarar vi i telefon enbart som jour vid pågående uthyrning — skicka förfrågan här så återkommer vi så snart vi kan. Depån har öppet {helg({ kort: false })} för hämtning och återlämning.</span></li>
       </ul>
     </div>
 

@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import orderCatalog from '../../data/order-catalog-flat.json';
+import { telefon, helg } from '../../utils/hours';
 ---
 <Layout
   title="Din order – Scenkonsult Norden"
@@ -684,7 +685,7 @@ import orderCatalog from '../../data/order-catalog-flat.json';
       Scenkonsult Norden &nbsp;·&nbsp;
       <a data-tel="MDcyNDQ4MTAwMA==">072-448 10 00</a> &nbsp;·&nbsp;
       <a data-mail="aW5mb0BzY2Vua29uc3VsdC5zZQ==">info@scenkonsult.se</a><br>
-      Telefon mån–fre 09–17 · Hämtning & retur även lör–sön 12–15 · Helger: telefon endast jour vid pågående uthyrning
+      Telefon {telefon()} · Hämtning & retur även {helg()} · Helger: telefon endast jour vid pågående uthyrning
     </div>
 
   </div><!-- /stateOrder -->

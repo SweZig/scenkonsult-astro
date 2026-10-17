@@ -4,6 +4,7 @@ import ModernHero from '../../../components/ModernHero.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import { buildPaket, getProduct, fmtKr } from '../../../utils/paket';
+import { helg, vardag } from '../../../utils/hours';
 
 const portSmallPlus = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0002');
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
@@ -48,7 +49,7 @@ const faq = [
   },
   {
     q: "Kan vi hämta och lämna utrustningen på en lördag?",
-    a: "Ja, depån har öppet för hämtning och återlämning mån–fre 09:00–17:00 och lör–sön 12:00–15:00 (på helger svarar vi i telefon enbart som jour vid pågående uthyrning). Hyr fredag och lämna tillbaka måndag — du betalar bara ett dygn, förutsatt att utrustningen inte är bokad av annan kund. Perfekt för studentflaket som körs på lördag."
+    a: `Ja, depån har öppet för hämtning och återlämning ${vardag({ kort: false })} och ${helg({ kort: false })} (på helger svarar vi i telefon enbart som jour vid pågående uthyrning). Hyr fredag och lämna tillbaka måndag — du betalar bara ett dygn, förutsatt att utrustningen inte är bokad av annan kund. Perfekt för studentflaket som körs på lördag.`
   }
 ];
 

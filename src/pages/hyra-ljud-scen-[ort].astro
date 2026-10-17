@@ -13,6 +13,7 @@ import MediaCard from '../components/MediaCard.astro';
 import ljudData from '../data/ljud.json';
 import scenData from '../data/scenes.json';
 import { getFeaturedClients, getClientsByOrt } from '../utils/clients';
+import { telefon, helg } from '../utils/hours';
 
 const kunder = getFeaturedClients();
 
@@ -115,7 +116,7 @@ const pageSchema = {
       `Leverans till ${ort.namn} på ca ${ort.distansMin} min`,
       "Scen, ljud, ljus & DJ",
       "Hämtning i Vällingby kostnadsfritt",
-      "Öppet mån–fre 09–17, jour vid uthyrning"
+      `Öppet ${telefon()}, jour vid uthyrning`
     ]}
   />
 
@@ -252,7 +253,7 @@ const pageSchema = {
             `Lager i Vällingby — ca ${ort.distans} och ${ort.distansMin} min till ${ort.namn}`,
             "Utrustning från ledande märken: Alto, Allen & Heath, LD Systems, Shure, Denon (ljud) · ADJ, Cameo, Stairville, Global Truss (ljus) · Samsung, BenQ, Epson (bild)",
             "Fri rådgivning — vi hjälper dig välja rätt setup för din lokal",
-            "Telefon mån–fre 09:00–17:00 · hämtning och återlämning även lör–sön 12:00–15:00 · helger och kvällar: telefon endast jour vid pågående uthyrning",
+            `Telefon ${telefon({ kort: false })} · hämtning och återlämning även ${helg({ kort: false })} · helger och kvällar: telefon endast jour vid pågående uthyrning`,
             "Hämtning i Vällingby alltid kostnadsfritt",
             "Tekniker tillgänglig om ni vill ha hjälp på plats (600 kr/tim)"
           ].map(item => (
@@ -331,7 +332,7 @@ const pageSchema = {
     <div style="max-width:700px; margin:0 auto; text-align:center;">
       <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:white; margin:0 0 1rem;">Boka utrustning till {ort.namn}</h2>
       <p style="color:rgba(255,255,255,0.65); font-size:1rem; line-height:1.7; margin:0 0 2.5rem;">
-        Lägg produkterna i varukorgen och begär offert — vi svarar inom en arbetsdag. Eller ring oss direkt på 072-448 10 00 (mån–fre 09–17).
+        Lägg produkterna i varukorgen och begär offert — vi svarar inom en arbetsdag. Eller ring oss direkt på 072-448 10 00 ({telefon()}).
       </p>
       <div style="display:flex; flex-wrap:wrap; gap:1rem; justify-content:center;">
         <a href="/vara-tjanster/" style="background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; padding:0.9rem 2rem; border-radius:10px; text-decoration:none; font-size:1rem;">

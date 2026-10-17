@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import siteData from '../../data/site.json';
 import { getAllClientNames } from '../../utils/clients';
+import { telefon } from '../../utils/hours';
 
 const { company } = siteData;
 // Kundlista (underhålls i admin → Supabase, snapshot i clients.json)
@@ -144,7 +145,7 @@ const clients = getAllClientNames();
       </div>
       <div class="bg-brand-navy border border-white/10 rounded-xl p-4">
         <div class="font-bold text-white mb-1">🕐 Öppet</div>
-        <div class="text-gray-400 text-sm">Mån–Fre 09–17<br/>Jour vid pågående uthyrning</div>
+        <div class="text-gray-400 text-sm">{telefon({ versal: true })}<br/>Jour vid pågående uthyrning</div>
       </div>
     </div>
   </section>

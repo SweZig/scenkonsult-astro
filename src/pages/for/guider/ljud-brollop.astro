@@ -3,6 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
+import { telefon } from '../../../utils/hours';
 
 const evSmall    = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0001');   // SK-LJD-EVE-0001
 const evMedium   = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0002');
@@ -181,7 +182,7 @@ const pageArticle = { headline: "Ljud till Bröllop Stockholm — Guide & Priser
     <!-- CTA -->
     <div style="background:linear-gradient(135deg,#1e1850,#0c0a24); border:1px solid rgba(196,181,244,0.2); border-radius:16px; padding:2rem; text-align:center;">
       <h2 style="font-family:'DM Serif Display',serif; font-size:1.5rem; color:white; margin:0 0 0.5rem;">Osäker på vad ni behöver?</h2>
-      <p style="color:rgba(255,255,255,0.55); font-size:0.95rem; margin:0 0 1.5rem;">Ring oss — vi dimensionerar rätt utan kostnad. 072-448 10 00, mån–fre 09–17.</p>
+      <p style="color:rgba(255,255,255,0.55); font-size:0.95rem; margin:0 0 1.5rem;">Ring oss — vi dimensionerar rätt utan kostnad. 072-448 10 00, {telefon()}.</p>
       <a href="/for/brollop/" style="background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.08em; text-decoration:none; padding:0.85rem 2rem; border-radius:8px; display:inline-block;">Begär offert till ert bröllop</a>
     </div>
 

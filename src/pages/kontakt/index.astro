@@ -8,6 +8,7 @@ import _fraktData from '../../data/tjanster.json';
 // ändras i adminpanelen och en literal siffra blir tyst fel för kunden.
 const _fraktFran = (_fraktData as any).leverans?.standard?.enkelresa;
 import { getReviews, getSummary } from '../../utils/reviews';
+import { telefon, helg, vardag } from '../../utils/hours';
 
 // Kompletta Google-recensioner (nyaste 3 som teaser); komplett lista på /referenser/
 const kontaktReviews = getReviews().slice(0, 3);
@@ -66,8 +67,8 @@ const orter = [
     <h1 class="text-4xl font-extrabold text-white mb-3" style="font-family:'DM Serif Display',serif">Kontakta oss</h1>
     <p class="text-gray-400 text-lg mb-4">Snabbast når du oss genom formuläret nedan — eller lägg produkterna i varukorgen och begär offert. Vi återkommer så snart vi kan.</p>
     <div class="rounded-xl px-5 py-4 mb-10 text-sm leading-relaxed" style="background:rgba(196,181,244,0.07);border:1px solid rgba(196,181,244,0.2);color:rgba(255,255,255,0.72)">
-      <strong class="text-white">Telefon:</strong> mån–fre 09–17.
-      <strong class="text-white">Helger:</strong> depån har öppet lör–sön 12–15 för hämtning och återlämning, men telefonen bemannas då <strong class="text-white">enbart som jour för pågående uthyrningar</strong>. Har du en ny förfrågan på helgen — skriv till oss, så hör vi av oss.
+      <strong class="text-white">Telefon:</strong> {telefon()}.
+      <strong class="text-white">Helger:</strong> depån har öppet {helg()} för hämtning och återlämning, men telefonen bemannas då <strong class="text-white">enbart som jour för pågående uthyrningar</strong>. Har du en ny förfrågan på helgen — skriv till oss, så hör vi av oss.
     </div>
 
     <!-- Kontaktinfo + Formulär -->
@@ -82,7 +83,7 @@ const orter = [
             <div>
               <div class="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Telefon</div>
               <a data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" class="text-white font-semibold hover:underline" style="color:#c4b5f4;cursor:pointer"><noscript>072-448 10 00</noscript></a>
-              <div class="text-gray-400 text-xs mt-0.5">Mån–fre 09–17 · Helger: endast jour vid pågående uthyrning</div>
+              <div class="text-gray-400 text-xs mt-0.5">{telefon({ versal: true })} · Helger: endast jour vid pågående uthyrning</div>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -271,7 +272,7 @@ const orter = [
         </div>
         <div class="rounded-xl p-4" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
           <div class="font-bold text-white mb-1">⏰ Hämtning</div>
-          <div class="text-gray-400 text-sm">Mån–fre 09–17 · Lör–sön 12–15 · Tid bestäms vid bokning</div>
+          <div class="text-gray-400 text-sm">{vardag({ versal: true })} · {helg({ versal: true })} · Tid bestäms vid bokning</div>
         </div>
       </div>
     </section>
