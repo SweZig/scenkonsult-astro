@@ -57,6 +57,7 @@ const productJson = JSON.stringify({
 <article
   class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full"
   itemscope itemtype="https://schema.org/Product"
+  data-sk-ankare={models.map(m => m.artno).join(' ')}
   data-sk-product={productJson}
   style="cursor:pointer"
 >
@@ -92,6 +93,7 @@ const productJson = JSON.stringify({
               i === 0 ? 'border-brand-orange bg-brand-orange/10' : 'border-white/15 bg-transparent',
             ]}
             data-mmc-index={i}
+            data-sk-ankare-val={m.artno}
             aria-pressed={i === 0 ? 'true' : 'false'}
           >
             <span class="block text-[11px] font-semibold text-white leading-tight">{m.shortLabel}</span>

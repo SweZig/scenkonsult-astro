@@ -2246,3 +2246,36 @@ const localBusinessSchema = {
     }
   </style>
   <!-- ========== /MEDIA SLIDER ========== -->
+  <!-- ========== PRODUKTANKARE ========== -->
+  <!-- Länkar som /vara-tjanster/hyra-ljud/event/#sk-ljd-eve-0001 (topplistorna,
+       src/utils/produktLank.ts) pekar på ett artikelnummer. Kortet bär
+       data-sk-ankare med sina artikelnummer; har det varianter väljs rätt
+       variant (data-sk-ankare-val) innan sidan scrollar dit. Körs vid load,
+       så att kortens egna skript hunnit sätta upp väljarna. -->
+  <script is:inline>
+    (function () {
+      function skAnkare() {
+        var h = '';
+        try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) { return; }
+        if (!/^sk-[a-z0-9-]+$/.test(h)) return;
+        var art = h.toUpperCase();
+        var kort = Array.prototype.find.call(document.querySelectorAll('[data-sk-ankare]'), function (el) {
+          return (el.getAttribute('data-sk-ankare') || '').split(/\s+/).indexOf(art) !== -1;
+        });
+        if (!kort) return;
+        var val = kort.querySelector('[data-sk-ankare-val="' + art + '"]');
+        if (val && val.getAttribute('aria-pressed') !== 'true') val.click();
+        kort.style.scrollMarginTop = 'calc(var(--nav-offset, 166px) + 1rem)';
+        kort.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        kort.classList.add('sk-ankare-mal');
+        setTimeout(function () { kort.classList.remove('sk-ankare-mal'); }, 2600);
+      }
+      window.skAnkare = skAnkare;
+      if (document.readyState === 'complete') skAnkare();
+      else window.addEventListener('load', skAnkare);
+      window.addEventListener('hashchange', skAnkare);
+    })();
+  </script>
+  <style is:global>
+    .sk-ankare-mal { outline: 2px solid #c4b5f4; outline-offset: 3px; transition: outline-color .6s; }
+  </style>

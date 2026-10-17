@@ -213,7 +213,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
     />
     <div class="duk-grid">
       {bildData.dukar?.filter((d: any) => d.active !== false).map((d) => (
-        <article class="duk-card group" data-sk-product={dukSkJson(d)} tabindex="0" role="button" aria-label={`Visa info om ${d.name}`} style="cursor:pointer">
+        <article class="duk-card group" data-sk-ankare={d.artno} data-sk-product={dukSkJson(d)} tabindex="0" role="button" aria-label={`Visa info om ${d.name}`} style="cursor:pointer">
           <div class="duk-card-img bg-brand-dark overflow-hidden" style="position:relative;">
             <img src={d.image} alt={d.alt ?? d.name} loading="lazy"
               class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />

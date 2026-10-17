@@ -62,6 +62,7 @@ const variantPayload = JSON.stringify({
 <article
   class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col h-full"
   itemscope itemtype="https://schema.org/Product"
+  data-sk-ankare={`${artno} ${variant.artno}`}
   data-sk-product={productJson}
   style="cursor:pointer"
 >
@@ -95,6 +96,7 @@ const variantPayload = JSON.stringify({
           type="button"
           class="mvc-opt mvc-opt-base text-left rounded-lg border px-3 py-2 transition-all border-brand-orange bg-brand-orange/10"
           data-mvc-mode="base"
+          data-sk-ankare-val={artno}
           aria-pressed="true"
         >
           <span class="block text-xs font-semibold text-white leading-tight">{variant.baseLabel}</span>
@@ -107,6 +109,7 @@ const variantPayload = JSON.stringify({
           type="button"
           class="mvc-opt mvc-opt-combo text-left rounded-lg border px-3 py-2 transition-all border-white/15 bg-transparent"
           data-mvc-mode="combo"
+          data-sk-ankare-val={variant.artno}
           aria-pressed="false"
         >
           <span class="block text-xs font-semibold text-white leading-tight">{variant.comboLabel}</span>

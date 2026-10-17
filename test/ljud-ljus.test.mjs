@@ -5,6 +5,7 @@
 // valda alternativet alltid syns i den filtrerade listan.
 import fs from 'node:fs';
 import path from 'node:path';
+import { byggSidor } from '../src/lib/produkt-sidor.mjs';
 import { resolveLjudLjus, recommend, shownFor, builtInMixerOk, fixMixer, findOption, itemsFor, totalFor, minRecommended, AREAS } from '../src/lib/ljud-ljus-builder.mjs';
 
 const load = (f) => JSON.parse(fs.readFileSync(path.join(process.cwd(), 'src', 'data', f), 'utf8'));
@@ -71,7 +72,11 @@ const allaProdukter = Object.values(data).flatMap((d) => Object.values(d).flatMa
 const aktiv = (a) => allaProdukter.some((p) => p.artno === a && p.active !== false);
 
 const popular = load('popular.json');
-for (const kat of ['ljud', 'ljus']) {
+// Varje topplisterad länkar till produktens kort (src/utils/produktLank.ts).
+// Sidan måste finnas — annars blir länken död, inte bara utan ankare.
+const sidor = byggSidor({ ljud: load('ljud.json'), ljus: load('ljus.json'), bild: load('bild.json'), dj: load('dj.json'), scenes: load('scenes.json') });
+const sidfil = (s) => fs.existsSync(path.join(process.cwd(), 'src', 'pages', s, 'index.astro'));
+for (const kat of ['ljud', 'ljus', 'bild', 'ljud-och-ljus']) {
   check((popular[kat]?.grupper ?? []).length > 0, `popular.json: ${kat} har inga grupper`);
 }
 for (const [kat, cfg] of Object.entries(popular)) {
@@ -80,6 +85,10 @@ for (const [kat, cfg] of Object.entries(popular)) {
     check((g.artnos ?? []).length > 0, `popular.json: ${kat} ${g.rubrik} har inga artiklar`);
     // En utgången eller okänd artikel försvinner tyst ur topplistan.
     for (const a of g.artnos ?? []) check(aktiv(a), `popular.json: ${kat} ${g.rubrik} → ${a} saknas eller är utgången`);
+    for (const a of g.artnos ?? []) {
+      const s = sidor.get(a);
+      check(!!s && sidfil(s), `popular.json: ${kat} ${g.rubrik} → ${a} har ingen produktsida (${s ?? 'saknas i produkt-sidor.mjs'})`);
+    }
   }
 }
 

@@ -9,6 +9,7 @@
 import CartButton from './CartButton.astro';
 import SectionHeader from './SectionHeader.astro';
 import popular from '../data/popular.json';
+import { produktLank } from '../utils/produktLank';
 
 /**
  * Grupperna, rubriken och "Se alla"-länken kommer ur src/data/popular.json, som
@@ -22,14 +23,15 @@ import popular from '../data/popular.json';
 interface Props {
   data: any | any[];
   kategori: string;   // nyckel i popular.json: 'ljud', 'ljus', 'bild', ...
-  category: string;   // varukorgens kategorinamn: 'Ljud', 'Ljus', ...
+  category: string | string[];   // varukorgens kategorinamn: 'Ljud', 'Ljus', ... — en per katalog i data när data är en lista
 }
 const { data, kategori, category } = Astro.props;
 
 const cfg = (popular as Record<string, any>)[kategori] ?? {};
 const heading = cfg.heading ?? 'Populäraste paketen';
 const lead = cfg.lead ?? undefined;
-const allaHref = cfg.allaHref ?? null;
+// "Se alla" pekar aldrig på sidan man redan står på (ljud & ljus-sidan).
+const allaHref = cfg.allaHref && cfg.allaHref !== Astro.url.pathname ? cfg.allaHref : null;
 const allaLabel = cfg.allaLabel ?? null;
 
 /**
@@ -41,16 +43,19 @@ const allaLabel = cfg.allaLabel ?? null;
  * alltid på artno, aldrig på index.
  */
 const kataloger: any[] = Array.isArray(data) ? data : [data];
-const alla: any[] = kataloger.flatMap((d: any) => Object.values(d).flatMap((v: any) => {
+const kategorier: string[] = Array.isArray(category) ? category : kataloger.map(() => category);
+const alla: any[] = kataloger.flatMap((d: any, i: number) => Object.values(d).flatMap((v: any) => {
   if (Array.isArray(v)) return v.filter((p: any) => p && typeof p === 'object' && p.artno);
   if (v && typeof v === 'object' && Array.isArray(v.products)) return v.products;
   return [];
-}));
+}).map((p: any) => ({ ...p, _kategori: kategorier[i] ?? kategorier[0] })));
 const byArtno = (a: string) => alla.find((p) => p.artno === a && p.active !== false);
 
 const grupper = (cfg.grupper ?? []).map((g: any) => ({
   ...g,
-  produkter: (g.artnos ?? []).map(byArtno).filter(Boolean),
+  // Länken pekar på produktens kort på sidan där den säljs (#artno, se
+  // src/utils/produktLank.ts). Produkter utan egen sida får ingen länk.
+  produkter: (g.artnos ?? []).map(byArtno).filter(Boolean).map((p: any) => ({ ...p, lank: produktLank(p.artno) })),
 })).filter((g: any) => g.produkter.length);
 
 const kr = (n: number) => n.toLocaleString('sv-SE');
@@ -76,8 +81,12 @@ const kr = (n: number) => n.toLocaleString('sv-SE');
               <meta itemprop="description" content={p.tagline ?? p.description ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
               <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
               <span class="text-brand-orange/50 font-bold text-sm w-7 shrink-0" style="font-family:'Space Grotesk',sans-serif">{String(i + 1).padStart(2, '0')}</span>
-              {p.image && <img src={p.image} alt={p.alt ?? p.name} width="128" height="107" loading="lazy" decoding="async" class="w-14 h-12 object-contain bg-brand-dark rounded-lg shrink-0" />}
-              <span class="flex-1 min-w-0 text-white font-semibold" itemprop="name">{p.name}</span>
+              {p.image && (p.lank
+                ? <a href={p.lank} tabindex="-1" aria-hidden="true" class="shrink-0"><img src={p.image} alt="" width="128" height="107" loading="lazy" decoding="async" class="w-14 h-12 object-contain bg-brand-dark rounded-lg" /></a>
+                : <img src={p.image} alt={p.alt ?? p.name} width="128" height="107" loading="lazy" decoding="async" class="w-14 h-12 object-contain bg-brand-dark rounded-lg shrink-0" />)}
+              {p.lank
+                ? <a href={p.lank} class="flex-1 min-w-0 text-white font-semibold hover:text-brand-orange transition-colors" itemprop="url"><span itemprop="name">{p.name}</span></a>
+                : <span class="flex-1 min-w-0 text-white font-semibold" itemprop="name">{p.name}</span>}
               <div class="text-right leading-tight shrink-0" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
                 <meta itemprop="priceCurrency" content="SEK" />
                 <meta itemprop="price" content={String(p.price)} />
@@ -102,7 +111,7 @@ const kr = (n: number) => n.toLocaleString('sv-SE');
                 <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{kr(Math.round(p.price * 1.25))}&nbsp;kr</span>
                 <span class="block text-gray-400 text-xs">{p.priceNote ?? '/dygn'}</span>
               </div>
-              <CartButton id={p.artno} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category={category} image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="sm" iconOnly={true} />
+              <CartButton id={p.artno} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category={p._kategori} image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="sm" iconOnly={true} />
             </li>
           ))}
         </ol>
