@@ -131,6 +131,12 @@ L.push('');
 L.push('### Scen');
 L.push('Scenpaket av stålplattformar med justerbara ben och halkfri yta, inomhus och utomhus.');
 L.push(...productLines(scenes.products, { extra: (p) => [p.dimensions || p.size, p.capacity].filter(Boolean).join(', ') }));
+{
+  // Benhöjder per plattform ur scenes.json → modules[].heights.
+  const ben = active(scenes.modules).filter((m) => Array.isArray(m.heights) && m.heights.length)
+    .map((m) => `${m.name.replace(/^Plattform\s*/, '')} ${m.heights.join('/')} cm`);
+  if (ben.length) L.push(`Scenhöjd (benhöjd per plattform): ${[...new Set(ben)].join('; ')}. Vid 20 cm behövs ingen trappa.`);
+}
 const talttak = active(scenes.tillbehor).find((t) => /tälttak/i.test(t.name));
 if (talttak) L.push(`- ${talttak.name} (tillbehör, skyddar inte alltid mot regn): ${kr(talttak.price)}/${unit(talttak)} exkl. moms`);
 L.push(`Mer info: ${link('/vara-tjanster/hyra-scen/')}`);

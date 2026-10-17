@@ -1805,7 +1805,8 @@ const _dayConfig = tjansterData.hyresdagar || null;
           <div>
             <label class="form-label" style="font-size:0.72rem">Höjd</label>
             <select id="scen-cfg-h" onchange="adminScenConfigUpdate()" style="width:100%;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0.4rem 0.6rem;font-size:0.85rem">
-              <option value="40">40 cm</option>
+              <option value="20">20 cm</option>
+              <option value="40" selected>40 cm</option>
               <option value="60">60 cm</option>
             </select>
           </div>
@@ -10010,6 +10011,8 @@ function adminScenConfigUpdate() {
     if (trappRow) {
       trappSubtotal = trapp * trappRow.price;
       lines.push(`${trapp} × ${trappRow.name} (${trappRow.price.toLocaleString('sv')} kr) = <strong style="color:#c4b5f4">${trappSubtotal.toLocaleString('sv')} kr</strong>`);
+    } else if (height === 20) {
+      lines.push(`<span style="color:rgba(255,255,255,0.55)">Ingen trappa vid 20 cm — steget är som ett vanligt trappsteg.</span>`);
     }
   }
 

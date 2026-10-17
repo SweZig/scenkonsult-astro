@@ -159,6 +159,29 @@ for (const b of paket) {
 }
 if (!paket.length) check('paket med linkedServices hittade', false, 'inga — sökningen är trasig');
 
+console.log('\nSCEN — benhöjder och Svens prislista');
+// Benhöjderna styr konfiguratorn, paketkorten, scensidan, Sven och llms.txt
+// (src/utils/scenHojder.ts). En plattform utan `heights` låser inga höjder —
+// fel åt det generösa hållet, så det ska fångas här.
+for (const m of data.scenes.modules || []) {
+  const h = m.heights;
+  check(`${m.artno} har benhöjder`, Array.isArray(h) && h.length > 0 && h.every((x) => Number.isInteger(x) && x > 0),
+    Array.isArray(h) ? h.join('/') + ' cm' : 'saknas');
+}
+{
+  const pkt = data.scenes.products.filter((p) => p.active !== false && p.config?.heights);
+  const alla = new Set((data.scenes.modules || []).flatMap((m) => m.heights || []));
+  const fel = pkt.flatMap((p) => p.config.heights.filter((h) => !alla.has(h)).map((h) => `${p.artno} ${h} cm`));
+  check('paketens höjder finns hos någon plattform', fel.length === 0, fel.join(', '));
+}
+{
+  // Svens prislista läste `scenes.accessories` (finns inte) fram till 2026-10-17.
+  const { PRODUKTER_OCH_PRISER } = await import('../netlify/functions/_products-generated.mjs');
+  const saknas = (data.scenes.tillbehor || []).filter((t) => t.active !== false && t.price && t.name)
+    .filter((t) => !PRODUKTER_OCH_PRISER.includes(t.name)).map((t) => t.name);
+  check('scentillbehören finns i Svens prislista', saknas.length === 0, saknas.length ? saknas.join(', ') : '');
+}
+
 console.log('');
 if (fails.length) {
   console.log(`❌ ${fails.length} KONTROLL(ER) MISSLYCKADES\n`);

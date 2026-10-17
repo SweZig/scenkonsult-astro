@@ -82,11 +82,16 @@ scenes.products.forEach(p => {
 if (scenes.modules?.length) {
   sects.push('Plattformsmoduler för egen scen-konfiguration:');
   scenes.modules.forEach(m => {
-    sects.push(prodLine(m.name, m.price, '/dygn'));
+    const ben = Array.isArray(m.heights) && m.heights.length ? `ben ${m.heights.join('/')} cm` : undefined;
+    sects.push(prodLine(m.name, m.price, '/dygn', ben));
   });
+  sects.push('Scenhöjd = benens höjd. Vid 20 cm behövs ingen trappa; trappor finns för 40 och 60 cm.');
 }
-if (scenes.accessories?.length) {
-  const accStr = scenes.accessories.map(a => `${a.name} ${fmtPrice(a.price)}`).join(', ');
+// Fältet heter `tillbehor` — fram till 2026-10-17 lästes `scenes.accessories`,
+// som inte finns, så trappor, kjolar och räcken saknades i Svens prislista.
+const _scenAcc = (scenes.tillbehor || []).filter(a => a && a.active !== false && a.price && a.name);
+if (_scenAcc.length) {
+  const accStr = _scenAcc.map(a => `${a.name} ${fmtPrice(a.price)}`).join(', ');
   sects.push(`Tillbehör: ${accStr}`);
 }
 sects.push('Tumregel: 2–3 m² per person på scen.\n');

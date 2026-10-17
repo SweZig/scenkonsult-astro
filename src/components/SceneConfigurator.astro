@@ -2,6 +2,7 @@
 // SceneConfigurator.astro — interaktiv scenkonfigurator (v2)
 import scenData from '../data/scenes.json';
 import tjanster from '../data/tjanster.json';
+import { HOJDER, ALLA_HOJDER, hojdText, saknasText } from '../utils/scenHojder';
 
 const modules = scenData.modules || [];
 const stairs = (scenData.tillbehor || []).filter(t =>
@@ -42,8 +43,10 @@ function _surfaceKey(m) {
 }
 
 const INJ_MODULE_BY_KEY = Object.fromEntries(
-  modules.map(m => [_surfaceKey(m), { artno: m.artno, name: m.name, price: m.price }])
+  modules.map(m => [_surfaceKey(m), { artno: m.artno, name: m.name, price: m.price, heights: HOJDER[_surfaceKey(m)] || [] }])
 );
+// Förklaring per yta när den saknar höjder som andra ytor har (1×1 → 60 cm).
+const INJ_HOJD_HINT = Object.fromEntries(Object.keys(HOJDER).map(k => [k, saknasText(k)]));
 
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
@@ -97,7 +100,7 @@ const configData = {
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×1 m — halkfri yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x1-halkfri']?.price} kr/modul</span></div>
-              <div class="cfg-radio-desc">Fri val av mått. Endast 40 cm höjd. Max 20 m² (20 moduler).</div>
+              <div class="cfg-radio-desc">Fri val av mått. Höjd {hojdText(HOJDER['1x1-halkfri'] || [])}. Max 20 m² (20 moduler).</div>
             </div>
           </label>
           <label class="cfg-card-radio">
@@ -105,7 +108,7 @@ const configData = {
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_slat.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×2 m — slät yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x2-slat']?.price} kr/modul</span></div>
-              <div class="cfg-radio-desc">Bäst om matta läggs över. Höjd 20, 40 eller 60 cm. Mått måste passa i 1×2-moduler.</div>
+              <div class="cfg-radio-desc">Bäst om matta läggs över. Höjd {hojdText(HOJDER['1x2-slat'] || [])}. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
           <label class="cfg-card-radio">
@@ -113,7 +116,7 @@ const configData = {
             <span class="cfg-yta-swatch" style="background-image:url('/images/scen/tex_yta_halkfri.webp')" aria-hidden="true"></span>
             <div class="cfg-radio-body">
               <div class="cfg-radio-title">1×2 m — halkfri yta <span class="cfg-radio-price">{INJ_MODULE_BY_KEY['1x2-halkfri']?.price} kr/modul</span></div>
-              <div class="cfg-radio-desc">Standard halkfri ovansida. Höjd 20, 40 eller 60 cm. Mått måste passa i 1×2-moduler.</div>
+              <div class="cfg-radio-desc">Standard halkfri ovansida. Höjd {hojdText(HOJDER['1x2-halkfri'] || [])}. Mått måste passa i 1×2-moduler.</div>
             </div>
           </label>
         </div>
@@ -148,11 +151,11 @@ const configData = {
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">3</span>Höjd</legend>
         <div class="cfg-pill-row">
-          <label class="cfg-pill cfg-pill-height-20"><input type="radio" name="height" value="20" /><span>20 cm</span></label>
-          <label class="cfg-pill"><input type="radio" name="height" value="40" /><span>40 cm</span></label>
-          <label class="cfg-pill cfg-pill-height-60"><input type="radio" name="height" value="60" checked /><span>60 cm</span></label>
+          {ALLA_HOJDER.map(h => (
+            <label class="cfg-pill"><input type="radio" name="height" value={String(h)} checked={h === 60} /><span>{h} cm</span></label>
+          ))}
         </div>
-        <p class="cfg-hint cfg-hint-height-20" hidden>1×1 m-podier finns i 40 cm. 20 och 60 cm finns för 1×2 m-podier — välj 1×2 m som plattformstyp.</p>
+        <p class="cfg-hint cfg-hint-height-yta" hidden></p>
       </fieldset>
 
       <fieldset class="cfg-step">
@@ -250,7 +253,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_HOJD_HINT, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -758,32 +761,27 @@ const configData = {
         cartBtn.disabled = !valid;
       }
 
-      // Höjd-regler:
-      // - 1×1 → endast 40 cm (20 + 60 inaktiverade, fallback till 40)
-      // - 1×2 → 20/40/60 cm (20 cm endast för 1×2-podier)
-      const height60 = document.querySelector('input[name="height"][value="60"]');
-      const height40 = document.querySelector('input[name="height"][value="40"]');
-      const height20 = document.querySelector('input[name="height"][value="20"]');
-      const pill60 = document.querySelector('.cfg-pill-height-60');
-      const pill20 = document.querySelector('.cfg-pill-height-20');
-      const hint20 = document.querySelector('.cfg-hint-height-20');
+      // Höjd-regler: varje yta har sina benhöjder i scenes.json → modules[].heights
+      // (1×1 → 20/40 cm sedan 2026-10-17, 1×2 → 20/40/60 cm). Höjder som ytan
+      // saknar inaktiveras; vald höjd som inte finns faller tillbaka till 40 cm,
+      // annars till ytans högsta.
       const is1x1 = state.moduleType === '1x1-halkfri';
-      if (is1x1) {
-        if (state.height !== 40) {
-          state.height = 40;
-          if (height40) height40.checked = true;
-        }
-        if (height60) height60.disabled = true;
-        if (pill60) pill60.classList.add('cfg-pill-disabled');
-        if (height20) height20.disabled = true;
-        if (pill20) pill20.classList.add('cfg-pill-disabled');
-        if (hint20) hint20.hidden = false;
-      } else {
-        if (height60) height60.disabled = false;
-        if (pill60) pill60.classList.remove('cfg-pill-disabled');
-        if (height20) height20.disabled = false;
-        if (pill20) pill20.classList.remove('cfg-pill-disabled');
-        if (hint20) hint20.hidden = true;
+      const ytaHojder = (INJ_MODULE_BY_KEY[state.moduleType] || {}).heights || [];
+      if (ytaHojder.length && !ytaHojder.includes(state.height)) {
+        state.height = ytaHojder.includes(40) ? 40 : ytaHojder[ytaHojder.length - 1];
+        const el = document.querySelector(`input[name="height"][value="${state.height}"]`);
+        if (el) el.checked = true;
+      }
+      document.querySelectorAll('input[name="height"]').forEach(inp => {
+        const off = ytaHojder.length > 0 && !ytaHojder.includes(parseInt(inp.value));
+        inp.disabled = off;
+        inp.closest('.cfg-pill')?.classList.toggle('cfg-pill-disabled', off);
+      });
+      const hintYta = document.querySelector('.cfg-hint-height-yta');
+      if (hintYta) {
+        const t = INJ_HOJD_HINT[state.moduleType] || '';
+        hintYta.textContent = t ? `${t} — välj 1×2 m som plattformstyp.` : '';
+        hintYta.hidden = !t;
       }
 
       // Räcken EJ på 1×1-podier → inaktivera hela räcke-steget.
@@ -1013,7 +1011,7 @@ const configData = {
     // 40 och 60 cm, så trappvalet låses till 0 vid 20 cm. Körs först i render()
     // så att prisrader och montering räknas på rätt rader.
     function applyStairRules() {
-      const low = state.height === 20 && state.moduleType !== '1x1-halkfri';
+      const low = state.height === 20;
       ['1', '2'].forEach(v => {
         const el = document.querySelector(`input[name="stairCount"][value="${v}"]`);
         if (!el) return;

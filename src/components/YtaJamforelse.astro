@@ -8,6 +8,7 @@
 // automatiskt utan att denna komponent behöver röras.
 
 import scenData from '../data/scenes.json';
+import { HOJDER, hojdText } from '../utils/scenHojder';
 
 const modules = scenData.modules || [];
 
@@ -41,7 +42,7 @@ const PRICE_BY_KEY: Record<string, number | undefined> = Object.fromEntries(
       </ul>
       <div class="yta-prices">
         <span class="yta-price-chip yta-price-na">1×1 m — finns endast halkfri</span>
-        <span class="yta-price-chip">1×2 m — <strong>{PRICE_BY_KEY['1x2-slat']} kr</strong>/dygn · 20, 40 eller 60 cm</span>
+        <span class="yta-price-chip">1×2 m — <strong>{PRICE_BY_KEY['1x2-slat']} kr</strong>/dygn · {hojdText(HOJDER['1x2-slat'] || [])}</span>
       </div>
     </article>
 
@@ -57,8 +58,8 @@ const PRICE_BY_KEY: Record<string, number | undefined> = Object.fromEntries(
         <li><span class="yta-tick" aria-hidden="true">✓</span>Lättstädad — torka av direkt på plats</li>
       </ul>
       <div class="yta-prices">
-        <span class="yta-price-chip">1×1 m — <strong>{PRICE_BY_KEY['1x1-halkfri']} kr</strong>/dygn · 40 cm</span>
-        <span class="yta-price-chip">1×2 m — <strong>{PRICE_BY_KEY['1x2-halkfri']} kr</strong>/dygn · 20, 40 eller 60 cm</span>
+        <span class="yta-price-chip">1×1 m — <strong>{PRICE_BY_KEY['1x1-halkfri']} kr</strong>/dygn · {hojdText(HOJDER['1x1-halkfri'] || [])}</span>
+        <span class="yta-price-chip">1×2 m — <strong>{PRICE_BY_KEY['1x2-halkfri']} kr</strong>/dygn · {hojdText(HOJDER['1x2-halkfri'] || [])}</span>
       </div>
     </article>
   </div>
