@@ -18,6 +18,10 @@ const _lev = (_tjData as any).leverans || {};
 const _fraktFaq = `Leverans med vanlig bil kostar ${fmt(_lev.standard?.pris)} kr tur och retur, stor bil ${fmt(_lev.storbil?.pris)} kr och lätt lastbil ${fmt(_lev.lastbil?.pris)} kr. Fordonet väljs efter hur mycket och hur skrymmande utrustningen är. Hämtar du själv i Vällingby är det gratis. Priser exkl. moms.`;
 
 const scenFran = _low((scenesData as any).products);
+// Antal och yta räknas ur datan — kortet sa "12 scenpaket" när det fanns elva.
+const _scenAktiva = ((scenesData as any).products as any[]).filter((p: any) => p.active !== false);
+const _scenYtor = _scenAktiva.map((p: any) => parseFloat(String(p.size))).filter((n: number) => !isNaN(n));
+const scenKort = `${_scenAktiva.length} scenpaket, ${Math.min(..._scenYtor)}–${Math.max(..._scenYtor)} m²`;
 // Ljud: lägsta över alla sektioner (portable är billigast)
 const ljudFran = _low([
   ...((ljudData as any).portable?.products ?? []),
@@ -152,7 +156,7 @@ const _kbFran = _kbMin(_kbResolve(_karaokeData, { karaoke: _karaokeData, ljud: l
         <div class="svc2-body">
           <h3 class="svc2-title">Hyra scen</h3>
           <p class="svc2-price">från <strong class="sk-price-excl">{fmt(scenFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(scenFran*1.25))} kr</strong> <span>/dygn</span></p>
-          <p class="svc2-desc">12 scenpaket, 4–48 m². Med eller utan tak.</p>
+          <p class="svc2-desc">{scenKort}. Med eller utan tak.</p>
           <span class="svc2-cta">Se scenpaket →</span>
         </div>
       </a>

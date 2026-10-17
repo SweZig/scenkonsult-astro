@@ -158,8 +158,8 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Våra tjänster'
     <!-- USP-rad -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
       {[
-        { icon: "🚚", rubrik: "Leverans i hela Storstockholm", text: `Vi kör ut, riggar och hämtar tillbaka. Leverans från ${((tjansterData as any).leverans?.standard?.pris ?? 0).toLocaleString('sv-SE')} kr tur och retur.` },
-        { icon: "🔧", rubrik: "Montering ingår vid behov", text: "Välj självinstallation eller låt oss sköta det – 600 kr/tim." },
+        { icon: "🚚", rubrik: "Leverans i hela Storstockholm", text: `Vi kör ut och hämtar tillbaka. Leverans från ${((tjansterData as any).leverans?.standard?.pris ?? 0).toLocaleString('sv-SE')} kr tur och retur.` },
+        { icon: "🔧", rubrik: "Montering när du behöver", text: `Montera själv eller låt våra tekniker göra det – ${((tjansterData as any).montering?.prisPerTimme ?? 600).toLocaleString('sv-SE')} kr/tim, beräknat i varukorgen.` },
         { icon: "📞", rubrik: "Jour kvällstid", text: "Vi finns tillgängliga under hela din hyresperiod om något krånglar." },
       ].map(u => (
         <div class="flex gap-4 rounded-2xl p-5" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">

@@ -61,6 +61,10 @@ const pageSchema = {
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
 const _heroFranExcl = _low((scenData as any).products);
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
+// Antalet scenpaket räknas ur datan — ingressen sa "Tolv" när det fanns elva.
+const _ORD = ['Noll','Ett','Två','Tre','Fyra','Fem','Sex','Sju','Åtta','Nio','Tio','Elva','Tolv','Tretton','Fjorton','Femton','Sexton','Sjutton','Arton','Nitton','Tjugo'];
+const _antalPaket = (scenData.products as any[]).filter((p: any) => p.active !== false).length;
+const _antalPaketText = _ORD[_antalPaket] ?? String(_antalPaket);
 // Alla scenkjolar (skirtHeight satt) visas i ett samlat kort i en egen sektion — inte i tillbehörsgriden.
 const _skirtItems = (scenData.tillbehor as any[]).filter(t => typeof t.skirtHeight === 'number');
 ---
@@ -120,7 +124,7 @@ const _skirtItems = (scenData.tillbehor as any[]).filter(t => typeof t.skirtHeig
         <SectionHeader
           eyebrow="Snabbval"
           h2="Färdiga scenpaket"
-          leadHtml="Tolv färdigkomponerade scenpaket — från Small (2×2 m) till XL+ (8×6 m), inklusive paket med tak. Välj yta och antal trappor i kortet — pris och illustration uppdateras direkt. <strong>Priserna är exkl. transport och montering, som tillkommer separat.</strong> Vid scen över 16 m² sköter våra tekniker alltid montering — för säker hantering och stabilitet."
+          leadHtml={`${_antalPaketText} färdigkomponerade scenpaket — från Small (2×2 m) till XL+ (8×6 m), inklusive paket med tak. Välj yta och antal trappor i kortet — pris och illustration uppdateras direkt. <strong>Priserna är exkl. transport och montering, som tillkommer separat.</strong> Vid scen över 16 m² sköter våra tekniker alltid montering — för säker hantering och stabilitet.`}
         />
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {scenData.products.map(p => <DynamicPaketCard paket={p} />)}
