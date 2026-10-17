@@ -3,8 +3,8 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v17.0",
-    date="2026-10-02",
+    version="v18.0",
+    date="2026-10-17",
     blocks=[
         ("h1", "1. Arbetssätt"),
         ("p", "Implementera → build-verifiera → safety check → commit → push → Netlify auto-deploy "
@@ -100,13 +100,17 @@ DOC6 = dict(
             "**Externa tjänster med testperiod slutar tyst.** Google Cloud-testperioden löpte ut och Places API svarade PERMISSION_DENIED utan reason. Nyckeln var korrekt inställd — det var betalkontot. Kontrollera billing tidigt vid generiska 403.",
         ]),
 
-        ("h2", "7.1 Git från device_bash — regeln är upphävd (2026-09-20)"),
-        ("p", "v15.1 slog fast att git aldrig skulle köras från Cowork-VM:en (device_bash). Två problem "
-              "låg bakom, och båda är åtgärdade:"),
+        ("h2", "7.1 Git från device_bash — bara med raderingsrättighet (förtydligat 2026-10-17)"),
+        ("p", "v15.1 slog fast att git aldrig skulle köras från Cowork-VM:en (device_bash). v16.0 "
+              "upphävde regeln. Två problem låg bakom, och bara det ena är löst för gott:"),
         ("ul", [
             "**Falska radslutsdiffar.** Arbetskopian hade CRLF, VM:ens git jämförde mot LF i indexet och listade tusentals filer. **Löst med `.gitattributes` (`* text=auto eol=lf`) + `git add --renormalize`.**",
-            "**Kvarlämnat `index.lock`.** Radering var avstängd i kopplade mappar, så VM:en fick inte städa bort låset. **Löst genom att raderingsrättighet numera begärs för repo-mappen när den behövs.**",
+            "**Kvarlämnat `index.lock`.** Raderingar är avstängda i kopplade mappar tills användaren beviljar det — **per session**. Git skapar och raderar själv låsfiler, så utan rättigheten lämnar `commit`, `pull`, `stash` och även `git status` (som uppdaterar indexet) ett `.git/index.lock` efter sig, och git i PowerShell vägrar sedan köra. Det är alltså inte löst, bara villkorat.",
         ]),
+        ("note", "**Praxis sedan 2026-10-02:** kör inte git i den monterade arbetskopian alls från en "
+                 "molnsession. Push går från en färsk klon i VM:ens hemkatalog (Dok 5 §6.2), "
+                 "byggverifiering från en klon i molnet. Då behövs ingen raderingsrättighet och "
+                 "arbetskopian rörs aldrig."),
         ("note", "**Kvar gäller att bygget inte kan verifieras i den monterade mappen** — `node_modules` "
                  "där är installerat för Windows. Molnsessioner klonar repot separat i stället "
                  "(`--depth 1 --filter=blob:none` + sparse-checkout, ~26 s till verifierat bygge). "
@@ -149,6 +153,21 @@ DOC6 = dict(
               "Lägg färdiga filer i en mapp vars namn säger vad som ska göras med dem — "
               "`_till-supabase/` — aldrig med samma filnamn som en fil i indatamappen."),
 
+        ("h2", "7.7 Lärdomar från topplist- och referensbatchen (NY 2026-10-17)"),
+        ("p", "Flera av punkterna nedan är fel som Claude gjorde under batchen. De står här för att "
+              "mönstren upprepas, inte för att de är ovanliga."),
+        ("ul", [
+            "**Ett godkänt visuellt beslut får inte köras över av en rekommendation i ett underlag.** Användaren godkände en skiss på en kompakt topplista utan bilder och speclistor. Designunderlaget för databasflytten rekommenderade sedan att behålla de stora korten, beslutet följde med flytten utan att lyftas, och bildhubben fick nio nya stora kort. Upptäckt först när användaren tittade på sidan live. Säger underlaget emot något som redan är godkänt ska det stå som en egen fråga, inte som en bisats.",
+            "**Kärnregler läses före kundvänd text.** Dok 2 §5 säger att montering och transport aldrig ingår. Bildhubben sa \"ingår alltid montering\" på tre ställen sedan tidigare, och Claude skrev två nya varianter i topplistans ingresser. Sök efter `ingår` innan text om frakt, montering eller tekniker publiceras.",
+            "**Databasen först, push sedan.** Innehåll med committad fallback skrivs över ur databasen vid varje bygge. Pushas fallback-filen före SQL:en försvinner det nya innehållet vid deployen (Dok 2 §12.3).",
+            "**Flytta data — flytta testerna i samma commit.** När `populara` flyttades ur ljud.json blev `npm test` rött — och det pushades, eftersom bara `npm run build` kördes och Netlify inte kör testerna. Upptäckt samma dag, men först vid dokumentgenomgången. Värre: eventbild-kontrollen löd `data[f].eventbilder ?? []` och passerade utan att testa något alls. `?? []` i ett test är en tyst avstängning. Kör `npm test` före push.",
+            "**Kör en funktion du ändrat — `node --check` räcker inte.** När `set-items` i `admin-popular.js` gjordes om till ursprung per rad blev en variabel kvar i loggraden. Syntaxen var giltig, så kontrollen gick igenom, men varje sparning av artiklar i /admin/topplistor/ skrev raderna och svarade sedan 500. Fångat av en oberoende granskning av specen samma dag, innan någon använt sidan. Endpoints utan test är skuld (§9.2).",
+            "**Samma data har olika form i olika filer.** ljud.json har nästlade serier, bild.json toppnivå-arrayer. `PopularaPaket` läste bara den ena formen och hittade noll bildprodukter — utan fel, sektionen blev bara tom. Testa en ny kategori mot dess egen fil innan utrullning.",
+            "**Arbeta alltid från en färsk klon av origin.** Två nära-olyckor i samma vecka: en ändring av `referenser/index.astro` byggd på en inaktuell arbetskopia hade backat 79 rader som redan låg i `main` (fångat av diffen mot färsk klon), och en komponent höll på att byggas som redan fanns i `main`. Arbetskopian på datorn är aldrig facit.",
+            "**Supabase SQL editor varnar falskt** för `DROP POLICY IF EXISTS` och för RLS satt i en `DO`-loop. Varningen betyder inte att skriptet är fel — men den ska läsas, inte klickas bort (Dok 5 §5).",
+            "**Påstå bara det som är dokumenterat.** DJ-hubbens referensrad har ett case där DJ står i underlaget; de två andra beskrivs som festevent med ljud och ljus. Samma princip som när projektorduken togs ur Systembolagets text.",
+        ]),
+
         ("h1", "8. Verktyg & felsökning"),
         ("ul", [
             "**health-endpoint:** `GET /.netlify/functions/health` — öppen, läcker aldrig nyckelvärden. Rapporterar env-vars satta, Supabase-reachability, carts_query (namnger saknad kolumn). Första anhalten när admin strular.",
@@ -166,6 +185,10 @@ DOC6 = dict(
             "**Sök efter läckta hemligheter i hela historiken:** `gitleaks git <spegelklon> --redact` (mirror-klon ~840 MB, ~20 s). Körning 2026-10-02 över 1 205 commits: bara Supabase anon-nyckel (publik per design) och Astros byggnycklar i gamla `dist/`-filer.",
             "**Headless-test av sajten i molnet:** `npx serve dist` + Playwright med `executablePath: '/opt/pw-browsers/chromium'` (installera inte webbläsare). Mocka funktionsanrop med `page.route`.",
             "**Search Console URL-inspektion** kan köras i den inbyggda webbläsaren när användaren är inloggad. Den smala panelen gör att sökfältet öppnas via förstoringsglaset; klicka sedan i fältet innan du skriver.",
+            "**Verifiera live utan att navigera:** i den inbyggda webbläsaren kan `fetch('/sida/?v='+Date.now(), {cache:'no-store'})` + `DOMParser` läsa flera sidor från samma origin i ett anrop — rubriker, antal rader, referenskort. `/admin/` är robots-spärrat och kan inte hämtas av webbhämtningsverktyg; användaren får kontrollera admin själv.",
+            "**HTML-diff som kvitto på en flytt:** bygg en baslinje ur en ren klon, gör ändringen, bygg igen och jämför med whitespace normaliserat (`tr '\\n' ' ' | tr -s ' ' | sed 's/> *</>\\n</g'`). Noll rader = ren flytt. Ett CSS-bundle-hash i `<link>` är väntad brus.",
+            "**Testa att ett test kan falla:** lägg in ett känt fel (t.ex. ett utgånget artno), kör testet, ta bort felet. Ett test som aldrig setts rött kan vara tomt.",
+            "**Validera SQL utan databas:** `pip install pglast` → `pglast.parse_sql(sql)`.",
         ]),
 
         ("h1", "9. Roadmap"),
@@ -189,6 +212,11 @@ DOC6 = dict(
             "**admin/index.astro (9 200+ rader):** dela upp i komponenter. Trigger: när det blir flaskhals att redigera.",
             "**hyra-bild-led-vagg (1 600 rader):** bryt ut LED-konfiguratorn.",
             "**Katalogkonsolidering:** `order-catalog-flat.json` vs `quote-catalog.json` — gemensam källa. Trigger: tredje konsument.",
+            "**Admin-endpoints saknar tester (NY 2026-10-17).** `admin-popular.js` och `admin-event-cases.js` kördes bara mot en mockad PostgREST för hand (alla elva actions + GET + 401). Ett test i `npm test` hade fångat 500-felet i `set-items`. Kräver en ändring i `package.json` → uttryckligt beslut.",
+            "**Helgtexten är hårdkodad i sex sidor (NY 2026-10-17).** `phoneHours`/`weekendNote` i site.json läses bara av Sven och llms.txt; kontakt, bokningssida, order, studentflak, ortssidorna och /en/ har texten inskriven. Samma uppgift på flera ställen glider isär (§6.1).",
+            "**Svens cart-ID-lista tar med utgångna produkter (NY 2026-10-17).** `buildSvenProducts` filtrerar inte `active: false` — de två 190\"-dukarna ligger kvar i `CART_ID_LISTA`. Prislistan filtrerar, så Sven föreslår dem inte, men en `[CART:…]`-tagg med dem skulle godtas.",
+            "**LjudLjusBuilder och KaraokeBuilder delar inte CSS (NY 2026-10-17).** Konfiguratorns stilar är kopierade med prefixet `llb-`. Kandidat för en gemensam fil. Trigger: en tredje byggare, eller en designändring som måste göras två gånger.",
+            "**Utvalda kunder → admin — LÖST.** `featured`-kolumnen och kryssrutan i /admin/referenser/ finns; kodlistan `FEATURED_CLIENT_NAMES` i `src/utils/clients.ts` är bara fallback. Posten står fortfarande som öppen i `claude/Teknisk_Skuld_Backlog.md`.",
             "**FAQ-nyckelstandardisering — LÖST** (allt q/a, Dok 2 §8). Verifierat 2026-09-20: noll förekomster av question/answer.",
             "**`git rm --cached` på de genererade katalogfilerna — LÖST** 2026-09-20, tillsammans med `node_modules` och verktygscacherna (§7.3).",
         ]),
@@ -211,7 +239,13 @@ DOC6 = dict(
             "**/en/:** följ upp om engelska förfrågningar kommer in (märkta \"[ENGLISH ENQUIRY]\"). Nav och sidfot är svenska — utvärdera om det behövs mer än en sida.",
             "**Netlify:** `GOOGLE_PLACES_API_KEY` kan tas bort.",
             "**DJ Alex:** saknar foto (`DJ_Alex.png` + `dj.json djProfiles`).",
-            "**Referenssidan:** fler crossfade-par bland befintliga eventfoton. Kundlogotyperna i högre upplösning; de sju ärvda är nyckade ur en 1600 px-bild.",
+            "**Referenssidan:** kundlogotyperna i högre upplösning; de ärvda är nyckade ur en 1600 px-bild. (Crossfade-paren är utbyggda — 12 av 19 kort har 2–4 bilder.)",
+            "**\"Montering ingår vid behov\" (NY 2026-10-17):** `/vara-tjanster/` har rubriken *Montering ingår vid behov* ovanför brödtexten *600 kr/tim*, och `/for/festival/` säger om modulscenerna att \"montering ingår vid behov\". Båda läses som gratis montering och motsäger Dok 2 §5 och scenprisguiden. Beslut behövs: medveten formulering eller fel.",
+            "**Scensidan säger \"Tolv färdigkomponerade scenpaket\"** i ingressen, men `scenes.json` har elva och sidan renderar elva. Kundvänd text — rätta texten eller räkna fram antalet ur datan.",
+            "**DJ-hubbens referensrad:** bara Skridskodisco har DJ dokumenterat. Systembolaget och Läkarförbundet är festevent med ljud och ljus. Byt i /admin/referenscase/ när fler DJ-uppdrag finns med foto.",
+            "**Topplistans rader länkar ingenstans.** Skissen hade \"länk till paketen\". Bildprodukterna har inga egna sidor, och alla-sidan har bara ankarna `#led-trailer`, `#projektorduk`, `#tillbehor`. Ett valfritt länkfält per grupp i `popular_groups` löser det.",
+            "**Kategorin `ljud-och-ljus`** finns i databasen (ärver ljud + ljus via `source_categories`) men kombinationssidan anropar inte komponenterna. Arvet ger 24 produkter — för långt för en kombinationssida. Behöver egna korta grupper om sektionen ska in.",
+            "**Ljud & ljus steg 2 (planerat 2026-10-26):** startsidans titel och en länk från startsidan till /hyra-ljud-och-ljus/, efter GSC-koll av konfiguratorsidan.",
             "**Bild-tillbehör (Projektor & skärm):** produktbilder saknas för projektorstativ, 100\" duk, skärmstativ, HDMI, HDMI-splitter, mediaspelare, 23\"-skärm, USB-clicker.",
             "**Google Ads:** lägg till annonsgrupper (Phrase Match), radera gamla svaga keywords. Importera GA4 conversion events när de börjar landa.",
         ]),
@@ -221,6 +255,14 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.0", "2026-10-17",
+             "Genomgång av 49 commits sedan v17.0, varav fyra prisändringar från admin (frakt med en motor, montering i admin, offerten alltid "
+             "sparad, karaokerabatt, ljud & ljus-konfiguratorn, referenssidan, kurateringslagret i "
+             "Supabase, topplistan, montering-rättelsen). §7.1 git från device_bash är villkorat, inte "
+             "löst. Ny §7.7 nio lärdomar från topplist- och referensbatchen, bl.a. set-items-felet som gav 500. §8 live-verifiering via "
+             "fetch, HTML-diff som kvitto, testa att ett test kan falla, pglast. §9.2 delad CSS för "
+             "byggarna, admin-endpoints utan test, hårdkodad helgtext, utgångna produkter i cart-ID-listan, utvalda kunder löst. §9.4 scensidans \"tolv\", montering-formuleringarna, DJ-hubben, länk per rad, "
+             "ljud-och-ljus-kategorin, steg 2."],
             ["v17.0", "2026-10-02",
              "Genomgång av 42 commits sedan v16.0 (montering v2, offertpåminnelse v2, scenkjolar, nya "
              "produkter, AI-synlighet, cookies, /en/). Nya §4.4 PDFKit-sidbrytning, §6 titlar utan "
@@ -247,12 +289,12 @@ DOC6 = dict(
         ("h1", "11. Dokumentstruktur"),
         ("table", [
             ["Dok", "Innehåll", "Version"],
-            ["Dok 1", "Grund & Design", "v17.0 (2026-10-02)"],
-            ["Dok 2", "Produkter & Data", "v17.0 (2026-10-02)"],
-            ["Dok 3", "Sidor & Navigation", "v17.0 (2026-10-02)"],
-            ["Dok 4", "Kommunikation", "v17.0 (2026-10-02)"],
-            ["Dok 5", "Order, Admin & Infra", "v17.0 (2026-10-02)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v17.0 (2026-10-02)"],
+            ["Dok 1", "Grund & Design", "v18.0 (2026-10-17)"],
+            ["Dok 2", "Produkter & Data", "v18.0 (2026-10-17)"],
+            ["Dok 3", "Sidor & Navigation", "v18.0 (2026-10-17)"],
+            ["Dok 4", "Kommunikation", "v18.0 (2026-10-17)"],
+            ["Dok 5", "Order, Admin & Infra", "v18.0 (2026-10-17)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.0 (2026-10-17)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "

@@ -4,7 +4,8 @@ Bygger `Scenkonsult_Spec_Dok1–6` som .docx.
 
 ```bash
 pip install python-docx --break-system-packages   # en gång
-python3 spec_builder.py "../Claude outputs"
+python3 spec_builder.py "../Claude outputs"         # .docx
+python3 spec_builder.py "../Claude outputs" --md    # .docx + .md (textversionen i projektet)
 ```
 
 | Fil | Roll |

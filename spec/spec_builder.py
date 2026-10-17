@@ -164,9 +164,47 @@ def build(doc_no, title, subtitle, version, date, blocks, outdir, slug):
     return path
 
 
+def build_md(doc_no, title, subtitle, version, date, blocks, outdir, slug):
+    """Samma innehåll som Markdown — textversionen som läggs i projektet.
+
+    `**fet**` och `` `kod` `` är redan Markdown och skrivs igenom oförändrade.
+    """
+    cell = lambda v: str(v).replace("|", "\\|").replace("\n", " ")
+    out = [f"# Dok {doc_no} · {title}", "", f"*{subtitle}*", "",
+           f"**{version} · {date}** · Sigvardsson Consulting AB · "
+           "Faktiskt repo-tillstånd — verifierat mot main", ""]
+    for kind, payload in blocks:
+        if kind == "h1":
+            out += [f"## {payload}", ""]
+        elif kind == "h2":
+            out += [f"### {payload}", ""]
+        elif kind == "p":
+            out += [payload, ""]
+        elif kind == "ul":
+            out += [f"- {item}" for item in payload] + [""]
+        elif kind == "note":
+            out += [f"> {payload}", ""]
+        elif kind == "code":
+            out += ["```", payload, "```", ""]
+        elif kind == "table":
+            head, *rows = payload
+            out += ["| " + " | ".join(cell(v) for v in head) + " |",
+                    "|" + "---|" * len(head)]
+            out += ["| " + " | ".join(cell(v) for v in r) + " |" for r in rows]
+            out += [""]
+    out += [f"*Dok {doc_no} · {version} · {date}*", ""]
+    name = f"Scenkonsult_Spec_Dok{doc_no}_{slug}_{version.replace('.', '_')}.md"
+    path = Path(outdir) / name
+    path.write_text("\n".join(out), encoding="utf-8")
+    return path
+
+
 if __name__ == "__main__":
     from spec_content import DOCS
-    out = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    out = Path(args[0] if args else ".")
     out.mkdir(parents=True, exist_ok=True)
     for spec in DOCS:
         print("✅", build(outdir=out, **spec).name)
+        if "--md" in sys.argv:
+            print("✅", build_md(outdir=out, **spec).name)

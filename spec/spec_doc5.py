@@ -3,15 +3,15 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v17.0",
-    date="2026-10-02",
+    version="v18.0",
+    date="2026-10-17",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
         ("table", [
             ["Del", "Detalj"],
             ["Databas", "Supabase ejhhgqvtvsmiwxygfqbu, eu-west-1"],
             ["Storage", "…/storage/v1/object/public/manualer/[ARTNO].pdf"],
-            ["Admin-panel", "/admin/ (kanban + faktura + stats), /admin/sven/, /admin/produkter/, /admin/referenser/, /admin/recensioner/, /admin/bulletin/"],
+            ["Admin-panel", "/admin/ (kanban + faktura + stats), /admin/sven/, /admin/produkter/, /admin/referenser/, /admin/recensioner/, /admin/bulletin/, /admin/topplistor/, /admin/referenscase/"],
             ["Kundordersida", "/order/?cart=SK-XXXXXX&token="],
             ["Env-variabler", "SUPABASE_URL, SUPABASE_SERVICE_KEY, ADMIN_TOKEN, RESEND_API_KEY, ANTHROPIC_API_KEY, GITHUB_TOKEN, GA4_OAUTH_*"],
         ]),
@@ -33,6 +33,12 @@ DOC5 = dict(
         ("p", "**Flerdygnsrabatt:** raderna bär `unit_price`, `days`, `day_factor` och `price` "
               "(Dok 2 §5.2). Formeln `price × qty = radsumma` gäller överallt — fakturor, statistik och "
               "varukorg behöver inte känna till rabatten."),
+        ("p", "**Frakt i varukorgen (2026-10-09):** fordonet väljs av `window.skFrakt` (Dok 2 §5). "
+              "Leveransraden heter \"Leverans & upphämtning — <fordon>\" så att ordern sparar vilket "
+              "fordon som räknats. Varukorgen lägger inte längre \"— bil med släp\" på skrymmande korgar."),
+        ("p", "**Karaokerabatten** är en egen rad (`karaoke-rabatt`, `type: rabatt`, negativt pris) som "
+              "räknas om vid varje ändring och följer med offerten; ingen antalsväljare, och badgen "
+              "räknar den inte. Montering hoppar över rabattrader (Dok 2 §10)."),
         ("note", "**Ordern lagrar egen kopia av namn och pris.** `carts.items` är JSONB — en order från "
                  "2025 visar det namn och pris som gällde då, även om produkten sedan bytt namn. "
                  "Det är den mekanism som gör namnbyten i sortimentet ofarliga. Se Dok 2 §7."),
@@ -57,11 +63,35 @@ DOC5 = dict(
 
         ("p", "**Montering i offerten:** monteringsrutan har knappen \"Beräkna från offertens "
               "produkter\" (samma motor som varukorgen). `admin-send-quote` loggar om offertens "
-              "monteringsbelopp avviker från beräkningen."),
+              "monteringsbelopp avviker från beräkningen. **Sedan 2026-10-09** följer radens "
+              "monteringsfält med (`SkMonteringLib.radFalt`) — innan dess skickades bara id/artno/qty, "
+              "och LED-väggen blev 0 kr i admin. Admins LED-konfigurator sätter väggens tid med samma "
+              "`ledMinuter()` som LED-sidan. Ordersidan visar beräknad teknikertid (montering + "
+              "demontering) i stället för produktens grundtid."),
+        ("p", "**Fraktförslaget** i admin kommer ur samma `window.skFrakt` som varukorgen. Släpfordonen "
+              "kan väljas manuellt och är märkta \"undantag\"."),
+
+        ("h2", "3.2.1 Kunden ser alltid den sparade versionen (2026-10-09)"),
+        ("p", "Produkter-fliken skriver redigeringar direkt i `currentCart.items` innan något sparats. "
+              "\"Lämna utan att spara\" och \"OK = stäng utan att spara\" lämnade tidigare ändringarna kvar "
+              "i minnet — admin såg en uppdaterad offert medan databasen, och kundens länk, hade den gamla."),
+        ("ul", [
+            "**Admin:** \"Lämna utan att spara\" hämtar ordern från servern (`discardPanelChanges`). Stäng panel, byt order, skriv offert och klona använder samma tre val med *Spara först* överst i stället för `confirm()`. Chatt och påminnelse frågar \"Spara ändringarna först\" vid osparat. Offertfönstret behåller hela raden (hyresdygn, artno, låst pris, monteringsfält) — en omskickad flerdygnsoffert tappade tidigare dygnen.",
+            "**Kundsidan och servern:** API-svaren har `Cache-Control: no-store`; ordersidan hämtar med `cache: 'no-store'`. `cart-get` returnerar `items_rev`, och `?rev=1` är en tyst koll utan läslogg. Ordersidan kollar vid återbesök i fliken, bfcache-återställning och varje minut; ändrad offert laddas om med notisen \"Offerten har uppdaterats\".",
+            "**Godkännande av en inaktuell version avvisas** (409 stale) och sidan laddas om. Avtalstexten (`confirmation_text`) räknas av servern ur den sparade offerten.",
+            "Test: `test/offert-aktuell.test.cjs`.",
+        ]),
+        ("p", "**Kanbanlistan (2026-10-06):** `admin-carts` hämtar `quote_reminder_log`, `quote_sent_at` "
+              "och `declined_*`. Utan dem föll korten tillbaka på `admin_reminder_sent_at` som en enda "
+              "legacy-påminnelse — märket stod kvar på \"Påmind 1/2\" efter sista påminnelsen och "
+              "nej-märket saknades."),
 
         ("h2", "3.3 Fakturering"),
         ("p", "B2B-fakturadetaljblock på `/order/` (org.nr, referens, fakturaadress, Peppol), "
               "kreditfakturor, `skip_pickup_flow`-toggle."),
+        ("p", "**Swish-QR i Faktura-fliken (2026-10-06):** samma QR-sträng som i PDF:en (belopp "
+              "`ceil(exkl × 1,25)`, meddelande = fakturanummer) visas längst ned i fliken, med knapp för "
+              "helskärm vid betalning på plats. Internkopians bilaga döps efter kunden (Dok 4 §1.7)."),
         ("note", "**Sidbrytning (2026-09-30):** `_pdf-paging.js` (`ensureSpace()` + fortsättningsetikett) "
                  "används av `invoice-send`, `invoice-pdf-download` (faktura + order) och `invoice-credit`. "
                  "Produkttabellen bryts rad för rad och tabellhuvudet ritas om överst på nästa sida "
@@ -90,10 +120,30 @@ DOC5 = dict(
               "`GA4_OAUTH_CLIENT_ID/CLIENT_SECRET/REFRESH_TOKEN`. GA4 property 417375423, "
               "GSC `sc-domain:scenkonsult.se`."),
 
-        ("h2", "3.5 Innehålls-admin (Referenser, Recensioner, Bulletin)"),
-        ("p", "En \"Innehåll\"-dropdown i admin-topbaren samlar Referenskunder, Recensioner och "
-              "Bulletin. Referensdata underhålls i Supabase och synkas till committade JSON-filer vid "
-              "build (med säker fallback); sidorna läser JSON server-side och hydrerar live."),
+        ("h2", "3.5 Innehålls-admin (Referenser, Recensioner, Bulletin, Topplistor, Referenscase)"),
+        ("p", "En \"Innehåll\"-dropdown i admin-topbaren samlar Referenskunder, Recensioner, Bulletin, "
+              "Topplistor och Referenscase. Innehållet underhålls i **Supabase** och synkas till "
+              "committade JSON-filer vid build (med säker fallback); sidorna läser JSON server-side. "
+              "**Produktadmin skriver till repot (§4) — innehållsadmin skriver till databasen.** "
+              "Ändringar i innehållsadmin syns först efter nästa deploy, eftersom sidorna byggs statiskt."),
+        ("p", "**Topplistor och referenscase (NY 2026-10-17).** Datamodellen står i Dok 2 §12."),
+        ("table", [
+            ["Del", "Topplistor", "Referenscase"],
+            ["Admin-sida", "/admin/topplistor/", "/admin/referenscase/"],
+            ["Endpoint", "`admin-popular.js` (CommonJS)", "`admin-event-cases.js` (CommonJS)"],
+            ["Actions", "upsert-category · upsert-group · delete-group (mjuk) · reorder-groups · set-items", "upsert-case · delete-case (mjuk) · reorder-cases · set-images · set-hub · remove-hub"],
+            ["Generator", "`netlify/generate-popular.mjs` → `popular.json`", "`netlify/generate-event-cases.mjs` → `event-cases.json`"],
+        ]),
+        ("ul", [
+            "**`set-items`** ersätter gruppens hela lista, max 24 artiklar, dubbletter tas bort. Varje post är ett artno eller `{ artno, source }` — så att \"från data\"-märkningen följer raden och inte smittar av sig när listan skrivs om.",
+            "**\"Fyll från bokningsdata\"** hämtar `admin-stats-sales` för de senaste tolv månaderna, summerar `antal` per artno, filtrerar på kategorins `stats_categories` och visar topp 25 med kryssrutor. Ingen statistik räknas om på servern.",
+            "**`set-images`** ersätter casets bildlista och svarar **409** om en borttagen bild används av en hubbrad — hellre ett fel än en föräldralös rad. Sökvägar valideras mot `/images/…\\.(webp|png|jpg|jpeg|avif)`; alt-text krävs.",
+            "**`set-hub`** kräver att bilden hör till caset. Bildväljaren i admin listar filerna i `public/images/event/` vid bygget, så ingen skriver sökvägar för hand.",
+            "Båda endpoints bakom `ADMIN_TOKEN`; service-nyckeln skriver förbi RLS.",
+        ]),
+        ("note", "**Databasen först, push sedan** — gäller allt innehåll som har en committad fallback. "
+                 "Se Dok 2 §12.3. Rader som Claude författar levereras som SQL som körs i Supabase SQL "
+                 "editor, eftersom molnsessionen varken har service-nyckeln eller `ADMIN_TOKEN`."),
         ("p", "**Kundlista / referenser** — i Supabase-tabellen `clients`. `admin-clients.js` (CRUD), "
               "`clients-list.js` (publik läs), `/admin/referenser/`. `netlify/generate-clients.mjs` "
               "synkar `src/data/clients.json` (prebuild). **Recensioner** — självförsörjande via "
@@ -109,13 +159,15 @@ DOC5 = dict(
                  "kolumnen saknas → deploy-ordningen ofarlig."),
 
         ("h2", "3.6 Prebuild-kedjan"),
-        ("code", "prebuild: generate-catalogs → generate-llms → minify-sven → sync-reviews → sync-clients → generate-excel\n"
+        ("code", "prebuild: generate-catalogs → generate-llms → minify-sven → sync-reviews → sync-clients\n"
+                 "          → sync-popular → sync-event-cases → generate-excel\n"
                  "predev:   generate-catalogs → generate-llms\n"
                  "pretest:  generate-catalogs\n"
                  "prepare:  git config core.hooksPath .githooks || true   (körs av npm ci/install)"),
         ("p", "`generate-catalogs` = `generate-quote-catalog.py` (quote-, order- och "
               "montering-katalogen) + `generate-products.mjs` (Svens register). `generate-llms` = "
-              "`scripts/generate-llms.mjs` → `public/llms.txt`."),
+              "`scripts/generate-llms.mjs` → `public/llms.txt`. `sync-popular` och `sync-event-cases` "
+              "(2026-10-17) skriver topplistor och referenscase ur Supabase; de faller aldrig bygget."),
         ("note", "**`predev` och `pretest` tillagda 2026-09-20.** `astro dev` och `npm test` kör inte "
                  "`prebuild`, så utvecklingsservern och testerna gick tidigare mot inaktuella kataloger "
                  "utan att något sa ifrån. `generate-catalogs` anropar Python via "
@@ -167,6 +219,12 @@ DOC5 = dict(
             "Alla nya kolumner måste läggas till i explicita `select()`-listor i relevanta funktioner (admin-clients, clients-list, generate-clients).",
             "`Prefer: return=representation` på PATCH returnerar uppdaterad rad som JSON.",
         ]),
+        ("ul", [
+            "**RLS i en loop** (2026-10-17): `DO $$ … FOREACH t IN ARRAY[…] LOOP EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t); DROP POLICY IF EXISTS …; CREATE POLICY … END LOOP $$` — idempotent och kort när flera tabeller får samma deny-all.",
+            "**Seed med `ON CONFLICT DO NOTHING`**, rättelser med `ON CONFLICT DO UPDATE` — samma fil kan köras om.",
+            "**SQL editor varnar falskt** för båda mönstren: `DROP POLICY IF EXISTS` flaggas som destruktivt, och RLS i en `DO`-loop syns inte för granskaren (\"creates tables without enabling RLS\"). Välj *Run and enable RLS* — det blir en no-op när loopen sedan kör.",
+            "**Validera SQL före leverans** med `pglast` (libpg_query) — det fångar syntaxfel utan databas.",
+        ]),
         ("note", "**Migrationer körs MANUELLT mot Supabase — ingen auto-apply.** Migrationsfilerna i "
                  "repot är inte en tillförlitlig bild av live-schemat. Kod som refererar en icke-skapad "
                  "kolumn → PostgREST 400. Idempotent `ALTER TABLE`, kör i samband med deploy. "
@@ -211,8 +269,10 @@ DOC5 = dict(
         ("note", "**Molnsessioner (2026-10-02):** git-proxyn i molncontainern injicerar inga credentials "
                  "för repot, så push därifrån nekas fortfarande (403). Arbetsgången: committa i "
                  "molnklonen → `git bundle` → skriv till `Claude outputs/` → i datorns VM: färsk klon i "
-                 "hemkatalogen, hämta bundlen, pusha med PAT:en ur `.secrets/gh-pat.txt` → radera bundlen. "
-                 "Den lokala arbetskopian rörs inte. Se Dok 1 §1.3."),
+                 "hemkatalogen, hämta bundlen, kontrollera att `origin/main` inte flyttat sig, pusha med "
+                 "PAT:en ur `.secrets/gh-pat.txt`, radera klonen. Den lokala arbetskopian rörs inte. "
+                 "**Bundlarna blir kvar i `Claude outputs/`** — VM:en får inte radera i den monterade "
+                 "mappen utan beviljad rättighet. Se Dok 1 §1.3."),
         ("note", "**Rättat 2026-09-21 — den gamla miljötabellen gäller inte längre.** v15.1 slog fast "
                  "att molncontainern inte kan pusha (git-proxyn nekade på repo-nivå innan credentials "
                  "kom till tals) och att det inte gick att åtgärda i efterhand. Med ett fine-grained PAT "
@@ -223,8 +283,10 @@ DOC5 = dict(
         ("h2", "6.3 Radslut och .gitattributes"),
         ("note", "**`.gitattributes` med `* text=auto eol=lf` infördes 2026-09-20** tillsammans med "
                  "`git add --renormalize`. Innan dess jämförde Linux-VM:ens git mot CRLF i arbetskopian "
-                 "och listade tusentals filer som modifierade. Den gamla regeln \"kör aldrig git från "
-                 "device_bash\" är därmed upphävd — se Dok 6 §7.1."),
+                 "och listade tusentals filer som modifierade. Radslutsproblemet är därmed löst — men "
+                 "**git i den monterade arbetskopian kräver fortfarande att raderingsrättighet beviljats "
+                 "i sessionen**, annars lämnar till och med `git status` ett `index.lock` kvar som "
+                 "blockerar git i PowerShell. Se Dok 6 §7.1."),
         ("p", "**Redigera filer på bytenivå** när radslut kan vara blandade (`open(f,'rb')` + "
               "`bytes.replace`). Läs-som-text-och-skriv-tillbaka normaliserar radsluten tyst: en "
               "enradsändring i `netlify.toml` blev en 306-raders diff."),
@@ -244,6 +306,7 @@ DOC5 = dict(
             "Desktop-appen lägger förhandsvisningar i `Claude outputs/` i projektmappen — gitignorerad sedan 2026-09-18.",
             "Lägg aldrig en tokenfil någon annanstans än i `.secrets/`, och kontrollera att mappen står i `.gitignore` innan filen skapas.",
             "`public/llms.txt` och `src/data/montering-catalog.json` är genererade och gitignorerade (Dok 2 §2.1). llms.txt avspårades med `git rm --cached` i samma commit som ignore-raden.",
+            "**`__pycache__/` (2026-10-17):** sju `.pyc`-filer under `spec/__pycache__/` committades med spec v17.0 — fjärde gången regeln i noten ovan bröts. Ignore-raden och `git rm --cached` gjordes i samma commit som spec v18.0.",
         ]),
 
         ("h1", "7. Manualer & dokumentation"),
@@ -251,6 +314,7 @@ DOC5 = dict(
             "**Manual-generator:** `manual_generator.py` ligger i repot (tidigare bara i molncontainern, där den försvann mellan sessioner). Manualer i Supabase Storage: `manualer/[ARTNO].pdf`.",
             "Manualer namnges efter **paketets** artikelnummer, inte armaturens — se Dok 2 §7.",
             "**Spec-docx genereras av `spec_builder.py` + `spec_doc1–6.py`** (python-docx). Ramverk och innehåll ligger i samma uppsättning filer så att en enskild paragraf kan ändras och alla sex dokument byggas om med ett kommando.",
+            "**Markdown-versionerna i projektet byggs av samma generator** sedan 2026-10-17: `python3 spec_builder.py <utkatalog> --md` skriver `.md` bredvid `.docx`. Tidigare konverterades de för hand, och projektets textversioner kunde glida från docx-filerna.",
         ]),
         ("note", "**Leveransfiler ska aldrig dela filnamn med indata.** Regenererade manualer lades i "
                  "`_bilder-inbox/manualer/` bredvid originalen med identiska namn — originalen laddades "
@@ -261,6 +325,16 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.0", "2026-10-17",
+             "§1 /admin/topplistor/ och /admin/referenscase/. §2 frakt via skFrakt med fordonet i "
+             "leveransraden, karaokerabattens rad. §3.2 monteringsfälten följer med i admin, "
+             "fraktförslaget ur samma motor. Ny §3.2.1 Kunden ser alltid den sparade versionen "
+             "(discardPanelChanges, items_rev, 409 stale). Kanbanlistans påminnelsefält. §3.3 Swish-QR i "
+             "Faktura-fliken. §3.5 Topplistor och Referenscase (endpoints, actions, Fyll från "
+             "bokningsdata, databasen först); produktadmin → repo, innehållsadmin → databas. §3.6 "
+             "sync-popular och sync-event-cases. §5 RLS i loop, SQL editor-falsklarm, pglast. §6.2 "
+             "bundlarna blir kvar. §6.3 git i monterad mapp kräver raderingsrättighet. §6.4 __pycache__. "
+             "§7 spec_builder --md."],
             ["v17.0", "2026-10-02",
              "Ny §3.7 Offertpåminnelser v2 (samlingsruta/snooze, två steg från quote_sent_at, fyra "
              "mallar i chat_templates, Påminn kund, kunden tackar nej, ordersidan för status new) + "

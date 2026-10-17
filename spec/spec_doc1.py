@@ -3,8 +3,8 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v17.0",
-    date="2026-10-02",
+    version="v18.0",
+    date="2026-10-17",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
         ("table", [
@@ -34,6 +34,10 @@ DOC1 = dict(
               "och byggs om vid varje Netlify-deploy. `generate-quote-catalog.py` skriver även "
               "`montering-catalog.json` (Dok 2 §5.1). `generate-llms.mjs` och `generate-excel.mjs` körs i "
               "`prebuild`. Hela kedjan: Dok 5 §3.6. `build_excel_v3.py` är obsolet."),
+        ("p", "**`popular.json` och `event-cases.json` är inte sådana artefakter** (2026-10-17). De "
+              "skrivs om ur Supabase i `prebuild` men är **committade fallbacks**, samma mönster som "
+              "`clients.json` och `reviews.json`: saknas databasen behåller bygget den committade "
+              "filen. Dok 2 §12, Dok 5 §3.5."),
         ("note", "**Python anropas via wrappern, inte direkt** (NY 2026-09-20). `python3` rakt av träffar "
                  "Microsoft Stores platshållare i PowerShell och bryter hela byggkedjan tyst. "
                  "`scripts/run-python.mjs` provar `python3`, `python` och `py -3` och validerar varje "
@@ -53,13 +57,15 @@ DOC1 = dict(
         ("table", [
             ["Miljö", "Används till"],
             ["Windows / PowerShell", "Normal arbetsväg: redigering, build, git, push"],
-            ["device_bash (Cowork-VM på datorn)", "Läsa, söka, redigera och konvertera filer i den monterade repo-mappen. Git går numera bra här — `.gitattributes` tog bort de falska radslutsdiffarna"],
+            ["device_bash (Cowork-VM på datorn)", "Läsa, söka, redigera och konvertera filer i den monterade repo-mappen. **Git i den monterade arbetskopian bara om raderingsrättighet beviljats i sessionen** — annars lämnar även `git status` ett `.git/index.lock` efter sig (Dok 6 §7.1). Push sker från en färsk klon i VM:ens hemkatalog"],
             ["Cowork-molncontainer", "Klonar repot separat (`--depth 1 --filter=blob:none` + sparse-checkout) för att verifiera bygget, ~26 s från ingenting till verifierat bygge. **Kan inte pusha** — git-proxyn injicerar inga credentials för repot (verifierat 2026-10-02)"],
         ]),
         ("note", "**Push från en molnsession (2026-10-02):** färdiga commits paketeras som `git bundle` "
                  "och skrivs till `Claude outputs/` (gitignorerad). I datorns VM klonas repot färskt i "
                  "VM:ens hemkatalog, bundlen hämtas in och pushas med PAT:en ur `.secrets/gh-pat.txt` "
-                 "inläst i en variabel. Den lokala arbetskopian rörs aldrig. Bundlen raderas efteråt. "
+                 "inläst i en variabel. Den lokala arbetskopian rörs aldrig. Klonen i hemkatalogen "
+                 "raderas efteråt, men **bundlarna blir kvar i `Claude outputs/`** — VM:en får inte "
+                 "radera i den monterade mappen utan beviljad rättighet. Rensa mappen för hand då och då. "
                  "Byggverifiering i VM:en är inte praktiskt — `npm ci` där tar flera minuter för 72 MB. "
                  "Blir repot privat måste det kopplas till Claude-sessionernas källor först (Dok 6 §9.4)."),
         ("note", "**Bygget kan inte verifieras i den monterade mappen från molnsessionens sida** — "
@@ -130,6 +136,10 @@ DOC1 = dict(
              "Behållet 2026-04-05, återbekräftat 2026-07-25"],
             ["PaketVariantCard.astro", "object-contain + galleri (§5.1)",
              "NY 2026-09-20 — produktbilder på vit botten, samma regel som ProductCard"],
+            ["PopularaPaket.astro (topplistan)", "object-contain + bg-brand-dark, miniatyr 56×48 (`w-14 h-12`)",
+             "NY 2026-10-17 — produktbild på vit botten, alltså samma regel som ProductCard"],
+            ["EventBilder.astro (referensraden)", "object-cover + aspect-ratio:4/3, valfri `object-position` ur `pos`",
+             "Eventfoto med fylld komposition. `pos` sätts per hubbrad när motivet hamnar utanför 4:3-utsnittet"],
         ]),
         ("p", "Storlek på korten styrs av **grid-kolumnbredden**, inte av komponenten. "
               "Bannerbilder/eventbilder (fylld komposition) använder `object-cover h-48`. "
@@ -155,6 +165,7 @@ DOC1 = dict(
             "**Transparent WebP i lavendel #c4b5f4**, tightbeskuren till logotypens bounding box.",
             "**Ramen ritas i CSS** — `rounded-xl border border-brand-orange/40` — aldrig i bilden. Då skalar ramen rent och en enskild logotyp kan bytas utan att övriga rörs.",
             "Renderas ur `clientLogos`-arrayen i `referenser/index.astro`; `img` får `max-h-[58%] max-w-[82%] object-contain` i en cell med fast höjd.",
+            "**Fältet `tall`** (2026-10-03): höga märken — rundlar och sköldar, som UF och German Beer Hall — får `max-h-[92%]` i stället för 58 %, annars blir de frimärken bredvid de liggande logotyperna.",
         ]),
         ("note", "Bannern ersatte 2026-09-18 en sammansatt rasterbild (`logos.webp`) där ramarna var "
                  "inbrända i pixlarna. De sju ärvda logotyperna är nyckade ur den bilden och begränsas "
@@ -217,16 +228,20 @@ DOC1 = dict(
         ("p", "**Guide-sidor (`data-exkl`-attribut):** `<span data-exkl=\"599\">599</span> kr`. "
               "Den globala `applyVat()`-funktionen räknar om vid toggle (+25 %)."),
 
-        ("h2", "4.7 Crossfade-kort"),
-        ("p", "Ett kort kan visa **två bilder som växlar var 5:e sekund**. Används när ett uppdrag "
-              "berättas bäst av två tagningar (före/under, översikt/detalj) utan att ta två rutor i "
-              "griden. Infört på eventgalleriet 2026-09-18, Dok 3 §4.2 — mönstret är generellt."),
-        ("p", "**Data:** posten får de valfria fälten `src2` och `alt2`. Typa arrayen så att fälten blir "
-              "optional, annars klagar TypeScript på posterna som saknar dem. "
-              "**Markup:** bildbehållaren får `relative`; förstabilden taggas villkorligt via `class:list`, "
-              "andrabilden renderas bara när `src2` finns. "
-              "**CSS** i ett scopat `<style>`-block i samma fil: `.sk-xfade { position:absolute; inset:0 }` "
-              "plus två keyframes på 10 s — synlig 0–45 %, övertoning 45–55 %, dold 55–95 %. "
+        ("h2", "4.7 Crossfade-kort (omskrivet 2026-10-17)"),
+        ("p", "Ett kort kan visa **två till fyra bilder som växlar var 5:e sekund**. Används när ett "
+              "uppdrag berättas bäst av flera tagningar (översikt/detalj, före/under) utan att ta flera "
+              "rutor i griden. Infört på eventgalleriet 2026-09-18 med två bilder, utökat till 3–4 "
+              "2026-10-03. Dok 3 §4.2."),
+        ("p", "**Data:** varje case i `event-cases.json` har en `images[]`-lista (Dok 2 §12). Antalet "
+              "bilder styr allt — fälten `src2`/`alt2` och `more` finns inte längre. "
+              "**Markup:** bildbehållaren får `relative`; varje bild får klass efter antalet: 1 = statisk, "
+              "2 = `sk-xfade-a` / `sk-xfade-b`, 3–4 = `sk-xfade-3` / `sk-xfade-4` med "
+              "`animation-delay: i×5−1 s`. "
+              "**CSS** i ett scopat `<style>`-block i samma fil: `.sk-xfade { position:absolute; inset:0 }`. "
+              "Två bilder: 10 s-cykel, synlig 0–45 %, övertoning 45–55 %. Tre–fyra bilder: 15 respektive "
+              "20 s, 5 s per bild med 1 s övertoning, `animation-fill-mode: backwards` så att bild 2–4 "
+              "är dolda innan deras fördröjning löpt ut. "
               "`@media (prefers-reduced-motion: reduce)` stänger av animationen och låser bild 1."),
         ("note", "**Animera opacity, inte display.** Hover-zoomen ligger på `transform` och krockar "
                  "därför inte med crossfaden. Scopat `<style>` räcker här eftersom bilderna renderas i "
@@ -255,7 +270,7 @@ DOC1 = dict(
         ("note", "**ProductCard-props:** skicka alltid `bulky={p.bulky}` och "
                  "`forceLeverans={p.forceLeverans}`. Se Dok 2 §5 för fraktflaggor."),
 
-        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-10-02 — 23 filer)"),
+        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-10-17 — 30 filer)"),
         ("table", [
             ["Komponent", "Status / roll"],
             ["Price.astro", "Aktiv"],
@@ -268,6 +283,13 @@ DOC1 = dict(
             ["DynamicPaketCard.astro", "Aktiv — konfigurerbart scenkort (yta/höjd/trappor/kjol, live-pris, beräknad montering)"],
             ["ScenkjolCard.astro", "Aktiv — **NY 2026-09-28.** Ett kort för alla scenkjolar med höjd- och modellval (rak 4 m / veckad 2 m; 20 cm endast rak). Ersätter separata kjolkort på hyra-scen och tillbehörssidan"],
             ["MonteringEngine.astro", "Aktiv — **NY 2026-09-28.** Laddar `src/lib/montering.cjs` inline i `Layout.astro` → `window.skMontering`. Samma motor som serverfunktionerna (Dok 2 §5.1)"],
+            ["FraktEngine.astro", "Aktiv — **NY 2026-10-09.** Laddar `src/lib/frakt.cjs` → `window.skFrakt`, efter MonteringEngine i Layout och admin. Enda fraktmotorn (Dok 2 §5)"],
+            ["KaraokeBuilder.astro", "Aktiv — **NY 2026-10-05.** Karaokesidans byggare: scen med bildlager, snabbval, guide, flikar (Dok 2 §10)"],
+            ["LjudLjusBuilder.astro", "Aktiv — **NY 2026-10-12.** Konfiguratorn på /hyra-ljud-och-ljus/. Delar bildlagerbiblioteket med karaokebyggaren; CSS kopierad med prefix `llb-` (Dok 2 §11)"],
+            ["LjudLjusPromo.astro", "Aktiv — **NY 2026-10-12.** Banner mot /hyra-ljud-och-ljus/ på ljud- och ljushubben"],
+            ["LeveransMonteringEl.astro", "Aktiv — **NY 2026-10-13.** Hubbarnas ruta Leverans, montering & el; belopp ur tjanster.json, montering.cjs och el.json"],
+            ["PopularaPaket.astro", "Aktiv — **NY 2026-10-13, omgjord 2026-10-17.** Hubbarnas topplista: grupper efter tillfälle, en rad per produkt med rang, miniatyr, namn, pris och köpknapp. Läser `popular.json` (Dok 2 §12, Dok 3 §6)"],
+            ["EventBilder.astro", "Aktiv — **NY 2026-10-13, datadriven 2026-10-17.** Hubbarnas referensrad \"Från våra event\". Läser `event-cases.json → hub[kategori]`"],
             ["SceneConfigurator.astro", "Aktiv (scensidan)"],
             ["YtaJamforelse.astro", "Aktiv (scensidan)"],
             ["SceneLinkCard.astro", "Aktiv — kompakt scen-länkkort till scensidans konfigurator"],
@@ -320,6 +342,7 @@ DOC1 = dict(
             ["Fakturaadress", "Vinsta Skolgränd 4, 162 70 Vällingby"],
             ["Grundat", "1986"],
             ["Öppettider", "Mån–fre 09–17, lör–sön 12–15 — **samma som Google-profilen**. Källa: `site.json → company.openingHours` (`\"Mo-Fr 09:00-17:00, Sa-Su 12:00-15:00\"`), JSON-LD i `Layout.astro`. Läses även av llms.txt, Sven och kontaktsidans öppet/stängt-pill"],
+            ["Telefon och helger", "**Telefon mån–fre 09–17.** Lör–sön 12–15 är **depåtider för hämtning och återlämning**; **kvällar och helger är telefonen endast jour** för kunder med pågående uthyrning; nya förfrågningar går via formulär eller varukorg (2026-10-11). Fälten `site.json → company.phoneHours` och `weekendNote` läses bara av Svens fakta (båda) och llms.txt (`phoneHours`). Kontakt, bokningssida, order, studentflak, ortssidorna och /en/ har helgtexten **hårdkodad** — ändras tiderna måste sidorna ändras för hand (Dok 6 §9.2)"],
             ["Serviceområde", "Hela Storstockholm"],
         ]),
 
@@ -343,12 +366,20 @@ DOC1 = dict(
             "**Avvisa och Godkänn har identisk stil** — samtycke ska vara lika lätt att neka som att ge.",
             "**Ångra/ändra:** alla element med `data-cookie-settings` öppnar bannern igen — länken \"Cookie-inställningar\" i sidfoten och knappen i personuppgiftspolicyn §6. Avvisa efter tidigare Godkänn tar bort `_ga`/`_gid`-cookies och laddar om sidan utan GTM.",
             "**GTM laddas en gång:** head-skriptet sätter `window.__skGtmLoaded`; bannerskriptets `loadGTM()` avbryter om flaggan finns. Före 2026-10-02 laddades GTM två gånger per sidvisning för återkommande besökare som godkänt — GA4-siffror före dess kan vara dubbelräknade.",
-            "**Inget tredjepartsinnehåll före samtycke:** Google Maps på /kontakt/ laddas först vid klick på \"Visa karta\"; YouTube (youtube-nocookie) först när besökaren startar en video.",
+            "**Inget tredjepartsinnehåll före samtycke:** Google Maps på /kontakt/ laddas automatiskt för besökare som redan godkänt (`sk_cookie_consent = accepted`) och direkt när någon klickar Godkänn i bannern; utan samtycke ligger klickrutan \"Visa karta\" kvar (2026-10-11). YouTube (youtube-nocookie) först när besökaren startar en video.",
         ]),
 
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.0", "2026-10-17",
+             "§1.1 popular.json/event-cases.json är committade fallbacks, inte byggartefakter. §1.3 git i "
+             "den monterade mappen kräver raderingsrättighet; bundlarna blir kvar i Claude outputs/. §3.2 "
+             "PopularaPaket (miniatyr, object-contain) och EventBilder (4:3, object-cover, pos) i "
+             "renderingstabellen. §3.3 fältet tall. §4.7 crossfade omskrivet: 2–4 bilder ur images[], "
+             "sk-xfade-a/b och -3/-4. §5.1 30 komponenter (FraktEngine, KaraokeBuilder, LjudLjusBuilder, "
+             "LjudLjusPromo, LeveransMonteringEl, PopularaPaket, EventBilder). §8 telefon och helger "
+             "(depåtider, jour). §9.1 kartan laddas direkt vid samtycke."],
             ["v17.0", "2026-10-02",
              "§8 namn (Scenkonsult Norden utåt, Sigvardsson Consulting AB juridiskt) och öppettider "
              "(Google-profilen, källa site.json) + not. Ny §9.1 cookiebannern. Ny §4.8 språk och hreflang "

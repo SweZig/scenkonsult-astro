@@ -3,8 +3,8 @@ DOC4 = dict(
     slug="Kommunikation",
     title="Kommunikation",
     subtitle="E-post (Resend/SES), DNS & DMARC, SMS (46elks), Sven-chatbot",
-    version="v17.0",
-    date="2026-10-02",
+    version="v18.0",
+    date="2026-10-17",
     blocks=[
         ("h1", "1. E-postsystem (Resend)"),
         ("h2", "1.1 Arkitektur"),
@@ -75,6 +75,13 @@ DOC4 = dict(
         ("p", "Vid nej skickar `cart-update` en notis till info@ (`RESEND_API_KEY`) och lägger svaret "
               "som chattmeddelande. Påminnelsemallarna redigeras i admin under Chatt → Hantera mallar "
               "(`chat_templates`, `kind = 'reminder'` + `subject`)."),
+
+        ("h2", "1.7 Faktura-mail (2026-10-06)"),
+        ("p", "`invoice-send.js` skickar fakturan till kunden och en internkopia till info@. "
+              "**Bilagorna heter olika:** kunden får `Faktura_Kxxxx_Scenkonsult.pdf`, internkopian "
+              "`Faktura_Kxxxx_<Kundnamn>.pdf` (ASCII) så att den går att hitta i inkorgen. "
+              "Internkopian visar också **Offert skapad** (`carts.created_at` i Stockholmstid) och "
+              "ledtiden i dagar fram till fakturan."),
 
         ("h1", "2. DNS-konfiguration"),
         ("h2", "2.1 SPF / DKIM"),
@@ -164,11 +171,23 @@ DOC4 = dict(
                  "netlify/functions/sven-chat.mjs"),
         ("p", "`sven-chat.mjs` importerar exakt tre symboler: `CART_ID_LISTA`, "
               "`PRODUKTER_OCH_PRISER` och `SVEN_FACTS` (modulen exporterar även `QUOTE_CATALOG`). "
-              "Byggkörningen 2026-10-02 gav **317 cart-ID:n** (301 den 2026-09-21) och 72 rader i "
-              "SVEN_FACTS. Siffrorna ändras med sortimentet — läs dem ur bygget, inte härifrån."),
+              "Byggkörningen 2026-10-17 gav **320 cart-ID:n** (317 den 2026-10-02, 301 den 2026-09-21), "
+              "180 produktrader, 361 poster i QUOTE_CATALOG och 72 rader i SVEN_FACTS. Siffrorna ändras "
+              "med sortimentet — läs dem ur bygget (`generate-products.mjs` skriver ut dem), inte härifrån."),
         ("p", "**SVEN_FACTS** byggs ur `site.json` och `tjanster.json`: kontaktuppgifter med öppettider "
               "ur `company.openingHours` (\"mån–fre 09:00–17:00, lör–sön 12:00–15:00\" sedan "
               "2026-10-02), frakt, montering och sedan 2026-09-28 regeln om plant underlag för scen."),
+        ("ul", [
+            "**Helger (2026-10-11):** faktarader ur `phoneHours` och `weekendNote` plus en regel i "
+            "systemprompten — helgtiderna är depåtider för hämtning och återlämning; kvällar och helger är "
+            "telefonen bara jour vid pågående uthyrning, nya förfrågningar går via formulär eller varukorg.",
+            "**Frakt (2026-10-09):** Sven nämner bara standardfordonen — vanlig bil, stor bil, lätt "
+            "lastbil. Släpvagn är ett internt undantag: SVEN_FACTS säger uttryckligen att den inte ska "
+            "nämnas, och llms.txt och Excel-katalogen nämner inga fordon. Släpartiklarna SK-LEV-0002 och "
+            "-0006 ligger kvar i QUOTE_CATALOG för gamla ordrar.",
+            "**Ljud & ljus (2026-10-12):** registret har ett avsnitt om konfiguratorns paket. Utgångna "
+            "produkter (`active: false`, t.ex. 190\"-dukarna) filtreras bort ur prislistan.",
+        ]),
         ("note", "**Rättelse:** flera äldre beskrivningar talade om \"80 produkter i "
                  "`SVEN_PRODUCTS`-objektet i `Layout.astro`\". Det stämmer inte sedan `d63a3f86`. "
                  "Det finns inget `SVEN_PRODUCTS`-objekt i `Layout.astro` — bara en kommentar som pekar "
@@ -191,6 +210,10 @@ DOC4 = dict(
         ("h1", "5. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.0", "2026-10-17",
+             "Ny §1.7 Faktura-mail (internkopians bilaga döps efter kund, Offert skapad + ledtid). §4.1 "
+             "320 cart-ID:n, 180 produktrader, 361 QUOTE_CATALOG-poster; SVEN_FACTS med helger som jour, "
+             "frakt utan släp, ljud & ljus-paketen."],
             ["v17.0", "2026-10-02",
              "Ny §1.6 Offertpåminnelser och nej-svar (påminnelsemail via cart-message, nej-länken "
              "registrerar aldrig något, notis vid nej, mallar i chat_templates). §1.2 skicka-kontakt "
