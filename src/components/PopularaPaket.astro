@@ -35,8 +35,9 @@ const allaLabel = cfg.allaLabel ?? null;
 /**
  * Produktlistorna ser olika ut per katalogfil: ljud.json och ljus.json har
  * nästlade serier (`event`, `live`, `music`…) med varsin `products`-array,
- * medan bild.json, scen.json och dj.json har `products`, `tillbehor` och
- * `dukar` som toppnivå-arrayer. Båda formerna samlas in här — uppslaget sker
+ * medan bild.json (`products`, `tillbehor`, `dukar`), scenes.json (`products`,
+ * `tillbehor`, `pipeDrape`, `modules`) och dj.json (`packages`, `equipment`) har
+ * sina listor på toppnivån. Båda formerna samlas in här — uppslaget sker
  * alltid på artno, aldrig på index.
  */
 const kataloger: any[] = Array.isArray(data) ? data : [data];

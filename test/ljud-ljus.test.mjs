@@ -55,25 +55,49 @@ check(s4.projbord === null, 'projektorbord ska försvinna utan projektor');
 const s5 = fixMixer(R, { ljud: 'mus-m', mixer: 'mix-42', mik: null, ljus: null, rok: null, bild: 'proj-s', projbord: 'projbord', teknikbord: 'teknikbord' }, 'privat');
 check(s5.projbord === 'projbord' && itemsFor(R, s5, 'privat').some((i) => i.artno === 'SK-DJ-0005'), 'bord med projektor ska ligga kvar och räknas');
 
-// Hubbarnas "Populäraste paketen" (ljud.json/ljus.json → populara): varje artno
-// ska finnas och vara aktiv, annars försvinner kortet tyst från hubben.
-for (const f of ['ljud', 'ljus']) {
-  const d = data[f];
-  const alla = Object.values(d).filter((v) => v && Array.isArray(v.products)).flatMap((v) => v.products);
-  check(Array.isArray(d.populara) && d.populara.length >= 3, `${f}.json: populara saknas`);
-  for (const g of d.populara ?? []) {
-    check(!!(g.rubrik && g.gaster && g.lead), `${f}.json: populara-grupp utan rubrik/gäster/lead`);
-    for (const a of g.artnos) {
-      const p = alla.find((x) => x.artno === a);
-      check(!!p && p.active !== false, `${f}.json: populara ${g.rubrik} → ${a} saknas eller är utgången`);
-    }
+// ── Kurateringslagret: topplistor och referensrader (sedan 2026-10-17) ──────
+// Innehållet bor i Supabase och skrivs vid prebuild till popular.json och
+// event-cases.json (committade fallbacks). Testerna läser fallback-filerna.
+// Lagda här och inte i en egen fil för att inte röra package.json.
+
+// Produktuppslaget måste klara båda katalogformerna, precis som PopularaPaket:
+// nästlade serier (ljud.json: event/live/music…) och toppnivå-arrayer
+// (bild.json: products/tillbehor/dukar).
+const allaProdukter = Object.values(data).flatMap((d) => Object.values(d).flatMap((v) => {
+  if (Array.isArray(v)) return v.filter((p) => p && typeof p === 'object' && p.artno);
+  if (v && typeof v === 'object' && Array.isArray(v.products)) return v.products;
+  return [];
+}));
+const aktiv = (a) => allaProdukter.some((p) => p.artno === a && p.active !== false);
+
+const popular = load('popular.json');
+for (const kat of ['ljud', 'ljus']) {
+  check((popular[kat]?.grupper ?? []).length > 0, `popular.json: ${kat} har inga grupper`);
+}
+for (const [kat, cfg] of Object.entries(popular)) {
+  for (const g of cfg.grupper ?? []) {
+    check(!!g.rubrik, `popular.json: ${kat}-grupp utan rubrik`);
+    check((g.artnos ?? []).length > 0, `popular.json: ${kat} ${g.rubrik} har inga artiklar`);
+    // En utgången eller okänd artikel försvinner tyst ur topplistan.
+    for (const a of g.artnos ?? []) check(aktiv(a), `popular.json: ${kat} ${g.rubrik} → ${a} saknas eller är utgången`);
   }
 }
 
-// Hubbarnas eventbilder ska finnas i public/
-for (const f of ['ljud', 'ljus']) {
-  for (const b of data[f].eventbilder ?? []) {
-    check(fs.existsSync(path.join(process.cwd(), 'public', b.src)), `${f}.json: eventbild saknas: ${b.src}`);
+const ec = load('event-cases.json');
+const finns = (src) => fs.existsSync(path.join(process.cwd(), 'public', src));
+check((ec.cases ?? []).length > 0, 'event-cases.json: inga case');
+for (const c of ec.cases ?? []) {
+  check((c.images ?? []).length > 0, `event-cases.json: ${c.id} saknar galleribild`);
+  for (const im of c.images ?? []) {
+    check(finns(im.src), `event-cases.json: ${c.id} → bildfil saknas: ${im.src}`);
+    check(!!im.alt, `event-cases.json: ${c.id} → alt-text saknas: ${im.src}`);
+  }
+}
+for (const [kat, rader] of Object.entries(ec.hub ?? {})) {
+  check(kat in popular, `event-cases.json: okänd hubbkategori ${kat}`);
+  for (const h of rader) {
+    check(finns(h.src), `event-cases.json: hubb ${kat}/${h.caseId} → bildfil saknas: ${h.src}`);
+    check(!!(h.label && h.alt), `event-cases.json: hubb ${kat}/${h.caseId} saknar rubrik eller alt-text`);
   }
 }
 

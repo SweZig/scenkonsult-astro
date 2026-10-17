@@ -179,7 +179,8 @@ exports.handler = async (event) => {
           body: JSON.stringify(artnos.map((a, i) => ({ group_id: gid, artno: a.artno, sort_order: i, source: a.source }))),
         });
       }
-      console.log('POPULAR_ITEMS_SET:', gid, '=', artnos.length, `(${source})`);
+      const franData = artnos.filter((a) => a.source === 'data').length;
+      console.log('POPULAR_ITEMS_SET:', gid, '=', artnos.length, `(varav ${franData} från data)`);
       return ok({ group_id: gid, count: artnos.length });
     }
 
