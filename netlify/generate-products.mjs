@@ -91,7 +91,9 @@ if (scenes.modules?.length) {
 // som inte finns, så trappor, kjolar och räcken saknades i Svens prislista.
 const _scenAcc = (scenes.tillbehor || []).filter(a => a && a.active !== false && a.price && a.name);
 if (_scenAcc.length) {
-  const accStr = _scenAcc.map(a => `${a.name} ${fmtPrice(a.price)}`).join(', ');
+  // Enheten följer med: /dygn, /m² (filtmatta) och per segment för kjolarna,
+  // som räknas i hela segment per sida.
+  const accStr = _scenAcc.map(a => `${a.name} ${fmtPrice(a.price)}${a.priceNote || '/dygn'}${a.segmentMeters ? ' per segment' : ''}`).join(', ');
   sects.push(`Tillbehör: ${accStr}`);
 }
 sects.push('Tumregel: 2–3 m² per person på scen.\n');

@@ -1,103 +1,67 @@
 # CLAUDE.md – Underhållsguide för Scenkonsult Norden
 
-Denna fil förklarar hur du som underhåller sajten (med hjälp av Claude) gör vanliga ändringar. Läs den varje gång du ber Claude om hjälp med sajten.
+Kort guide för den som ändrar sajten, med eller utan Claude. **Reglerna i sin
+helhet står i projektspecifikationen** (claude.ai-projektet "Scenkonsult-astro",
+`claude/Scenkonsult_Projektspecifikation.md`) och i Dok 1–6, som byggs av
+`spec/` i det här repot (`python3 spec_builder.py <utkatalog> --md`). Säger den
+här filen emot specen gäller specen.
 
-## Projektstruktur
+## Arbetsgång
 
-```
-scenkonsult-astro/
-├── src/
-│   ├── data/              ← HÄR gör du 90% av alla ändringar
-│   │   ├── site.json      ← Globala inställningar, kontakt, recensioner, FAQ, kunder
-│   │   ├── scenes.json    ← Alla scenpaket och tillbehör (priser, beskrivningar)
-│   │   ├── ljud.json      ← Alla ljudpaket
-│   │   ├── ljus.json      ← Alla ljuspaket
-│   │   └── dj.json        ← DJ-tjänster
-│   ├── layouts/
-│   │   └── Layout.astro   ← Header, footer, SEO – ändras sällan
-│   ├── components/        ← Återanvändbara UI-delar
-│   └── pages/             ← En fil per URL
-├── public/
-│   ├── robots.txt         ← Sökmotordirektiv
-│   ├── llms.txt           ← AI-plattformsdirektiv (uppdatera vid stora ändringar)
-│   └── images/            ← Alla bilder läggs här
-└── astro.config.mjs       ← Ändras nästan aldrig
+```powershell
+npm run sync        # git pull --rebase --autostash && npm ci — alltid först
+# ... ändra ...
+npm run preflight   # git fetch, git status och npm run build
+npm test            # Netlify kör inte testerna
+git add <sökvägar>  # aldrig -A
+git commit -m "..."
+git push            # Netlify bygger och publicerar main automatiskt
 ```
 
-## Vanliga uppgifter
+`npm run sync` först, eftersom admin-panelen committar prisändringar direkt
+till `main`. Det finns inget manuellt deploy-steg — en push till `main` är en
+publicering.
 
-### Ändra ett pris
-Redigera rätt JSON-fil i `src/data/`. Exempel i `scenes.json`:
-```json
-{ "id": "small", "price": 649, ... }
+## Var saker bor
+
+```
+src/data/        ← ~90 % av alla ändringar: priser, texter, produkter (JSON)
+src/components/  ← återanvändbara delar
+src/pages/       ← en fil per URL
+src/lib/         ← motorer: montering, frakt, Svens register, produktsidor
+src/utils/       ← hjälpare: tider (hours.ts), benhöjder (scenHojder.ts), länkar
+netlify/         ← serverless-funktioner och generatorer som körs vid bygget
+spec/            ← generatorn för specdokumenten Dok 1–6
 ```
 
-### Lägga till ett nytt scenpaket
-Lägg till ett objekt i `products`-arrayen i `src/data/scenes.json`. Kopiera ett befintligt objekt och ändra värdena.
+Genererade filer committas aldrig: `quote-catalog.json`,
+`order-catalog-flat.json`, `montering-catalog.json`,
+`netlify/functions/_products-generated.mjs`, `public/llms.txt` och
+Excel-katalogen. De byggs av `prebuild`.
 
-### Lägga till en kundrecension
-Lägg till i `reviews`-arrayen i `src/data/site.json`:
-```json
-{ "author": "Namn", "location": "Stad", "rating": 5, "text": "Bra service!" }
-```
+Topplistor, referenscase, referenskunder och recensioner underhålls i
+`/admin/` och ligger i Supabase. `popular.json`, `event-cases.json`,
+`clients.json` och `reviews.json` är bara fallback-kopior — **databasen först,
+push sedan**.
 
-### Lägga till FAQ-fråga
-Lägg till i `faq`-arrayen i `src/data/site.json`:
-```json
-{ "question": "Din fråga?", "answer": "Svaret på frågan." }
-```
+## Vanliga ändringar
 
-### Lägga till en ny sida
-Skapa en ny fil i `src/pages/`. Filens sökväg = URL. Exempel:
-- `src/pages/brollop/index.astro` → `/brollop/`
-- `src/pages/foretagsevent/index.astro` → `/foretagsevent/`
+- **Pris eller produkt:** redigera rätt fil i `src/data/` (eller via
+  `/admin/produkter/`). Slå alltid upp produkter på `artno`, aldrig på plats i
+  listan. En hyrbar rad = ett artikelnummer; ett nummer återanvänds aldrig.
+  Utgångna produkter får `"active": false` och ligger kvar.
+- **FAQ:** nycklarna heter `q` och `a` i alla filer.
+- **Kontaktuppgifter och tider:** `site.json → company`. Sidorna hämtar
+  klockslagen via `src/utils/hours.ts` — skriv aldrig in tider i en sida.
+- **Montering och frakt** räknas av motorerna i `src/lib/` — skriv aldrig
+  belopp för hand, och skriv aldrig att montering eller frakt "ingår".
+- **Ny sida:** en fil i `src/pages/` (sökvägen blir URL:en). Unik `title`
+  (max 60 tecken) och `description` (max 155), breadcrumbs, schema-markup och
+  alt-text på bilder.
 
-Kopiera strukturen från en befintlig sida. Kom ihåg att:
-1. Sätta `title` och `description` i frontmatter
-2. Lägga till passande schema-markup
-3. Inkludera breadcrumb-navigering
+## URL:er
 
-### Uppdatera kontaktuppgifter
-Ändra i `site.json` under `"company"`. Ändringen sprids automatiskt till header, footer och schema-markup på alla sidor.
-
-### Lägga till bilder
-1. Kopiera bildfilen till `public/images/`
-2. Referera till den som `/images/filnamn.jpg` i JSON-data eller i .astro-filen
-
-## Driftsätta till produktion
-
-```bash
-# Bygg sajten
-npm run build
-
-# Förhandsgranska
-npm run preview
-
-# Deploya via Netlify CLI
-netlify deploy --prod --dir=dist
-```
-
-## Köra lokalt för utveckling
-
-```bash
-npm install
-npm run dev
-# Öppna http://localhost:4321
-```
-
-## SEO-checklista vid nya sidor
-
-- [ ] Unik `title` (max 60 tecken) med primärt nyckelord + "Stockholm"
-- [ ] Unik `description` (max 155 tecken) med geo + uppmaning
-- [ ] Breadcrumb-navigering med schema markup
-- [ ] Minst ett schema-objekt (Product, FAQPage, Article etc.)
-- [ ] Alt-text på alla bilder
-- [ ] Intern länkning från relevanta befintliga sidor
-- [ ] Lägg till sidan i llms.txt om den är viktig
-
-## URL-regler (kritiska för SEO!)
-
-**Ändra aldrig befintliga URL:er.** Om du måste byta URL, skapa en redirect i `netlify.toml`:
+Ändra aldrig en befintlig URL. Måste den bytas: lägg en 301 i `netlify.toml`.
 
 ```toml
 [[redirects]]
@@ -106,8 +70,12 @@ npm run dev
   status = 301
 ```
 
-## Kontakt för felsökning
+## Lokalt
 
-- Astro docs: https://docs.astro.build
-- Netlify docs: https://docs.netlify.com
-- Tailwind docs: https://tailwindcss.com/docs
+```bash
+npm ci
+npm run dev        # http://localhost:4321
+```
+
+Python anropas via `node scripts/run-python.mjs <skript>` — `python3` rakt av
+är Microsoft Stores platshållare i PowerShell.
