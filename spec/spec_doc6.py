@@ -3,7 +3,7 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v18.3",
+    version="v18.4",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Arbetssätt"),
@@ -244,7 +244,8 @@ DOC6 = dict(
             "**Referenssidan:** kundlogotyperna i högre upplösning; de ärvda är nyckade ur en 1600 px-bild. (Crossfade-paren är utbyggda — 12 av 19 kort har 2–4 bilder.)",
             "**\"Montering ingår vid behov\" — LÖST 2026-10-17.** Rubriken på /vara-tjanster/ är nu *Montering när du behöver* med timpriset ur tjanster.json, och festivalsidan säger att montering tillkommer. (Ursprunglig notering: `/vara-tjanster/` har rubriken *Montering ingår vid behov* ovanför brödtexten *600 kr/tim*, och `/for/festival/` säger om modulscenerna att \"montering ingår vid behov\". Båda läses som gratis montering och motsäger Dok 2 §5 och scenprisguiden. Beslut behövs: medveten formulering eller fel.)",
             "**Scensidans \"Tolv\" — LÖST 2026-10-17.** Antalet räknas ur `scenes.json` (aktiva paket), liksom startsidans scenkort.",
-            "**Festivalsidan (NY 2026-10-17):** \"Hopfällbara scener från 4×3 m\" — minsta scenpaketet är 2×2 m. Samma sida slår upp `ljudData.live.products[0]` på index, inte artno (projektinstruktionens princip).",
+            "**Festivalsidan — LÖST 2026-10-17.** Scenstorlekarna (2×2 till 8×6 m) och montering-gränsen räknas ur datan; alla uppslag på artno.",
+
             "**DJ-hubbens referensrad — LÖST 2026-10-17.** Djursholms Slott och Läkarförbundet var uppdrag med DJ och ersatte Systembolaget. Fler eventbilder finns hos Scenkonsult — lägg in fler case när de är utvalda. (Ursprunglig notering: bara Skridskodisco har DJ dokumenterat. Systembolaget och Läkarförbundet är festevent med ljud och ljus. Byt i /admin/referenscase/ när fler DJ-uppdrag finns med foto.)",
             "**Topplistans rader länkar ingenstans — LÖST 2026-10-17** med artikelnumret som ankare (Dok 3 §6). (Ursprunglig notering: Skissen hade \"länk till paketen\". Bildprodukterna har inga egna sidor, och alla-sidan har bara ankarna `#led-trailer`, `#projektorduk`, `#tillbehor`. Ett valfritt länkfält per grupp i `popular_groups` löser det.)",
             "**Kategorin `ljud-och-ljus` — LÖST 2026-10-17:** tre egna grupper, visas på kombinationssidan. (Ursprunglig notering: finns i databasen (ärver ljud + ljus via `source_categories`) men kombinationssidan anropar inte komponenterna. Arvet ger 24 produkter — för långt för en kombinationssida. Behöver egna korta grupper om sektionen ska in.)",
@@ -258,6 +259,8 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.4", "2026-10-17",
+             "§9.4 festivalsidan löst. CLAUDE.md i repot omskriven och pekar på projektspecifikationen."],
             ["v18.3", "2026-10-17",
              "§7.7 lärdomen om regler i datan kompletterad med 1×1-rättelsen."],
             ["v18.2", "2026-10-17",
@@ -301,9 +304,9 @@ DOC6 = dict(
             ["Dok 1", "Grund & Design", "v18.3 (2026-10-17)"],
             ["Dok 2", "Produkter & Data", "v18.3 (2026-10-17)"],
             ["Dok 3", "Sidor & Navigation", "v18.3 (2026-10-17)"],
-            ["Dok 4", "Kommunikation", "v18.3 (2026-10-17)"],
+            ["Dok 4", "Kommunikation", "v18.4 (2026-10-17)"],
             ["Dok 5", "Order, Admin & Infra", "v18.3 (2026-10-17)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.3 (2026-10-17)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.4 (2026-10-17)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "
