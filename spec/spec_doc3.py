@@ -3,7 +3,7 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v18.3",
+    version="v18.4",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
@@ -214,10 +214,10 @@ DOC3 = dict(
               "på ljushubben). Grid 2 / 3 / 4 kolumner, kort i `aspect-ratio:3/4` med `object-cover`."),
         ("ul", [
             "**Taggar:** Festival (4) · Företagsevent (9) · Konferens (4) · Installation (1) · **Aktivering** (1, ny 2026-10-15)",
-            "**Bilder per kort:** 7 kort med en bild, 8 crossfade-par, 2 med tre bilder och 2 med fyra (Dok 1 §4.7). Fyra bilder: EA Sports FC 27 och Systembolaget. Tre: Hard Rock Rising och 100 Knivar.",
-            "**Nya sedan v17:** EA Sports FC 27 (IKEA Gallerian), Storytel, Systembolaget, Jazz & Blues Konserthuset, Emberlin (Stureplan), 100 Knivar (Odenplan). Hard Rock Rising fick tre bilder, Galleri Existens samarbetet med PerPR.",
+            "**Bilder per kort:** 7 kort med en bild, 8 crossfade-par, 3 med tre bilder och 2 med fyra (Dok 1 §4.7). Fyra bilder: EA Sports FC 27 och Systembolaget. Tre: Mr French, Hard Rock Rising och 100 Knivar.",
+            "**Nya sedan v17:** Mr French (Skeppsbron, DJ och ljud, tre bilder, 2026-10-17), EA Sports FC 27 (IKEA Gallerian), Storytel, Systembolaget, Jazz & Blues Konserthuset, Emberlin (Stureplan), 100 Knivar (Odenplan). Hard Rock Rising fick tre bilder, Galleri Existens samarbetet med PerPR.",
             "**Samarbetspartner skrivs som de själva skriver sig:** Jung Co (inte \"Jung\" eller \"Jung & Co\"), Studio S19, PerPR.",
-            "**Leverera bara det vi levererat.** Systembolagets text nämnde en projektorduk som inte var vår — borttagen 2026-10-09. Samma noggrannhet gäller hubbraderna: DJ-hubben visar sedan 2026-10-17 bara uppdrag med DJ — Skridskodisco, Djursholms Slott och Läkarförbundet (uppgift från Scenkonsult); Systembolaget lämnade raden.",
+            "**Leverera bara det vi levererat.** Systembolagets text nämnde en projektorduk som inte var vår — borttagen 2026-10-09. Samma noggrannhet gäller hubbraderna: DJ-hubben visar sedan 2026-10-17 bara uppdrag med DJ — Mr French, Skridskodisco och Djursholms Slott (uppgift från Scenkonsult); Systembolaget och sedan Läkarförbundet lämnade raden.",
         ]),
         ("note", "**Liggande foton beskärs vid konverteringen, inte av `object-cover`.** Ett 4:3-foto i "
                  "en 3:4-ruta tappar 44 % av bredden på en centrerad crop. Välj horisontellt centrum "
@@ -255,7 +255,7 @@ DOC3 = dict(
             ["/hyra-ljus/", "Ja — 4 grupper, 12 rader", "Systembolaget · ABG Sundal Collier · Skridskodisco"],
             ["/hyra-bild/", "Ja — 3 grupper, 9 rader", "EA Sports FC 27 · Tele2 · 100 Knivar"],
             ["/hyra-scen/", "Nej", "Strawberry Arena (UF) · Jazz & Blues Konserthuset · Storytel"],
-            ["/hyra-dj/", "Nej", "Skridskodisco · Djursholms Slott · Läkarförbundet (alla med DJ)"],
+            ["/hyra-dj/", "Nej", "Mr French · Skridskodisco · Djursholms Slott (alla med DJ)"],
             ["/konferens-av/", "Nej", "Solna Näringsliv · ABG Sundal Collier · Tele2"],
             ["/hyra-karaoke/", "Nej", "Nej"],
             ["/hyra-ljud-och-ljus/", "Ja — 3 egna grupper, 10 rader (ljud och ljus blandat), efter konfiguratorn. \"Se alla\"-länken döljs eftersom den pekar på sidan själv", "Nej"],
@@ -287,6 +287,8 @@ DOC3 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.4", "2026-10-17",
+             "§5 nytt referenscase Mr French (Skeppsbron, DJ och ljud). §6 DJ-hubbens rad: Mr French ersätter Läkarförbundet."],
             ["v18.3", "2026-10-17",
              "Inga ändringar — versionen följer Dok 2, 4 och 6 (rättelse: 1×1-plattformen bara 40 cm)."],
             ["v18.2", "2026-10-17",

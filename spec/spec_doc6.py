@@ -303,7 +303,7 @@ DOC6 = dict(
             ["Dok", "Innehåll", "Version"],
             ["Dok 1", "Grund & Design", "v18.3 (2026-10-17)"],
             ["Dok 2", "Produkter & Data", "v18.3 (2026-10-17)"],
-            ["Dok 3", "Sidor & Navigation", "v18.3 (2026-10-17)"],
+            ["Dok 3", "Sidor & Navigation", "v18.4 (2026-10-17)"],
             ["Dok 4", "Kommunikation", "v18.4 (2026-10-17)"],
             ["Dok 5", "Order, Admin & Infra", "v18.3 (2026-10-17)"],
             ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.4 (2026-10-17)"],
