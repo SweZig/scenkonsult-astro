@@ -73,6 +73,11 @@ PRODUKTER.sort((a, b) => a.artno.localeCompare(b.artno, 'sv'));
     .items li .src { font-size: 0.66rem; color: rgba(255,255,255,0.35); }
     .items li .x { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 0.9rem; }
     .items li .x:hover { color: #fca5a5; }
+    .items li[draggable="true"] { cursor: grab; }
+    .items li .handle { color: rgba(255,255,255,0.25); font-size: 0.9rem; cursor: grab; user-select: none; padding: 0 2px; }
+    .items li.dragging { opacity: 0.35; }
+    .items li.drop-before { box-shadow: inset 0 2px 0 #c4b5f4; }
+    .items li.drop-after  { box-shadow: inset 0 -2px 0 #c4b5f4; }
 
     .btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.75); border-radius: 8px; padding: 5px 11px; font-size: 0.76rem; cursor: pointer; font-family: inherit; }
     .btn:hover { border-color: rgba(196,181,244,0.5); color: #e2dcfb; }
@@ -129,7 +134,7 @@ PRODUKTER.sort((a, b) => a.artno.localeCompare(b.artno, 'sv'));
 
   <div class="wrap">
     <div class="hint">
-      Grupperna styr sektionen <b>"Populäraste paketen"</b> på kategorihubbarna. Varje grupp
+      Grupperna styr <b>topplistan</b> på kategorihubbarna. <b>Dra artiklarna</b> eller använd pilarna för att ändra ordning — den sparas direkt. Varje grupp
       är ett tillfälle med ett gästantal — <b>kundens ord</b>, inte produktserien. Lägg till
       artiklar manuellt eller tryck <b>Fyll från bokningsdata</b> för att se de mest uthyrda
       artiklarna i kategorin de senaste tolv månaderna.
@@ -276,8 +281,13 @@ function groupHtml(g, i, len) {
     </div>
     <div class="fieldrow"><input type="text" class="grow" data-f="lead" value="${escapeHtml(g.lead||'')}" placeholder="Ingress (valfri)" /></div>
     <ul class="items">
-      ${its.length ? its.map(it => `
-        <li>
+      ${its.length ? its.map((it, j) => `
+        <li draggable="true" data-artno="${escapeHtml(it.artno)}">
+          <span class="handle" title="Dra för att flytta">⠿</span>
+          <div class="grip">
+            <button data-iup="${escapeHtml(it.artno)}" ${j===0?'disabled':''} title="Flytta upp">▲</button>
+            <button data-idown="${escapeHtml(it.artno)}" ${j===its.length-1?'disabled':''} title="Flytta ner">▼</button>
+          </div>
           <span class="artno">${escapeHtml(it.artno)}</span>
           <span class="nm">${escapeHtml(NAMN.get(it.artno) || '— finns inte i katalogen —')}</span>
           ${it.source === 'data' ? '<span class="src">från data</span>' : ''}
@@ -321,6 +331,13 @@ function bind() {
     const gid = b.closest('.group').dataset.gid;
     sattItems(gid, nuvarande(gid).filter(a => a.artno !== b.dataset.rm));
   });
+
+  // Flytta artiklar inom en grupp: pilar (fungerar överallt) och drag-och-släpp (mus).
+  document.querySelectorAll('[data-iup]').forEach(b => b.onclick = () =>
+    flyttaArtikel(b.closest('.group').dataset.gid, b.dataset.iup, -1));
+  document.querySelectorAll('[data-idown]').forEach(b => b.onclick = () =>
+    flyttaArtikel(b.closest('.group').dataset.gid, b.dataset.idown, 1));
+  document.querySelectorAll('.items').forEach(bindDrag);
   document.querySelectorAll('[data-rank]').forEach(b => b.onclick = () => oppnaRank(b.dataset.rank));
 }
 
@@ -366,6 +383,58 @@ async function laggTill(gid) {
 // Gruppens lista som { artno, source } — varje rad behåller sitt ursprung när
 // listan skrivs om, så "från data"-märkningen inte smittar av sig.
 const nuvarande = (gid) => gruppItems(gid).map(i => ({ artno: i.artno, source: i.source || 'manual' }));
+
+// Ny ordning sparas med set-items, som skriver om gruppens lista. Ursprunget
+// (manuell / från data) följer med varje rad.
+async function flyttaArtikel(gid, artno, delta) {
+  const lista = nuvarande(gid);
+  const i = lista.findIndex(a => a.artno === artno);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= lista.length) return;
+  [lista[i], lista[j]] = [lista[j], lista[i]];
+  await sattItems(gid, lista);
+}
+
+let dragArtno = null, dragGid = null;
+function bindDrag(ul) {
+  const gid = ul.closest('.group').dataset.gid;
+  const rensa = () => ul.querySelectorAll('li').forEach(li => li.classList.remove('drop-before', 'drop-after'));
+  ul.querySelectorAll('li[draggable="true"]').forEach(li => {
+    li.addEventListener('dragstart', (e) => {
+      // Fält och knappar i raden ska inte starta en dragning.
+      if (e.target.closest('button, input')) { e.preventDefault(); return; }
+      dragArtno = li.dataset.artno; dragGid = gid;
+      li.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', dragArtno);
+    });
+    li.addEventListener('dragend', () => { li.classList.remove('dragging'); rensa(); dragArtno = null; dragGid = null; });
+    li.addEventListener('dragover', (e) => {
+      if (!dragArtno || dragGid !== gid || li.dataset.artno === dragArtno) return;
+      e.preventDefault();
+      const r = li.getBoundingClientRect();
+      const fore = e.clientY < r.top + r.height / 2;
+      rensa();
+      li.classList.add(fore ? 'drop-before' : 'drop-after');
+    });
+    li.addEventListener('drop', async (e) => {
+      if (!dragArtno || dragGid !== gid) return;
+      e.preventDefault();
+      const fore = li.classList.contains('drop-before');
+      rensa();
+      const lista = nuvarande(gid);
+      const flyttad = lista.find(a => a.artno === dragArtno);
+      const rest = lista.filter(a => a.artno !== dragArtno);
+      let mal = rest.findIndex(a => a.artno === li.dataset.artno);
+      if (!flyttad || mal < 0) return;
+      if (!fore) mal += 1;
+      rest.splice(mal, 0, flyttad);
+      if (rest.every((a, k) => a.artno === lista[k].artno)) return;   // ingen ändring
+      await sattItems(gid, rest);
+      toast('Ordningen sparad');
+    });
+  });
+}
 
 async function sattItems(gid, artnos) {
   try { await api('set-items', { group_id: gid, artnos }); await loadAll(); }

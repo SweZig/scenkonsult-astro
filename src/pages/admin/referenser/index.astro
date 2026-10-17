@@ -37,10 +37,6 @@ const ORT_NAMN = orterData.map((o) => o.namn);
     .card { background: #1e1850; border: 1px solid rgba(196,181,244,0.15); border-radius: 12px; padding: 0.7rem 0.85rem; margin-bottom: 0.55rem; }
     .card.inactive { opacity: 0.5; }
     .row1 { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-    .grip { color: rgba(255,255,255,0.25); display: flex; flex-direction: column; gap: 1px; }
-    .grip button { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.62rem; padding: 1px; }
-    .grip button:hover { color: #c4b5f4; }
-    .grip button:disabled { opacity: 0.2; cursor: default; }
     input[type="text"], select { background: #221f50; color: #f0eeff; border: 1px solid rgba(196,181,244,0.25); border-radius: 8px; padding: 6px 9px; font-family: inherit; font-size: 0.82rem; color-scheme: dark; }
     input[data-field="name"] { flex: 1; min-width: 150px; }
     .switch { display: flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; color: rgba(255,255,255,0.7); cursor: pointer; }
@@ -172,7 +168,11 @@ async function loadAll() {
   const res = await fetch('/.netlify/functions/admin-clients', { headers: { 'Authorization': 'Bearer ' + adminToken } });
   if (res.status === 401) { sessionStorage.removeItem(ADMIN_KEY); location.reload(); return; }
   const j = await res.json();
-  items = j.clients || [];
+  // Bokstavsordning (svensk sortering, å-ä-ö sist). Den publika kundlistan på
+  // /referenser/ sorterar likadant. sort_order styr bara utvalda-bannern
+  // (foretagsfest + ortssidor) och ändras inte här.
+  items = (j.clients || []).slice().sort((a, b) =>
+    String(a.name || '').localeCompare(String(b.name || ''), 'sv', { sensitivity: 'base' }));
   render();
 }
 
@@ -196,10 +196,6 @@ function cardHtml(c, i, len) {
   return `
     <div class="card ${!c.active ? 'inactive' : ''}" data-id="${id}"${draft ? ' data-draft="1"' : ''}>
       <div class="row1">
-        <div class="grip">
-          <button data-up="${id}" ${(draft || i === 0) ? 'disabled' : ''} title="Flytta upp">▲</button>
-          <button data-down="${id}" ${(draft || i === len - 1) ? 'disabled' : ''} title="Flytta ner">▼</button>
-        </div>
         <input type="text" data-field="name" placeholder="Kundnamn" value="${escapeHtml(c.name || '')}" />
         <select data-field="category">${catOptions(c.category)}</select>
         <select data-field="ort" title="Koppla kunden till en ortssida">${ortOptions(c.ort)}</select>
@@ -264,18 +260,6 @@ function bindCardEvents() {
       catch (e) { toast(e.message); }
     };
   });
-  document.querySelectorAll('[data-up]').forEach(btn => { btn.onclick = async () => { await move(btn.dataset.up, -1); }; });
-  document.querySelectorAll('[data-down]').forEach(btn => { btn.onclick = async () => { await move(btn.dataset.down, 1); }; });
-}
-
-async function move(id, dir) {
-  const idx = items.findIndex(c => c.id === id);
-  const swapWith = idx + dir;
-  if (idx < 0 || swapWith < 0 || swapWith >= items.length) return;
-  const order = items.map(c => c.id);
-  [order[idx], order[swapWith]] = [order[swapWith], order[idx]];
-  try { await api('reorder', { ids: order }); await loadAll(); }
-  catch (e) { toast(e.message); }
 }
 
 // Ny kund = lokalt utkastkort. Raden skapas i databasen först när du klickar Spara,
