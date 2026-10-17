@@ -702,10 +702,9 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       const heightHint = card.querySelector('[data-paket-height-hint]');
       if (heightHint) {
         const saknas = (cfg.heights || []).some(h => !hojdOk(surface, h));
-        const txt = saknas && INJ_HOJD_HINT[surface]
-          ? `${INJ_HOJD_HINT[surface]} — välj en 1×2-yta.`
-          : height === 20 ? 'Vid 20 cm behövs ingen trappa.'
-          : '';
+        const ytaTxt = saknas && INJ_HOJD_HINT[surface] ? `${INJ_HOJD_HINT[surface]} — välj en 1×2-yta.` : '';
+        const trappTxt = height === 20 ? 'Vid 20 cm behövs ingen trappa.' : '';
+        const txt = [ytaTxt, trappTxt].filter(Boolean).join(' ');
         heightHint.textContent = txt;
         heightHint.hidden = !txt;
       }

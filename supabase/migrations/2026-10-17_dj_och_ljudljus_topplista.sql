@@ -2,7 +2,8 @@
 --
 -- 1. DJ: Djursholms Slott och Läkarförbundet är uppdragen med DJ (uppgift från
 --    Scenkonsult). Systembolaget lämnar DJ-hubben — där var det ljud och ljus.
---    Båda casen får 'dj' bland sina kategorier och DJ i texten.
+--    Båda casen får 'dj' bland sina kategorier och DJ i texten, liksom
+--    Skridskodiscot som redan låg på DJ-hubben.
 -- 2. Ljud & ljus: kategorin ärvde ljud + ljus (åtta grupper, 24 produkter) men
 --    renderades inte. Den får nu tre egna, korta grupper per tillfälle och
 --    visas på /vara-tjanster/hyra-ljud-och-ljus/.
@@ -25,6 +26,12 @@ UPDATE event_cases SET
   categories = ARRAY(SELECT DISTINCT unnest(categories || ARRAY['dj']) ORDER BY 1),
   updated_at = NOW()
 WHERE id = 'case-lakarforbundet-ostermalm';
+
+-- Skridskodiscot låg redan på DJ-hubben men saknade kategorin.
+UPDATE event_cases SET
+  categories = ARRAY(SELECT DISTINCT unnest(categories || ARRAY['dj']) ORDER BY 1),
+  updated_at = NOW()
+WHERE id = 'case-skridskodisco-ostermalms-ip';
 
 DELETE FROM event_case_hub WHERE category = 'dj' AND case_id = 'case-systembolaget';
 

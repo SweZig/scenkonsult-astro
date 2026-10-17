@@ -19,7 +19,8 @@ export function ytaNyckel(m: Modul): string {
   return `${storlek}-${m.surface === 'slät' ? 'slat' : 'halkfri'}`;
 }
 
-const moduler = ((scenData as any).modules || []) as Modul[];
+// Utgångna plattformar (active:false) räknas inte — de kan ha samma storlek och yta.
+const moduler = (((scenData as any).modules || []) as (Modul & { active?: boolean })[]).filter((m) => m.active !== false);
 
 /** Benhöjder per plattformsyta, stigande. */
 export const HOJDER: Record<string, number[]> = Object.fromEntries(
