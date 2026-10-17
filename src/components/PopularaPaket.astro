@@ -2,37 +2,52 @@
 /**
  * PopularaPaket.astro — "Populäraste paketen" på ljud- och ljushubben,
  * grupperat efter tillfälle och gästantal (kundens sökord) i stället för
- * produktnamn. Grupperna ligger i datafilens `populara`:
- *   [{ rubrik, gaster, lead, artnos: [...] }]
+ * produktnamn. Grupperna kommer ur src/data/popular.json (se nedan).
  * Produkterna slås upp på artno (aldrig index) bland alla `products`-listor i
  * filen. Utgångna produkter (active:false) hoppas över.
  */
 import CartButton from './CartButton.astro';
 import SectionHeader from './SectionHeader.astro';
+import popular from '../data/popular.json';
 
+/**
+ * Grupperna, rubriken och "Se alla"-länken kommer ur src/data/popular.json, som
+ * prebuild bygger ur Supabase (content_categories + popular_groups +
+ * popular_group_items). Inget av det ligger i koden eller i katalogfilerna.
+ *
+ * `data` är fortfarande produktkatalogen — priser och specar bor kvar i
+ * src/data/*.json och underhålls via /admin/produkter/. Skicka flera filer för
+ * en kombinationssida: data={[ljudData, ljusData]}.
+ */
 interface Props {
-  data: any;
-  category: 'Ljud' | 'Ljus';
-  lead?: string;
-  allaHref: string;
-  allaLabel: string;
+  data: any | any[];
+  kategori: string;   // nyckel i popular.json: 'ljud', 'ljus', 'bild', ...
+  category: string;   // varukorgens kategorinamn: 'Ljud', 'Ljus', ...
 }
-const { data, category, lead, allaHref, allaLabel } = Astro.props;
+const { data, kategori, category } = Astro.props;
 
-const alla: any[] = Object.values(data)
+const cfg = (popular as Record<string, any>)[kategori] ?? {};
+const heading = cfg.heading ?? 'Populäraste paketen';
+const lead = cfg.lead ?? undefined;
+const allaHref = cfg.allaHref ?? null;
+const allaLabel = cfg.allaLabel ?? null;
+
+const kataloger: any[] = Array.isArray(data) ? data : [data];
+const alla: any[] = kataloger.flatMap((d: any) => Object.values(d)
   .filter((v: any) => v && typeof v === 'object' && Array.isArray(v.products))
-  .flatMap((v: any) => v.products);
+  .flatMap((v: any) => v.products));
 const byArtno = (a: string) => alla.find((p) => p.artno === a && p.active !== false);
 
-const grupper = (data.populara ?? []).map((g: any) => ({
+const grupper = (cfg.grupper ?? []).map((g: any) => ({
   ...g,
-  produkter: g.artnos.map(byArtno).filter(Boolean),
+  produkter: (g.artnos ?? []).map(byArtno).filter(Boolean),
 })).filter((g: any) => g.produkter.length);
 
 const kr = (n: number) => n.toLocaleString('sv-SE');
 ---
+{grupper.length > 0 && (
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-  <SectionHeader eyebrow="Snabbval" h2="Populäraste paketen" lead={lead} />
+  <SectionHeader eyebrow="Snabbval" h2={heading} lead={lead} />
   <div class="space-y-12">
     {grupper.map((g: any) => (
       <div>
@@ -93,7 +108,10 @@ const kr = (n: number) => n.toLocaleString('sv-SE');
       </div>
     ))}
   </div>
-  <div class="mt-8 text-center">
-    <a href={allaHref} class="text-brand-orange hover:text-white transition-colors text-sm font-semibold">{allaLabel}</a>
-  </div>
+  {allaHref && allaLabel && (
+    <div class="mt-8 text-center">
+      <a href={allaHref} class="text-brand-orange hover:text-white transition-colors text-sm font-semibold">{allaLabel}</a>
+    </div>
+  )}
 </section>
+)}

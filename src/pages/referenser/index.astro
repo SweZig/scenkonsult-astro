@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import siteData from '../../data/site.json';
 import { getReviews, getSummary } from '../../utils/reviews';
 import { getClientCategories, getAllClientNames } from '../../utils/clients';
+import eventCases from '../../data/event-cases.json';
 
 const { reviews } = siteData;
 
@@ -14,189 +15,12 @@ const clients = getAllClientNames();
 const googleReviews = getReviews();
 const googleSummary = getSummary();
 
-// Riktiga eventfoton
-const eventGallery: Array<{
-  src: string;
-  src2?: string;
-  alt: string;
-  alt2?: string;
-  more?: Array<{ src: string; alt: string }>;
-  label: string;
-  desc: string;
-  tag: string;
-}> = [
-  {
-    src: "/images/event/festival_vinterviken.webp",
-    src2: "/images/event/festival_vinterviken_2.webp",
-    alt: "Scenuppbyggnad vid Vintervikens trädgård",
-    alt2: "Publik framför scenen under konsert i Vintervikens trädgård",
-    label: "Festival – Vinterviken",
-    desc: "Scen & ljud, Vasas Flora & Fauna m.fl.",
-    tag: "Festival"
-  },
-  {
-    src: "/images/event/skridskodisco_ostermalm_1.webp",
-    src2: "/images/event/skridskodisco_ostermalm_2.webp",
-    alt: "Skridskodisco på Östermalms IP",
-    alt2: "DJ- och ljudsetup för skridskodisco på Östermalms IP",
-    label: "Skridskodisco – Östermalms IP",
-    desc: "Stockholms Stad — DJ & ljud utomhus, återkommande event",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/kundevent_ea_sports_fc27_1.webp",
-    src2: "/images/event/kundevent_ea_sports_fc27_2.webp",
-    alt: "TV-skärm på golvstativ med EA Sports FC 27 på IKEA Gallerian",
-    alt2: "Spelstation med EA Sports FC 27 på storbildsskärm vid lanseringen på IKEA Gallerian",
-    more: [
-      { src: "/images/event/kundevent_ea_sports_fc27_3.webp", alt: "Besökare spelar EA Sports FC 27 i soffa framför TV-skärm på IKEA Gallerian" },
-      { src: "/images/event/kundevent_ea_sports_fc27_4.webp", alt: "TV-skärm på golvstativ i IKEA:s vardagsrumsmiljö under FC 27-lanseringen" },
-    ],
-    label: "EA Sports FC 27 – IKEA Gallerian",
-    desc: "Lansering i samarbete med Jung Co — TV-skärmar på golvstativ",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/kundevent_storytel_1.webp",
-    src2: "/images/event/kundevent_storytel_2.webp",
-    alt: "Scenljus riktat mot LED-vägg och publikbord på Storytel-event",
-    alt2: "LED-vägg med svart draperi på scenpodie inför Storytel-event",
-    label: "Storytel – Event",
-    desc: "I samarbete med Studio S19 — ljud, LED-vägg, scenpodie, draperi & scenljus",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/kundevent_abg.webp",
-    alt: "Kundevent med ABG Sundal Collier",
-    label: "Kundevent – ABG Sundal Collier",
-    desc: "Ljud & ljus, exklusivt inomhusevent",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/kundevent_djursholms_slott.webp",
-    alt: "Event på Djursholms Slott",
-    label: "Djursholms Slott",
-    desc: "Galakväll, scenljus & PA-system",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/kundevent_lakarforbundet.webp",
-    alt: "Kundevent på Läkarförbundets festvåning Östermalm",
-    label: "Läkarförbundet – Östermalm",
-    desc: "Festvåning, komplett ljud & ljus",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/uf_strawberry_arena_1.webp",
-    src2: "/images/event/uf_strawberry_arena_2.webp",
-    alt: "Ung Företagsamhet på Strawberry Arena",
-    alt2: "Scen- och ljusrigg för Ung Företagsamhet på Strawberry Arena",
-    label: "Strawberry Arena – UF",
-    desc: "Ung Företagsamhet — stor scen, PA & ljusrigg",
-    tag: "Konferens"
-  },
-  {
-    src: "/images/event/kundevent_solna_naringsliv.webp",
-    alt: "Konferens för Solna Näringsliv med skärmar och uplight",
-    label: "Solna Näringsliv – Konferens",
-    desc: "3× skärmar, uplight & PA-system",
-    tag: "Konferens"
-  },
-  {
-    src: "/images/event/kundevent_abg_konferens.webp",
-    src2: "/images/event/uplight_bardisk.webp",
-    alt: "ABG Sundal Collier konferens med LED-skärmar och uplight",
-    alt2: "Uplight-belysning på bardisk vid event",
-    label: "ABG Sundal Collier – Konferens",
-    desc: "LED-skärmar, konferens-AV & uplight i lokalen",
-    tag: "Konferens"
-  },
-  {
-    src: "/images/event/kundevent_tele2_scenpodie.webp",
-    alt: "Scenpodie med ridå och LED-skärm hos Tele2",
-    label: "Tele2 – Scenpodie",
-    desc: "Scenpodie, ridå & LED-skärm för konferens",
-    tag: "Konferens"
-  },
-  {
-    src: "/images/event/festival_hard_rock_rising.webp",
-    src2: "/images/event/festival_hard_rock_rising_2.webp",
-    alt: "Liveband på scen under Hard Rock Rising på Hard Rock Café",
-    alt2: "Rockband med tre gitarrer på scenen under Hard Rock Rising, publik i förgrunden",
-    more: [
-      { src: "/images/event/festival_hard_rock_rising_3.webp", alt: "Skylt med kvällarnas band i Hard Rock Rising – Global Live Music Challenge" },
-    ],
-    label: "Hard Rock Café – Hard Rock Rising",
-    desc: "Global Live Music Challenge — ljud & scenljus",
-    tag: "Festival"
-  },
-  {
-    src: "/images/event/installation_german_beerhall_1.webp",
-    src2: "/images/event/installation_german_beerhall_2.webp",
-    alt: "Fast ljusinstallation i taket på German Beerhall",
-    alt2: "LED-ramper och ljusarmaturer i taket på German Beerhall",
-    label: "German Beerhall",
-    desc: "Fast ljusinstallation — LED-ramper & styrning",
-    tag: "Installation"
-  },
-  {
-    src: "/images/event/festival_midnattsloppet.webp",
-    alt: "Ljud- och ljusrigg på flak vid Midnattsloppet",
-    label: "Midnattsloppet – Klara Färdiga Film",
-    desc: "Flak med PA & ljus längs banan",
-    tag: "Festival"
-  },
-  {
-    src: "/images/event/kundevent_galleri_existens.webp",
-    alt: "Projektorinstallation på trosstorn hos Galleri Existens",
-    label: "Galleri Existens",
-    desc: "I samarbete med PerPR — projektorinstallation på tross med ljud",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/kundevent_systembolaget_1.webp",
-    src2: "/images/event/kundevent_systembolaget_2.webp",
-    alt: "Festvåning med gröna och blå uplights för Systembolagets event",
-    alt2: "LED-uplight som lyser grönt mot väggen i festvåningen",
-    more: [
-      { src: "/images/event/kundevent_systembolaget_3.webp", alt: "PA-högtalare och subwoofer i festvåningen" },
-      { src: "/images/event/kundevent_systembolaget_4.webp", alt: "Översikt av festvåningen med uplights och dansgolv" },
-    ],
-    label: "Systembolaget",
-    desc: "PA-system & LED-uplights i festvåning",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/festival_jazz_konserthuset_1.webp",
-    src2: "/images/event/festival_jazz_konserthuset_2.webp",
-    alt: "Scen klädd med svart filtmatta i Konserthuset under Stockholm Jazz & Blues Festival",
-    alt2: "Scenpodier och trappsteg med svart filtmatta under uppbyggnad i Konserthuset",
-    label: "Jazz & Blues – Konserthuset",
-    desc: "Stockholm International Jazz & Blues Festival — scen klädd med svart filtmatta",
-    tag: "Festival"
-  },
-  {
-    src: "/images/event/kundevent_emberlin_1.webp",
-    src2: "/images/event/kundevent_emberlin_2.webp",
-    alt: "Storbildsskärm på stativ i Emberlins matsal vid lanseringen",
-    alt2: "Skärm ovanför baren på Emberlin som visar 100 Knivar",
-    label: "Emberlin – Stureplan",
-    desc: "Björn Frantzéns nya restaurang — i samarbete med Jung Co och TV4, skärmar",
-    tag: "Företagsevent"
-  },
-  {
-    src: "/images/event/kundevent_100knivar_1.webp",
-    src2: "/images/event/kundevent_100knivar_2.webp",
-    alt: "Skärm på stativ med kolonnhögtalare och sub vid 100 Knivar på Odenplan",
-    alt2: "Publik vid 100 Knivar-trucken på Odenplan",
-    more: [
-      { src: "/images/event/kundevent_100knivar_3.webp", alt: "100 Knivar-trucken med kampanjskylt på Odenplan" },
-    ],
-    label: "100 Knivar – Odenplan",
-    desc: "I samarbete med Jung Co och TV4 — ljud, skärmar & bildmix/stream",
-    tag: "Aktivering"
-  },
-];
+// Eventgalleriet kommer ur src/data/event-cases.json, som prebuild bygger ur
+// Supabase (event_cases + event_case_images). Underhålls i admin.
+const eventGallery = (eventCases as any).cases as Array<{
+  id: string; label: string; descr: string; tag: string;
+  categories: string[]; images: Array<{ src: string; alt: string }>;
+}>;
 
 // Logotyper för "De litar på oss" — en fil per kund i /images/kunder/
 // tall: höga märken (rundlar, sköldar) får 92 % av kortets höjd i stället för 58 %
@@ -313,11 +137,7 @@ const pageSchema = {
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {eventGallery.map((item) => {
         // Alla bilder i kortet: 1 = statisk, 2 = sk-xfade-a/b, 3–4 = sk-xfade-n (5 s per bild)
-        const imgs = [
-          { src: item.src, alt: item.alt },
-          ...(item.src2 ? [{ src: item.src2, alt: item.alt2 ?? item.alt }] : []),
-          ...(item.more ?? []),
-        ];
+        const imgs = item.images;
         const n = imgs.length;
         const xfadeClass = (i: number) =>
           n === 1 ? null : n === 2 ? `sk-xfade ${i === 0 ? "sk-xfade-a" : "sk-xfade-b"}` : `sk-xfade sk-xfade-${n}`;
@@ -343,7 +163,7 @@ const pageSchema = {
               <p class="font-semibold text-white text-sm leading-snug">{item.label}</p>
               <span class="shrink-0 text-xs px-2 py-0.5 rounded-full border" style="color:#c4b5f4;border-color:rgba(196,181,244,0.3);background:rgba(196,181,244,0.08);font-family:'Space Grotesk',sans-serif">{item.tag}</span>
             </div>
-            <p class="text-gray-400 text-xs">{item.desc}</p>
+            <p class="text-gray-400 text-xs">{item.descr}</p>
           </div>
         </div>
         );

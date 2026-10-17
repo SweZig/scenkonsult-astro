@@ -1,18 +1,34 @@
 ---
 /**
- * EventBilder.astro — "Från våra event" på ljud- och ljushubben.
- * Bilderna är samma filer som på /referenser/ (public/images/event/) och
- * listas i datafilens `eventbilder`: [{ src, alt, label, desc, pos? }].
- * pos = object-position när beskärningen till 4:3 annars tappar motivet.
+ * EventBilder.astro — "Från våra event" på en kategorihubb.
+ *
+ * Raderna kommer ur src/data/event-cases.json (`hub`-delen), som prebuild bygger
+ * ur Supabase: event_cases + event_case_images + event_case_hub. Varje kategori
+ * har egen bild och egen text för samma uppdrag — ljudhubben lyfter ljudet,
+ * ljushubben ljuset. Caset äger fakta, hubben äger vinkeln.
+ *
+ * `pos` sätter object-position när beskärningen till 4:3 annars tappar motivet.
+ * Bilderna är samma filer som på /referenser/ (public/images/event/).
  */
 import SectionHeader from './SectionHeader.astro';
+import eventCases from '../data/event-cases.json';
+import popular from '../data/popular.json';
 
-interface Props { items: Array<{ src: string; alt: string; label: string; desc: string; pos?: string }>; lead?: string }
-const { items = [], lead } = Astro.props;
+interface Props {
+  kategori: string;   // 'ljud', 'ljus', 'bild', ...
+  lead?: string;      // åsidosätter casesLead från konfigurationen
+}
+const { kategori, lead } = Astro.props;
+
+const items = ((eventCases as any).hub?.[kategori] ?? []) as Array<{
+  caseId: string; label: string; descr: string; src: string; alt: string; pos?: string | null;
+}>;
+const ledtext = lead ?? (popular as Record<string, any>)[kategori]?.casesLead ?? undefined;
 ---
+
 {items.length > 0 && (
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <SectionHeader eyebrow="Referenser" h2="Från våra event" lead={lead} />
+    <SectionHeader eyebrow="Referenser" h2="Från våra event" lead={ledtext} />
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
       {items.map((it) => (
         <a href="/referenser/" class="group block bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all">
@@ -21,7 +37,7 @@ const { items = [], lead } = Astro.props;
           </div>
           <div class="p-4">
             <p class="font-semibold text-white text-sm leading-snug mb-1">{it.label}</p>
-            <p class="text-gray-400 text-xs">{it.desc}</p>
+            <p class="text-gray-400 text-xs">{it.descr}</p>
           </div>
         </a>
       ))}
