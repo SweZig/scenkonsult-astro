@@ -3,7 +3,7 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v18.2",
+    version="v18.3",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
@@ -372,6 +372,8 @@ DOC1 = dict(
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.3", "2026-10-17",
+             "Inga ändringar — versionen följer Dok 2, 4 och 6 (rättelse: 1×1-plattformen bara 40 cm)."],
             ["v18.2", "2026-10-17",
              "§5.1 PopularaPaket länkar varje rad till produktens kort."],
             ["v18.1", "2026-10-17",

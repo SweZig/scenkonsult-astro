@@ -3,7 +3,7 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v18.2",
+    version="v18.3",
     date="2026-10-17",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
@@ -110,7 +110,7 @@ DOC2 = dict(
               "fram kjolarna ur `tillbehor` och skickar dem till `ScenkjolCard`."),
         ("ul", [
             "**Scenkjolar (2026-09-28):** rak 4 m för 20/40/60 cm (ACC-0011/0017/0003) och veckad 2 m för 40/60 cm (ACC-0009/0018). Fältet `skirtStyle` anger modellen. Visas som ett `ScenkjolCard` med höjd- och modellval, inte som separata tillbehörskort. Konfiguratorn räknar segment per vald modell (`SKIRT_BY_HEIGHT[höjd][modell]`).",
-            "**Benhöjder (ändrat 2026-10-17):** varje plattform har fältet `heights` — 1×1 `[20, 40]` (20 cm-ben tillkom 2026-10-17, tidigare bara 40), 1×2 `[20, 40, 60]`. Konfiguratorn, paketkorten, ytjämförelsen, scensidan, admins scenkonfigurator, Sven och llms.txt läser fältet via `src/utils/scenHojder.ts` (`HOJDER`, `hojdText`, `saknasText`); en höjd som ytan saknar inaktiveras och ett ogiltigt val faller till 40 cm. Vid 20 cm låses trappor till 0 — trappor finns för 40 och 60 cm. `produktregister.test` kontrollerar att varje plattform har höjder och att paketens höjder finns hos någon plattform.",
+            "**Benhöjder (ändrat 2026-10-17):** varje plattform har fältet `heights` — 1×1 `[40]`, 1×2 `[20, 40, 60]`. (v18.2 angav 20 cm för 1×1 efter en felaktig uppgift — rättat samma dag i datan, inga sidor behövde ändras.) Konfiguratorn, paketkorten, ytjämförelsen, scensidan, admins scenkonfigurator, Sven och llms.txt läser fältet via `src/utils/scenHojder.ts` (`HOJDER`, `hojdText`, `saknasText`); en höjd som ytan saknar inaktiveras och ett ogiltigt val faller till 40 cm. Vid 20 cm låses trappor till 0 — trappor finns för 40 och 60 cm. `produktregister.test` kontrollerar att varje plattform har höjder och att paketens höjder finns hos någon plattform.",
             "**Underlag:** monteringen förutsätter plant underlag (tumregel ca 5 cm höjdskillnad). Justerbara ben om kunden meddelar vid bokning — står på scensidan (#underlag), i FAQ, i varukorgen och i Svens fakta.",
             "**Nya tillbehör sedan v16:** Filtmatta svart ACC-0015 (149 kr/m²) och Rullstolsramp i aluminium ACC-0016.",
         ]),
@@ -452,6 +452,8 @@ DOC2 = dict(
         ("h1", "14. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.3", "2026-10-17",
+             "§4.3 rättelse: 1×1-plattformen finns bara i 40 cm (heights [40])."],
             ["v18.2", "2026-10-17",
              "§4.3 benhöjder per plattform i modules[].heights, 1×1 får 20 cm. §12 ljud-och-ljus med egna grupper, ny migration."],
             ["v18.1", "2026-10-17",

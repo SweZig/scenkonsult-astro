@@ -3,7 +3,7 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v18.2",
+    version="v18.3",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
@@ -287,6 +287,8 @@ DOC3 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.3", "2026-10-17",
+             "Inga ändringar — versionen följer Dok 2, 4 och 6 (rättelse: 1×1-plattformen bara 40 cm)."],
             ["v18.2", "2026-10-17",
              "§6 länk per topplisterad (data-sk-ankare, skAnkare, produkt-sidor.mjs), topplista på /hyra-ljud-och-ljus/, DJ-hubbens rad med DJ-uppdragen. §5 referenssidan: Djursholms Slott och Läkarförbundet nämner DJ."],
             ["v18.1", "2026-10-17",

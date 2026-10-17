@@ -3,7 +3,7 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v18.2",
+    version="v18.3",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
@@ -328,6 +328,8 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.3", "2026-10-17",
+             "Inga ändringar — versionen följer Dok 2, 4 och 6 (rättelse: 1×1-plattformen bara 40 cm)."],
             ["v18.2", "2026-10-17",
              "§3.5 ljud & ljus med egna grupper, admins scenkonfigurator med benhöjder per yta."],
             ["v18.1", "2026-10-17",

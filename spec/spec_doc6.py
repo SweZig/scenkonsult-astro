@@ -3,7 +3,7 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v18.2",
+    version="v18.3",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Arbetssätt"),
@@ -166,7 +166,7 @@ DOC6 = dict(
             "**Arbeta alltid från en färsk klon av origin.** Två nära-olyckor i samma vecka: en ändring av `referenser/index.astro` byggd på en inaktuell arbetskopia hade backat 79 rader som redan låg i `main` (fångat av diffen mot färsk klon), och en komponent höll på att byggas som redan fanns i `main`. Arbetskopian på datorn är aldrig facit.",
             "**Supabase SQL editor varnar falskt** för `DROP POLICY IF EXISTS` och för RLS satt i en `DO`-loop. Varningen betyder inte att skriptet är fel — men den ska läsas, inte klickas bort (Dok 5 §5).",
             "**Ett fältnamn som inte finns ger en tom sektion, inte ett fel.** Svens prislista läste `scenes.accessories` långt efter att fältet bytt namn till `tillbehor` — trappor, kjolar och räcken saknades utan att något sa ifrån. Testa åt andra hållet: att det som ska finnas i utdata faktiskt finns där.",
-            "**En regel på sju ställen blir en datafråga.** \"1×1 bara 40 cm\" stod i konfiguratorn, paketkorten, ytjämförelsen, scensidan, modulbeskrivningen och två kommentarer. När 20 cm-benen kom flyttades regeln till `modules[].heights` och läses därifrån.",
+            "**En regel på sju ställen blir en datafråga.** \"1×1 bara 40 cm\" stod i konfiguratorn, paketkorten, ytjämförelsen, scensidan, modulbeskrivningen och två kommentarer. Regeln flyttades till `modules[].heights` och läses därifrån. Det betalade sig samma dag: uppgiften om 20 cm-ben till 1×1 visade sig fel, och rättelsen blev en rad i scenes.json i stället för sju filer.",
             "**Påstå bara det som är dokumenterat.** DJ-hubbens referensrad har ett case där DJ står i underlaget; de två andra beskrivs som festevent med ljud och ljus. Samma princip som när projektorduken togs ur Systembolagets text.",
         ]),
 
@@ -258,6 +258,8 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.3", "2026-10-17",
+             "§7.7 lärdomen om regler i datan kompletterad med 1×1-rättelsen."],
             ["v18.2", "2026-10-17",
              "§7.7 två lärdomar: fältnamn som inte finns, regel på sju ställen. §9.4 DJ-hubben, länk per rad och ljud-och-ljus lösta."],
             ["v18.1", "2026-10-17",
@@ -296,12 +298,12 @@ DOC6 = dict(
         ("h1", "11. Dokumentstruktur"),
         ("table", [
             ["Dok", "Innehåll", "Version"],
-            ["Dok 1", "Grund & Design", "v18.2 (2026-10-17)"],
-            ["Dok 2", "Produkter & Data", "v18.2 (2026-10-17)"],
-            ["Dok 3", "Sidor & Navigation", "v18.2 (2026-10-17)"],
-            ["Dok 4", "Kommunikation", "v18.2 (2026-10-17)"],
-            ["Dok 5", "Order, Admin & Infra", "v18.2 (2026-10-17)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.2 (2026-10-17)"],
+            ["Dok 1", "Grund & Design", "v18.3 (2026-10-17)"],
+            ["Dok 2", "Produkter & Data", "v18.3 (2026-10-17)"],
+            ["Dok 3", "Sidor & Navigation", "v18.3 (2026-10-17)"],
+            ["Dok 4", "Kommunikation", "v18.3 (2026-10-17)"],
+            ["Dok 5", "Order, Admin & Infra", "v18.3 (2026-10-17)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.3 (2026-10-17)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "

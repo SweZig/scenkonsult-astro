@@ -3,7 +3,7 @@ DOC4 = dict(
     slug="Kommunikation",
     title="Kommunikation",
     subtitle="E-post (Resend/SES), DNS & DMARC, SMS (46elks), Sven-chatbot",
-    version="v18.2",
+    version="v18.3",
     date="2026-10-17",
     blocks=[
         ("h1", "1. E-postsystem (Resend)"),
@@ -183,7 +183,7 @@ DOC4 = dict(
             "**Helger (2026-10-11):** faktarader ur `phoneHours` och `weekendNote` plus en regel i "
             "systemprompten — helgtiderna är depåtider för hämtning och återlämning; kvällar och helger är "
             "telefonen bara jour vid pågående uthyrning, nya förfrågningar går via formulär eller varukorg.",
-            "**Scen (2026-10-17):** plattformsraderna har benhöjderna (`ben 20/40 cm`) och en regel om trappor vid 20 cm. Scentillbehören — trappor, kjolar, räcken, ramp, tälttak — saknades helt i prislistan, eftersom generatorn läste `scenes.accessories`, som inte finns. Läser nu `tillbehor`; `produktregister.test` kontrollerar att varje aktivt scentillbehör finns i prislistan.",
+            "**Scen (2026-10-17):** plattformsraderna har benhöjderna (`ben 40 cm` för 1×1, `ben 20/40/60 cm` för 1×2) och en regel om trappor vid 20 cm. Scentillbehören — trappor, kjolar, räcken, ramp, tälttak — saknades helt i prislistan, eftersom generatorn läste `scenes.accessories`, som inte finns. Läser nu `tillbehor`; `produktregister.test` kontrollerar att varje aktivt scentillbehör finns i prislistan.",
             "**Frakt (2026-10-09):** Sven nämner bara standardfordonen — vanlig bil, stor bil, lätt "
             "lastbil. Släpvagn är ett internt undantag: SVEN_FACTS säger uttryckligen att den inte ska "
             "nämnas, och llms.txt och Excel-katalogen nämner inga fordon. Släpartiklarna SK-LEV-0002 och "
@@ -213,6 +213,8 @@ DOC4 = dict(
         ("h1", "5. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.3", "2026-10-17",
+             "§4.1 rättelse: 1×1 har ben 40 cm."],
             ["v18.2", "2026-10-17",
              "§4.1 scentillbehören i Svens prislista (lästes från ett fält som inte fanns), benhöjder per plattform."],
             ["v18.1", "2026-10-17",
