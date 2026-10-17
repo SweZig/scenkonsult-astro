@@ -55,65 +55,56 @@ const grupper = (cfg.grupper ?? []).map((g: any) => ({
 const kr = (n: number) => n.toLocaleString('sv-SE');
 ---
 {grupper.length > 0 && (
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
   <SectionHeader eyebrow="Snabbval" h2={heading} lead={lead} />
-  <div class="space-y-12">
+  <div class="space-y-10">
     {grupper.map((g: any) => (
       <div>
-        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
+        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h3 class="text-white text-2xl" style="font-family:'DM Serif Display',serif;">{g.rubrik}</h3>
-          <span class="text-brand-orange text-xs font-bold uppercase tracking-widest" style="font-family:'Space Grotesk',sans-serif">{g.gaster}</span>
+          {g.gaster && <span class="text-brand-orange text-xs font-bold uppercase tracking-widest" style="font-family:'Space Grotesk',sans-serif">{g.gaster}</span>}
         </div>
-        <p class="text-gray-400 text-sm mb-5">{g.lead}</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {g.produkter.map((p: any) => (
-            <article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all group flex flex-col" itemscope itemtype="https://schema.org/Product">
+        {g.lead && <p class="text-gray-400 text-sm mt-1 mb-3">{g.lead}</p>}
+        <ol class="border-t border-white/10">
+          {g.produkter.map((p: any, i: number) => (
+            <li class="flex items-center gap-3 sm:gap-4 px-2 sm:px-3 py-3 border-b border-white/10 hover:bg-brand-navy transition-colors" itemscope itemtype="https://schema.org/Product">
+              {/* Bild och specar visas inte i topplistan, men produktdatan ligger
+                  kvar som dolda meta-taggar sa att rich results bevaras. */}
               <meta itemprop="brand" content="Scenkonsult Norden" />
               <meta itemprop="sku" content={p.artno} />
               <meta itemprop="description" content={p.tagline ?? p.description ?? `Hyra ${p.name} — leverans i hela Storstockholm.`} />
               <meta itemprop="image" content={p.image ? `https://scenkonsult.se${p.image}` : 'https://scenkonsult.se/images/hero/scen3_hero.webp'} />
-              <div class="bg-brand-dark overflow-hidden" style="aspect-ratio:1024/853">
-                {p.image && <img src={p.image} alt={p.alt ?? p.name} width="1024" height="853" loading="lazy" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />}
-              </div>
-              <div class="p-5 flex flex-col flex-1">
-                {p.persons && <span class="text-xs text-brand-orange font-bold uppercase tracking-wide">{p.persons}</span>}
-                <h4 class="font-bold text-white text-lg mt-1 mb-2" itemprop="name">{p.name}</h4>
-                <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
-                  {(p.specs ?? []).slice(0, 3).map((s: string) => (
-                    <li class="flex gap-1.5"><span class="text-green-400 shrink-0">✓</span>{s}</li>
-                  ))}
-                </ul>
-                <div class="mt-auto flex items-center justify-between border-t border-white/10 pt-3 gap-3" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-                  <meta itemprop="priceCurrency" content="SEK" />
-                  <meta itemprop="price" content={String(p.price)} />
-                  <meta itemprop="priceValidUntil" content="2027-12-31" />
-                  <meta itemprop="availability" content="https://schema.org/InStock" />
-                  <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
-                    <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion"><meta itemprop="addressCountry" content="SE" /></div>
-                    <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount"><meta itemprop="currency" content="SEK" /><meta itemprop="value" content="0" /></div>
-                    <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
-                      <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue"><meta itemprop="minValue" content="0" /><meta itemprop="maxValue" content="1" /><meta itemprop="unitCode" content="DAY" /></div>
-                      <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue"><meta itemprop="minValue" content="0" /><meta itemprop="maxValue" content="1" /><meta itemprop="unitCode" content="DAY" /></div>
-                    </div>
+              <span class="text-brand-orange/50 font-bold text-sm w-7 shrink-0" style="font-family:'Space Grotesk',sans-serif">{String(i + 1).padStart(2, '0')}</span>
+              {p.image && <img src={p.image} alt={p.alt ?? p.name} width="128" height="107" loading="lazy" decoding="async" class="w-14 h-12 object-contain bg-brand-dark rounded-lg shrink-0" />}
+              <span class="flex-1 min-w-0 text-white font-semibold" itemprop="name">{p.name}</span>
+              <div class="text-right leading-tight shrink-0" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                <meta itemprop="priceCurrency" content="SEK" />
+                <meta itemprop="price" content={String(p.price)} />
+                <meta itemprop="priceValidUntil" content="2027-12-31" />
+                <meta itemprop="availability" content="https://schema.org/InStock" />
+                <div itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+                  <div itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion"><meta itemprop="addressCountry" content="SE" /></div>
+                  <div itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount"><meta itemprop="currency" content="SEK" /><meta itemprop="value" content="0" /></div>
+                  <div itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                    <div itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue"><meta itemprop="minValue" content="0" /><meta itemprop="maxValue" content="1" /><meta itemprop="unitCode" content="DAY" /></div>
+                    <div itemprop="transitTime" itemscope itemtype="https://schema.org/QuantitativeValue"><meta itemprop="minValue" content="0" /><meta itemprop="maxValue" content="1" /><meta itemprop="unitCode" content="DAY" /></div>
                   </div>
-                  <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
-                    <meta itemprop="applicableCountry" content="SE" />
-                    <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
-                    <meta itemprop="merchantReturnDays" content="1" />
-                    <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
-                    <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
-                  </div>
-                  <div class="leading-none">
-                    <span class="sk-price-excl text-brand-orange font-extrabold text-xl">{kr(p.price)}&nbsp;kr</span>
-                    <span class="sk-price-incl hidden text-brand-orange font-extrabold text-xl">{kr(Math.round(p.price * 1.25))}&nbsp;kr</span>
-                    <span class="text-gray-400 text-xs">{p.priceNote ?? '/dygn'}</span>
-                  </div>
-                  <CartButton id={p.artno} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category={category} image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="md" iconOnly={true} />
                 </div>
+                <div itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+                  <meta itemprop="applicableCountry" content="SE" />
+                  <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnFiniteReturnWindow" />
+                  <meta itemprop="merchantReturnDays" content="1" />
+                  <meta itemprop="returnMethod" content="https://schema.org/ReturnInStore" />
+                  <meta itemprop="returnFees" content="https://schema.org/FreeReturn" />
+                </div>
+                <span class="sk-price-excl text-brand-orange font-extrabold text-lg">{kr(p.price)}&nbsp;kr</span>
+                <span class="sk-price-incl hidden text-brand-orange font-extrabold text-lg">{kr(Math.round(p.price * 1.25))}&nbsp;kr</span>
+                <span class="block text-gray-400 text-xs">{p.priceNote ?? '/dygn'}</span>
               </div>
-            </article>
+              <CartButton id={p.artno} name={p.name} price={p.price} priceNote={p.priceNote ?? '/dygn'} category={category} image={p.image ?? ''} bulky={p.bulky ?? false} monteringMin={p.monteringMin} size="sm" iconOnly={true} />
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     ))}
   </div>
