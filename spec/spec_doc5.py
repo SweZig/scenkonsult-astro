@@ -3,7 +3,7 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v18.1",
+    version="v18.2",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
@@ -141,6 +141,7 @@ DOC5 = dict(
             "**`set-hub`** kräver att bilden hör till caset. Bildväljaren i admin listar filerna i `public/images/event/` vid bygget, så ingen skriver sökvägar för hand.",
             "Båda endpoints bakom `ADMIN_TOKEN`; service-nyckeln skriver förbi RLS.",
             "**Ordning i admin (2026-10-17):** artiklarna i en topplistegrupp flyttas med pilar eller dra-och-släpp; varje rad behåller sitt ursprung. /admin/referenser/ listar kunderna i bokstavsordning (svensk sortering, Å/Ä/Ö sist) — ordningen på referenssidan styrs inte därifrån.",
+            "**Ljud & ljus (2026-10-17):** kategorin har egna grupper; `/admin/topplistor/` visar därför \"Lägg till grupp\" i stället för arvsnotisen. Admins scenkonfigurator (offertens \"Lägg till rader\") har 20 cm och inaktiverar höjder som vald yta saknar.",
             "**Tester (2026-10-17):** `test/admin-innehall.test.cjs` kör varje action i båda endpoints mot en mockad PostgREST — 29 kontroller, bl.a. 401, ursprung per rad i `set-items`, taket 24 och att 409 i `set-images` inte raderar något. Ingår i `npm test`; testet fångar 500-felet som `set-items` hade.",
         ]),
         ("note", "**Databasen först, push sedan** — gäller allt innehåll som har en committad fallback. "
@@ -327,6 +328,8 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.2", "2026-10-17",
+             "§3.5 ljud & ljus med egna grupper, admins scenkonfigurator med benhöjder per yta."],
             ["v18.1", "2026-10-17",
              "§3.5 menyordningen, flytta artiklar i topplistor, referenskunder i bokstavsordning, test/admin-innehall.test.cjs i npm test."],
             ["v18.0", "2026-10-17",

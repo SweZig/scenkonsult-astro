@@ -3,7 +3,7 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v18.1",
+    version="v18.2",
     date="2026-10-17",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
@@ -110,7 +110,7 @@ DOC2 = dict(
               "fram kjolarna ur `tillbehor` och skickar dem till `ScenkjolCard`."),
         ("ul", [
             "**Scenkjolar (2026-09-28):** rak 4 m för 20/40/60 cm (ACC-0011/0017/0003) och veckad 2 m för 40/60 cm (ACC-0009/0018). Fältet `skirtStyle` anger modellen. Visas som ett `ScenkjolCard` med höjd- och modellval, inte som separata tillbehörskort. Konfiguratorn räknar segment per vald modell (`SKIRT_BY_HEIGHT[höjd][modell]`).",
-            "**Höjdregler (2026-09-28):** 1×2-plattformen finns i 20, 40 och 60 cm; 1×1 endast i 40 cm. Vid 20 cm låses trappor till 0.",
+            "**Benhöjder (ändrat 2026-10-17):** varje plattform har fältet `heights` — 1×1 `[20, 40]` (20 cm-ben tillkom 2026-10-17, tidigare bara 40), 1×2 `[20, 40, 60]`. Konfiguratorn, paketkorten, ytjämförelsen, scensidan, admins scenkonfigurator, Sven och llms.txt läser fältet via `src/utils/scenHojder.ts` (`HOJDER`, `hojdText`, `saknasText`); en höjd som ytan saknar inaktiveras och ett ogiltigt val faller till 40 cm. Vid 20 cm låses trappor till 0 — trappor finns för 40 och 60 cm. `produktregister.test` kontrollerar att varje plattform har höjder och att paketens höjder finns hos någon plattform.",
             "**Underlag:** monteringen förutsätter plant underlag (tumregel ca 5 cm höjdskillnad). Justerbara ben om kunden meddelar vid bokning — står på scensidan (#underlag), i FAQ, i varukorgen och i Svens fakta.",
             "**Nya tillbehör sedan v16:** Filtmatta svart ACC-0015 (149 kr/m²) och Rullstolsramp i aluminium ACC-0016.",
         ]),
@@ -399,14 +399,14 @@ DOC2 = dict(
         ]),
         ("p", "Migrationer: `supabase/migrations/2026-10-17_content_curation.sql` (tabeller, RLS, "
               "seed), `…_etapp1_bild.sql`, `…_etapp2_referensrader.sql`, "
-              "`…_bild_montering_rattelse.sql`. RLS deny-all för `anon` och `authenticated`; "
+              "`…_bild_montering_rattelse.sql`, `…_dj_och_ljudljus_topplista.sql`. RLS deny-all för `anon` och `authenticated`; "
               "service-nyckeln går förbi."),
 
         ("h2", "12.2 Regler i modellen"),
         ("ul", [
             "**Caset äger fakta, hubbraden äger vinkeln.** Samma uppdrag kan visas på ljudhubben med PA-bilden och på ljushubben med uplight-bilden, med egen rubrik och alt-text. Fälten på hubbraden faller tillbaka på casets värden när de är tomma.",
             "**`in_gallery = false`** — bilden hör till caset men visas bara på en hubb (t.ex. `kundevent_abg_uplight.webp`, som annars hade roterat i ABG-kortet på /referenser/).",
-            "**`source_categories`** — en kategori som ärver andras grupper och hubbrader. `ljud-och-ljus` = `{ljud, ljus}`. Kombinationssidan anropar dock inte komponenterna ännu (Dok 3 §6).",
+            "**`source_categories`** — en kategori som ärver andras grupper och hubbrader. Används inte längre: `ljud-och-ljus` ärvde `{ljud, ljus}` (24 produkter) men fick 2026-10-17 tre egna grupper och tomt `source_categories` (Dok 3 §6). Mekanismen finns kvar i generatorerna.",
             "**`stats_categories`** — kopplar kategorin till `admin-stats-sales` toppkategorinamn för \"Fyll från bokningsdata\": `ljud` → `{Ljud}`, `konferens` → `{Bild, Ljud, Scen}`.",
             "**Mjuk radering:** `active = false` på grupper och case. Hubbraden tas bort på riktigt (den är bara en koppling).",
         ]),
@@ -452,6 +452,8 @@ DOC2 = dict(
         ("h1", "14. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.2", "2026-10-17",
+             "§4.3 benhöjder per plattform i modules[].heights, 1×1 får 20 cm. §12 ljud-och-ljus med egna grupper, ny migration."],
             ["v18.1", "2026-10-17",
              "§2.1 offertväljaren och Excel-katalogen utan utgångna produkter; order-catalog-flat.json oförändrad. §10 cart-ID-listan filtrerar active: false."],
             ["v18.0", "2026-10-17",

@@ -3,7 +3,7 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v18.1",
+    version="v18.2",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Arbetssätt"),
@@ -165,6 +165,8 @@ DOC6 = dict(
             "**Samma data har olika form i olika filer.** ljud.json har nästlade serier, bild.json toppnivå-arrayer. `PopularaPaket` läste bara den ena formen och hittade noll bildprodukter — utan fel, sektionen blev bara tom. Testa en ny kategori mot dess egen fil innan utrullning.",
             "**Arbeta alltid från en färsk klon av origin.** Två nära-olyckor i samma vecka: en ändring av `referenser/index.astro` byggd på en inaktuell arbetskopia hade backat 79 rader som redan låg i `main` (fångat av diffen mot färsk klon), och en komponent höll på att byggas som redan fanns i `main`. Arbetskopian på datorn är aldrig facit.",
             "**Supabase SQL editor varnar falskt** för `DROP POLICY IF EXISTS` och för RLS satt i en `DO`-loop. Varningen betyder inte att skriptet är fel — men den ska läsas, inte klickas bort (Dok 5 §5).",
+            "**Ett fältnamn som inte finns ger en tom sektion, inte ett fel.** Svens prislista läste `scenes.accessories` långt efter att fältet bytt namn till `tillbehor` — trappor, kjolar och räcken saknades utan att något sa ifrån. Testa åt andra hållet: att det som ska finnas i utdata faktiskt finns där.",
+            "**En regel på sju ställen blir en datafråga.** \"1×1 bara 40 cm\" stod i konfiguratorn, paketkorten, ytjämförelsen, scensidan, modulbeskrivningen och två kommentarer. När 20 cm-benen kom flyttades regeln till `modules[].heights` och läses därifrån.",
             "**Påstå bara det som är dokumenterat.** DJ-hubbens referensrad har ett case där DJ står i underlaget; de två andra beskrivs som festevent med ljud och ljus. Samma princip som när projektorduken togs ur Systembolagets text.",
         ]),
 
@@ -243,9 +245,9 @@ DOC6 = dict(
             "**\"Montering ingår vid behov\" — LÖST 2026-10-17.** Rubriken på /vara-tjanster/ är nu *Montering när du behöver* med timpriset ur tjanster.json, och festivalsidan säger att montering tillkommer. (Ursprunglig notering: `/vara-tjanster/` har rubriken *Montering ingår vid behov* ovanför brödtexten *600 kr/tim*, och `/for/festival/` säger om modulscenerna att \"montering ingår vid behov\". Båda läses som gratis montering och motsäger Dok 2 §5 och scenprisguiden. Beslut behövs: medveten formulering eller fel.)",
             "**Scensidans \"Tolv\" — LÖST 2026-10-17.** Antalet räknas ur `scenes.json` (aktiva paket), liksom startsidans scenkort.",
             "**Festivalsidan (NY 2026-10-17):** \"Hopfällbara scener från 4×3 m\" — minsta scenpaketet är 2×2 m. Samma sida slår upp `ljudData.live.products[0]` på index, inte artno (projektinstruktionens princip).",
-            "**DJ-hubbens referensrad:** bara Skridskodisco har DJ dokumenterat. Systembolaget och Läkarförbundet är festevent med ljud och ljus. Byt i /admin/referenscase/ när fler DJ-uppdrag finns med foto.",
-            "**Topplistans rader länkar ingenstans.** Skissen hade \"länk till paketen\". Bildprodukterna har inga egna sidor, och alla-sidan har bara ankarna `#led-trailer`, `#projektorduk`, `#tillbehor`. Ett valfritt länkfält per grupp i `popular_groups` löser det.",
-            "**Kategorin `ljud-och-ljus`** finns i databasen (ärver ljud + ljus via `source_categories`) men kombinationssidan anropar inte komponenterna. Arvet ger 24 produkter — för långt för en kombinationssida. Behöver egna korta grupper om sektionen ska in.",
+            "**DJ-hubbens referensrad — LÖST 2026-10-17.** Djursholms Slott och Läkarförbundet var uppdrag med DJ och ersatte Systembolaget. Fler eventbilder finns hos Scenkonsult — lägg in fler case när de är utvalda. (Ursprunglig notering: bara Skridskodisco har DJ dokumenterat. Systembolaget och Läkarförbundet är festevent med ljud och ljus. Byt i /admin/referenscase/ när fler DJ-uppdrag finns med foto.)",
+            "**Topplistans rader länkar ingenstans — LÖST 2026-10-17** med artikelnumret som ankare (Dok 3 §6). (Ursprunglig notering: Skissen hade \"länk till paketen\". Bildprodukterna har inga egna sidor, och alla-sidan har bara ankarna `#led-trailer`, `#projektorduk`, `#tillbehor`. Ett valfritt länkfält per grupp i `popular_groups` löser det.)",
+            "**Kategorin `ljud-och-ljus` — LÖST 2026-10-17:** tre egna grupper, visas på kombinationssidan. (Ursprunglig notering: finns i databasen (ärver ljud + ljus via `source_categories`) men kombinationssidan anropar inte komponenterna. Arvet ger 24 produkter — för långt för en kombinationssida. Behöver egna korta grupper om sektionen ska in.)",
             "**Ljud & ljus steg 2 (planerat 2026-10-26):** startsidans titel och en länk från startsidan till /hyra-ljud-och-ljus/, efter GSC-koll av konfiguratorsidan.",
             "**Bild-tillbehör (Projektor & skärm):** produktbilder saknas för projektorstativ, 100\" duk, skärmstativ, HDMI, HDMI-splitter, mediaspelare, 23\"-skärm, USB-clicker.",
             "**Google Ads:** lägg till annonsgrupper (Phrase Match), radera gamla svaga keywords. Importera GA4 conversion events när de börjar landa.",
@@ -256,6 +258,8 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.2", "2026-10-17",
+             "§7.7 två lärdomar: fältnamn som inte finns, regel på sju ställen. §9.4 DJ-hubben, länk per rad och ljud-och-ljus lösta."],
             ["v18.1", "2026-10-17",
              "§9.2 admin-tester, hårdkodade tider och utgångna produkter i registret/väljaren lösta. §9.4 montering-formuleringarna och scensidans antal lösta; festivalsidans 4×3 m och indexuppslag tillagda."],
             ["v18.0", "2026-10-17",
@@ -292,12 +296,12 @@ DOC6 = dict(
         ("h1", "11. Dokumentstruktur"),
         ("table", [
             ["Dok", "Innehåll", "Version"],
-            ["Dok 1", "Grund & Design", "v18.1 (2026-10-17)"],
-            ["Dok 2", "Produkter & Data", "v18.1 (2026-10-17)"],
-            ["Dok 3", "Sidor & Navigation", "v18.1 (2026-10-17)"],
-            ["Dok 4", "Kommunikation", "v18.1 (2026-10-17)"],
-            ["Dok 5", "Order, Admin & Infra", "v18.1 (2026-10-17)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.1 (2026-10-17)"],
+            ["Dok 1", "Grund & Design", "v18.2 (2026-10-17)"],
+            ["Dok 2", "Produkter & Data", "v18.2 (2026-10-17)"],
+            ["Dok 3", "Sidor & Navigation", "v18.2 (2026-10-17)"],
+            ["Dok 4", "Kommunikation", "v18.2 (2026-10-17)"],
+            ["Dok 5", "Order, Admin & Infra", "v18.2 (2026-10-17)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.2 (2026-10-17)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "

@@ -3,7 +3,7 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v18.1",
+    version="v18.2",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
@@ -288,7 +288,7 @@ DOC1 = dict(
             ["LjudLjusBuilder.astro", "Aktiv — **NY 2026-10-12.** Konfiguratorn på /hyra-ljud-och-ljus/. Delar bildlagerbiblioteket med karaokebyggaren; CSS kopierad med prefix `llb-` (Dok 2 §11)"],
             ["LjudLjusPromo.astro", "Aktiv — **NY 2026-10-12.** Banner mot /hyra-ljud-och-ljus/ på ljud- och ljushubben"],
             ["LeveransMonteringEl.astro", "Aktiv — **NY 2026-10-13.** Hubbarnas ruta Leverans, montering & el; belopp ur tjanster.json, montering.cjs och el.json"],
-            ["PopularaPaket.astro", "Aktiv — **NY 2026-10-13, omgjord 2026-10-17.** Hubbarnas topplista: grupper efter tillfälle, en rad per produkt med rang, miniatyr, namn, pris och köpknapp. Läser `popular.json` (Dok 2 §12, Dok 3 §6)"],
+            ["PopularaPaket.astro", "Aktiv — **NY 2026-10-13, omgjord 2026-10-17.** Hubbarnas topplista: grupper efter tillfälle, en rad per produkt med rang, miniatyr, namn, pris och köpknapp. Namn och miniatyr länkar till produktens kort (sedan 2026-10-17). Läser `popular.json` (Dok 2 §12, Dok 3 §6)"],
             ["EventBilder.astro", "Aktiv — **NY 2026-10-13, datadriven 2026-10-17.** Hubbarnas referensrad \"Från våra event\". Läser `event-cases.json → hub[kategori]`"],
             ["SceneConfigurator.astro", "Aktiv (scensidan)"],
             ["YtaJamforelse.astro", "Aktiv (scensidan)"],
@@ -372,6 +372,8 @@ DOC1 = dict(
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.2", "2026-10-17",
+             "§5.1 PopularaPaket länkar varje rad till produktens kort."],
             ["v18.1", "2026-10-17",
              "Telefon och helger: tiderna formateras av `src/utils/hours.ts` i stället för att stå inskrivna i elva filer."],
             ["v18.0", "2026-10-17",

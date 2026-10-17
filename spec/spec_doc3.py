@@ -3,7 +3,7 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v18.1",
+    version="v18.2",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
@@ -217,7 +217,7 @@ DOC3 = dict(
             "**Bilder per kort:** 7 kort med en bild, 8 crossfade-par, 2 med tre bilder och 2 med fyra (Dok 1 §4.7). Fyra bilder: EA Sports FC 27 och Systembolaget. Tre: Hard Rock Rising och 100 Knivar.",
             "**Nya sedan v17:** EA Sports FC 27 (IKEA Gallerian), Storytel, Systembolaget, Jazz & Blues Konserthuset, Emberlin (Stureplan), 100 Knivar (Odenplan). Hard Rock Rising fick tre bilder, Galleri Existens samarbetet med PerPR.",
             "**Samarbetspartner skrivs som de själva skriver sig:** Jung Co (inte \"Jung\" eller \"Jung & Co\"), Studio S19, PerPR.",
-            "**Leverera bara det vi levererat.** Systembolagets text nämnde en projektorduk som inte var vår — borttagen 2026-10-09. Samma noggrannhet gäller hubbraderna: DJ-hubbens rader påstår inte DJ där det inte är dokumenterat.",
+            "**Leverera bara det vi levererat.** Systembolagets text nämnde en projektorduk som inte var vår — borttagen 2026-10-09. Samma noggrannhet gäller hubbraderna: DJ-hubben visar sedan 2026-10-17 bara uppdrag med DJ — Skridskodisco, Djursholms Slott och Läkarförbundet (uppgift från Scenkonsult); Systembolaget lämnade raden.",
         ]),
         ("note", "**Liggande foton beskärs vid konverteringen, inte av `object-cover`.** Ett 4:3-foto i "
                  "en 3:4-ruta tappar 44 % av bredden på en centrerad crop. Välj horisontellt centrum "
@@ -246,6 +246,7 @@ DOC3 = dict(
               "underhållna i admin:"),
         ("ul", [
             "**Topplistan** — `<PopularaPaket data={…} kategori=\"…\" category=\"…\" />`. Grupper efter tillfälle och gästantal (H3 = tillfället, gästantalet som etikett). En **rad per produkt**: rang 01–03, miniatyr, namn, pris med momsklasserna och köpknapp. Inga stora bilder, inga speclistor. Product/Offer-markeringen ligger kvar som dolda `meta`-taggar, så rich results påverkas inte. Sektionen är `max-w-5xl`. Rubriken heter **\"Topplista <Kategori>\"** överallt (`content_categories.popular_heading`).",
+            "**Länk per rad (2026-10-17):** namn och miniatyr länkar till `<sida>#<artno med gemener>`, t.ex. `/vara-tjanster/hyra-ljus/fardiga-paket/#sk-ljs-pak-0022`. Artikelnumret är produktens ID. Produktkorten bär `data-sk-ankare` med sina artikelnummer — variantkort listar alla och varje variantknapp har `data-sk-ankare-val` — och skriptet `skAnkare` sist i `Layout.astro` väljer rätt variant, scrollar till kortet under navigationen och markerar det. Inga `id`-attribut, eftersom samma produkt kan synas på flera kort på en sida. Vilken sida en serie säljs på står i `src/lib/produkt-sidor.mjs` (via `src/utils/produktLank.ts`); en serie utan rad får ingen länk, aldrig fel länk; `ljud-ljus.test` kontrollerar att varje topplistad produkt har en sida som finns. Ny kortkomponent → ge den `data-sk-ankare`.",
             "**Referensraden** — `<EventBilder kategori=\"…\" />`, rubrik \"Från våra event\". Tre kort med hubbens egen bild och text för uppdraget (4:3), länk till /referenser/.",
         ]),
         ("table", [
@@ -254,10 +255,10 @@ DOC3 = dict(
             ["/hyra-ljus/", "Ja — 4 grupper, 12 rader", "Systembolaget · ABG Sundal Collier · Skridskodisco"],
             ["/hyra-bild/", "Ja — 3 grupper, 9 rader", "EA Sports FC 27 · Tele2 · 100 Knivar"],
             ["/hyra-scen/", "Nej", "Strawberry Arena (UF) · Jazz & Blues Konserthuset · Storytel"],
-            ["/hyra-dj/", "Nej", "Skridskodisco · Systembolaget · Läkarförbundet"],
+            ["/hyra-dj/", "Nej", "Skridskodisco · Djursholms Slott · Läkarförbundet (alla med DJ)"],
             ["/konferens-av/", "Nej", "Solna Näringsliv · ABG Sundal Collier · Tele2"],
             ["/hyra-karaoke/", "Nej", "Nej"],
-            ["/hyra-ljud-och-ljus/", "Nej (kategorin finns, komponenterna är inte inkopplade)", "Nej"],
+            ["/hyra-ljud-och-ljus/", "Ja — 3 egna grupper, 10 rader (ljud och ljus blandat), efter konfiguratorn. \"Se alla\"-länken döljs eftersom den pekar på sidan själv", "Nej"],
         ]),
         ("note", "**Topplistan bara där den tillför något** (beslut 2026-10-17). Scenhubben renderar "
                  "redan alla elva scenpaket i interaktiva kort, DJ-hubben har fyra paket och visar alla "
@@ -286,6 +287,8 @@ DOC3 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.2", "2026-10-17",
+             "§6 länk per topplisterad (data-sk-ankare, skAnkare, produkt-sidor.mjs), topplista på /hyra-ljud-och-ljus/, DJ-hubbens rad med DJ-uppdragen. §5 referenssidan: Djursholms Slott och Läkarförbundet nämner DJ."],
             ["v18.1", "2026-10-17",
              "Scensidans ingress räknar antalet paket ur scenes.json; startsidans scenkort räknar antal och storleksspann. Montering-formuleringarna på /vara-tjanster/, /for/festival/ och bildhubben rättade."],
             ["v18.0", "2026-10-17",
