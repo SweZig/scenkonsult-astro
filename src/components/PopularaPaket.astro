@@ -32,10 +32,19 @@ const lead = cfg.lead ?? undefined;
 const allaHref = cfg.allaHref ?? null;
 const allaLabel = cfg.allaLabel ?? null;
 
+/**
+ * Produktlistorna ser olika ut per katalogfil: ljud.json och ljus.json har
+ * nästlade serier (`event`, `live`, `music`…) med varsin `products`-array,
+ * medan bild.json, scen.json och dj.json har `products`, `tillbehor` och
+ * `dukar` som toppnivå-arrayer. Båda formerna samlas in här — uppslaget sker
+ * alltid på artno, aldrig på index.
+ */
 const kataloger: any[] = Array.isArray(data) ? data : [data];
-const alla: any[] = kataloger.flatMap((d: any) => Object.values(d)
-  .filter((v: any) => v && typeof v === 'object' && Array.isArray(v.products))
-  .flatMap((v: any) => v.products));
+const alla: any[] = kataloger.flatMap((d: any) => Object.values(d).flatMap((v: any) => {
+  if (Array.isArray(v)) return v.filter((p: any) => p && typeof p === 'object' && p.artno);
+  if (v && typeof v === 'object' && Array.isArray(v.products)) return v.products;
+  return [];
+}));
 const byArtno = (a: string) => alla.find((p) => p.artno === a && p.active !== false);
 
 const grupper = (cfg.grupper ?? []).map((g: any) => ({
@@ -67,7 +76,7 @@ const kr = (n: number) => n.toLocaleString('sv-SE');
                 {p.image && <img src={p.image} alt={p.alt ?? p.name} width="1024" height="853" loading="lazy" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />}
               </div>
               <div class="p-5 flex flex-col flex-1">
-                <span class="text-xs text-brand-orange font-bold uppercase tracking-wide">{p.persons}</span>
+                {p.persons && <span class="text-xs text-brand-orange font-bold uppercase tracking-wide">{p.persons}</span>}
                 <h4 class="font-bold text-white text-lg mt-1 mb-2" itemprop="name">{p.name}</h4>
                 <ul class="space-y-1 mb-4 text-xs text-gray-400 border-t border-white/10 pt-3 flex-1">
                   {(p.specs ?? []).slice(0, 3).map((s: string) => (
