@@ -3,7 +3,7 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v18.4",
+    version="v18.5",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Arbetssätt"),
@@ -240,8 +240,6 @@ DOC6 = dict(
             "**GSC-indexering:** omindexering begärd 2026-10-02 för /vara-tjanster/hyra-ljud/, /hyra-ljud/event/, /for/guider/hyra-pa-system/, eventlokal-guiden och /en/. Följ upp positionerna för \"hyra högtalare stockholm\" och \"hyra ljud stockholm\".",
             "**/en/:** följ upp om engelska förfrågningar kommer in (märkta \"[ENGLISH ENQUIRY]\"). Nav och sidfot är svenska — utvärdera om det behövs mer än en sida.",
             "**Netlify:** `GOOGLE_PLACES_API_KEY` kan tas bort.",
-            "**DJ Alex:** saknar foto (`DJ_Alex.png` + `dj.json djProfiles`).",
-            "**Referenssidan:** kundlogotyperna i högre upplösning; de ärvda är nyckade ur en 1600 px-bild. (Crossfade-paren är utbyggda — 12 av 19 kort har 2–4 bilder.)",
             "**\"Montering ingår vid behov\" — LÖST 2026-10-17.** Rubriken på /vara-tjanster/ är nu *Montering när du behöver* med timpriset ur tjanster.json, och festivalsidan säger att montering tillkommer. (Ursprunglig notering: `/vara-tjanster/` har rubriken *Montering ingår vid behov* ovanför brödtexten *600 kr/tim*, och `/for/festival/` säger om modulscenerna att \"montering ingår vid behov\". Båda läses som gratis montering och motsäger Dok 2 §5 och scenprisguiden. Beslut behövs: medveten formulering eller fel.)",
             "**Scensidans \"Tolv\" — LÖST 2026-10-17.** Antalet räknas ur `scenes.json` (aktiva paket), liksom startsidans scenkort.",
             "**Festivalsidan — LÖST 2026-10-17.** Scenstorlekarna (2×2 till 8×6 m) och montering-gränsen räknas ur datan; alla uppslag på artno.",
@@ -250,7 +248,6 @@ DOC6 = dict(
             "**Topplistans rader länkar ingenstans — LÖST 2026-10-17** med artikelnumret som ankare (Dok 3 §6). (Ursprunglig notering: Skissen hade \"länk till paketen\". Bildprodukterna har inga egna sidor, och alla-sidan har bara ankarna `#led-trailer`, `#projektorduk`, `#tillbehor`. Ett valfritt länkfält per grupp i `popular_groups` löser det.)",
             "**Kategorin `ljud-och-ljus` — LÖST 2026-10-17:** tre egna grupper, visas på kombinationssidan. (Ursprunglig notering: finns i databasen (ärver ljud + ljus via `source_categories`) men kombinationssidan anropar inte komponenterna. Arvet ger 24 produkter — för långt för en kombinationssida. Behöver egna korta grupper om sektionen ska in.)",
             "**Ljud & ljus steg 2 (planerat 2026-10-26):** startsidans titel och en länk från startsidan till /hyra-ljud-och-ljus/, efter GSC-koll av konfiguratorsidan.",
-            "**Bild-tillbehör (Projektor & skärm):** produktbilder saknas för projektorstativ, 100\" duk, skärmstativ, HDMI, HDMI-splitter, mediaspelare, 23\"-skärm, USB-clicker.",
             "**Google Ads:** lägg till annonsgrupper (Phrase Match), radera gamla svaga keywords. Importera GA4 conversion events när de börjar landa.",
         ]),
         ("note", "**Avfört 2026-09-21:** `public/images/ljud/pp_ljud_tillbehor_DI-palmer.webp` låg "
@@ -259,6 +256,8 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.5", "2026-10-17",
+             "§9.4 avförda: DJ Alex-foto (inte aktuellt), kundlogotyper (godkända som de är), bildtillbehörens produktbilder (fanns redan — alla 27 har bild). Festivalsidan visar nu Scenpaket Medium."],
             ["v18.4", "2026-10-17",
              "§9.4 festivalsidan löst. CLAUDE.md i repot omskriven och pekar på projektspecifikationen."],
             ["v18.3", "2026-10-17",
@@ -306,7 +305,7 @@ DOC6 = dict(
             ["Dok 3", "Sidor & Navigation", "v18.5 (2026-10-17)"],
             ["Dok 4", "Kommunikation", "v18.4 (2026-10-17)"],
             ["Dok 5", "Order, Admin & Infra", "v18.3 (2026-10-17)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.4 (2026-10-17)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.5 (2026-10-17)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "
