@@ -6,6 +6,7 @@ import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import LjudLjusBuilder from '../../../components/LjudLjusBuilder.astro';
+import PopularaPaket from '../../../components/PopularaPaket.astro';
 import config from '../../../data/ljud-ljus.json';
 import ljud from '../../../data/ljud.json';
 import ljus from '../../../data/ljus.json';
@@ -84,6 +85,8 @@ const steg = [
   />
 
   <LjudLjusBuilder />
+
+  <PopularaPaket data={[ljud, ljus]} kategori="ljud-och-ljus" category={['Ljud', 'Ljus']} />
 
   <!-- Bara det ena -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
