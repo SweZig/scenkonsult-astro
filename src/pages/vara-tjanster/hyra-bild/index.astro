@@ -24,7 +24,7 @@ const faqSchema = {
 const extraFaq = [
   { q: "När ska jag välja projektor och när skärm/LED-vägg?", a: "Projektor + duk är billigast och flexibelt — passar för konferens, föreläsning och biljettmöte i nedmörkat rum. Skärm (65–85\") behövs när rummet är ljust eller när bilden ska vara skarp i full färg. LED-vägg eller mobil LED-trailer används när bilden ska synas i dagsljus eller från långt avstånd — festival, scenbakgrund, sportevent." },
   { q: "Hur stor projektorduk behöver jag?", a: "Tumregel: bredden på duken bör vara minst 1/6 av avståndet till bakersta åskådare. För 50 personer i en konferenslokal räcker en 100\"-duk. För 200+ personer rekommenderar vi 166–200\" duk eller LED-vägg." },
-  { q: "Kan ni leverera och installera?", a: "Ja — leverans, installation, kabeldragning och soundcheck/testbild ingår vid bokning av installation. För LED-vägg och mobil LED-trailer ingår alltid montering. För enskilda projektorer/skärmar är installation tillval (600 kr/tim)." },
+  { q: "Kan ni leverera och installera?", a: "Ja — vid bokning av installation levererar vi, installerar, drar kablar och kör testbild. LED-vägg och mobil LED-trailer monteras alltid av våra tekniker; montering ingår inte i dygnspriset utan tillkommer och räknas fram i kassan. För enskilda projektorer och skärmar är installation tillval (600 kr/tim)." },
   { q: "Klarar projektorn dagsljus utomhus?", a: "Nej — projektor behöver nedmörkat rum eller skugga. För utomhus i dagsljus krävs LED-vägg eller mobil LED-trailer. Vi har LED-trailers 7, 15 och 28 m² som klarar full sol." },
 ];
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
@@ -87,7 +87,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
         {[
           { n: "1", rubrik: "Inomhus eller utomhus?", text: "Nedmörkat inomhus → projektor + duk är billigast. Ljust inomhus → skärm 65–85\". Utomhus i dagsljus → LED-vägg eller mobil LED-trailer. Skugga utomhus i kvällsljus → projektor kan funka." },
           { n: "2", rubrik: "Hur långt sitter publiken?", text: "Tumregel: bildbredden minst 1/6 av avståndet till bakersta åskådare. 50 personer i konferensrum → 100\"-duk. 500 personer på festival → LED-trailer 15 m² eller större." },
-          { n: "3", rubrik: "Vill du ha hjälp?", text: "Vi installerar, kabeldragar och kalibrerar bilden. Tekniker tillgänglig under hela eventet om du vill. För LED-vägg och mobil trailer ingår alltid montering." },
+          { n: "3", rubrik: "Vill du ha hjälp?", text: "Vi installerar, kabeldragar och kalibrerar bilden. Tekniker tillgänglig under hela eventet om du vill. LED-vägg och mobil trailer monteras alltid av våra tekniker — montering tillkommer." },
         ].map(s => (
           <div class="bg-brand-dark border border-white/10 rounded-2xl p-6">
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mb-4" style="background:#c4b5f4">{s.n}</div>
@@ -114,7 +114,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
       <h2 class="text-2xl text-white mb-4" style="font-family:'DM Serif Display',serif;">Vad ingår alltid?</h2>
       <div class="text-gray-400 text-sm leading-relaxed space-y-3">
         <p>Alla projektorer och skärmar levereras med HDMI-kabel, fjärrkontroll och nödvändiga adaptrar. Du behöver inte ta med någonting extra.</p>
-        <p>För LED-vägg och mobil LED-trailer ingår alltid montering, kalibrering och tekniker på plats.</p>
+        <p>LED-vägg och mobil LED-trailer monteras och kalibreras alltid av våra tekniker. Montering ingår inte i dygnspriset utan tillkommer och räknas fram i kassan.</p>
         <p class="font-medium text-gray-300">Alla priser gäller per dygn (22 timmar). Hämtning från kl 13:00, återlämning senast kl 11:00 nästa dag. Transport tillkommer.</p>
       </div>
       <div class="flex flex-wrap gap-4 mt-6">
