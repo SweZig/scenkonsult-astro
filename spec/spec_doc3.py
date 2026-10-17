@@ -3,7 +3,7 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v18.4",
+    version="v18.5",
     date="2026-10-17",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
@@ -213,9 +213,9 @@ DOC3 = dict(
         ("p", "19 kort och 37 galleribilder (38 WebP-filer i `public/images/event/`; en bild visas bara "
               "på ljushubben). Grid 2 / 3 / 4 kolumner, kort i `aspect-ratio:3/4` med `object-cover`."),
         ("ul", [
-            "**Taggar:** Festival (4) · Företagsevent (9) · Konferens (4) · Installation (1) · **Aktivering** (1, ny 2026-10-15)",
-            "**Bilder per kort:** 7 kort med en bild, 8 crossfade-par, 3 med tre bilder och 2 med fyra (Dok 1 §4.7). Fyra bilder: EA Sports FC 27 och Systembolaget. Tre: Mr French, Hard Rock Rising och 100 Knivar.",
-            "**Nya sedan v17:** Mr French (Skeppsbron, DJ och ljud, tre bilder, 2026-10-17), EA Sports FC 27 (IKEA Gallerian), Storytel, Systembolaget, Jazz & Blues Konserthuset, Emberlin (Stureplan), 100 Knivar (Odenplan). Hard Rock Rising fick tre bilder, Galleri Existens samarbetet med PerPR.",
+            "**Taggar:** Festival · Företagsevent · Konferens · Installation · Aktivering (ny 2026-10-15). Antal per tagg och bilder per kort räknas inte upp här — de ändras med varje nytt case; se /referenser/ eller `event-cases.json` (Dok 2 §12).",
+            "**Bilder per kort:** 1–4 ur `images[]`; två eller fler ger crossfade (Dok 1 §4.7). Nya case levereras som porträtt 1050×1400 WebP.",
+            "**Senaste tillskotten (2026-10-17):** Swedish Taste (Västermalm, DJ, två bilder) och Mr French (Skeppsbron, DJ och ljud, tre bilder). Swedish Taste visas bara på /referenser/, inte på DJ-hubben.",
             "**Samarbetspartner skrivs som de själva skriver sig:** Jung Co (inte \"Jung\" eller \"Jung & Co\"), Studio S19, PerPR.",
             "**Leverera bara det vi levererat.** Systembolagets text nämnde en projektorduk som inte var vår — borttagen 2026-10-09. Samma noggrannhet gäller hubbraderna: DJ-hubben visar sedan 2026-10-17 bara uppdrag med DJ — Mr French, Skridskodisco och Djursholms Slott (uppgift från Scenkonsult); Systembolaget och sedan Läkarförbundet lämnade raden.",
         ]),
@@ -287,6 +287,8 @@ DOC3 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.5", "2026-10-17",
+             "§5 referenscase Swedish Taste (Västermalm, DJ). Taggräkning och bildräkning per kort borttagna — inventarier skrivs inte för hand."],
             ["v18.4", "2026-10-17",
              "§5 nytt referenscase Mr French (Skeppsbron, DJ och ljud). §6 DJ-hubbens rad: Mr French ersätter Läkarförbundet."],
             ["v18.3", "2026-10-17",
