@@ -295,9 +295,43 @@ catalog['Egen rad'] = {'products': [
 ]}
 
 # ── Spara quote-catalog.json ──────────────────────────────────────────────────
+# Väljaren i admin (och den publika Excel-katalogen) ska bara visa det som går
+# att hyra. Utgångna produkter (active:false) tas bort ur filen som skrivs här —
+# men `catalog` behåller dem, eftersom order-catalog-flat.json nedan byggs ur den
+# och gamla ordrar måste kunna slå upp sina rader, och sortimentskontrollen
+# räknar på den fullständiga listan. (2026-10-17: tolv utgångna låg i väljaren.)
+def _inaktiva(data):
+    ut = set()
+    if isinstance(data, dict):
+        if data.get('active') is False:
+            for k in ('artno', 'slug'):
+                v = (data.get(k) or '').strip()
+                if v: ut.add(v)
+        for v in data.values(): ut |= _inaktiva(v)
+    elif isinstance(data, list):
+        for v in data: ut |= _inaktiva(v)
+    return ut
+
+INAKTIVA = set()
+for _d in (scenes, ljud, ljus, dj, bild, karaoke, el, frakt):
+    INAKTIVA |= _inaktiva(_d)
+
+def _aktiv(p):
+    if not isinstance(p, dict): return True
+    a = (p.get('artno') or '').strip()
+    # Artikelnumret avgör när det finns; sluggen bara för rader utan artno.
+    return (a not in INAKTIVA) if a else ((p.get('slug') or '') not in INAKTIVA)
+
+picker = {}
+for _cn, _d in catalog.items():
+    _ny = dict(_d)
+    if 'products' in _d: _ny['products'] = [p for p in _d['products'] if _aktiv(p)]
+    if 'sub' in _d: _ny['sub'] = {k: [p for p in v if _aktiv(p)] for k, v in _d['sub'].items()}
+    picker[_cn] = _ny
+
 out_path = os.path.join(BASE, 'src/data/quote-catalog.json')
 with open(out_path, 'w', encoding='utf-8') as f:
-    json.dump(catalog, f, ensure_ascii=False, indent=2)
+    json.dump(picker, f, ensure_ascii=False, indent=2)
 
 # ── Bygg flat order-catalog ───────────────────────────────────────────────────
 order_catalog = {}

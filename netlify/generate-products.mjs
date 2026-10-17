@@ -233,7 +233,10 @@ if (bild.dukar?.length) {
 
 const PRODUKTER_OCH_PRISER = sects.join('\n');
 
-// ── QUOTE_CATALOG (för admin-panelens produktväljare) ─────────────────────────
+// ── QUOTE_CATALOG ─────────────────────────────────────────────────────────────
+// OBS (2026-10-17): exporten importeras inte av någon fil. Admins produktväljare
+// läser src/data/quote-catalog.json från generate-quote-catalog.py — ändra där.
+// Behålls tills vidare för räkneraden i byggloggen.
 // Struktur: Scen | Scentillbehör | Ljud | Ljudtillbehör | Ljus | Ljustillbehör | DJ | Bild | Tjänster
 function qp(p) {
   return { id: p.artno || p.slug || p.id || '', artno: p.artno||'', name: p.name, price: p.price || 0 };
