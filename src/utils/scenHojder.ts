@@ -2,13 +2,12 @@
 //
 // Källa: scenes.json → modules[].heights. Konfiguratorn, paketkorten,
 // ytjämförelsen och scensidan läser härifrån i stället för att skriva in
-// "endast 40 cm" var för sig — när 1×1-podierna fick 20 cm-ben 2026-10-17
-// stod regeln på sju ställen.
+// "endast 40 cm" var för sig — regeln stod tidigare på sju ställen.
 //
-//   HOJDER['1x1-halkfri']          → [20, 40]
-//   hojdText([20, 40])             → "20 eller 40 cm"
+//   HOJDER['1x1-halkfri']          → [40]
+//   HOJDER['1x2-halkfri']          → [20, 40, 60]
 //   hojdText([20, 40, 60], 'och')  → "20, 40 och 60 cm"
-//   saknasText('1x1-halkfri')      → "1×1 m-podier finns i 20 och 40 cm. 60 cm finns för 1×2 m-podier"
+//   saknasText('1x1-halkfri')      → "1×1 m-podier finns i 40 cm. 20 och 60 cm finns för 1×2 m-podier"
 import scenData from '../data/scenes.json';
 
 type Modul = { size?: string; surface?: string; heights?: number[] };

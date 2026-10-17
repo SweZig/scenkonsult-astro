@@ -9972,7 +9972,7 @@ function adminScenConfigUpdate() {
   const btn = document.getElementById('scen-cfg-add-btn');
 
   const cfg = window.__ADMIN_SCEN_CONFIG__ || {};
-  // Benhöjder per yta ur scenes.json → modules[].heights (1×1: 20/40, 1×2: 20/40/60).
+  // Benhöjder per yta ur scenes.json → modules[].heights (1×1: 40, 1×2: 20/40/60).
   // Höjder som ytan saknar inaktiveras; ett ogiltigt val faller till 40 cm.
   const hSel = document.getElementById('scen-cfg-h');
   const ytaMod = (cfg.modules || []).find(m => m.active !== false && _scenSurfaceKey(m) === surface);

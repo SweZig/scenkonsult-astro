@@ -39,7 +39,7 @@ function _surfaceKey(m) {
 const INJ_MOD_BY_KEY = Object.fromEntries(
   _modules.map(m => [_surfaceKey(m), { artno: m.artno, name: m.name, price: m.price, heights: HOJDER[_surfaceKey(m)] || [] }])
 );
-// Förklaring per yta när den saknar höjder som andra ytor har (1×1 → 60 cm).
+// Förklaring per yta när den saknar höjder som andra ytor har (1×1 saknar 20 och 60 cm).
 const INJ_HOJD_HINT = Object.fromEntries(Object.keys(HOJDER).map(k => [k, saknasText(k)]));
 
 // Trappor 40/60 cm — slå upp via artno
@@ -598,8 +598,8 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       return lines;
     }
 
-    // Benhöjder per yta ur scenes.json → modules[].heights (1×1 → 20/40 cm sedan
-    // 2026-10-17, 1×2 → 20/40/60 cm). Skyddsräcken monteras ej på 1×1-podier.
+    // Benhöjder per yta ur scenes.json → modules[].heights (1×1 → 40 cm,
+    // 1×2 → 20/40/60 cm). Skyddsräcken monteras ej på 1×1-podier.
     const is1x1 = (s) => s === '1x1-halkfri';
     const ytaHojder = (s) => (INJ_MOD_BY_KEY[s] || {}).heights || [];
     const hojdOk = (s, h) => { const hs = ytaHojder(s); return !hs.length || hs.includes(h); };
@@ -710,7 +710,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
       }
       card.querySelectorAll('[data-height]').forEach(b => {
         const h = parseInt(b.dataset.height);
-        // Höjder som vald yta saknar inaktiveras (1×1 har inte 60 cm).
+        // Höjder som vald yta saknar inaktiveras (1×1 finns bara i 40 cm).
         const disabled = !hojdOk(surface, h);
         b.disabled = disabled;
         b.classList.toggle('paket-pill-disabled', disabled);

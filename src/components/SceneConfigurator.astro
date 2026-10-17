@@ -45,7 +45,7 @@ function _surfaceKey(m) {
 const INJ_MODULE_BY_KEY = Object.fromEntries(
   modules.map(m => [_surfaceKey(m), { artno: m.artno, name: m.name, price: m.price, heights: HOJDER[_surfaceKey(m)] || [] }])
 );
-// Förklaring per yta när den saknar höjder som andra ytor har (1×1 → 60 cm).
+// Förklaring per yta när den saknar höjder som andra ytor har (1×1 saknar 20 och 60 cm).
 const INJ_HOJD_HINT = Object.fromEntries(Object.keys(HOJDER).map(k => [k, saknasText(k)]));
 
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
@@ -762,7 +762,7 @@ const configData = {
       }
 
       // Höjd-regler: varje yta har sina benhöjder i scenes.json → modules[].heights
-      // (1×1 → 20/40 cm sedan 2026-10-17, 1×2 → 20/40/60 cm). Höjder som ytan
+      // (1×1 → 40 cm, 1×2 → 20/40/60 cm). Höjder som ytan
       // saknar inaktiveras; vald höjd som inte finns faller tillbaka till 40 cm,
       // annars till ytans högsta.
       const is1x1 = state.moduleType === '1x1-halkfri';
