@@ -3,7 +3,7 @@ DOC4 = dict(
     slug="Kommunikation",
     title="Kommunikation",
     subtitle="E-post (Resend/SES), DNS & DMARC, SMS (46elks), Sven-chatbot",
-    version="v18.5",
+    version="v19.0",
     date="2026-10-18",
     blocks=[
         ("h1", "1. E-postsystem (Resend)"),
@@ -217,6 +217,14 @@ DOC4 = dict(
                  "kunden uppgett namn + minst en kontaktväg (e-post eller telefon). Obligatoriskt block "
                  "i systemprompten."),
 
+        ("note", "**Fråga Sven-knappar (2026-10-18):** sidorna har egna knappar med `data-sven-oppna` (slutrutan, "
+                 "FAQ, guidernas sidokolumn, startsidan) som klickar på `#sven-toggle`. Varje komponent "
+                 "kopplar knapparna med skyddet `data-sven-kopplad` så att en knapp aldrig får två lyssnare "
+                 "när flera komponenter finns på samma sida. Knapparna finns även på desktop."),
+        ("note", "**Inga svarstidslöften på sajten (2026-10-18).** \"2 tim svarstid\", \"inom en arbetsdag\", "
+                 "\"normalt/oftast samma dag\" och \"senast nästa vardag\" är borttagna ur alla sidor; texten "
+                 "säger \"så snart vi kan\". Lagstadgade frister (GDPR-begäran inom 30 dagar) står kvar."),
+
         ("h2", "4.3 Svens karaktär"),
         ("p", "Ville bli artist, jobbar nu som intendent bakom scenen. Hjälpsam och kunnig med en "
               "bitter underton som slipper igenom ibland. Torr humor, aldrig på kundens bekostnad."),
@@ -224,6 +232,8 @@ DOC4 = dict(
         ("h1", "5. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.0", "2026-10-18",
+             "§4.2 Fråga Sven-knappar med data-sven-oppna och skyddet mot dubbla lyssnare. Inga svarstidslöften på sajten."],
             ["v18.5", "2026-10-18",
              "§1.4 omskriven: kundläge klar korg/förslag i stället för Boka detta nu (fanns inte i koden). Kvittot lovar ingen svarstid. "
              "Kunddata escapas i alla mail (_lib.escapeHtml); sleep(600) även i fakturautskicken; honeypot phone2 i kontakt/feedback. "

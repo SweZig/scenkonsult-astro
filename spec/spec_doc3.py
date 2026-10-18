@@ -3,7 +3,7 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v18.6",
+    version="v19.0",
     date="2026-10-18",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
@@ -40,6 +40,13 @@ DOC3 = dict(
         ("note", "**Sidlistan nedan är en inventarielista och blir inaktuell inom en månad.** Den bör "
                  "genereras ur `src/pages/` i stället för att handskrivas — se Dok 6 §9.2. "
                  "Läs den som en karta över strukturen, inte som facit på vilka filer som finns."),
+
+        ("note", "**Omdesignen 2026-10-18:** samtliga publika sidor har startsidans formspråk (Dok 1 "
+                 "§2.5). Varukorg, order och signering är bara delvis berörda — kundflödet ändrades inte. "
+                 "URL:er, titlar, metabeskrivningar och h1 är oförändrade utom startsidans h1 (§9) och "
+                 "guideöversikten (\"eventteknik\"); kontrollerat med en jämförelse av hela bygget före "
+                 "och efter (Dok 6 §6.3). Sidorna består av 85 `.astro`-filer (CategoryHero m.fl. "
+                 "raderade) som bygger 111 sidor."),
 
         ("h2", "2.1 Tjänster"),
         ("table", [
@@ -100,8 +107,16 @@ DOC3 = dict(
               "(`active: false`) filtreras bort i mallen och renderas aldrig."),
 
         ("h2", "2.3 För ditt event"),
-        ("p", "Hub `/for/` + Bröllop, Företagsfest & kickoff, Konferens & föreläsning, "
-              "Festival & utomhus, Studentflak."),
+        ("p", "Hub `/for/` (fotokort per tillfälle, guider, faktarad, slutruta) + Bröllop, Företagsfest "
+              "& kickoff, Konferens & föreläsning, Festival & utomhus, Studentflak."),
+        ("p", "**Mall sedan 2026-10-18** (komponenter i `src/components/event/`): ModernHero med foto → "
+              "EventOmraden (områden som radkort) → EventPaket (tre nivåer ur `utils/paket.ts`, "
+              "\"Lägg paketet i varukorgen\") → EventChecklista → ProduktRader → referensrad → "
+              "EventFaq → SlutRuta. Studentflak har två paket (med och utan elverk SK-EL-0012) och "
+              "TreSteg-tips."),
+        ("note", "**Scenpaket läggs aldrig i varukorgen som en paketrad.** Scenen byggs av moduler, ben "
+                 "och trappor i scenkonfiguratorn; i EventPaket och ProduktRader leder scenraden dit "
+                 "(\"Scenen väljs i scenkonfiguratorn\" / pil-knapp) i stället för en köpknapp."),
 
         ("h2", "2.4 Guider"),
         ("p", "Guide-hub `/for/guider/` + ~24 guider (hur-stor-pa, hur-stor-scen, dj-eller-liveband, "
@@ -111,6 +126,13 @@ DOC3 = dict(
               "rokvatska-guide, sdi-hdmi-fiber-guide, ljud-brollop, ljud-foretagsfest, ljus-brollop, "
               "dj-brollop-pris, konferens-av-checklista, studentflak-checklista, "
               "led-vagg-kalkylator [301-redirect])."),
+        ("p", "**GuideLayout (2026-10-18):** alla guider och de två långguiderna (eventlokaler, "
+              "minnesvärda fester) använder `GuideLayout`: rubrikyta utan gradient, textspalt och en fast "
+              "sidokolumn med innehållsförteckning byggd ur guidens h2:or, Fråga Sven-ruta och länk till "
+              "rätt sortiment, sedan slutrutan. Inga inbyggda CTA-rutor eller egna "
+              "innehållsförteckningar i guiderna. Snabbsvar, tabellhuvuden, FAQ och relaterade guider "
+              "har klasser (`gl-snabb`, `gl-th`, `gl-sum`, `gl-chip`) i stället för inline-stil. "
+              "Guideöversikten har kategorihopp och kort utan emojis och lästid."),
         ("p", "**Titlar 2026-10-02:** sex guidetitlar hade \"2025\" och bytte till 2026. "
               "`hyra-pa-system` heter nu \"Hyra Högtalare & PA-system Stockholm — Priser 2026\" med H1 "
               "\"… priser per gästantal\" (samma URL). Prisguidens etikett säger \"Prisguide 2026\"."),
@@ -132,7 +154,8 @@ DOC3 = dict(
               "**`/en/`**."),
         ("ul", [
             "**`/en/` (NY 2026-10-02)** — engelsk landningssida för internationella företag, ambassader och organisationer samt utländska eventbyråer. Tjänster med \"från\"-priser ur datan, referenskunder ur `clients.json`, FAQ med `FAQPage`-schema (`inLanguage: en`). Detaljlänkar går till de svenska produktsidorna. Formuläret postar till `skicka-kontakt` med `typ: Företag`, `sendCopy: false` (kundkvittot finns bara på svenska) och meddelandet märkt **\"[ENGLISH ENQUIRY — svara på engelska]\"**. Tack visas på sidan. `lang=\"en\"` + hreflang (Dok 1 §4.8).",
-            "**/kontakt/** — kartan (Google Maps) laddas automatiskt för besökare som godkänt cookies, annars vid klick på \"Visa karta\" (Dok 1 §9.1). Öppet/stängt-pillen räknas ur `site.json → company.openingHours` (byggs server-side som `data-periods`), inte längre ur Google Places API. **Sedan 2026-10-11** märks helgtiderna som depåtider för hämtning och återlämning, och telefonen på helger som jour vid pågående uthyrning Samma budskap på bokningssida, order, studentflak-FAQ, ortssidor och /en/ — **hårdkodat i varje sida**, inte läst ur `site.json` (Dok 1 §8).",
+            "**/kontakt/** — kartan (Google Maps) laddas automatiskt för besökare som godkänt cookies, annars vid klick på \"Visa karta\" (Dok 1 §9.1). Öppet/stängt-pillen räknas ur `site.json → company.openingHours` (byggs server-side som `data-periods`), inte längre ur Google Places API. **Sedan 2026-10-11** märks helgtiderna som depåtider för hämtning och återlämning, och telefonen på helger som jour vid pågående uthyrning Samma budskap på bokningssida, order, studentflak-FAQ, ortssidor och /en/; klockslagen hämtas sedan 2026-10-17 via `src/utils/hours.ts` (Dok 1 §8).",
+            "**Informationssidorna (2026-10-18)** — om oss, kontakt, referenser, FAQ, hyresvillkor (3), personuppgiftspolicy, Svens kunskapsskola, feedback, tack och bokningssidan har `SidHuvud` som rubrikyta; villkor och policy använder `.sk-prosa`. Våra tjänster och För ditt event har fotokort med riktiga länkar (tjänstekorten var tidigare onclick-divar som Google inte följer). /tack/ är `noindex`.",
             "**Eventlokal-guiden** — faktagranskad 2026-10-02 (3Arena, Spegelsalen 70–300, Münchenbryggeriet 10–3 500, Annexet, Cirkus m.fl.). Antalet år sedan 1986 räknas fram.",
         ]),
 
@@ -170,13 +193,19 @@ DOC3 = dict(
                  "/admin/referenser/ visas under \"Kunder vi levererat till i [ort]\". Stockholm "
                  "medvetet utelämnad (kannibaliserar startsidans huvudterm). Scen-produktkortet använder "
                  "`DynamicPaketCard`."),
+        ("p", "**Mall sedan 2026-10-18:** ModernHero med ortens foto (`orter.json → image`, mått ur "
+              "`utils/bildmatt.ts`) → fyra fotokort för utbudet → ortstext med eventlokaler → "
+              "populärt som ProduktRader (Scenpaket Medium och Large leder till konfiguratorn, Event "
+              "Small med köpknapp — den slogs upp på ett id som inte fanns och visades aldrig före "
+              "2026-10-18) → varför oss (hårfint rutnät) → lokala kunder + logotyper → EventFaq → "
+              "grannorter → SlutRuta. `mobilBar` är på. Inga svarstidslöften, inget inskrivet "
+              "teknikerpris."),
 
         ("h1", "3. Nav-offset per sida"),
-        ("p", "Sidor utan `CategoryHero`/`ModernHero` måste sätta nav-offset manuellt (Dok 1 §4.2): "
-              "`style=\"padding-top:calc(var(--nav-offset,166px) + 2.5rem)\"`. "
-              "Har nav-offset manuellt: bokningssida, vara-tjanster/index, kontakt, om-oss, feedback, "
-              "hyresvillkor (+ privatperson/foretag), personuppgiftpolicy, FAQ, eventlokal-guide, "
-              "festguide, guider. Klarar sig utan (egen hero): for/index, for/guider/index, frontpage."),
+        ("p", "Sedan 2026-10-18 har nästan alla sidor en rubrikkomponent som sätter nav-offset själv: "
+              "`ModernHero` (hubbar, produkt-, konfigurator-, event- och ortssidor), `SidHuvud` "
+              "(informationssidor) och `GuideLayout` (guider). Manuell nav-offset (Dok 1 §4.2) finns kvar "
+              "på varukorg, order, sign, tack och guideöversikten."),
 
         ("h1", "4. Referenssida"),
         ("note", "Korrekt sökväg är `/referenser/` (svensk stavning), inte `/referencer/`."),
@@ -236,8 +265,9 @@ DOC3 = dict(
                  "samma lista som korten. Nya recensioner läggs in för hand i /admin/recensioner/."),
 
         ("h1", "5. Bokningsflöde (kund)"),
-        ("p", "\"Begär offert\" → `/bokningssida/`. Produkter läggs i varukorg → skickas via "
-              "\"Maila offertförfrågan\" (`intent=offert`) eller \"Boka detta nu\" (`intent=boka`). "
+        ("p", "\"Begär offert\" leder till varukorgen (`/bokningssida/` förklarar flödet). Produkter "
+              "läggs i varukorgen och skickas med **en** knapp, \"Begär offert\", där kunden anger "
+              "kundläge: *Jag är klar* eller *Jag vill ha förslag* (Dok 4 §1.4). "
               "Ingen betaltjänst (avsiktligt). Varukorgen visar \"Montering & demontering "
               "(beräknad)\" (Dok 2 §5.1) och ber kunden beskriva underlaget när en scen ligger i "
               "korgen. Engelsktalande kunder använder formuläret på `/en/`. Detaljer om order/admin "
@@ -247,7 +277,7 @@ DOC3 = dict(
         ("p", "Två återanvändbara sektioner på kategorihubbarna, båda ur databasen (Dok 2 §12) och "
               "underhållna i admin:"),
         ("ul", [
-            "**Topplistan** — `<PopularaPaket data={…} kategori=\"…\" category=\"…\" />`. Grupper efter tillfälle och gästantal (H3 = tillfället, gästantalet som etikett). En **rad per produkt**: rang 01–03, miniatyr, namn, pris med momsklasserna och köpknapp. Inga stora bilder, inga speclistor. Product/Offer-markeringen ligger kvar som dolda `meta`-taggar, så rich results påverkas inte. Sektionen är `max-w-5xl`. Rubriken heter **\"Topplista <Kategori>\"** överallt (`content_categories.popular_heading`).",
+            "**Topplistan** — `<PopularaPaket data={…} kategori=\"…\" category=\"…\" />`. Grupper efter tillfälle och gästantal (H3 = tillfället, gästantalet som etikett). En **rad per produkt**: rang 01–03, miniatyr, namn, pris med momsklasserna och köpknapp. Inga stora bilder, inga speclistor. Product/Offer-markeringen ligger kvar som dolda `meta`-taggar, så rich results påverkas inte. Sektionen är `max-w-5xl`. Rubriken heter **\"Våra mest bokade paket\"** sedan 2026-10-18 (`content_categories.popular_heading`); grupperna visas som flikar (WAI-ARIA tabs) i stället för under varandra.",
             "**Länk per rad (2026-10-17):** namn och miniatyr länkar till `<sida>#<artno med gemener>`, t.ex. `/vara-tjanster/hyra-ljus/fardiga-paket/#sk-ljs-pak-0022`. Artikelnumret är produktens ID. Produktkorten bär `data-sk-ankare` med sina artikelnummer — variantkort listar alla och varje variantknapp har `data-sk-ankare-val` — och skriptet `skAnkare` sist i `Layout.astro` väljer rätt variant, scrollar till kortet under navigationen och markerar det. Inga `id`-attribut, eftersom samma produkt kan synas på flera kort på en sida. Vilken sida en serie säljs på står i `src/lib/produkt-sidor.mjs` (via `src/utils/produktLank.ts`); en serie utan rad får ingen länk, aldrig fel länk; `ljud-ljus.test` kontrollerar att varje topplistad produkt har en sida som finns. Ny kortkomponent → ge den `data-sk-ankare`.",
             "**Referensraden** — `<EventBilder kategori=\"…\" />`, rubrik \"Från våra event\". Tre kort med hubbens egen bild och text för uppdraget (4:3), länk till /referenser/.",
         ]),
@@ -272,12 +302,16 @@ DOC3 = dict(
                  "deploy gått. Motsatsen är farlig: nytt innehåll i fallback-filen före databasen "
                  "försvinner vid nästa deploy (Dok 2 §12.3)."),
 
+        ("p", "**Hubbarnas övriga delar (2026-10-18):** ModernHero med eventfoto, KategoriKort (fotokort "
+              "per underkategori, Dok 2 §12.7), LjudLjusPromo/TrossPromoBanner som fotobanners, "
+              "LeveransMonteringEl som hårfint rutnät, \"Vad ingår alltid\"-rutor med pill-knappar."),
+
         ("h1", "7. SEO- och AI-filer (NY 2026-10-02)"),
         ("table", [
             ["Fil / källa", "Innehåll och regel"],
             ["public/robots.txt", "Alla får läsa sajten; /admin/, /order/, /api/, /.netlify/ och wp-sökvägarna är spärrade. AI-agenterna (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot, Claude-User, PerplexityBot, Perplexity-User, Google-Extended, GoogleOther, Applebot-Extended, CCBot, Meta-ExternalAgent, Amazonbot, DuckAssistBot) står i **en** gemensam grupp med samma Disallow — en namngiven grupp ersätter `*`-gruppen för den boten"],
             ["public/llms.txt", "**Genereras** av `scripts/generate-llms.mjs` i prebuild/predev ur datafilerna (Dok 2 §2.1). Redigeras aldrig för hand"],
-            ["sitemap-index.xml", "@astrojs/sitemap"],
+            ["sitemap-index.xml", "@astrojs/sitemap. Filtret i `astro.config.mjs` utesluter /admin/, /order/, /sign/, /tack/ och sedan 2026-10-18 den omdirigerade /for/guider/led-vagg-kalkylator/"],
             ["JSON-LD LocalBusiness", "`Layout.astro`: name Scenkonsult Norden, legalName Sigvardsson Consulting AB, taxID, vatID, openingHoursSpecification (mån–fre + lör–sön), `sameAs` + `hasMap` = Google-profilens cid-URL, Facebook, Instagram, LinkedIn. Ingen AggregateRating (self-serving, borttaget 2026-06-15)"],
             ["hreflang", "`/` ↔ `/en/` + x-default (Dok 1 §4.8)"],
         ]),
@@ -286,9 +320,25 @@ DOC3 = dict(
               "llms.txt och JSON-LD. Rapporten skrivs till projektet som "
               "`claude/AI_Synlighet_Test_<datum>.md`. Baslinje: 2026-10-02."),
 
+        ("h1", "9. Startsidan (omgjord 2026-10-18)"),
+        ("p", "h1 **\"Hyra scen, ljud, ljus & bild i Stockholm\"** — sökorden ska stå i rubriken; en tidigare "
+              "variant (\"Scen, ljud, ljus & bild — klart till ert event.\") tappade \"hyra\" och "
+              "\"Stockholm\" och rättades samma dag. Sektioner: hero med fyra växlande eventfoton, "
+              "faktarad, åtta kategorikort (hela kortet klickbart, snabbval under), topplistan \"Våra "
+              "mest bokade paket\" med flikar per tillfälle (popular.json), referensrad (`hub.start`), "
+              "omdömen, Så funkar det, film och slutruta med Fråga Sven. `mobilBar` på. Kategorikortens "
+              "bilder: Ljus = German Beer Hall, Karaoke = `plugg_karaoke_sang` (beskuren så att "
+              "låttexten på skärmen inte syns)."),
+
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.0", "2026-10-18",
+             "Omdesignen av alla publika sidor: §2 not om jämförelsen före/efter, §2.3 eventmallen och regeln "
+             "att scenpaket inte läggs som paketrad, §2.4 GuideLayout, §2.5 informationssidorna och SidHuvud, "
+             "§2.7 ortsmallen, §3 rubrikkomponenterna sköter nav-offset, §5 en knapp och kundläge, §6 "
+             "rubriken \"Våra mest bokade paket\" med flikar och hubbarnas övriga delar, §7 sitemap-filtret, "
+             "ny §9 Startsidan."],
             ["v18.6", "2026-10-18",
              "§1.1 Kunskap ligger i toppmenyn. §4 100+ referenskunder. YouTube-filmer på startsidan och Svens Kunskapsskola laddas först vid klick."],
             ["v18.5", "2026-10-17",

@@ -3,7 +3,7 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v18.4",
+    version="v19.0",
     date="2026-10-18",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
@@ -147,6 +147,10 @@ DOC5 = dict(
             "**Ljud & ljus (2026-10-17):** kategorin har egna grupper; `/admin/topplistor/` visar därför \"Lägg till grupp\" i stället för arvsnotisen. Admins scenkonfigurator (offertens \"Lägg till rader\") har 20 cm och inaktiverar höjder som vald yta saknar.",
             "**Tester (2026-10-17):** `test/admin-innehall.test.cjs` kör varje action i båda endpoints mot en mockad PostgREST — 29 kontroller, bl.a. 401, ursprung per rad i `set-items`, taket 24 och att 409 i `set-images` inte raderar något. Ingår i `npm test`; testet fångar 500-felet som `set-items` hade.",
         ]),
+        ("note", "**En sparad ändring som inte syns är oftast ett uppslag, inte admin** (2026-10-18). En grupp "
+                 "med Line Array (`ljud.live.lineArray`) sparades korrekt men raden föll bort på sajten, "
+                 "eftersom topplistan bara läste seriens `products`. Kontrollera `popular.json` efter "
+                 "bygget innan admin felsöks (Dok 2 §12.4)."),
         ("note", "**Databasen först, push sedan** — gäller allt innehåll som har en committad fallback. "
                  "Se Dok 2 §12.3. Rader som Claude författar levereras som SQL som körs i Supabase SQL "
                  "editor, eftersom molnsessionen varken har service-nyckeln eller `ADMIN_TOKEN`."),
@@ -279,6 +283,14 @@ DOC5 = dict(
                  "PAT:en ur `.secrets/gh-pat.txt`, radera klonen. Den lokala arbetskopian rörs inte. "
                  "**Bundlarna blir kvar i `Claude outputs/`** — VM:en får inte radera i den monterade "
                  "mappen utan beviljad rättighet. Se Dok 1 §1.3."),
+        ("p", "**Recept för push från molnet (2026-10-18), steg för steg:** "
+              "`git bundle create /mnt/user-data/outputs/X.bundle <förra main>..<gren>` → kopiera till "
+              "`Claude outputs\\X.bundle` → i VM:en: `git clone -q --filter=blob:none <repo> $HOME/sk-push`, "
+              "kontrollera att `git rev-parse origin/main` är den förväntade, "
+              "`git fetch -q \"$R/Claude outputs/X.bundle\" <gren>:batch`, "
+              "`TOK=\"$(tr -d '\\r\\n' < \"$R/.secrets/gh-pat.txt\")\"`, "
+              "`git push \"https://SweZig:${TOK}@github.com/SweZig/scenkonsult-astro.git\" batch:main 2>&1 | sed \"s/${TOK}/***/g\"`, "
+              "`unset TOK`, radera klonen. En bundle per batch; bundlen ska skapas **efter** sista commiten."),
         ("note", "**Rättat 2026-09-21 — den gamla miljötabellen gäller inte längre.** v15.1 slog fast "
                  "att molncontainern inte kan pusha (git-proxyn nekade på repo-nivå innan credentials "
                  "kom till tals) och att det inte gick att åtgärda i efterhand. Med ett fine-grained PAT "
@@ -331,6 +343,8 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.0", "2026-10-18",
+             "§3.5 not om sparad topplistrad som inte syns (uppslaget, inte admin). §6.2 pushreceptet från molnet steg för steg."],
             ["v18.4", "2026-10-18",
              "§2 bokningsflödet: kundläge klar korg/förslag, KLAR KORG i kanban. Säkerhet: kunden kan inte skicka egna rader "
              "(cart-update 403), customer_confirm kräver items_rev, tokenjämförelse i konstant tid, admin escapar kunddata, "

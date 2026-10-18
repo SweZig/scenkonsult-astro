@@ -3,8 +3,8 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v18.5",
-    date="2026-10-17",
+    version="v19.0",
+    date="2026-10-18",
     blocks=[
         ("h1", "1. Arbetssätt"),
         ("p", "Implementera → build-verifiera → safety check → commit → push → Netlify auto-deploy "
@@ -78,6 +78,35 @@ DOC6 = dict(
             "**ChatGPT hämtar betyg och företagskort från Google-profilen** — den syns direkt i svaren. Utfall 2026-10-02: Scenkonsult först på \"ljud, ljus och scen till 100 personer\" men utanför topp 5 på \"hyra högtalare\".",
             "**Mät upprepbart:** samma fasta frågor varje månad (schemalagt uppdrag, Dok 3 §7). Enskilda AI-svar varierar; trenden är det som säger något.",
         ]),
+        ("h2", "6.3 Omdesign utan att tappa i sök (NY 2026-10-18)"),
+        ("ul", [
+            "**Jämför hela bygget före och efter.** Bygg commiten före omdesignen i en worktree, bygg nuläget och jämför per sida: title, metabeskrivning, canonical, robots, hreflang, JSON-LD, mikrodata, h1, interna länkar och ordmängd. Kör jämförelsen efter varje sidtyp. Den fångade tre saker som ögat missade.",
+            "**h1 är innehåll, inte design.** Startsidans nya rubrik \"Scen, ljud, ljus & bild — klart till ert event.\" tappade \"hyra\" och \"Stockholm\". Sökorden ska stå i h1; säljfrasen kan stå i ingressen.",
+            "**Kompakta listor tappar produktdata.** När stora produktkort blev rader försvann Product/Offer-mikrodatan. `ErbjudandeMeta` lägger tillbaka den dolt — en ny listform ska alltid kontrolleras mot mikrodatan.",
+            "**Klickbara divar är inte länkar.** Tjänstekorten navigerade med `onclick` — Google följer inte det. Gör rubriken eller bilden till en riktig `<a>`, och använd `data-helkort` för att hela kortet ska vara klickbart.",
+            "**Rensa sitemap från omdirigeringar och tacksidor.** En 301-sida i sitemap ger brus i Search Console; tacksidan ska vara `noindex`.",
+        ]),
+        ("h2", "6.4 Extern synlighet 2026-10-18 (NY)"),
+        ("p", "Kontroll med webbsök (inte Google — placeringar är ungefärliga) samma dag som omdesignen "
+              "gick live:"),
+        ("table", [
+            ["Sökfras", "scenkonsult.se", "Kommentar"],
+            ["hyra ljud / PA-system stockholm", "~2–3", "/hyra-ljud/ — stark"],
+            ["hyra dj-utrustning stockholm", "~2–3", "/hyra-dj-utrustning/ och /hyra-dj/"],
+            ["hyra led-vägg stockholm", "3–6", "fyra URL:er; konferensteknik.se först"],
+            ["teknik bröllop stockholm", "~3", "/for/brollop/"],
+            ["hyra ljus stockholm", "~3", "det är /hyra-ljud-och-ljus/ som syns, inte /hyra-ljus/"],
+            ["hyra scen stockholm", "~6", "startsidan syns, inte /hyra-scen/"],
+            ["hyra scen solna", "~4", "ortssidan"],
+            ["hyra högtalare stockholm (fest)", "syns ej", "konkurrenter med egna högtalarsidor"],
+            ["hyra karaoke stockholm", "syns ej", "sidan finns med rätt titel — ny och svag"],
+            ["hyra ljud nacka", "syns ej", "ortssidan finns"],
+            ["stage rental stockholm", "syns ej", "/en/ är en enda landningssida"],
+        ]),
+        ("p", "robots.txt släpper in alla AI-crawlers och llms.txt är aktuell. Externa omnämnanden är "
+              "få: allabolag anger branschen \"företagsutveckling\", Eniro/Hitta-poster syntes inte. "
+              "Åtgärder i §9.4."),
+
         ("h2", "6.2 Cookies — lärdomar (NY 2026-10-02)"),
         ("ul", [
             "**Inget val = inget samtycke.** Besökaren behöver inte tvingas välja; det avgörande är att inget spårande laddas före Godkänn. En cookievägg vore sämre.",
@@ -170,6 +199,18 @@ DOC6 = dict(
             "**Påstå bara det som är dokumenterat.** DJ-hubbens referensrad har ett case där DJ står i underlaget; de två andra beskrivs som festevent med ljud och ljus. Samma princip som när projektorduken togs ur Systembolagets text.",
         ]),
 
+        ("h2", "7.8 Lärdomar från omdesignen (NY 2026-10-18)"),
+        ("ul", [
+            "**Skisser först, en sidtyp i taget.** Startsida → hubb/produkt → För ditt event → guider → ortssidor, med godkännande per skiss. Mallen för en sidtyp byggdes en gång och rullades ut med ett skript; resterna hittades med en visuell genomgång av alla sidor.",
+            "**Konvertera med balanserade taggar, inte med radnummer.** En insättning beräknad före en tidigare insättning skar sönder EventBilders frontmatter. Ett litet hjälpverktyg som hittar elementets slut genom att räkna öppnande/stängande taggar räckte för 24 guider med två herovarianter.",
+            "**Ett överlägg på en länk täcker bara sin närmaste positionerade förfader.** Kategorikortens `::after` satt i en absolut positionerad textruta (med `overflow:hidden`) — bara texten var klickbar. Ett delegerat klickskript (`data-helkort`) är enklare och klarar knappar inuti.",
+            "**`define:vars`-skript skrivs ut en gång per komponentinstans.** DynamicPaketCard upprepade 35 kB elva gånger på scensidan. Skriv det vid första instansen (`Astro.locals`) och initiera vid `DOMContentLoaded`.",
+            "**En sparad admin-ändring som inte syns kan vara ett uppslag som tappar data tyst.** Topplistan läste bara `products` och missade `live.lineArray`.",
+            "**Inline-TypeScript i ett `is:inline`-skript går inte.** `as`-uttryck i ett skript som inte bundlas gav \"Unexpected identifier\" — skriv vanlig JS där.",
+            "**Kontaktskyddet gäller även nya knappar.** En `tel:`-länk i en ny herokomponent hade brutit regeln; använd `data-tel`.",
+            "**Playwright: den senast registrerade `route` vinner.** En generell mock registrerad efter en specifik dolde den specifika.",
+        ]),
+
         ("h1", "8. Verktyg & felsökning"),
         ("ul", [
             "**health-endpoint:** `GET /.netlify/functions/health` — öppen, läcker aldrig nyckelvärden. Rapporterar env-vars satta, Supabase-reachability, carts_query (namnger saknad kolumn). Första anhalten när admin strular.",
@@ -191,6 +232,8 @@ DOC6 = dict(
             "**HTML-diff som kvitto på en flytt:** bygg en baslinje ur en ren klon, gör ändringen, bygg igen och jämför med whitespace normaliserat (`tr '\\n' ' ' | tr -s ' ' | sed 's/> *</>\\n</g'`). Noll rader = ren flytt. Ett CSS-bundle-hash i `<link>` är väntad brus.",
             "**Testa att ett test kan falla:** lägg in ett känt fel (t.ex. ett utgånget artno), kör testet, ta bort felet. Ett test som aldrig setts rött kan vara tomt.",
             "**Validera SQL utan databas:** `pip install pglast` → `pglast.parse_sql(sql)`.",
+            "**SEO-jämförelse före/efter (2026-10-18):** `git worktree add <dir> <commit>`, symlänka `node_modules`, bygg; jämför sedan dist-katalogerna per sida med BeautifulSoup (title, desc, canonical, robots, hreflang, JSON-LD, mikrodata-typer, h1, interna länkar). Se §6.3.",
+            "**Funktionstest i molnet:** Playwright mot `dist` via en minimal http-server: lägg i varukorgen från paketkort, scenkonfigurator, LED-paket och -konfigurator, karaoke- och ljud & ljus-byggarna, skicka offert (mocka `skicka-offert`), konsolfel och horisontell scroll på alla sidor i 1440 och 390 px. Statisk kontroll av interna länkar, ankare (även `#sk-…`) och resurser i dist.",
         ]),
 
         ("h1", "9. Roadmap"),
@@ -205,6 +248,9 @@ DOC6 = dict(
 
         ("h2", "9.2 Teknisk skuld & härdning"),
         ("ul", [
+            "**Global inline-JS på varje sida (NY 2026-10-18).** `Layout.astro` lägger ~100 kB inline-skript på varje sida (montering.cjs ~32 kB, Svens register ~26 kB, produktmodalen, frakt.cjs). Som externa, cachade filer slipper återkommande besökare ladda dem igen. Kräver försiktig test av varukorg och konfiguratorer.",
+            "**Titlar längre än ~60 tecken (NY 2026-10-18).** Ett trettiotal titlar kapas i sökresultaten, oftast suffixet \"| Scenkonsult\". Sökorden står först, så effekten är liten; korta vid nästa titelgenomgång utan att byta sökord.",
+            "**/sign/ har fem h1** (en per tillstånd). Sidan är noindex; låg prioritet.",
             "**Göra GitHub-repot privat (parkerat 2026-10-02).** Inga hemligheter har läckt (gitleaks) och pre-commit-kontrollen skyddar framåt. Före bytet: koppla repot till Claude-sessionernas källor (annars faller molnklon och push), kontrollera Netlify-appens åtkomst och att `GITHUB_TOKEN` gäller just repot. Ta bort `public/manualer/README.md` från sajten (länkar till GitHub).",
             "**Generera inventarielistorna ur repot (NY 2026-09-21).** Komponentlistan (Dok 1 §5.1), sidlistan (Dok 3 §2) och ortslistan blir fel inom en månad när de handskrivs. Ett litet skript som läser `src/components/`, `src/pages/` och `orter.json` och skriver tabellerna vore billigare än att korrigera dem i varje genomgång.",
             "**Flytta de fem äldre armatur-manualerna in i repots `manual_generator.py` (NY 2026-09-21).** `EFF-0004`, `DMX-0001`, `ROK-0006`, `EFF-0007`, `EFF-0008` finns bara i projektdokumentets kopia av generatorn.",
@@ -247,7 +293,11 @@ DOC6 = dict(
             "**DJ-hubbens referensrad — LÖST 2026-10-17.** Djursholms Slott och Läkarförbundet var uppdrag med DJ och ersatte Systembolaget. Fler eventbilder finns hos Scenkonsult — lägg in fler case när de är utvalda. (Ursprunglig notering: bara Skridskodisco har DJ dokumenterat. Systembolaget och Läkarförbundet är festevent med ljud och ljus. Byt i /admin/referenscase/ när fler DJ-uppdrag finns med foto.)",
             "**Topplistans rader länkar ingenstans — LÖST 2026-10-17** med artikelnumret som ankare (Dok 3 §6). (Ursprunglig notering: Skissen hade \"länk till paketen\". Bildprodukterna har inga egna sidor, och alla-sidan har bara ankarna `#led-trailer`, `#projektorduk`, `#tillbehor`. Ett valfritt länkfält per grupp i `popular_groups` löser det.)",
             "**Kategorin `ljud-och-ljus` — LÖST 2026-10-17:** tre egna grupper, visas på kombinationssidan. (Ursprunglig notering: finns i databasen (ärver ljud + ljus via `source_categories`) men kombinationssidan anropar inte komponenterna. Arvet ger 24 produkter — för långt för en kombinationssida. Behöver egna korta grupper om sektionen ska in.)",
-            "**Ljud & ljus steg 2 (planerat 2026-10-26):** startsidans titel och en länk från startsidan till /hyra-ljud-och-ljus/, efter GSC-koll av konfiguratorsidan.",
+            "**Ljud & ljus steg 2 (planerat 2026-10-26):** startsidans titel och en länk från startsidan till /hyra-ljud-och-ljus/, efter GSC-koll av konfiguratorsidan. *Länken finns sedan 2026-10-18* (kategorikortet Ljud & ljus); titeln återstår.",
+            "**Synlighet utanför sajten (NY 2026-10-18):** kontrollera Google Business-profilen, gör anspråk på Eniro och Hitta, ändra branschen på allabolag från företagsutveckling till uthyrning, be hc-star och plavendo om en följbar länk (§6.4).",
+            "**Sökord där sajten inte syns (NY 2026-10-18):** \"hyra högtalare stockholm\" (/hyra-ljud/ har termen i titel och h1 — följ i GSC innan en egen sida övervägs), \"hyra karaoke stockholm\" (sidan är ny), \"hyra ljus stockholm\" (/hyra-ljud-och-ljus/ syns före /hyra-ljus/), \"hyra scen stockholm\" (startsidan före /hyra-scen/), engelska frågor (/en/).",
+            "**Eventsidornas referensrad (NY 2026-10-18):** komponenten finns på bröllop, företagsfest, festival och studentflak men visar inget förrän det finns rader i /admin/referenscase/ för kategorin (konferens har rader).",
+            "**Varukorg, order och signering** fick inte den fulla omdesignen 2026-10-18 — kundflödet testas. Gör en skiss när flödet är klart.",
             "**Google Ads:** lägg till annonsgrupper (Phrase Match), radera gamla svaga keywords. Importera GA4 conversion events när de börjar landa.",
         ]),
         ("note", "**Avfört 2026-09-21:** `public/images/ljud/pp_ljud_tillbehor_DI-palmer.webp` låg "
@@ -256,6 +306,10 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.0", "2026-10-18",
+             "Omdesignen av alla publika sidor. Nya §6.3 omdesign utan att tappa i sök, §6.4 extern synlighet, §7.8 lärdomar "
+             "från omdesignen. §8 SEO-jämförelse och funktionstest i molnet. §9.2 global inline-JS, långa titlar, /sign/. "
+             "§9.4 synlighet utanför sajten, sökord som saknas, eventsidornas referensrad, varukorg/order/sign, steg 2 delvis klart."],
             ["v18.5", "2026-10-17",
              "§9.4 avförda: DJ Alex-foto (inte aktuellt), kundlogotyper (godkända som de är), bildtillbehörens produktbilder (fanns redan — alla 27 har bild). Festivalsidan visar nu Scenpaket Medium."],
             ["v18.4", "2026-10-17",
@@ -300,12 +354,12 @@ DOC6 = dict(
         ("h1", "11. Dokumentstruktur"),
         ("table", [
             ["Dok", "Innehåll", "Version"],
-            ["Dok 1", "Grund & Design", "v18.3 (2026-10-17)"],
-            ["Dok 2", "Produkter & Data", "v18.3 (2026-10-17)"],
-            ["Dok 3", "Sidor & Navigation", "v18.5 (2026-10-17)"],
-            ["Dok 4", "Kommunikation", "v18.4 (2026-10-17)"],
-            ["Dok 5", "Order, Admin & Infra", "v18.3 (2026-10-17)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v18.5 (2026-10-17)"],
+            ["Dok 1", "Grund & Design", "v19.0 (2026-10-18)"],
+            ["Dok 2", "Produkter & Data", "v19.0 (2026-10-18)"],
+            ["Dok 3", "Sidor & Navigation", "v19.0 (2026-10-18)"],
+            ["Dok 4", "Kommunikation", "v19.0 (2026-10-18)"],
+            ["Dok 5", "Order, Admin & Infra", "v19.0 (2026-10-18)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v19.0 (2026-10-18)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "

@@ -3,7 +3,7 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v18.4",
+    version="v19.0",
     date="2026-10-18",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
@@ -437,7 +437,10 @@ DOC2 = dict(
               "har **två former**: ljud.json och ljus.json har nästlade serier (`event`, `live`, "
               "`music` … med varsin `products`-array); bild.json (`products`, `tillbehor`, `dukar`), "
               "scenes.json (`products`, `tillbehor`, `pipeDrape`, `modules`) och dj.json (`packages`, "
-              "`equipment`) har sina listor direkt på toppnivån. Uppslaget samlar båda formerna. Före "
+              "`equipment`) har sina listor direkt på toppnivån. Uppslaget samlar båda formerna. **En serie kan "
+              "ha flera listor** — `ljud.live` har både `products` och `lineArray` — och sedan 2026-10-18 "
+              "tar uppslaget (PopularaPaket och startsidans topplista) med alla listor i serien. Före dess "
+              "föll Line Array (SK-LJD-MUS-0009) tyst bort ur en grupp som admin hade sparat. Före "
               "2026-10-17 läste komponenten bara den nästlade formen och hittade **noll** "
               "bildprodukter — utan varning. Utgångna produkter (`active: false`) hoppas över, så en "
               "pensionerad artikel försvinner tyst ur listan; testet i §12.5 fångar det."),
@@ -449,6 +452,24 @@ DOC2 = dict(
               "varje hubbkategori finns i `popular.json`. Kontrollerna ligger i den filen — och inte i "
               "en egen — för att inte röra `package.json`."),
 
+        ("h2", "12.6 Kategorin start och konferens (NY 2026-10-18)"),
+        ("p", "Startsidans topplista och referensrad läses ur kurateringslagret: `popular.json` har "
+              "grupper för `ljud`, `ljus`, `ljud-och-ljus` (par), `bild` och `konferens`; "
+              "`event-cases.json → hub.start` ger startsidans referensrad. Eventsidorna läser "
+              "`hub.brollop`, `hub.foretagsfest`, `hub.konferens`, `hub.festival` och "
+              "`hub.studentflak` — de visas först när det finns rader i /admin/referenscase/ för "
+              "kategorin. Migration: `supabase/migrations/2026-10-18_startsida_kurering.sql`."),
+        ("note", "**Topplistans artiklar måste ha en produktsida** (`src/lib/produkt-sidor.mjs`) — testet "
+                 "kräver att varje rad kan länka till sitt kort. Mikrofoner utan egen sida föll därför "
+                 "ur konferensgruppen 2026-10-18."),
+
+        ("h2", "12.7 Kortdata för hubbarnas kategorikort (NY 2026-10-18)"),
+        ("p", "`categories` i ljud.json, ljus.json och bild.json har tre fält för `KategoriKort`: "
+              "`kortbild` (eventfoto, eller produkt på lavendel i `public/images/tjanster/plugg_*` där "
+              "foto saknas), `kortNamn` (kort namn på kortet) och `serie` (vilken serie från-pris och "
+              "gästspann räknas ur). Valfritt `kortbildW` och `kortbildPos`. Från-priset räknas, skrivs "
+              "aldrig in."),
+
         ("h1", "13. Redaktionellt undantag"),
         ("p", "`varfor-numark-denon-rane.astro` behåller **avsiktligt** redaktionellt innehåll "
               "(beskrivning/bra_for/spec) i `const guideContent` — guidens röst ≠ produktdata, markerat "
@@ -457,6 +478,9 @@ DOC2 = dict(
         ("h1", "14. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.0", "2026-10-18",
+             "§12.4 en serie kan ha flera listor (live.lineArray) — uppslaget tar alla. Ny §12.6 kategorin start "
+             "och eventsidornas hubbrader, ny migration. Ny §12.7 kortbild/kortNamn/serie för KategoriKort."],
             ["v18.4", "2026-10-18",
              "§5 undantaget för LED-vägg på trossystem (fast paketpris med leverans och montering inräknade). "
              "Från-priser på eventsidornas paket (utils/paket.ts) är den verkliga summan, inte avrundad nedåt. "

@@ -3,7 +3,7 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v18.4",
+    version="v19.0",
     date="2026-10-18",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
@@ -112,6 +112,26 @@ DOC1 = dict(
             "**Kortborder:** `hover:border-brand-orange/40` eller `/50`",
         ]),
 
+        ("h2", "2.5 Design 2026 — gemensamma klasser (NY 2026-10-18)"),
+        ("p", "Hela sajten fick startsidans formspråk 2026-10-18: stora DM Serif-rubriker med en kursiv "
+              "lavendeldel, pill-knappar, hårfina rutnät i stället för fyllda kort, fotokort med mörk "
+              "toning och en lavendel slutruta. Reglerna sitter i `global.css` under rubriken "
+              "**DESIGN 2026** och i ett fåtal delade komponenter (§5.1)."),
+        ("table", [
+            ["Klass / mönster", "Användning"],
+            ["`sk-eyebrow`", "Liten versal etikett i lavendel ovanför en rubrik"],
+            ["`sk-h2` / `sk-h2s`", "Sektionsrubrik (stor) / mindre sektionsrubrik — DM Serif, vikt 400"],
+            ["`sk-knapp` / `sk-knapp sk-knapp-p`", "Pill-knapp med kontur / fylld lavendel. Fyllda `a.bg-brand-orange` och konturknappar får pill-form globalt"],
+            ["`sk-band`", "Sektion med något ljusare botten (#110f30) och hårlinjer över och under"],
+            ["`sk-prosa`", "Textsidor (villkor, policy): textspalt 780 px, h2 i DM Serif, sektioner åtskilda av hårlinje"],
+            ["`details.bg-brand-navy`", "FAQ som lista med hårlinjer, inte rutor — gäller alla FAQ:er"],
+            ["`[data-helkort]`", "Hela kortet klickbart (§4.10)"],
+            ["Hårfint rutnät", "`gap:1px` på en behållare med `background: rgba(255,255,255,0.08)` och `border-radius:18px`; cellerna har sidans bakgrund. Används för faktarader, varför-oss och leverans/montering"],
+            ["Radier", "Fotokort 20–22 px, rutor 18–22 px, knappar och chips 999 px (pill)"],
+        ]),
+        ("note", "**Inga emojis som ikoner** i den nya designen. Rubrikens kursiva del skrivs som "
+                 "`<em>` (färgas lavendel av komponenterna) — texten i h1 ändras inte av designen."),
+
         ("h1", "3. Bildkonventioner"),
         ("h2", "3.1 Filnamn"),
         ("table", [
@@ -130,8 +150,8 @@ DOC1 = dict(
                  "`object-contain` återkallades — `object-cover` står fast.)"),
         ("table", [
             ["Komponent", "CSS", "Beslut"],
-            ["ProductCard.astro", "object-contain + aspect-ratio:1024/853 + bg-brand-dark",
-             "Sedan 2026-03-30 — fixar svart kant på produktbilder med vit bakgrund"],
+            ["ProductCard.astro", "object-contain + aspect-ratio:1024/853 på **vit platta** (`.sk-pkort-bild`)",
+             "Sedan 2026-03-30 object-contain; sedan 2026-10-18 vit platta i stället för bg-brand-dark, så att vita produktbilder ser avsiktliga ut. Gäller även `.bg-brand-dark[style*=\"aspect-ratio:1024/853\"]` globalt"],
             ["ElTillbehorCard.astro", "object-cover + aspect-ratio:1024/853 + bg-brand-dark",
              "Behållet 2026-04-05, återbekräftat 2026-07-25"],
             ["PaketVariantCard.astro", "object-contain + galleri (§5.1)",
@@ -197,19 +217,22 @@ DOC1 = dict(
         ]),
 
         ("h2", "4.2 Padding-top för fast navbar"),
-        ("p", "Alla sidor **utan** `CategoryHero` eller `ModernHero` måste sätta nav-offset på yttersta "
+        ("p", "Alla sidor **utan** rubrikkomponent måste sätta nav-offset på yttersta "
               "containern: `style=\"padding-top:calc(var(--nav-offset,166px) + 2.5rem)\"`. "
-              "Sidor med hero-komponent hanteras automatiskt."),
+              "`ModernHero`, `SidHuvud` och `GuideLayout` hanterar det själva (mobil: `calc(132px + 0.75rem)`)."),
 
         ("h2", "4.3 Hero (frontpage)"),
-        ("p", "2-kolumn 50/50, höjd `clamp(480px, 64vh, 700px)`. Vänster: text + checks. "
-              "Höger: `scen3_hero.webp`, `object-fit:cover`. "
-              "`padding-top: calc(var(--nav-offset,166px) + 1rem)`."),
+        ("p", "Omgjord 2026-10-18. Text till vänster: eyebrow, h1 **\"Hyra scen, ljud, ljus & bild i "
+              "*Stockholm*\"** (sökorden ska stå kvar i h1), ingress som börjar \"Klart till ert event.\", "
+              "två knappar och betygsrad. Till höger ett eventfoto som växlar mellan fyra bilder "
+              "(första laddas direkt, övriga ur `data-src`). Under heron: faktarad, åtta kategorikort med "
+              "snabbval, topplistan \"Våra mest bokade paket\", referensrad, omdömen, Så funkar det, film "
+              "(YouTubeKlick med poster) och slutruta. Klasser med prefix `st-` i `index.astro`."),
 
         ("h2", "4.4 Manifesto-bar"),
-        ("p", "Lavendel border ovan/under (`2px solid rgba(196,181,244,0.25)`). "
-              "Stats: 1986 / 100+ / 20–2000 / 100 %. Inga CTA-knappar. "
-              "**INGEN** `inline style=\"background:…\"` — styrs enbart via `.manifesto`."),
+        ("p", "**Borttagen från startsidan 2026-10-18** — ersatt av faktaraden under heron. Klassen "
+              "`.manifesto` finns kvar i `global.css`; regeln om att inte sätta inline-bakgrund gäller "
+              "om den återanvänds."),
 
         ("h2", "4.5 Moms-toggle (global)"),
         ("ul", [
@@ -255,6 +278,23 @@ DOC1 = dict(
               "Används av `/` (pekar på `/en/`) och `/en/` (pekar på `/`). Nav och sidfot är svenska "
               "även på `/en/`."),
 
+        ("h2", "4.9 Mobilens bottenlist (NY 2026-10-18)"),
+        ("p", "`Layout` har propen `mobilBar`. På mobil visas då en fast list längst ned: Ring "
+              "(avkodat `data-tel`), momsväljaren och Varukorg med antal. `body` får klassen "
+              "`har-mobilbar` så att Sven och innehållet hamnar ovanför. Används på startsidan och "
+              "ortssidorna. Skriptet är `is:inline` och vanlig JS."),
+
+        ("h2", "4.10 Hela kortet klickbart (NY 2026-10-18)"),
+        ("p", "Kort som ska leda vidare oavsett var man klickar får attributet `data-helkort`. Ett "
+              "skript i `Layout.astro` (bredvid `skAnkare`) går till kortets första länk "
+              "(`a[data-helkort-lank]` om den finns, annars första `a[href]`). Klick på egna länkar, "
+              "knappar och fält inuti gör sitt eget — köpknappen lägger i varukorgen utan att lämna "
+              "sidan. Ctrl/Cmd-klick öppnar ny flik. Används på startsidans kategorikort och topplista, "
+              "KategoriKort, PopularaPaket, ProduktRader och tjänstekorten."),
+        ("note", "**Använd inte `::after`-överlägg på länken** för att göra ett kort klickbart när "
+                 "texten sitter i en absolut positionerad ruta — överlägget täcker då bara rutan. Det "
+                 "var felet före 2026-10-18."),
+
         ("h1", "5. Produktkort — standardlayout"),
         ("code", '<article class="bg-brand-navy border border-white/10 hover:border-brand-orange/40\n'
                  '  rounded-2xl overflow-hidden transition-all group flex flex-col">\n'
@@ -269,42 +309,43 @@ DOC1 = dict(
                  '</article>'),
         ("note", "**ProductCard-props:** skicka alltid `bulky={p.bulky}` och "
                  "`forceLeverans={p.forceLeverans}`. Se Dok 2 §5 för fraktflaggor."),
+        ("p", "**Design 2026:** `ProductCard` har klasserna `sk-pkort`, `sk-pkort-bild` (vit platta), "
+              "`sk-pkort-namn` (DM Serif) och `sk-pkort-gaster` (\"pers.\" visas som \"gäster\"). "
+              "Kompakta listor (`ProduktRader`) bär samma Product/Offer-mikrodata via `ErbjudandeMeta` "
+              "— en ny produktlista utan mikrodata tappar data som Google läser."),
 
-        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-10-17 — 30 filer)"),
+        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-10-18 — 41 filer)"),
         ("table", [
             ["Komponent", "Status / roll"],
-            ["Price.astro", "Aktiv"],
-            ["CartButton.astro", "Aktiv"],
-            ["ProductCard.astro", "Aktiv (object-contain, §3.2)"],
-            ["ElTillbehorCard.astro", "Aktiv (object-cover, §3.2)"],
-            ["PaketVariantCard.astro",
-             "Aktiv — **NY 2026-09-20.** MediaCards bildgalleri (pilar, dots, autoplay-video) kombinerat "
-             "med MixerModelCards variantväljare. Används för färdiga ljuspaket där flera varianter delar kort."],
-            ["DynamicPaketCard.astro", "Aktiv — konfigurerbart scenkort (yta/höjd/trappor/kjol, live-pris, beräknad montering)"],
-            ["ScenkjolCard.astro", "Aktiv — **NY 2026-09-28.** Ett kort för alla scenkjolar med höjd- och modellval (rak 4 m / veckad 2 m; 20 cm endast rak). Ersätter separata kjolkort på hyra-scen och tillbehörssidan"],
-            ["MonteringEngine.astro", "Aktiv — **NY 2026-09-28.** Laddar `src/lib/montering.cjs` inline i `Layout.astro` → `window.skMontering`. Samma motor som serverfunktionerna (Dok 2 §5.1)"],
-            ["FraktEngine.astro", "Aktiv — **NY 2026-10-09.** Laddar `src/lib/frakt.cjs` → `window.skFrakt`, efter MonteringEngine i Layout och admin. Enda fraktmotorn (Dok 2 §5)"],
-            ["KaraokeBuilder.astro", "Aktiv — **NY 2026-10-05.** Karaokesidans byggare: scen med bildlager, snabbval, guide, flikar (Dok 2 §10)"],
-            ["LjudLjusBuilder.astro", "Aktiv — **NY 2026-10-12.** Konfiguratorn på /hyra-ljud-och-ljus/. Delar bildlagerbiblioteket med karaokebyggaren; CSS kopierad med prefix `llb-` (Dok 2 §11)"],
-            ["LjudLjusPromo.astro", "Aktiv — **NY 2026-10-12.** Banner mot /hyra-ljud-och-ljus/ på ljud- och ljushubben"],
-            ["LeveransMonteringEl.astro", "Aktiv — **NY 2026-10-13.** Hubbarnas ruta Leverans, montering & el; belopp ur tjanster.json, montering.cjs och el.json"],
-            ["PopularaPaket.astro", "Aktiv — **NY 2026-10-13, omgjord 2026-10-17.** Hubbarnas topplista: grupper efter tillfälle, en rad per produkt med rang, miniatyr, namn, pris och köpknapp. Namn och miniatyr länkar till produktens kort (sedan 2026-10-17). Läser `popular.json` (Dok 2 §12, Dok 3 §6)"],
-            ["EventBilder.astro", "Aktiv — **NY 2026-10-13, datadriven 2026-10-17.** Hubbarnas referensrad \"Från våra event\". Läser `event-cases.json → hub[kategori]`"],
-            ["SceneConfigurator.astro", "Aktiv (scensidan)"],
-            ["YtaJamforelse.astro", "Aktiv (scensidan)"],
-            ["SceneLinkCard.astro", "Aktiv — kompakt scen-länkkort till scensidans konfigurator"],
-            ["CategoryHero.astro", "Aktiv — ortssidornas hjälte (badges + CTA)"],
-            ["ModernHero.astro", "Aktiv — de facto-standard-hero (~30 sidor)"],
-            ["SectionHeader.astro", "Aktiv"],
-            ["MediaCard.astro", "Aktiv — bild/video-galleri med lightbox"],
-            ["MixerModelCard.astro / MixerVariantCard.astro", "Aktiva (ljud-sidor)"],
-            ["ThrowCalculator.astro", "Aktiv (i ProductCard)"],
-            ["TrossPromoBanner.astro", "Aktiv"],
-            ["KunskapBlock.astro", "Aktiv"],
-            ["Tel.astro / Mail.astro", "Aktiva (kontaktskydd, §7)"],
-            ["InlineEditor.astro", "Aktiv (Alt+E / ?edit=1)"],
-            ["LjusTillbehor.astro · MomsToggle.astro", "Raderade — existerar inte"],
-            ["AccessoryGrid.astro · SmartImage.astro", "Har aldrig existerat i repot"],
+            ["ModernHero.astro", "Hero på hubb-, produkt-, konfigurator- och eventsidor (~30). Props `bild` (eventfoto till höger, 7/5-grid) och `knappar` sedan 2026-10-18"],
+            ["SidHuvud.astro", "**NY 2026-10-18.** Rubrikyta för text- och informationssidor: brödsmulor, eyebrow, h1 med kursiv del, ingress, knappar, slot. `mikrodata` ger BreadcrumbList för sidor som inte skickar breadcrumbs till Layout"],
+            ["GuideLayout.astro", "**NY 2026-10-18.** Mall för alla guider och de två långguiderna: rubrikyta, textspalt, fast sidokolumn (innehållsförteckning ur h2:or, Fråga Sven-ruta, länk till sortimentet), slutruta"],
+            ["KategoriKort.astro", "**NY 2026-10-18.** Hubbarnas fotokort per underkategori; läser `kortbild`, `kortNamn`, `serie` i datan och räknar från-pris och gästspann"],
+            ["TreSteg.astro", "**NY 2026-10-18.** Numrerade steg med slot för knappar"],
+            ["event/EventOmraden, EventPaket, EventChecklista, ProduktRader, EventFaq, SlutRuta, KundRad", "**NYA 2026-10-18.** Byggstenarna för För ditt event-sidorna; ProduktRader, EventFaq, SlutRuta och KundRad används även på ortssidor, konfiguratorsidor och informationssidor (Dok 3 §2)"],
+            ["ErbjudandeMeta.astro", "**NY 2026-10-18.** Dold Product/Offer-mikrodata för kompakta produktlistor (samma fält som ProductCard)"],
+            ["ProductCard.astro", "Produktkortet (§5, §3.2)"],
+            ["CartButton.astro", "Köpknapp (pill)"],
+            ["Price.astro", "Prisvisning med moms"],
+            ["ElTillbehorCard.astro", "object-cover (§3.2)"],
+            ["PaketVariantCard.astro", "Färdiga ljuspaket med varianter och galleri"],
+            ["DynamicPaketCard.astro", "Konfigurerbart scenkort. Skriptet (~35 kB) skrivs bara vid första kortet på sidan (`Astro.locals`) sedan 2026-10-18"],
+            ["ScenkjolCard.astro", "Scenkjolar med höjd- och modellval"],
+            ["SceneConfigurator.astro / YtaJamforelse.astro", "Scensidan"],
+            ["MonteringEngine.astro / FraktEngine.astro", "`window.skMontering` / `window.skFrakt` (Dok 2 §5)"],
+            ["KaraokeBuilder.astro / LjudLjusBuilder.astro", "Byggarna (Dok 2 §10–11)"],
+            ["LjudLjusPromo.astro / TrossPromoBanner.astro", "Banners"],
+            ["LeveransMonteringEl.astro", "Hubbarnas ruta Leverans, montering & el (hårfint rutnät)"],
+            ["PopularaPaket.astro", "Topplistan med flikar per grupp; tar alla produktlistor i en serie (även `live.lineArray`)"],
+            ["EventBilder.astro", "Referensraden \"Från våra event\""],
+            ["SectionHeader.astro", "Sektionsrubrik"],
+            ["MediaCard.astro / MixerModelCard.astro / MixerVariantCard.astro", "Galleri- och varianttyper"],
+            ["ThrowCalculator.astro", "I ProductCard"],
+            ["KunskapBlock.astro", "Guider och videoguider längst ned"],
+            ["YouTubeKlick.astro", "Film först vid klick; prop `poster`"],
+            ["Tel.astro / Mail.astro", "Kontaktskydd (§7)"],
+            ["InlineEditor.astro", "Alt+E / ?edit=1"],
+            ["CategoryHero.astro · SceneLinkCard.astro · layouts/ServiceLayout.astro", "**Raderade 2026-10-18** — oanvända efter omdesignen"],
         ]),
         ("note", "**Den här listan är en inventarielista och blir inaktuell.** Den bör genereras ur "
                  "`src/components/` i stället för att handskrivas — se Dok 6 §9.2. "
@@ -372,6 +413,12 @@ DOC1 = dict(
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.0", "2026-10-18",
+             "Omdesignen: ny §2.5 Design 2026 (gemensamma klasser), §3.2 produktbild på vit platta, §4.2 "
+             "rubrikkomponenterna sköter nav-offset, §4.3 ny startsida, §4.4 manifesto borttagen, ny §4.9 "
+             "mobilens bottenlist, ny §4.10 hela kortet klickbart, §5 ProductCard-klasser och "
+             "ErbjudandeMeta, §5.1 41 komponenter (SidHuvud, GuideLayout, KategoriKort, TreSteg, "
+             "event/*, ErbjudandeMeta; CategoryHero, SceneLinkCard och ServiceLayout raderade)."],
             ["v18.4", "2026-10-18",
              "§1 stacken: Astro 4 och Tailwind 3 (stod v4). §4.1 Kunskap ligger i toppmenyn. §4.4 manifesto 100+ event/år (stod 500+). "
              "Ny komponent YouTubeKlick (film laddas först vid klick) och src/utils/utanInterna.ts (interna _-fält rensas före klienten)."],
