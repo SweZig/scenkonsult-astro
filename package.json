@@ -20,7 +20,7 @@
     "generate-llms": "node scripts/generate-llms.mjs",
     "generate-catalogs": "node scripts/run-python.mjs generate-quote-catalog.py && node netlify/generate-products.mjs",
     "pretest": "npm run generate-catalogs",
-    "test": "node test/montering.test.mjs && node test/frakt.test.cjs && node test/montering-rader.test.cjs && node test/offert-aktuell.test.cjs && node test/day-pricing.test.mjs && node test/admin-days-flow.test.mjs && node test/offertmodal-days.test.mjs && node test/dom-rundtur.test.cjs && node test/kundvyer-e2e.test.cjs && node test/inga-satser-kundvant.test.cjs && node test/admin-transport.test.cjs && node test/admin-transport-ui.test.cjs && node test/produktregister.test.mjs && node test/ljud-ljus.test.mjs && node test/admin-innehall.test.cjs"
+    "test": "node --test --test-concurrency=1 test/*.test.*"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.2.0",
@@ -29,14 +29,13 @@
     "astro": "^4.16.0",
     "google-auth-library": "^9.15.1",
     "pdfkit": "^0.18.0",
-    "pdfmake": "^0.3.7",
     "qrcode": "^1.5.4",
     "tailwindcss": "^3.4.14",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "jsdom": "^25.0.0",
     "sharp": "^0.34.5",
-    "terser": "^5.36.0",
-    "jsdom": "^25.0.0"
+    "terser": "^5.36.0"
   }
 }
