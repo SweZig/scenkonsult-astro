@@ -42,6 +42,10 @@ exports.handler = async (event) => {
   RATE_LIMIT[ip].push(now);
 
   const { customer, cart, cart_id, selfPickup } = data;
+  // Kundläge från varukorgen: 'klar' = offert på exakt korgen, annars förslag.
+  // Inget är bindande i någotdera fallet — kunden godkänner offerten senare.
+  const klar = data.kundlage === 'klar';
+  const ORDER_INTENT = klar ? 'klar_korg' : 'quote';
 
   if (!customer?.name || !customer?.email || !customer?.phone)
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Namn, e-post och telefon krävs.' }) };
@@ -95,10 +99,10 @@ exports.handler = async (event) => {
         }
       }
       {
-        await db.upsert('carts', {
+        const rad = {
           id:               cartId,
           status:           'new',
-          order_intent:     'quote',
+          order_intent:     ORDER_INTENT,
           items:            cart || [],
           customer_name:    customer.name,
           customer_email:   customer.email,
@@ -116,8 +120,18 @@ exports.handler = async (event) => {
           total_excl:       totalExcl * 100,
           cart_token:       cartToken,
           expires_at:       new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-        });
-        await logAudit(db, cartId, 'customer', 'inquiry_received', {});
+        };
+        try {
+          await db.upsert('carts', rad);
+        } catch (e) {
+          // Tål en databas som (ännu) inte accepterar 'klar_korg' i order_intent:
+          // spara som vanlig förfrågan hellre än att tappa den.
+          if (ORDER_INTENT !== 'quote' && /order_intent|check constraint|invalid input value/i.test(e.message)) {
+            console.warn('OFFERT: order_intent klar_korg avvisades — sparar som quote:', e.message.slice(0, 160));
+            await db.upsert('carts', { ...rad, order_intent: 'quote' });
+          } else throw e;
+        }
+        await logAudit(db, cartId, 'customer', 'inquiry_received', { kundlage: klar ? 'klar' : 'forslag' });
         console.log('SUPABASE_SYNC_OK:', cartId);
       }
     } catch (e) {
@@ -148,8 +162,8 @@ exports.handler = async (event) => {
 
   // ── Internt mail (fullständig info för admin) ─────────────────
   const htmlInternal = htmlWrapper(`
-    <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Ny offertförfrågan</h2>
-    <p style="margin:0 0 20px;color:#888;font-size:13px;">Inkommen via scenkonsult.se</p>
+    <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">${klar ? '✅ Ny offertförfrågan — klar korg' : 'Ny offertförfrågan'}</h2>
+    <p style="margin:0 0 20px;color:#888;font-size:13px;">${klar ? 'Kunden är klar och vill ha offert på exakt det som ligger i korgen.' : 'Kunden vill ha förslag eller har frågor.'} Inkommen via scenkonsult.se</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
       <tr><td style="padding:7px 0;color:#666;font-size:13px;width:130px;border-bottom:1px solid #f0f0f5;">Namn</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${h.name}</td></tr>
       <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">E-post</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="mailto:${h.email}" style="color:#1e1850;">${h.email}</a></td></tr>
@@ -166,13 +180,13 @@ exports.handler = async (event) => {
     <p style="margin:12px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Hantera i adminpanelen →</a></p>
   `);
 
-  const plainInternal = `Ny offertförfrågan\n\nNamn: ${customer.name}\nE-post: ${customer.email}\nTelefon: ${customer.phone}\n${customer.company?'Företag: '+customer.company+'\n':''}Datum: ${datumStr}\nLeverans: ${deliveryInfo}\n${customer.notes?'Övrigt: '+customer.notes+'\n':''}\nÖnskad utrustning:\n${cartRows}\n\n---\nAdminpanel: https://scenkonsult.se/admin/`;
+  const plainInternal = `${klar ? 'Ny offertförfrågan — KLAR KORG (offert på exakt korgen)' : 'Ny offertförfrågan — vill ha förslag'}\n\nNamn: ${customer.name}\nE-post: ${customer.email}\nTelefon: ${customer.phone}\n${customer.company?'Företag: '+customer.company+'\n':''}Datum: ${datumStr}\nLeverans: ${deliveryInfo}\n${customer.notes?'Övrigt: '+customer.notes+'\n':''}\nÖnskad utrustning:\n${cartRows}\n\n---\nAdminpanel: https://scenkonsult.se/admin/`;
 
   // ── Kvittensmail till kunden (enkel bekräftelse, ingen produktlista) ──
   const htmlCustomer = htmlWrapper(`
     <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${h.name}!</h2>
-    <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi har tagit emot din offertförfrågan och återkommer till dig inom kort — vanligtvis inom en arbetsdag.</p>
-    <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Har du frågor i mellantiden? Ring oss på <a href="tel:0724481000" style="color:#1e1850;font-weight:600;">072-448 10 00</a> eller svara på detta mail.</p>
+    <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi har tagit emot din offertförfrågan och återkommer så snart vi kan. Offerten är kostnadsfri och inte bindande — du godkänner först när du fått den.</p>
+    <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Är det bråttom? Ring oss på <a href="tel:0724481000" style="color:#1e1850;font-weight:600;">072-448 10 00</a> eller svara på detta mail.</p>
     <div style="background:#f7f7fb;border-radius:8px;padding:16px 20px;margin-top:8px;">
       <p style="margin:0 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din förfrågan gäller</p>
       <p style="margin:0;color:#444;font-size:14px;">📅 ${datumStr !== '–' ? h.datum : 'Datum ej angivet'}</p>
@@ -180,14 +194,14 @@ exports.handler = async (event) => {
     </div>
   `);
 
-  const plainCustomer = `Tack, ${customer.name}!\n\nVi har tagit emot din offertförfrågan och återkommer inom kort.\n\nFrågor? Ring 072-448 10 00 eller svara på detta mail.\n\nDin förfrågan gäller: ${datumStr}\n\n---\nScenkonsult Norden | scenkonsult.se`;
+  const plainCustomer = `Tack, ${customer.name}!\n\nVi har tagit emot din offertförfrågan och återkommer så snart vi kan. Offerten är kostnadsfri och inte bindande — du godkänner först när du fått den.\n\nÄr det bråttom? Ring 072-448 10 00 eller svara på detta mail.\n\nDin förfrågan gäller: ${datumStr}\n\n---\nScenkonsult Norden | scenkonsult.se`;
 
   try {
     await sendEmail(apiKey, {
       from:     MAIL_FROM,
       to:       [TO_INTERNAL],
       reply_to: customer.email,
-      subject:  `Offertförfrågan från ${customer.name}`,
+      subject:  `${klar ? '✅ Klar korg — ' : ''}Offertförfrågan från ${customer.name}`,
       html:     htmlInternal,
       text:     plainInternal,
     });
@@ -197,7 +211,7 @@ exports.handler = async (event) => {
       await sendEmail(apiKey, {
         from:    MAIL_FROM,
         to:      [TRELLO_EMAIL],
-        subject: `Offertförfrågan: ${customer.name} — ${datumStr}`,
+        subject: `${klar ? 'Klar korg — ' : ''}Offertförfrågan: ${customer.name} — ${datumStr}`,
         html:    htmlInternal,
         text:    plainInternal,
       });
@@ -213,7 +227,7 @@ exports.handler = async (event) => {
       text:     plainCustomer,
     });
 
-    console.log('OFFERT_OK:', customer.name, cart.length, 'produkter');
+    console.log('OFFERT_OK:', customer.name, cart.length, 'produkter', ORDER_INTENT);
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   } catch (e) {
     console.error('OFFERT_ERROR:', e.message);

@@ -269,11 +269,28 @@ const volPricingJSON = JSON.stringify(volPricingMap);
       <span>Generösa avbokningsregler — se <a href="/hyresvillkor/" class="text-brand-orange hover:underline">hyresvillkoren</a> för detaljer.</span>
     </div>
 
+    <!-- KUNDLÄGE: klar korg eller vill ha förslag. Båda blir en offertförfrågan;
+         inget är bindande förrän kunden godkänt offerten. -->
+    <fieldset class="kundlage" id="kundlage">
+      <legend class="kundlage-rubrik">Hur långt har du kommit?</legend>
+      <label class="kundlage-val">
+        <input type="radio" name="kundlage" value="klar" class="sr-only" />
+        <span class="kundlage-prick" aria-hidden="true"></span>
+        <span class="kundlage-text"><strong>Jag är klar</strong><span>Skicka offert på exakt det som ligger i varukorgen.</span></span>
+      </label>
+      <label class="kundlage-val">
+        <input type="radio" name="kundlage" value="forslag" class="sr-only" />
+        <span class="kundlage-prick" aria-hidden="true"></span>
+        <span class="kundlage-text"><strong>Jag vill ha förslag</strong><span>Eller har frågor — skriv gärna vad du undrar över under Övrig information.</span></span>
+      </label>
+      <p class="kundlage-not hidden" id="kundlageNot"></p>
+    </fieldset>
+
     <!-- ACTIONS -->
     <div class="cart-actions">
       <button id="btnEmail" class="cart-btn primary" disabled>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
-        Maila offertförfrågan
+        Begär offert
       </button>
       <button id="btnSave" class="cart-btn secondary">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -281,6 +298,7 @@ const volPricingJSON = JSON.stringify(volPricingMap);
       </button>
       <button id="btnClear" class="cart-btn ghost">Töm varukorg</button>
     </div>
+    <p class="kundlage-trygg">Kostnadsfritt och inte bindande — du godkänner först när du fått vår offert.</p>
     <p class="villkor-hint hidden" id="villkorHint">Vänligen godkänn hyresvillkoren och fyll i namn, e-post och telefon för att fortsätta.</p>
 
   </div><!-- /cartContent -->
@@ -710,6 +728,22 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 }
 
 /* ─── HYRESVILLKOR ────────────────────────────────────────── */
+.kundlage { border:0; padding:0; margin:0 0 1.25rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+.kundlage-rubrik { grid-column:1 / -1; padding:0; margin-bottom:0.25rem; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem; color:white; }
+.kundlage-val {
+  display:flex; align-items:flex-start; gap:0.75rem; padding:1rem 1.1rem; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.1); border-radius:12px; transition:background 0.15s, border-color 0.2s;
+}
+.kundlage-val:hover { background:rgba(196,181,244,0.05); border-color:rgba(196,181,244,0.25); }
+.kundlage-val:has(input:checked) { background:rgba(196,181,244,0.08); border-color:#c4b5f4; }
+.kundlage-val:has(input:focus-visible) { outline:2px solid #c4b5f4; outline-offset:2px; }
+.kundlage-prick { width:18px; height:18px; flex-shrink:0; margin-top:2px; border-radius:999px; border:2px solid rgba(255,255,255,0.3); transition:all 0.15s; }
+.kundlage-val:has(input:checked) .kundlage-prick { border-color:#c4b5f4; box-shadow:inset 0 0 0 4px #0c0a24; background:#c4b5f4; }
+.kundlage-text { display:flex; flex-direction:column; gap:0.2rem; font-size:0.85rem; color:rgba(255,255,255,0.72); line-height:1.45; }
+.kundlage-text strong { font-family:'Space Grotesk',sans-serif; font-size:0.95rem; color:white; }
+.kundlage-not { grid-column:1 / -1; margin:0; font-size:0.82rem; color:rgba(255,255,255,0.72); }
+.kundlage-trygg { margin:-0.25rem 0 0.75rem; font-size:0.82rem; color:rgba(255,255,255,0.55); }
+@media (max-width: 640px) { .kundlage { grid-template-columns:1fr; } }
 .villkor-row {
   display:flex; align-items:center; gap:0.85rem;
   padding:1rem 1.2rem;
@@ -1232,8 +1266,50 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
     return s ? s + '.' : s;
   }
 
+  // ── KUNDLÄGE ──────────────────────────────────────────────
+  // Förval: "Jag är klar" när korgen har datum och inget som offereras separat,
+  // annars "Jag vill ha förslag". Kundens eget val skrivs aldrig över.
+  let kundlageValtAvKund = false;
+  function kundlageSkal() {
+    const skal = [];
+    const from = document.getElementById('f-date-from')?.value;
+    const to   = document.getElementById('f-date-to')?.value;
+    if (!from || !to) skal.push('datum saknas');
+    const man = monResult(getCart()).manuella || [];
+    if (man.length) {
+      const names = man.map(a => (getCart().find(i => (i.artno || i.id) === a) || {}).name || a);
+      skal.push(names.join(', ') + ' offereras separat');
+    }
+    return skal;
+  }
+  function updateKundlage() {
+    const radios = document.querySelectorAll('input[name="kundlage"]');
+    if (!radios.length) return;
+    const skal = kundlageSkal();
+    if (!kundlageValtAvKund) {
+      const val = skal.length ? 'forslag' : 'klar';
+      radios.forEach(r => { r.checked = r.value === val; });
+    }
+    const vald = document.querySelector('input[name="kundlage"]:checked')?.value;
+    const not = document.getElementById('kundlageNot');
+    if (not) {
+      const visa = vald === 'klar' && skal.length;
+      not.textContent = visa ? 'Obs: ' + skal.join(' · ') + ' — vi kompletterar offerten med det.' : '';
+      not.classList.toggle('hidden', !visa);
+    }
+  }
+  // 'click' och inte 'change': ett klick på det redan förvalda alternativet är också
+  // ett val, och change avfyras inte då.
+  document.querySelectorAll('input[name="kundlage"]').forEach(r => r.addEventListener('click', () => {
+    kundlageValtAvKund = true;
+    updateKundlage();
+    if (r.value === 'forslag' && r.checked) document.getElementById('f-notes')?.focus({ preventScroll: true });
+  }));
+  document.getElementById('f-date-to')?.addEventListener('change', updateKundlage);
+
   // ── VILLKOR + FORM VALIDATION ──────────────────────────────
   function checkCanProceed() {
+    updateKundlage();
     const villkorOk = document.getElementById('chkVillkor')?.checked;
     const nameOk    = document.getElementById('f-name')?.value.trim().length > 1;
     const emailOk   = document.getElementById('f-email')?.value.includes('@');
@@ -1265,6 +1341,7 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
 
   // ── RENDER ─────────────────────────────────────────────────
   function renderCart() {
+    queueMicrotask(updateKundlage);
     // Applicera volympriser baserat på current qty vid varje rendering
     let cart = applyVolumePricing(getCart());
     // Karaokerabatt: rabattraden räknas om ur raderna som karaokebyggaren lagt i
@@ -1549,7 +1626,8 @@ input[type="time"].field-input::-webkit-calendar-picker-indicator {
       const resp = await fetch('/.netlify/functions/skicka-offert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer, cart: submitItems, sendCopy: true, cart_id: getCartId(), selfPickup: !document.getElementById('chkLeverans')?.checked }),
+        body: JSON.stringify({ customer, cart: submitItems, sendCopy: true, cart_id: getCartId(), selfPickup: !document.getElementById('chkLeverans')?.checked,
+          kundlage: document.querySelector('input[name="kundlage"]:checked')?.value === 'klar' ? 'klar' : 'forslag' }),
       });
 
       const result = await resp.json();

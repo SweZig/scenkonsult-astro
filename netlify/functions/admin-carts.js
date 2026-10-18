@@ -82,12 +82,23 @@ exports.handler = async (event) => {
     // Nya kolumner som korten använder måste läggas till här (quote_reminder_log
     // saknades 2026-09-29 → "Påmind 1/2" stod kvar efter sista påminnelsen).
     // Hämta alla varukorgar — service key bypasser RLS, inga radfilter behövs
-    let q = `${supaUrl}/rest/v1/carts?select=id,status,items,customer_name,customer_company,customer_type,customer_orgnr,customer_ref,customer_invoice_address,invoice_email,use_invoice_email,wants_peppol,peppol_id,customer_email,customer_phone,event_date,return_date,delivery_time,return_time,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,invoice_due_date,bounce_status,bounce_at,bounce_reason,last_quote_message_id,pickup_signed_at,pickup_confirmed_at,admin_reminder_sent_at,admin_reminder_dismissed_until,quote_sent_at,quote_reminder_log,declined_at,decline_reason,decline_comment,source,sven_session_id,sven_forward_type,created_at,updated_at&id=not.like.SK-RESERVE-*&order=updated_at.desc`;
+    let q = `${supaUrl}/rest/v1/carts?select=id,status,items,customer_name,customer_company,customer_type,customer_orgnr,customer_ref,customer_invoice_address,invoice_email,use_invoice_email,wants_peppol,peppol_id,customer_email,customer_phone,event_date,return_date,delivery_time,return_time,event_location,total_excl,expires_at,confirmed_at,last_read_customer,last_read_admin,invoice_number,invoice_sent_at,invoice_paid_at,invoice_due_date,bounce_status,bounce_at,bounce_reason,last_quote_message_id,pickup_signed_at,pickup_confirmed_at,admin_reminder_sent_at,admin_reminder_dismissed_until,quote_sent_at,quote_reminder_log,declined_at,decline_reason,decline_comment,source,order_intent,sven_session_id,sven_forward_type,created_at,updated_at&id=not.like.SK-RESERVE-*&order=updated_at.desc`;
     if (status) q += `&status=eq.${status}`;
     if (from_date) q += `&event_date=gte.${from_date}`;
     if (to_date)   q += `&event_date=lte.${to_date}`;
 
-    const cartsRes = await fetchWithTimeout(q, { headers });
+    let cartsRes = await fetchWithTimeout(q, { headers });
+    // order_intent (klar korg) är valfri: saknas kolumnen i databasen hämtas
+    // listan utan den i stället för att hela kanban faller (Dok 6 §4.1b).
+    if (cartsRes.status === 400) {
+      const body = await cartsRes.text();
+      if (/order_intent/.test(body)) {
+        console.warn('ADMIN_CARTS: kolumnen order_intent saknas — hämtar utan');
+        cartsRes = await fetchWithTimeout(q.replace(',order_intent', ''), { headers });
+      } else {
+        throw new Error(`Supabase carts: HTTP 400 ${body.slice(0, 200)}`);
+      }
+    }
     if (!cartsRes.ok) throw new Error(`Supabase carts: HTTP ${cartsRes.status} ${(await cartsRes.text()).slice(0, 200)}`);
     const carts = await cartsRes.json();
 

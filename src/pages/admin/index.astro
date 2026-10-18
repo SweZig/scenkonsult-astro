@@ -2976,6 +2976,8 @@ function renderKanban() {
     let colCarts = filtered.filter(c => c.status === status);
     const sortCfg = COLUMN_SORTS[status];
     if (sortCfg) colCarts = sortColumn(status, colCarts);
+    // Klara korgar överst i Inkommen — de kan skickas som offert direkt.
+    if (status === 'new') colCarts = [...colCarts.filter(c => c.order_intent === 'klar_korg'), ...colCarts.filter(c => c.order_intent !== 'klar_korg')];
 
     const sortBtnsHtml = sortCfg
       ? `<div class="waiting-sort">${
@@ -3260,8 +3262,13 @@ function cartCardHTML(c) {
   const age = c.created_at ? Math.floor((Date.now() - new Date(c.created_at)) / 86400000) : null;
   const ageStr = age === 0 ? 'Idag' : age === 1 ? 'Igår' : age != null ? `${age} dagar sedan` : '';
   const showBadge = ['new','waiting'].includes(c.status);
+  // KLAR KORG = kunden valde "Jag är klar" i varukorgen (order_intent 'klar_korg'):
+  // offert på exakt korgen. Annars en vanlig förfrågan som kan behöva förslag.
+  const klarKorg = c.order_intent === 'klar_korg';
   const intentBadge = showBadge
-    ? `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`
+    ? (klarKorg
+        ? `<span title="Kunden är klar — vill ha offert på exakt korgen" style="background:#c4b5f4;color:#0c0a24;font-size:0.65rem;font-weight:700;padding:1px 6px;border-radius:4px">KLAR KORG</span>`
+        : `<span style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:0.65rem;font-weight:600;padding:1px 6px;border-radius:4px">OFFERT</span>`)
     : '';
 
   // Bounce-badge: röd vid bounced, orange vid complained (markerat som spam)
@@ -4366,6 +4373,10 @@ function renderInfoTab() {
     </div>
     <button class="btn-action" id="save-info-btn" style="margin-top:0.75rem;font-size:0.8rem">💾 Spara kunduppgifter</button>
 
+    ${c.status === 'new' && (c.items || []).some(i => !i._note && i.name) ? `
+    <div style="margin:0 0 0.75rem;padding:0.6rem 0.8rem;border-radius:8px;font-size:0.85rem;${c.order_intent === 'klar_korg' ? 'background:rgba(196,181,244,0.12);border:1px solid rgba(196,181,244,0.45);color:#e2dcfb' : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:var(--text-muted)'}">
+      ${c.order_intent === 'klar_korg' ? '✅ <strong>Klar korg</strong> — kunden vill ha offert på exakt det som ligger i korgen.' : '💬 Kunden vill ha <strong>förslag</strong> eller har frågor — se meddelandet.'}
+    </div>` : ''}
     ${c.customer_message ? `
     <div class="section-label">Kundens meddelande</div>
     <div style="background:var(--bg);border-radius:8px;padding:1rem;font-size:0.9rem;line-height:1.6;font-family:'Source Sans 3',sans-serif;color:var(--text-muted)">
@@ -7203,7 +7214,7 @@ function renderPanelFooter() {
   if (c.status === 'new') {
     // Öppna offert-modalen direkt med varukorgens produkter förifyllda.
     // sendQuote() sätter automatiskt status new → waiting när mailet skickats.
-    makeBtn('📤 Skapa & skicka offert', 'btn-success', openQuoteModalGuarded);
+    makeBtn(c.order_intent === 'klar_korg' ? '📤 Skicka offert som den är' : '📤 Skapa & skicka offert', 'btn-success', openQuoteModalGuarded);
     makeBtn('❌ Avvisa', 'btn-danger', cancelOrder);
 
   } else if (c.status === 'waiting') {
