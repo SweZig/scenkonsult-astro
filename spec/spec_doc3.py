@@ -3,14 +3,15 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v18.5",
-    date="2026-10-17",
+    version="v18.6",
+    date="2026-10-18",
     blocks=[
         ("h1", "1. Navigationsstruktur"),
         ("h2", "1.1 Top-level nav"),
-        ("note", "Top-level nav = **Tjänster** (dropdown) + **Kontakta oss**. "
-                 "Det finns INGET \"Kunskap\"-element i nav."),
-        ("p", "Desktop-ordning: Logo → Tjänster → Kontakta oss → `margin-left:auto` → Telefon → "
+        ("note", "Top-level nav = **Tjänster** (dropdown) + **Kunskap** (dropdown) + **Kontakta oss**. "
+                 "Kunskap lades till i efterhand och specen rättades 2026-10-18: Svens Kunskapsskola och "
+                 "guiderna under /for/guider/."),
+        ("p", "Desktop-ordning: Logo → Tjänster → Kunskap → Kontakta oss → `margin-left:auto` → Telefon → "
               "Varukorg. Nav-höjd 130 px (100 px mobil), `--nav-offset: 166px`."),
 
         ("h2", "1.2 Dropdown \"Tjänster\""),
@@ -180,7 +181,8 @@ DOC3 = dict(
         ("h1", "4. Referenssida"),
         ("note", "Korrekt sökväg är `/referenser/` (svensk stavning), inte `/referencer/`."),
         ("p", "Trust-stats (verifierade mot sidan 2026-10-17): **100+ privatpersoner, 100+ uppdrag/år, "
-              "75+ referenskunder** (var 50+ till 2026-10-09), grundat 1986, 100 % nöjd-garanti. "
+              "100+ referenskunder** (var 75+ till 2026-10-18 — databasen har 78 och de verkliga är fler), grundat 1986, 100 % nöjd-garanti. "
+              "Kundlistan på sidan hydreras live ur Supabase; den committade `clients.json` är en äldre ögonblicksbild. "
               "Tidigare versioner av specen angav 500+ uppdrag/år — sidan har sagt 100+ sedan mars."),
         ("p", "**Ordningen på sidan (2026-10-09):** \"De litar på oss\" (logobannern) ligger **ovanför** "
               "eventgalleriet, som blivit för långt för att bannern skulle synas under det."),
@@ -287,6 +289,8 @@ DOC3 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.6", "2026-10-18",
+             "§1.1 Kunskap ligger i toppmenyn. §4 100+ referenskunder. YouTube-filmer på startsidan och Svens Kunskapsskola laddas först vid klick."],
             ["v18.5", "2026-10-17",
              "§5 referenscase Swedish Taste (Västermalm, DJ). Taggräkning och bildräkning per kort borttagna — inventarier skrivs inte för hand."],
             ["v18.4", "2026-10-17",

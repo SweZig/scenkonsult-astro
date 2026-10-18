@@ -3,8 +3,8 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v18.3",
-    date="2026-10-17",
+    version="v18.4",
+    date="2026-10-18",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
         ("table", [
@@ -12,7 +12,7 @@ DOC1 = dict(
             ["Repo", "github.com/SweZig/scenkonsult-astro"],
             ["Live", "https://scenkonsult.se/"],
             ["Deploy", "Netlify — auto vid push till main (~2 min)"],
-            ["Stack", "Astro (SSG) + Tailwind CSS v4 + JSON-datafiler + Netlify Functions + Supabase"],
+            ["Stack", "Astro 4 (SSG) + Tailwind CSS 3 + JSON-datafiler + Netlify Functions + Supabase"],
             ["Tjänster", "Resend (e-post) · 46elks (SMS) · Anthropic API (Sven) · GA4 + GSC"],
             ["Repo lokalt", "C:\\Users\\psigv\\Projects\\scenkonsult-astro"],
         ]),
@@ -186,11 +186,11 @@ DOC1 = dict(
             "**Nav:** `height: 130px` (100 px mobil), glassmorphism mörk `rgba(12,10,36,0.97)`, fast position",
             "**Logo:** `logo-white.png` 120 px desktop / 58 px mobil. `.logo-c { display:none !important }` — ta ALDRIG bort `!important`",
             "**Nav-offset:** `--nav-offset: calc(36px + 130px)` = 166 px",
-            "**Top-level nav (desktop, vänster→höger):** Logo → Tjänster (dropdown) → Kontakta oss → `margin-left:auto` → Telefon → Varukorg",
+            "**Top-level nav (desktop, vänster→höger):** Logo → Tjänster (dropdown) → Kunskap (dropdown) → Kontakta oss → `margin-left:auto` → Telefon → Varukorg",
         ]),
-        ("note", "Top-level nav är **Tjänster + Kontakta oss** — INTE \"Tjänster + Kunskap\". "
-                 "Kunskapsinnehåll finns som sidor (/svens-kunskapsskola/, KunskapBlock.astro) men ligger "
-                 "inte som eget nav-element."),
+        ("note", "Top-level nav är **Tjänster + Kunskap + Kontakta oss** (Kunskap tillagd i efterhand, "
+                 "specen rättad 2026-10-18). Kunskap-dropdownen leder till Svens Kunskapsskola och "
+                 "guiderna under /for/guider/; mobilmenyn har samma länkar."),
         ("ul", [
             "**Dropdown Tjänster:** hover-aktiverad, 3-kolumns panel, `min-width:720px`, lavendel-rubriker, 2,5 s stängningsfördröjning",
             "**Mobil:** hamburger med accordion. Varukorg-ikon till vänster om hamburger.",
@@ -208,7 +208,7 @@ DOC1 = dict(
 
         ("h2", "4.4 Manifesto-bar"),
         ("p", "Lavendel border ovan/under (`2px solid rgba(196,181,244,0.25)`). "
-              "Stats: 1986 / 500+ / 20–2000 / 100 %. Inga CTA-knappar. "
+              "Stats: 1986 / 100+ / 20–2000 / 100 %. Inga CTA-knappar. "
               "**INGEN** `inline style=\"background:…\"` — styrs enbart via `.manifesto`."),
 
         ("h2", "4.5 Moms-toggle (global)"),
@@ -372,6 +372,9 @@ DOC1 = dict(
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.4", "2026-10-18",
+             "§1 stacken: Astro 4 och Tailwind 3 (stod v4). §4.1 Kunskap ligger i toppmenyn. §4.4 manifesto 100+ event/år (stod 500+). "
+             "Ny komponent YouTubeKlick (film laddas först vid klick) och src/utils/utanInterna.ts (interna _-fält rensas före klienten)."],
             ["v18.3", "2026-10-17",
              "Inga ändringar — versionen följer Dok 2, 4 och 6 (rättelse: 1×1-plattformen bara 40 cm)."],
             ["v18.2", "2026-10-17",

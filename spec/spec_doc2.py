@@ -3,8 +3,8 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v18.3",
-    date="2026-10-17",
+    version="v18.4",
+    date="2026-10-18",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
         ("note", "**Hårdkoda ALDRIG produkter i .astro-filer.** Allt produktinnehåll bor i "
@@ -130,6 +130,11 @@ DOC2 = dict(
                  "(LED-vägg, LED-trailer, scen över 16 m²) är monteringen obligatorisk men debiterad — "
                  "\"monteras alltid av våra tekniker, montering tillkommer\". Bildhubben bröt mot regeln på "
                  "fem ställen fram till 2026-10-17 (Dok 6 §7.7)."),
+        ("note", "**Enda undantaget (beslut 2026-10-18): LED-vägg på trossystem, SK-BLD-0013.** Paketet har "
+                 "ett fast pris, 11 999 kr, där tross, leverans tur och retur samt montering och demontering "
+                 "är inräknade (hårdvara + leveransraden + `monteringFast`). Där — och bara där — får texten säga "
+                 "att leverans och montering är inräknade (\"Fast paketpris — … inräknade\"). Inget annat paket "
+                 "får den formuleringen."),
         ("p", "**Beslut 2026-10-09.** Standardfordonen är alltid **Vanlig bil, Stor bil och Lätt "
               "lastbil**. Bil med släp (SK-LEV-0002) och Stor bil med släp (SK-LEV-0006) är **undantag**: "
               "de väljs aldrig automatiskt, visas aldrig kundvänt och kan bara väljas manuellt i admin. "
@@ -452,6 +457,10 @@ DOC2 = dict(
         ("h1", "14. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.4", "2026-10-18",
+             "§5 undantaget för LED-vägg på trossystem (fast paketpris med leverans och montering inräknade). "
+             "Från-priser på eventsidornas paket (utils/paket.ts) är den verkliga summan, inte avrundad nedåt. "
+             "Interna fält (_inkopspris, _kalla) rensas med utanInterna() innan data når klienten; _monteringFast_kalla borttagen ur bild.json."],
             ["v18.3", "2026-10-17",
              "§4.3 rättelse: 1×1-plattformen finns bara i 40 cm (heights [40])."],
             ["v18.2", "2026-10-17",
