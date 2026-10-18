@@ -256,7 +256,7 @@ function render() {
         <input type="text" class="grow" id="c-label" value="${escapeHtml(c.alla_label||'')}" placeholder="Se alla … →" /></div>
       <div class="fieldrow">
         <button class="btn primary" id="c-save">Spara rubriker</button>
-        ${arvd ? `<span style="font-size:0.74rem;color:rgba(255,255,255,0.5)">↩ Hämtar grupper från <b style="color:#c4b5f4">${(c.source_categories||[]).join(' + ')}</b> — egna grupper används inte.</span>` : ''}
+        ${arvd ? `<span style="font-size:0.74rem;color:rgba(255,255,255,0.5)">↩ Hämtar grupper från <b style="color:#c4b5f4">${escapeHtml((c.source_categories||[]).join(' + '))}</b> — egna grupper används inte.</span>` : ''}
       </div>
     </div>`;
 

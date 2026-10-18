@@ -300,6 +300,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 // ── Auth (matchar /admin/ — klartext-lösenord, ingen hashning) ────────
 const ADMIN_KEY = 'sk_admin_token';
 let adminToken = sessionStorage.getItem(ADMIN_KEY) || '';
@@ -468,7 +470,7 @@ function showError(message) {
   zone.innerHTML = `
     <div class="error-banner">
       <strong>Kunde inte hämta data från GA4</strong><br>
-      ${message}<br><br>
+      ${escapeHtml(message)}<br><br>
       Vanliga orsaker:<br>
       • OAuth-env vars saknas i Netlify (<code>GA4_OAUTH_CLIENT_ID</code>, <code>GA4_OAUTH_CLIENT_SECRET</code>, <code>GA4_OAUTH_REFRESH_TOKEN</code>)<br>
       • Refresh token är återkallad eller utgången — kör om <code>scripts/get-ga4-refresh-token.mjs</code> lokalt<br>
@@ -481,7 +483,7 @@ function showGscError(message) {
   zone.insertAdjacentHTML('beforeend', `
     <div class="error-banner" style="border-color:rgba(250,204,21,0.30);background:rgba(250,204,21,0.06);color:#fde68a">
       <strong style="color:#fde68a">GSC-data kunde inte hämtas</strong> (GA4-data visas ändå)<br>
-      ${message}<br>
+      ${escapeHtml(message)}<br>
       Kontrollera att Search Console API är aktiverat och att <code>per.sigvardsson@gmail.com</code> har behörighet på property <code>sc-domain:scenkonsult.se</code>.
     </div>`);
 }
@@ -619,10 +621,10 @@ function renderChannelChips(channels) {
     const style = on
       ? `background:${hexToRgba(color,0.18)};border-color:${hexToRgba(color,0.65)};color:#fff;`
       : `background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.10);color:rgba(255,255,255,0.40);`;
-    return `<button class="ch-chip ${on ? 'on' : ''}" data-channel="${c.channel.replace(/"/g, '&quot;')}"
+    return `<button class="ch-chip ${on ? 'on' : ''}" data-channel="${escapeHtml(c.channel)}"
               style="${style}"
               title="${fmtNum(c.sessions)} sessioner — klicka för att toggla">
-        <span class="ch-dot" style="background:${color};opacity:${on ? 1 : 0.35}"></span>${c.channel}
+        <span class="ch-dot" style="background:${color};opacity:${on ? 1 : 0.35}"></span>${escapeHtml(c.channel)}
       </button>`;
   }).join('');
 
@@ -806,8 +808,8 @@ function renderPagesTable(pagesTotal, pagesByChannel, gscPages) {
   for (const g of (gscPages || [])) gscMap.set(stripSlash(g.path || ''), g);
 
   tbody.innerHTML = pages.map(p => {
-    const safePath = p.path.replace(/</g, '&lt;');
-    const href = p.path.startsWith('/') ? `https://scenkonsult.se${p.path}` : '#';
+    const safePath = escapeHtml(p.path);
+    const href = p.path.startsWith('/') ? escapeHtml(`https://scenkonsult.se${p.path}`) : '#';
     const gsc = gscMap.get(stripSlash(p.path)) || null;
     const gscClicks = gsc ? fmtNum(gsc.clicks) : '<span class="muted">–</span>';
     const gscPos    = gsc && gsc.position > 0
@@ -833,7 +835,7 @@ function renderQueries(queries) {
     return;
   }
   zone.innerHTML = queries.map(q => {
-    const safeQ = (q.query || '').replace(/</g, '&lt;');
+    const safeQ = escapeHtml(q.query || '');
     const posTxt = q.position > 0 ? `#${q.position.toFixed(1).replace('.', ',')}` : '–';
     return `
       <div class="qrow">
@@ -955,7 +957,7 @@ function renderChannels(channels) {
       <div class="legend-row">
         <div class="legend-left">
           <span class="legend-dot" style="background:${color}"></span>
-          <span>${c.channel}</span>
+          <span>${escapeHtml(c.channel)}</span>
         </div>
         <span class="legend-val">${fmtNum(c.sessions)} · ${pct.toFixed(1).replace('.', ',')} %</span>
       </div>`;

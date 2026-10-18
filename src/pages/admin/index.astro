@@ -8,6 +8,7 @@ import ledData from '../../data/led-paneler.json';
 import tjansterData from '../../data/tjanster.json';
 import MonteringEngine from '../../components/MonteringEngine.astro';
 import FraktEngine from '../../components/FraktEngine.astro';
+import { utanInterna } from '../../utils/utanInterna';
 
 // Förbered data för admin-konfiguratorerna (klient-side använder window-globals)
 // Scen: modules (3 ytor), tak-paket från scenes.products[*].config.tak,
@@ -49,6 +50,10 @@ const _monteringAdminConfig = {
 
 // Flerdygnsrabatt — stegen bor i tjanster.json så prispolicyn ändras på ett ställe.
 const _dayConfig = tjansterData.hyresdagar || null;
+
+// /admin/-HTML:en går att ladda ner publikt (bara robots-spärrad). Fält med
+// "_"-prefix (inköpspriser, källor, kommentarer) används inte av adminklienten
+// och rensas bort med utanInterna() innan define:vars serialiserar datan.
 ---
 <!DOCTYPE html>
 <html lang="sv">
@@ -1509,7 +1514,7 @@ const _dayConfig = tjansterData.hyresdagar || null;
   </style>
   <MonteringEngine />
   <FraktEngine />
-  <script is:inline define:vars={{ quoteCatalog: quoteCatalogData, scenConfig: _scenAdminConfig, ledConfig: _ledAdminConfig, fraktConfig: _fraktAdminConfig, monteringConfig: _monteringAdminConfig, dayConfig: _dayConfig }}>
+  <script is:inline define:vars={{ quoteCatalog: utanInterna(quoteCatalogData), scenConfig: utanInterna(_scenAdminConfig), ledConfig: utanInterna(_ledAdminConfig), fraktConfig: utanInterna(_fraktAdminConfig), monteringConfig: utanInterna(_monteringAdminConfig), dayConfig: utanInterna(_dayConfig) }}>
     window.__ADMIN_QUOTE_CATALOG__   = quoteCatalog;
     window.__ADMIN_SCEN_CONFIG__     = scenConfig;
     window.__ADMIN_LED_CONFIG__      = ledConfig;
@@ -2904,7 +2909,7 @@ function cartCardOpen(c) {
       <div style="margin:1px 0 2px"><span class="req-badge req-booking">💬 Bokningsförfrågan</span></div>
       <div class="cc-open-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : '<span style="color:rgba(255,255,255,0.35)">Inget datum</span>'}
-        ${c.customer_email ? `<span style="color:rgba(255,255,255,0.5)">✉ ${c.customer_email}</span>` : ''}
+        ${c.customer_email ? `<span style="color:rgba(255,255,255,0.5)">✉ ${htmlEscape(c.customer_email)}</span>` : ''}
       </div>
       ${msgSnip ? `<div class="cc-open-msg">"${msgSnip}"</div>` : ''}
       <div class="cc-open-actions">
@@ -2931,7 +2936,7 @@ function cartCardCompact(c) {
   const unread   = c.unread_count > 0 ? `<span class="unread-pill">💬 ${c.unread_count}</span>` : '';
   // (Tidigare extra "✍ Förberedd"-pill borttagen — pBadge ovan visar samma status.)
   const evTxt    = c.event_date ? `📅 ${fmtDate(c.event_date)}` : '';
-  const loc      = c.event_location ? `· ${c.event_location}` : '';
+  const loc      = c.event_location ? `· ${htmlEscape(c.event_location)}` : '';
   // Permanent-radera-knapp endast på cancelled-kort
   const delBtn   = c.status === 'cancelled'
     ? `<button class="cart-card-delete-btn" onclick="event.stopPropagation(); deleteCancelledCart('${c.id}')" title="Radera permanent">🗑</button>`
@@ -3041,6 +3046,22 @@ function htmlEscape(s) {
     { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]
   ));
 }
+// Bildkälla ur kunddata (signatur, leg-foto): bara data:image/ eller https://.
+// Returnerar escapat värde för src-attribut, annars ''.
+function safeImgSrc(u) {
+  const s = String(u ?? '');
+  return /^(data:image\/|https:\/\/)/i.test(s) ? htmlEscape(s) : '';
+}
+// Chattmeddelande → HTML: escapa först, sedan radbrytningar och
+// [text](url)-länkar — bara http(s):// eller relativ /sökväg (aldrig javascript:).
+function chatBodyHtml(body) {
+  return htmlEscape(body)
+    .replace(/\n/g, '<br>')
+    .replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)\s]*)\)/gi, (_, text, url) => {
+      const ext = !/^\/(?!\/)/.test(url);
+      return `<a href="${url}" style="color:var(--brand-lav)"${ext ? ' target="_blank" rel="noopener noreferrer"' : ''}>${text}</a>`;
+    });
+}
 
 // Normalisera telefonnummer för sökning/matchning.
 // Tar bort allt utom siffror. Normaliserar +46/0046 till 0.
@@ -3141,7 +3162,7 @@ function pbCardHTML(c) {
   const s = STATUS_LABELS[c.status];
   const statusBadge = `<span class="pb-status-badge ${s.cls}">${s.icon} ${s.label}</span>`;
   const event = c.event_date
-    ? `<span class="pb-event">📅 ${c.event_date}</span>`
+    ? `<span class="pb-event">📅 ${htmlEscape(c.event_date)}</span>`
     : '';
   return `
     <div class="pb-card" data-id="${c.id}">
@@ -3304,12 +3325,12 @@ function cartCardHTML(c) {
       </div>
       ${daysFlag}
       ${(reqB || declB || paidB || overdueB || noDateB || svenBadge) ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">${svenBadge}${reqB}${declB}${overdueB}${noDateB}${paidB}</div>` : ''}
-      ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${c.customer_company}</div>` : ''}
-      <div class="cart-card-sub">${c.customer_email || (c.source === 'sven' ? '(kontaktuppgifter saknas — se chattlogg)' : '')}</div>
+      ${c.customer_company ? `<div style="font-size:0.78rem;color:rgba(196,181,244,0.75);font-weight:500;margin-bottom:2px">🏢 ${htmlEscape(c.customer_company)}</div>` : ''}
+      <div class="cart-card-sub">${htmlEscape(c.customer_email) || (c.source === 'sven' ? '(kontaktuppgifter saknas — se chattlogg)' : '')}</div>
       ${bounceBadge}
       <div class="cart-card-meta">
         ${c.event_date ? `<span>📅 ${fmtDate(c.event_date)}</span>` : ''}
-        ${c.event_location ? `<span>📍 ${c.event_location}</span>` : ''}
+        ${c.event_location ? `<span>📍 ${htmlEscape(c.event_location)}</span>` : ''}
         ${ageStr ? `<span>🕐 ${ageStr}</span>` : ''}
       </div>
       <div class="cart-card-footer">
@@ -3609,10 +3630,10 @@ function renderTab(tab) {
       if (statusEl) {
         if (checked && emailVal) {
           statusEl.style.cssText = 'margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;background:rgba(196,181,244,0.15);color:#c4b5f4';
-          statusEl.innerHTML = '✓ Faktura skickas till: <strong>' + emailVal + '</strong>';
+          statusEl.innerHTML = '✓ Faktura skickas till: <strong>' + htmlEscape(emailVal) + '</strong>';
         } else {
           statusEl.style.cssText = 'margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.60)';
-          statusEl.innerHTML = '→ Faktura skickas till kundens mail: <strong>' + customerEmail + '</strong>';
+          statusEl.innerHTML = '→ Faktura skickas till kundens mail: <strong>' + htmlEscape(customerEmail) + '</strong>';
         }
       }
     }
@@ -4159,7 +4180,7 @@ function renderInfoTab() {
         ? 'Resend försöker leverera igen automatiskt. Vänta en stund eller kontakta kunden via telefon.'
         : 'Kontrollera e-postadressen nedan, korrigera den och tryck Spara. Klicka sedan "📤 Skicka om offert" i fotmenyn för att skicka på nytt.';
     const whenStr = c.bounce_at ? new Date(c.bounce_at).toLocaleString('sv-SE') : '';
-    const reasonStr = c.bounce_reason ? `<div style="margin-top:6px;font-size:0.75rem;color:rgba(255,255,255,0.5);font-family:monospace;word-break:break-word">${c.bounce_reason.replace(/</g,'&lt;').replace(/&/g,'&amp;')}</div>` : '';
+    const reasonStr = c.bounce_reason ? `<div style="margin-top:6px;font-size:0.75rem;color:rgba(255,255,255,0.5);font-family:monospace;word-break:break-word">${htmlEscape(c.bounce_reason)}</div>` : '';
 
     bounceBanner = `
       <div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:14px 16px;margin-bottom:14px;color:${color}">
@@ -4168,7 +4189,7 @@ function renderInfoTab() {
           <span>${title}</span>
         </div>
         <div style="font-size:0.83rem;line-height:1.5;color:rgba(255,255,255,0.78)">
-          ${c.customer_email ? `Mail till <strong>${c.customer_email}</strong> ` : ''}${whenStr ? `(${whenStr})` : ''}
+          ${c.customer_email ? `Mail till <strong>${htmlEscape(c.customer_email)}</strong> ` : ''}${whenStr ? `(${whenStr})` : ''}
         </div>
         <div style="font-size:0.83rem;line-height:1.55;color:rgba(255,255,255,0.7);margin-top:6px">${advice}</div>
         ${reasonStr}
@@ -4220,7 +4241,7 @@ function renderInfoTab() {
   const reminderInfo = (_remLog.length && ['waiting', 'cancelled'].includes(c.status)) ? `
     <div style="margin-bottom:14px;padding:10px 14px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:10px;font-size:0.82rem;color:rgba(255,255,255,0.75)">
       <strong style="color:#fbbf24">⏰ Offertpåminnelser:</strong>
-      ${_remLog.map(e => `${fmtTime(e.at)}${_remTplLabel(e.template) ? ` (${_remTplLabel(e.template)})` : ''}${e.final ? ' — sista' : ''}`).join(' · ')}
+      ${_remLog.map(e => `${fmtTime(e.at)}${_remTplLabel(e.template) ? ` (${htmlEscape(_remTplLabel(e.template))})` : ''}${e.final ? ' — sista' : ''}`).join(' · ')}
     </div>` : '';
 
   return `
@@ -4254,26 +4275,26 @@ function renderInfoTab() {
     <div class="info-grid">
       <div class="info-field">
         <div class="info-field-label">Namn</div>
-        <input class="info-edit-input" id="edit-name" value="${(c.customer_name||'').replace(/"/g,'&quot;')}" placeholder="Namn" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;font-weight:500">
+        <input class="info-edit-input" id="edit-name" value="${htmlEscape(c.customer_name)}" placeholder="Namn" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;font-weight:500">
       </div>
       <div class="info-field">
         <div class="info-field-label">Företagsnamn</div>
-        <input class="info-edit-input" id="edit-company" value="${(c.customer_company||'').replace(/"/g,'&quot;')}" placeholder="Företagsnamn (om B2B)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-company" value="${htmlEscape(c.customer_company)}" placeholder="Företagsnamn (om B2B)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
         <div class="info-field-label">E-post</div>
-        <input class="info-edit-input" id="edit-email" type="email" value="${(c.customer_email||'').replace(/"/g,'&quot;')}" placeholder="E-post" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-email" type="email" value="${htmlEscape(c.customer_email)}" placeholder="E-post" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
         <div class="info-field-label">Telefon</div>
-        <input class="info-edit-input" id="edit-phone" value="${(c.customer_phone||'').replace(/"/g,'&quot;')}" placeholder="Telefon" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-phone" value="${htmlEscape(c.customer_phone)}" placeholder="Telefon" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
         <div class="info-field-label" style="display:flex;align-items:center;gap:5px">
           CC-kopia
           <span style="font-size:0.72rem;color:rgba(196,181,244,0.55);font-weight:400">(läggs på kopia i all kundkommunikation)</span>
         </div>
-        <input class="info-edit-input" id="edit-cc-email" type="email" value="${(c.cc_email||'').replace(/"/g,'&quot;')}" placeholder="cc@foretag.se" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-cc-email" type="email" value="${htmlEscape(c.cc_email)}" placeholder="cc@foretag.se" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
         <div class="info-field-label">Eventdatum (utlämning)</div>
@@ -4285,11 +4306,11 @@ function renderInfoTab() {
       </div>
       <div class="info-field" style="grid-column:1/-1">
         <div class="info-field-label">Eventplats / Leveransadress</div>
-        <input class="info-edit-input" id="edit-location" value="${(c.event_location||'').replace(/"/g,'&quot;')}" placeholder="Plats / Adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-location" value="${htmlEscape(c.event_location)}" placeholder="Plats / Adress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field" style="grid-column:1/-1">
         <div class="info-field-label">Fakturaadress (om annan)</div>
-        <input class="info-edit-input" id="edit-address" value="${(c.customer_address||'').replace(/"/g,'&quot;')}" placeholder="Gatuadress, postnr, ort" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-address" value="${htmlEscape(c.customer_address)}" placeholder="Gatuadress, postnr, ort" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
     </div>
 
@@ -4311,11 +4332,11 @@ function renderInfoTab() {
             Använd denna istället för kundens mail
           </label>
         </div>
-        <input class="info-edit-input" id="edit-invoice-email" type="email" value="${(c.invoice_email||'').replace(/"/g,'&quot;')}" placeholder="fakturamail@foretag.se" oninput="toggleInvoiceEmailActive(document.getElementById('use-invoice-email')?.checked)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;margin-top:4px">
+        <input class="info-edit-input" id="edit-invoice-email" type="email" value="${htmlEscape(c.invoice_email)}" placeholder="fakturamail@foretag.se" oninput="toggleInvoiceEmailActive(document.getElementById('use-invoice-email')?.checked)" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;margin-top:4px">
         <div id="invoice-email-status" style="margin-top:6px;font-size:0.78rem;padding:5px 10px;border-radius:6px;${c.invoice_email&&c.use_invoice_email?'background:rgba(196,181,244,0.15);color:#c4b5f4':'background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.60)'}">
           ${c.invoice_email&&c.use_invoice_email
-            ? '✓ Faktura skickas till: <strong>'+c.invoice_email+'</strong>'
-            : '→ Faktura skickas till kundens mail: <strong>'+(c.customer_email||'saknas')+'</strong>'}
+            ? '✓ Faktura skickas till: <strong>'+htmlEscape(c.invoice_email)+'</strong>'
+            : '→ Faktura skickas till kundens mail: <strong>'+htmlEscape(c.customer_email||'saknas')+'</strong>'}
         </div>
       </div>
     </div>
@@ -4323,15 +4344,15 @@ function renderInfoTab() {
     <div id="b2b-fields" style="display:${c.customer_type==='b2b'?'grid':'none'}" class="info-grid" onload="">
       <div class="info-field">
         <div class="info-field-label">Organisationsnummer</div>
-        <input class="info-edit-input" id="edit-orgnr" value="${(c.customer_orgnr||'').replace(/"/g,'&quot;')}" placeholder="556xxx-xxxx" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-orgnr" value="${htmlEscape(c.customer_orgnr)}" placeholder="556xxx-xxxx" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field">
         <div class="info-field-label">Er referensperson</div>
-        <input class="info-edit-input" id="edit-custref" value="${(c.customer_ref||'').replace(/"/g,'&quot;')}" placeholder="T.ex. Hannah Johansson" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        <input class="info-edit-input" id="edit-custref" value="${htmlEscape(c.customer_ref)}" placeholder="T.ex. Hannah Johansson" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
       </div>
       <div class="info-field" style="grid-column:1/-1">
         <div class="info-field-label">Fakturaadress ${c.customer_invoice_address?'<span style=\"color:#c4b5f4;font-size:0.7rem\">· angiven av kund</span>':''}</div>
-        <textarea class="info-edit-input" id="edit-invoice-address" placeholder="Lämna tom = samma som kontakt-/leveransadress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;resize:vertical;min-height:48px">${(c.customer_invoice_address||'').replace(/</g,'&lt;')}</textarea>
+        <textarea class="info-edit-input" id="edit-invoice-address" placeholder="Lämna tom = samma som kontakt-/leveransadress" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;resize:vertical;min-height:48px">${htmlEscape(c.customer_invoice_address)}</textarea>
       </div>
       <div class="info-field" style="grid-column:1/-1">
         <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;color:var(--text)">
@@ -4339,7 +4360,7 @@ function renderInfoTab() {
           <span>${c.wants_peppol?'⚡ ':''}Kund önskar e-faktura via Peppol/EDI <span style="color:var(--text-muted);font-size:0.78rem">(manuell hantering)</span></span>
         </label>
         <div id="peppol-id-wrap" style="display:${c.wants_peppol?'block':'none'};margin-top:0.4rem">
-          <input class="info-edit-input" id="edit-peppol-id" value="${(c.peppol_id||'').replace(/"/g,'&quot;')}" placeholder="Peppol-ID / GLN, t.ex. 0007:5560123456" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+          <input class="info-edit-input" id="edit-peppol-id" value="${htmlEscape(c.peppol_id)}" placeholder="Peppol-ID / GLN, t.ex. 0007:5560123456" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
         </div>
       </div>
     </div>
@@ -4348,7 +4369,7 @@ function renderInfoTab() {
     ${c.customer_message ? `
     <div class="section-label">Kundens meddelande</div>
     <div style="background:var(--bg);border-radius:8px;padding:1rem;font-size:0.9rem;line-height:1.6;font-family:'Source Sans 3',sans-serif;color:var(--text-muted)">
-      ${c.customer_message.replace(/\n/g,'<br>')}
+      ${htmlEscape(c.customer_message).replace(/\n/g,'<br>')}
     </div>` : ''}
 
     <div class="section-label">Eventinfo</div>
@@ -4369,20 +4390,20 @@ function renderInfoTab() {
         <div class="info-field-label">Källa (hittade oss via)</div>
         <div style="display:flex;gap:0.5rem;align-items:center">
           ${c.referral_source
-            ? `<span style="background:rgba(196,181,244,0.12);border:1px solid rgba(196,181,244,0.3);color:#c4b5f4;border-radius:20px;padding:3px 12px;font-size:0.78rem;font-weight:600;white-space:nowrap">📍 ${c.referral_source.replace(/</g,'&lt;')}</span>`
+            ? `<span style="background:rgba(196,181,244,0.12);border:1px solid rgba(196,181,244,0.3);color:#c4b5f4;border-radius:20px;padding:3px 12px;font-size:0.78rem;font-weight:600;white-space:nowrap">📍 ${htmlEscape(c.referral_source)}</span>`
             : `<span style="color:rgba(255,255,255,0.40);font-size:0.82rem">Ej angivet</span>`
           }
-          <input class="info-edit-input" id="edit-referral" value="${(c.referral_source||'').replace(/"/g,'&quot;')}" placeholder="Google, Sociala medier, Rekommendation..." style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.85rem;flex:1">
+          <input class="info-edit-input" id="edit-referral" value="${htmlEscape(c.referral_source)}" placeholder="Google, Sociala medier, Rekommendation..." style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.85rem;flex:1">
         </div>
       </div>
     </div>
 
     <div class="section-label">Snabblänkar</div>
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
-      ${c.customer_email ? `<a href="mailto:${c.customer_email}" style="background:var(--surface2);border:1px solid var(--border);color:var(--brand-lav);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">✉ ${c.customer_email}</a>` : ''}
-      ${c.customer_phone ? `<a href="tel:${c.customer_phone}" style="background:var(--surface2);border:1px solid var(--border);color:var(--brand-lav);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">📞 ${c.customer_phone}</a>` : ''}
-      ${c.cart_token ? `<a href="https://scenkonsult.se/order/?cart=${c.id}&token=${c.cart_token}" target="_blank" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">🔗 Kundlänk ↗</a>` : ''}
-      ${c.cart_token ? `<a href="https://scenkonsult.se/order/?cart=${c.id}&token=${c.cart_token}&preview=1" target="_blank" style="background:var(--surface2);border:1px solid rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">👁 Förhandsgranska ↗</a>` : ''}
+      ${c.customer_email ? `<a href="mailto:${htmlEscape(c.customer_email)}" style="background:var(--surface2);border:1px solid var(--border);color:var(--brand-lav);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">✉ ${htmlEscape(c.customer_email)}</a>` : ''}
+      ${c.customer_phone ? `<a href="tel:${htmlEscape(String(c.customer_phone).replace(/[^\d+]/g, ''))}" style="background:var(--surface2);border:1px solid var(--border);color:var(--brand-lav);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">📞 ${htmlEscape(c.customer_phone)}</a>` : ''}
+      ${c.cart_token ? `<a href="https://scenkonsult.se/order/?cart=${encodeURIComponent(c.id)}&token=${encodeURIComponent(c.cart_token)}" target="_blank" style="background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">🔗 Kundlänk ↗</a>` : ''}
+      ${c.cart_token ? `<a href="https://scenkonsult.se/order/?cart=${encodeURIComponent(c.id)}&token=${encodeURIComponent(c.cart_token)}&preview=1" target="_blank" style="background:var(--surface2);border:1px solid rgba(196,181,244,0.35);color:rgba(196,181,244,0.8);border-radius:8px;padding:0.4rem 0.875rem;font-size:0.82rem;text-decoration:none;font-family:inherit">👁 Förhandsgranska ↗</a>` : ''}
     </div>
 
     ${['confirmed','fakturerad','completed'].includes(c.status) ? `
@@ -4404,10 +4425,10 @@ function renderInfoTab() {
           <span>✍️</span>
           <span>Kvittens aktiverad ${fmtTime(c.pickup_confirmed_at)}</span>
         </div>
-        ${c.pickup_admin_note ? `<div style="margin-top:0.5rem;padding:0.5rem 0.7rem;background:rgba(251,191,36,0.06);border-left:2px solid rgba(251,191,36,0.5);border-radius:4px;font-size:0.78rem;color:rgba(255,255,255,0.78);font-style:italic">📝 ${c.pickup_admin_note.replace(/</g,'&lt;')}</div>` : ''}
+        ${c.pickup_admin_note ? `<div style="margin-top:0.5rem;padding:0.5rem 0.7rem;background:rgba(251,191,36,0.06);border-left:2px solid rgba(251,191,36,0.5);border-radius:4px;font-size:0.78rem;color:rgba(255,255,255,0.78);font-style:italic">📝 ${htmlEscape(c.pickup_admin_note)}</div>` : ''}
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem">
-          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
-          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : ''}
+          ${c.pickup_signature ? `<img src="${safeImgSrc(c.pickup_signature)}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
+          ${c.pickup_id_photo ? `<img src="${safeImgSrc(c.pickup_id_photo)}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : ''}
         </div>
         ${renderIdPhotoAiBadge(c.id_photo_ai_result)}
         <button onclick="adminResetPickup()" style="margin-top:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit" title="Tar bort signatur, leg-foto och motkvittering så att kund kan signera igen">🔄 Nollställ förberedelse (för testning)</button>
@@ -4417,12 +4438,12 @@ function renderInfoTab() {
           <span>✅</span>
           <span>Kund förberedd — klar att motkvittera</span>
         </div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Förberedde ${fmtTime(c.pickup_signed_at)} · IP: ${c.pickup_sign_ip||'–'}</div>
-        ${c.pickup_method === 'proxy' && c.pickup_proxy_name ? `<div style="margin-top:0.4rem;padding:0.5rem 0.7rem;background:rgba(196,181,244,0.06);border-left:2px solid rgba(196,181,244,0.5);border-radius:4px;font-size:0.78rem"><strong style="color:#c4b5f4">Bud:</strong> ${c.pickup_proxy_name.replace(/</g,'&lt;')} · ${(c.pickup_proxy_phone||'').replace(/</g,'&lt;')}</div>` : ''}
-        ${c.delivery_recipient_method === 'other' && c.delivery_recipient_name ? `<div style="margin-top:0.4rem;padding:0.5rem 0.7rem;background:rgba(196,181,244,0.06);border-left:2px solid rgba(196,181,244,0.5);border-radius:4px;font-size:0.78rem"><strong style="color:#c4b5f4">Kontaktperson:</strong> ${c.delivery_recipient_name.replace(/</g,'&lt;')} · ${(c.delivery_recipient_phone||'').replace(/</g,'&lt;')}</div>` : ''}
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">Förberedde ${fmtTime(c.pickup_signed_at)} · IP: ${htmlEscape(c.pickup_sign_ip||'–')}</div>
+        ${c.pickup_method === 'proxy' && c.pickup_proxy_name ? `<div style="margin-top:0.4rem;padding:0.5rem 0.7rem;background:rgba(196,181,244,0.06);border-left:2px solid rgba(196,181,244,0.5);border-radius:4px;font-size:0.78rem"><strong style="color:#c4b5f4">Bud:</strong> ${htmlEscape(c.pickup_proxy_name)} · ${htmlEscape(c.pickup_proxy_phone)}</div>` : ''}
+        ${c.delivery_recipient_method === 'other' && c.delivery_recipient_name ? `<div style="margin-top:0.4rem;padding:0.5rem 0.7rem;background:rgba(196,181,244,0.06);border-left:2px solid rgba(196,181,244,0.5);border-radius:4px;font-size:0.78rem"><strong style="color:#c4b5f4">Kontaktperson:</strong> ${htmlEscape(c.delivery_recipient_name)} · ${htmlEscape(c.delivery_recipient_phone)}</div>` : ''}
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem">
-          ${c.pickup_signature ? `<img src="${c.pickup_signature}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
-          ${c.pickup_id_photo ? `<img src="${c.pickup_id_photo}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : '<span style="font-size:0.72rem;color:rgba(255,255,255,0.55);align-self:center">Inget leg-foto</span>'}
+          ${c.pickup_signature ? `<img src="${safeImgSrc(c.pickup_signature)}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);background:#fff;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">` : ''}
+          ${c.pickup_id_photo ? `<img src="${safeImgSrc(c.pickup_id_photo)}" style="height:50px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">` : '<span style="font-size:0.72rem;color:rgba(255,255,255,0.55);align-self:center">Inget leg-foto</span>'}
         </div>
         ${renderIdPhotoAiBadge(c.id_photo_ai_result)}
         <button onclick="adminResetPickup()" style="margin-top:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:inherit" title="Tar bort signatur och leg-foto så att kund kan signera igen via samma länk">🔄 Nollställ förberedelse (för testning)</button>
@@ -4466,7 +4487,7 @@ function renderInfoTab() {
     </div>
 
     <div class="section-label">Intern anteckning (visas ej för kund)</div>
-    <textarea class="admin-note-area" id="admin-notes" style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;" placeholder="Anteckna priser, tillgänglighet, intern kommunikation...">${c.notes_admin || ''}</textarea>
+    <textarea class="admin-note-area" id="admin-notes" style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;" placeholder="Anteckna priser, tillgänglighet, intern kommunikation...">${htmlEscape(c.notes_admin)}</textarea>
     <button class="btn-action" id="save-notes-btn" style="margin-top:0.75rem">💾 Spara anteckning</button>
   `;
 }
@@ -4621,8 +4642,8 @@ function renderPlocklistaTab() {
         ${c.customer_company && c.customer_name ? `<span class="plock-sub">${escapeHtml(c.customer_name)}</span>` : ''}
       </div>
       <div class="plock-dates">
-        ${eventD ? `<span>📅 <b>Utlämning:</b> ${eventD} kl ${pickupT}</span>` : '<span style="color:var(--amber)">⚠ Eventdatum saknas</span>'}
-        ${returnD ? `<span>↩ <b>Retur:</b> ${returnD} kl ${returnT}</span>` : (eventD ? `<span>↩ <b>Retur:</b> samma dag kl ${returnT}</span>` : '')}
+        ${eventD ? `<span>📅 <b>Utlämning:</b> ${eventD} kl ${htmlEscape(pickupT)}</span>` : '<span style="color:var(--amber)">⚠ Eventdatum saknas</span>'}
+        ${returnD ? `<span>↩ <b>Retur:</b> ${returnD} kl ${htmlEscape(returnT)}</span>` : (eventD ? `<span>↩ <b>Retur:</b> samma dag kl ${htmlEscape(returnT)}</span>` : '')}
         ${c.event_location ? `<span>📍 <b>Plats:</b> ${escapeHtml(c.event_location)}</span>` : ''}
       </div>
     </div>`;
@@ -4638,7 +4659,7 @@ function renderPlocklistaTab() {
       const artno = p.id ? `<span class="plock-artno">${escapeHtml(p.id)}</span>` : '';
       return `<li class="plock-item" onclick="this.classList.toggle('picked')">
         <span class="plock-check" aria-hidden="true"></span>
-        <span class="plock-qty">${q}×</span>
+        <span class="plock-qty">${htmlEscape(q)}×</span>
         <span class="plock-name">${escapeHtml(p.name)}${artno}</span>
       </li>`;
     }).join('');
@@ -4724,7 +4745,7 @@ function dayPanelHTML(item, idx) {
     <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px">${dagar}</div>
     <div style="font-family:ui-monospace,Menlo,monospace;font-size:0.68rem;color:var(--text-muted);background:rgba(0,0,0,0.28);border-radius:6px;padding:6px 9px;line-height:1.6">
       ${fmt(unit)} × ${factor.toFixed(2).replace('.',',')} = <b style="color:var(--brand-lav-l,#e2dcfb)">${fmt(nu)} kr</b> per enhet<br>
-      ${fmt(nu)} × ${qty} st = <b style="color:var(--brand-lav-l,#e2dcfb)">${fmt(nu*qty)} kr</b>
+      ${fmt(nu)} × ${htmlEscape(qty)} st = <b style="color:var(--brand-lav-l,#e2dcfb)">${fmt(nu*qty)} kr</b>
       ${full*qty > nu*qty ? ` · <span style="color:#4ade80">${fmt(full*qty - nu*qty)} kr under fullt dygnspris</span>` : ''}
     </div>
     ${Array.isArray(item.day_ladder) ? `<button onclick="prodResetDayLadder(${idx})" style="margin-top:6px;background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:0.65rem;color:var(--text-muted);cursor:pointer;font-family:'Space Grotesk',sans-serif">↺ Tillbaka till standardstegen</button>` : ''}
@@ -4780,7 +4801,7 @@ function renderProductsTab() {
     const desc = (typeof PROD_DESC !== 'undefined' && PROD_DESC[pid]) ? PROD_DESC[pid] : null;
     const popoutContent = desc
       ? `<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.5;margin-top:4px">${desc.desc||''}</div>${desc.specs?.length ? '<ul style="font-size:0.72rem;color:var(--text-faint);padding-left:14px;margin-top:3px">' + desc.specs.map(s=>`<li>${s}</li>`).join('') + '</ul>' : ''}`
-      : `<div style="font-size:0.78rem;color:var(--text-faint);margin-top:4px">Artno: ${pid || '–'} · Kategori: ${item.category || '–'}</div>`;
+      : `<div style="font-size:0.78rem;color:var(--text-faint);margin-top:4px">Artno: ${htmlEscape(pid || '–')} · Kategori: ${htmlEscape(item.category || '–')}</div>`;
 
     return separator + `<tr data-idx="${idx}" class="prod-row" draggable="true" ondragstart="prodDragStart(event,${idx})" ondragover="prodDragOver(event)" ondrop="prodDrop(event,${idx})" ondragend="prodDragEnd(event)" style="cursor:default">
       <td style="vertical-align:top;padding:8px 6px">
@@ -4788,17 +4809,17 @@ function renderProductsTab() {
           <span style="flex-shrink:0;width:16px;display:flex;flex-direction:column;justify-content:center;gap:3px;padding-top:6px;cursor:grab;opacity:0.35" title="Dra för att flytta">⠿</span>
           <button onclick="prodTogglePopout(${idx})" style="flex-shrink:0;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:rgba(0,0,0,.2);color:${color};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center" title="Produktinfo">${icon}</button>
           <div style="flex:1;min-width:0">
-            <input class="prod-input prod-name" value="${(item.name||'').replace(/"/g,'&quot;')}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
-            <input type="hidden" data-field="category" data-idx="${idx}" value="${(item.category||'').replace(/"/g,'&quot;')}">
-            <input type="hidden" data-field="id" data-idx="${idx}" value="${(item.id||'').replace(/"/g,'&quot;')}">
-            <input type="hidden" data-field="type" data-idx="${idx}" value="${item.type||'product'}">
-            <input type="hidden" data-field="artno" data-idx="${idx}" value="${(item.artno||'').replace(/"/g,'&quot;')}">
+            <input class="prod-input prod-name" value="${htmlEscape(item.name)}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+            <input type="hidden" data-field="category" data-idx="${idx}" value="${htmlEscape(item.category)}">
+            <input type="hidden" data-field="id" data-idx="${idx}" value="${htmlEscape(item.id)}">
+            <input type="hidden" data-field="type" data-idx="${idx}" value="${htmlEscape(item.type||'product')}">
+            <input type="hidden" data-field="artno" data-idx="${idx}" value="${htmlEscape(item.artno)}">
             <input type="hidden" data-field="days" data-idx="${idx}" value="${days}">
             <input type="hidden" data-field="unit_price" data-idx="${idx}" value="${unit}">
             ${dayOK && days > 1
-              ? `<input type="hidden" data-field="price" data-idx="${idx}" value="${price}">`
+              ? `<input type="hidden" data-field="price" data-idx="${idx}" value="${htmlEscape(price)}">`
               : ''}
-            <input type="hidden" data-field="day_factor" data-idx="${idx}" value="${item.day_factor ?? 1}">
+            <input type="hidden" data-field="day_factor" data-idx="${idx}" value="${htmlEscape(item.day_factor ?? 1)}">
             <input type="hidden" data-field="day_ladder" data-idx="${idx}" value="${ladder ? JSON.stringify(ladder).replace(/"/g,'&quot;') : ''}">
             <input type="hidden" data-field="price_locked" data-idx="${idx}" value="${item._priceLocked ? '1' : ''}">
             <input type="hidden" data-field="mon_falt" data-idx="${idx}" value="${_monFaltAttr(item)}">
@@ -4812,7 +4833,7 @@ function renderProductsTab() {
       <td style="text-align:center;vertical-align:top;padding-top:10px">
         <div style="display:flex;align-items:center;justify-content:center;gap:2px">
           <button class="qty-btn" onclick="prodQty(${idx},-1)">−</button>
-          <input class="prod-input prod-qty" value="${qty}" data-field="qty" data-idx="${idx}" style="width:38px;text-align:center;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+          <input class="prod-input prod-qty" value="${htmlEscape(qty)}" data-field="qty" data-idx="${idx}" style="width:38px;text-align:center;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
           <button class="qty-btn" onclick="prodQty(${idx},1)">＋</button>
         </div>
       </td>
@@ -4828,7 +4849,7 @@ function renderProductsTab() {
         : `<span title="Engångspost — påverkas inte av hyrestiden" style="color:var(--text-faint);font-size:0.85rem;display:inline-block;padding-top:4px">—</span>`}
       </td>
       <td style="text-align:right;vertical-align:top;padding-top:10px">
-        <input class="prod-input prod-price" value="${dayOK && days > 1 ? unit : price}" data-field="${dayOK && days > 1 ? 'unit_price_edit' : 'price'}" data-idx="${idx}"
+        <input class="prod-input prod-price" value="${htmlEscape(dayOK && days > 1 ? unit : price)}" data-field="${dayOK && days > 1 ? 'unit_price_edit' : 'price'}" data-idx="${idx}"
           ${dayOK && days > 1 ? `onchange="prodUnitPriceSet(${idx}, this.value)" title="À-pris per dygn — periodpriset räknas fram"` : ''}
           style="width:78px;text-align:right;font-size:0.85rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
         ${dayOK && days > 1 ? '<div style="font-size:0.6rem;color:rgba(196,181,244,0.55);font-family:\'Space Grotesk\',sans-serif;margin-top:2px;text-align:right">per dygn</div>' : ''}
@@ -4921,7 +4942,7 @@ function renderProductsTab() {
       <div class="section-label" style="margin-top:0">Anmärkningar till kund</div>
       <textarea class="admin-note-area" id="prod-note" rows="2"
         style="background:#221f50!important;color:#f0eeff!important;color-scheme:dark;min-height:55px"
-        placeholder="Leveransinfo, prisvillkor…">${noteItem?.name || ''}</textarea>
+        placeholder="Leveransinfo, prisvillkor…">${htmlEscape(noteItem?.name)}</textarea>
     </div>
   `;
 }
@@ -5026,19 +5047,19 @@ function prodRowHTML(i, idx) {
   const pid = i.id || '';
   return `<tr data-idx="${idx}" class="prod-row">
     <td>
-      <input class="prod-input prod-name" value="${(i.name||'').replace(/"/g,'&quot;')}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
-      <input class="prod-input prod-meta" value="${cat}" placeholder="Kategori" data-field="category" data-idx="${idx}" style="width:55%;font-size:0.72rem;margin-top:3px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
-      <input class="prod-input prod-meta" value="${pid}" placeholder="ID (valfri)" data-field="id" data-idx="${idx}" style="width:40%;font-size:0.72rem;margin-top:3px;margin-left:3%;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-name" value="${htmlEscape(i.name)}" placeholder="Produktnamn" data-field="name" data-idx="${idx}" style="width:100%;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-meta" value="${htmlEscape(cat)}" placeholder="Kategori" data-field="category" data-idx="${idx}" style="width:55%;font-size:0.72rem;margin-top:3px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-meta" value="${htmlEscape(pid)}" placeholder="ID (valfri)" data-field="id" data-idx="${idx}" style="width:40%;font-size:0.72rem;margin-top:3px;margin-left:3%;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
     </td>
     <td style="text-align:center;vertical-align:top;padding-top:0.75rem">
       <div style="display:flex;align-items:center;justify-content:center;gap:4px">
         <button class="qty-btn" onclick="prodQty(${idx},-1)">−</button>
-        <input class="prod-input prod-qty" value="${qty}" data-field="qty" data-idx="${idx}" style="width:44px;text-align:center;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+        <input class="prod-input prod-qty" value="${htmlEscape(qty)}" data-field="qty" data-idx="${idx}" style="width:44px;text-align:center;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
         <button class="qty-btn" onclick="prodQty(${idx},1)">＋</button>
       </div>
     </td>
     <td style="text-align:right;vertical-align:top;padding-top:0.75rem">
-      <input class="prod-input prod-price" value="${price}" data-field="price" data-idx="${idx}" style="width:90px;text-align:right;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
+      <input class="prod-input prod-price" value="${htmlEscape(price)}" data-field="price" data-idx="${idx}" style="width:90px;text-align:right;font-size:0.875rem;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;">
     </td>
     <td style="text-align:right;vertical-align:top;padding-top:0.75rem;font-weight:600;color:var(--brand-lav)" id="prod-sum-${idx}">${fmt(sum)}</td>
     <td style="vertical-align:top;padding-top:0.75rem">
@@ -5484,8 +5505,8 @@ function renderChatTab() {
           ? (m.read_at ? `<span class="read-check">✓✓</span> Läst ${fmtTime(m.read_at)}` : '⏳ Inte läst')
           : (m.read_at ? `Läst ${fmtTime(m.read_at)}` : '');
         return `
-          <div class="msg-wrap ${m.sender}">
-            <div class="msg-bubble">${m.body.replace(/\n/g,'<br>').replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" style="color:var(--brand-lav)">$1</a>')}</div>
+          <div class="msg-wrap ${m.sender === 'admin' ? 'admin' : 'customer'}">
+            <div class="msg-bubble">${chatBodyHtml(m.body)}</div>
             <div class="msg-meta">
               <span>${m.sender === 'admin' ? '👤 Du' : '🧑 Kund'} · ${fmtTime(m.created_at)}</span>
               ${readMark ? `<span>${readMark}</span>` : ''}
@@ -5497,7 +5518,7 @@ function renderChatTab() {
     <div class="chat-templates">
       <span class="chat-templates-label">Snabbmallar</span>
       ${currentChatTemplates.map(t =>
-        `<button type="button" class="chat-template-btn" data-template-id="${t.id}" title="${(t.title||'').replace(/"/g,'&quot;')}">${t.label}</button>`
+        `<button type="button" class="chat-template-btn" data-template-id="${t.id}" title="${htmlEscape(t.title)}">${htmlEscape(t.label)}</button>`
       ).join('')}
       <button type="button" class="chat-template-manage-btn" id="chat-templates-manage" title="Hantera mallar — lägg till, redigera eller ta bort">⚙️ Hantera</button>
     </div>`;
@@ -5656,8 +5677,8 @@ function renderLogTab() {
     html += '<div style="background:' + bg + ';border-radius:8px;padding:0.65rem 0.75rem;display:flex;gap:0.75rem;align-items:flex-start' + border + '">';
     html += '<span style="font-size:1rem;line-height:1.4">' + ev.icon + '</span>';
     html += '<div style="flex:1">';
-    html += '<div style="font-size:0.85rem;font-weight:600;color:' + ev.color + '">' + ev.label + '</div>';
-    html += '<div style="font-size:0.75rem;color:var(--text-faint);margin-top:1px">' + fmtTime(l.created_at) + ' · ' + actorLabel + (payloadStr ? ' · ' + payloadStr : '') + '</div>';
+    html += '<div style="font-size:0.85rem;font-weight:600;color:' + ev.color + '">' + htmlEscape(ev.label) + '</div>';
+    html += '<div style="font-size:0.75rem;color:var(--text-faint);margin-top:1px">' + fmtTime(l.created_at) + ' · ' + actorLabel + (payloadStr ? ' · ' + htmlEscape(payloadStr) : '') + '</div>';
     html += '</div></div>';
   });
   html += '</div>';
@@ -5693,7 +5714,7 @@ function renderFakturaTab() {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.82rem;margin-bottom:8px">
       <div>
         <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Fakturadatum</div>
-        <input id="inv-date" type="date" value="${c.invoice_date || new Date().toISOString().slice(0,10)}"
+        <input id="inv-date" type="date" value="${htmlEscape(c.invoice_date || new Date().toISOString().slice(0,10))}"
           onchange="invUpdateDueDate()"
           style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
       </div>
@@ -5714,18 +5735,18 @@ function renderFakturaTab() {
       </div>
       <div>
         <div style="color:var(--text-faint);font-size:0.72rem;margin-bottom:2px">Vår referens</div>
-        <input id="inv-ref" type="text" value="${c.invoice_ref || 'Per S'}"
+        <input id="inv-ref" type="text" value="${htmlEscape(c.invoice_ref || 'Per S')}"
           style="width:100%;font-size:0.82rem;padding:4px 6px;background:#221f50!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:5px">
       </div>
     </div>
 
     <div class="section-label">Kund</div>
     <div style="font-size:0.82rem;padding:8px 10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-bottom:8px">
-      <div style="font-weight:600;color:var(--text)">${c.customer_name||'—'} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${c.customer_type==='b2b'?'B2B':'Privatperson'})</span></div>
-      ${c.customer_company ? `<div style="font-size:0.8rem;color:var(--text-muted)">${c.customer_company}</div>` : ''}
-      ${c.customer_orgnr ? `<div style="color:var(--text-muted)">Org.nr: ${c.customer_orgnr}</div>` : ''}
-      ${(c.customer_address||c.event_location) ? `<div style="color:var(--text-muted)">${c.customer_address||c.event_location}</div>` : ''}
-      ${c.customer_ref ? `<div style="color:var(--text-muted)">Er ref: ${c.customer_ref}</div>` : ''}
+      <div style="font-weight:600;color:var(--text)">${htmlEscape(c.customer_name||'—')} <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(${c.customer_type==='b2b'?'B2B':'Privatperson'})</span></div>
+      ${c.customer_company ? `<div style="font-size:0.8rem;color:var(--text-muted)">${htmlEscape(c.customer_company)}</div>` : ''}
+      ${c.customer_orgnr ? `<div style="color:var(--text-muted)">Org.nr: ${htmlEscape(c.customer_orgnr)}</div>` : ''}
+      ${(c.customer_address||c.event_location) ? `<div style="color:var(--text-muted)">${htmlEscape(c.customer_address||c.event_location)}</div>` : ''}
+      ${c.customer_ref ? `<div style="color:var(--text-muted)">Er ref: ${htmlEscape(c.customer_ref)}</div>` : ''}
       ${(!c.customer_address && !c.event_location)||(c.customer_type==='b2b'&&!c.customer_orgnr) ? '<a href="#" onclick="window.renderTab(\'info\');return false;" style="color:var(--amber);font-size:0.78rem">⚠ Komplettera i Info-fliken →</a>' : ''}
     </div>
 
@@ -6057,7 +6078,7 @@ function showInvoiceConfirmDialog(invoiceNum, totalIncl) {
           </div>
           <div style="display:flex;justify-content:space-between">
             <span style="color:rgba(255,255,255,0.5);font-size:0.85rem">Mottagare</span>
-            <span style="color:#f0eeff;font-size:0.85rem">${(currentCart.use_invoice_email && currentCart.invoice_email) ? currentCart.invoice_email : currentCart.customer_email}</span>
+            <span style="color:#f0eeff;font-size:0.85rem">${htmlEscape((currentCart.use_invoice_email && currentCart.invoice_email) ? currentCart.invoice_email : currentCart.customer_email)}</span>
           </div>
         </div>
         <div style="margin-bottom:1.25rem">
@@ -6262,7 +6283,7 @@ async function invLoadRecent() {
     // Hämta fler rader så vi kan visa 5 riktiga fakturor + alla reservationer
     const { ok, data } = await api('invoice-list?limit=50');
     if (!ok) {
-      recentEl.innerHTML = '<div style="color:var(--red)">Kunde inte ladda fakturor: ' + (data?.error || 'fel') + '</div>';
+      recentEl.innerHTML = '<div style="color:var(--red)">Kunde inte ladda fakturor: ' + htmlEscape(data?.error || 'fel') + '</div>';
       return;
     }
     const allRows = data?.invoices || [];
@@ -6314,7 +6335,7 @@ async function invLoadRecent() {
         <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
           <div style="flex:1;min-width:0">
             <div style="font-weight:700;color:var(--brand-lav);font-size:0.82rem">${r.invoice_number}</div>
-            <div style="color:var(--text-muted);font-size:0.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+            <div style="color:var(--text-muted);font-size:0.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${htmlEscape(name)}</div>
             <div style="color:var(--text-faint);font-size:0.68rem">${date} · ${total}${paid}</div>
           </div>
           <div style="display:flex;gap:4px;flex-shrink:0">
@@ -6706,7 +6727,7 @@ function renderIdPhotoAiBadge(result) {
     'id-kort': 'ID-kort',
     'pass': 'pass',
     'annat': 'okänd typ',
-  }[result.type] || (result.type || 'okänd');
+  }[result.type] || htmlEscape(result.type || 'okänd');
 
   let icon, color, bg, border, text;
   if (isId && conf >= 0.75 && (!result.issues || result.issues.length === 0)) {
@@ -6721,7 +6742,7 @@ function renderIdPhotoAiBadge(result) {
     bg     = 'rgba(251,191,36,0.08)';
     border = 'rgba(251,191,36,0.3)';
     const issueTxt = (result.issues && result.issues.length)
-      ? ` · ${result.issues.map(i => i.replace(/_/g, ' ')).join(', ')}`
+      ? ` · ${result.issues.map(i => htmlEscape(String(i).replace(/_/g, ' '))).join(', ')}`
       : '';
     text   = `<strong>AI: ${typeLabel} (${confPct}%)</strong>${issueTxt} — verifiera vid utlämning`;
   } else {
@@ -6729,7 +6750,7 @@ function renderIdPhotoAiBadge(result) {
     color  = '#fca5a5';
     bg     = 'rgba(239,68,68,0.08)';
     border = 'rgba(239,68,68,0.3)';
-    const reasonTxt = result.reason ? ` — ${String(result.reason).replace(/</g, '&lt;')}` : '';
+    const reasonTxt = result.reason ? ` — ${htmlEscape(result.reason)}` : '';
     text   = `<strong>AI: Verkar inte vara legitimation (${confPct}%)</strong>${reasonTxt}`;
   }
 
@@ -6743,8 +6764,8 @@ function openImageLightbox(src, title = '') {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;cursor:zoom-out;overscroll-behavior:contain;backdrop-filter:blur(4px)';
   overlay.innerHTML = `
     <div style="position:relative;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;align-items:center;gap:0.75rem;cursor:default" onclick="event.stopPropagation()">
-      ${title ? `<div style="color:rgba(255,255,255,0.85);font-size:0.9rem;font-weight:600;letter-spacing:0.02em;text-align:center">${title}</div>` : ''}
-      <img src="${src}" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:10px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.6)" />
+      ${title ? `<div style="color:rgba(255,255,255,0.85);font-size:0.9rem;font-weight:600;letter-spacing:0.02em;text-align:center">${htmlEscape(title)}</div>` : ''}
+      <img src="${safeImgSrc(src)}" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:10px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.6)" />
       <button style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:0.55rem 1.5rem;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:inherit" onclick="this.closest('[data-lightbox]')?.remove()">✕ Stäng</button>
     </div>
   `;
@@ -6883,7 +6904,7 @@ function adminOpenHandover(c) {
       icon: '📱',
       title: hasReminder ? 'Skicka påminnelse-SMS' : 'Skicka förberedelse-länk',
       desc: hasContact
-        ? `Kunden får ${hasPhone ? `SMS till ${c.customer_phone}` : `mail till ${c.customer_email}`}${hasPhone && hasEmail ? ' (mail som fallback)' : ''} med länk för att signera på sin egen telefon. När det är klart kan du motkvittera.`
+        ? `Kunden får ${hasPhone ? `SMS till ${htmlEscape(c.customer_phone)}` : `mail till ${htmlEscape(c.customer_email)}`}${hasPhone && hasEmail ? ' (mail som fallback)' : ''} med länk för att signera på sin egen telefon. När det är klart kan du motkvittera.`
         : 'Kunden saknar både telefon och e-post i ordern — fyll i kontaktuppgifter på info-fliken först.',
       btnLabel: hasReminder ? 'Skicka påminnelse' : 'Skicka länk nu',
       btnAction: 'sms',
@@ -6938,7 +6959,7 @@ function adminOpenHandover(c) {
       <div style="padding:1.1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2">🚚 Genomför ${isDelivery ? 'leverans' : 'utlämning'}</div>
-          <div style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:0.15rem">Order ${c.id} · ${c.customer_name || '–'}</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:0.15rem">Order ${c.id} · ${htmlEscape(c.customer_name || '–')}</div>
         </div>
         <button id="ho-close" style="background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.7);width:32px;height:32px;border-radius:8px;font-size:1.1rem;cursor:pointer">✕</button>
       </div>
@@ -7002,8 +7023,8 @@ function adminOpenHandover(c) {
           if (sent) {
             const via = data?.sms_sent ? 'SMS' : 'mail';
             const to  = data?.sms_sent ? (data?.to_phone || c.customer_phone) : (data?.to_email || c.customer_email);
-            const fromInfo = data?.sms_sent && data?.sms_from ? ` (avs: ${data.sms_from})` : '';
-            showResult(`✓ Förberedelse-länk skickad via <strong>${via}</strong> till ${to}${fromInfo}. När kunden signerat dyker statusen upp ovan automatiskt — välj sedan <em>Verifiera & motkvittera</em>.`, 'ok');
+            const fromInfo = data?.sms_sent && data?.sms_from ? ` (avs: ${htmlEscape(data.sms_from)})` : '';
+            showResult(`✓ Förberedelse-länk skickad via <strong>${via}</strong> till ${htmlEscape(to)}${fromInfo}. När kunden signerat dyker statusen upp ovan automatiskt — välj sedan <em>Verifiera & motkvittera</em>.`, 'ok');
             // Uppdatera state så vi inte måste stänga modalen
             currentCart.pickup_reminder_sent_at = new Date().toISOString();
             if (data?.sms_sent)        currentCart.prepared_via = 'sms';
@@ -7014,12 +7035,12 @@ function adminOpenHandover(c) {
             if (typeof renderTab === 'function') renderTab('info');
             btn.textContent = '✓ Skickat';
           } else {
-            showResult(`✗ Utskick misslyckades: ${data?.error || 'Okänt fel'}`, 'err');
+            showResult(`✗ Utskick misslyckades: ${htmlEscape(data?.error || 'Okänt fel')}`, 'err');
             btn.disabled = false;
             btn.textContent = origText;
           }
         } catch (err) {
-          showResult(`✗ Tekniskt fel: ${err.message}`, 'err');
+          showResult(`✗ Tekniskt fel: ${htmlEscape(err.message)}`, 'err');
           btn.disabled = false;
           btn.textContent = origText;
         }
@@ -7049,7 +7070,7 @@ function adminOpenPickupConfirm(c) {
   const timeStr = c.delivery_time || '13:00';
   const items = (c.items || []).filter(i => !i._note && i.name);
   const itemRows = items.slice(0, 12).map(i =>
-    `<tr><td style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem">${i.name.replace(/</g,'&lt;')}</td><td style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem;text-align:right;color:rgba(255,255,255,0.6)">×${i.qty || 1}</td></tr>`
+    `<tr><td style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem">${htmlEscape(i.name)}</td><td style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.85rem;text-align:right;color:rgba(255,255,255,0.6)">×${htmlEscape(i.qty || 1)}</td></tr>`
   ).join('');
   const moreCount = Math.max(0, items.length - 12);
 
@@ -7058,7 +7079,7 @@ function adminOpenPickupConfirm(c) {
       <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center">
         <div>
           <div style="font-size:0.7rem;color:rgba(196,181,244,0.6);text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Granska & Motkvittera</div>
-          <div style="font-size:1rem;font-weight:700;color:#c4b5f4;margin-top:2px">${c.customer_name || 'Okänd'} — ${c.id}</div>
+          <div style="font-size:1rem;font-weight:700;color:#c4b5f4;margin-top:2px">${htmlEscape(c.customer_name || 'Okänd')} — ${c.id}</div>
         </div>
         <button id="pc-close" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1rem">✕</button>
       </div>
@@ -7070,18 +7091,18 @@ function adminOpenPickupConfirm(c) {
 
         <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Kundens signatur</div>
         ${c.pickup_signature
-          ? `<img src="${c.pickup_signature}" style="width:100%;max-height:160px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">`
+          ? `<img src="${safeImgSrc(c.pickup_signature)}" style="width:100%;max-height:160px;object-fit:contain;background:#fff;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem;cursor:zoom-in" onclick="openImageLightbox(this.src,'Kundens signatur')" title="Klicka för att förstora">`
           : '<div style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-style:italic;margin-bottom:1rem">Saknas</div>'}
 
         <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Legitimation</div>
         ${c.pickup_id_photo
-          ? `<img src="${c.pickup_id_photo}" style="width:100%;max-height:200px;object-fit:contain;background:#0c0a24;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem;cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">`
+          ? `<img src="${safeImgSrc(c.pickup_id_photo)}" style="width:100%;max-height:200px;object-fit:contain;background:#0c0a24;border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:1rem;cursor:zoom-in" onclick="openImageLightbox(this.src,'Legitimation')" title="Klicka för att förstora">`
           : '<div style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-style:italic;margin-bottom:1rem">Inget legitimationsfoto uppladdat</div>'}
 
         <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Utlämning</div>
         <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.85rem;line-height:1.65">
-          📅 ${dateStr || 'Ej angivet'} kl ${timeStr}<br>
-          📍 ${(c.event_location || 'Grimstagatan 164, Vällingby').replace(/</g,'&lt;')}
+          📅 ${dateStr || 'Ej angivet'} kl ${htmlEscape(timeStr)}<br>
+          📍 ${htmlEscape(c.event_location || 'Grimstagatan 164, Vällingby')}
         </div>
 
         <div style="font-size:0.75rem;color:rgba(196,181,244,0.55);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:0.5rem">Utrustning att lämna ut (${items.length})</div>
@@ -7142,15 +7163,15 @@ function adminShowPickup(c) {
   if (!c.pickup_signature) { toast('Ingen kvittens sparad', 'error'); return; }
   const w = window.open('', '_blank', 'width=480,height=640');
   const photoHtml = c.pickup_id_photo
-    ? `<img src="${c.pickup_id_photo}" style="width:100%;border-radius:8px;margin-top:1rem">`
+    ? `<img src="${safeImgSrc(c.pickup_id_photo)}" style="width:100%;border-radius:8px;margin-top:1rem">`
     : '<p style="color:#888;font-size:0.8rem">Inget legitimationsfoto</p>';
   w.document.write(`<!DOCTYPE html><html><head><title>Kvittens ${c.id}</title>
     <meta charset="UTF-8"><style>body{background:#0c0a24;color:#fff;font-family:Arial;padding:1.5rem;}</style></head>
     <body>
     <h2 style="font-size:1.1rem;margin-bottom:0.25rem">Utlämningskvittens</h2>
-    <p style="color:#888;font-size:0.8rem;margin-bottom:1rem">${c.id} · ${c.customer_name} · ${new Date(c.pickup_signed_at).toLocaleString('sv-SE')}</p>
-    <img src="${c.pickup_signature}" style="width:100%;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:#fff">
-    <p style="color:#666;font-size:0.75rem;margin-top:0.5rem">IP: ${c.pickup_sign_ip || '–'}</p>
+    <p style="color:#888;font-size:0.8rem;margin-bottom:1rem">${c.id} · ${htmlEscape(c.customer_name)} · ${new Date(c.pickup_signed_at).toLocaleString('sv-SE')}</p>
+    <img src="${safeImgSrc(c.pickup_signature)}" style="width:100%;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:#fff">
+    <p style="color:#666;font-size:0.75rem;margin-top:0.5rem">IP: ${htmlEscape(c.pickup_sign_ip || '–')}</p>
     ${photoHtml}
     </body></html>`);
 }
@@ -7724,7 +7745,7 @@ function renderReminderPopup() {
 
   const log = reminderLog(c);
   const prevLine = log.length
-    ? `<div style="margin-top:8px;font-size:0.78rem;color:rgba(255,255,255,0.6)">Första påminnelsen skickades ${fmtTime(log[0].at)}${_remTplLabel(log[0].template) ? ` (${_remTplLabel(log[0].template)})` : ''}.</div>` : '';
+    ? `<div style="margin-top:8px;font-size:0.78rem;color:rgba(255,255,255,0.6)">Första påminnelsen skickades ${fmtTime(log[0].at)}${_remTplLabel(log[0].template) ? ` (${htmlEscape(_remTplLabel(log[0].template))})` : ''}.</div>` : '';
 
   const stepPill = due.step === 2 || due.final
     ? `<span style="background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:99px">Sista påminnelsen</span>`
@@ -7996,7 +8017,7 @@ function payRemRender() {
     <div style="background:rgba(15,12,40,0.99);border:1px solid rgba(196,181,244,0.22);border-radius:14px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.55);max-height:92vh;overflow:auto">
       <div style="padding:18px 20px 4px">
         <div style="font-size:1.15rem;font-weight:700;color:#fff">Påminn om betalning — välj nivå</div>
-        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:5px">Faktura <b style="color:var(--brand-lav)">${c.invoice_number}</b> · ${dTxt} · ${histTxt}<br>Skickas till ${toEmail}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:5px">Faktura <b style="color:var(--brand-lav)">${c.invoice_number}</b> · ${dTxt} · ${histTxt}<br>Skickas till ${htmlEscape(toEmail)}</div>
       </div>
       <div style="padding:12px 20px 4px;display:grid;grid-template-columns:1fr 1fr;gap:9px">${cards}</div>
       <div style="padding:10px 20px 18px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);margin-top:12px">
@@ -8262,9 +8283,9 @@ function quoteRenderTable() {
 
   tbody.innerHTML = quoteItems.map((item, idx) => {
     const nameCell = item.custom
-      ? `<input class="prod-input quote-custom-name" value="${item.name.replace(/"/g,'&quot;')}" placeholder="Ange benämning..." onchange="quoteEditName(${idx},this.value)"
+      ? `<input class="prod-input quote-custom-name" value="${htmlEscape(item.name)}" placeholder="Ange benämning..." onchange="quoteEditName(${idx},this.value)"
            style="width:100%;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid rgba(196,181,244,0.3);padding:0.2rem 0.5rem;">`
-      : `<span style="font-size:0.82rem">${item.name}</span>`;
+      : `<span style="font-size:0.82rem">${htmlEscape(item.name)}</span>`;
 
     // Separator-rad före första tjänst (om det finns hårdvara före)
     const separator = (idx === firstSvcIdx && firstSvcIdx > 0)
@@ -8281,7 +8302,7 @@ function quoteRenderTable() {
       <td style="text-align:center">
         <div style="display:flex;align-items:center;justify-content:center;gap:3px">
           <button class="qty-btn" onclick="quoteQtyIdx(${idx},-1)" style="width:22px;height:22px;font-size:0.9rem">−</button>
-          <span style="min-width:24px;text-align:center;font-size:0.82rem">${item.qty}</span>
+          <span style="min-width:24px;text-align:center;font-size:0.82rem">${htmlEscape(item.qty)}</span>
           <button class="qty-btn" onclick="quoteQtyIdx(${idx},1)" style="width:22px;height:22px;font-size:0.9rem">＋</button>
         </div>
       </td>
@@ -8295,7 +8316,7 @@ function quoteRenderTable() {
         : `<span title="Engångspost — påverkas inte av hyrestiden" style="color:var(--text-faint);font-size:0.82rem">—</span>`}
       </td>
       <td style="text-align:right">
-        <input class="prod-input" value="${isDayPriced(item) && (item.days||1) > 1 ? (Number(item.unit_price ?? item.price)||0) : item.price}"
+        <input class="prod-input" value="${htmlEscape(isDayPriced(item) && (item.days||1) > 1 ? (Number(item.unit_price ?? item.price)||0) : item.price)}"
           onchange="${isDayPriced(item) && (item.days||1) > 1 ? `quoteEditUnitPrice(${idx},this.value)` : `quoteEditPrice(${idx},this.value)`}"
           ${isDayPriced(item) && (item.days||1) > 1 ? 'title="À-pris per dygn — periodpriset räknas fram"' : ''}
           style="width:80px;text-align:right;font-size:0.82rem;background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border-radius:5px;border:1px solid transparent;padding:0.2rem 0.4rem;">
@@ -8395,7 +8416,7 @@ function quoteDayPanelHTML(item, idx) {
     <div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(196,181,244,0.55);font-weight:600;font-family:'Space Grotesk',sans-serif;margin-bottom:5px">Rabatt per dag — denna rad</div>
     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px">${dagar}</div>
     <div style="font-family:ui-monospace,Menlo,monospace;font-size:0.64rem;color:var(--text-muted);background:rgba(0,0,0,0.28);border-radius:5px;padding:5px 8px;line-height:1.55">
-      ${fmt(unit)} × ${factor.toFixed(2).replace('.',',')} = <b style="color:#e2dcfb">${fmt(nu)} kr</b> per enhet · ${fmt(nu)} × ${item.qty} st = <b style="color:#e2dcfb">${fmt(nu * item.qty)} kr</b>
+      ${fmt(unit)} × ${factor.toFixed(2).replace('.',',')} = <b style="color:#e2dcfb">${fmt(nu)} kr</b> per enhet · ${fmt(nu)} × ${htmlEscape(item.qty)} st = <b style="color:#e2dcfb">${fmt(nu * item.qty)} kr</b>
     </div>
     ${ladder ? `<button type="button" onclick="quoteResetDayLadder(${idx})" style="margin-top:5px;background:none;border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:0.6rem;color:var(--text-muted);cursor:pointer;font-family:'Space Grotesk',sans-serif">↺ Tillbaka till standardstegen</button>` : ''}
   </div>`;
@@ -8747,7 +8768,7 @@ function calRenderUndatedWarning() {
   if (!warnEl) return;
   if (undated.length) {
     const links = undated.map(c =>
-      `<a href="#" onclick="event.preventDefault(); openDetail('${c.id}')" style="color:#fde68a;text-decoration:underline;font-weight:600">${c.customer_name || c.id}</a>`
+      `<a href="#" onclick="event.preventDefault(); openDetail('${c.id}')" style="color:#fde68a;text-decoration:underline;font-weight:600">${htmlEscape(c.customer_name || c.id)}</a>`
     ).join(', ');
     warnEl.innerHTML =
       `⚠ <strong>${undated.length} bekräftad${undated.length === 1 ? '' : 'e'} order utan datum</strong> visas inte i kalendern. ` +
@@ -8984,7 +9005,7 @@ function renderCalendarMonth() {
 
       let html = '';
       if (isStart) {
-        html += `<span class="cal-band-time">${b.pickupTime}</span>`;
+        html += `<span class="cal-band-time">${htmlEscape(b.pickupTime)}</span>`;
         html += `<span class="cal-band-name">${escapeHtml(customerName)}</span>`;
       } else if (isWeekStart) {
         // Forts. från föregående vecka
@@ -8993,7 +9014,7 @@ function renderCalendarMonth() {
       }
 
       if (isEnd && !isStart) {
-        html += `<span class="cal-band-return">↩ ${b.returnTime}</span>`;
+        html += `<span class="cal-band-return">↩ ${htmlEscape(b.returnTime)}</span>`;
       } else if (isStart && isEnd && totalKr) {
         // Single-day: visa totalpris istället för returpil
         html += `<span class="cal-band-total">${totalKr}</span>`;
@@ -9127,7 +9148,7 @@ function renderCalendarWeek() {
         const loc = c.event_location ? `📍 ${escapeHtml(c.event_location)}` : '';
         const meta = [loc, totalKr].filter(Boolean).join(' · ');
         return `<div class="calw-card ${sCls}${passive ? ' cal-passive' : ''}" title="${escapeHtml(calBookingTooltip(b))}" onclick="openDetail('${c.id}')">
-          <div class="cc-top"><span class="cc-time">${timeTag}</span>${tag ? `<span class="cc-tag">${tag}</span>` : ''}</div>
+          <div class="cc-top"><span class="cc-time">${htmlEscape(timeTag)}</span>${tag ? `<span class="cc-tag">${tag}</span>` : ''}</div>
           <div class="cc-name">${name}</div>
           ${meta ? `<div class="cc-meta">${meta}</div>` : ''}
         </div>`;
@@ -9195,7 +9216,7 @@ function renderCalendarDay() {
           <div class="cd-plabel">Utrustning att plocka (${products.length} st)</div>
           <ul>${products.map(p => {
             const q = p.qty || p.quantity || 1;
-            return `<li><span>${escapeHtml(p.name)}</span><span class="cd-pqty">×${q}</span></li>`;
+            return `<li><span>${escapeHtml(p.name)}</span><span class="cd-pqty">×${htmlEscape(q)}</span></li>`;
           }).join('')}</ul>
         </div>`;
       }
@@ -9224,7 +9245,7 @@ function renderCalendarDay() {
           ${c.customer_company ? `<span class="cd-company">${escapeHtml(c.customer_company)}</span>` : ''}
         </div>
         <div class="cd-grid">
-          <span class="cd-field">${movement}</span>
+          <span class="cd-field">${htmlEscape(movement)}</span>
           ${loc ? `<span class="cd-field">📍 <b>${escapeHtml(loc)}</b></span>` : ''}
           ${totalKr ? `<span class="cd-field">💰 <b>${totalKr}</b> exkl moms</span>` : ''}
           ${c.customer_phone ? `<span class="cd-field">📞 ${escapeHtml(c.customer_phone)}</span>` : ''}
@@ -9447,12 +9468,12 @@ function _activityMessageRow(m) {
          onmouseover="this.style.background='rgba(196,181,244,.06)'"
          onmouseout="this.style.background='transparent'">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;margin-bottom:3px">
-        <div style="font-weight:600;font-size:.88rem;color:#f0eeff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${unreadDot}${cust.replace(/</g,'&lt;')}</div>
+        <div style="font-weight:600;font-size:.88rem;color:#f0eeff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${unreadDot}${htmlEscape(cust)}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.45);white-space:nowrap">${timeStr}</div>
       </div>
       <div style="display:flex;gap:.5rem;font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.4">
         <span style="color:${senderColor};font-weight:500;white-space:nowrap">${senderLabel}:</span>
-        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${snippet.replace(/</g,'&lt;')}${snippetExtra}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${htmlEscape(snippet)}${snippetExtra}</span>
       </div>
       <div style="font-size:.66rem;color:rgba(255,255,255,.3);margin-top:3px;font-family:monospace">${cartIdShort}</div>
     </div>`;
@@ -9504,12 +9525,12 @@ function _activityEventRow(e) {
          onmouseover="this.style.background='rgba(196,181,244,.06)'"
          onmouseout="this.style.background='transparent'">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;margin-bottom:3px">
-        <div style="font-weight:600;font-size:.88rem;color:#f0eeff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${cust.replace(/</g,'&lt;')}</div>
+        <div style="font-weight:600;font-size:.88rem;color:#f0eeff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${htmlEscape(cust)}</div>
         <div style="font-size:.7rem;color:rgba(255,255,255,.45);white-space:nowrap">${timeStr}</div>
       </div>
       <div style="display:flex;gap:.5rem;font-size:.78rem;color:${meta.color};line-height:1.4;align-items:center;flex-wrap:wrap">
-        <span style="white-space:nowrap">${meta.icon} ${meta.label}</span>
-        ${svenBadges || (detail ? `<span style="color:rgba(255,255,255,.5);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${String(detail).replace(/</g,'&lt;')}</span>` : '')}
+        <span style="white-space:nowrap">${meta.icon} ${htmlEscape(meta.label)}</span>
+        ${svenBadges || (detail ? `<span style="color:rgba(255,255,255,.5);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${htmlEscape(detail)}</span>` : '')}
       </div>
       <div style="font-size:.66rem;color:rgba(255,255,255,.3);margin-top:3px;font-family:monospace">${cartIdShort} · ${actorLabel}</div>
     </div>`;
@@ -9788,7 +9809,7 @@ function quoteSearchInput(query) {
   }).slice(0, 12);
 
   if (!hits.length) {
-    resBox.innerHTML = `<div style="padding:0.7rem 0.85rem;color:rgba(255,255,255,0.5);font-size:0.82rem">Inga träffar för "${q.replace(/</g,'&lt;')}"</div>`;
+    resBox.innerHTML = `<div style="padding:0.7rem 0.85rem;color:rgba(255,255,255,0.5);font-size:0.82rem">Inga träffar för "${htmlEscape(q)}"</div>`;
     resBox.style.display = 'block';
     return;
   }
@@ -10317,7 +10338,7 @@ function adminFraktConfigOpen() {
   // Bygg select
   const sel = document.getElementById('frakt-cfg-type');
   sel.innerHTML = opts.map(o =>
-    `<option value="${o.key}" data-artno="${o.artno}" data-label="${o.label.replace(/"/g,'&quot;')}" data-pris="${o.pris}" data-enkel-artno="${o.enkel?.artno || ''}" data-enkel-label="${(o.enkel?.label || '').replace(/"/g,'&quot;')}" data-enkel-pris="${o.enkel?.pris || ''}" ${o.key === recKey ? 'selected' : ''}>${o.label}${o.undantag ? ' · undantag' : ''} — ${o.pris.toLocaleString('sv')} kr</option>`
+    `<option value="${o.key}" data-artno="${o.artno}" data-label="${o.label.replace(/"/g,'&quot;')}" data-pris="${o.pris}" data-enkel-artno="${o.enkel?.artno || ''}" data-enkel-label="${htmlEscape(o.enkel?.label)}" data-enkel-pris="${o.enkel?.pris || ''}" ${o.key === recKey ? 'selected' : ''}>${o.label}${o.undantag ? ' · undantag' : ''} — ${o.pris.toLocaleString('sv')} kr</option>`
   ).join('');
 
   panel.style.display = 'block';
@@ -10419,7 +10440,7 @@ function adminMonteringConfigCalc() {
     html = '<span style="color:rgba(255,255,255,0.5)">Offerten har inga produktrader ännu.</span>';
   } else {
     const rows = r.rader.filter(x => x.min > 0).map(x =>
-      `<div style="display:flex;justify-content:space-between;gap:0.5rem"><span>${esc(nameOf(x.artno))} × ${x.qty}${x.b > 1 ? ' · ' + x.b + ' tekn.' : ''}${x.s === 'fast' ? ' · fast' : ''}</span><span>${fm(x.min)}</span></div>`);
+      `<div style="display:flex;justify-content:space-between;gap:0.5rem"><span>${esc(nameOf(x.artno))} × ${esc(x.qty)}${x.b > 1 ? ' · ' + x.b + ' tekn.' : ''}${x.s === 'fast' ? ' · fast' : ''}</span><span>${fm(x.min)}</span></div>`);
     if (r.pott.rader.length) {
       const n = r.pott.rader.length;
       rows.push(`<div style="display:flex;justify-content:space-between;gap:0.5rem"><span title="${esc(r.pott.rader.map(x => nameOf(x.artno) + ' × ' + x.qty).join(', '))}">Småtillbehör (${n} ${n === 1 ? 'rad' : 'rader'} samlade)</span><span>${fm(r.pott.min)}</span></div>`);

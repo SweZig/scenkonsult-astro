@@ -14,7 +14,8 @@ const t=(n,f,v)=>{const ok=JSON.stringify(f)===JSON.stringify(v);ok?pass++:fail+
 // ── 1. STRUKTURKONTROLL mot källkoden ──────────────────────────
 console.log('KÄLLKOD — prisfältets kontrakt');
 const harUnitEdit = src.includes("'unit_price_edit' : 'price'");
-const harDoldPris = /data-field="price"[^>]*value="\$\{price\}"/.test(src)
+// Priset får vara escapat (htmlEscape) — kontraktet gäller fältet, inte formateringen.
+const harDoldPris = /data-field="price"[^>]*value="\$\{(?:htmlEscape\()?price\)?\}"/.test(src)
                  || src.includes('data-field="price" data-idx="${idx}" value="${price}"');
 t('flerdygnsraden byter till unit_price_edit', harUnitEdit, true);
 t('…och har ett DOLT data-field="price"', harDoldPris, true);
