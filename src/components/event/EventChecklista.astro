@@ -1,0 +1,43 @@
+---
+/** Checklista på "För ditt event"-sidorna: rubrik och Fråga Sven till vänster, grupper till höger. */
+interface Props { eyebrow?: string; rubrik: string; lead?: string; svenKnapp?: boolean; grupper: Array<{ fas: string; items: string[]; href?: string; lank?: string }> }
+const { eyebrow, rubrik, lead, grupper, svenKnapp = true } = Astro.props;
+---
+<section class="ec-sektion">
+  <div class="ec-ram">
+    <div>
+      {eyebrow && <p class="sk-eyebrow">{eyebrow}</p>}
+      <h2 class="sk-h2">{rubrik}</h2>
+      {lead && <p class="ec-lead">{lead}</p>}
+      {svenKnapp && <button type="button" class="sk-knapp" data-sven-oppna>Fråga Sven</button>}
+    </div>
+    <div class="ec-grupper" style={`--ec-n:${Math.min(grupper.length, 3)}`}>
+      {grupper.map((g) => (
+        <div>
+          <p class="ec-fas">{g.fas}</p>
+          {g.items.map((i) => <p class="ec-rad"><span aria-hidden="true">✓</span>{i}</p>)}
+          {g.href && <a href={g.href} class="ec-lank">{g.lank ?? 'Se sortiment'} →</a>}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .ec-sektion { max-width: 80rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) clamp(3rem, 6vw, 5rem); }
+  .ec-ram { border-radius: 22px; border: 1px solid rgba(255,255,255,0.08); padding: clamp(1.5rem, 4vw, 2.5rem); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); }
+  .ec-lead { margin: 0.9rem 0 1.4rem; color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .ec-grupper { display: grid; grid-template-columns: repeat(var(--ec-n), minmax(0, 1fr)); gap: 1.75rem 1.75rem; }
+  .ec-fas { margin: 0 0 0.6rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #c4b5f4; }
+  .ec-rad { margin: 0; padding: 0.55rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.95rem; color: rgba(255,255,255,0.8); display: flex; gap: 0.6rem; }
+  .ec-rad span { color: #c4b5f4; }
+  .ec-lank { display: inline-block; margin-top: 0.7rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.875rem; font-weight: 700; color: #c4b5f4; text-decoration: none; }
+  .ec-lank:hover { color: #e2dcfb; }
+  @media (max-width: 900px) { .ec-ram { grid-template-columns: minmax(0, 1fr); } .ec-grupper { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<script>
+  document.querySelectorAll('[data-sven-oppna]').forEach((b) => {
+    if ((b as HTMLElement).dataset.svenKopplad) return;
+    (b as HTMLElement).dataset.svenKopplad = '1';
+    b.addEventListener('click', () => document.getElementById('sven-toggle')?.click());
+  });
+</script>

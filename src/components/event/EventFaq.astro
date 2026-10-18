@@ -1,0 +1,39 @@
+---
+/** Vanliga frågor (design 2026): rubrik och Fråga Sven till vänster, utfällbar lista till höger. */
+interface Props { eyebrow?: string; rubrik: string; faq: Array<{ q: string; a: string }>; extra?: string }
+const { eyebrow = 'Vanliga frågor', rubrik, faq, extra } = Astro.props;
+---
+<section class="ef-wrap">
+  <div>
+    <p class="sk-eyebrow">{eyebrow}</p>
+    <h2 class="sk-h2">{rubrik}</h2>
+    <p class="ef-lead">Hittar ni inte svaret? Fråga Sven, vår digitala intendent, eller ring oss.</p>
+    <button type="button" class="sk-knapp" data-sven-oppna>Fråga Sven</button>
+  </div>
+  <div class="ef-lista">
+    {faq.map((f) => (
+      <details class="bg-brand-navy">
+        <summary class="flex items-center justify-between cursor-pointer list-none">{f.q}<span aria-hidden="true">+</span></summary>
+        <div>{f.a}</div>
+      </details>
+    ))}
+    {extra && <p class="ef-extra" set:html={extra} />}
+  </div>
+</section>
+<style>
+  .ef-wrap { max-width: 80rem; margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start; }
+  .ef-lead { margin: 1rem 0 1.4rem; color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .ef-lista { border-top: 1px solid rgba(255,255,255,0.09); }
+  .ef-lista details[open] > summary > span { transform: rotate(45deg); }
+  .ef-lista summary > span { transition: transform 0.2s; }
+  .ef-extra { margin: 1.25rem 0 0; font-size: 0.85rem; line-height: 1.6; color: rgba(255,255,255,0.55); }
+  .ef-extra :global(a) { color: #c4b5f4; }
+  @media (max-width: 900px) { .ef-wrap { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<script>
+  document.querySelectorAll('[data-sven-oppna]').forEach((b) => {
+    if ((b as HTMLElement).dataset.svenKopplad) return;
+    (b as HTMLElement).dataset.svenKopplad = '1';
+    b.addEventListener('click', () => document.getElementById('sven-toggle')?.click());
+  });
+</script>

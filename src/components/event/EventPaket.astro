@@ -1,0 +1,110 @@
+---
+/**
+ * Paket i tre nivåer på "För ditt event"-sidorna. Paketen räknas av
+ * utils/paket.ts (priser ur datafilerna via artno). "Lägg paketet i
+ * varukorgen" lägger varje rad som en vanlig artikel i korgen.
+ */
+import { getProduct, fmtKr, type Paket } from '../../utils/paket';
+import { produktLank } from '../../utils/produktLank';
+/** offertKort: ett tredje kort utan pris för det som alltid offereras (t.ex. stor festival). */
+interface Props { id?: string; eyebrow?: string; rubrik: string; lead?: string; paket: Paket[]; notis?: string; offertKort?: { namn: string; gaster: string; beskrivning?: string; rader: string[] } }
+const { id = 'paket', eyebrow, rubrik, lead, paket, notis, offertKort } = Astro.props;
+// Scenpaket byggs av moduler, ben och trappor i scenkonfiguratorn — de kan inte
+// läggas som en rad. Paketets scen läggs därför till på scensidan.
+const arScen = (a: string) => a.startsWith('SK-SCN-');
+const KAT: Record<string, string> = { LJD: 'Ljud', LJS: 'Ljus', SCN: 'Scen', BLD: 'Bild', EL: 'El', DJ: 'DJ' };
+const kat = (a: string) => KAT[a.split('-')[1]] ?? 'Produkt';
+const inkl = (n: number) => Math.round(n * 1.25);
+const kort = paket.map((pk) => ({
+  ...pk,
+  scen: pk.rader.find((r) => arScen(r.artno)),
+  korg: JSON.stringify(pk.rader.filter((r) => !arScen(r.artno)).map((r) => {
+    const p = getProduct(r.artno);
+    return { id: r.artno, artno: '', name: p.name, price: p.price, priceNote: p.priceNote ?? '/dygn', category: kat(r.artno), image: p.image ?? '', bulky: !!p.bulky, forceLeverans: p.forceLeverans || undefined, monteringMin: p.monteringMin ?? null, qty: r.qty };
+  })),
+}));
+---
+<section id={id} class="ep-sektion">
+  <div class="ep-rubrik">
+    <div>
+      {eyebrow && <p class="sk-eyebrow">{eyebrow}</p>}
+      <h2 class="sk-h2">{rubrik}</h2>
+    </div>
+    {lead && <p class="ep-lead">{lead}</p>}
+  </div>
+  <div class="ep-grid" style={`--ep-n:${Math.min(kort.length + (offertKort ? 1 : 0), 3)}`}>
+    {kort.map((pk) => (
+      <article class:list={['ep-kort', { 'ep-vald': pk.featured }]}>
+        {pk.featured && <span class="ep-pop">Populärast</span>}
+        <span class="ep-gaster">{pk.gaster}</span>
+        <h3>{pk.namn}</h3>
+        {pk.beskrivning && <p class="ep-besk">{pk.beskrivning}</p>}
+        <ul>
+          {pk.rader.map((r) => (
+            <li><span><span class="ep-bock">✓</span> {r.qty > 1 && <b>{r.qty}× </b>}{r.label}</span><span class="ep-radpris"><span data-exkl={r.radPrice}>{fmtKr(r.radPrice)}</span> kr</span></li>
+          ))}
+        </ul>
+        <div class="ep-summa"><span>Summa per dygn</span><b><span class="sk-price-excl">{fmtKr(pk.summa)} kr</span><span class="sk-price-incl hidden">{fmtKr(inkl(pk.summa))} kr</span></b></div>
+        <p class="ep-moms"><span class="sk-price-excl">exkl.</span><span class="sk-price-incl hidden">inkl.</span> moms · leverans och montering tillkommer</p>
+        <button type="button" class:list={['ep-korg', { 'ep-korg-p': pk.featured }]} data-ep-korg={pk.korg}>Lägg paketet i varukorgen</button>
+        {pk.scen && <a href={produktLank(pk.scen.artno) ?? '/vara-tjanster/hyra-scen/'} class="ep-scen">Scenen väljs i scenkonfiguratorn — lägg till den där →</a>}
+        <a href="/varukorg/" class="ep-offert">eller begär offert och justera →</a>
+      </article>
+    ))}
+    {offertKort && (
+      <article class="ep-kort">
+        <span class="ep-gaster">{offertKort.gaster}</span>
+        <h3>{offertKort.namn}</h3>
+        {offertKort.beskrivning && <p class="ep-besk">{offertKort.beskrivning}</p>}
+        <ul>{offertKort.rader.map((r) => <li><span><span class="ep-bock">✓</span> {r}</span></li>)}</ul>
+        <div class="ep-summa"><span>Pris</span><b>Offert</b></div>
+        <p class="ep-moms">Vi dimensionerar riggen efter plats och publik</p>
+        <a href="/varukorg/" class="ep-korg" style="text-align:center;text-decoration:none">Begär offert</a>
+      </article>
+    )}
+  </div>
+  {notis && <p class="ep-notis">{notis}</p>}
+</section>
+<style>
+  .ep-sektion { max-width: 80rem; margin: 0 auto; padding: clamp(3rem, 6vw, 5.5rem) clamp(1rem, 3vw, 2rem) clamp(2rem, 4vw, 3.5rem); scroll-margin-top: calc(var(--nav-offset, 166px) + 1rem); }
+  .ep-rubrik { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2.25rem; }
+  .ep-lead { margin: 0; max-width: 420px; color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .ep-grid { display: grid; grid-template-columns: repeat(var(--ep-n), minmax(0, 1fr)); gap: 1.1rem; align-items: stretch; }
+  .ep-kort { position: relative; border-radius: 22px; background: #14113a; border: 1px solid rgba(255,255,255,0.08); padding: 1.9rem; display: flex; flex-direction: column; }
+  .ep-vald { background: #1e1850; border-color: #c4b5f4; }
+  .ep-pop { position: absolute; top: -12px; left: 1.9rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.3rem 0.65rem; border-radius: 999px; background: #c4b5f4; color: #0c0a24; }
+  .ep-gaster { align-self: flex-start; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 999px; background: rgba(196,181,244,0.14); color: #c4b5f4; }
+  .ep-kort h3 { margin: 0.9rem 0 0.5rem; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 2rem; line-height: 1.05; color: #fff; }
+  .ep-besk { margin: 0 0 1.1rem; font-size: 0.95rem; line-height: 1.5; color: rgba(255,255,255,0.72); }
+  .ep-kort ul { list-style: none; margin: 0 0 1.25rem; padding: 1rem 0 0; border-top: 1px solid rgba(255,255,255,0.08); display: grid; gap: 0.5rem; flex: 1; align-content: start; }
+  .ep-kort li { display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.875rem; color: rgba(255,255,255,0.8); line-height: 1.4; }
+  .ep-kort li b { color: #c4b5f4; }
+  .ep-bock { color: #c4b5f4; }
+  .ep-radpris { color: rgba(255,255,255,0.45); white-space: nowrap; }
+  .ep-summa { padding-top: 1rem; border-top: 1px solid rgba(196,181,244,0.2); display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+  .ep-summa > span { font-size: 0.875rem; color: rgba(255,255,255,0.55); }
+  .ep-summa b { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 2.1rem; color: #c4b5f4; white-space: nowrap; }
+  .ep-moms { margin: 0.25rem 0 1.1rem; font-size: 0.75rem; color: rgba(255,255,255,0.45); text-align: right; }
+  .ep-korg { display: block; width: 100%; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem; padding: 0.85rem; border-radius: 999px; border: 1px solid #c4b5f4; background: transparent; color: #c4b5f4; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .ep-korg:hover, .ep-korg-p { background: #c4b5f4; color: #0c0a24; }
+  .ep-korg-p:hover { background: #e2dcfb; }
+  .ep-korg.is-tillagd { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+  .ep-scen { display: block; margin-top: 0.65rem; font-size: 0.8rem; line-height: 1.4; color: rgba(255,255,255,0.6); text-align: center; text-decoration: underline; text-decoration-color: rgba(196,181,244,0.4); text-underline-offset: 3px; }
+  .ep-scen:hover { color: #c4b5f4; }
+  .ep-offert { display: block; text-align: center; margin-top: 0.65rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.875rem; font-weight: 600; color: #c4b5f4; text-decoration: none; }
+  .ep-offert:hover { color: #e2dcfb; }
+  .ep-notis { margin: 1.5rem 0 0; max-width: 720px; font-size: 0.8rem; line-height: 1.6; color: rgba(255,255,255,0.45); }
+  @media (max-width: 1000px) { .ep-grid { grid-template-columns: minmax(0, 1fr); max-width: 560px; } }
+</style>
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-ep-korg]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const cart = (window as any).skCart;
+      if (!cart) return;
+      try { (JSON.parse(b.dataset.epKorg || '[]') as any[]).forEach((item) => cart.add(item)); } catch { return; }
+      const text = b.textContent;
+      b.classList.add('is-tillagd'); b.textContent = 'Tillagt i varukorgen ✓';
+      setTimeout(() => { b.classList.remove('is-tillagd'); b.textContent = text; }, 1800);
+    });
+  });
+</script>

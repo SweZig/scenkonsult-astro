@@ -1,7 +1,12 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
-import ProductCard from '../../../components/ProductCard.astro';
+import EventPaket from '../../../components/event/EventPaket.astro';
+import EventChecklista from '../../../components/event/EventChecklista.astro';
+import ProduktRader from '../../../components/event/ProduktRader.astro';
+import EventFaq from '../../../components/event/EventFaq.astro';
+import SlutRuta from '../../../components/event/SlutRuta.astro';
+import TreSteg from '../../../components/TreSteg.astro';
 import ljudData from '../../../data/ljud.json';
 import { buildPaket, getProduct, fmtKr } from '../../../utils/paket';
 import { helg, vardag } from '../../../utils/hours';
@@ -24,7 +29,20 @@ const flakPaket = buildPaket({
   ],
 });
 const elgenerator = getProduct('SK-EL-0012'); // Elgenerator 2200W (tillval)
-const flakMedElverk = flakPaket.franPris + elgenerator.price;
+// Samma paket med elverk — för flak utan 230 V-uttag
+const flakElverk = buildPaket({
+  namn: 'Med elverk',
+  gaster: '20–40 studenter',
+  beskrivning: 'Samma paket plus elgenerator — för flak utan eget 230 V-uttag.',
+  rader: [
+    { artno: 'SK-LJD-LIV-0002', label: 'Live Medium — 2×15″ sub + 2×12″' },
+    { artno: 'SK-LJD-MIX-0003', label: 'LD Vibz8 — 4+1 kanaler' },
+    { artno: 'SK-LJD-MIK-0006', label: '1× handmikrofon' },
+    { artno: 'SK-LJD-MIK-0007', label: 'Bluetooth-mottagare + AUX' },
+    { artno: 'SK-EL-0012', label: elgenerator.name },
+  ],
+});
+const flakVal = [{ ...flakPaket, featured: true, beskrivning: 'Populäraste kombinationen för ett flak — kopplas till flakets 230 V-uttag.' }, flakElverk];
 
 const faq = [
   {
@@ -93,6 +111,8 @@ const pageSchema = {
 >
 
   <ModernHero
+    bild={{ src: "/images/tjanster/plugg_ljud_portabel.webp", w: 800, h: 1000, alt: "Batteridriven högtalare på stativ med mikrofon" }}
+    knappar={[{ label: "Se flakpaketen", href: "#paket" }, { label: "Begär offert", href: "/varukorg/" }]}
     eyebrow="För ditt event · Studentflak"
     h1="Ljud till studentflaket i"
     h1Accent="Stockholm"
@@ -110,174 +130,45 @@ const pageSchema = {
     ]}
   />
 
-  <!-- Vad ni behöver -->
-  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1000px; margin:0 auto;">
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Det ni behöver</p>
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:white; margin:0 0 3rem; max-width:640px;">Enkel checklista för ett bra flak</h2>
+  <EventPaket
+    eyebrow="Studentflak-paketet"
+    rubrik="Ett paket — med eller utan elverk"
+    lead="Lägg paketet i varukorgen som det är, eller begär offert så justerar vi. Boka tidigt — maj–juni bokas snabbt."
+    paket={flakVal}
+    notis={`Priserna är summan av paketets artiklar per dygn. Helg = betala bara 1 dygn fredag–måndag, förutsatt tillgänglighet. Hämtning i Vällingby även ${helg()}. Leverans tillkommer.`}
+  />
 
-      <div class="g2c">
-        <div>
-          {[
-            { must: true, item: "PA-system med subbasen", desc: "Minst 2×12\" + 1 sub för riktigt tryck" },
-            { must: true, item: "Trådlös mikrofon", desc: "För talen, sången och uppror på flaket" },
-            { must: true, item: "Bluetooth-anslutning", desc: "Spela direkt från Spotify via mobil" },
-            { must: false, item: "Extra subbasen", desc: "Om ni vill ha rejält basstryck" },
-            { must: false, item: "Discoljus", desc: "Rökmaskin + laser för kvällsfinalen" },
-            { must: false, item: "Tillsatsstativ", desc: "Placera högtalarna på rätt höjd" }
-          ].map(row => (
-            <div style="display:flex; align-items:flex-start; gap:0.75rem; padding:0.75rem 0; border-bottom:1px solid rgba(255,255,255,0.06);">
-              <span style={`font-size:0.75rem; margin-top:0.2rem; flex-shrink:0; color:${row.must ? '#86efac' : 'rgba(255,255,255,0.55)'}`}>{row.must ? '✓' : '+'}</span>
-              <div>
-                <div style={`font-family:'Space Grotesk',sans-serif; font-size:0.9rem; font-weight:600; color:${row.must ? 'white' : 'rgba(255,255,255,0.5)'};`}>{row.item}</div>
-                <div style="color:rgba(255,255,255,0.60); font-size:0.8rem;">{row.desc}</div>
-              </div>
-            </div>
-          ))}
-          <p style="color:rgba(255,255,255,0.60); font-size:0.75rem; margin-top:0.75rem;">✓ = Måste ha &nbsp;&nbsp; + = Kul att ha</p>
-        </div>
+  <EventChecklista
+    eyebrow="Det ni behöver"
+    rubrik="Enkel checklista för ett bra flak"
+    lead="Det första är måste, det andra är kul att ha. Osäkra? Fråga Sven."
+    grupper={[
+      { fas: "Måste ha", items: ["PA med subbas — minst 2×12″ + 1 sub", "Trådlös mikrofon för tal och sång", "Bluetooth — spela direkt från mobilen"] },
+      { fas: "Kul att ha", items: ["Extra subbas för rejält basstryck", "Discoljus, rök och laser till kvällen", "Stativ för högtalarna på rätt höjd"] },
+    ]}
+  />
 
-        <div>
-          <div style="background:#1e1850; border:1px solid rgba(196,181,244,0.2); border-radius:16px; padding:2rem;">
-            <h3 style="font-family:'DM Serif Display',serif; font-size:1.35rem; color:white; margin:0 0 0.5rem;">{flakPaket.namn}</h3>
-            <p style="color:rgba(255,255,255,0.60); font-size:0.85rem; margin:0 0 1.25rem;">Populäraste kombinationen för ett flak med {flakPaket.gaster}:</p>
-            {flakPaket.rader.map(r => (
-              <div style="display:flex; justify-content:space-between; align-items:baseline; gap:0.75rem; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.07);">
-                <span style="color:rgba(255,255,255,0.72); font-size:0.85rem;">{r.label}</span>
-                <span style="color:rgba(255,255,255,0.45); font-size:0.8rem; white-space:nowrap;"><span data-exkl={r.radPrice}>{fmtKr(r.radPrice)}</span> kr</span>
-              </div>
-            ))}
-            <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(196,181,244,0.2);">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Från ca</span>
-                <span style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:#c4b5f4;"><span id="flak-pris" data-exkl={flakPaket.franPris}>{fmtKr(flakPaket.franPris)}</span> kr</span>
-              </div>
-              <label for="flak-elverk" style="display:flex; align-items:center; gap:0.5rem; margin-top:0.85rem; cursor:pointer; user-select:none;">
-                <input type="checkbox" id="flak-elverk" data-base={flakPaket.franPris} data-medelverk={flakMedElverk} style="width:1rem; height:1rem; accent-color:#c4b5f4; cursor:pointer;" />
-                <span style="color:rgba(255,255,255,0.72); font-size:0.8rem;">Inkl. elgenerator 2200W (+<span data-exkl={elgenerator.price}>{fmtKr(elgenerator.price)}</span> kr)</span>
-              </label>
-              <p style="color:rgba(255,255,255,0.60); font-size:0.75rem; margin:0.6rem 0 0;">Per dygn (*helg = 1 dygns pris fredag–måndag, förutsatt tillgänglighet)</p>
-            </div>
+  <TreSteg rubrik="3 tips för ett bra flakljud" steg={[
+    { rubrik: "Placera högtalarna rätt", text: "Rikta högtalarna inåt mot folket — inte utåt. Ljudet ska träffa personerna, inte åka förbi dem." },
+    { rubrik: "Använd trådlös mikrofon", text: "En sladd på ett flak är en snubbelrisk och begränsar rörelsefriheten. Trådlöst är värt det." },
+    { rubrik: "Ha en backup-spellista", text: "Bluetooth kan droppa. Ha en AUX-kabel som reserv och en spellista på två enheter." },
+  ]} />
 
-            <script is:inline>
-              (function () {
-                var cb = document.getElementById('flak-elverk');
-                var pris = document.getElementById('flak-pris');
-                if (!cb || !pris) return;
-                cb.addEventListener('change', function () {
-                  var base = cb.getAttribute('data-base') || '0';
-                  var medElverk = cb.getAttribute('data-medelverk') || base;
-                  pris.setAttribute('data-exkl', cb.checked ? medElverk : base);
-                  var mode = 'excl';
-                  try { mode = localStorage.getItem('sk-vat') || 'excl'; } catch (e) {}
-                  if (typeof window.skApplyVat === 'function') window.skApplyVat(mode);
-                  else {
-                    var b = parseInt(pris.getAttribute('data-exkl') || '0', 10);
-                    pris.textContent = (mode === 'incl' ? Math.round(b * 1.25) : b).toLocaleString('sv-SE');
-                  }
-                });
-              })();
-            </script>
-            <a href="/bokningssida/" style="display:block; background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:0.9rem 2rem; border-radius:4px; text-align:center; margin-top:1.25rem;">
-              Boka nu
-            </a>
-          </div>
-          <p style="color:rgba(255,255,255,0.60); font-size:0.8rem; text-align:center; margin-top:0.75rem;">Boka tidigt — maj–juni är fullbokat snabbt</p>
-        </div>
-      </div>
-    </div>
-  </section>
+  <ProduktRader
+    eyebrow="Populärt till studentflak"
+    rubrik="Lägg i varukorgen direkt"
+    lead="Kompakta och kraftfulla system — enkla att montera på flaket, svåra att stoppa."
+    rader={[
+      { produkt: portSmallPlus, not: "Batteridrivet", kategori: "Ljud" },
+      { produkt: portMedium, not: "Batteridrivet, mer tryck", kategori: "Ljud" },
+      { produkt: portSmallDuo, not: "Två högtalare — ljud åt båda håll", kategori: "Ljud" },
+      { produkt: tradlosHand, not: "Tal och sång på flaket", kategori: "Ljud" },
+    ]}
+    lankar={[{ label: "Alla portabla system", href: "/vara-tjanster/hyra-ljud/portable/" }, { label: "Alla PA-system", href: "/vara-tjanster/hyra-ljud/" }]}
+  />
 
-  <!-- Tips-sektion -->
-  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px; margin:0 auto;">
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Tips</p>
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 2rem;">3 tips för ett bra flakljud</h2>
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        {[
-          { nr: "01", tip: "Placera högtalarna rätt", desc: "Rikta högtalarna inåt mot folket — inte utåt. Ljudet ska träffa personerna, inte åka förbi dem." },
-          { nr: "02", tip: "Använd trådlös mikrofon", desc: "En mikrofon med sladd på ett flak är ett snubbelrisk och begränsar rörelsefrihet. Trådlöst är värt det." },
-          { nr: "03", tip: "Ha en backup-spellista", desc: "Bluetooth kan droppa. Ha en AUX-kabel som backup och en förberedd spellista på två enheter." }
-        ].map(t => (
-          <div style="background:#1e1850; border-radius:12px; padding:1.5rem; display:flex; gap:1.25rem; align-items:flex-start;">
-            <span style="font-family:'DM Serif Display',serif; font-size:1.5rem; color:rgba(196,181,244,0.3); flex-shrink:0; line-height:1;">{t.nr}</span>
-            <div>
-              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700; color:white; margin:0 0 0.4rem;">{t.tip}</h3>
-              <p style="color:rgba(255,255,255,0.5); font-size:0.88rem; line-height:1.6; margin:0;">{t.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
+  <EventFaq rubrik="Studentflak — vanliga frågor" faq={faq} extra={'Generösa avbokningsregler — <a href="/hyresvillkor/">läs hyresvillkoren</a>.'} />
 
+  <SlutRuta rubrik="Klart för flaket? Vi hjälper er välja." />
 
-  <!-- Produkter för studentflak -->
-  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1200px; margin:0 auto;">
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Populärt till studentflak</p>
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 0.75rem;">Lägg till i varukorgen direkt</h2>
-      <p style="color:rgba(255,255,255,0.5); font-size:0.95rem; margin:0 0 2.5rem;">Kompakta och kraftfulla system — enkla att montera på flaket, svåra att stoppa.</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <ProductCard
-          artno={portSmallPlus.artno} name={portSmallPlus.name} price={portSmallPlus.price}
-          priceNote="/dygn" image={portSmallPlus.image} alt={portSmallPlus.name}
-          description={portSmallPlus.description} persons={portSmallPlus.persons}
-          specs={portSmallPlus.specs ?? []} category="Portabelt ljud"
-          manualUrl={portSmallPlus.manualUrl}
-        />
-        <ProductCard
-          artno={portMedium.artno} name={portMedium.name} price={portMedium.price}
-          priceNote="/dygn" image={portMedium.image} alt={portMedium.name}
-          description={portMedium.description} persons={portMedium.persons}
-          specs={portMedium.specs ?? []} category="Portabelt ljud"
-          manualUrl={portMedium.manualUrl}
-        />
-        <ProductCard
-          artno={portSmallDuo.artno} name={portSmallDuo.name} price={portSmallDuo.price}
-          priceNote="/dygn" image={portSmallDuo.image} alt={portSmallDuo.name}
-          description={portSmallDuo.description ?? ''}
-          specs={portSmallDuo.specs ?? []} category="Portabelt ljud"
-          manualUrl={portSmallDuo.manualUrl}
-        />
-        <ProductCard
-          artno={tradlosHand.artno} name={tradlosHand.name} price={tradlosHand.price}
-          priceNote="/dygn" image={tradlosHand.image} alt={tradlosHand.name}
-          description={tradlosHand.description ?? tradlosHand.desc}
-          specs={tradlosHand.specs ?? []} category="Mikrofon"
-          manualUrl={tradlosHand.manualUrl}
-        />
-      </div>
-      <div class="mt-6 flex flex-wrap gap-3">
-        <a href="/vara-tjanster/hyra-ljud/portable/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Se alla portabla system →</a>
-        <a href="/vara-tjanster/hyra-ljud/" class="inline-block border border-white/20 hover:border-brand-orange/40 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">Alla PA-system →</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px; margin:0 auto;">
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Vanliga frågor</p>
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 2.5rem;">Studentflak — vanliga frågor</h2>
-      <div style="display:flex; flex-direction:column;">
-        {faq.map(item => (
-          <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
-            <summary style="display:flex; justify-content:space-between; align-items:center; padding:1.25rem 0; cursor:pointer; list-style:none; color:white; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1rem; gap:1rem;">
-              {item.q}
-              <span style="color:#c4b5f4; font-size:1.25rem; flex-shrink:0;">+</span>
-            </summary>
-            <p style="color:rgba(255,255,255,0.6); font-size:0.95rem; line-height:1.75; margin:0 0 1.25rem; padding-right:2rem;">{item.a}</p>
-          </details>
-        ))}
-      </div>
-    </div>
-  </section>
-
-
-      <!-- Avbokningspolicy -->
-      <div class="flex items-center gap-2 mt-6 text-sm text-gray-400">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        <span>Generösa avbokningsregler — <a href="/hyresvillkor/" class="text-brand-orange hover:underline">läs hyresvillkoren</a>.</span>
-      </div>
 </Layout>

@@ -1,0 +1,39 @@
+---
+/** Lavendelrutan längst ner (samma som startsidan). Inga löften om svarstid. */
+import { telefon } from '../../utils/hours';
+interface Props { rubrik: string; text?: string }
+const { rubrik, text } = Astro.props;
+---
+<section class="sr-wrap">
+  <div class="sr-ruta">
+    <div>
+      <h2>{rubrik}</h2>
+      <p>{text ?? 'Kostnadsfritt och inte bindande.'} Telefon {telefon()} — eller fråga <b>Sven</b>, vår digitala intendent, när som helst.</p>
+    </div>
+    <div class="sr-knappar">
+      <a href="/varukorg/" class="sr-btn sr-mork">Begär offert</a>
+      <button type="button" class="sr-btn" data-sven-oppna>Fråga Sven</button>
+      <a class="sr-btn" data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" aria-label="Ring oss"><noscript>072-448 10 00</noscript></a>
+    </div>
+  </div>
+</section>
+<style>
+  .sr-wrap { max-width: 80rem; margin: 0 auto; padding: clamp(2rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem) clamp(3rem, 6vw, 6rem); }
+  .sr-ruta { border-radius: 26px; padding: clamp(1.75rem, 4vw, 3.5rem); background: #c4b5f4; color: #0c0a24; display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+  .sr-ruta > div:first-child { max-width: 620px; }
+  .sr-ruta h2 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.9rem, 3.6vw, 2.9rem); line-height: 1.05; color: #0c0a24; }
+  .sr-ruta p { margin: 0.9rem 0 0; font-size: 1.1rem; color: rgba(12,10,36,0.78); }
+  .sr-knappar { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .sr-btn { display: inline-flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem; padding: 0.95rem 1.6rem; border-radius: 999px; text-decoration: none; cursor: pointer; border: 1.5px solid #0c0a24; color: #0c0a24; background: transparent; }
+  .sr-btn:hover { background: rgba(12,10,36,0.08); color: #0c0a24; }
+  .sr-mork { background: #0c0a24; color: #fff; }
+  .sr-mork:hover { background: #1e1850; color: #fff; }
+  @media (max-width: 720px) { .sr-knappar { flex-direction: column; width: 100%; } .sr-btn { width: 100%; } }
+</style>
+<script>
+  document.querySelectorAll('[data-sven-oppna]').forEach((b) => {
+    if ((b as HTMLElement).dataset.svenKopplad) return;
+    (b as HTMLElement).dataset.svenKopplad = '1';
+    b.addEventListener('click', () => document.getElementById('sven-toggle')?.click());
+  });
+</script>

@@ -1,0 +1,44 @@
+---
+/** Områden på en "För ditt event"-sida: text till vänster, radkort med pil till höger. */
+interface Props { eyebrow?: string; rubrik: string; lead?: string; omraden: Array<{ titel: string; text: string; href?: string; tag?: string }> }
+const { eyebrow, rubrik, lead, omraden } = Astro.props;
+---
+<section class="sk-band">
+  <div class="eo-wrap">
+    <div>
+      {eyebrow && <p class="sk-eyebrow">{eyebrow}</p>}
+      <h2 class="sk-h2">{rubrik}</h2>
+      {lead && <p class="eo-lead">{lead}</p>}
+    </div>
+    <div class="eo-grid">
+      {omraden.map((o) => o.href ? (
+        <a href={o.href} class="eo-rad">
+          <b>{o.titel}</b>
+          <span class="eo-pil" aria-hidden="true">→</span>
+          <span class="eo-text">{o.text}</span>
+        </a>
+      ) : (
+        <div class="eo-rad eo-utan">
+          <b>{o.titel}</b>
+          {o.tag ? <span class="eo-tag">{o.tag}</span> : <span></span>}
+          <span class="eo-text">{o.text}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .eo-wrap { max-width: 80rem; margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start; }
+  .eo-lead { margin: 1rem 0 0; color: rgba(255,255,255,0.72); line-height: 1.6; }
+  .eo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .eo-rad { background: #0c0a24; padding: 1.35rem 1.5rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem 1rem; align-items: center; text-decoration: none; color: rgba(255,255,255,0.72); transition: background 0.15s; }
+  .eo-rad:hover { background: #14113a; }
+  .eo-rad b { color: #fff; font-size: 1.1rem; }
+  .eo-pil { grid-row: span 2; width: 38px; height: 38px; border-radius: 999px; border: 1px solid rgba(196,181,244,0.4); color: #c4b5f4; display: flex; align-items: center; justify-content: center; }
+  .eo-rad:hover .eo-pil { background: #c4b5f4; color: #0c0a24; }
+  .eo-utan:hover { background: #0c0a24; }
+  .eo-tag { grid-row: span 2; align-self: start; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 999px; background: rgba(196,181,244,0.14); color: #c4b5f4; white-space: nowrap; }
+  .eo-text { font-size: 0.95rem; line-height: 1.45; }
+  @media (max-width: 900px) { .eo-wrap { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 600px) { .eo-grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
