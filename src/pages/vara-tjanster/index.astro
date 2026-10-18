@@ -1,6 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import KunskapBlock from '../../components/KunskapBlock.astro';
+import SidHuvud from '../../components/SidHuvud.astro';
+import SlutRuta from '../../components/event/SlutRuta.astro';
+import { bildmatt, bildSrcset } from '../../utils/bildmatt';
 import djData from '../../data/dj.json';
 import scenesData from '../../data/scenes.json';
 import bildData from '../../data/bild.json';
@@ -22,18 +25,20 @@ const teknikerFran = Math.min(...((tjansterData as any).services as any[])
 const kategorier = [
   {
     rubrik: "Scener",
+    bild: { src: "/images/event/kundevent_tele2_scenpodie.webp", alt: "Scenpodie med ridå och storbild hos Tele2", pos: "50% 60%" },
     beskrivning: "Vårt ursprung. Från 4m² podie till 48m² XL-scen med tak. Vi har scener för inomhus och utomhus, med eller utan scentak, halkfria ytor och professionell finish. Beskriv ditt behov så presenterar vi en lösning.",
     href: "/vara-tjanster/hyra-scen/",
     fran: `${scenFran.toLocaleString("sv")} kr/dygn`,
-    icon: "🎭",
+    _icon: "🎭",
     tjanster: ["Scenpaket Small → XL+", "Scen med tak", "Inomhus & utomhus", "Leverans & montering"],
   },
   {
     rubrik: "Ljud",
+    bild: { src: "/images/event/festival_hard_rock_rising.webp", alt: "Liveband på Hard Rock Café", pos: "50% 50%" },
     beskrivning: "Noggrant utvalda professionella varumärken. Från kompakta anläggningar för tal och mingel till kraftfulla PA-system för konserter och festival. Vi täcker event, live, DJ/musik och portabelt ljud.",
     href: "/vara-tjanster/hyra-ljud/",
     fran: "Offert",
-    icon: "🔊",
+    _icon: "🔊",
     tjanster: [
       { label: "Event / tal & konferens", href: "/vara-tjanster/hyra-ljud/event/" },
       { label: "Live / band & konsert",   href: "/vara-tjanster/hyra-ljud/live/" },
@@ -43,18 +48,20 @@ const kategorier = [
   },
   {
     rubrik: "Ljudtekniker",
+    bild: { src: "/images/event/uf_strawberry_arena_2.webp", alt: "Ljud och scen på Strawberry Arena", pos: "50% 50%" },
     beskrivning: "Ett bra ljudsystem behöver någon som sköter det. Hyr en erfaren ljudtekniker som soundcheckar, mixar live under hela eventet och felsöker på plats. Allround eventtekniker eller scenengineer för liveband och konsert.",
     href: "/vara-tjanster/hyra-ljudtekniker/",
     fran: `${teknikerFran.toLocaleString("sv")} kr/tim`,
-    icon: "🎚️",
+    _icon: "🎚️",
     tjanster: ["Tekniker på plats", "Scenengineer för live", "Soundcheck & körning", "Fristående eller med utrustning"],
   },
   {
     rubrik: "Bild",
+    bild: { src: "/images/event/kundevent_emberlin_2.webp", alt: "Skärm på golvstativ i restaurangmiljö hos Emberlin", pos: "50% 45%" },
     beskrivning: "HD/4K-projektorer, professionella displayskärmar 65–85\" och modulär LED-vägg för storbildsvisning. Mobila LED-trailers för utomhusevent. Perfekt för presentationer, konferenser, produktlanseringar, prisutdelningar och storbildsvisning på event.",
     href: "/vara-tjanster/hyra-bild/",
-    fran: `Från ${bildFran.toLocaleString("sv")} kr`,
-    icon: "📽️",
+    fran: `${bildFran.toLocaleString("sv")} kr/dygn`,
+    _icon: "📽️",
     tjanster: [
       { label: "Projektor & skärm",  href: "/vara-tjanster/hyra-bild-projektorer-skarmar/" },
       { label: "LED-vägg",           href: "/vara-tjanster/hyra-bild-led-vagg/" },
@@ -64,10 +71,11 @@ const kategorier = [
   },
   {
     rubrik: "Ljus",
+    bild: { src: "/images/event/installation_german_beerhall_1.webp", alt: "Blått ljus och LED-ramper i taket på German Beer Hall", pos: "50% 35%" },
     beskrivning: "Rätt ljussättning förvandlar vilken lokal som helst. Moving heads, PAR-lampor, laser, stroboskop, rök, pyroteknik – vi har färdiga paket och lösa effekter för alla typer av event.",
     href: "/vara-tjanster/hyra-ljus/",
     fran: "Offert",
-    icon: "💡",
+    _icon: "💡",
     tjanster: [
       { label: "Färdiga ljuspaket",  href: "/vara-tjanster/hyra-ljus/fardiga-paket/" },
       { label: "Lösa ljuseffekter",  href: "/vara-tjanster/hyra-ljus/ljuseffekter/" },
@@ -77,29 +85,33 @@ const kategorier = [
   },
   {
     rubrik: "Professionella DJs",
+    bild: { src: "/images/event/kundevent_djursholms_slott.webp", alt: "DJ på galakväll på Djursholms Slott", pos: "50% 50%" },
     beskrivning: "Erfarna DJs till bröllop, privata fester och företagsevent. Vi har DJs som täcker allt från 80-tal till idag. Välj junior, senior eller PRO-DJ beroende på behov och budget.",
     href: "/vara-tjanster/hyra-dj/",
     fran: `${djFran.toLocaleString('sv')} kr`,
-    icon: "🎧",
+    _icon: "🎧",
     tjanster: ["Junior DJ", "Senior DJ", "PRO DJ med tekniker", "Bröllop, fest & event"],
   },
   {
     rubrik: "DJ-utrustning",
+    bild: { src: "/images/event/kundevent_swedish_taste_1.webp", alt: "DJ vid controller hos Swedish Taste", pos: "50% 50%" },
     beskrivning: "Hyr professionella standalone DJ-controllers från Numark, Denon och Rane. Inga laptops krävs — ladda din musik på USB och kör. Plus stadiga DJ-bord. För dig som mixar själv eller kompletterar en befintlig DJ.",
     href: "/vara-tjanster/hyra-dj-utrustning/",
     fran: `${djUtrFran.toLocaleString("sv")} kr/dygn`,
-    icon: "🎛️",
+    _icon: "🎛️",
     tjanster: ["Numark Mixstream Pro", "Denon Prime-serien", "Rane System One", "DJ-bord"],
   },
   {
     rubrik: "Komplett event",
+    bild: { src: "/images/event/kundevent_systembolaget_3.webp", alt: "Högtalare och uplights i festvåning hos Systembolaget", pos: "50% 55%" },
     beskrivning: "Vill du slippa hantera flera leverantörer? Vi tar ett helhetsansvar för scen, ljud, bild, ljus och DJ. En kontaktperson, ett avtal, ett prisförslag – allt på plats när du behöver det.",
     href: "/kontakt/",
     fran: "Offert",
-    icon: "🎪",
+    _icon: "🎪",
     tjanster: ["Scen + ljud + bild + ljus", "DJ ingår vid önskan", "Leverans & montering", "Tekniker på plats"],
   },
 ];
+const KATEGORIER = kategorier.map((k: any) => ({ ...k, srcset: bildSrcset(k.bild.src), matt: bildmatt(k.bild.src) }));
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Våra tjänster' }];
 ---
 
@@ -107,84 +119,46 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Våra tjänster'
   title="Våra tjänster – Hyra Scen, Ljud, Bild & Ljus Stockholm | Scenkonsult"
   description="Komplett scenproduktion i Stockholm. Hyr scen, ljud, bild, ljus och DJ för fest, bröllop, event och konsert. Leverans i hela Storstockholm. Sedan 1986."
 >
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12" style="padding-top:calc(var(--nav-offset,166px) + 2.5rem)">
+  <SidHuvud
+    brod={pageBreadcrumbs}
+    eyebrow="Scen · Ljud · Ljus · Bild"
+    h1="Våra"
+    h1Accent="tjänster"
+    introHtml={'Vi är er kompletta partner för scenproduktion – oavsett om det gäller en privat fest för 20 eller ett stort utomhusevent för 2 000 gäster. Välj bland kategorierna nedan eller <a href="/kontakt/">kontakta oss</a> för ett komplett förslag.'}
+  />
 
-    <nav class="text-sm text-gray-400 mb-8" aria-label="Brödsmulor">
-      <a href="/" class="hover:text-gray-300">Hem</a>
-      <span class="mx-2">/</span>
-      <span class="text-white">Våra tjänster</span>
-    </nav>
-
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4" style="font-family:'DM Serif Display',serif">Våra tjänster</h1>
-    <p class="text-gray-400 text-lg max-w-3xl mb-12">
-      Vi är er kompletta partner för scenproduktion – oavsett om det gäller en privat fest för 20 eller ett stort utomhurevent för 2 000 gäster. Välj bland kategorierna nedan eller <a href="/kontakt/" class="hover:underline" style="color:#c4b5f4">kontakta oss</a> för ett komplett paket.
-    </p>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
-      {kategorier.map(k => (
-        <div onclick={`window.location='${k.href}'`} class="group flex flex-col rounded-2xl p-6 transition-all border cursor-pointer hover:border-opacity-40"
-           style="background:#1e1850;border-color:rgba(255,255,255,0.08)" 
-           onmouseover="this.style.borderColor='rgba(196,181,244,0.35)'"
-           onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <span class="text-3xl">{k.icon}</span>
-              <div>
-                <h2 class="text-white font-bold text-lg group-hover:text-brand-orange transition-colors">{k.rubrik}</h2>
-                <span class="text-xs font-semibold" style="color:#c4b5f4">Från {k.fran}</span>
-              </div>
+  <section class="vt-wrap">
+    <div class="vt-grid">
+      {KATEGORIER.map((k: any) => (
+        <article class="vt-kort">
+          <a href={k.href} class="vt-bild" tabindex="-1" aria-hidden="true">
+            <img src={k.bild.src} srcset={k.srcset} sizes="(max-width: 900px) 100vw, 260px" alt="" width={k.matt?.w} height={k.matt?.h} loading="lazy" decoding="async" style={`object-position:${k.bild.pos}`} />
+          </a>
+          <div class="vt-text">
+            <h2><a href={k.href}>{k.rubrik}</a></h2>
+            <p class="vt-fran">{k.fran === 'Offert' ? 'Pris efter behov' : <>Från {k.fran}</>}</p>
+            <p class="vt-desc">{k.beskrivning}</p>
+            <div class="vt-chips">
+              {k.tjanster.map((t: any) => typeof t === 'object' ? <a href={t.href}>{t.label}</a> : <span>{t}</span>)}
             </div>
-            <span class="text-gray-400 group-hover:text-brand-orange transition-colors text-sm mt-1">Läs mer →</span>
           </div>
-          <p class="text-gray-400 text-sm leading-relaxed mb-4 flex-1">{k.beskrivning}</p>
-          <div class="flex flex-wrap gap-2 pt-4 border-t border-white/5">
-            {k.tjanster.map(t => (
-              typeof t === 'object' ? (
-                <a href={t.href} onclick="event.stopPropagation()" class="text-xs px-2.5 py-1 rounded-full transition-colors hover:bg-brand-orange/20" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
-                  {t.label}
-                </a>
-              ) : (
-                <span class="text-xs px-2.5 py-1 rounded-full" style="background:rgba(196,181,244,0.1);color:rgba(196,181,244,0.7)">
-                  {t}
-                </span>
-              )
-            ))}
-          </div>
-        </div>
+        </article>
       ))}
     </div>
-    </div>
+  </section>
 
-    <!-- USP-rad -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+  <section class="vt-wrap">
+    <div class="vt-usp">
       {[
-        { icon: "🚚", rubrik: "Leverans i hela Storstockholm", text: `Vi kör ut och hämtar tillbaka. Leverans från ${((tjansterData as any).leverans?.standard?.pris ?? 0).toLocaleString('sv-SE')} kr tur och retur.` },
-        { icon: "🔧", rubrik: "Montering när du behöver", text: `Montera själv eller låt våra tekniker göra det – ${((tjansterData as any).montering?.prisPerTimme ?? 600).toLocaleString('sv-SE')} kr/tim, beräknat i varukorgen.` },
-        { icon: "📞", rubrik: "Jour kvällstid", text: "Vi finns tillgängliga under hela din hyresperiod om något krånglar." },
+        { rubrik: "Leverans i hela Storstockholm", text: `Vi kör ut och hämtar tillbaka. Leverans från ${((tjansterData as any).leverans?.standard?.pris ?? 0).toLocaleString('sv-SE')} kr tur och retur.` },
+        { rubrik: "Montering när du behöver", text: `Montera själv eller låt våra tekniker göra det – ${((tjansterData as any).montering?.prisPerTimme ?? 600).toLocaleString('sv-SE')} kr/tim, beräknat i varukorgen.` },
+        { rubrik: "Jour kvällstid", text: "Vi finns tillgängliga under hela din hyresperiod om något krånglar." },
       ].map(u => (
-        <div class="flex gap-4 rounded-2xl p-5" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08)">
-          <span class="text-2xl shrink-0">{u.icon}</span>
-          <div>
-            <div class="font-bold text-white text-sm mb-1">{u.rubrik}</div>
-            <div class="text-gray-400 text-sm">{u.text}</div>
-          </div>
-        </div>
+        <div><b>{u.rubrik}</b><span>{u.text}</span></div>
       ))}
     </div>
+  </section>
 
-    <!-- CTA -->
-    <div class="rounded-2xl p-8 text-center" style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2)">
-      <h2 class="sk-h2s mb-3">Osäker på vad du behöver?</h2>
-      <p class="text-gray-400 mb-6">Beskriv ditt event – datum, plats, antal gäster och typ av event – så tar vi fram ett komplett förslag.</p>
-      <div class="flex flex-wrap gap-4 justify-center">
-        <a href="/kontakt/" class="px-6 py-3 rounded-xl font-semibold transition-colors" style="background:#c4b5f4;color:#0c0a24">
-          Boka eller fråga om pris
-        </a>
-        <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="📞 " data-label="072-448 10 00" href="#tel" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
-      </div>
-    </div>
-
-  </div>
   <KunskapBlock
     intro="Hos oss får du inte bara utrustning — du får kunskapen att använda den. Vår intendent Sven ansvarar för all kunskap till dig som kund: guider att läsa och videoguider som visar precis hur allt kopplas in."
     guides={[
@@ -202,4 +176,33 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Våra tjänster'
   ]}
   />
 
+  <SlutRuta rubrik="Osäker på vad du behöver?" text="Beskriv ditt event – datum, plats, antal gäster och typ av event – så tar vi fram ett komplett förslag." />
+
 </Layout>
+
+<style>
+  .vt-wrap { max-width: 80rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) clamp(2rem, 4vw, 3rem); }
+  .vt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .vt-kort { display: grid; grid-template-columns: 38% minmax(0, 1fr); border-radius: 22px; overflow: hidden; background: #14113a; border: 1px solid rgba(255,255,255,0.08); transition: border-color 0.15s; }
+  .vt-kort:hover { border-color: rgba(196,181,244,0.45); }
+  .vt-bild { position: relative; display: block; min-height: 100%; background: #1e1850; overflow: hidden; }
+  .vt-bild img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .vt-kort:hover .vt-bild img { transform: scale(1.04); }
+  .vt-text { padding: 1.4rem 1.5rem; display: flex; flex-direction: column; }
+  .vt-text h2 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.85rem; line-height: 1.05; }
+  .vt-text h2 a { color: #fff; text-decoration: none; }
+  .vt-text h2 a::after { content: ' →'; color: #c4b5f4; font-size: 0.75em; }
+  .vt-text h2 a:hover { color: #c4b5f4; }
+  .vt-fran { margin: 0.35rem 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600; color: #c4b5f4; }
+  .vt-desc { margin: 0.75rem 0 1rem; flex: 1; font-size: 0.95rem; line-height: 1.6; color: rgba(255,255,255,0.68); }
+  .vt-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.9rem; border-top: 1px solid rgba(255,255,255,0.08); }
+  .vt-chips a, .vt-chips span { font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; font-weight: 600; padding: 0.3rem 0.7rem; border-radius: 999px; background: rgba(196,181,244,0.1); color: rgba(255,255,255,0.8); text-decoration: none; }
+  .vt-chips a { color: #c4b5f4; }
+  .vt-chips a:hover { background: rgba(196,181,244,0.22); }
+  .vt-usp { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .vt-usp > div { background: #0c0a24; padding: 1.5rem; }
+  .vt-usp b { display: block; margin-bottom: 0.35rem; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.45rem; color: #fff; }
+  .vt-usp span { font-size: 0.95rem; line-height: 1.55; color: rgba(255,255,255,0.7); }
+  @media (max-width: 1000px) { .vt-grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 600px) { .vt-kort { grid-template-columns: minmax(0, 1fr); } .vt-bild { aspect-ratio: 16 / 9; } .vt-usp { grid-template-columns: minmax(0, 1fr); } }
+</style>

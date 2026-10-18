@@ -1,4 +1,6 @@
 ---
+import SidHuvud from '../../components/SidHuvud.astro';
+import SlutRuta from '../../components/event/SlutRuta.astro';
 import Layout from '../../layouts/Layout.astro';
 import site from '../../data/site.json';
 
@@ -23,42 +25,48 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Vanliga frågor 
   schemaExtra={faqSchema}
 >
 
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2 text-sm text-gray-400" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <a href="/" class="hover:text-gray-300">Hem</a> /
-    <span class="text-white ml-2">Vanliga frågor (FAQ)</span>
-  </nav>
+  <SidHuvud
+    brod={[{ label: 'Hem', href: '/' }, { label: 'Vanliga frågor (FAQ)' }]}
+    eyebrow="FAQ"
+    h1="Vanliga"
+    h1Accent="frågor"
+    introHtml={'Här svarar vi på de frågor vi får mest – om bokning, installation, leverans och mer. Hittar du inte svar på din fråga? <a href="/kontakt/">Kontakta oss</a>.'}
+  />
 
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-4xl font-extrabold text-white mb-3">Vanliga frågor</h1>
-    <p class="text-gray-400 mb-10 text-lg">Här svarar vi på de frågor vi får mest – om bokning, installation, leverans och mer. Hittar du inte svar på din fråga? <a href="/kontakt/" class="text-brand-orange hover:underline">Kontakta oss</a>.</p>
-
-    <div class="space-y-4">
-      {site.faq.map((f, i) => (
-        <details
-          class="bg-brand-navy border border-white/10 hover:border-brand-orange/30 rounded-2xl overflow-hidden group transition-colors"
-        >
-          <summary class="flex items-center justify-between p-5 cursor-pointer list-none">
-            <h2 class="text-white font-semibold text-lg pr-4 group-open:text-brand-orange transition-colors">
-              {f.q}
-            </h2>
-            <span class="text-brand-orange shrink-0 transition-transform group-open:rotate-180 text-xl">▾</span>
+  <section class="fq-wrap">
+    <div class="fq-sida">
+      <p class="sk-eyebrow">Fortfarande osäker?</p>
+      <p class="fq-lead">Fråga Sven, vår digitala intendent, när som helst — eller ring oss.</p>
+      <button type="button" class="sk-knapp" data-sven-oppna>Fråga Sven</button>
+    </div>
+    <div class="fq-lista">
+      {site.faq.map((f) => (
+        <details class="bg-brand-navy">
+          <summary class="flex items-center justify-between cursor-pointer list-none">
+            <h2>{f.q}</h2>
+            <span aria-hidden="true">+</span>
           </summary>
-          <div class="px-5 pb-5 text-gray-400 leading-relaxed">
-            <p set:html={f.a}></p>
-          </div>
+          <div><p set:html={f.a}></p></div>
         </details>
       ))}
     </div>
+  </section>
 
-    <div class="mt-12 bg-brand-navy border border-white/10 rounded-2xl p-8 text-center">
-      <h2 class="text-white font-bold text-xl mb-3">Har du fler frågor?</h2>
-      <p class="text-gray-400 mb-6">Välkommen att höra av dig — eller fråga Sven, vår digitala intendent, när som helst.</p>
-      <div class="flex flex-wrap justify-center gap-4">
-        <a href="/kontakt/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors">
-          Kontakta oss
-        </a>
-        <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="📞 " data-label="072-448 10 00" href="#tel" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
-      </div>
-    </div>
-  </div>
+  <SlutRuta rubrik="Har du fler frågor?" text="Välkommen att höra av dig — eller fråga Sven, vår digitala intendent, när som helst." />
 </Layout>
+
+<style>
+  .fq-wrap { max-width: 80rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) clamp(2rem, 4vw, 3rem); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start; }
+  .fq-sida { position: sticky; top: calc(var(--nav-offset, 166px) - 30px); }
+  .fq-lead { margin: 0 0 1.2rem; color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .fq-lista summary h2 { margin: 0; font-family: 'Source Sans 3', sans-serif; font-size: 1.1rem; font-weight: 600; color: #fff; }
+  .fq-lista :global(a) { color: #c4b5f4; }
+  @media (max-width: 900px) { .fq-wrap { grid-template-columns: minmax(0, 1fr); } .fq-sida { position: static; order: 2; } }
+</style>
+<script>
+  document.querySelectorAll('[data-sven-oppna]').forEach((b) => {
+    if ((b as HTMLElement).dataset.svenKopplad) return;
+    (b as HTMLElement).dataset.svenKopplad = '1';
+    b.addEventListener('click', () => document.getElementById('sven-toggle')?.click());
+  });
+</script>

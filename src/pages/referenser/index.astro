@@ -1,4 +1,5 @@
 ---
+import SidHuvud from '../../components/SidHuvud.astro';
 import Layout from '../../layouts/Layout.astro';
 import siteData from '../../data/site.json';
 import { getReviews, getSummary } from '../../utils/reviews';
@@ -40,59 +41,19 @@ const pageSchema = {
   schema={pageSchema}
 >
 
-  <!-- Breadcrumb -->
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <a href="/" class="hover:text-gray-300 transition-colors" itemprop="item"><span itemprop="name">Hem</span></a>
-        <meta itemprop="position" content="1" />
-      </li>
-      <span>/</span>
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <span class="text-white" itemprop="name">Referenser</span>
-        <meta itemprop="position" content="2" />
-      </li>
-    </ol>
-  </nav>
-
-  <!-- Hero-sektion -->
-  <header class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <p class="text-sm font-semibold uppercase tracking-wide mb-3" style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif">Förtroende sedan 1986</p>
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-6" style="font-family:'DM Serif Display',serif">
-      Våra <span style="color:#c4b5f4">Kunder &amp; Uppdrag</span>
-    </h1>
-    <p class="text-gray-300 text-xl leading-relaxed mb-8">
-      Från ambassader och kommuner till bröllopssällskap och festivaler — vi har levererat professionell scen, ljud och ljus till hundratals nöjda kunder i Storstockholm.
-    </p>
-    <!-- Trust stats-rad -->
-    <div class="flex flex-wrap gap-6">
-      <div class="flex items-center gap-2">
-        <span class="text-2xl font-extrabold" style="color:#c4b5f4">100+</span>
-        <span class="text-gray-400 text-sm">privatpersoner</span>
-      </div>
-      <div class="w-px bg-white/10 hidden sm:block"></div>
-      <div class="flex items-center gap-2">
-        <span class="text-2xl font-extrabold" style="color:#c4b5f4">100+</span>
-        <span class="text-gray-400 text-sm">uppdrag/år</span>
-      </div>
-      <div class="w-px bg-white/10 hidden sm:block"></div>
-      <div class="flex items-center gap-2">
-        <span class="text-2xl font-extrabold" style="color:#c4b5f4">100+</span>
-        <span class="text-gray-400 text-sm">referenskunder</span>
-      </div>
-      <div class="w-px bg-white/10 hidden sm:block"></div>
-      <div class="flex items-center gap-2">
-        <span class="text-2xl font-extrabold" style="color:#c4b5f4">1986</span>
-        <span class="text-gray-400 text-sm">grundat</span>
-      </div>
-      <div class="w-px bg-white/10 hidden sm:block"></div>
-      <div class="flex items-center gap-2">
-        <span class="text-2xl font-extrabold" style="color:#c4b5f4">100%</span>
-        <span class="text-gray-400 text-sm">nöjd-garanti</span>
-      </div>
+  <SidHuvud
+    mikrodata
+    brod={[{ label: 'Hem', href: '/' }, { label: 'Referenser' }]}
+    eyebrow="Förtroende sedan 1986"
+    h1="Våra"
+    h1Accent="Kunder & Uppdrag"
+    intro="Från ambassader och kommuner till bröllopssällskap och festivaler — vi har levererat professionell scen, ljud och ljus till hundratals nöjda kunder i Storstockholm."
+  >
+    <div class="rf-siffror">
+      {[["100+","privatpersoner"],["100+","uppdrag/år"],["100+","referenskunder"],["1986","grundat"],["100%","nöjd-garanti"]].map(([n,l]) => <div><b>{n}</b><span>{l}</span></div>)}
     </div>
-    <p class="text-gray-400 text-sm mt-4">Utöver organisationer har vi hjälpt hundratals privatpersoner med bröllop, fester och studentfiranden i Storstockholm.</p>
-  </header>
+    <p class="rf-not">Utöver organisationer har vi hjälpt hundratals privatpersoner med bröllop, fester och studentfiranden i Storstockholm.</p>
+  </SidHuvud>
 
   <!-- Logobanner -->
   <section class="sk-logobanner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
@@ -408,6 +369,13 @@ const pageSchema = {
 </Layout>
 
 <style>
+  .rf-siffror { margin-top: 1.75rem; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; max-width: 900px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .rf-siffror > div { background: #0c0a24; padding: 1rem 1.2rem; }
+  .rf-siffror b { display: block; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.9rem; color: #c4b5f4; }
+  .rf-siffror span { font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; color: rgba(255,255,255,0.6); }
+  .rf-not { margin: 0.9rem 0 0; font-size: 0.9rem; color: rgba(255,255,255,0.55); }
+  @media (max-width: 720px) { .rf-siffror { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
   /* Crossfade för eventkort med två bilder (German Beerhall) — 5 s per bild */
   .sk-xfade {
     position: absolute;

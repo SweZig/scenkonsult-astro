@@ -1,10 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SidHuvud from '../../components/SidHuvud.astro';
+import SlutRuta from '../../components/event/SlutRuta.astro';
+import { bildmatt, bildSrcset } from '../../utils/bildmatt';
 
 const occasions = [
   {
     slug: "brollop",
-    icon: "💍",
+    bild: "/images/event/kundevent_lakarforbundet.webp", pos: "50% 50%",
+    _icon: "💍",
     title: "Bröllop",
     desc: "Ljud för tal och trubadur, stämningsljus och scen. Vi har levererat till hundratals bröllop sedan 1986.",
     badge: "Populärast",
@@ -12,7 +16,8 @@ const occasions = [
   },
   {
     slug: "foretagsfest",
-    icon: "🎉",
+    bild: "/images/event/kundevent_mr_french_1.webp", pos: "50% 50%",
+    _icon: "🎉",
     title: "Företagsfest & kickoff",
     desc: "Från julfest till invigning. Faktura med individuella villkor. Tekniker på plats om ni vill.",
     badge: null,
@@ -20,7 +25,8 @@ const occasions = [
   },
   {
     slug: "konferens",
-    icon: "🎤",
+    bild: "/images/event/kundevent_abg_konferens.webp", pos: "50% 50%",
+    _icon: "🎤",
     title: "Konferens & föreläsning",
     desc: "AV-teknik, mikrofoner och projektorer. Professionellt ljud för presentationer och paneldiskussioner.",
     badge: null,
@@ -28,7 +34,8 @@ const occasions = [
   },
   {
     slug: "festival",
-    icon: "🎸",
+    bild: "/images/event/festival_vinterviken_2.webp", pos: "50% 50%",
+    _icon: "🎸",
     title: "Festival & utomhus",
     desc: "Modulscener, kraftfulla PA-system och robust ljus för utomhus-event och festivaler.",
     badge: null,
@@ -36,7 +43,8 @@ const occasions = [
   },
   {
     slug: "studentflak",
-    icon: "🎓",
+    bild: "/images/tjanster/plugg_ljud_portabel.webp", pos: "50% 50%",
+    _icon: "🎓",
     title: "Studentflak",
     desc: "Kompakta och kraftfulla ljudsystem med Bluetooth och trådlös mick. Boka tidigt — maj–juni tar slut snabbt.",
     badge: "Säsong maj–juni",
@@ -74,6 +82,7 @@ const forSchema = {
   ]
 };
 
+const OCC = occasions.map((o: any) => ({ ...o, srcset: bildSrcset(o.bild), matt: bildmatt(o.bild) }));
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event' }];
 ---
 
@@ -84,97 +93,95 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'För ditt event'
   schemaExtra={schema}
 >
 
-  <!-- Hero -->
-  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%); padding-top:calc(36px + 130px + clamp(2rem,5vw,4rem)); padding-bottom:clamp(3rem,6vw,5rem); padding-left:clamp(1rem,5vw,5rem); padding-right:clamp(1rem,5vw,5rem); position:relative; overflow:hidden;">
-    <div style="position:absolute; right:-5%; top:50%; transform:translateY(-50%); width:clamp(200px,35vw,460px); height:clamp(200px,35vw,460px); border-radius:50%; background-image:radial-gradient(circle,rgba(196,181,244,0.07) 2px,transparent 2px); background-size:22px 22px; pointer-events:none;"></div>
-    <div style="max-width:min(1280px,100%); margin:0 auto; position:relative; z-index:2;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:clamp(1rem,3vw,2rem);">
-        <ol style="display:flex; flex-wrap:wrap; gap:0.35rem; list-style:none; margin:0; padding:0; font-size:0.78rem; color:rgba(255,255,255,0.60);">
-          <li><a href="/" style="color:rgba(255,255,255,0.5); text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
-          <li><span style="color:white;">För ditt event</span></li>
-        </ol>
-      </nav>
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Anpassat för ditt tillfälle</p>
-      <h1 style="font-family:'DM Serif Display',serif; font-size:clamp(2rem,5vw,3.75rem); line-height:1.05; color:white; margin:0 0 1.25rem; max-width:700px;">
-        Rätt teknik för <span style="color:#c4b5f4; font-style:italic;">varje event</span>
-      </h1>
-      <p style="color:rgba(255,255,255,0.6); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.75; max-width:580px; margin:0;">
-        Välj ditt event-typ nedan — vi har tagit fram specifika rekommendationer, checklistor och priser för varje tillfälle.
-      </p>
-    </div>
-  </div>
+  <SidHuvud
+    brod={[{ label: 'Hem', href: '/' }, { label: 'För ditt event' }]}
+    eyebrow="Anpassat för ditt tillfälle"
+    h1="Rätt teknik för"
+    h1Accent="varje event"
+    intro="Välj ditt event-typ nedan — vi har tagit fram specifika rekommendationer, checklistor och priser för varje tillfälle."
+  />
 
-  <!-- Event-kort -->
-  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.5rem;">
-      {occasions.map(o => (
-        <a href={`/for/${o.slug}/`} style="background:#1e1850; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:2rem; text-decoration:none; display:flex; flex-direction:column; gap:0.75rem; transition:border-color 0.2s, transform 0.15s; position:relative; overflow:hidden;"
-           onmouseenter="this.style.borderColor='rgba(196,181,244,0.35)';this.style.transform='translateY(-2px)'"
-           onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.transform='translateY(0)'">
-          {o.badge && (
-            <span style="position:absolute; top:1.25rem; right:1.25rem; background:rgba(196,181,244,0.15); color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:0.2rem 0.6rem; border-radius:9999px;">{o.badge}</span>
-          )}
-          <div style="font-size:2rem;">{o.icon}</div>
-          <h2 style="font-family:'DM Serif Display',serif; font-size:1.4rem; color:white; margin:0;">{o.title}</h2>
-          <p style="color:rgba(255,255,255,0.55); font-size:0.9rem; line-height:1.65; margin:0; flex:1;">{o.desc}</p>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
-            <span style="background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.60); font-size:0.75rem; padding:0.2rem 0.65rem; border-radius:9999px;">{o.guests}</span>
-            <span style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.06em;">Se mer →</span>
-          </div>
+  <section class="fo-wrap">
+    <div class="fo-grid">
+      {OCC.map((o: any) => (
+        <a href={`/for/${o.slug}/`} class="fo-kort">
+          <img src={o.bild} srcset={o.srcset} sizes="(max-width: 720px) 100vw, 400px" alt="" width={o.matt?.w} height={o.matt?.h} loading="lazy" decoding="async" style={`object-position:${o.pos}`} />
+          <span class="fo-ton"></span>
+          {o.badge && <span class="fo-badge">{o.badge}</span>}
+          <span class="fo-text">
+            <h2>{o.title}</h2>
+            <span class="fo-desc">{o.desc}</span>
+            <span class="fo-fot"><span>{o.guests}</span><b>Se mer →</b></span>
+          </span>
         </a>
       ))}
     </div>
   </section>
 
-  <!-- Guider-teaser -->
-  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem); border-top:1px solid rgba(255,255,255,0.06);">
-    <div style="max-width:1100px; margin:0 auto;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+  <section class="sk-band">
+    <div class="fo-wrap fo-guider">
+      <div class="fo-huvud">
         <div>
-          <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.5rem;">Kunskapsbank</p>
-          <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0;">Guider & tips</h2>
+          <p class="sk-eyebrow">Kunskapsbank</p>
+          <h2 class="sk-h2">Guider &amp; tips</h2>
         </div>
-        <a href="/for/guider/" style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.82rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; white-space:nowrap;">Alla guider →</a>
+        <a href="/for/guider/" class="sk-knapp">Alla guider →</a>
       </div>
-      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem;">
+      <div class="fo-glista">
         {[
-          { href:"/for/guider/hur-stor-pa/", icon:"🔊", title:"Hur stor PA behöver jag?", tag:"Ljud" },
-          { href:"/for/guider/hur-stor-scen/", icon:"🎭", title:"Hur stor scen behöver jag?", tag:"Scen" },
-          { href:"/for/guider/dj-eller-liveband/", icon:"🎸", title:"DJ eller liveband?", tag:"Musik" },
-          { href:"/for/guider/ljussattning-tips/", icon:"💡", title:"Ljussättning för event", tag:"Ljus" },
-          { href:"/for/guider/checklista-event/", icon:"✅", title:"Komplett checklista", tag:"Planering" },
-          { href:"/for/guider/vad-kostar-det/", icon:"💰", title:"Vad kostar det?", tag:"Pris" },
+          { href:"/for/guider/hur-stor-pa/", title:"Hur stor PA behöver jag?", tag:"Ljud" },
+          { href:"/for/guider/hur-stor-scen/", title:"Hur stor scen behöver jag?", tag:"Scen" },
+          { href:"/for/guider/dj-eller-liveband/", title:"DJ eller liveband?", tag:"Musik" },
+          { href:"/for/guider/ljussattning-tips/", title:"Ljussättning för event", tag:"Ljus" },
+          { href:"/for/guider/checklista-event/", title:"Komplett checklista", tag:"Planering" },
+          { href:"/for/guider/vad-kostar-det/", title:"Vad kostar det?", tag:"Pris" },
         ].map(g => (
-          <a href={g.href} style="background:#1e1850; border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:1.25rem; text-decoration:none; display:flex; gap:0.85rem; align-items:flex-start; transition:border-color 0.2s;"
-             onmouseenter="this.style.borderColor='rgba(196,181,244,0.3)'"
-             onmouseleave="this.style.borderColor='rgba(255,255,255,0.07)'">
-            <span style="font-size:1.35rem; flex-shrink:0;">{g.icon}</span>
-            <div>
-              <div style="color:white; font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:600; line-height:1.3; margin-bottom:0.35rem;">{g.title}</div>
-              <span style="background:rgba(196,181,244,0.1); color:#c4b5f4; font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:9999px;">{g.tag}</span>
-            </div>
-          </a>
+          <a href={g.href}><span>{g.tag}</span><b>{g.title}</b></a>
         ))}
       </div>
     </div>
   </section>
 
-  <!-- Kortfakta om företaget -->
-  <section style="background:#111030; padding: clamp(2rem,4vw,3.5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px; margin:0 auto; display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; align-items:center;">
+  <section class="fo-wrap">
+    <div class="fo-fakta">
       {[
         ["1986", "Grundat"],
         ["100+", "Event per år"],
         ["20–2000", "Gäster vi hanterar"],
-        ["100%", "Nöjda kunder"],
-        ["2 tim", "Svarstid på offert"]
+        ["Storstockholm", "Leverans i hela området"],
       ].map(([nr, label]) => (
-        <div style="text-align:center;">
-          <div style="font-family:'DM Serif Display',serif; font-size:clamp(1.5rem,3vw,2.25rem); color:#c4b5f4;">{nr}</div>
-          <div style="color:rgba(255,255,255,0.60); font-family:'Space Grotesk',sans-serif; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-top:0.25rem;">{label}</div>
-        </div>
+        <div><b>{nr}</b><span>{label}</span></div>
       ))}
     </div>
   </section>
 
+  <SlutRuta rubrik="Hittar du inte ditt tillfälle?" text="Beskriv ert event så föreslår vi teknik och upplägg — kostnadsfritt och inte bindande." />
 </Layout>
+
+<style>
+  .fo-wrap { max-width: 80rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) clamp(2.5rem, 5vw, 4rem); }
+  .fo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .fo-kort { position: relative; display: block; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 5; background: #1e1850; text-decoration: none; }
+  .fo-kort img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .fo-kort:hover img { transform: scale(1.04); }
+  .fo-ton { position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,10,36,0.97) 0%, rgba(12,10,36,0.8) 42%, rgba(12,10,36,0) 75%); }
+  .fo-badge { position: absolute; top: 1rem; left: 1rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.35rem 0.7rem; border-radius: 999px; background: #c4b5f4; color: #0c0a24; }
+  .fo-text { position: absolute; left: 1.4rem; right: 1.4rem; bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .fo-text h2 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 2rem; line-height: 1.05; color: #fff; }
+  .fo-desc { font-size: 0.95rem; line-height: 1.5; color: rgba(255,255,255,0.78); }
+  .fo-fot { display: flex; justify-content: space-between; align-items: center; margin-top: 0.4rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.15); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; color: rgba(255,255,255,0.7); }
+  .fo-fot b { color: #c4b5f4; }
+  .fo-guider { padding-top: clamp(3rem, 6vw, 5rem); }
+  .fo-huvud { display: flex; justify-content: space-between; align-items: end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+  .fo-glista { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .fo-glista a { background: #110f30; padding: 1.25rem 1.4rem; text-decoration: none; display: flex; flex-direction: column; gap: 0.35rem; transition: background 0.15s; }
+  .fo-glista a:hover { background: #1e1850; }
+  .fo-glista span { font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #c4b5f4; }
+  .fo-glista b { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.35rem; color: #fff; }
+  .fo-fakta { margin-top: clamp(2.5rem, 5vw, 4rem); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .fo-fakta > div { background: #0c0a24; padding: 1.4rem; }
+  .fo-fakta b { display: block; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.2rem); color: #c4b5f4; }
+  .fo-fakta span { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+  @media (max-width: 1000px) { .fo-grid, .fo-glista { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fo-fakta { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .fo-grid, .fo-glista { grid-template-columns: minmax(0, 1fr); } }
+</style>

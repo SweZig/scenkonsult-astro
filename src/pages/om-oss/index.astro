@@ -3,110 +3,72 @@ import Layout from '../../layouts/Layout.astro';
 import siteData from '../../data/site.json';
 import { getAllClientNames } from '../../utils/clients';
 import { telefon } from '../../utils/hours';
+import SidHuvud from '../../components/SidHuvud.astro';
+import SlutRuta from '../../components/event/SlutRuta.astro';
+import KundRad from '../../components/event/KundRad.astro';
 
 const { company } = siteData;
 // Kundlista (underhålls i admin → Supabase, snapshot i clients.json)
 const clients = getAllClientNames();
+const ar = new Date().getFullYear() - 1986;
 ---
 
 <Layout
   title="Om oss – Scenkonsult Norden | Uthyrning av scen och ljud sedan 1986"
   description="Scenkonsult Norden har sedan 1986 hjälpt privatpersoner och företag i Stockholm med professionell uthyrning av scen, ljud, bild, ljus och DJ-utrustning. Läs vår historia."
 >
+  <SidHuvud
+    mikrodata
+    brod={[{ label: 'Hem', href: '/' }, { label: 'Om oss' }]}
+    eyebrow="Vilka är vi?"
+    h1="Om"
+    h1Accent="Scenkonsult Norden"
+    intro="Vi är Stockholms mest erfarna uthyrare av scen, ljud och ljus – med rötter tillbaka till 1986. Det som började som ett litet ljud- och ljusbolag i Mackmyra har vuxit till ett komplett eventföretag med hundratals nöjda kunder varje år."
+  />
 
-  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex items-center gap-2 text-sm text-gray-400" itemscope itemtype="https://schema.org/BreadcrumbList">
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
-        <meta itemprop="position" content="1" />
-      </li>
-      <span>/</span>
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <span class="text-white" itemprop="name">Om oss</span>
-        <meta itemprop="position" content="2" />
-      </li>
-    </ol>
-  </nav>
-
-  <header class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <p class="text-sm font-semibold uppercase tracking-wide mb-3" style="color:#c4b5f4">Vilka är vi?</p>
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-6" style="font-family:'DM Serif Display',serif">
-      Om <span style="color:#c4b5f4">Scenkonsult Norden</span>
-    </h1>
-    <p class="text-gray-300 text-xl leading-relaxed">
-      Vi är Stockholms mest erfarna uthyrare av scen, ljud och ljus – med rötter tillbaka till 1986. Det som började som ett litet ljud- och ljusbolag i Mackmyra har vuxit till ett komplett eventföretag med hundratals nöjda kunder varje år.
-    </p>
-  </header>
-
-  <!-- Historia -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8 mb-8">
-      <h2 id="historia" class="text-2xl font-bold text-white mb-4" style="scroll-margin-top:calc(var(--nav-offset,166px) + 1rem)">Vår historia</h2>
-      <div class="text-gray-400 leading-relaxed space-y-4">
-        <p>Det startade faktiskt redan 1986 i Mackmyra utanför Gävle – då drog vi igång verksamheten under namnet <strong class="text-white">DAV Produktion</strong> och sålde ljud- och ljusutrustning till scener, teatrar och nattklubbar. Allt fortlöpte under 90-talet och på senare år har verksamheten flyttats till Stockholm och övergått till uthyrning av ljud, ljus, bild, scenutrustning och konsultverksamhet.</p>
-        <p>Idag heter vi <strong class="text-white">Scenkonsult Norden</strong> och levererar utrustning till privatpersoner, kommuner, ambassader, universiteter och företag i hela Storstockholm. Bland våra kunder finns Stockholm Stad, ICA Sverige, Solna Stad och ett trettiotal kommuner och organisationer.</p>
-      </div>
+  <section class="om-wrap om-historia">
+    <div class="om-text">
+      <h2 id="historia" class="sk-h2">Vår historia</h2>
+      <p>Det startade faktiskt redan 1986 i Mackmyra utanför Gävle – då drog vi igång verksamheten under namnet <strong >DAV Produktion</strong> och sålde ljud- och ljusutrustning till scener, teatrar och nattklubbar. Allt fortlöpte under 90-talet och på senare år har verksamheten flyttats till Stockholm och övergått till uthyrning av ljud, ljus, bild, scenutrustning och konsultverksamhet.</p>
+      <p>Idag heter vi <strong >Scenkonsult Norden</strong> och levererar utrustning till privatpersoner, kommuner, ambassader, universiteter och företag i hela Storstockholm. Bland våra kunder finns Stockholm Stad, ICA Sverige, Solna Stad och ett trettiotal kommuner och organisationer.</p>
     </div>
+    <figure class="om-foto">
+      <img src="/images/event/uf_strawberry_arena_1.webp" srcset="/images/event/uf_strawberry_arena_1-640w.webp 640w, /images/event/uf_strawberry_arena_1.webp 1050w" sizes="(max-width: 900px) 100vw, 40vw" alt="Scenkonsults talarpodium på Strawberry Arena" width="1050" height="1400" loading="lazy" decoding="async" />
+      <figcaption>Strawberry Arena — Ung Företagsamhet</figcaption>
+    </figure>
+  </section>
 
-    <!-- Mission & Mål -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
-        <div class="text-2xl mb-3">🎯</div>
-        <h3 class="font-bold text-white text-lg mb-2">Vår mission</h3>
-        <p class="text-gray-400 leading-relaxed text-sm">Vårt uppdrag är att göra musik och underhållning tillgängligt för alla. Vi har de senaste 30+ åren arbetat för att skapa bra vibes och förutsättningar för att kunna avnjuta både musik och glädje – genom att verka inom ljud, ljus, underhållning och scenteknik med fokus på nöjda kunder hela vägen.</p>
-      </div>
-      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
-        <div class="text-2xl mb-3">✅</div>
-        <h3 class="font-bold text-white text-lg mb-2">Vårt mål</h3>
-        <p class="text-gray-400 leading-relaxed text-sm">Allt för ett lyckat event eller fest. När ni kontaktar oss vet ni att vi går långt för att hjälpa Er lyckas. Vi har lång erfarenhet, rätt utrustning och en genuin vilja att leverera – och vi finns tillgängliga med jourtjänst kvällstid om något krånglar.</p>
-      </div>
-    </div>
-
-    <!-- Värderingar -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
-        <div class="text-3xl mb-3">🤝</div>
-        <h3 class="font-bold text-white mb-2">Personlig service</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">Du pratar alltid med en människa som kan sitt jobb. Vi hjälper dig välja rätt utrustning utan att sälja på dig onödigt.</p>
-      </div>
-      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
-        <div class="text-3xl mb-3">🔧</div>
-        <h3 class="font-bold text-white mb-2">Alltid redo</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">All utrustning testas och kalibreras inför varje uthyrning. Ingenting skickas iväg utan att vi är 100% nöjda med skicket.</p>
-      </div>
-      <div class="bg-brand-navy border border-white/10 rounded-2xl p-6">
-        <div class="text-3xl mb-3">📍</div>
-        <h3 class="font-bold text-white mb-2">Lokala experter</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">Vi känner Stockholms eventscen utan och innan. Fråga oss om lokaler, akustik eller logistik – vi vet svaret.</p>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      {[
-        { n: "1986", label: "Grundat" },
-        { n: "38+", label: "Års erfarenhet" },
-        { n: "100+", label: "Event per år" },
-        { n: "100 %", label: "Nöjda kunder" },
-      ].map(s => (
-        <div class="bg-brand-navy border border-white/10 rounded-xl p-5 text-center">
-          <div class="text-3xl font-extrabold" style="color:#c4b5f4">{s.n}</div>
-          <div class="text-gray-400 text-sm mt-1">{s.label}</div>
-        </div>
-      ))}
+  <section class="sk-band">
+    <div class="om-wrap om-mission">
+      <div><p class="sk-eyebrow">Vår mission</p><p class="om-stor">Vårt uppdrag är att göra musik och underhållning tillgängligt för alla. Vi har de senaste 30+ åren arbetat för att skapa bra vibes och förutsättningar för att kunna avnjuta både musik och glädje – genom att verka inom ljud, ljus, underhållning och scenteknik med fokus på nöjda kunder hela vägen.</p></div>
+      <div><p class="sk-eyebrow">Vårt mål</p><p class="om-stor">Allt för ett lyckat event eller fest. När ni kontaktar oss vet ni att vi går långt för att hjälpa Er lyckas. Vi har lång erfarenhet, rätt utrustning och en genuin vilja att leverera – och vi finns tillgängliga med jourtjänst kvällstid om något krånglar.</p></div>
     </div>
   </section>
 
-  <!-- Kunder -->
-  <section class="bg-brand-navy border-y border-white/10 py-14">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="sk-h2s mb-2">Några av våra kunder</h2>
-      <p class="text-gray-400 mb-8">Vi är stolta över att ha levererat till ett brett spektrum av organisationer – från kommuner och ambassader till startups och kulturföreningar.</p>
-      <div id="om-oss-clients" class="flex flex-wrap gap-3">
-        {clients.map(c => (
-          <span class="bg-brand-dark border border-white/10 text-gray-400 text-sm px-4 py-2 rounded-full">{c}</span>
-        ))}
-      </div>
+  <section class="om-wrap">
+    <div class="om-ruta om-varden">
+      <div><b>Personlig service</b><span>Du pratar alltid med en människa som kan sitt jobb. Vi hjälper dig välja rätt utrustning utan att sälja på dig onödigt.</span></div>
+      <div><b>Alltid redo</b><span>All utrustning testas och kalibreras inför varje uthyrning. Ingenting skickas iväg utan att vi är 100% nöjda med skicket.</span></div>
+      <div><b>Lokala experter</b><span>Vi känner Stockholms eventscen utan och innan. Fråga oss om lokaler, akustik eller logistik – vi vet svaret.</span></div>
+    </div>
+    <div class="om-ruta om-siffror">
+      {[
+        { n: "1986", label: "Grundat" },
+        { n: `${ar}`, label: "Års erfarenhet" },
+        { n: "100+", label: "Event per år" },
+        { n: "100 %", label: "Nöjda kunder" },
+      ].map(x => <div><b>{x.n}</b><span>{x.label}</span></div>)}
+    </div>
+  </section>
+
+  <KundRad rubrik="De har hyrt av oss" />
+
+  <section class="om-wrap">
+    <p class="sk-eyebrow">Kunder</p>
+    <h2 class="sk-h2">Några av våra kunder</h2>
+    <p class="om-lead">Vi är stolta över att ha levererat till ett brett spektrum av organisationer – från kommuner och ambassader till startups och kulturföreningar.</p>
+    <div id="om-oss-clients" class="om-kunder">
+      {clients.map(c => <span>{c}</span>)}
     </div>
   </section>
 
@@ -123,48 +85,54 @@ const clients = getAllClientNames();
         const j = await res.json();
         if (!j || !j.ok || !Array.isArray(j.clients) || !j.clients.length) return;
         el.innerHTML = j.clients.map((c: any) =>
-          `<span class="bg-brand-dark border border-white/10 text-gray-400 text-sm px-4 py-2 rounded-full">${esc(c.name)}</span>`
+          `<span>${esc(c.name)}</span>`
         ).join('');
       } catch (_) { /* behåll SSR */ }
     })();
   </script>
 
-  <!-- Hitta till oss -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-    <h2 class="sk-h2s mb-2">Hitta till oss</h2>
-    <p class="text-gray-400 mb-6">Vi håller till hos <strong class="text-white">Green Storage</strong> på Grimstagatan 164, 162 58 Vällingby — nära E4/E18 och Vällingby tunnelbana.</p>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div class="bg-brand-navy border border-white/10 rounded-xl p-4">
-        <div class="font-bold text-white mb-1">📍 Adress</div>
-        <div class="text-gray-400 text-sm">Grimstagatan 164<br/>162 58 Vällingby</div>
-        <a href="https://maps.google.com/?q=Grimstagatan+164+Vällingby" target="_blank" rel="noopener" class="text-xs mt-2 inline-block" style="color:#c4b5f4">Öppna i Google Maps ↗</a>
+  <section class="sk-band">
+    <div class="om-wrap om-hitta">
+      <div>
+        <p class="sk-eyebrow">Besök oss</p>
+        <h2 class="sk-h2">Hitta till oss</h2>
+        <p class="om-lead">Vi håller till hos <strong>Green Storage</strong> på Grimstagatan 164, 162 58 Vällingby — nära E4/E18 och Vällingby tunnelbana.</p>
       </div>
-      <div class="bg-brand-navy border border-white/10 rounded-xl p-4">
-        <div class="font-bold text-white mb-1">🚇 Tunnelbana</div>
-        <div class="text-gray-400 text-sm">Vällingby station<br/>Gröna linjen · 5 min promenad</div>
-      </div>
-      <div class="bg-brand-navy border border-white/10 rounded-xl p-4">
-        <div class="font-bold text-white mb-1">🕐 Öppet</div>
-        <div class="text-gray-400 text-sm">{telefon({ versal: true })}<br/>Jour vid pågående uthyrning</div>
+      <div class="om-ruta om-info">
+        <div><b>Adress</b><span>Grimstagatan 164<br/>162 58 Vällingby</span><a href="https://maps.google.com/?q=Grimstagatan+164+Vällingby" target="_blank" rel="noopener">Öppna i Google Maps ↗</a></div>
+        <div><b>Tunnelbana</b><span>Vällingby station<br/>Gröna linjen · 5 min promenad</span></div>
+        <div><b>Öppet</b><span>{telefon({ versal: true })}<br/>Jour vid pågående uthyrning</span></div>
       </div>
     </div>
   </section>
 
-  <!-- Kontakt-CTA -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <div class="bg-brand-navy border border-white/10 rounded-2xl p-8 text-center">
-      <h2 class="sk-h2s mb-3">Vill du veta mer?</h2>
-      <p class="text-gray-400 mb-6">Ring oss, maila eller fyll i bokningsformuläret – vi svarar snabbt och hjälper dig hitta rätt lösning.</p>
-      <div class="flex flex-wrap gap-4 justify-center">
-        <a data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
-        <a href="/kontakt/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">
-          Skicka meddelande
-        </a>
-        <a href="/vara-tjanster/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">
-          Se alla tjänster
-        </a>
-      </div>
-    </div>
-  </section>
-
+  <SlutRuta rubrik="Vill du veta mer?" text="Ring oss, maila eller skicka en förfrågan – vi hjälper dig hitta rätt lösning." />
 </Layout>
+
+<style>
+  .om-wrap { max-width: 80rem; margin: 0 auto; padding: clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem); }
+  .om-historia { padding-top: 0; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+  .om-text p { margin: 1rem 0 0; font-size: 1.08rem; line-height: 1.75; color: rgba(255,255,255,0.75); }
+  .om-text strong, .om-lead strong { color: #fff; }
+  .om-foto { margin: 0; position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 5; background: #1e1850; }
+  .om-foto img { width: 100%; height: 100%; object-fit: cover; }
+  .om-foto figcaption { position: absolute; left: 1rem; right: 1rem; bottom: 1rem; padding: 0.75rem 1rem; border-radius: 14px; background: rgba(12,10,36,0.82); color: #fff; font-weight: 600; font-size: 0.95rem; }
+  .om-mission { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 4vw, 3.5rem); }
+  .om-stor { margin: 0; font-family: 'DM Serif Display', serif; font-size: clamp(1.3rem, 2vw, 1.6rem); line-height: 1.35; color: #fff; }
+  .om-ruta { display: grid; gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .om-ruta > div { background: #0c0a24; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .om-ruta b { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.5rem; color: #fff; }
+  .om-ruta span { font-size: 0.95rem; line-height: 1.55; color: rgba(255,255,255,0.7); }
+  .om-ruta a { color: #c4b5f4; font-size: 0.85rem; text-decoration: none; margin-top: 0.3rem; }
+  .om-varden { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .om-siffror { margin-top: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .om-siffror b { font-size: clamp(1.8rem, 3vw, 2.5rem); color: #c4b5f4; }
+  .om-siffror span { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+  .om-lead { margin: 0.9rem 0 0; max-width: 680px; font-size: 1.05rem; line-height: 1.6; color: rgba(255,255,255,0.72); }
+  .om-kunder { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+  .om-kunder :global(span) { font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; padding: 0.45rem 0.9rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.78); }
+  .om-hitta { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+  .om-info { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .om-info > div { background: #110f30; }
+  @media (max-width: 900px) { .om-historia, .om-mission, .om-hitta { grid-template-columns: minmax(0, 1fr); } .om-varden, .om-info { grid-template-columns: minmax(0, 1fr); } .om-siffror { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

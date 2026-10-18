@@ -1,4 +1,5 @@
 ---
+import GuideLayout from '../../components/GuideLayout.astro';
 import Layout from '../../layouts/Layout.astro';
 
 const teman = [
@@ -16,38 +17,16 @@ const produktionstips = [
   { icon: "📅", rubrik: "Timing är allt", text: "Planera en dramaturgi för kvällen: mingel → middag → tal → dessert → dansgolv öppnar. Håll tal tidiga (gästerna är fokuserade), öppna dansgolvet lagom. Avsluta med ett planerat höjdpunktsmoment." },
   { icon: "🌡️", rubrik: "Komfort avgör om folk stannar", text: "Kall mat, varma sittplatser, dålig akustik och köer till baren är fest-döden. Se till att lokalen har rätt temperatur, att det finns sittplatser för alla, och att baren är bemannad." },
 ];
+const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guide: Minnesvärda fester' }];
 ---
 
-<Layout
+<Layout breadcrumbs={pageBreadcrumbs}
   title="Den Ultimata Guiden till Minnesvärda Fester 2026 | Scenkonsult Stockholm"
   description="Fest-teman, produktionstips och checklista för minnesvärda fester – skriven av Stockholms mest erfarna eventproffs sedan 1986."
 >
 
-  <nav class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex items-center gap-2 text-sm text-gray-400 flex-wrap" itemscope itemtype="https://schema.org/BreadcrumbList">
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <a href="/" class="hover:text-gray-300" itemprop="item"><span itemprop="name">Hem</span></a>
-        <meta itemprop="position" content="1" />
-      </li>
-      <span>/</span>
-      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-        <span class="text-white" itemprop="name">Guide: Minnesvärda fester</span>
-        <meta itemprop="position" content="2" />
-      </li>
-    </ol>
-  </nav>
 
-  <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
-    <header class="mb-12">
-      <p class="text-sm font-semibold uppercase tracking-wide mb-2" style="color:#c4b5f4">Guide · Av Scenkonsult Norden</p>
-      <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4" style="font-family:'DM Serif Display',serif">
-        Den ultimata guiden till minnesvärda fester
-      </h1>
-      <p class="text-gray-300 text-xl leading-relaxed">
-        Att samla vänner och familj för en fest är en av livets stora glädjeämnen. Vad är det som skiljer en fest alla pratar om i månader från en fest folk knappt minns? Vi har levererat till hundratals event sedan 1986 – här är vad vi lärt oss.
-      </p>
-    </header>
+  <GuideLayout eyebrow="Guide · Fest" h1Html="Den ultimata guiden till <em>minnesvärda fester</em>" introHtml={`Att samla vänner och familj för en fest är en av livets stora glädjeämnen. Vad är det som skiljer en fest alla pratar om i månader från en fest folk knappt minns? Vi har levererat till hundratals event sedan 1986 – här är vad vi lärt oss.`} brod={pageBreadcrumbs} sortiment={{ label: "Se alla tjänster", href: "/vara-tjanster/", text: "Scen, ljud, bild, ljus och DJ — levererat och uppriggat." }} slutRubrik="Vi fixar tekniken – du fixar festen">
 
     <!-- Intro -->
     <section class="text-gray-400 leading-relaxed space-y-4 mb-12">
@@ -113,15 +92,5 @@ const produktionstips = [
       </div>
     </section>
 
-    <!-- CTA -->
-    <div class="bg-brand-navy border rounded-2xl p-8 text-center" style="border-color:rgba(196,181,244,0.2)">
-      <h2 class="text-xl font-bold text-white mb-2">Vi fixar tekniken – du fixar festen</h2>
-      <p class="text-gray-400 mb-6">Scen, ljud, bild, ljus och DJ-utrustning levererat och uppriggat i Storstockholm. Sedan 1986.</p>
-      <div class="flex flex-wrap gap-4 justify-center">
-        <a href="/kontakt/" class="px-6 py-3 rounded-xl font-semibold transition-colors" style="background:#c4b5f4;color:#0c0a24">Boka utrustning</a>
-        <a href="/vara-tjanster/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Se alla tjänster</a>
-      </div>
-    </div>
-
-  </article>
+  </GuideLayout>
 </Layout>

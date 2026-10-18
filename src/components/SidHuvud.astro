@@ -1,0 +1,62 @@
+---
+/**
+ * SidHuvud — rubrikytan för text- och informationssidor (design 2026):
+ * brödsmulor, eyebrow, stor DM Serif-rubrik med valfri kursiv lavendeldel,
+ * ingress och valfria knappar/rad under. Samma som guidernas rubrikyta.
+ * Brödsmulorna bär BreadcrumbList-mikrodata som CategoryHero/ModernHero.
+ */
+interface Props {
+  eyebrow?: string;
+  h1: string;
+  h1Accent?: string;
+  intro?: string;
+  introHtml?: string;
+  brod?: Array<{ label: string; href?: string }>;
+  knappar?: Array<{ label: string; href: string }>;
+  meta?: string;
+  smal?: boolean;
+  /** BreadcrumbList som mikrodata — bara för sidor som inte skickar breadcrumbs till Layout (som då ger JSON-LD). */
+  mikrodata?: boolean;
+}
+const { eyebrow, h1, h1Accent, intro, introHtml, brod = [], knappar = [], meta, smal = false, mikrodata = false } = Astro.props;
+const md = (v: string) => (mikrodata ? v : undefined);
+---
+<header class:list={['sh-hero', { 'sh-smal': smal }]}>
+  {brod.length > 0 && (
+    <nav aria-label="Brödsmulor" class="sh-brod">
+      <ol itemscope={mikrodata || undefined} itemtype={md("https://schema.org/BreadcrumbList")}>
+        {brod.map((b, i) => (
+          <li itemprop={md("itemListElement")} itemscope={mikrodata || undefined} itemtype={md("https://schema.org/ListItem")}>
+            {b.href ? <a href={b.href} itemprop={md("item")}><span itemprop={md("name")}>{b.label}</span></a> : <span itemprop={md("name")}>{b.label}</span>}
+            {mikrodata && <meta itemprop="position" content={String(i + 1)} />}
+            {i < brod.length - 1 && <span class="sh-sep" aria-hidden="true">/</span>}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )}
+  {eyebrow && <p class="sk-eyebrow">{eyebrow}</p>}
+  <h1 class="sh-h1">{h1}{h1Accent && <> <em>{h1Accent}</em></>}</h1>
+  {introHtml ? <p class="sh-intro" set:html={introHtml} /> : intro && <p class="sh-intro">{intro}</p>}
+  {knappar.length > 0 && (
+    <div class="sh-knappar">{knappar.map((k, i) => <a href={k.href} class:list={['sk-knapp', { 'sk-knapp-p': i === 0 }]}>{k.label}</a>)}</div>
+  )}
+  {meta && <p class="sh-meta">{meta}</p>}
+  <slot />
+</header>
+<style>
+  .sh-hero { max-width: 80rem; margin: 0 auto; padding: calc(var(--nav-offset, 166px) + clamp(1.25rem, 3vw, 2.5rem)) clamp(1rem, 3vw, 2rem) clamp(1.75rem, 3vw, 2.75rem); }
+  .sh-brod { margin-bottom: 1.4rem; }
+  .sh-brod ol { display: flex; flex-wrap: wrap; gap: 0.35rem; list-style: none; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.85); }
+  .sh-brod a { color: rgba(255,255,255,0.6); text-decoration: none; }
+  .sh-brod a:hover { color: #fff; }
+  .sh-sep { opacity: 0.4; margin: 0 0.2rem 0 0.4rem; }
+  .sh-h1 { margin: 0; max-width: 960px; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(2.4rem, 5.5vw, 4.4rem); line-height: 1.02; color: #fff; }
+  .sh-smal .sh-h1 { font-size: clamp(2.1rem, 4.4vw, 3.4rem); }
+  .sh-h1 em { color: #c4b5f4; }
+  .sh-intro { margin: 1.35rem 0 0; max-width: 680px; font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.6; color: rgba(255,255,255,0.72); }
+  .sh-intro :global(a) { color: #c4b5f4; }
+  .sh-knappar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.75rem; }
+  .sh-meta { margin: 1.4rem 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+  @media (max-width: 720px) { .sh-hero { padding-top: calc(132px + 0.75rem); } }
+</style>

@@ -1,4 +1,5 @@
 ---
+import SidHuvud from '../../components/SidHuvud.astro';
 import Layout from '../../layouts/Layout.astro';
 import tjansterData from '../../data/tjanster.json';
 
@@ -15,27 +16,15 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
   description="Hyresvillkor för företag, föreningar och organisationer som hyr scen, ljud, ljus, bild eller DJ-utrustning av Scenkonsult Norden i Stockholm."
 >
 
-  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex items-center gap-2 text-sm text-gray-400">
-      <li><a href="/" class="hover:text-gray-300">Hem</a></li>
-      <span>/</span>
-      <li><a href="/hyresvillkor/" class="hover:text-gray-300">Hyresvillkor</a></li>
-      <span>/</span>
-      <li class="text-white">Företag</li>
-    </ol>
-  </nav>
 
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-    <div class="text-xs uppercase tracking-widest font-medium mb-3" style="color:#c4b5f4">För företag &amp; organisationer</div>
-    <h1 class="text-4xl font-extrabold text-white mb-2" style="font-family:'DM Serif Display',serif">Hyresvillkor — företag</h1>
-    <p class="text-gray-400 text-sm mb-10">Scenkonsult Norden / Sigvardsson Consulting AB · Gäller från 2026-06-01</p>
+  <SidHuvud smal brod={[{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', href: '/hyresvillkor/' }, { label: 'Företag' }]} eyebrow="För företag & organisationer" h1="Hyresvillkor —" h1Accent="företag" meta="Scenkonsult Norden / Sigvardsson Consulting AB · Gäller från 2026-06-01" />
+  <article class="sk-prosa">
 
     <div class="space-y-10 text-gray-400 leading-relaxed">
 
       <!-- 1 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">1. Hyresperiod</h2>
+        <h2>1. Hyresperiod</h2>
         <p>Normal hyresperiod är <strong class="text-gray-200">22 timmar</strong> — hämtning kl 13:00 dagen för evenemanget och återlämning kl 11:00 påföljande dag. Längre hyresperioder kan arrangeras mot tillägg och ska bekräftas skriftligen i samband med bokningen.</p>
         <p class="mt-2">Förtidig hämtning (dagen innan) eller sen återlämning (dagen efter) kan medges utan extra kostnad om utrustningen inte är bokad av annan kund — kontakta oss i god tid för att bekräfta detta.</p>
         <p class="mt-2">Utrustning som inte återlämnas i tid debiteras en extra hyresdag per påbörjat dygn. Kontakta oss alltid om försenad återlämning är oundviklig.</p>
@@ -43,7 +32,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 2 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">2. Bokning och betalning</h2>
+        <h2>2. Bokning och betalning</h2>
         <p>Bokning är bindande och bekräftas skriftligen via e-post. Betalning sker mot faktura med betalningsvillkor enligt överenskommelse (vanligen 5–30 dagar). Företag eller organisationer som hyr för <strong class="text-gray-200">första gången</strong>, eller som saknar kreditmöjlighet, kan i stället betala vid hämtning med kort (de flesta betalkort accepteras, samt Apple Pay och Google Pay) eller via Swish.</p>
         <p class="mt-2">Bokningar inom <strong class="text-gray-200">72 timmar</strong> före utlämning kräver alltid omedelbar betalning oavsett tidigare kundhistorik.</p>
         <p class="mt-2">En <strong class="text-gray-200">bokningsavgift om {bokningsavgift} kr</strong> (exkl. moms) tillkommer per faktura för att täcka administrativa kostnader.</p>
@@ -52,7 +41,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 3 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">3. Beställarens ansvar och behörighet</h2>
+        <h2>3. Beställarens ansvar och behörighet</h2>
         <p>Den fysiska person som genomför bokningen (<strong class="text-gray-200">”Beställaren”</strong>) bekräftar genom att acceptera dessa villkor att hen är behörig att binda den juridiska person — företag, förening eller annan organisation — som anges som hyresgäst.</p>
         <p class="mt-2">Om sådan behörighet i efterhand visar sig saknas eller ha överskridits, blir Beställaren <strong class="text-gray-200">personligen och primärt ansvarig</strong> för avtalets fullgörande i sin helhet. Detta innefattar hyresbelopp, eventuell skada, förlust, försening, samt återanskaffningskostnad för utrustning som inte återlämnas.</p>
         <p class="mt-2">Personligt ansvar enligt denna paragraf gäller även om Beställaren handlat i god tro om sin behörighet.</p>
@@ -60,7 +49,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 4 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">4. Avbokning och ändring</h2>
+        <h2>4. Avbokning och ändring</h2>
         <ul class="space-y-2 mb-3 ml-1">
           <li><span style="color:#c4b5f4" class="mr-2">✓</span> <strong class="text-gray-200">Mer än 7 dagar före:</strong> Full återbetalning, inga avgifter.</li>
           <li><span style="color:#c4b5f4" class="mr-2">→</span> <strong class="text-gray-200">3–7 dagar före:</strong> 50 % av hyresbeloppet återbetalas.</li>
@@ -79,7 +68,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 5 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">5. Ansvar och försäkring</h2>
+        <h2>5. Ansvar och försäkring</h2>
         <p>Hyrestagaren ansvarar för utrustningen från det att den hämtas eller levereras till dess att den är återlämnad och godkänd av Scenkonsult Norden. Ansvaret kvarstår hos Beställaren under hela hyresperioden även om en tredje person — bud eller kontaktperson — utsetts att fysiskt hämta eller ta emot utrustningen enligt §7.</p>
         <p class="mt-2">Utrustningen får endast användas för avsett ändamål — vidareuthyrning och utlåning till tredje part är inte tillåten.</p>
         <p class="mt-2">Uppstår skada, stöld eller förlust under hyresperioden är hyrestagaren ersättningsskyldig. Scenkonsult Norden fastställer ersättningsbeloppet baserat på reparationskostnad eller återanskaffningsvärde. Normalt slitage vid korrekt användning bekostas av Scenkonsult Norden.</p>
@@ -89,7 +78,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 6 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">6. Leverans och hämtning</h2>
+        <h2>6. Leverans och hämtning</h2>
         <p>Utrustningen kan hämtas på vår depå (adress meddelas vid bekräftad bokning) eller levereras till avtalad adress inom Storstockholm. Leverans- och upphämtningspris beräknas per körning tur och retur och bekräftas i samband med bokning.</p>
         <p class="mt-2">Vid leverans anges avtalad ankomsttid i bokningsbekräftelsen. Tiden är ungefärlig — mindre avvikelser kan förekomma på grund av trafik eller övriga uppdrag samma dag.</p>
         <p class="mt-2">Adressändring efter bokningsbekräftelse är möjlig om den nya adressen ligger inom samma fraktzon. Ändring till annan fraktzon kan medföra justerat fraktpris och kräver bekräftelse från Scenkonsult Norden.</p>
@@ -99,7 +88,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 7 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">7. Utlämning, fullmakt och motkvittering</h2>
+        <h2>7. Utlämning, fullmakt och motkvittering</h2>
 
         <h3 class="text-base font-bold text-white mt-2 mb-2">Förberedelse av utlämning</h3>
         <p>Inför utlämning skickar Scenkonsult Norden en förberedelse-länk till Beställaren via SMS (eller e-post om mobilnummer saknas), normalt klockan 19:00 dagen före utlämningens början. Via denna länk ska Beställaren:</p>
@@ -124,7 +113,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 8 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">8. Montering och teknik</h2>
+        <h2>8. Montering och teknik</h2>
         <p>Enklare utrustning (PA-paket Event/Portable, ljuspaket Small–Medium, projektorer) är avsedd för självmontering och levereras med instruktioner. Vi visar gärna hur det fungerar vid hämtning.</p>
         <p class="mt-2">Scenpaket av storlek <strong class="text-gray-200">Large och uppåt</strong> kräver alltid professionell montering och demontering av vår personal, vilket prissätts separat. LED-skärmar och mer komplex ljusutrustning kräver tekniker vid installation — detta offerteras separat.</p>
         <p class="mt-2">Monteringstjänst debiteras per påbörjad 15-minutersperiod à <strong class="text-gray-200">{montPer15} kr</strong> exkl. moms ({montPerTim} kr/timme).</p>
@@ -141,7 +130,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 9 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">9. Fel och reklamation</h2>
+        <h2>9. Fel och reklamation</h2>
         <p>Om utrustningen har ett fel vid hämtning eller leverans ska detta anmälas omedelbart — senast innan evenemanget startar. Scenkonsult Norden åtar sig att i möjligaste mån avhjälpa felet, erbjuda ersättningsutrustning eller återbetala aktuell del av hyran.</p>
         <p class="mt-2">Fel som uppstår under hyresperioden ska anmälas snarast via telefon. Reklamation i efterhand — det vill säga efter återlämning utan anmärkning — godtas normalt inte.</p>
 
@@ -151,19 +140,19 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 10 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">10. Force majeure</h2>
+        <h2>10. Force majeure</h2>
         <p>Scenkonsult Norden är fri från ansvar för förseningar eller hinder som beror på omständigheter utanför vår kontroll, till exempel extrema väderförhållanden, trafikolycka, strejk eller myndighetsbeslut. Om leverans inte kan genomföras av sådana skäl återbetalas erlagd hyra i sin helhet.</p>
       </section>
 
       <!-- 11 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">11. Tvister</h2>
+        <h2>11. Tvister</h2>
         <p>Eventuella tvister löses i första hand genom dialog. Om parterna inte kan komma överens avgörs tvisten i Stockholms tingsrätt med tillämpning av svensk lag.</p>
       </section>
 
       <!-- 12 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">12. Förbjuden användning</h2>
+        <h2>12. Förbjuden användning</h2>
         <p>Utrustningen får inte användas:</p>
         <ul class="list-disc pl-6 mt-2 space-y-1">
           <li>utomhus utan godkänt väderskydd vid regn, kraftig fukt eller temperaturer under –5 °C eller över +40 °C,</li>
@@ -178,40 +167,40 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor', h
 
       <!-- 13 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">13. Äganderätt</h2>
+        <h2>13. Äganderätt</h2>
         <p>All hyrd utrustning är och förblir Scenkonsult Nordens exklusiva egendom. Hyrestagaren förvärvar inga äganderättsliga anspråk genom uthyrningen. Utrustningen får inte pantsättas, överlåtas eller på annat sätt belastas av hyrestagaren.</p>
       </section>
 
       <!-- 14 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">14. Ansvarsbegränsning och skadeersättning</h2>
+        <h2>14. Ansvarsbegränsning och skadeersättning</h2>
         <p>Scenkonsult Nordens ansvar gentemot hyrestagaren är under alla omständigheter begränsat till det belopp som hyrestagaren faktiskt erlagt för aktuell hyresperiod. Scenkonsult Norden ansvarar inte för indirekta skador, utebliven vinst, eller följdskador av något slag.</p>
         <p class="mt-2">Hyrestagaren förbinder sig att hålla Scenkonsult Norden skadelös för krav, ansvar, skador, förluster och kostnader — inklusive personskada eller sakskada — som uppstår till följd av hyrestagarens användning av utrustningen, i den mån dessa inte orsakats av Scenkonsult Nordens eget handlande eller försummelse.</p>
       </section>
 
       <!-- 15 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">15. Säkerhet och borgen-förbehåll</h2>
+        <h2>15. Säkerhet och borgen-förbehåll</h2>
         <p>Scenkonsult Norden förbehåller sig rätten att, för ordrar överstigande visst belopp eller vid uthyrning till nyetablerad kund, kräva personlig proprieborgen från Beställaren eller annan namngiven privatperson som ytterligare säkerhet för hyresavtalets fullgörande. Sådant krav meddelas Beställaren skriftligen innan utlämning sker.</p>
         <p class="mt-2">Borgensförbindelse undertecknas separat genom digital signering och utgör då en bilaga till hyresavtalet.</p>
       </section>
 
       <!-- 16 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">16. Deposition</h2>
+        <h2>16. Deposition</h2>
         <p>Scenkonsult Norden förbehåller sig rätten att kräva en deposition (säkerhet) som villkor för uthyrning. Depositionen uppgår till ett belopp som anges i orderbekräftelsen och betalas senast vid utlämning eller då motsvarande digital säkerhet — exempelvis kortförauktorisation eller Swish-deposition — ställts i samband med förberedelse av utlämning.</p>
         <p class="mt-2">Depositionen återbetalas inom 5 arbetsdagar efter att utrustningen återlämnats och kontrollerats, under förutsättning att inga skador, förluster eller obetalda avgifter föreligger. Scenkonsult Norden äger rätt att avräkna eventuella sådana kostnader mot depositionen.</p>
       </section>
 
       <!-- 17 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">17. Personuppgifter</h2>
+        <h2>17. Personuppgifter</h2>
         <p>Personuppgifter som lämnas i samband med bokning behandlas i enlighet med gällande dataskyddslagstiftning (GDPR) och vår <a href="/personuppgiftpolicy/" class="underline hover:text-white" style="color:#c4b5f4">integritetspolicy</a>. Uppgifterna används enbart för att administrera bokningen, fakturering och kundkommunikation.</p>
       </section>
 
       <!-- 18 -->
       <section>
-        <h2 class="text-lg font-bold text-white mb-3">18. Helhetlig överenskommelse och ändringar av villkor</h2>
+        <h2>18. Helhetlig överenskommelse och ändringar av villkor</h2>
         <p>Dessa villkor utgör den fullständiga överenskommelsen mellan parterna avseende uthyrningen och ersätter alla tidigare muntliga eller skriftliga utfästelser. Villkoren kan uppdateras av Scenkonsult Norden; gällande version publiceras alltid på denna sida med angivet giltighetsdatum.</p>
         <p class="mt-2">Ändringar eller tillägg som avviker från dessa villkor för en specifik order ska bekräftas skriftligen av Scenkonsult Norden för att vara giltiga.</p>
       </section>

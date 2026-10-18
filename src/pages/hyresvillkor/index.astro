@@ -1,4 +1,5 @@
 ---
+import SidHuvud from '../../components/SidHuvud.astro';
 import Layout from '../../layouts/Layout.astro';
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor' }];
 ---
@@ -8,38 +9,27 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor' }]
   description="Hyresvillkor för Scenkonsult Norden. Välj villkor för privatperson eller företag/organisation."
 >
 
-  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex items-center gap-2 text-sm text-gray-400">
-      <li><a href="/" class="hover:text-gray-300">Hem</a></li>
-      <span>/</span>
-      <li class="text-white">Hyresvillkor</li>
-    </ol>
-  </nav>
 
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-    <h1 class="text-4xl font-extrabold text-white mb-2" style="font-family:'DM Serif Display',serif">Hyresvillkor</h1>
-    <p class="text-gray-400 text-sm mb-10">Våra hyresvillkor är anpassade för respektive kundtyp. Välj nedan vilken version som gäller för dig.</p>
+  <SidHuvud smal brod={[{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor' }]} eyebrow="Villkor" h1="Hyresvillkor" intro="Våra hyresvillkor är anpassade för respektive kundtyp. Välj nedan vilken version som gäller för dig." />
+  <article class="sk-prosa">
 
     <!-- Två val-kort -->
     <div class="grid sm:grid-cols-2 gap-4 mb-10">
 
-      <a href="/hyresvillkor/privatperson/" class="block rounded-2xl p-6 transition-all group hover:border-brand-orange/40" style="background:#1e1850; border:1px solid rgba(255,255,255,0.08)">
+      <a href="/hyresvillkor/privatperson/" class="block rounded-3xl p-6 transition-all group hover:border-brand-orange/40" style="background:#14113a; border:1px solid rgba(255,255,255,0.08)">
         <div class="flex items-center gap-3 mb-3">
-          <span class="text-3xl">👤</span>
           <div class="text-xs uppercase tracking-widest font-medium" style="color:#c4b5f4">För privatpersoner</div>
         </div>
-        <h2 class="sk-h2s mb-2" style="font-family:'DM Serif Display',serif">Hyresvillkor — privatperson</h2>
+        <h2 class="sk-h2s mb-2">Hyresvillkor — privatperson</h2>
         <p class="text-gray-400 text-sm mb-4 leading-relaxed">Du som hyr i eget namn för fest, bröllop, studentfest eller annat privat evenemang.</p>
         <span class="text-sm font-medium group-hover:underline" style="color:#c4b5f4">Läs villkoren →</span>
       </a>
 
-      <a href="/hyresvillkor/foretag/" class="block rounded-2xl p-6 transition-all group hover:border-brand-orange/40" style="background:#1e1850; border:1px solid rgba(255,255,255,0.08)">
+      <a href="/hyresvillkor/foretag/" class="block rounded-3xl p-6 transition-all group hover:border-brand-orange/40" style="background:#14113a; border:1px solid rgba(255,255,255,0.08)">
         <div class="flex items-center gap-3 mb-3">
-          <span class="text-3xl">🏢</span>
           <div class="text-xs uppercase tracking-widest font-medium" style="color:#c4b5f4">För företag &amp; organisationer</div>
         </div>
-        <h2 class="sk-h2s mb-2" style="font-family:'DM Serif Display',serif">Hyresvillkor — företag</h2>
+        <h2 class="sk-h2s mb-2">Hyresvillkor — företag</h2>
         <p class="text-gray-400 text-sm mb-4 leading-relaxed">Du som hyr för företag, förening, kommun eller annan organisations räkning.</p>
         <span class="text-sm font-medium group-hover:underline" style="color:#c4b5f4">Läs villkoren →</span>
       </a>
@@ -47,7 +37,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor' }]
     </div>
 
     <!-- Skillnaderna -->
-    <section class="rounded-2xl p-6 mb-6" style="background:#1e1850; border:1px solid rgba(255,255,255,0.08)">
+    <div class="rounded-3xl p-6 mb-6" style="background:#14113a; border:1px solid rgba(255,255,255,0.08)">
       <div class="text-xs uppercase tracking-widest font-medium mb-2" style="color:#c4b5f4">Vad skiljer versionerna?</div>
       <h2 class="text-xl text-white mb-3" style="font-family:'DM Serif Display',serif">Två versioner — samma företag, anpassat för respektive kundtyp</h2>
       <p class="text-gray-400 leading-relaxed mb-3">Den juridiska kärnan är densamma i båda versionerna. Det som skiljer sig är paragrafer som följer av kundtypen:</p>
@@ -56,10 +46,10 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Hyresvillkor' }]
         <li><strong class="text-gray-200">Företag och organisationer</strong> har en extra paragraf om <em>Beställarens ansvar och behörighet</em>, samt ett förbehåll om att vi kan begära personlig borgen vid större ordrar.</li>
         <li><strong class="text-gray-200">Betalningsvillkoren</strong> skiljer sig: privatpersoner betalar i förskott eller med kort vid hämtning, företag faktureras enligt överenskommelse (med kortbetalning vid hämtning som alternativ för den som saknar kreditmöjlighet).</li>
       </ul>
-    </section>
+    </div>
 
     <!-- Kontaktbox -->
-    <div class="mt-12 p-6 rounded-2xl" style="background:#1e1850; border:1px solid rgba(255,255,255,0.08)">
+    <div class="mt-12 p-6 rounded-3xl" style="background:#14113a; border:1px solid rgba(255,255,255,0.08)">
       <p class="text-gray-400 text-sm">
         Frågor om villkoren? Kontakta oss på
         <a data-mail="aW5mb0BzY2Vua29uc3VsdC5zZQ==" data-label="info@scenkonsult.se" href="#mail" class="hover:underline" style="color:#c4b5f4; cursor:pointer"><noscript>info@scenkonsult.se</noscript></a>
