@@ -3,6 +3,8 @@ import Layout from '../../../layouts/Layout.astro';
 import KunskapBlock from '../../../components/KunskapBlock.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
+import EventFaq from '../../../components/event/EventFaq.astro';
+import SlutRuta from '../../../components/event/SlutRuta.astro';
 import KaraokeBuilder from '../../../components/KaraokeBuilder.astro';
 import karaoke from '../../../data/karaoke.json';
 import bild from '../../../data/bild.json';
@@ -60,83 +62,36 @@ const _fran = _heroFranExcl.toLocaleString('sv-SE');
   <KaraokeBuilder />
 
   <!-- SINGA KARAOKE-APP -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <div class="bg-gradient-to-br from-[#2a1e50] to-[#1e1850] border border-brand-orange/20 rounded-2xl p-6 sm:p-8">
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-start">
-        <div>
-          <div class="flex items-center gap-3 mb-3">
-            <span class="text-2xl">🎵</span>
-            <h2 class="sk-h2s">{karaoke.singa.title}</h2>
-          </div>
-          <p class="text-gray-300 text-sm leading-relaxed mb-5 max-w-3xl">{karaoke.singa.intro}</p>
-          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 mb-5">
-            {karaoke.singa.bullets.map(b => (
-              <li class="flex gap-2 text-xs text-gray-300">
-                <span class="text-brand-orange shrink-0">▸</span>{b}
-              </li>
-            ))}
-          </ul>
-          <div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-4">
-            <p class="text-gray-200 text-xs font-semibold mb-2 uppercase tracking-wide">{karaoke.singa.step_title}</p>
-            <ol class="space-y-1.5">
-              {karaoke.singa.steps.map((s, i) => (
-                <li class="flex gap-2 text-xs text-gray-300">
-                  <span class="text-brand-orange font-bold shrink-0">{i + 1}.</span>{s}
-                </li>
-              ))}
-            </ol>
-          </div>
-          <p class="text-gray-400 text-xs italic">{karaoke.singa.note}</p>
+  <section class="sk-band">
+    <div class="ka-singa">
+      <div>
+        <p class="sk-eyebrow">Låtarna</p>
+        <h2 class="sk-h2">{karaoke.singa.title}</h2>
+        <p class="ka-lead">{karaoke.singa.intro}</p>
+        <div class="ka-lankar">
+          {karaoke.singa.links.map((l: any) => <a href={l.url} target="_blank" rel="noopener" class="sk-knapp">{l.label} →</a>)}
         </div>
-        <div class="flex flex-col gap-2 lg:min-w-[180px]">
-          {karaoke.singa.links.map(l => (
-            <a href={l.url} target="_blank" rel="noopener" class="bg-brand-orange hover:bg-brand-orange-light text-brand-dark text-xs font-semibold px-4 py-2.5 rounded-lg text-center transition-colors">
-              {l.label} →
-            </a>
-          ))}
+      </div>
+      <div>
+        <ul class="ka-punkter">{karaoke.singa.bullets.map((b: string) => <li>{b}</li>)}</ul>
+        <div class="ka-steg">
+          <p>{karaoke.singa.step_title}</p>
+          <ol>{karaoke.singa.steps.map((st: string, i: number) => <li><span>{String(i + 1).padStart(2, '0')}</span>{st}</li>)}</ol>
         </div>
+        <p class="ka-not">{karaoke.singa.note}</p>
       </div>
     </div>
   </section>
 
-  <!-- FAQ -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <SectionHeader eyebrow="Vanliga frågor" h2="Vanliga frågor om karaokeuthyrning" marginBottom="1.5rem" />
-    <div class="space-y-3">
-      {karaoke.faq.map(f => (
-        <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
-          <summary class="px-5 py-4 text-white font-semibold cursor-pointer text-sm hover:text-brand-orange transition-colors list-none flex justify-between items-center">
-            {f.q}
-            <span class="text-brand-orange text-lg">+</span>
-          </summary>
-          <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-3">
-            {f.a}
-          </div>
-        </details>
-      ))}
-    </div>
-  </section>
-
-  <!-- Guider -->
-  <section style="background:#0c0a24;border-top:1px solid rgba(255,255,255,0.06);padding:2.5rem clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px;margin:0 auto;">
-      <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 1.25rem;">📖 Relaterade guider</p>
-      <div style="display:flex;flex-wrap:wrap;gap:2.5rem;">
-        <div style="flex:1;min-width:220px;">
-          <a href="/for/guider/hur-stor-pa/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Hur stor PA-anläggning?</a>
-          <a href="/for/guider/ljussattning-tips/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Ljussättning för fest</a>
-          <a href="/for/guider/checklista-event/" style="display:flex;align-items:center;gap:0.5rem;color:rgba(255,255,255,0.7);font-size:0.88rem;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:color 0.15s;" onmouseenter="this.style.color='#c4b5f4'" onmouseleave="this.style.color='rgba(255,255,255,0.7)'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Komplett event-checklista</a>
-          <a href="/for/guider/" style="display:inline-block;margin-top:0.6rem;color:rgba(255,255,255,0.60);font-size:0.8rem;text-decoration:none;">Alla guider →</a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <EventFaq rubrik="Vanliga frågor om karaokeuthyrning" faq={karaoke.faq} />
 
   <KunskapBlock
     guides={[
     { href: "/for/guider/hyra-tradlos-mikrofon/", label: "Hyra trådlös mikrofon" },
     { href: "/for/guider/ljud-foretagsfest/", label: "Ljud till företagsfest" },
-    { href: "/for/guider/hur-stor-pa/", label: "Hur stor PA behöver jag?" }
+    { href: "/for/guider/hur-stor-pa/", label: "Hur stor PA behöver jag?" },
+    { href: "/for/guider/ljussattning-tips/", label: "Ljussättning för fest" },
+    { href: "/for/guider/checklista-event/", label: "Komplett event-checklista" }
   ]}
     videos={[
     { slug: "kontakter-ljud", label: "Kontakter inom ljud" },
@@ -145,4 +100,23 @@ const _fran = _heroFranExcl.toLocaleString('sv-SE');
   ]}
   />
 
+  <SlutRuta rubrik="Osäkra på vad ni behöver? Vi sätter ihop er karaoke." />
+
 </Layout>
+
+<style>
+  .ka-singa { max-width: 80rem; margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; }
+  .ka-lead { margin: 1rem 0 0; color: rgba(255,255,255,0.72); line-height: 1.6; }
+  .ka-lankar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+  .ka-punkter { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .ka-punkter li { background: #110f30; padding: 1rem 1.15rem; color: rgba(255,255,255,0.82); font-size: 0.95rem; line-height: 1.45; }
+  .ka-punkter li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .ka-steg { margin-top: 1.25rem; border-left: 3px solid #c4b5f4; padding: 0.25rem 0 0.25rem 1.25rem; }
+  .ka-steg > p { margin: 0 0 0.6rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #c4b5f4; }
+  .ka-steg ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+  .ka-steg li { display: grid; grid-template-columns: 2rem 1fr; color: rgba(255,255,255,0.8); font-size: 0.95rem; }
+  .ka-steg li span { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #c4b5f4; }
+  .ka-not { margin: 1rem 0 0; font-size: 0.88rem; font-style: italic; color: rgba(255,255,255,0.55); }
+  @media (max-width: 900px) { .ka-singa { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) { .ka-punkter { grid-template-columns: minmax(0, 1fr); } }
+</style>

@@ -4,6 +4,8 @@ import KunskapBlock from '../../../components/KunskapBlock.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import TrossPromoBanner from '../../../components/TrossPromoBanner.astro';
+import EventFaq from '../../../components/event/EventFaq.astro';
+import SlutRuta from '../../../components/event/SlutRuta.astro';
 import ledData from '../../../data/led-paneler.json';
 import { utanInterna } from '../../../utils/utanInterna';
 import tjansterData from '../../../data/tjanster.json';
@@ -66,6 +68,7 @@ const faqSchema = {
       "Ground support eller trosslösning",
       "Leverans i Storstockholm",
     ]}
+    knappar={[{ label: "Se färdiga paket", href: "#led-paket" }, { label: "Konfigurera fritt", href: "#led-bygg-egen" }]}
   />
 
   <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
@@ -88,11 +91,11 @@ const faqSchema = {
       <!-- innan de väljer paket eller använder konfiguratorn.             -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <section style="margin-bottom:3.5rem;">
-        <div style="text-align:center;margin-bottom:1.6rem;">
-          <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,2.6vw,1.9rem);color:white;margin:0 0 0.55rem;line-height:1.2;">Indoor eller outdoor — vilken panel passar?</h2>
-          <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;max-width:720px;margin:0 auto;">Två kabinettstorlekar i tre upplösningar. Inomhus väljer du mellan P1.95 (premium) och P2.604 (event). Utomhus är P3.91 med IP65-skydd standard.</p>
+        <div class="led-huvud">
+          <h2 class="sk-h2">Indoor eller outdoor — vilken panel passar?</h2>
+          <p>Två kabinettstorlekar i tre upplösningar. Inomhus väljer du mellan P1.95 (premium) och P2.604 (event). Utomhus är P3.91 med IP65-skydd standard.</p>
         </div>
-        <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.18);border-radius:16px;padding:1.75rem 1rem 1.4rem;">
+        <div class="led-paneler">
           <div style="display:flex;align-items:flex-end;justify-content:center;gap:clamp(1rem,3.5vw,2.5rem);min-height:280px;flex-wrap:wrap;">
             <!-- Vänster: 500x500 indoor (framsida) -->
             <div style="display:flex;flex-direction:column;align-items:center;gap:0.6rem;">
@@ -469,24 +472,6 @@ const faqSchema = {
 
         <!-- Varningar -->
         <div id="led-warnings" style="margin-top:1.25rem;display:none;"></div>
-      </div>
-
-      <!-- FAQ -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:2rem 0 1.25rem;">Vanliga frågor om LED-väggar</h2>
-      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:3rem;">
-        {faq.map(f => (
-          <details style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem 1.25rem;">
-            <summary style="color:white;font-weight:600;cursor:pointer;list-style:none;font-size:0.95rem;">{f.q}</summary>
-            <p style="color:rgba(255,255,255,0.65);margin:0.75rem 0 0;font-size:0.92rem;line-height:1.7;">{f.a}</p>
-          </details>
-        ))}
-      </div>
-
-      <!-- CTA -->
-      <div style="background:linear-gradient(135deg,#1e1850 0%,#2a2470 100%);border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:clamp(1.5rem,3vw,2.25rem);text-align:center;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.3rem,2.5vw,1.7rem);color:white;margin:0 0 0.75rem;">Behöver du hjälp att välja?</h2>
-        <p style="color:rgba(255,255,255,0.65);margin:0 0 1.25rem;font-size:0.95rem;line-height:1.7;">Kalkylatorn ger dig en solid startpunkt — men vi hjälper gärna till att dimensionera rätt paneltyp, rigg och tekniker för just ditt event.</p>
-        <a href="/kontakt/" style="display:inline-block;background:#c4b5f4;color:#0c0a24;padding:0.85rem 1.75rem;border-radius:10px;text-decoration:none;font-weight:700;font-family:'Space Grotesk',sans-serif;">Kontakta oss för offert →</a>
       </div>
 
     </div>
@@ -1574,6 +1559,9 @@ const faqSchema = {
       }
     }
     #led-calc details summary::-webkit-details-marker { display: none; }
+    .led-huvud { margin-bottom: 1.6rem; }
+    .led-huvud p { margin: 0.75rem 0 0; max-width: 720px; color: rgba(255,255,255,0.72); font-size: 1.05rem; }
+    .led-paneler { background: #14113a; border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; padding: 1.75rem 1rem 1.4rem; }
     #led-calc details[open] summary { color: #c4b5f4; }
     @media (max-width: 640px) {
       #led-result-grid {
@@ -1581,6 +1569,8 @@ const faqSchema = {
       }
     }
   </style>
+  <EventFaq rubrik="Vanliga frågor om LED-väggar" faq={faq} />
+
   <KunskapBlock
     guides={[
     { href: "/for/guider/led-vagg-kalkylator/", label: "LED-vägg — kalkylator" },
@@ -1593,5 +1583,7 @@ const faqSchema = {
     { slug: "hur-det-fungerar", label: "Hur det fungerar att hyra hos oss" }
   ]}
   />
+
+  <SlutRuta rubrik="Behöver du hjälp att välja?" text="Kalkylatorn ger en solid startpunkt — vi hjälper gärna till att dimensionera paneltyp, rigg och tekniker för just ert event." />
 
 </Layout>

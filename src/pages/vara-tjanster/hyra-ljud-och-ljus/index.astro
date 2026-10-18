@@ -6,6 +6,8 @@ import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import LjudLjusBuilder from '../../../components/LjudLjusBuilder.astro';
+import EventFaq from '../../../components/event/EventFaq.astro';
+import SlutRuta from '../../../components/event/SlutRuta.astro';
 import PopularaPaket from '../../../components/PopularaPaket.astro';
 import config from '../../../data/ljud-ljus.json';
 import ljud from '../../../data/ljud.json';
@@ -116,34 +118,27 @@ const steg = [
     </div>
   </section>
 
-  <!-- FAQ -->
-  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <SectionHeader eyebrow="Vanliga frågor" h2="Vanliga frågor om att hyra ljud och ljus" marginBottom="1.5rem" />
-    <div class="space-y-3">
-      {config.faq.map((f) => (
-        <details class="bg-brand-navy border border-white/10 rounded-xl overflow-hidden group">
-          <summary class="px-5 py-4 text-white font-semibold cursor-pointer text-sm hover:text-brand-orange transition-colors list-none flex justify-between items-center">
-            {f.q}
-            <span class="text-brand-orange text-lg">+</span>
-          </summary>
-          <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-3">
-            {f.a}
-          </div>
-        </details>
-      ))}
+  <EventFaq rubrik="Vanliga frågor om att hyra ljud och ljus" faq={config.faq} />
+
+  <!-- Guider -->
+  <section class="ll-guider">
+    <p class="sk-eyebrow">Relaterade guider</p>
+    <div>
+      <a href="/for/guider/hur-stor-pa/" class="sk-knapp">Hur stor PA behöver vi?</a>
+      <a href="/for/guider/ljud-brollop/" class="sk-knapp">Ljud till bröllop</a>
+      <a href="/for/guider/ljus-brollop/" class="sk-knapp">Ljus till bröllop</a>
+      <a href="/for/guider/ljud-foretagsfest/" class="sk-knapp">Ljud till företagsfest</a>
+      <a href="/for/guider/hyra-uplights/" class="sk-knapp">Hyra uplights</a>
+      <a href="/for/guider/vad-kostar-det/" class="sk-knapp">Vad kostar det?</a>
     </div>
   </section>
 
-  <!-- Guider -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4" style="font-family:'Space Grotesk',sans-serif">Relaterade guider</p>
-    <div class="flex flex-wrap gap-x-8 gap-y-2 text-sm">
-      <a href="/for/guider/hur-stor-pa/" class="text-gray-300 hover:text-brand-orange">Hur stor PA behöver vi?</a>
-      <a href="/for/guider/ljud-brollop/" class="text-gray-300 hover:text-brand-orange">Ljud till bröllop</a>
-      <a href="/for/guider/ljus-brollop/" class="text-gray-300 hover:text-brand-orange">Ljus till bröllop</a>
-      <a href="/for/guider/ljud-foretagsfest/" class="text-gray-300 hover:text-brand-orange">Ljud till företagsfest</a>
-      <a href="/for/guider/hyra-uplights/" class="text-gray-300 hover:text-brand-orange">Hyra uplights</a>
-      <a href="/for/guider/vad-kostar-det/" class="text-gray-300 hover:text-brand-orange">Vad kostar det?</a>
-    </div>
-  </section>
+  <SlutRuta rubrik="Vill ni hellre att vi sätter ihop det?" text="Skicka förfrågan med ert förslag så justerar vi efter lokal och gäster — kostnadsfritt och inte bindande." />
 </Layout>
+
+<style>
+  .ll-guider { max-width: 80rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) 1rem; }
+  .ll-guider > div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .ll-guider .sk-knapp { font-size: 0.9rem; padding: 0.6rem 1.05rem; }
+</style>
+
