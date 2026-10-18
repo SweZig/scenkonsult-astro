@@ -3,8 +3,8 @@ DOC4 = dict(
     slug="Kommunikation",
     title="Kommunikation",
     subtitle="E-post (Resend/SES), DNS & DMARC, SMS (46elks), Sven-chatbot",
-    version="v18.4",
-    date="2026-10-17",
+    version="v18.5",
+    date="2026-10-18",
     blocks=[
         ("h1", "1. E-postsystem (Resend)"),
         ("h2", "1.1 Arkitektur"),
@@ -43,13 +43,24 @@ DOC4 = dict(
               "intern kopia → info@; `sleep(600)`; Trello-kopia; `sleep(600)`; kundkopia "
               "(om `sendCopy=true`)."),
 
-        ("h2", "1.4 Boknings-intent"),
+        ("h2", "1.4 Kundläge: klar korg eller förslag (omskrivet 2026-10-18)"),
+        ("p", "Varukorgen har **en** knapp, \"Begär offert\". Ovanför den väljer kunden hur långt den kommit; "
+              "valet skickas som `kundlage` och sparas som `carts.order_intent`. Inget är bindande — kunden "
+              "godkänner offerten på ordersidan som tidigare. \"Boka detta nu\" och `intent=boka` finns inte; "
+              "en knapp som lät bindande bedömdes skrämma bort kunder."),
         ("table", [
-            ["", "Maila offertförfrågan", "Boka detta nu"],
-            ["Ämnesrad", "Offertförfrågan från [namn]", "⭐ BOKNING från [namn]"],
-            ["Rubrik", "Ny offertförfrågan", "⭐ Bokningsönskan"],
-            ["Kundkopia ämne", "Din offertförfrågan till Scenkonsult", "Din bokningsönskan hos Scenkonsult"],
+            ["", "Jag är klar", "Jag vill ha förslag"],
+            ["`kundlage` / `order_intent`", "`klar` / `klar_korg`", "`forslag` / `quote` (även utan värde)"],
+            ["Förval", "Datum ifyllda och inget i korgen offereras separat", "Annars"],
+            ["Internt ämne", "✅ Klar korg — Offertförfrågan från [namn]", "Offertförfrågan från [namn]"],
+            ["Admin", "KLAR KORG överst i Inkommen, knappen \"Skicka offert som den är\"", "OFFERT, \"Skapa & skicka offert\""],
         ]),
+        ("p", "Kundens eget val skrivs aldrig över av förvalet. Väljer kunden \"klar\" med något som offereras "
+              "separat (t.ex. LED-trailer) visas en not; admin kompletterar offerten. **Kvittot lovar ingen "
+              "svarstid** (\"återkommer så snart vi kan — är det bråttom, ring oss\") och säger att offerten är "
+              "kostnadsfri och inte bindande. Avvisar databasen värdet `klar_korg` sparas förfrågan som `quote` "
+              "hellre än att tappas; `admin-carts` hämtar listan utan kolumnen om den saknas. "
+              "Test: `test/kundlage.test.cjs`."),
 
         ("h2", "1.5 Spam-skydd i funktioner"),
         ("ul", [
@@ -213,6 +224,10 @@ DOC4 = dict(
         ("h1", "5. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.5", "2026-10-18",
+             "§1.4 omskriven: kundläge klar korg/förslag i stället för Boka detta nu (fanns inte i koden). Kvittot lovar ingen svarstid. "
+             "Kunddata escapas i alla mail (_lib.escapeHtml); sleep(600) även i fakturautskicken; honeypot phone2 i kontakt/feedback. "
+             "Sven: historiken valideras, systemprompten cachas, prislistan utan utgångna produkter."],
             ["v18.4", "2026-10-17",
              "§4.1 Svens scentillbehör med enhet per rad."],
             ["v18.3", "2026-10-17",

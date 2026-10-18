@@ -3,8 +3,8 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v18.3",
-    date="2026-10-17",
+    version="v18.4",
+    date="2026-10-18",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
         ("table", [
@@ -23,9 +23,12 @@ DOC5 = dict(
               "(Date.now()+21 dagar, förnyas vid ändring), `items[{id,name,price,category,qty}]`. "
               "TTL 21 dagar. Gammal ren-array migreras automatiskt. Globalt API: "
               "`window.skCart.{get,save,add,remove,updateQty,badge}`."),
-        ("p", "**Bokningsflöde:** \"Maila offertförfrågan\" → `intent=offert`; \"Boka detta nu\" → "
-              "`intent=boka`. Båda låses under utskick, reset vid fel. `sendCopy`-kryssruta styr "
-              "kundkopia. Cart-ID skickas med i offert-POST."),
+        ("p", "**Bokningsflöde (2026-10-18):** en knapp, \"Begär offert\", och ett val ovanför: \"Jag är klar\" "
+              "(`order_intent = klar_korg`) eller \"Jag vill ha förslag\" (`quote`). Klara korgar ligger överst i "
+              "Inkommen med etiketten KLAR KORG och knappen \"Skicka offert som den är\" (samma offertmodal, förifylld). "
+              "Inget är bindande förrän kunden godkänt offerten. Knappen låses under utskick, reset vid fel. "
+              "Cart-ID skickas med i offert-POST; ett befintligt id återanvänds bara vid status `new` och samma "
+              "avsändare (cart_token eller e-post). Dok 4 §1.4."),
         ("p", "**Montering i varukorgen (2026-09-28):** raden heter \"Montering & demontering "
               "(beräknad)\" och räknas av `window.skMontering` ur produkternas tider (Dok 2 §5.1). "
               "`skicka-offert` räknar om på servern så att kunden inte kan skicka in en egen siffra. "
@@ -328,6 +331,11 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v18.4", "2026-10-18",
+             "§2 bokningsflödet: kundläge klar korg/förslag, KLAR KORG i kanban. Säkerhet: kunden kan inte skicka egna rader "
+             "(cart-update 403), customer_confirm kräver items_rev, tokenjämförelse i konstant tid, admin escapar kunddata, "
+             "cart-get skickar inte signatur/leg-foto till kundlänken, en gemensam betalvillkor(). npm test = node --test "
+             "test/*.test.*; Netlify bygger med npm run build."],
             ["v18.3", "2026-10-17",
              "Inga ändringar — versionen följer Dok 2, 4 och 6 (rättelse: 1×1-plattformen bara 40 cm)."],
             ["v18.2", "2026-10-17",
