@@ -85,6 +85,11 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
     .filter(([k, v]) => !_LEV_META.has(k) && v && typeof v === 'object' && v.id)
     .map(([k, v]) => [k, { name: v.label || k, pris: v.pris || 0 }])
 );
+// Skriptet nedan (kod + scendata, ~35 kB) behövs en gång per sida, inte en
+// gång per kort. Första kortet på sidan skriver ut det; det initierar alla
+// kort vid DOMContentLoaded.
+const skrivSkript = !(Astro.locals as any).__skPaketSkript;
+(Astro.locals as any).__skPaketSkript = true;
 ---
 
 <article
@@ -265,7 +270,7 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
   </div>
 </article>
 
-<script define:vars={{ INJ_MOD_BY_KEY, INJ_HOJD_HINT, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_LEVERANS_BY_KEY }}>
+{skrivSkript && <script define:vars={{ INJ_MOD_BY_KEY, INJ_HOJD_HINT, INJ_TRAPP_BY_HEIGHT, INJ_RAIL_SEGMENTS, INJ_SKIRT_BY_HEIGHT, INJ_LEVERANS_BY_KEY }}>
   // ──────────────────────────────────────────────────────────────────
   // Konstanter — byggs dynamiskt från JSON via define:vars
   // ──────────────────────────────────────────────────────────────────
@@ -1004,9 +1009,12 @@ const INJ_LEVERANS_BY_KEY = Object.fromEntries(
     update();
   }
 
-  // Init alla paket-kort på sidan
-  document.querySelectorAll('.paket-card').forEach(initPaketCard);
-</script>
+  // Init alla paket-kort på sidan — när hela sidan är tolkad, eftersom
+  // skriptet bara skrivs ut vid första kortet.
+  const initAlla = () => document.querySelectorAll('.paket-card').forEach(initPaketCard);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAlla);
+  else initAlla();
+</script>}
 
 <style is:global>
   .paket-control-wrap { flex-wrap: wrap; row-gap: 0.3rem; }

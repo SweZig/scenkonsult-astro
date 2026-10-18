@@ -14,7 +14,9 @@ export default defineConfig({
         !page.includes('/admin/') &&
         !page.includes('/order/') &&
         !page.includes('/sign/') &&
-        !page.includes('/tack/'),
+        !page.includes('/tack/') &&
+        // 301-omdirigering till LED-väggssidan — hör inte hemma i sitemap
+        !page.includes('/for/guider/led-vagg-kalkylator/'),
     }),
   ],
   // Trailing slash = always → matchar WordPress-URLs exakt
