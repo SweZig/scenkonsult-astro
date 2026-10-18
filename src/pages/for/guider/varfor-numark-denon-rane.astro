@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import djData from '../../../data/dj.json';
 import konkData from '../../../data/dj-konkurrentdata.json';
 
@@ -112,23 +113,8 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
   description="Konkreta argument för standalone DJ-controllers med inbyggd Spotify/Tidal-streaming mot Pioneer CDJ. Smartare, billigare, färre felkällepunkter."
   schemaExtra={schema}
 >
-  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
-        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);">
-          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
-          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
-          <li style="color:white;">Varför Numark, Denon & Rane?</li>
-        </ol>
-      </nav>
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,5vw,3.1rem);line-height:1.1;color:white;margin:0 0 1rem;">Varför vi valt Numark, Denon och Rane — och inte Pioneer</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Vi har ett medvetet val bakom vår DJ-utrustning. Det handlar om streaming, enkelhet och vad som faktiskt levererar bäst för ditt event — inte vad som finns på de flesta nattklubbarna.</p>
-    </div>
-  </div>
+  <GuideLayout eyebrow="Guide & priser" h1Html="Varför vi valt Numark, Denon och Rane — <em>och inte Pioneer</em>" introHtml="Vi har ett medvetet val bakom vår DJ-utrustning. Det handlar om streaming, enkelhet och vad som faktiskt levererar bäst för ditt event — inte vad som finns på de flesta nattklubbarna." brod={pageBreadcrumbs} sortiment={{ label: "DJ-utrustning", href: "/vara-tjanster/hyra-dj-utrustning/", text: "Spelare, mixrar och DJ-paket." }}>
 
-  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
 
       <!-- Poängen i ett nötskal -->
       <div style="background:linear-gradient(135deg,rgba(196,181,244,0.12),rgba(196,181,244,0.04));border:1px solid rgba(196,181,244,0.3);border-radius:16px;padding:2rem;margin-bottom:3rem;">
@@ -138,17 +124,17 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
       </div>
 
       <!-- Varför Pioneer dominerar nattklubbarna (och varför det inte är relevant för event) -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Varför Pioneer är standard på klubbar — men inte optimalt för event</h2>
+      <h2 class="gl-h2">Varför Pioneer är standard på klubbar — men inte optimalt för event</h2>
       <p>Pioneer DJ (numera <strong style="color:white;">AlphaTheta</strong>) dominerar nattklubbsinstallationer av ett enkelt skäl: de var tidigt ute och skapade en branschstandard på 90- och 00-talet. Residenta DJs lärde sig på CDJ:s, och klubbarna installerade CDJ:s för att matcha det DJarna kunde. Det är ett cirkulärt argument — inte ett tekniskt.</p>
       <p>För <strong style="color:white;">event och uthyrning</strong> är förutsättningarna helt annorlunda. Ingen gäst på ett bröllop eller en företagsfest bryr sig om att DJ:n kör på Denon istället för Pioneer. Det de bryr sig om är att musiken är rätt, att volymen är lagom och att systemet inte kraschar. Där vinner all-in-one-lösningarna.</p>
 
       <!-- Jämförelsetabell -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.25rem;">Jämförelse: Standalone all-in-one vs Pioneer CDJ-setup</h2>
+      <h2 class="gl-h2">Jämförelse: Standalone all-in-one vs Pioneer CDJ-setup</h2>
       <div style="overflow-x:auto;margin-bottom:3rem;">
         <table style="width:100%;border-collapse:collapse;font-size:0.86rem;">
           <thead>
             <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Faktor</th>
+              <th class="gl-th">Faktor</th>
               <th style="text-align:left;padding:0.75rem 0.5rem;color:#86efac;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Standalone (Denon/Numark/Rane)</th>
               <th style="text-align:left;padding:0.75rem 0.5rem;color:rgba(255,200,100,0.7);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Pioneer CDJ-system</th>
             </tr>
@@ -166,7 +152,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
       </div>
 
       <!-- Streaming-djupet -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Inbyggd streaming — vad det faktiskt innebär</h2>
+      <h2 class="gl-h2">Inbyggd streaming — vad det faktiskt innebär</h2>
       <p>Att Pioneer CDJ:s "stödjer streaming" är tekniskt sant men kräver:</p>
       <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem;">
         {[
@@ -198,7 +184,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
       </div>
 
       <!-- Våra modeller -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.5rem;">Våra modeller — välj efter event</h2>
+      <h2 class="gl-h2">Våra modeller — välj efter event</h2>
       <div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:3rem;">
         {varaModeller.map(m => (
           <div style="background:#1e1850;border-radius:14px;overflow:hidden;">
@@ -227,27 +213,19 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
       </div>
 
       <!-- Rane-djupet -->
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Rane System One — när ljudkvalitet är absolut prioritet</h2>
+      <h2 class="gl-h2">Rane System One — när ljudkvalitet är absolut prioritet</h2>
       <p>Rane är sedan länge Serato DJs referensplattform. System One har ett internt soundcard som i blindtester och teknikrecensioner konsekvent placeras <strong style="color:white;">över Pioneer CDJ-3000</strong> i mätbara ljudparametrar (SNR, frekvensrespons, distortion). Det är det system professionella turnerande artister väljer när de tar med sig sitt eget gear.</p>
       <p>För uthyrningsändamål är Rane System One valet för den kund som vill ha en professionell DJ-upplevelse och är beredd att betala lite mer för det — <span data-exkl={dp("SK-DJ-0004")}>{dp("SK-DJ-0004")}</span> kr/dygn mot Denon Prime 4+ på <span data-exkl={dp("SK-DJ-0003")}>{dp("SK-DJ-0003")}</span> kr/dygn.</p>
 
-      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Hyr DJ-utrustning</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Standalone streaming — Spotify, Tidal, SoundCloud, Amazon Music. Ingen laptop krävs.</p>
-        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-          <a href="/vara-tjanster/hyra-dj-utrustning/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se DJ-utrustning</a>
-          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
-        </div>
-      </div>
+      
 
-      <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
-        <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
-        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
-          <a href="/for/guider/dj-eller-liveband/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">DJ eller liveband? →</a>
-          <a href="/for/guider/vad-kostar-det/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Vad kostar det? →</a>
-          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
+      <div class="gl-rel">
+        <p class="gl-rel-rubrik">Relaterade guider</p>
+        <div class="gl-rel-lista">
+          <a href="/for/guider/dj-eller-liveband/" class="gl-chip">DJ eller liveband?</a>
+          <a href="/for/guider/vad-kostar-det/" class="gl-chip">Vad kostar det?</a>
+          <a href="/for/guider/checklista-event/" class="gl-chip">Komplett checklista</a>
         </div>
       </div>
-    </div>
-  </article>
+  </GuideLayout>
 </Layout>

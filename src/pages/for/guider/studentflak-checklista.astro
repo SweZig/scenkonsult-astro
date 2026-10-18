@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import { telefon } from '../../../utils/hours';
@@ -33,26 +34,12 @@ const pageArticle = { headline: "Studentflak Checklista 2026 — Ljud, Teknik & 
   description="Komplett checklista för studentflaket. Vilket ljud behöver man? Hur fixar man strömmen? Priser och tips från Scenkonsult — uthyrare sedan 1986."
   schemaExtra={faqSchema}
 >
-  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-400">
-      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
-      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
-      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
-      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Studentflak checklista</li>
-    </ol>
-  </nav>
+  <GuideLayout eyebrow="Guide · Checklista" h1Html="Studentflak 2026 — <em>den kompletta checklistan</em>" introHtml="Allt ni behöver tänka på för ett lyckat flak — ljud, ström, tillstånd och praktiska tips från oss som hyr ut teknik till hundratals flak varje år." brod={pageBreadcrumbs} sortiment={{ label: "Studentflak", href: "/for/studentflak/", text: "Färdiga flakpaket." }}>
 
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-
-    <header style="margin-bottom:3rem;">
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Checklista</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Studentflak 2026 — den kompletta checklistan</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Allt ni behöver tänka på för ett lyckat flak — ljud, ström, tillstånd och praktiska tips från oss som hyr ut teknik till hundratals flak varje år.</p>
-    </header>
 
     <!-- Checklistan -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Checklistan — kryssa av allt</h2>
+      <h2 class="gl-h2">Checklistan — kryssa av allt</h2>
 
       {[
         {
@@ -114,12 +101,12 @@ const pageArticle = { headline: "Studentflak Checklista 2026 — Ljud, Teknik & 
 
     <!-- Storleksguide ljud -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Vilket ljudsystem passar ert flak?</h2>
+      <h2 class="gl-h2">Vilket ljudsystem passar ert flak?</h2>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
           <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
             {["Antal studenter","System","Bluetooth","Pris/dygn"].map(h =>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>
+              <th class="gl-th">{h}</th>
             )}
           </tr></thead>
           <tbody>
@@ -146,7 +133,7 @@ const pageArticle = { headline: "Studentflak Checklista 2026 — Ljud, Teknik & 
 
     <!-- Tips -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">5 tips för ett bra flakljud</h2>
+      <h2 class="gl-h2">5 tips för ett bra flakljud</h2>
       <div style="display:flex;flex-direction:column;gap:0.75rem;">
         {[
           { nr:"01", tip:"Rikta högtalarna inåt mot folket", desc:"Inte utåt mot omgivningen. Ljudet ska träffa personerna på flaket — inte åka iväg." },
@@ -168,7 +155,7 @@ const pageArticle = { headline: "Studentflak Checklista 2026 — Ljud, Teknik & 
 
     <!-- Produktkort -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till studentflak</h2>
+      <h2 class="gl-h2">Populärt till studentflak</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <ProductCard artno={porSmallP.artno} name={porSmallP.name} price={porSmallP.price} priceNote="/dygn" image={porSmallP.image} alt={porSmallP.name} description={porSmallP.description} persons={porSmallP.persons} specs={porSmallP.specs ?? []} category="Portabelt ljud"
           manualUrl={porSmallP.manualUrl}
@@ -191,11 +178,11 @@ const pageArticle = { headline: "Studentflak Checklista 2026 — Ljud, Teknik & 
 
     <!-- FAQ -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor om studentflak</h2>
+      <h2 class="gl-h2">Vanliga frågor om studentflak</h2>
       <div>
         {faqSchema.mainEntity.map((f:any) => (
           <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
-            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+            <summary class="gl-sum">
               {f.name}
               <span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
             </summary>
@@ -206,23 +193,18 @@ const pageArticle = { headline: "Studentflak Checklista 2026 — Ljud, Teknik & 
     </section>
 
     <!-- CTA -->
-    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Boka till ert flak</h2>
-      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 0.5rem;">Hyr fredag, lämna tillbaka måndag — betala bara ett dygn (förutsatt tillgänglighet).</p>
-      <p style="color:rgba(255,255,255,0.60);font-size:0.82rem;margin:0 0 1.5rem;">Ring 072-448 10 00, {telefon()}.</p>
-      <a href="/for/studentflak/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se studentflak-paketen</a>
-    </div>
+    
 
-  </article>
+  
 
   <!-- Relaterade guider -->
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-        <a href="/for/guider/hyra-pa-system/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hyra PA-system →</a>
-        <a href="/for/guider/hyra-tradlos-mikrofon/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hyra trådlös mikrofon →</a>
-        <a href="/for/guider/hur-stor-pa/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hur stor PA? →</a>
+  <div class="gl-rel">
+    <p class="gl-rel-rubrik">Relaterade guider</p>
+    <div class="gl-rel-lista">
+        <a href="/for/guider/hyra-pa-system/" class="gl-chip">Hyra PA-system</a>
+        <a href="/for/guider/hyra-tradlos-mikrofon/" class="gl-chip">Hyra trådlös mikrofon</a>
+        <a href="/for/guider/hur-stor-pa/" class="gl-chip">Hur stor PA?</a>
     </div>
   </div>
-
+  </GuideLayout>
 </Layout>

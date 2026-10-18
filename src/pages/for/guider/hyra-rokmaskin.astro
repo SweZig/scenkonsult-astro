@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljusData from '../../../data/ljus.json';
 
@@ -32,21 +33,8 @@ const pageArticle = { headline: "Hyra Rökmaskin Stockholm — Priser & Guide 20
   description={`Hyr rökmaskin, hazer eller kallgnistmaskin i Stockholm. Rökmaskin 1500W från ${rp('SK-LJS-ROK-0001')} kr/dygn. Rök­vätska ingår. Leverans i hela Storstockholm.`}
   schemaExtra={faqSchema}
 >
-  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-400">
-      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
-      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
-      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Hyra rökmaskin</li>
-    </ol>
-  </nav>
+  <GuideLayout eyebrow="Guide & priser" h1Html="Hyra rökmaskin i Stockholm — <em>guide 2026</em>" introHtml="Rök och dimma förvandlar ljuseffekter från okej till spektakulärt. Utan rök är laserstrålar nästan osynliga. Här är allt du behöver veta." brod={pageBreadcrumbs} sortiment={{ label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/", text: "Rökmaskiner, hazers och effekter." }}>
 
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-
-    <header style="margin-bottom:3rem;">
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide & Priser</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Hyra rökmaskin i Stockholm — guide 2026</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Rök och dimma förvandlar ljuseffekter från okej till spektakulärt. Utan rök är laserstrålar nästan osynliga. Här är allt du behöver veta.</p>
-    </header>
 
     <!-- Varför rök -->
     <section style="margin-bottom:3rem;">
@@ -61,7 +49,7 @@ const pageArticle = { headline: "Hyra Rökmaskin Stockholm — Priser & Guide 20
 
     <!-- Produktöversikt -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Alla rök- och specialeffekter</h2>
+      <h2 class="gl-h2">Alla rök- och specialeffekter</h2>
       <div style="display:flex;flex-direction:column;gap:0.75rem;">
         {[
           { name:"Rökmaskin (1500W)",   icon:"💨", artno:"SK-LJS-ROK-0001", desc:"Kraftig rök, täcker stora ytor snabbt. Standard för disco, fest och moving heads.",          req:"Inget tillstånd. Kolla med lokalen." },
@@ -92,7 +80,7 @@ const pageArticle = { headline: "Hyra Rökmaskin Stockholm — Priser & Guide 20
 
     <!-- Produktkort -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Lägg i varukorgen</h2>
+      <h2 class="gl-h2">Lägg i varukorgen</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <ProductCard artno={rok1500.artno} name={rok1500.name} price={rok1500.price} priceNote="/dygn" image={rok1500.image} alt={rok1500.name} description={rok1500.description ?? ''} specs={rok1500.specs ?? []} category="Rök & pyro"
           manualUrl={rok1500.manualUrl}
@@ -116,11 +104,11 @@ const pageArticle = { headline: "Hyra Rökmaskin Stockholm — Priser & Guide 20
 
     <!-- FAQ -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <h2 class="gl-h2">Vanliga frågor</h2>
       <div>
         {faqSchema.mainEntity.map((f:any) => (
           <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
-            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+            <summary class="gl-sum">
               {f.name}<span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
             </summary>
             <p style="color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.75;margin:0 0 1.25rem;padding-right:2rem;">{f.acceptedAnswer.text}</p>
@@ -129,23 +117,19 @@ const pageArticle = { headline: "Hyra Rökmaskin Stockholm — Priser & Guide 20
       </div>
     </section>
 
-    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Kombinera med ljuseffekter</h2>
-      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Rök + laser + moving heads = maxtryck. Lägg till allt i varukorgen och skicka en offertförfrågan.</p>
-      <a href="/vara-tjanster/hyra-ljus/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Se alla ljuseffekter</a>
-    </div>
+    
 
-  </article>
+  
 
   <!-- Relaterade guider -->
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-        <a href="/for/guider/rokvatska-guide/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Rökvätska-guide →</a>
-        <a href="/for/guider/hyra-uplights/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hyra uplights →</a>
-        <a href="/for/guider/ljussattning-tips/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Ljussättningstips →</a>
-        <a href="/for/guider/hur-stor-pa/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hur stor PA? →</a>
+  <div class="gl-rel">
+    <p class="gl-rel-rubrik">Relaterade guider</p>
+    <div class="gl-rel-lista">
+        <a href="/for/guider/rokvatska-guide/" class="gl-chip">Rökvätska-guide</a>
+        <a href="/for/guider/hyra-uplights/" class="gl-chip">Hyra uplights</a>
+        <a href="/for/guider/ljussattning-tips/" class="gl-chip">Ljussättningstips</a>
+        <a href="/for/guider/hur-stor-pa/" class="gl-chip">Hur stor PA?</a>
     </div>
   </div>
-
+  </GuideLayout>
 </Layout>

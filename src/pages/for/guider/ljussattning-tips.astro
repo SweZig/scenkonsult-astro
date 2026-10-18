@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import ljusData from '../../../data/ljus.json';
 
 const _jp = (ljusData.paket.products as any[]);
@@ -30,23 +31,9 @@ const rok = [
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Ljussättning' }];
 ---
 <Layout breadcrumbs={pageBreadcrumbs} title="Ljussättning för Event — Guide & Priser 2026 | Scenkonsult" description={`Typer av ljus, dramaturgi och vanliga misstag. Priser på ljuspaket fr ${jp('SK-LJS-PAK-0001')} kr/dygn — matchade mot vårt sortiment. Scenkonsult sedan 1986.`} schemaExtra={schema}>
-  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;"><ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);"><li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li><li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li><li style="color:white;">Ljussättning</li></ol></nav>
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">Ljussättning för event — rätt stämning med rätt utrustning</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Rätt ljus är det billigaste sättet att transformera ett rum. Alla priser nedan är ur vårt faktiska sortiment.</p>
+  <GuideLayout eyebrow="Guide & priser" h1Html="Ljussättning för event — <em>rätt stämning med rätt utrustning</em>" introHtml="Rätt ljus är det billigaste sättet att transformera ett rum. Alla priser nedan är ur vårt faktiska sortiment." brod={pageBreadcrumbs} sortiment={{ label: "Hyra ljus", href: "/vara-tjanster/hyra-ljus/", text: "Ljuspaket och effekter." }}>
 
-      <!-- Referensbild: Uplight i verklig miljö -->
-      <div style="margin-top:2rem;border-radius:16px;overflow:hidden;aspect-ratio:16/9;max-height:420px;">
-        <img src="/images/event/uplight_bardisk.webp" alt="Uplight-belysning på bardisk — LED uplighting i stämningsfull miljö" style="width:100%;height:100%;object-fit:cover;" loading="lazy" width="1600" height="900" decoding="async" />
-      </div>
-      <p style="color:rgba(255,255,255,0.60);font-size:0.78rem;text-align:center;margin-top:0.5rem;">LED uplighting i verklig miljö — skapar stämning utan tekniker.</p>
-    </div>
-  </div>
-  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1.25rem;">Ljuspaket — välj efter gästantal</h2>
+      <h2 class="gl-h2">Ljuspaket — välj efter gästantal</h2>
       <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:3rem;">
         {paket.map(p=>(
           <div style="background:#1e1850;border-radius:12px;padding:1.25rem 1.5rem;display:flex;justify-content:space-between;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;">
@@ -62,7 +49,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           </div>
         ))}
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.25rem;">Enstaka armaturer — bygg din egen rigg</h2>
+      <h2 class="gl-h2">Enstaka armaturer — bygg din egen rigg</h2>
       <p style="margin-bottom:1.25rem;">Komplettera paketet med enstaka LED PAR-armaturer för väggfärg (uplight-effekt), eller bygg en helt custom rigg.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;margin-bottom:1rem;">
         {effekter.map(e=>(
@@ -73,7 +60,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
         ))}
       </div>
       <p style="color:rgba(255,255,255,0.60);font-size:0.8rem;margin-bottom:3rem;">Stativ med T-bar ingår i paketen. Separat: stativ fr <span data-exkl={jp("SK-LJS-STV-0001")}>{jp("SK-LJS-STV-0001")}</span> kr, trosstorn fr <span data-exkl={jp("SK-LJS-STV-0005")}>{jp("SK-LJS-STV-0005")}</span> kr.</p>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1.25rem;">Rök, gnistor och konfetti</h2>
+      <h2 class="gl-h2">Rök, gnistor och konfetti</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:3rem;">
         {rok.map(r=>(
           <div style="background:#1e1850;border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;">
@@ -86,7 +73,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
         <h3 style="font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:700;color:#fbbf24;margin:0 0 0.75rem;">⚡ Kom ihåg: laser utan rök syns knappt</h3>
         <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;line-height:1.65;margin:0;">Small++ och Medium-paketen inkluderar laser. För maximal effekt behöver du rökmaskin (fr <span data-exkl={jp("SK-LJS-ROK-0001")}>{jp("SK-LJS-ROK-0001")}</span> kr/dygn) — annars är ljusstrålarna knappt synliga i luften.</p>
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Ljus-dramaturgi under kvällen</h2>
+      <h2 class="gl-h2">Ljus-dramaturgi under kvällen</h2>
       <div style="display:flex;flex-direction:column;gap:0;margin-bottom:2.5rem;">
         {[{fas:"Mingel & middag",tid:"18:00–21:00",desc:"Paketet i auto-musik-läge. Varma färger, låg intensitet. Ingen strobe."},{fas:"Tal & underhållning",tid:"20:00–22:00",desc:"Dimma ner. Eventuell spotlight på talare vid scenen."},{fas:"Dansgolvet öppnar",tid:"22:00+",desc:"Höj intensiteten. Aktivera rök. Färgskiftande läge. Strobe sparsamt."}].map(f=>(
           <div style="background:rgba(196,181,244,0.04);border:1px solid rgba(255,255,255,0.07);padding:1.1rem 1.5rem;">
@@ -98,26 +85,18 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           </div>
         ))}
       </div>
-      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Se alla ljuspriser</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ljuspaket fr <span data-exkl={jp("SK-LJS-PAK-0001")}>{jp("SK-LJS-PAK-0001")}</span> kr/dygn. Enstaka armaturer fr <span data-exkl={jp("SK-LJS-EFF-0001")}>{jp("SK-LJS-EFF-0001")}</span> kr. Leverans i hela Storstockholm.</p>
-        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-          <a href="/vara-tjanster/hyra-ljus/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Hyra ljus i Stockholm</a>
-          <a href="/vara-tjanster/hyra-ljud-och-ljus/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Ljud och ljus i ett paket</a>
-          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
-        </div>
-      </div>
-    </div>
-  </article>
+      
+    
+  
 
   <!-- Relaterade guider -->
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-        <a href="/for/guider/hyra-uplights/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hyra uplights →</a>
-        <a href="/for/guider/hyra-rokmaskin/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hyra rökmaskin →</a>
-        <a href="/for/guider/ljus-brollop/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Ljus till bröllop →</a>
+  <div class="gl-rel">
+    <p class="gl-rel-rubrik">Relaterade guider</p>
+    <div class="gl-rel-lista">
+        <a href="/for/guider/hyra-uplights/" class="gl-chip">Hyra uplights</a>
+        <a href="/for/guider/hyra-rokmaskin/" class="gl-chip">Hyra rökmaskin</a>
+        <a href="/for/guider/ljus-brollop/" class="gl-chip">Ljus till bröllop</a>
     </div>
   </div>
-
+  </GuideLayout>
 </Layout>

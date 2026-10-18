@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import djData from '../../../data/dj.json';
 import ljudData from '../../../data/ljud.json';
@@ -48,33 +49,19 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
   description={`Vad kostar en DJ till bröllop? Guide till DJ-pris, speltid och utrustning. Junior DJ från ${svcTable[0].junior} kr, Senior DJ från ${svcTable[0].senior} kr. Stockholm sedan 1986.`}
   schemaExtra={faqSchema}
 >
-  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-400">
-      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
-      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
-      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
-      <li class="before:content-['/'] before:mx-1.5 text-gray-400">DJ till bröllop — pris</li>
-    </ol>
-  </nav>
+  <GuideLayout eyebrow="Guide · Prisguide" h1Html="DJ till bröllop — <em>vad kostar det?</em>" introHtml="Komplett prisguide för DJ-bokning till bröllop 2026 — vad ingår, hur länge behöver DJ:n spela och vad tillkommer." brod={pageBreadcrumbs} sortiment={{ label: "Hyra DJ", href: "/vara-tjanster/hyra-dj/", text: "Erfarna DJ:s för fest och bröllop." }}>
 
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-
-    <header style="margin-bottom:3rem;">
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Prisguide</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">DJ till bröllop — vad kostar det?</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Komplett prisguide för DJ-bokning till bröllop 2026 — vad ingår, hur länge behöver DJ:n spela och vad tillkommer.</p>
-    </header>
 
     <!-- Pristabell -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">DJ-priser — snabböversikt</h2>
+      <h2 class="gl-h2">DJ-priser — snabböversikt</h2>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
           <thead>
             <tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Speltid</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Junior DJ</th>
-              <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Senior DJ</th>
+              <th class="gl-th">Speltid</th>
+              <th class="gl-th">Junior DJ</th>
+              <th class="gl-th">Senior DJ</th>
             </tr>
           </thead>
           <tbody>
@@ -99,7 +86,7 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
 
     <!-- Vad ingår -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">Vad ingår i DJ-priset?</h2>
+      <h2 class="gl-h2">Vad ingår i DJ-priset?</h2>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div style="background:#1e1850;border:1px solid rgba(86,230,110,0.2);border-radius:12px;padding:1.25rem;">
           <h3 style="color:#86efac;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.75rem;">✓ Ingår alltid</h3>
@@ -118,7 +105,7 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
 
     <!-- DJ eller hyra utrustning -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">Hyr DJ eller DJ-utrustning?</h2>
+      <h2 class="gl-h2">Hyr DJ eller DJ-utrustning?</h2>
       <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;line-height:1.75;margin:0 0 1.5rem;">Har ni en vän eller bekant som är DJ? Hyr utrustningen separat — alla våra controllers är standalone och kräver ingen laptop.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <ProductCard
@@ -144,7 +131,7 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
     <!-- Komplett setup -->
     <section style="margin-bottom:3rem;">
       <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:1.75rem;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.35rem;color:white;margin:0 0 1rem;">Typisk DJ-setup för bröllop (80–120 gäster)</h2>
+        <h2 class="gl-h2">Typisk DJ-setup för bröllop (80–120 gäster)</h2>
         {[
           ["Junior DJ, 4 tim", `${svcTable[2].junior} kr`],
           ["PA-system (Event Medium)", `${evMedium?.price ?? 0} kr`],
@@ -169,7 +156,7 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
 
     <!-- DJ-PAKET -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 0.75rem;">Kompletta DJ-paket till bröllop</h2>
+      <h2 class="gl-h2">Kompletta DJ-paket till bröllop</h2>
       <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;line-height:1.75;margin:0 0 1.5rem;">
         Vill du slippa pussla ihop DJ + ljud + ljus separat? Våra DJ-paket inkluderar allt i ett pris — 3 timmars speltid, DJ-utrustning, PA-system och ljuspaket. Rigg och nedplock (60 min, 600 kr) och resa tillkommer.
       </p>
@@ -202,11 +189,11 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
 
     <!-- FAQ -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor om DJ till bröllop</h2>
+      <h2 class="gl-h2">Vanliga frågor om DJ till bröllop</h2>
       <div>
         {faqSchema.mainEntity.map((f:any) => (
           <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
-            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+            <summary class="gl-sum">
               {f.name}
               <span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
             </summary>
@@ -217,25 +204,18 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
     </section>
 
     <!-- CTA -->
-    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Boka DJ till ert bröllop</h2>
-      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Berätta om er dag — vi hjälper er välja rätt DJ och paket för evenemanget.</p>
-      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-        <a href="/vara-tjanster/hyra-dj/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;">Se våra DJs</a>
-        <a href="/kontakt/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.85rem;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;">Begär offert</a>
-      </div>
-    </div>
+    
 
-  </article>
+  
 
   <!-- Relaterade guider -->
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-        <a href="/for/guider/ljud-brollop/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Ljud till bröllop →</a>
-        <a href="/for/guider/ljus-brollop/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Ljus till bröllop →</a>
-        <a href="/for/guider/varfor-numark-denon-rane/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Varför Numark & Denon? →</a>
+  <div class="gl-rel">
+    <p class="gl-rel-rubrik">Relaterade guider</p>
+    <div class="gl-rel-lista">
+        <a href="/for/guider/ljud-brollop/" class="gl-chip">Ljud till bröllop</a>
+        <a href="/for/guider/ljus-brollop/" class="gl-chip">Ljus till bröllop</a>
+        <a href="/for/guider/varfor-numark-denon-rane/" class="gl-chip">Varför Numark & Denon?</a>
     </div>
   </div>
-
+  </GuideLayout>
 </Layout>

@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 
 const schema = {
   "@context": "https://schema.org",
@@ -33,35 +34,19 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
   description="Allt om ljud för utomhus-event. Effektbehov, placering av högtalare, väder, kablar och tillstånd. Från Scenkonsult — uthyrare sedan 1986."
   schemaExtra={schema}
 >
+  <GuideLayout eyebrow="Guide & priser" h1Html="Ljud utomhus — <em>allt du behöver veta</em>" introHtml="Utomhus-ljud är fundamentalt annorlunda mot inomhus. Mer effekt, annan placering, väder att ta hänsyn till och krav på tillstånd. Den här guiden ger dig konkreta svar." brod={pageBreadcrumbs} sortiment={{ label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/", text: "Alla PA-paket med priser." }}>
 
-  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;">
-        <ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);">
-          <li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li>
-          <li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li>
-          <li><span style="color:white;">Ljud utomhus</span></li>
-        </ol>
-      </nav>
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">Ljud utomhus — allt du behöver veta</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Utomhus-ljud är fundamentalt annorlunda mot inomhus. Mer effekt, annan placering, väder att ta hänsyn till och krav på tillstånd. Den här guiden ger dig konkreta svar.</p>
-    </div>
-  </div>
 
-  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-
-      <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:1.75rem;margin-bottom:3rem;">
+      <div class="gl-snabb">
         <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.75rem;">Grundregeln för utomhus-ljud</p>
         <p style="color:white;font-size:1.05rem;margin:0;line-height:1.65;"><strong>Dubbla effekten jämfört med inomhus</strong> för samma antal gäster. Öppen plats utan hinder? Räkna med 3×. Inomhus hjälper väggarna dig — utomhus gör de inte det.</p>
       </div>
 
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Varför kräver utomhus mer effekt?</h2>
+      <h2 class="gl-h2">Varför kräver utomhus mer effekt?</h2>
       <p>Inomhus fungerar väggar och tak som gratis förstärkare — de reflekterar ljud tillbaka mot publiken. I en normal festlokal bidrar reflektionerna med motsvarande 3–6 dB extra, vilket i prakiken halverar effektbehovet.</p>
       <p>Utomhus försvinner energin i alla riktningar — inga väggar, inget tak. Varje gång du dubblerar avståndet från källan minskar ljudtrycket med 6 dB (lagen om kvadratisk minskning). Det kräver dramatiskt mer effekt för att hålla volymen vid längre avstånd.</p>
 
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Rätt placering gör stor skillnad</h2>
+      <h2 class="gl-h2">Rätt placering gör stor skillnad</h2>
       <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2.5rem;">
         {[
           { t:"Rikta mot publiken, inte utåt", d:"Högtalarna ska riktas in mot lyssnarna. Undvik att sprida ljud i onödig riktning — det är slöseri med effekt och skapar brus i omgivningen." },
@@ -79,7 +64,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
         ))}
       </div>
 
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Väder — planera alltid för regn</h2>
+      <h2 class="gl-h2">Väder — planera alltid för regn</h2>
       <p>Det är Sverige. Regn kan komma trots solprognos. Tre saker att alltid planera för:</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:2.5rem;">
         {[
@@ -95,7 +80,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
         ))}
       </div>
 
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Tillstånd och grannar</h2>
+      <h2 class="gl-h2">Tillstånd och grannar</h2>
       <p>Utomhus-ljud är juridiskt reglerat. Här är vad som gäller i Sverige generellt (kontrollera alltid lokalt):</p>
       <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2.5rem;">
         {[
@@ -111,24 +96,15 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
         ))}
       </div>
 
-      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Se utomhusvänliga paket</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Kraftfulla PA-system och modulscener för utomhus-event i hela Storstockholm.</p>
-        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-          <a href="/for/festival/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Festival & utomhus</a>
-          <a href="/vara-tjanster/hyra-ljud/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Hyra ljud i Stockholm</a>
-          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
-        </div>
-      </div>
+      
 
-      <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
-        <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
-        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
-          <a href="/for/guider/hur-stor-pa/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor PA? →</a>
-          <a href="/for/guider/hur-stor-scen/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor scen? →</a>
-          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
+      <div class="gl-rel">
+        <p class="gl-rel-rubrik">Relaterade guider</p>
+        <div class="gl-rel-lista">
+          <a href="/for/guider/hur-stor-pa/" class="gl-chip">Hur stor PA?</a>
+          <a href="/for/guider/hur-stor-scen/" class="gl-chip">Hur stor scen?</a>
+          <a href="/for/guider/checklista-event/" class="gl-chip">Komplett checklista</a>
         </div>
       </div>
-    </div>
-  </article>
+  </GuideLayout>
 </Layout>

@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljusData from '../../../data/ljus.json';
 
@@ -36,26 +37,12 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
   description={`Vilken ljussättning passar till bröllopet? Guide till uplights, moving heads och stämningsljus. Ljuspaket från ${jp('SK-LJS-PAK-0001')} kr/dygn. Leverans i hela Storstockholm.`}
   schemaExtra={faqSchema}
 >
-  <nav class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-2" style="padding-top:calc(var(--nav-offset,166px) + 1.5rem)" aria-label="Brödsmulor">
-    <ol class="flex flex-wrap gap-1.5 text-xs text-gray-400">
-      <li><a href="/" class="hover:text-brand-orange transition-colors">Hem</a></li>
-      <li class="before:content-['/'] before:mx-1.5"><a href="/for/" class="hover:text-brand-orange transition-colors">För ditt event</a></li>
-      <li class="before:content-['/'] before:mx-1.5"><a href="/for/guider/" class="hover:text-brand-orange transition-colors">Guider</a></li>
-      <li class="before:content-['/'] before:mx-1.5 text-gray-400">Ljus till bröllop</li>
-    </ol>
-  </nav>
+  <GuideLayout eyebrow="Guide & priser" h1Html="Ljus till bröllop — <em>vad behöver man?</em>" introHtml="Rätt ljussättning förvandlar en vanlig festlokal till något minnesvärt. Den här guiden visar vad som passar för vigsel, middag och dansgolv — med konkreta priser." brod={pageBreadcrumbs} sortiment={{ label: "Bröllop", href: "/for/brollop/", text: "Paket och checklista för bröllop." }}>
 
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-
-    <header style="margin-bottom:3rem;">
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.75rem;">Guide</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);color:white;line-height:1.15;margin:0 0 1.25rem;">Ljus till bröllop — vad behöver man?</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:1.05rem;line-height:1.8;">Rätt ljussättning förvandlar en vanlig festlokal till något minnesvärt. Den här guiden visar vad som passar för vigsel, middag och dansgolv — med konkreta priser.</p>
-    </header>
 
     <!-- Tre faser -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Ljus för bröllopets tre faser</h2>
+      <h2 class="gl-h2">Ljus för bröllopets tre faser</h2>
       {[
         { fas:"1. Vigseln", icon:"💍", rec:"Diskreta uplights i varm vit eller guld", why:"Sätter stämning utan att dra uppmärksamheten från ceremonin. LED PAR i varm vit längs väggar och vid altaret ger en mjuk glöd.", prod:"LED PAR (14×8W RGBW)", pris:`${jp('SK-LJS-EFF-0001')} kr/st` },
         { fas:"2. Middagen", icon:"🥂", rec:"Färgade uplights + bordsljus", why:"Välj bröllopsparets favoritfärg i lokalens uplights. Kombinera med levande ljus på borden för maximal stämning.", prod:"Ljuspaket, Medium", pris:`${jp('SK-LJS-PAK-0001')} kr` },
@@ -86,11 +73,11 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
 
     <!-- Storleksguide -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Välj rätt ljuspaket</h2>
+      <h2 class="gl-h2">Välj rätt ljuspaket</h2>
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
           <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">
-            {["Gäster","Paket","Innehåller","Pris/dygn"].map(h => <th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}
+            {["Gäster","Paket","Innehåller","Pris/dygn"].map(h => <th class="gl-th">{h}</th>)}
           </tr></thead>
           <tbody>
             {[
@@ -118,7 +105,7 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
 
     <!-- Pro-tips -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1rem;">4 tips för perfekt bröllopslysning</h2>
+      <h2 class="gl-h2">4 tips för perfekt bröllopslysning</h2>
       <div style="display:flex;flex-direction:column;gap:0.75rem;">
         {[
           { nr:"01", tip:"Matcha färgen mot dekorationen", desc:"Välj uplights i samma ton som bordsdukarna. Varm vit, ros-guld och lavendel är populärast på bröllop. Moving heads kan byta färg under kvällen." },
@@ -139,7 +126,7 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
 
     <!-- Produktkort -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.25rem;">Populärt till bröllop</h2>
+      <h2 class="gl-h2">Populärt till bröllop</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <ProductCard artno={pakSmallP.artno} name={pakSmallP.name} price={pakSmallP.price} priceNote="/dygn" image={pakSmallP.image} alt={pakSmallP.name} description={pakSmallP.description} specs={pakSmallP.specs ?? []} category="Ljus"
           manualUrl={pakSmallP.manualUrl}
@@ -164,11 +151,11 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
 
     <!-- FAQ -->
     <section style="margin-bottom:3rem;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,2rem);color:white;margin:0 0 1.5rem;">Vanliga frågor</h2>
+      <h2 class="gl-h2">Vanliga frågor</h2>
       <div>
         {faqSchema.mainEntity.map((f:any) => (
           <details style="border-bottom:1px solid rgba(255,255,255,0.07);">
-            <summary style="display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0;cursor:pointer;list-style:none;color:white;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.97rem;gap:1rem;">
+            <summary class="gl-sum">
               {f.name}
               <span style="color:#c4b5f4;font-size:1.25rem;flex-shrink:0;">+</span>
             </summary>
@@ -179,22 +166,18 @@ const pageArticle = { headline: "Ljus till Bröllop Stockholm — Guide & Priser
     </section>
 
     <!-- CTA -->
-    <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;">
-      <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Osäker på vad ni behöver?</h2>
-      <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ring oss — vi hjälper er välja rätt ljussättning för lokalen och antalet gäster.</p>
-      <a href="/for/brollop/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-decoration:none;padding:0.85rem 2rem;border-radius:8px;display:inline-block;">Begär offert till bröllopet</a>
-    </div>
+    
 
-  </article>
+  
 
   <!-- Relaterade guider -->
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;">Relaterade guider</p>
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-        <a href="/for/guider/ljud-brollop/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Ljud till bröllop →</a>
-        <a href="/for/guider/dj-brollop-pris/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">DJ till bröllop — pris →</a>
-        <a href="/for/guider/hyra-uplights/" style="display:inline-block;background:#1e1850;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.5rem 1rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;text-decoration:none;transition:border-color 0.2s;" onmouseenter="this.style.borderColor='rgba(196,181,244,0.4)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)'">Hyra uplights →</a>
+  <div class="gl-rel">
+    <p class="gl-rel-rubrik">Relaterade guider</p>
+    <div class="gl-rel-lista">
+        <a href="/for/guider/ljud-brollop/" class="gl-chip">Ljud till bröllop</a>
+        <a href="/for/guider/dj-brollop-pris/" class="gl-chip">DJ till bröllop — pris</a>
+        <a href="/for/guider/hyra-uplights/" class="gl-chip">Hyra uplights</a>
     </div>
   </div>
-
+  </GuideLayout>
 </Layout>

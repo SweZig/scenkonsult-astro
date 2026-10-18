@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import sceneData from '../../../data/scenes.json';
 import { ALLA_HOJDER, hojdText } from '../../../utils/scenHojder';
 
@@ -28,18 +29,10 @@ const tillbehor = ['SK-SCN-ACC-0001','SK-SCN-ACC-0002','SK-SCN-ACC-0009','SK-SCN
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hur stor scen?' }];
 ---
 <Layout breadcrumbs={pageBreadcrumbs} title="Hur Stor Scen Behöver Jag? Guide & Tabell 2026 | Scenkonsult" description={`Räkna ut rätt scenstorlek. Tabell med alla scenpaket — pris, m², antal artister och gäster. Fr ${sp('SK-SCN-0001')} kr/dygn — Scenkonsult sedan 1986.`} schemaExtra={schema}>
-  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;"><ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);"><li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li><li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li><li style="color:white;">Hur stor scen?</li></ol></nav>
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">Hur stor scen behöver jag?</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Komplett tabell med alla våra scenpaket — priser, storlekar och för vem de passar.</p>
-    </div>
-  </div>
-  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-      <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:1.75rem;margin-bottom:3rem;">
-        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.75rem;">Snabbsvar</p>
+  <GuideLayout eyebrow="Guide & priser" h1Html="Hur stor scen behöver jag?" introHtml="Komplett tabell med alla våra scenpaket — priser, storlekar och för vem de passar." brod={pageBreadcrumbs} sortiment={{ label: "Hyra scen", href: "/vara-tjanster/hyra-scen/", text: "Bygg scenen i konfiguratorn." }}>
+
+      <div class="gl-snabb">
+        <p class="gl-snabb-rubrik">Snabbsvar</p>
         <ul style="margin:0;padding:0 0 0 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
           <li><strong style="color:white;">DJ eller trubadur:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Small</a> (4 m²) — <span data-exkl={sp("SK-SCN-0001")}>{sp("SK-SCN-0001")}</span> kr/dygn</li>
           <li><strong style="color:white;">Band 3–4 musiker:</strong> <a href="/vara-tjanster/hyra-scen/" style="color:#c4b5f4;">Scenpaket Medium+</a> (12 m²) — <span data-exkl={sp("SK-SCN-0005")}>{sp("SK-SCN-0005")}</span> kr/dygn</li>
@@ -47,7 +40,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           <li><strong style="color:white;">Tumregel:</strong> 2–4 m² per person på scenen</li>
         </ul>
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1.25rem;">Kompletta scenpaket — alla storlekar</h2>
+      <h2 class="gl-h2">Kompletta scenpaket — alla storlekar</h2>
       <div style="overflow-x:auto;margin-bottom:2.5rem;">
         <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
           <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Storlek","Paket","Pris/dygn","För","Gäster","Notat"].map(h=><th style="text-align:left;padding:0.65rem 0.4rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}</tr></thead>
@@ -63,7 +56,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           ))}</tbody>
         </table>
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Scenens tillbehör</h2>
+      <h2 class="gl-h2">Scenens tillbehör</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:2rem;">
         {tillbehor.map(t=>(
           <div style="background:#1e1850;border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;">
@@ -73,7 +66,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
         ))}
       </div>
       <p style="color:rgba(255,255,255,0.60);font-size:0.82rem;margin-bottom:2.5rem;">Scentrapp och scenkjol debiteras per styck/enhet. Alla priser exkl moms (toggle ovan).</p>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Utomhus: tak över scenen</h2>
+      <h2 class="gl-h2">Utomhus: tak över scenen</h2>
       <p>För utomhus-event finns Scenpaket Large+ med scentak inkluderat — det skyddar artister och utrustning mot väder och ger ett professionellt utseende. Till mindre scener finns tälttak 4×4 m som ett prisvärt tillval: det ställs på scenen eller intill den, ger skugga och vindskydd, men skyddar inte alltid mot regn. Fast scentak till övriga scenstorlekar offereras separat.</p>
       <div class="g2c" style="margin-bottom:2.5rem;">
         {[{p:"Scenpaket Large+ inkl. scentak",s:"24 m²",pris:sp("SK-SCN-0010")},{p:"Tälttak 4×4 m (tillbehör)",s:"16 m²",pris:sacc("SK-SCN-ACC-0014")}].map(r=>(
@@ -84,17 +77,8 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           </div>
         ))}
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Tänk på underlaget</h2>
+      <h2 class="gl-h2">Tänk på underlaget</h2>
       <p>Scenen behöver stå på plant och fast underlag, till exempel asfalt, betong, trägolv eller en jämn, kortklippt gräsmatta. Det är vad vår beräknade monteringstid utgår från. Är höjdskillnaden över scenens yta mer än ca 5 cm använder vi justerbara ben så att scenen står säkert och plant.</p>
       <p style="margin-bottom:2.5rem;">Berätta om marken lutar eller är ojämn när du bokar, så tar vi med benen och räknar in det i offerten. Upptäcker vi det först på plats kan det bli en extra leverans och längre monteringstid. <a href="/vara-tjanster/hyra-scen/#underlag" style="color:#c4b5f4;">Läs mer om underlaget →</a></p>
-      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Se alla scenpaket</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Modulscener fr 4 m² till 48 m². Leverans och montering i hela Storstockholm.</p>
-        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-          <a href="/vara-tjanster/hyra-scen/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Se scenpaket</a>
-          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
-        </div>
-      </div>
-    </div>
-  </article>
+  </GuideLayout>
 </Layout>

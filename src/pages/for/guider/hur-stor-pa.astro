@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import GuideLayout from '../../../components/GuideLayout.astro';
 import ljudData from '../../../data/ljud.json';
 import { telefon } from '../../../utils/hours';
 
@@ -35,18 +36,10 @@ const utomhus = [
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hur stor PA?' }];
 ---
 <Layout breadcrumbs={pageBreadcrumbs} title="Hur Stor PA-anläggning Behöver Jag? Guide 2026 | Scenkonsult" description={`Rätt PA-system för ditt event. Tabeller inomhus/utomhus, gästantal, eventtyp. Priser fr ${p('SK-LJD-POR-0001')} kr/dygn — Scenkonsult sedan 1986.`} schemaExtra={schema}>
-  <div style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 60%);padding-top:calc(36px + 130px + clamp(2rem,4vw,3.5rem));padding-bottom:clamp(2.5rem,5vw,4rem);padding-inline:clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;">
-      <nav aria-label="Brödsmulor" style="margin-bottom:1.5rem;"><ol style="display:flex;flex-wrap:wrap;gap:0.35rem;list-style:none;margin:0;padding:0;font-size:0.78rem;color:rgba(255,255,255,0.60);"><li><a href="/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Hem</a> <span style="opacity:0.3;">/</span></li><li><a href="/for/guider/" style="color:rgba(255,255,255,0.5);text-decoration:none;">Guider</a> <span style="opacity:0.3;">/</span></li><li style="color:white;">Hur stor PA?</li></ol></nav>
-      <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;">Guide · Av Scenkonsult Norden</p>
-      <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.25rem);line-height:1.1;color:white;margin:0 0 1rem;">Hur stor PA-anläggning behöver jag?</h1>
-      <p style="color:rgba(255,255,255,0.6);font-size:clamp(0.95rem,2vw,1.1rem);line-height:1.75;margin:0;">Alla priser matchar direkt mot produkterna i vårt sortiment — inga generiska siffror.</p>
-    </div>
-  </div>
-  <article style="background:#0c0a24;padding:clamp(2.5rem,5vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:820px;margin:0 auto;color:rgba(255,255,255,0.65);font-size:1rem;line-height:1.8;">
-      <div style="background:#1e1850;border:1px solid rgba(196,181,244,0.25);border-radius:14px;padding:1.75rem;margin-bottom:3rem;">
-        <p style="color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin:0 0 0.75rem;">Snabbsvar</p>
+  <GuideLayout eyebrow="Guide & priser" h1Html="Hur stor PA-anläggning behöver jag?" introHtml="Alla priser matchar direkt mot produkterna i vårt sortiment — inga generiska siffror." brod={pageBreadcrumbs} sortiment={{ label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/", text: "Alla PA-paket med priser." }}>
+
+      <div class="gl-snabb">
+        <p class="gl-snabb-rubrik">Snabbsvar</p>
         <ul style="margin:0;padding:0 0 0 1.25rem;display:flex;flex-direction:column;gap:0.5rem;">
           <li><strong style="color:white;">Under 50 gäster, tal:</strong> <a href="/vara-tjanster/hyra-ljud/portable/" style="color:#c4b5f4;">Portable Small</a> — <span class="sk-price-excl" data-exkl={p("SK-LJD-POR-0001")}>{p("SK-LJD-POR-0001")}</span> kr/dygn</li>
           <li><strong style="color:white;">50–100 gäster med dans:</strong> <a href="/vara-tjanster/hyra-ljud/music/" style="color:#c4b5f4;">Music Small</a> — <span class="sk-price-excl" data-exkl={p("SK-LJD-MUS-0001")}>{p("SK-LJD-MUS-0001")}</span> kr/dygn</li>
@@ -54,7 +47,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           <li><strong style="color:white;">Utomhus:</strong> Välj alltid ett steg upp i paketserie</li>
         </ul>
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:0 0 1rem;">Våra fyra paketserier</h2>
+      <h2 class="gl-h2">Våra fyra paketserier</h2>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:0.75rem;margin-bottom:2.5rem;">
         {[{n:"Portable",d:"Kompakt, plug-and-play. Perfekt under 50 gäster.",l:"/vara-tjanster/hyra-ljud/portable/"},{n:"Event",d:"Konferens och tal. Tydlig talåtergivning utan sub.",l:"/vara-tjanster/hyra-ljud/event/"},{n:"Music",d:"Dans och DJ. Sub ingår. Bred frekvensåtergivning.",l:"/vara-tjanster/hyra-ljud/music/"},{n:"Live",d:"Liveband. Monitor-ingångar, återkopplingsskydd.",l:"/vara-tjanster/hyra-ljud/live/"}].map(p=>(
           <a href={p.l} style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1rem;text-decoration:none;display:block;">
@@ -63,10 +56,10 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           </a>
         ))}
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Inomhus — rekommenderade paket</h2>
+      <h2 class="gl-h2">Inomhus — rekommenderade paket</h2>
       <div style="overflow-x:auto;margin-bottom:2.5rem;">
         <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
-          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Gäster","Eventtyp","Paket","Pris/dygn","Sub"].map(h=><th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}</tr></thead>
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Gäster","Eventtyp","Paket","Pris/dygn","Sub"].map(h=><th class="gl-th">{h}</th>)}</tr></thead>
           <tbody>{inomhus.map((r,i)=>(
             <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
               <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;white-space:nowrap;">{r.g}</td>
@@ -78,11 +71,11 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           ))}</tbody>
         </table>
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">Utomhus — rekommenderade paket</h2>
+      <h2 class="gl-h2">Utomhus — rekommenderade paket</h2>
       <p style="margin-bottom:1.25rem;">Utomhus saknas reflektioner från väggar och tak — välj alltid ett steg upp jämfört med inomhusrekommendationen.</p>
       <div style="overflow-x:auto;margin-bottom:2.5rem;">
         <table style="width:100%;border-collapse:collapse;font-size:0.87rem;">
-          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Gäster","Paket","Pris/dygn","Kommentar"].map(h=><th style="text-align:left;padding:0.75rem 0.5rem;color:#c4b5f4;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">{h}</th>)}</tr></thead>
+          <thead><tr style="border-bottom:2px solid rgba(196,181,244,0.25);">{["Gäster","Paket","Pris/dygn","Kommentar"].map(h=><th class="gl-th">{h}</th>)}</tr></thead>
           <tbody>{utomhus.map((r,i)=>(
             <tr style={`border-bottom:1px solid rgba(255,255,255,0.06);background:${i%2===0?'transparent':'rgba(255,255,255,0.02)'}`}>
               <td style="padding:0.75rem 0.5rem;color:white;font-weight:600;">{r.g}</td>
@@ -93,7 +86,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           ))}</tbody>
         </table>
       </div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(1.4rem,3vw,1.9rem);color:white;margin:3rem 0 1rem;">3 vanliga misstag</h2>
+      <h2 class="gl-h2">3 vanliga misstag</h2>
       <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:2.5rem;">
         {[{nr:"01",t:"Event-paketet till dans",d:"Event-serien saknar subwoofer och klippar bassen vid höga volymer. Välj Music-serien när det ska danssas."},{nr:"02",t:"Underdimensionera utomhus",d:"Välj alltid ett paket upp. Utomhus försvinner reflektionerna och ljudet tappar volym och bas."},{nr:"03",t:"Glömma mikrofoner",d:"PA-paketen inkluderar högtalare. Lägg till handmikrofon och mixerbord om du behöver prata."}].map(m=>(
           <div style="background:#1e1850;border-radius:10px;padding:1.25rem 1.5rem;display:flex;gap:1.25rem;">
@@ -102,22 +95,14 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '
           </div>
         ))}
       </div>
-      <div style="background:linear-gradient(135deg,#1e1850,#0c0a24);border:1px solid rgba(196,181,244,0.2);border-radius:16px;padding:2rem;text-align:center;margin-top:3rem;">
-        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:white;margin:0 0 0.5rem;">Fortfarande osäker?</h2>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;margin:0 0 1.5rem;">Ring oss — vi dimensionerar rätt utan kostnad. 072-448 10 00, {telefon()}.</p>
-        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-          <a href="/vara-tjanster/hyra-ljud/" style="background:#c4b5f4;color:#0c0a24;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Hyra ljud i Stockholm</a>
-          <a href="/bokningssida/" style="border:1px solid rgba(196,181,244,0.4);color:rgba(255,255,255,0.7);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:0.8rem 1.75rem;border-radius:4px;">Begär offert</a>
+      
+      <div class="gl-rel">
+        <p class="gl-rel-rubrik">Relaterade guider</p>
+        <div class="gl-rel-lista">
+          <a href="/for/guider/hur-stor-scen/" class="gl-chip">Hur stor scen?</a>
+          <a href="/for/guider/ljud-utomhus/" class="gl-chip">Ljud utomhus</a>
+          <a href="/for/guider/checklista-event/" class="gl-chip">Komplett checklista</a>
         </div>
       </div>
-      <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.08);">
-        <p style="color:rgba(255,255,255,0.60);font-family:'Space Grotesk',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:1rem;">Relaterade guider</p>
-        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
-          <a href="/for/guider/hur-stor-scen/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Hur stor scen? →</a>
-          <a href="/for/guider/ljud-utomhus/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Ljud utomhus →</a>
-          <a href="/for/guider/checklista-event/" style="background:#1e1850;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.6rem 1rem;color:rgba(255,255,255,0.6);font-size:0.85rem;text-decoration:none;">Komplett checklista →</a>
-        </div>
-      </div>
-    </div>
-  </article>
+  </GuideLayout>
 </Layout>

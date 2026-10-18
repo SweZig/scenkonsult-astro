@@ -1,0 +1,139 @@
+---
+/**
+ * GuideLayout — mallen för guiderna (design 2026): rubrikyta, textspalt och en
+ * sidospalt som följer med (innehållsförteckning byggd ur guidens h2:or, Fråga
+ * Sven-ruta och länk till sortimentet), sedan slutrutan. Guidens innehåll
+ * läggs i sloten och behåller sina egna tabeller och priser.
+ */
+import SlutRuta from './event/SlutRuta.astro';
+interface Props {
+  eyebrow?: string;
+  h1Html: string;
+  introHtml?: string;
+  brod?: Array<{ label: string; href?: string }>;
+  sortiment?: { label: string; href: string; text?: string };
+  slutRubrik?: string;
+}
+const { eyebrow = 'Guide', h1Html, introHtml, brod = [], sortiment, slutRubrik = 'Osäkra? Vi hjälper er välja rätt.' } = Astro.props;
+---
+<header class="gl-hero">
+  {brod.length > 0 && (
+    <nav aria-label="Brödsmulor" class="gl-brod">
+      <ol>{brod.map((b, i) => <li>{b.href ? <a href={b.href}>{b.label}</a> : <span>{b.label}</span>}{i < brod.length - 1 && <span class="gl-sep" aria-hidden="true">/</span>}</li>)}</ol>
+    </nav>
+  )}
+  <p class="sk-eyebrow">{eyebrow}</p>
+  <h1 class="gl-h1" set:html={h1Html} />
+  {introHtml && <p class="gl-intro" set:html={introHtml} />}
+  <p class="gl-meta">Av Scenkonsult Norden · Priser ur vårt sortiment</p>
+</header>
+
+<div class="gl-wrap">
+  <article class="gl-text" data-guide-text>
+    <slot />
+  </article>
+  <aside class="gl-sida">
+    <nav class="gl-toc" aria-label="Innehåll" data-guide-toc hidden>
+      <p class="gl-sidrubrik">I den här guiden</p>
+      <ol></ol>
+    </nav>
+    <div class="gl-hjalp">
+      <h2>Fortfarande osäker?</h2>
+      <p>Fråga Sven eller ring oss — vi hjälper er välja utan kostnad.</p>
+      <button type="button" class="gl-btn gl-btn-mork" data-sven-oppna>Fråga Sven</button>
+      <a class="gl-btn" data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" aria-label="Ring oss"><noscript>072-448 10 00</noscript></a>
+    </div>
+    {sortiment && (
+      <a href={sortiment.href} class="gl-sortiment"><b>{sortiment.label} →</b>{sortiment.text && <span>{sortiment.text}</span>}</a>
+    )}
+  </aside>
+</div>
+
+<SlutRuta rubrik={slutRubrik} />
+
+<style>
+  .gl-hero { max-width: 1240px; margin: 0 auto; padding: calc(var(--nav-offset, 166px) + clamp(1.25rem, 3vw, 2.5rem)) clamp(1rem, 3vw, 2rem) clamp(1.75rem, 3vw, 2.5rem); }
+  .gl-brod { margin-bottom: 1.4rem; }
+  .gl-brod ol { display: flex; flex-wrap: wrap; gap: 0.35rem; list-style: none; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.85); }
+  .gl-brod a { color: rgba(255,255,255,0.6); text-decoration: none; }
+  .gl-brod a:hover { color: #fff; }
+  .gl-sep { opacity: 0.4; margin: 0 0.2rem; }
+  .gl-h1 { margin: 0; max-width: 920px; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(2.3rem, 5vw, 4rem); line-height: 1.03; color: #fff; }
+  .gl-h1 :global(em), .gl-h1 :global(span) { color: #c4b5f4; }
+  .gl-intro { margin: 1.35rem 0 0; max-width: 680px; font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.6; color: rgba(255,255,255,0.72); }
+  .gl-meta { margin: 1.4rem 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+
+  .gl-wrap { max-width: 1240px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) clamp(2rem, 4vw, 3rem); display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; }
+  .gl-text { min-width: 0; font-size: 1.05rem; line-height: 1.75; color: rgba(255,255,255,0.75); }
+  .gl-text :global(h2) { scroll-margin-top: calc(var(--nav-offset, 166px) + 1rem); }
+  .gl-text :global(table) { width: 100%; }
+  .gl-text :global(.gl-h2) { margin: 3rem 0 1.1rem; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.7rem, 3vw, 2.35rem); line-height: 1.1; color: #fff; }
+  .gl-text :global(section .gl-h2) { margin-top: 0; }
+  .gl-text :global(.gl-snabb) { margin: 0 0 2.75rem; padding: 1.3rem 1.5rem; border-left: 3px solid #c4b5f4; border-radius: 0 16px 16px 0; background: rgba(196,181,244,0.07); }
+  .gl-text :global(.gl-snabb-rubrik) { margin: 0 0 0.6rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #c4b5f4; }
+  .gl-text :global(.gl-th) { text-align: left; padding: 0.7rem 0.6rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .gl-text :global(.gl-sum) { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.2rem 0; cursor: pointer; list-style: none; color: #fff; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1rem; }
+  .gl-text :global(.gl-sum::-webkit-details-marker) { display: none; }
+  .gl-text :global(.gl-rel) { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); }
+  .gl-text :global(.gl-rel-lista) { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+  .gl-text :global(.gl-rel-rubrik) { margin: 0 0 1rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .gl-text :global(.gl-chip) { display: flex; align-items: flex-end; min-height: 92px; padding: 1.1rem 1.2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); background: #1e1850; color: #fff; font-family: 'DM Serif Display', serif; font-size: 1.2rem; line-height: 1.15; text-decoration: none; transition: border-color 0.15s; }
+  .gl-text :global(.gl-chip:hover) { border-color: rgba(196,181,244,0.5); color: #fff; }
+
+  .gl-sida { position: sticky; top: calc(var(--nav-offset, 166px) - 40px); display: grid; gap: 14px; }
+  .gl-toc, .gl-sortiment { border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); padding: 1.3rem; }
+  .gl-sidrubrik { margin: 0 0 0.6rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .gl-toc ol { list-style: none; margin: 0; padding: 0; }
+  .gl-toc :global(a) { display: block; padding: 0.45rem 0 0.45rem 0.8rem; border-left: 2px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); font-size: 0.92rem; line-height: 1.35; text-decoration: none; }
+  .gl-toc :global(a:hover) { color: #fff; }
+  .gl-toc :global(a.is-aktiv) { border-left-color: #c4b5f4; color: #fff; }
+  .gl-hjalp { border-radius: 18px; background: #c4b5f4; color: #0c0a24; padding: 1.4rem; }
+  .gl-hjalp h2 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.6rem; line-height: 1.1; color: #0c0a24; }
+  .gl-hjalp p { margin: 0.6rem 0 1.1rem; font-size: 0.95rem; color: rgba(12,10,36,0.78); }
+  .gl-btn { display: flex; width: 100%; justify-content: center; margin-top: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem; padding: 0.75rem; border-radius: 999px; border: 1.5px solid #0c0a24; color: #0c0a24; background: transparent; cursor: pointer; text-decoration: none; }
+  .gl-btn-mork { background: #0c0a24; color: #fff; }
+  .gl-btn-mork:hover { background: #1e1850; }
+  .gl-sortiment { display: block; text-decoration: none; color: rgba(255,255,255,0.72); font-size: 0.9rem; }
+  .gl-sortiment b { display: block; color: #fff; font-size: 1rem; margin-bottom: 0.2rem; }
+  .gl-sortiment:hover b { color: #c4b5f4; }
+  @media (max-width: 1000px) {
+    .gl-wrap { grid-template-columns: minmax(0, 1fr); }
+    .gl-sida { position: static; }
+    .gl-toc { display: none; }
+  }
+  @media (max-width: 720px) { .gl-hero { padding-top: calc(132px + 0.75rem); } }
+</style>
+
+<script>
+  // Innehållsförteckning ur guidens h2:or + markering av avsnittet man läser.
+  const text = document.querySelector<HTMLElement>('[data-guide-text]');
+  const toc = document.querySelector<HTMLElement>('[data-guide-toc]');
+  if (text && toc) {
+    const rubriker = [...text.querySelectorAll<HTMLHeadingElement>('h2')].filter((h) => h.textContent?.trim());
+    const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const ol = toc.querySelector('ol')!;
+    const lankar = rubriker.map((h, i) => {
+      if (!h.id) h.id = slug(h.textContent || '') || `avsnitt-${i + 1}`;
+      const a = document.createElement('a');
+      a.href = `#${h.id}`; a.textContent = (h.textContent || '').trim();
+      const li = document.createElement('li'); li.appendChild(a); ol.appendChild(li);
+      return a;
+    });
+    if (rubriker.length >= 2) {
+      toc.hidden = false;
+      const io = new IntersectionObserver((poster) => {
+        poster.forEach((p) => {
+          if (!p.isIntersecting) return;
+          const i = rubriker.indexOf(p.target as HTMLHeadingElement);
+          lankar.forEach((a, j) => a.classList.toggle('is-aktiv', j === i));
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      rubriker.forEach((h) => io.observe(h));
+    }
+  }
+  document.querySelectorAll('[data-sven-oppna]').forEach((b) => {
+    if ((b as HTMLElement).dataset.svenKopplad) return;
+    (b as HTMLElement).dataset.svenKopplad = '1';
+    b.addEventListener('click', () => document.getElementById('sven-toggle')?.click());
+  });
+</script>
