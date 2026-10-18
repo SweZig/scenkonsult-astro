@@ -71,17 +71,20 @@ const CART_ID_LISTA = cartLines.join('\n');
 // ── PRODUKTER & PRISER ────────────────────────────────────────────────────────
 
 const sects = [];
+// Utgångna produkter (active:false) får aldrig nå Svens prislista — varje loop
+// nedan filtrerar på aktiv(). (2026-10-17 filtrerades bara cart-ID-listan.)
+const aktiv = (p) => p && p.active !== false;
 
 // SCEN
 sects.push('SCEN → /vara-tjanster/hyra-scen/');
-scenes.products.forEach(p => {
+scenes.products.filter(aktiv).forEach(p => {
   const dim  = p.dimensions ? ` (${p.dimensions}${p.size ? ', ' + p.size : ''})` : '';
   const pers = p.persons ? ` — ${p.persons}` : '';
   sects.push(prodLine(`${p.name}${dim}`, p.price, '/dygn', pers.trim() || undefined));
 });
 if (scenes.modules?.length) {
   sects.push('Plattformsmoduler för egen scen-konfiguration:');
-  scenes.modules.forEach(m => {
+  scenes.modules.filter(aktiv).forEach(m => {
     const ben = Array.isArray(m.heights) && m.heights.length ? `ben ${m.heights.join('/')} cm` : undefined;
     sects.push(prodLine(m.name, m.price, '/dygn', ben));
   });
@@ -101,34 +104,34 @@ sects.push('Tumregel: 2–3 m² per person på scen.\n');
 // LJUD EVENT
 sects.push('LJUD EVENT → /vara-tjanster/hyra-ljud/event/');
 (ljud.event?.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
 sects.push('');
 
 // LJUD LIVE
 sects.push('LJUD LIVE → /vara-tjanster/hyra-ljud/live/');
 (ljud.live?.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
 (ljud.live?.lineArray || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, p.priceNote || '/enl. offert', p.persons));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, p.priceNote || '/enl. offert', p.persons));
 });
 sects.push('');
 
 // LJUD PORTABELT
 sects.push('LJUD PORTABELT → /vara-tjanster/hyra-ljud/portable/');
 (ljud.portable?.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
 (ljud.kolumnNoMic || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
 sects.push('');
 
 // LJUD MUSIK/DANS
 sects.push('LJUD MUSIK/DANS → /vara-tjanster/hyra-ljud/music/');
 (ljud.music?.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
 sects.push('');
 
@@ -136,7 +139,7 @@ sects.push('');
 if (ljud.mixers?.length) {
   sects.push('MIXERBORD (tillbehör till ovan)');
   ljud.mixers.forEach(p => {
-    if (p.price) sects.push(prodLine(p.name, p.price, '/dygn'));
+    if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn'));
   });
   sects.push('');
 }
@@ -144,26 +147,26 @@ if (ljud.mixers?.length) {
 // LJUS PAKET
 sects.push('LJUS PAKET → /vara-tjanster/hyra-ljus/fardiga-paket/');
 (ljus.paket?.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn', p.persons));
 });
 sects.push('');
 
 // LJUS EFFEKTER
 sects.push('LJUS EFFEKTER → /vara-tjanster/hyra-ljus/ljuseffekter/');
 (ljus.effekter?.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, p.priceNote || '/dygn'));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, p.priceNote || '/dygn'));
 });
 sects.push('');
 
 // LJUS RÖK & PYRO
 sects.push('LJUS RÖK & PYRO → /vara-tjanster/hyra-ljus/rok-pyro/');
 (ljus.rok?.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, p.priceNote || '/dygn'));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, p.priceNote || '/dygn'));
 });
 if (ljus.rok?.tillbehor?.length) {
   sects.push('Förbrukningsvaror:');
   ljus.rok.tillbehor.forEach(p => {
-    if (p.price) sects.push(`  - ${p.name}: ${fmtPrice(p.price)}`);
+    if (p.price && aktiv(p)) sects.push(`  - ${p.name}: ${fmtPrice(p.price)}`);
   });
 }
 sects.push('');
@@ -171,10 +174,12 @@ sects.push('');
 // DJ
 sects.push('DJ-UTRUSTNING → /vara-tjanster/hyra-dj/');
 Object.values(dj.equipment || {}).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn'));
+  // DJ-tjänsterna (type 'service', t.ex. "Junior DJ — 2 tim") är fast pris per
+  // bokning — inte per dygn. dj.json anger ingen egen enhet för dem.
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, p.priceNote || (p.type === 'service' ? ' per bokning' : '/dygn')));
 });
 sects.push('DJ-PAKET (inkl. ljud & ljus) → /vara-tjanster/hyra-dj/');
-(dj.packages || []).forEach(p => {
+(dj.packages || []).filter(aktiv).forEach(p => {
   sects.push(prodLine(p.name + ' (' + p.tagline + ')', p.price, ' exkl. moms'));
 });
 sects.push('');
@@ -213,27 +218,27 @@ const _svcLjud = (tjanster.services || []).filter(s => s.categories?.includes('l
 const _svcBild = (tjanster.services || []).filter(s => s.categories?.includes('bild'));
 if (_svcLjud.length) {
   sects.push('TEKNIKER/TJÄNSTER LJUD → /vara-tjanster/hyra-ljud/live/');
-  _svcLjud.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
+  _svcLjud.filter(aktiv).forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
   sects.push('');
 }
 if (_svcBild.length) {
   sects.push('TEKNIKER/TJÄNSTER BILD → /vara-tjanster/hyra-bild-projektorer-skarmar/');
-  _svcBild.forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
+  _svcBild.filter(aktiv).forEach(p => { sects.push(prodLine(p.name, p.price, p.priceNote || '/tim')); });
   sects.push('');
 }
 
 // PROJEKTOR & SKÄRM
 sects.push('PROJEKTOR & SKÄRM → /vara-tjanster/hyra-bild-projektorer-skarmar/');
 (bild.products || []).forEach(p => {
-  if (p.price) sects.push(prodLine(p.name, p.price, '/dygn'));
+  if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn'));
 });
 sects.push('');
 
 // PROJEKTORDUKAR
 if (bild.dukar?.length) {
   sects.push('PROJEKTORDUKAR → /vara-tjanster/hyra-bild-projektorer-skarmar/');
-  bild.dukar.filter(p => p.active !== false).forEach(p => {
-    if (p.price) sects.push(prodLine(p.name, p.price, '/dygn'));
+  bild.dukar.filter(aktiv).forEach(p => {
+    if (p.price && aktiv(p)) sects.push(prodLine(p.name, p.price, '/dygn'));
   });
   sects.push('');
 }

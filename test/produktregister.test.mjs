@@ -181,6 +181,23 @@ for (const m of data.scenes.modules || []) {
     .filter((t) => !PRODUKTER_OCH_PRISER.includes(t.name)).map((t) => t.name);
   check('scentillbehören finns i Svens prislista', saknas.length === 0, saknas.length ? saknas.join(', ') : '');
 }
+{
+  // Utgångna produkter (active:false) får inte heller stå i Svens prislista —
+  // 2026-10-17 filtrerades bara cart-ID-listan, inte PRODUKTER_OCH_PRISER.
+  const { PRODUKTER_OCH_PRISER } = await import('../netlify/functions/_products-generated.mjs');
+  const utg = [];
+  const samla = (n) => {
+    if (Array.isArray(n)) n.forEach(samla);
+    else if (n && typeof n === 'object') {
+      if (n.active === false && typeof n.name === 'string') utg.push(n);
+      Object.values(n).forEach(samla);
+    }
+  };
+  ['scenes', 'ljud', 'ljus', 'dj', 'bild', 'karaoke', 'tjanster'].forEach((f) => samla(data[f]));
+  const kvar = utg.filter((p) => PRODUKTER_OCH_PRISER.includes('- ' + p.name)).map((p) => p.artno || p.name);
+  check('inga utgångna produkter i Svens prislista', utg.length > 0 && kvar.length === 0,
+    kvar.length ? `${kvar.length}: ${kvar.join(', ')}` : `${utg.length} utgångna kontrollerade`);
+}
 
 console.log('');
 if (fails.length) {
