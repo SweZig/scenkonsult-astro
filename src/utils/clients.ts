@@ -73,3 +73,17 @@ export function getFeaturedClients(): string[] {
   const known = new Set(all.map((r) => r.name));
   return FEATURED_CLIENT_NAMES.filter((n) => known.has(n));
 }
+
+// Kundlogotyper ("De har hyrt av oss") — en fil per kund i /images/kunder/, transparent
+// i lavendel. Används på startsidan och /referenser/.
+// tall: höga märken (rundlar, sköldar) får större höjd än breda ordmärken.
+export const KUNDLOGOTYPER: Array<{ src: string; name: string; w: number; h: number; tall?: boolean }> = [
+  { src: '/images/kunder/logo_ica.webp', name: 'ICA Sverige', w: 222, h: 114 },
+  { src: '/images/kunder/logo_hornbach.webp', name: 'Hornbach', w: 276, h: 52 },
+  { src: '/images/kunder/logo_abg.webp', name: 'ABG Sundal Collier', w: 208, h: 115 },
+  { src: '/images/kunder/logo_houdini.webp', name: 'Houdini', w: 325, h: 70 },
+  { src: '/images/kunder/logo_german_beerhall.webp', name: 'German Beer Hall', w: 311, h: 360, tall: true },
+  { src: '/images/kunder/logo_hacksaw.webp', name: 'Hacksaw Studios', w: 201, h: 61 },
+  { src: '/images/kunder/logo_hardrock.webp', name: 'Hard Rock Café', w: 259, h: 150 },
+  { src: '/images/kunder/logo_uf.webp', name: 'UF Företagande', w: 236, h: 81 },
+];

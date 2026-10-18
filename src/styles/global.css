@@ -1101,3 +1101,22 @@ select:-webkit-autofill:focus {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ── MOBILENS BOTTENLIST (Layout mobilBar) ────────────────────────── */
+.sk-mobilbar { display: none; }
+@media (max-width: 720px) {
+  .har-mobilbar { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .sk-mobilbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(12,10,36,0.97); border-top: 1px solid rgba(255,255,255,0.1);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  .sk-mobilbar-ring { width: 52px; height: 52px; border-radius: 14px; background: #1e1850; color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+  .sk-mobilbar-moms { height: 52px; padding: 0 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.14); background: transparent; color: rgba(255,255,255,0.85); font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; line-height: 1.2; flex: none; cursor: pointer; }
+  .sk-mobilbar-korg { flex: 1; height: 52px; border-radius: 14px; background: #c4b5f4; color: #0c0a24; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; text-decoration: none; }
+  .sk-mobilbar-korg:hover { background: #e2dcfb; }
+  .har-mobilbar #sk-vat-toggle { display: none; }
+  .har-mobilbar #sven-chat-widget { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+}

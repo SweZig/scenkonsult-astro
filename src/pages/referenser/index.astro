@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import siteData from '../../data/site.json';
 import { getReviews, getSummary } from '../../utils/reviews';
-import { getClientCategories, getAllClientNames } from '../../utils/clients';
+import { getClientCategories, getAllClientNames, KUNDLOGOTYPER } from '../../utils/clients';
 import eventCases from '../../data/event-cases.json';
 
 const { reviews } = siteData;
@@ -22,18 +22,8 @@ const eventGallery = (eventCases as any).cases as Array<{
   categories: string[]; images: Array<{ src: string; alt: string }>;
 }>;
 
-// Logotyper för "De litar på oss" — en fil per kund i /images/kunder/
-// tall: höga märken (rundlar, sköldar) får 92 % av kortets höjd i stället för 58 %
-const clientLogos: Array<{ src: string; name: string; w: number; h: number; tall?: boolean }> = [
-  { src: "/images/kunder/logo_ica.webp", name: "ICA Sverige", w: 222, h: 114 },
-  { src: "/images/kunder/logo_hornbach.webp", name: "Hornbach", w: 276, h: 52 },
-  { src: "/images/kunder/logo_abg.webp", name: "ABG Sundal Collier", w: 208, h: 115 },
-  { src: "/images/kunder/logo_houdini.webp", name: "Houdini", w: 325, h: 70 },
-  { src: "/images/kunder/logo_german_beerhall.webp", name: "German Beer Hall", w: 311, h: 360, tall: true },
-  { src: "/images/kunder/logo_hacksaw.webp", name: "Hacksaw Studios", w: 201, h: 61 },
-  { src: "/images/kunder/logo_hardrock.webp", name: "Hard Rock Café", w: 259, h: 150 },
-  { src: "/images/kunder/logo_uf.webp", name: "UF Företagande", w: 236, h: 81 },
-];
+// Logotyper för "De litar på oss" — delas med startsidan (src/utils/clients.ts)
+const clientLogos = KUNDLOGOTYPER;
 
 const pageSchema = {
   "@context": "https://schema.org",

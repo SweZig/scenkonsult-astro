@@ -6,10 +6,13 @@
 interface Props {
   id: string;
   title: string;
+  /** Egen förhandsbild ur public/ (aldrig YouTubes miniatyr — den kommer från Google). */
+  poster?: string;
 }
-const { id, title } = Astro.props;
+const { id, title, poster } = Astro.props;
 ---
 <button type="button" class="yt-klick" data-yt-id={id} data-yt-title={title} aria-label={`Spela filmen: ${title}`}>
+  {poster && <img class="yt-klick-poster" src={poster} alt="" loading="lazy" decoding="async" />}
   <span class="yt-klick-play" aria-hidden="true">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="#0c0a24"><path d="M8 5v14l11-7z"/></svg>
   </span>
@@ -19,12 +22,15 @@ const { id, title } = Astro.props;
 
 <style>
   .yt-klick {
+    position: relative; overflow: hidden;
     width: 100%; height: 100%; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 0.75rem;
     padding: 1.5rem; border: 0; cursor: pointer; text-align: center;
     background: radial-gradient(circle at 50% 40%, #1e1850 0%, #0c0a24 75%);
     color: #fff; font-family: 'Space Grotesk', sans-serif;
   }
+  .yt-klick-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+  .yt-klick-play, .yt-klick-titel, .yt-klick-not { position: relative; }
   .yt-klick-play {
     width: 68px; height: 68px; border-radius: 999px; background: #c4b5f4;
     display: flex; align-items: center; justify-content: center;

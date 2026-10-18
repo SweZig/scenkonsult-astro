@@ -1,1417 +1,746 @@
 ---
+// Startsidan — redesign 2026-10 (designytan "Scenkonsult startsida — redesign").
+// Ordning: hero → faktarad → kategorikort → topplista → referenser och
+// logotyper → omdömen → så funkar det → slutruta.
+// Alla priser, tider och listor räknas ur datafilerna; inget skrivs in här.
 import Layout from '../layouts/Layout.astro';
+import YouTubeKlick from '../components/YouTubeKlick.astro';
+import CartButton from '../components/CartButton.astro';
 import djData from '../data/dj.json';
 import scenesData from '../data/scenes.json';
 import ljudData from '../data/ljud.json';
 import bildData from '../data/bild.json';
 import ljusData from '../data/ljus.json';
+import siteData from '../data/site.json';
+import popular from '../data/popular.json';
+import eventCases from '../data/event-cases.json';
+import reviewsData from '../data/reviews.json';
+import ljudLjusConfig from '../data/ljud-ljus.json';
 import _karaokeData from '../data/karaoke.json';
 import _tjData from '../data/tjanster.json';
 import _elData from '../data/el.json';
 import { resolveBuilder as _kbResolve, minTotal as _kbMin } from '../lib/karaoke-builder.mjs';
-import YouTubeKlick from '../components/YouTubeKlick.astro';
-import { getSummary } from '../utils/reviews';
+import { resolveLjudLjus, minRecommended } from '../lib/ljud-ljus-builder.mjs';
+import { getSummary, getReviews } from '../utils/reviews';
+import { KUNDLOGOTYPER } from '../utils/clients';
+import { produktLank } from '../utils/produktLank';
+import { telefon, helg } from '../utils/hours';
 
-// Frånpriser härleds från JSON-katalogen (hänger med vid prisjustering).
+const fmt = (n: number) => n.toLocaleString('sv-SE');
+const inkl = (n: number) => Math.round(n * 1.25);
 const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price && p.active !== false).map((p: any) => p.price));
-// Betyget räknas ur reviews.json (stod som inskrivet 4.8).
-const _betyg = getSummary();
-const fmt = (n: number) => n.toLocaleString('sv');
-// Fraktpriser till FAQ-schemat — ur tjanster.json, aldrig hårdkodade.
-const _lev = (_tjData as any).leverans || {};
-const _fraktFaq = `Leverans med vanlig bil kostar ${fmt(_lev.standard?.pris)} kr tur och retur, stor bil ${fmt(_lev.storbil?.pris)} kr och lätt lastbil ${fmt(_lev.lastbil?.pris)} kr. Fordonet väljs efter hur mycket och hur skrymmande utrustningen är. Hämtar du själv i Vällingby är det gratis. Priser exkl. moms.`;
+const _alla = { karaoke: _karaokeData, ljud: ljudData, ljus: ljusData, bild: bildData, dj: djData, scenes: scenesData, tjanster: _tjData, el: _elData };
 
-const scenFran = _low((scenesData as any).products);
-// Antal och yta räknas ur datan — kortet sa "12 scenpaket" när det fanns elva.
+// ── Från-priser ur katalogen ────────────────────────────────────────────────
 const _scenAktiva = ((scenesData as any).products as any[]).filter((p: any) => p.active !== false);
 const _scenYtor = _scenAktiva.map((p: any) => parseFloat(String(p.size))).filter((n: number) => !isNaN(n));
-const scenKort = `${_scenAktiva.length} scenpaket, ${Math.min(..._scenYtor)}–${Math.max(..._scenYtor)} m²`;
-// Ljud: lägsta över alla sektioner (portable är billigast)
-const ljudFran = _low([
-  ...((ljudData as any).portable?.products ?? []),
-  ...((ljudData as any).event?.products ?? []),
-  ...((ljudData as any).music?.products ?? []),
-  ...((ljudData as any).live?.products ?? []),
-]);
-const bildFran = _low((bildData as any).products);
-// Ljus: lägsta färdiga paket (inte lösa effekter)
+const scenFran = _low(_scenAktiva);
+const ljudFran = _low(['portable', 'event', 'music', 'live'].flatMap((k) => (ljudData as any)[k]?.products ?? []));
 const ljusFran = _low((ljusData as any).paket?.products ?? []);
+const bildFran = _low((bildData as any).products);
+const kbFran = _kbMin(_kbResolve(_karaokeData, _alla));
+const llFran = minRecommended(resolveLjudLjus(ljudLjusConfig, _alla));
+// DJ-utrustning: billigaste controller/system (samma urval som DJ-utrustningssidan)
+const djUtrFran = Math.min(...((djData as any).equipment as any[]).filter((p: any) => /controller|rane|system/i.test(p.name) && p.price && p.active !== false).map((p: any) => p.price));
 
-const djFranExcl = Math.min(...(djData.equipment as any[])
-  .filter(p => p.category === 'DJ-tjänst' && p.tier === 'junior' && p.price)
-  .map(p => p.price));
-const djFranInkl = Math.round(djFranExcl * 1.25);
+// ── Företagsfakta ───────────────────────────────────────────────────────────
+const grundat = Number((siteData as any).company?.founded) || 1986;
+const arIBranschen = new Date().getFullYear() - grundat;
+const betyg = getSummary();
+const googleUrl = (reviewsData as any)._placeUrl as string;
+
+// ── Hero: fyra uppdrag som växlar ───────────────────────────────────────────
+type Bild = { src: string; w: number; alt: string; text: string; pos?: string };
+const srcset = (b: { src: string; w: number }) => `${b.src.replace(/\.webp$/, '-640w.webp')} 640w, ${b.src} ${b.w}w`;
+const HERO: Bild[] = [
+  { src: '/images/event/uf_strawberry_arena_1.webp', w: 1050, alt: 'Scenkonsults talarpodium på Strawberry Arena', text: 'Strawberry Arena — Ung Företagsamhet' },
+  { src: '/images/event/kundevent_lakarforbundet.webp', w: 1050, alt: 'Dansgolv och DJ i festvåning hos Läkarförbundet', text: 'Läkarförbundet — Östermalm' },
+  { src: '/images/event/festival_vinterviken_2.webp', w: 1400, alt: 'Publik framför scenen på festivalen i Vinterviken', text: 'Festival — Vinterviken' },
+  { src: '/images/event/festival_hard_rock_rising.webp', w: 1050, alt: 'Liveband på Hard Rock Café under Hard Rock Rising', text: 'Hard Rock Café — Hard Rock Rising' },
+];
+
+// ── Kategorikort ────────────────────────────────────────────────────────────
+const V = '/vara-tjanster';
+const KORT = [
+  { namn: 'Ljud', href: `${V}/hyra-ljud/`, desc: 'Högtalare och PA för fest, tal och liveband.', fran: ljudFran,
+    bild: { src: '/images/event/festival_hard_rock_rising.webp', w: 1050, alt: 'Liveband på Hard Rock Café', pos: '50% 50%' },
+    chips: [['Portable', `${V}/hyra-ljud/portable/`], ['Kolumn', `${V}/hyra-ljud/kolumnhogtalare/`], ['Event', `${V}/hyra-ljud/event/`], ['Musik', `${V}/hyra-ljud/music/`], ['Live', `${V}/hyra-ljud/live/`], ['Ljudtekniker', `${V}/hyra-ljudtekniker/`]] },
+  { namn: 'Ljus', href: `${V}/hyra-ljus/`, desc: 'Från festljus till moving heads och DMX.', fran: ljusFran,
+    bild: { src: '/images/event/installation_german_beerhall_1.webp', w: 1050, alt: 'Blått ljus och LED-ramper i taket på German Beer Hall', pos: '50% 35%' },
+    chips: [['Färdiga paket', `${V}/hyra-ljus/fardiga-paket/`], ['Effekter', `${V}/hyra-ljus/ljuseffekter/`], ['Moving heads', `${V}/hyra-ljus/moving-heads/`], ['Rök & pyro', `${V}/hyra-ljus/rok-pyro/`], ['Stativ & tross', `${V}/hyra-ljus/stativ-tross/`]] },
+  { namn: 'Ljud & ljus', tag: 'Bygg ert paket', href: `${V}/hyra-ljud-och-ljus/`, desc: 'Tre frågor — sedan ett färdigt förslag med ljud och ljus.', fran: llFran,
+    bild: { src: '/images/event/kundevent_systembolaget_3.webp', w: 1050, alt: 'Högtalare och uplights i festvåning hos Systembolaget', pos: '50% 55%' },
+    chips: [['Starta konfiguratorn', `${V}/hyra-ljud-och-ljus/#bygg`], ['Bröllop', '/for/brollop/'], ['Företagsfest', '/for/foretagsfest/']] },
+  { namn: 'Konferens', href: `${V}/konferens-av/`, desc: 'Ljud, bild, scen och tekniker för möten och kickoffer.', fran: bildFran,
+    bild: { src: '/images/event/kundevent_solna_naringsliv.webp', w: 1600, alt: 'Konferenssal med tre skärmar hos Solna Näringsliv', pos: '50% 50%' },
+    chips: [['Mikrofoner', `${V}/konferens-av/#mikrofoner`], ['Projektor', `${V}/konferens-av/#projektor`], ['Bild & skärm', `${V}/hyra-bild-projektorer-skarmar/`], ['Ljudtekniker', `${V}/hyra-ljudtekniker/`]] },
+  { namn: 'Bild', href: `${V}/hyra-bild/`, desc: 'Projektor, skärmar, LED-vägg och LED-trailer.', fran: bildFran,
+    bild: { src: '/images/event/kundevent_emberlin_2.webp', w: 1050, alt: 'Skärm på golvstativ i restaurangmiljö hos Emberlin', pos: '50% 45%' },
+    chips: [['Projektor & skärm', `${V}/hyra-bild-projektorer-skarmar/`], ['LED-vägg', `${V}/hyra-bild-led-vagg/`], ['LED-trailer', `${V}/hyra-bild-projektorer-skarmar/#led-trailer`], ['Projektorduk', `${V}/hyra-bild-projektorer-skarmar/#projektorduk`]] },
+  { namn: 'Scen', href: `${V}/hyra-scen/`, desc: `${_scenAktiva.length} scenpaket, ${Math.min(..._scenYtor)}–${Math.max(..._scenYtor)} m², med eller utan tak.`, fran: scenFran,
+    bild: { src: '/images/event/kundevent_tele2_scenpodie.webp', w: 1050, alt: 'Scenpodie med ridå och storbild hos Tele2', pos: '50% 60%' },
+    chips: [['Scenpaket', `${V}/hyra-scen/#scenpaket`], ['Bygg din scen', `${V}/hyra-scen/#scen-konfigurator`], ['Pipe & drape', `${V}/hyra-scen/pipe-drape/`], ['Tillbehör', `${V}/hyra-scen/#tillbehor`]] },
+  { namn: 'Karaoke', tag: 'Bygg er karaoke', href: `${V}/hyra-karaoke/`, desc: 'Högtalare, mikrofoner, skärm och ljus — välj själv.', fran: kbFran,
+    bild: { src: '/images/tjanster/plugg_karaoke_sang.webp', w: 819, alt: 'Kvinna sjunger karaoke med mikrofon under neonskylt', pos: '50% 30%' },
+    chips: [['Starta byggaren', `${V}/hyra-karaoke/#bygg`]] },
+  { namn: 'DJ-utrustning', href: `${V}/hyra-dj-utrustning/`, desc: 'Controllers, mixer och DJ-bord. Boka DJ också.', fran: djUtrFran,
+    bild: { src: '/images/event/kundevent_swedish_taste_1.webp', w: 1050, alt: 'DJ vid controller hos Swedish Taste', pos: '50% 50%' },
+    chips: [['Controllers', `${V}/hyra-dj-utrustning/#sk-dj-0001`], ['DJ-bord', `${V}/hyra-dj-utrustning/#sk-dj-0006`], ['Boka DJ', `${V}/hyra-dj/`]] },
+].map((k: any) => ({ ...k, srcset: k.bild.srcset ?? srcset(k.bild) }));
+// Mobilen visar snabblänkarna i en egen rad under korten
+const SNABBVAL: [string, string][] = [
+  ['LED-trailer', `${V}/hyra-bild-projektorer-skarmar/#led-trailer`], ['Ljudtekniker', `${V}/hyra-ljudtekniker/`],
+  ['Konferens-AV', `${V}/konferens-av/`], ['Projektor & skärm', `${V}/hyra-bild-projektorer-skarmar/`],
+  ['Mikrofoner', `${V}/konferens-av/#mikrofoner`], ['LED-vägg', `${V}/hyra-bild-led-vagg/`],
+  ['Boka DJ', `${V}/hyra-dj/`], ['Pipe & drape', `${V}/hyra-scen/pipe-drape/`],
+];
+
+// ── Topplista: en rad per tillfälle ur popular.json (kurerat i admin) ───────
+// Raden visar gruppens första produkt. Ljud & ljus visar första ljud- och
+// första ljusprodukten som ett par. Uppslag alltid på artno.
+const KATALOGER: [any, string][] = [[ljudData, 'Ljud'], [ljusData, 'Ljus'], [bildData, 'Bild'], [scenesData, 'Scen'], [djData, 'DJ']];
+const ALLA: any[] = KATALOGER.flatMap(([d, kat]) => Object.values(d).flatMap((v: any) => {
+  if (Array.isArray(v)) return v.filter((p: any) => p && typeof p === 'object' && p.artno);
+  if (v && typeof v === 'object' && Array.isArray(v.products)) return v.products;
+  return [];
+}).map((p: any) => ({ ...p, _kat: kat })));
+const hitta = (a: string) => ALLA.find((p) => p.artno === a && p.active !== false);
+const TOPP_FLIKAR: [string, string, string][] = [
+  ['ljud', 'Ljud', `${V}/hyra-ljud/`],
+  ['ljus', 'Ljus', `${V}/hyra-ljus/`],
+  ['ljud-och-ljus', 'Ljud & ljus', `${V}/hyra-ljud-och-ljus/`],
+  ['bild', 'Bild', `${V}/hyra-bild/`],
+  ['konferens', 'Konferens', `${V}/konferens-av/`],
+];
+const topplista = TOPP_FLIKAR.map(([nyckel, etikett, sida]) => {
+  const cfg = (popular as Record<string, any>)[nyckel] ?? {};
+  const rader = (cfg.grupper ?? []).map((g: any) => {
+    const prod = (g.artnos ?? []).map(hitta).filter(Boolean);
+    let valda = prod.slice(0, 1);
+    if (nyckel === 'ljud-och-ljus') {
+      const ljud = prod.find((p: any) => p._kat === 'Ljud');
+      const ljus = prod.find((p: any) => p._kat === 'Ljus');
+      valda = ljud && ljus ? [ljud, ljus] : prod.slice(0, 1);
+    }
+    if (!valda.length) return null;
+    const pris = valda.reduce((s: number, p: any) => s + p.price, 0);
+    return {
+      tillfalle: [g.rubrik, g.gaster].filter(Boolean).join(' · '),
+      namn: valda.map((p: any) => p.name).join(' + '),
+      lank: valda.length === 1 ? produktLank(valda[0].artno) : sida,
+      pris, produkter: valda,
+    };
+  }).filter(Boolean);
+  return { nyckel, etikett, sida, rader };
+}).filter((f) => f.rader.length);
+
+// ── Referenser: hubbraden "start" ur event-cases.json (kurerat i admin) ─────
+const _caseTag = new Map(((eventCases as any).cases as any[]).map((c) => [c.id, c.tag]));
+const referenser = (((eventCases as any).hub?.start ?? []) as any[]).map((r) => ({ ...r, tag: _caseTag.get(r.caseId) ?? '' }));
+
+// ── Omdömen: alla ur reviews.json i kurerad ordning ─────────────────────────
+const omdomen = getReviews().filter((r) => r.rating >= 5 && r.text && r.text.trim().length > 0);
+const _manad = (d: string) => new Date(d).toLocaleDateString('sv-SE', { month: 'short', year: 'numeric' }).replace('.', '');
 
 const homeSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "Vad kan man hyra av Scenkonsult Norden?", "acceptedAnswer": { "@type": "Answer", "text": "Vi hyr ut scen, ljud (PA-system), ljus (LED PAR, moving heads, laser), bild (projektorer och LED-skärmar) och DJ-utrustning. Vi erbjuder även kompletta event-paket med leverans och montering i hela Storstockholm." } },
-    { "@type": "Question", "name": "Var i Stockholm levererar Scenkonsult?", "acceptedAnswer": { "@type": "Answer", "text": "Vi levererar inom ca 4 mils radie från Vällingby — det täcker hela Storstockholm inklusive Solna, Sundbyberg, Nacka, Huddinge, Täby och angränsande kommuner. Längre transporter offerteras separat." } },
+    { "@type": "Question", "name": "Vad kan man hyra av Scenkonsult Norden?", "acceptedAnswer": { "@type": "Answer", "text": "Vi hyr ut scen, ljud (PA-system), ljus (LED PAR, moving heads, laser), bild (projektorer och LED-skärmar), konferensteknik, karaoke och DJ-utrustning. Leverans och montering kan bokas till i hela Storstockholm." } },
+    { "@type": "Question", "name": "Var i Stockholm levererar Scenkonsult?", "acceptedAnswer": { "@type": "Answer", "text": "Vi levererar inom ca 4 mils radie från Vällingby — det täcker hela Storstockholm inklusive Solna, Sundbyberg, Nacka, Huddinge, Täby och angränsande kommuner. Längre transporter offereras separat." } },
     { "@type": "Question", "name": "Hur lång är hyresperioden?", "acceptedAnswer": { "@type": "Answer", "text": "Normal hyresperiod är 22 timmar — hämtning eller leverans kl 13:00 och återlämning kl 11:00 påföljande dag. Längre perioder kan arrangeras mot tillägg." } },
-    { "@type": "Question", "name": "Vad kostar leverans av utrustning?", "acceptedAnswer": { "@type": "Answer", "text": _fraktFaq } },
-    { "@type": "Question", "name": "Sedan när har Scenkonsult Norden funnits?", "acceptedAnswer": { "@type": "Answer", "text": "Scenkonsult Norden grundades 1986 och har sedan dess levererat scen, ljud och ljus till hundratals event per år i Storstockholm." } }
+    { "@type": "Question", "name": "Vad kostar leverans av utrustning?", "acceptedAnswer": { "@type": "Answer", "text": `Leverans med vanlig bil kostar ${fmt((_tjData as any).leverans?.standard?.pris)} kr tur och retur, stor bil ${fmt((_tjData as any).leverans?.storbil?.pris)} kr och lätt lastbil ${fmt((_tjData as any).leverans?.lastbil?.pris)} kr. Fordonet väljs efter hur mycket och hur skrymmande utrustningen är. Hämtar du själv i Vällingby är det gratis. Priser exkl. moms.` } },
+    { "@type": "Question", "name": "Sedan när har Scenkonsult Norden funnits?", "acceptedAnswer": { "@type": "Answer", "text": `Scenkonsult Norden grundades ${grundat} och levererar scen, ljud och ljus till över hundra event per år i Storstockholm.` } }
   ]
 };
-const _kbFran = _kbMin(_kbResolve(_karaokeData, { karaoke: _karaokeData, ljud: ljudData, ljus: ljusData, bild: bildData, dj: djData, scenes: scenesData, tjanster: _tjData, el: _elData }));
-// Kundtickern: en lista, renderad två gånger i mallen (andra halvan var kortare och loopen hoppade).
-const KUNDTICKER = [
-        'Stockholm Stad','Solna Stad','ICA Sverige','Akademiska Hus',
-        'Mälardalens Universitet','Brasiliens Ambassad','Indiens Ambassad',
-        'Kommunalarbetareförbundet','Tyresö Kommun','Haninge Kommun',
-        'Ung Företagsamhet','Miljöpartiet','ABG Sundal Collier',
-        'Houdini Sportswear','Solna Tingsrätt','Hornbach','Odd Fellow',
-        'Vision','Vänsterpartiet','Korpen','A Beautiful Soap','Hacksaw Studios'
-];
 ---
 
 <Layout
   alternates={[{ hreflang: 'en', href: '/en/' }]}
   schemaExtra={homeSchema}
+  mobilBar={true}
   title="Hyra Scen, Ljud & Ljus Stockholm | Scenkonsult – Sedan 1986"
-  description="Hyr scen, ljud, ljus och bild i Stockholm – för event, konsert, bröllop och fest. Komplett scenproduktion med leverans och montering. Sedan 1986."
+  description="Hyr scen, ljud, ljus och bild i Stockholm – för event, konferens, bröllop och fest. Färdiga paket med pris direkt, leverans och montering bokas till. Sedan 1986."
 >
 
 <!-- ── HERO ── -->
-<section class="hero">
-  <div class="hero-l">
-    <div class="logo-ring"></div>
-    <div class="ghost-year">1986</div>
-    <p class="hero-eyebrow">
-      <span class="hero-eyebrow-line"></span>
-      Del av Sveriges scener sedan 1986
-    </p>
-    <h1 class="hero-h1">
-      Hyra scen, ljud,<br>
-      ljus &amp; bild<br>
-      <em>i Stockholm</em>
-    </h1>
-    <p class="hero-body">
-      Komplett scenproduktion för fest, bröllop, företagsevent och konsert.
-      Leverans och montering i hela Storstockholm. Vi svarar inom ett par timmar.
-    </p>
-    <div class="hero-checks">
-      <span class="hero-check">Sedan 1986</span>
-      <span class="hero-check">Hela Storstockholm</span>
-      <span class="hero-check">Jour vid pågående uthyrning</span>
-      <span class="hero-check">Generösa avbokningsregler</span>
+<section class="st-hero" style="padding-top:calc(var(--nav-offset,166px) + var(--st-luft, 2.5rem))">
+  <div class="st-wrap st-hero-grid">
+    <div class="st-hero-text">
+      <p class="st-eyebrow">Uthyrning i hela Storstockholm · sedan {grundat}</p>
+      <h1 class="st-h1">Scen, ljud, ljus &amp; bild — <em>klart till ert event.</em></h1>
+      <p class="st-lead">Hyr färdiga paket eller bygg ert eget i konfiguratorn. Priset räknas direkt i varukorgen — leverans och montering bokas till om ni vill.</p>
+      <div class="st-knappar">
+        <a href="#tjanster" class="st-btn st-btn-p">Se paket och priser</a>
+        <a href="/varukorg/" class="st-btn st-btn-g">Begär offert</a>
+      </div>
+      <ul class="st-prischips" aria-label="Från-priser">
+        <li>Ljus från <b><span class="sk-price-excl">{fmt(ljusFran)}</span><span class="sk-price-incl hidden">{fmt(inkl(ljusFran))}</span> kr</b>/dygn</li>
+        <li>Ljud från <b><span class="sk-price-excl">{fmt(ljudFran)}</span><span class="sk-price-incl hidden">{fmt(inkl(ljudFran))}</span> kr</b>/dygn</li>
+        <li>Scen från <b><span class="sk-price-excl">{fmt(scenFran)}</span><span class="sk-price-incl hidden">{fmt(inkl(scenFran))}</span> kr</b>/dygn</li>
+        <li class="st-moms"><span class="sk-price-excl">exkl. moms</span><span class="sk-price-incl hidden">inkl. moms</span></li>
+      </ul>
     </div>
-  </div>
-  <div class="hero-r">
-    <picture>
-      <source
-        type="image/webp"
-        srcset="/images/hero/scen3_hero-480w.webp 480w, /images/hero/scen3_hero-768w.webp 768w, /images/hero/scen3_hero-1024w.webp 1024w"
-        sizes="(max-width: 768px) 100vw, 50vw"
-      />
-      <img
-        src="/images/hero/scen3_hero-768w.jpg"
-        srcset="/images/hero/scen3_hero-480w.jpg 480w, /images/hero/scen3_hero-768w.jpg 768w, /images/hero/scen3_hero.jpg 1024w"
-        sizes="(max-width: 768px) 100vw, 50vw"
-        alt="Scenproduktion Stockholm"
-        width="960"
-        height="720"
-        fetchpriority="high"
-        decoding="async"
-      />
-    </picture>
-    <div class="hero-r-tint"></div>
+    <figure class="st-hero-fig" data-vaxla="hero">
+      {HERO.map((b, i) => (
+        <img
+          class:list={['st-slide', { 'is-aktiv': i === 0 }]}
+          src={i === 0 ? b.src : undefined}
+          srcset={i === 0 ? srcset(b) : undefined}
+          data-src={i === 0 ? undefined : b.src}
+          data-srcset={i === 0 ? undefined : srcset(b)}
+          sizes="(max-width: 900px) 100vw, 42vw"
+          alt={b.alt}
+          width="1050" height="1400"
+          fetchpriority={i === 0 ? 'high' : undefined}
+          decoding="async"
+          aria-hidden={i === 0 ? undefined : 'true'}
+        />
+      ))}
+      <figcaption class="st-hero-cap">
+        <span class="st-hero-text-cap" aria-live="polite">{HERO[0].text}</span>
+        <span class="st-prickar" role="group" aria-label="Välj bild">
+          {HERO.map((b, i) => (
+            <button type="button" class:list={['st-prick', { 'is-aktiv': i === 0 }]} data-index={i} data-text={b.text} aria-label={`Visa ${b.text}`} aria-pressed={i === 0 ? 'true' : 'false'}><span></span></button>
+          ))}
+        </span>
+      </figcaption>
+    </figure>
   </div>
 </section>
 
-<!-- ── MANIFESTO BAR ── -->
-<div class="manifesto">
-  <div class="m-stat">
-    <div class="m-stat-n">1986</div>
-    <div class="m-stat-l">Grundat</div>
-  </div>
-  <div class="m-div"></div>
-  <div class="m-stat">
-    <div class="m-stat-n">100+</div>
-    <div class="m-stat-l">Event per år</div>
-  </div>
-  <div class="m-div"></div>
-  <div class="m-stat">
-    <div class="m-stat-n">20–2&thinsp;000</div>
-    <div class="m-stat-l">Gäster</div>
-  </div>
-  <div class="m-div"></div>
-  <div class="m-stat">
-    <div class="m-stat-n">100%</div>
-    <div class="m-stat-l">Testad utrustning</div>
-  </div>
-</div>
-
-<!-- ── TJÄNSTER ── -->
-<section id="tjanster" class="svc2-section">
-  <!-- Rubrik -->
-  <div class="svc2-head">
-    <div>
-      <span class="overline" style="color:#c4b5f4;">Vad vill du hyra?</span>
-      <h2 class="display" style="margin-top:0.5rem;color:white;">
-        Allt du behöver<br><em>för ett lyckat event</em>
-      </h2>
-    </div>
-    <p class="lead" style="color:rgba(255,255,255,0.55);">
-      All utrustning testas och kalibreras inför varje uthyrning. Kostnadsfri rådgivning ingår alltid.
-    </p>
-  </div>
-
-  <!-- Bildkort-grid -->
-  <div class="svc2-grid">
-
-    <!-- Scen -->
-    <div class="svc2-card">
-      <a href="/vara-tjanster/hyra-scen/" class="svc2-card-inner">
-        <div class="svc2-img-wrap">
-          <img src="/images/tjanster/plugg_scener.webp" alt="Hyra scen Stockholm" width="600" height="338" loading="lazy" />
-        </div>
-        <div class="svc2-body">
-          <h3 class="svc2-title">Hyra scen</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">{fmt(scenFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(scenFran*1.25))} kr</strong> <span>/dygn</span></p>
-          <p class="svc2-desc">{scenKort}. Med eller utan tak.</p>
-          <span class="svc2-cta">Se scenpaket →</span>
-        </div>
-      </a>
-      <nav class="svc2-subnav" aria-label="Scen-kategorier">
-        <a href="/vara-tjanster/hyra-scen/">Scen</a>
-        <a href="/vara-tjanster/hyra-scen/pipe-drape/">Pipe &amp; Drape</a>
-      </nav>
-    </div>
-
-    <!-- Ljud hub + sub-nav -->
-    <div class="svc2-card">
-      <a href="/vara-tjanster/hyra-ljud/" class="svc2-card-inner">
-        <div class="svc2-img-wrap">
-          <img src="/images/tjanster/plugg_ljud.webp" alt="Hyra ljud Stockholm" width="600" height="338" loading="lazy" />
-        </div>
-        <div class="svc2-body">
-          <h3 class="svc2-title">Hyra ljud</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">{fmt(ljudFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(ljudFran*1.25))} kr</strong> <span>/dygn</span></p>
-          <p class="svc2-desc">Portabelt, event, musik & live. PA-system för alla skalor.</p>
-          <span class="svc2-cta">Se alla ljudpaket →</span>
-        </div>
-      </a>
-      <nav class="svc2-subnav" aria-label="Ljud-kategorier">
-        <a href="/vara-tjanster/hyra-ljud/portable/">Portable</a>
-        <a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/">Kolumn</a>
-        <a href="/vara-tjanster/hyra-ljud/event/">Event</a>
-        <a href="/vara-tjanster/hyra-ljud/music/">Musik</a>
-        <a href="/vara-tjanster/hyra-ljud/live/">Live</a>
-      </nav>
-    </div>
-
-    <!-- Bild hub + sub-nav -->
-    <div class="svc2-card">
-      <a href="/vara-tjanster/hyra-bild/" class="svc2-card-inner">
-        <div class="svc2-img-wrap">
-          <img src="/images/tjanster/plugg_bild.webp" alt="Hyra bild Stockholm — projektor, skärm & LED-vägg" width="600" height="338" loading="lazy" />
-        </div>
-        <div class="svc2-body">
-          <h3 class="svc2-title">Hyra bild</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">{fmt(bildFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(bildFran*1.25))} kr</strong> <span>/dygn</span></p>
-          <p class="svc2-desc">Projektor, storbildsskärm & LED-vägg. Klarar dagsljus.</p>
-          <span class="svc2-cta">Se alla bildpaket →</span>
-        </div>
-      </a>
-      <nav class="svc2-subnav" aria-label="Bild-kategorier">
-        <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/">Projektor &amp; skärm</a>
-        <a href="/vara-tjanster/hyra-bild-led-vagg/">LED-vägg</a>
-        <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/#projektorduk">Projektorduk</a>
-      </nav>
-    </div>
-
-    <!-- LED-vägg (NYTT) -->
-    <a href="/vara-tjanster/hyra-bild-led-vagg/" class="svc2-card svc2-card-led">
-      <div class="svc2-img-wrap">
-        <img src="/images/tjanster/plugg_led-vagg.webp" alt="Hyr LED-vägg Stockholm — bygg din egen storbildsskärm" width="600" height="338" loading="lazy" />
-        <span class="svc2-badge">Nytt</span>
-      </div>
-      <div class="svc2-body">
-        <h3 class="svc2-title">LED-vägg</h3>
-      <!-- LED-vägg: per-kabinett-pris definieras i led-vägg-konfiguratorn, ej generisk katalog -->
-        <p class="svc2-price">från <strong class="sk-price-excl">275 kr</strong><strong class="sk-price-incl hidden">344 kr</strong> <span>/kabinett/dygn</span></p>
-        <p class="svc2-desc">Bygg din egen LED-vägg. Indoor & outdoor. Konfigurator på sidan.</p>
-        <span class="svc2-cta">Bygg din LED-vägg →</span>
-      </div>
+<!-- ── FAKTARAD ── -->
+<section class="st-wrap st-fakta-wrap" aria-label="Fakta om oss">
+  <div class="st-fakta">
+    <a class="st-fakta-ruta" href={googleUrl} target="_blank" rel="noopener">
+      <span class="st-fakta-n">{betyg.ratingStr}</span>
+      <span class="st-fakta-t"><span class="st-stjarnor" aria-hidden="true">★★★★★</span><br><u>{betyg.count} omdömen på Google ↗</u></span>
     </a>
-
-    <!-- Ljus hub + sub-nav -->
-    <div class="svc2-card">
-      <a href="/vara-tjanster/hyra-ljus/" class="svc2-card-inner">
-        <div class="svc2-img-wrap">
-          <img src="/images/tjanster/plugg_ljus.webp" alt="Hyra ljus Stockholm" width="600" height="338" loading="lazy" />
-        </div>
-        <div class="svc2-body">
-          <h3 class="svc2-title">Hyra ljus</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">{fmt(ljusFran)} kr</strong><strong class="sk-price-incl hidden">{fmt(Math.round(ljusFran*1.25))} kr</strong> <span>/dygn</span></p>
-          <p class="svc2-desc">Festbelysning till scenlighting med moving heads och DMX.</p>
-          <span class="svc2-cta">Se alla ljuspaket →</span>
-        </div>
-      </a>
-      <nav class="svc2-subnav" aria-label="Ljus-kategorier">
-        <a href="/vara-tjanster/hyra-ljus/fardiga-paket/">Paket</a>
-        <a href="/vara-tjanster/hyra-ljus/ljuseffekter/">Effekter</a>
-        <a href="/vara-tjanster/hyra-ljus/rok-pyro/">Rök & pyro</a>
-        <a href="/vara-tjanster/hyra-ljus/stativ-tross/">Stativ</a>
-      </nav>
+    <a class="st-fakta-ruta" href="/om-oss/#historia">
+      <span class="st-fakta-n">{arIBranschen} år</span>
+      <span class="st-fakta-t">I branschen sedan {grundat}<br><u>Läs vår historia →</u></span>
+    </a>
+    <div class="st-fakta-ruta">
+      <span class="st-fakta-n">100+</span>
+      <span class="st-fakta-t">event per år,<br>20–2&nbsp;000 gäster</span>
     </div>
-
-    <!-- DJ hub + sub-nav -->
-    <div class="svc2-card">
-      <a href="/vara-tjanster/hyra-dj/" class="svc2-card-inner">
-        <div class="svc2-img-wrap">
-          <img src="/images/tjanster/plugg_dj.webp" alt="Hyra DJ Stockholm" width="600" height="338" loading="lazy" />
-        </div>
-        <div class="svc2-body">
-          <h3 class="svc2-title">Hyra DJ</h3>
-          <p class="svc2-price">från <strong class="sk-price-excl">{djFranExcl.toLocaleString('sv')} kr</strong><strong class="sk-price-incl hidden">{djFranInkl.toLocaleString('sv')} kr</strong> <span>/kväll</span></p>
-          <p class="svc2-desc">Boka professionell DJ eller hyr utrustning. Alla genrer.</p>
-          <span class="svc2-cta">Se DJ-tjänsten →</span>
-        </div>
-      </a>
-      <nav class="svc2-subnav" aria-label="DJ-kategorier">
-        <a href="/vara-tjanster/hyra-dj/">Boka DJ</a>
-        <a href="/vara-tjanster/hyra-dj-utrustning/">DJ-utrustning</a>
-      </nav>
-    </div>
-
+    <a class="st-fakta-ruta" href="/referenser/">
+      <span class="st-fakta-n">100+</span>
+      <span class="st-fakta-t">referenskunder: företag,<br>kommuner och ambassader</span>
+    </a>
   </div>
+</section>
 
-  <!-- Bred CTA-banner: Komplett event -->
-  <div class="svc2-cta-banner">
-    <div class="svc2-cta-inner">
-      <div class="svc2-cta-text">
-        <span class="svc2-cta-emoji">🎪</span>
-        <div>
-          <h3 class="svc2-cta-title">Komplett event — scen + ljud + ljus + bild + teknik</h3>
-          <p class="svc2-cta-desc">Vi projekterar hela lösningen på en offert. Ingen scen är för liten eller för stor.</p>
+<!-- ── KATEGORIER ── -->
+<section id="tjanster" class="st-wrap st-sektion">
+  <div class="st-rubrikrad">
+    <h2 class="st-h2">Vad ska ni hyra?</h2>
+    <p class="st-ingress">Från-priserna räknas ur vår katalog och gäller per dygn <span class="sk-price-excl">exkl.</span><span class="sk-price-incl hidden">inkl.</span> moms.</p>
+  </div>
+  <div class="st-kort-grid">
+    {KORT.map((k: any) => (
+      <article class="st-kort">
+        <img src={k.bild.src} srcset={k.srcset} sizes="(max-width: 720px) 50vw, (max-width: 1100px) 33vw, 300px" alt={k.bild.alt} loading="lazy" decoding="async" style={`object-position:${k.bild.pos}`} />
+        <div class="st-kort-ton" aria-hidden="true"></div>
+        <div class="st-kort-text">
+          <span class:list={['st-tag', { 'st-dold': !k.tag }]}>{k.tag ?? ''}</span>
+          <h3 class="st-kort-namn"><a href={k.href} class="st-kort-lank">{k.namn}</a></h3>
+          <p class="st-kort-desc">{k.desc}</p>
+          <span class="st-kort-pris">från <b><span class="sk-price-excl">{fmt(k.fran)} kr</span><span class="sk-price-incl hidden">{fmt(inkl(k.fran))} kr</span></b> /dygn</span>
+          <nav class="st-chips" aria-label={`${k.namn} — undersidor`}>
+            {k.chips.map(([t, h]: [string, string]) => <a href={h}>{t}</a>)}
+          </nav>
         </div>
+      </article>
+    ))}
+  </div>
+  <p class="st-snabbval-rubrik">Snabbval</p>
+  <nav class="st-snabbval" aria-label="Snabbval">
+    {SNABBVAL.map(([t, h]) => <a href={h}>{t}</a>)}
+  </nav>
+</section>
+
+<!-- ── TOPPLISTA ── -->
+{topplista.length > 0 && (
+<section id="topplista" class="st-band">
+  <div class="st-wrap st-topp">
+    <div class="st-topp-sida">
+      <p class="st-eyebrow">Topplista</p>
+      <h2 class="st-h2">Våra mest bokade paket</h2>
+      <p class="st-ingress">Det kunderna oftast hyr för varje typ av event. Lägg i varukorgen direkt, eller öppna produkten och läs mer.</p>
+      <div class="st-flikar" role="tablist" aria-label="Kategori" aria-orientation="vertical">
+        {topplista.map((f, i) => (
+          <button type="button" role="tab" id={`tab-${f.nyckel}`} aria-controls={`panel-${f.nyckel}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} class="st-flik">
+            <span>{f.etikett}</span><span aria-hidden="true">›</span>
+          </button>
+        ))}
       </div>
-      <a href="/bokningssida/" class="svc2-cta-btn">Begär offert</a>
     </div>
-  </div>
-
-  <!-- Bred CTA-banner: Karaoke -->
-  <div class="svc2-cta-banner svc2-cta-banner--karaoke">
-    <div class="svc2-cta-inner">
-      <div class="svc2-cta-text">
-        <span class="svc2-cta-emoji">🎤</span>
-        <div>
-          <h3 class="svc2-cta-title">Bygg din egen karaoke <span class="svc2-cta-badge">Nytt</span></h3>
-          <p class="svc2-cta-desc">Välj högtalare, mikrofoner, skärm eller projektor, ljus och rök — och se uppställningen växa fram. Singa-app med 80 000+ låtar — från <span data-exkl={_kbFran}>{_kbFran.toLocaleString('sv-SE')}</span> kr/dygn.</p>
+    <div class="st-topp-lista">
+      {topplista.map((f, i) => (
+        <div class="st-panel" role="tabpanel" id={`panel-${f.nyckel}`} aria-labelledby={`tab-${f.nyckel}`} hidden={i !== 0}>
+          <ol>
+            {f.rader.map((r: any, j: number) => (
+              <li class="st-rad">
+                <span class="st-rang">{String(j + 1).padStart(2, '0')}</span>
+                <span class="st-tummar">
+                  {r.produkter.map((p: any) => p.image && <img src={p.image} alt="" width="128" height="107" loading="lazy" decoding="async" />)}
+                </span>
+                <span class="st-rad-text">
+                  <span class="st-tillfalle">{r.tillfalle}</span>
+                  {r.lank ? <a href={r.lank} class="st-rad-namn">{r.namn}</a> : <span class="st-rad-namn">{r.namn}</span>}
+                </span>
+                <span class="st-rad-pris"><b><span class="sk-price-excl">{fmt(r.pris)} kr</span><span class="sk-price-incl hidden">{fmt(inkl(r.pris))} kr</span></b><span>/dygn <span class="sk-price-excl">exkl.</span><span class="sk-price-incl hidden">inkl.</span> moms</span></span>
+                {r.produkter.length === 1 ? (
+                  <CartButton id={r.produkter[0].artno} name={r.produkter[0].name} price={r.produkter[0].price} priceNote={r.produkter[0].priceNote ?? '/dygn'} category={r.produkter[0]._kat} image={r.produkter[0].image ?? ''} bulky={r.produkter[0].bulky ?? false} monteringMin={r.produkter[0].monteringMin} size="sm" iconOnly={true} />
+                ) : (
+                  <button type="button" class="st-par-knapp" aria-label={`Lägg båda i varukorgen: ${r.namn}`} title="Lägg båda i varukorgen"
+                    data-par={JSON.stringify(r.produkter.map((p: any) => ({ id: p.artno, name: p.name, price: p.price, priceNote: p.priceNote ?? '/dygn', category: p._kat, image: p.image ?? '', artno: '', bulky: !!p.bulky, monteringMin: p.monteringMin ?? null })))}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+          <a href={f.sida} class="st-panel-fot">Fler alternativ på sidan för {f.etikett.toLowerCase()} →</a>
         </div>
-      </div>
-      <a href="/vara-tjanster/hyra-karaoke/#bygg" class="svc2-cta-btn">Bygg din karaoke</a>
+      ))}
     </div>
   </div>
+</section>
+)}
 
+<!-- ── REFERENSER ── -->
+<section id="event" class="st-sektion">
+  {referenser.length > 0 && (
+    <>
+      <div class="st-wrap st-rubrikrad">
+        <h2 class="st-h2">Från våra event</h2>
+        <a href="/referenser/" class="st-textlank">Fler uppdrag →</a>
+      </div>
+      <div class="st-ref-grid">
+        {referenser.map((r: any) => (
+          <a href="/referenser/" class="st-ref">
+            <img src={r.src} alt={r.alt} loading="lazy" decoding="async" width="800" height="600" style={r.pos ? `object-position:${r.pos}` : undefined} />
+            <span class="st-ref-text">
+              {r.tag && <span class="st-tag">{r.tag}</span>}
+              <span class="st-ref-namn">{r.label}</span>
+              <span class="st-ref-desc">{r.descr}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+      <p class="st-wrap st-svep" aria-hidden="true">Svep för fler →</p>
+    </>
+  )}
+  <div class="st-wrap">
+    <div class="st-logor">
+      <span class="st-logor-rubrik">De har hyrt av oss</span>
+      <div class="st-logor-rad">
+        {KUNDLOGOTYPER.map((l) => (
+          <span><img src={l.src} alt={l.name} width={l.w} height={l.h} loading="lazy" decoding="async" class:list={{ 'is-hog': l.tall }} /></span>
+        ))}
+      </div>
+      <a href="/referenser/" class="st-textlank">Alla referenskunder →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── OMDÖMEN ── -->
+{omdomen.length > 0 && (
+<section id="omdomen" class="st-omd-band">
+  <div class="st-wrap st-omd">
+    <div class="st-omd-sida">
+      <h2 class="st-h2">Vad kunderna säger</h2>
+      <div class="st-omd-betyg"><span>{betyg.ratingStr}</span><span class="st-stjarnor" aria-hidden="true">★★★★★</span></div>
+      <p>Snitt av {betyg.count} omdömen på Google</p>
+      <a href={googleUrl} target="_blank" rel="noopener" class="st-btn st-btn-g st-btn-liten">Läs alla på Google ↗</a>
+      <ul class="st-usp">
+        <li>Personlig rådgivning</li>
+        <li>Jour vid pågående uthyrning</li>
+        <li>Generösa avbokningsregler</li>
+      </ul>
+    </div>
+    <div class="st-omd-spel" data-vaxla="omdomen">
+      <div class="st-omd-scen" aria-live="polite">
+        <span class="st-citattecken" aria-hidden="true">“</span>
+        {omdomen.map((r, i) => (
+          <figure class:list={['st-omd-kort', { 'is-aktiv': i === 0, 'is-lang': r.text.length > 170 }]} aria-hidden={i === 0 ? undefined : 'true'}>
+            <span class="st-stjarnor" aria-label={`${r.rating} av 5 stjärnor`}>★★★★★</span>
+            <blockquote>{r.text}</blockquote>
+            <figcaption><b>{r.author}</b> · {_manad(r.publishTime)} · Google</figcaption>
+          </figure>
+        ))}
+      </div>
+      <div class="st-omd-kontroll">
+        <span class="st-prickar" role="group" aria-label="Välj omdöme">
+          {omdomen.map((r, i) => (
+            <button type="button" class:list={['st-prick', 'st-prick-bred', { 'is-aktiv': i === 0 }]} data-index={i} aria-label={`Omdöme från ${r.author}`} aria-pressed={i === 0 ? 'true' : 'false'}><span></span></button>
+          ))}
+        </span>
+        <span class="st-pilar">
+          <button type="button" class="st-pil" data-steg="-1" aria-label="Föregående omdöme">←</button>
+          <button type="button" class="st-pil st-pil-p" data-steg="1" aria-label="Nästa omdöme">→</button>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+)}
+
+<!-- ── SÅ FUNKAR DET ── -->
+<section class="st-wrap st-sektion st-sa">
+  <div class="st-sa-steg">
+    <h2 class="st-h2">Så funkar det</h2>
+    <ol>
+      <li><span>01</span><h3>Välj eller beskriv</h3><p>Vet ni vad ni vill ha? Lägg det i varukorgen. Osäkra? Berätta om datum, plats och antal gäster så föreslår vi.</p></li>
+      <li><span>02</span><h3>Få en offert</h3><p>Kostnadsfri och inte bindande. Frakt och montering står på egna rader — ni godkänner först när allt stämmer.</p></li>
+      <li><span>03</span><h3>Hämta eller få levererat</h3><p>Hämta själv i Vällingby, även {helg()}. Eller låt oss leverera och montera — det offereras separat.</p></li>
+      <li><span>04</span><h3>Jour under hyresperioden</h3><p>Krånglar något på kvällen eller helgen når ni oss på jourtelefonen.</p></li>
+    </ol>
+  </div>
+  <div class="st-sa-film">
+    <div class="st-film-ram">
+      <YouTubeKlick id="hmIlyWm69nI" title="Så enkelt är det att hyra hos oss" poster="/images/event/kundevent_lakarforbundet-640w.webp" />
+    </div>
+    <p class="st-film-not">Fler guider i <a href="/svens-kunskapsskola/">Svens Kunskapsskola</a>.</p>
+  </div>
+</section>
+
+<!-- ── SLUTRUTA ── -->
+<section id="kontakt" class="st-wrap st-cta-wrap">
+  <div class="st-cta">
+    <div>
+      <h2>Berätta om ert event — vi föreslår en lösning.</h2>
+      <p>Kostnadsfritt och inte bindande. Telefon {telefon()} — eller fråga <b>Sven</b>, vår digitala intendent, när som helst.</p>
+    </div>
+    <div class="st-cta-knappar">
+      <a href="/varukorg/" class="st-btn st-btn-mork">Begär offert</a>
+      <button type="button" class="st-btn st-btn-kant" data-sven-oppna>Fråga Sven</button>
+      <a class="st-btn st-btn-kant" data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" aria-label="Ring oss"><noscript>072-448 10 00</noscript></a>
+    </div>
+  </div>
 </section>
 
 <style>
-/* ── TJÄNSTER BILDKORT ── */
-.svc2-section {
-  background: #0c0a24;
-  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 5vw, 5rem) clamp(3rem, 7vw, 6rem);
-}
-.svc2-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(0.5rem, 2vw, 1.5rem);
-  justify-content: space-between;
-  align-items: flex-end;
-  max-width: 1280px;
-  margin: 0 auto clamp(1.25rem, 3vw, 2.5rem);
-}
-.svc2-head .lead {
-  max-width: 420px;
-  flex: 1 1 320px;
-}
+  /* ── Grund ── */
+  .st-wrap { max-width: 1240px; margin: 0 auto; padding-left: clamp(1rem, 3vw, 2rem); padding-right: clamp(1rem, 3vw, 2rem); }
+  .st-sektion { padding-top: clamp(3rem, 7vw, 6rem); padding-bottom: clamp(1rem, 3vw, 2rem); }
+  .st-eyebrow { margin: 0 0 0.9rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #c4b5f4; }
+  .st-h2 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.05; color: #fff; }
+  .st-ingress { margin: 0; max-width: 420px; font-size: 1.05rem; color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .st-rubrikrad { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .st-textlank { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.95rem; color: #c4b5f4; text-decoration: none; white-space: nowrap; }
+  .st-textlank:hover { color: #e2dcfb; }
+  .st-btn { display: inline-flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1rem; padding: 0.95rem 1.6rem; border-radius: 999px; text-decoration: none; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; border: 1px solid transparent; }
+  .st-btn-p { background: #c4b5f4; color: #0c0a24; }
+  .st-btn-p:hover { background: #e2dcfb; }
+  .st-btn-g { border-color: rgba(255,255,255,0.28); color: rgba(255,255,255,0.9); font-weight: 600; background: transparent; }
+  .st-btn-g:hover { border-color: #c4b5f4; color: #fff; }
+  .st-btn-liten { font-size: 0.95rem; padding: 0.75rem 1.25rem; margin-top: 1.5rem; }
+  .st-tag { justify-self: start; align-self: start; font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.5rem; border-radius: 6px; background: #c4b5f4; color: #0c0a24; }
+  .st-dold { visibility: hidden; }
+  .st-stjarnor { color: #c4b5f4; letter-spacing: 2px; }
 
-/* Grid: flex → 5 kolumner desktop → 3 tablet → 2 small → 1 mobil */
-/* justify-content:center centreerar orphan-rader automatiskt */
-.svc2-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
-  max-width: 1280px;
-  margin: 0 auto;
-  justify-content: center;
-}
+  /* ── Hero ── */
+  .st-hero { background: #0c0a24; }
+  .st-hero-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: center; padding-bottom: 2.5rem; }
+  .st-h1 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(2.4rem, 5.6vw, 4.75rem); line-height: 1.02; color: #fff; letter-spacing: -0.01em; }
+  .st-h1 em { color: #c4b5f4; }
+  .st-lead { margin: 1.5rem 0 0; font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.55; max-width: 560px; color: rgba(255,255,255,0.72); }
+  .st-knappar { display: flex; gap: 0.85rem; margin-top: 2rem; flex-wrap: wrap; }
+  .st-prischips { list-style: none; margin: 1.75rem 0 0; padding: 0; display: flex; gap: 0.6rem; flex-wrap: wrap; font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; }
+  .st-prischips li { padding: 0.45rem 0.75rem; border-radius: 8px; background: #1e1850; color: rgba(255,255,255,0.8); }
+  .st-prischips b { color: #c4b5f4; }
+  .st-prischips .st-moms { background: transparent; color: rgba(255,255,255,0.55); }
+  .st-hero-fig { margin: 0; position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 5; background: #1e1850; }
+  .st-slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.2s ease; }
+  .st-slide.is-aktiv { opacity: 1; }
+  .st-hero-cap { position: absolute; left: 1rem; right: 1rem; bottom: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.35rem 0.5rem 0.35rem 1rem; border-radius: 14px; background: rgba(12,10,36,0.82); }
+  .st-hero-text-cap { color: #fff; font-weight: 600; font-size: 0.95rem; }
+  .st-prickar { display: flex; }
+  .st-prick { width: 28px; height: 40px; padding: 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .st-prick span { display: block; width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.35); transition: width 0.3s, background 0.3s; }
+  .st-prick.is-aktiv span { background: #c4b5f4; }
+  .st-prick-bred.is-aktiv span { width: 24px; }
+  .st-prick:focus-visible { outline: 2px solid #c4b5f4; outline-offset: -4px; border-radius: 8px; }
 
-/* Kort */
-.svc2-card {
-  display: flex;
-  flex-direction: column;
-  background: #1e1850;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: clamp(12px, 2vw, 20px);
-  overflow: hidden;
-  text-decoration: none;
-  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-  /* Flex sizing: 3 per rad desktop (3+3 layout) */
-  flex: 0 0 calc(33.333% - 1rem);
-  min-width: 220px;
-}
-@media (max-width: 1200px) { .svc2-card { flex: 0 0 calc(33.333% - 1rem); } }
-@media (max-width: 720px)  { .svc2-card { flex: 0 0 calc(50% - 0.625rem); } }
-@media (max-width: 420px)  { .svc2-card { flex: 0 0 100%; } }
-.svc2-card:hover {
-  border-color: rgba(196,181,244,0.5);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(196,181,244,0.08);
-}
-/* "Nytt"-badge */
-.svc2-img-wrap {
-  position: relative;
-}
-.svc2-badge {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: #c4b5f4;
-  color: #0c0a24;
-  padding: 0.25rem 0.7rem;
-  border-radius: 99px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  box-shadow: 0 4px 12px rgba(196, 181, 244, 0.3);
-  z-index: 2;
-}
+  /* ── Faktarad ── */
+  .st-fakta-wrap { padding-bottom: 1rem; }
+  .st-fakta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .st-fakta-ruta { background: #0c0a24; padding: 1.35rem 1.5rem; display: flex; align-items: center; gap: 0.9rem; color: rgba(255,255,255,0.72); text-decoration: none; font-size: 0.875rem; line-height: 1.35; }
+  a.st-fakta-ruta:hover { background: #14113a; }
+  .st-fakta-n { font-family: 'DM Serif Display', serif; font-size: 2.5rem; color: #fff; line-height: 1; white-space: nowrap; }
+  .st-fakta-t u { text-decoration-color: rgba(196,181,244,0.5); text-underline-offset: 3px; }
 
-/* Hub-kort: klickbar inner-länk + sub-nav */
-.svc2-card-inner {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  text-decoration: none;
-  color: inherit;
-}
-.svc2-subnav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  padding: 0.6rem 0.85rem 0.75rem;
-  border-top: 1px solid rgba(255,255,255,0.07);
-}
-.svc2-subnav a {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: rgba(196,181,244,0.65);
-  background: rgba(196,181,244,0.08);
-  border: 1px solid rgba(196,181,244,0.15);
-  border-radius: 99px;
-  padding: 0.2rem 0.55rem;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-.svc2-subnav a:hover {
-  background: rgba(196,181,244,0.18);
-  color: #c4b5f4;
-  border-color: rgba(196,181,244,0.4);
-}
+  /* ── Kategorikort ── */
+  .st-kort-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  .st-kort { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 4 / 5; background: #1e1850; }
+  .st-kort > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .st-kort:hover > img { transform: scale(1.04); }
+  .st-kort-ton { position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,10,36,0.97) 0%, rgba(12,10,36,0.85) 45%, rgba(12,10,36,0) 78%); }
+  .st-kort-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 1.25rem 1.1rem; display: grid; grid-template-rows: 24px 34px 42px 24px 88px; row-gap: 8px; }
+  .st-kort-namn { margin: 0; align-self: end; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.75rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-kort-lank { color: #fff; text-decoration: none; }
+  .st-kort-lank::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+  .st-kort-lank:focus-visible { outline: none; }
+  .st-kort:has(.st-kort-lank:focus-visible) { outline: 2px solid #c4b5f4; outline-offset: 2px; }
+  .st-kort-desc { margin: 0; font-size: 0.875rem; line-height: 1.5; color: rgba(255,255,255,0.82); overflow: hidden; }
+  .st-kort-pris { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.72); white-space: nowrap; }
+  .st-kort-pris b { color: #c4b5f4; font-size: 1.05rem; }
+  .st-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; overflow: hidden; position: relative; z-index: 2; }
+  .st-chips a, .st-snabbval a { font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 999px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: #fff; white-space: nowrap; text-decoration: none; transition: background 0.15s, border-color 0.15s; }
+  .st-chips a:hover, .st-snabbval a:hover { background: rgba(196,181,244,0.22); border-color: #c4b5f4; }
+  .st-snabbval-rubrik, .st-snabbval { display: none; }
 
-/* Bild */
-.svc2-img-wrap {
-  width: 100%;
-  aspect-ratio: 16/9;
-  background: #0c0a24;
-  overflow: hidden;
-}
-.svc2-img-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-  display: block;
-}
-.svc2-card:hover .svc2-img-wrap img {
-  transform: scale(1.05);
-}
+  /* ── Topplista ── */
+  .st-band { background: #110f30; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); margin-top: clamp(3rem, 6vw, 5rem); }
+  .st-topp { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start; padding-top: clamp(3rem, 6vw, 5.5rem); padding-bottom: clamp(3rem, 6vw, 5.5rem); }
+  .st-topp-sida .st-ingress { margin: 1.1rem 0 1.6rem; font-size: 1rem; }
+  .st-flikar { display: flex; flex-direction: column; gap: 6px; }
+  .st-flik { display: flex; justify-content: space-between; align-items: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem; padding: 0.75rem 1rem; min-height: 48px; border-radius: 12px; cursor: pointer; text-align: left; background: transparent; color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.12); transition: background 0.15s, color 0.15s; }
+  .st-flik:hover { border-color: rgba(196,181,244,0.5); }
+  .st-flik[aria-selected='true'] { background: #c4b5f4; color: #0c0a24; border-color: #c4b5f4; }
+  .st-topp-lista { border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); background: #0c0a24; overflow: hidden; }
+  .st-panel ol { list-style: none; margin: 0; padding: 0; }
+  .st-rad { display: grid; grid-template-columns: 40px auto minmax(0, 1fr) auto 44px; align-items: center; gap: 1.1rem; padding: 1.1rem 1.4rem; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.15s; }
+  .st-rad:hover { background: rgba(196,181,244,0.06); }
+  .st-rang { font-family: 'DM Serif Display', serif; font-size: 1.75rem; color: #c4b5f4; }
+  .st-tummar { display: flex; gap: 6px; }
+  .st-tummar img { width: 52px; height: 60px; border-radius: 10px; background: #1e1850; object-fit: contain; }
+  .st-tillfalle { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .st-rad-namn { display: block; margin-top: 0.25rem; font-weight: 700; font-size: 1.05rem; line-height: 1.35; color: #fff; text-decoration: none; }
+  a.st-rad-namn:hover { color: #c4b5f4; }
+  .st-rad-pris { font-family: 'Space Grotesk', sans-serif; text-align: right; white-space: nowrap; }
+  .st-rad-pris b { color: #c4b5f4; font-size: 1.25rem; }
+  .st-rad-pris > span { display: block; color: rgba(255,255,255,0.55); font-size: 0.75rem; }
+  .st-rad :global(.sk-cart-btn), .st-par-knapp { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 999px; }
+  .st-par-knapp { display: inline-flex; align-items: center; border: 0; background: #c4b5f4; color: #0c0a24; cursor: pointer; transition: background 0.15s; }
+  .st-par-knapp:hover { background: #e2dcfb; }
+  .st-par-knapp.is-tillagd { background: #7c3aed; color: #fff; }
+  .st-panel-fot { display: block; padding: 1rem 1.4rem; background: rgba(196,181,244,0.05); font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.875rem; color: #c4b5f4; text-decoration: none; }
+  .st-panel-fot:hover { color: #e2dcfb; }
 
-/* Kortinnehåll */
-.svc2-body {
-  padding: clamp(0.85rem, 2vw, 1.25rem);
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-.svc2-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(0.85rem, 1.5vw, 1rem);
-  font-weight: 700;
-  color: white;
-  margin: 0 0 0.3rem;
-  transition: color 0.2s;
-}
-.svc2-card:hover .svc2-title { color: #c4b5f4; }
+  /* ── Referenser och logotyper ── */
+  .st-ref-grid { max-width: 1240px; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; }
+  .st-ref { display: block; position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 4 / 3; background: #1e1850; text-decoration: none; }
+  .st-ref img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s; }
+  .st-ref:hover img { transform: scale(1.04); }
+  .st-ref-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 3rem 1.25rem 1.1rem; background: linear-gradient(to top, rgba(12,10,36,0.95), rgba(12,10,36,0)); display: flex; flex-direction: column; align-items: flex-start; }
+  .st-ref-namn { margin-top: 0.6rem; font-weight: 700; font-size: 1.15rem; color: #fff; }
+  .st-ref-desc { margin-top: 0.15rem; font-size: 0.92rem; color: rgba(255,255,255,0.72); }
+  .st-svep { display: none; }
+  .st-logor { margin-top: clamp(2rem, 4vw, 3rem); display: flex; align-items: center; gap: 1.75rem; padding: 1.6rem 1.9rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
+  .st-logor-rubrik { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .st-logor-rad { flex: 1 1 560px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 1.1rem; align-items: center; }
+  .st-logor-rad span { height: 52px; display: flex; align-items: center; justify-content: center; }
+  .st-logor-rad img { max-height: 30px; max-width: 100%; width: auto; height: auto; object-fit: contain; opacity: 0.9; }
+  .st-logor-rad img.is-hog { max-height: 48px; }
 
-.svc2-price {
-  font-size: clamp(0.8rem, 1.3vw, 0.9rem);
-  color: #c4b5f4;
-  margin: 0 0 0.5rem;
-}
-.svc2-price strong { font-weight: 800; }
-.svc2-price span {
-  color: rgba(255,255,255,0.60);
-  font-size: 0.75em;
-  font-weight: 400;
-}
+  /* ── Omdömen ── */
+  .st-omd-band { background: #1e1850; margin-top: clamp(3rem, 6vw, 5rem); }
+  .st-omd { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: center; padding-top: clamp(3rem, 6vw, 5.5rem); padding-bottom: clamp(3rem, 6vw, 5.5rem); }
+  .st-omd-betyg { display: flex; align-items: baseline; gap: 0.9rem; margin-top: 1.75rem; }
+  .st-omd-betyg span:first-child { font-family: 'DM Serif Display', serif; font-size: 5.25rem; color: #fff; line-height: 1; }
+  .st-omd-betyg .st-stjarnor { font-size: 1.35rem; letter-spacing: 3px; }
+  .st-omd-sida p { margin: 0.5rem 0 0; color: rgba(255,255,255,0.72); }
+  .st-usp { list-style: none; margin: 2.25rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; color: rgba(255,255,255,0.72); }
+  .st-usp li::before { content: '✓'; color: #c4b5f4; margin-right: 0.6rem; }
+  .st-omd-scen { position: relative; min-height: 330px; border-radius: 22px; background: #0c0a24; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
+  .st-citattecken { position: absolute; top: -1.75rem; left: 1.9rem; font-family: 'DM Serif Display', serif; font-size: 13.75rem; line-height: 1; color: rgba(196,181,244,0.12); pointer-events: none; }
+  .st-omd-kort { position: absolute; inset: 0; margin: 0; padding: 3.5rem 3.5rem 2.75rem; display: flex; flex-direction: column; justify-content: center; gap: 1.35rem; opacity: 0; transform: translateY(12px); transition: opacity 0.8s ease, transform 0.8s ease; pointer-events: none; }
+  .st-omd-kort.is-aktiv { opacity: 1; transform: none; pointer-events: auto; }
+  .st-omd-kort blockquote { margin: 0; font-family: 'DM Serif Display', serif; font-size: 1.875rem; line-height: 1.3; color: #fff; }
+  .st-omd-kort.is-lang blockquote { font-size: 1.4rem; }
+  .st-omd-kort figcaption { font-family: 'Space Grotesk', sans-serif; font-size: 0.875rem; color: rgba(255,255,255,0.6); }
+  .st-omd-kort figcaption b { color: #fff; }
+  .st-omd-kontroll { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; gap: 1rem; }
+  .st-omd-kontroll .st-prickar { flex-wrap: wrap; }
+  .st-pilar { display: flex; gap: 0.6rem; }
+  .st-pil { width: 44px; height: 44px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: #fff; cursor: pointer; font-size: 1.1rem; }
+  .st-pil-p { border: 0; background: #c4b5f4; color: #0c0a24; }
+  .st-pil:hover { border-color: #c4b5f4; }
+  .st-pil-p:hover { background: #e2dcfb; }
 
-.svc2-desc {
-  font-size: clamp(0.72rem, 1.2vw, 0.8rem);
-  color: rgba(255,255,255,0.60);
-  line-height: 1.55;
-  margin: 0 0 0.75rem;
-  flex: 1;
-}
+  /* ── Så funkar det ── */
+  .st-sa { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: center; padding-bottom: clamp(3rem, 6vw, 5rem); }
+  .st-sa-steg ol { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 2rem; }
+  .st-sa-steg li > span { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #c4b5f4; }
+  .st-sa-steg h3 { margin: 0.4rem 0 0.25rem; font-size: 1.2rem; font-weight: 700; color: #fff; }
+  .st-sa-steg p { margin: 0; font-size: 1rem; line-height: 1.5; color: rgba(255,255,255,0.72); }
+  .st-film-ram { aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #1e1850; }
+  .st-film-not { margin: 0.75rem 0 0; font-size: 0.875rem; color: rgba(255,255,255,0.55); }
+  .st-film-not a { color: #c4b5f4; }
 
-.svc2-cta {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(0.7rem, 1.2vw, 0.78rem);
-  font-weight: 700;
-  color: rgba(196,181,244,0.7);
-  letter-spacing: 0.03em;
-  transition: color 0.2s;
-}
-.svc2-card:hover .svc2-cta { color: #c4b5f4; }
+  /* ── Slutruta ── */
+  .st-cta-wrap { padding-bottom: clamp(3rem, 6vw, 6rem); }
+  .st-cta { border-radius: 26px; padding: clamp(1.75rem, 4vw, 3.5rem); background: #c4b5f4; color: #0c0a24; display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+  .st-cta > div:first-child { max-width: 620px; }
+  .st-cta h2 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.9rem, 3.6vw, 2.9rem); line-height: 1.05; color: #0c0a24; }
+  .st-cta p { margin: 0.9rem 0 0; font-size: 1.1rem; color: rgba(12,10,36,0.78); }
+  .st-cta-knappar { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .st-btn-mork { background: #0c0a24; color: #fff; }
+  .st-btn-mork:hover { background: #1e1850; color: #fff; }
+  .st-btn-kant { border: 1.5px solid #0c0a24; color: #0c0a24; background: transparent; }
+  .st-btn-kant:hover { background: rgba(12,10,36,0.08); color: #0c0a24; }
 
-/* CTA-banner */
-.svc2-cta-banner {
-  max-width: 1280px;
-  margin: clamp(1rem, 2.5vw, 1.75rem) auto 0;
-  background: linear-gradient(135deg, #2a245e 0%, #1e1850 100%);
-  border: 1px solid rgba(196,181,244,0.2);
-  border-radius: clamp(12px, 2vw, 20px);
-  overflow: hidden;
-}
-.svc2-cta-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 4vw, 2.5rem);
-}
-.svc2-cta-text {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.75rem, 2vw, 1.5rem);
-  flex: 1 1 300px;
-}
-.svc2-cta-emoji {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  line-height: 1;
-  flex-shrink: 0;
-}
-.svc2-cta-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
-  font-weight: 700;
-  color: white;
-  margin: 0 0 0.25rem;
-}
-.svc2-cta-desc {
-  font-size: clamp(0.78rem, 1.5vw, 0.875rem);
-  color: rgba(255,255,255,0.5);
-  margin: 0;
-}
-.svc2-cta-btn {
-  display: inline-block;
-  background: #c4b5f4;
-  color: #0c0a24;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(0.72rem, 1.3vw, 0.82rem);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-decoration: none;
-  padding: clamp(0.7rem, 1.5vw, 0.9rem) clamp(1.25rem, 3vw, 2rem);
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background 0.2s, transform 0.15s;
-}
-.svc2-cta-btn:hover {
-  background: #e2dcfb;
-  transform: translateY(-1px);
-}
-@media (max-width: 560px) {
-  .svc2-cta-inner { flex-direction: column; align-items: flex-start; }
-  .svc2-cta-btn { width: 100%; text-align: center; }
-}
-/* Karaoke-banner — egen färg, samma struktur */
-.svc2-cta-banner--karaoke {
-  margin-top: clamp(0.75rem, 1.5vw, 1rem);
-  background: linear-gradient(135deg, #3d2a5e 0%, #2a1e50 100%);
-}
-.svc2-cta-badge {
-  display: inline-block;
-  background: #c4b5f4;
-  color: #0c0a24;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 1px 8px;
-  border-radius: 99px;
-  vertical-align: 2px;
-  margin-left: 6px;
-}
+  /* ── Surfplatta ── */
+  @media (max-width: 1100px) {
+    .st-kort-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .st-logor-rad { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    .st-hero-grid, .st-topp, .st-omd, .st-sa { grid-template-columns: minmax(0, 1fr); }
+    .st-hero-fig { aspect-ratio: 4 / 3; order: -1; }
+    .st-fakta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .st-kort-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .st-flikar { flex-direction: row; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * clamp(1rem, 3vw, 2rem)); padding: 0 clamp(1rem, 3vw, 2rem); }
+    .st-flikar::-webkit-scrollbar { display: none; }
+    .st-flik { flex: none; border-radius: 999px; min-height: 40px; padding: 0 1rem; }
+    .st-flik span:last-child { display: none; }
+  }
+
+  /* ── Mobil ── */
+  @media (max-width: 720px) {
+    .st-hero { --st-luft: 0.5rem; }
+    .st-hero-fig { border-radius: 16px; }
+    .st-hero-cap { left: 0.6rem; right: 0.6rem; bottom: 0.6rem; }
+    .st-hero-text-cap { font-size: 0.8rem; }
+    .st-prischips { display: none; }
+    .st-knappar .st-btn { flex: 1; padding: 0.85rem 0; font-size: 0.95rem; }
+    .st-fakta { background: transparent; border: 0; gap: 8px; border-radius: 0; }
+    .st-fakta-ruta { border-radius: 12px; background: #1e1850; flex-direction: column; align-items: flex-start; gap: 0.25rem; padding: 0.8rem; font-size: 0.78rem; }
+    .st-fakta-n { font-size: 1.6rem; }
+    .st-kort-grid { gap: 10px; }
+    .st-kort { border-radius: 16px; }
+    .st-kort-text { grid-template-rows: auto auto auto; row-gap: 4px; padding: 0 0.75rem 0.75rem; }
+    .st-kort-desc, .st-chips { display: none; }
+    .st-kort-namn { font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 1.05rem; }
+    .st-tag { font-size: 0.62rem; }
+    .st-dold { display: none; }
+    .st-kort-pris { font-size: 0.75rem; }
+    .st-kort-pris b { font-size: 0.9rem; }
+    .st-snabbval-rubrik { display: block; margin: 1.25rem 0 0.5rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .st-snabbval { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -1rem; padding: 0 1rem; }
+    .st-snabbval::-webkit-scrollbar { display: none; }
+    .st-snabbval a { flex: none; font-size: 0.82rem; padding: 0.6rem 0.9rem; }
+    .st-rad { grid-template-columns: 22px auto minmax(0, 1fr) 44px; gap: 0.6rem; padding: 0.9rem 0.75rem; }
+    .st-rang { font-size: 1.25rem; }
+    .st-tummar img { width: 40px; height: 48px; border-radius: 8px; }
+    .st-tillfalle { font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .st-rad-namn { font-size: 0.95rem; }
+    .st-rad-pris { grid-column: 3; grid-row: 2; text-align: left; margin-top: -0.4rem; }
+    .st-rad-pris b { font-size: 0.85rem; }
+    .st-rad-pris > span { display: inline; margin-left: 0.25rem; }
+    .st-rad > :last-child { grid-column: 4; grid-row: 1 / span 2; }
+    .st-ref-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; scrollbar-width: none; padding: 0 1rem 4px; }
+    .st-ref-grid::-webkit-scrollbar { display: none; }
+    .st-ref { flex: none; width: 280px; scroll-snap-align: start; }
+    .st-svep { display: block; margin: 0.6rem auto 0; font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; color: rgba(255,255,255,0.55); }
+    .st-logor { padding: 1rem; gap: 1rem; }
+    .st-logor-rad { flex-basis: 100%; gap: 8px; }
+    .st-logor-rad span { aspect-ratio: 1; height: auto; border: 1px solid rgba(196,181,244,0.25); border-radius: 12px; padding: 10px; }
+    .st-omd-betyg span:first-child { font-size: 3rem; }
+    .st-omd-scen { min-height: 270px; border-radius: 16px; }
+    .st-citattecken { font-size: 9rem; left: 1rem; }
+    .st-omd-kort { padding: 1.5rem 1.4rem; gap: 0.9rem; }
+    .st-omd-kort blockquote { font-size: 1.3rem; }
+    .st-omd-kort.is-lang blockquote { font-size: 1.05rem; }
+    .st-prick-bred { width: 22px; }
+    .st-pilar { display: none; }
+    .st-sa-steg ol { grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
+    .st-cta-knappar { flex-direction: column; width: 100%; }
+    .st-cta-knappar .st-btn { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .st-slide, .st-omd-kort, .st-kort > img, .st-ref img { transition: none; }
+  }
 </style>
-
-<!-- ── VIDEOR ── -->
-<section class="section video-section">
-  <div class="video-head">
-    <div>
-      <span class="overline">Se utrustningen i action</span>
-      <h2 class="display" style="margin-top:0.5rem;">
-        Utrustning som<br><em>levererar</em>
-      </h2>
-    </div>
-    <p class="lead">
-      Från det senaste inom Alto TS-serien till professionell Denon DJ-utrustning — se vår utrustning i rörelse.
-    </p>
-  </div>
-  <div class="video-layout">
-    <div class="video-main">
-      <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" class="video-wrap video-link-wrap" style="display:flex;flex:1">
-        <video class="lazy-video" muted loop playsinline aria-hidden="true" tabindex="-1" preload="none" poster="/images/video-posters/promotion.webp" data-src="/videos/Promotion_480_4.mp4"></video>
-        <div class="video-overlay"></div>
-        <div class="video-label">
-          <span class="video-tag">Ljuseffekter</span>
-          <span class="video-name">Se hela vårt breda sortiment av ljuseffekter →</span>
-          <span class="video-desc">Moving heads, PAR, laser, DMX-styrning och färdiga paket</span>
-        </div>
-      </a>
-    </div>
-    <div class="video-side-top">
-      <a href="/vara-tjanster/hyra-ljud/music/" class="video-wrap video-link-wrap">
-        <video class="lazy-video" muted loop playsinline aria-hidden="true" tabindex="-1" preload="none" poster="/images/video-posters/alto.webp" data-src="/videos/Alto_new_720p.mp4"></video>
-        <div class="video-overlay"></div>
-        <div class="video-label">
-          <span class="video-tag">Nyhet</span>
-          <span class="video-name">Alto TS-serien — hyr nu</span>
-          <span class="video-desc">Professionellt PA-ljud för musik, dans och konserter →</span>
-        </div>
-      </a>
-    </div>
-    <div class="video-side-bot">
-      <a href="/vara-tjanster/hyra-dj/" class="video-wrap video-link-wrap">
-        <video class="lazy-video" muted loop playsinline aria-hidden="true" tabindex="-1" preload="none" poster="/images/video-posters/denon.webp" data-src="/videos/Denon_commercial.mp4"></video>
-        <div class="video-overlay"></div>
-        <div class="video-label">
-          <span class="video-tag">DJ-utrustning</span>
-          <span class="video-name">Denon DJ — pro-utrustning</span>
-          <span class="video-desc">Hyr eller boka DJ med Denon-utrustning →</span>
-        </div>
-      </a>
-    </div>
-  </div>
-</section>
 
 <script>
-  /* Lazy autoplay för frontpage-videos:
-     - <video> har poster + preload="none" + data-src men ingen src vid sidladdning
-     - IntersectionObserver fyller i src när videon är ~400px från viewport
-     - Sparar ~53 MB initial nätverksnyttolast (3 videor × ~15-20 MB)
-     - User Experience: poster visas omedelbart, video startar smidigt när användaren scrollar dit */
-  (function() {
-    const videos = document.querySelectorAll('video.lazy-video');
-    if (!videos.length) return;
-    if (!('IntersectionObserver' in window)) {
-      // Fallback för urgamla browsers: ladda direkt
-      videos.forEach(v => {
-        const src = v.getAttribute('data-src');
-        if (src) { v.src = src; v.play().catch(() => {}); }
+  // Växlar bilder i heron och omdömen var sjätte sekund. Pausar när besökaren
+  // håller musen över eller har fokus i sektionen, när fliken inte syns och
+  // helt för den som valt minskade animationer.
+  const stilla = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function vaxlare(rot: HTMLElement, slides: HTMLElement[], prickar: HTMLButtonElement[], vidByte?: (i: number) => void) {
+    let nu = 0;
+    let paus = false;
+    const visa = (i: number) => {
+      nu = (i + slides.length) % slides.length;
+      slides.forEach((s, j) => {
+        s.classList.toggle('is-aktiv', j === nu);
+        if (j === nu) s.removeAttribute('aria-hidden'); else s.setAttribute('aria-hidden', 'true');
       });
-      return;
-    }
-    // play() direkt efter src-tilldelning kapas av browserns interna load() →
-    // AbortError. Vänta på loadeddata/canplay i stället, och försök igen om
-    // första play() ändå avvisas.
-    function tryPlay(v, attempts) {
-      const p = v.play();
-      if (p && p.catch) {
-        p.catch(() => {
-          if (attempts > 0) setTimeout(() => tryPlay(v, attempts - 1), 600);
-        });
-      }
-    }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const v = entry.target;
-        const src = v.getAttribute('data-src');
-        if (src && !v.getAttribute('src')) {
-          v.addEventListener('loadeddata', () => tryPlay(v, 3), { once: true });
-          v.addEventListener('error', () => {
-            console.warn('[lazy-video] kunde inte ladda', src, v.error && v.error.code);
-          }, { once: true });
-          v.setAttribute('src', src);
-          v.load();
-        }
-        io.unobserve(v);
-      });
-    }, { rootMargin: '400px 0px' });
-    videos.forEach(v => io.observe(v));
-  })();
+      prickar.forEach((p, j) => { p.classList.toggle('is-aktiv', j === nu); p.setAttribute('aria-pressed', String(j === nu)); });
+      vidByte?.(nu);
+    };
+    prickar.forEach((p, j) => p.addEventListener('click', () => visa(j)));
+    rot.addEventListener('mouseenter', () => { paus = true; });
+    rot.addEventListener('mouseleave', () => { paus = false; });
+    rot.addEventListener('focusin', () => { paus = true; });
+    rot.addEventListener('focusout', () => { paus = false; });
+    if (!stilla) setInterval(() => { if (!paus && !document.hidden) visa(nu + 1); }, 6000);
+    return { visa, nu: () => nu };
+  }
+
+  // Hero — bild 2–4 laddas först när sidan är klar, så att första bilden får bandbredden.
+  const hero = document.querySelector<HTMLElement>('[data-vaxla="hero"]');
+  if (hero) {
+    const slides = [...hero.querySelectorAll<HTMLImageElement>('.st-slide')];
+    const prickar = [...hero.querySelectorAll<HTMLButtonElement>('.st-prick')];
+    const text = hero.querySelector<HTMLElement>('.st-hero-text-cap');
+    const ladda = () => slides.forEach((im) => {
+      if (im.dataset.srcset) { im.srcset = im.dataset.srcset; delete im.dataset.srcset; }
+      if (im.dataset.src) { im.src = im.dataset.src; delete im.dataset.src; }
+    });
+    if (document.readyState === 'complete') ladda(); else window.addEventListener('load', ladda, { once: true });
+    vaxlare(hero, slides, prickar, (i) => { ladda(); if (text) text.textContent = prickar[i]?.dataset.text ?? ''; });
+  }
+
+  // Omdömen
+  const omd = document.querySelector<HTMLElement>('[data-vaxla="omdomen"]');
+  if (omd) {
+    const v = vaxlare(omd, [...omd.querySelectorAll<HTMLElement>('.st-omd-kort')], [...omd.querySelectorAll<HTMLButtonElement>('.st-prick')]);
+    omd.querySelectorAll<HTMLButtonElement>('.st-pil').forEach((b) => b.addEventListener('click', () => v.visa(v.nu() + Number(b.dataset.steg))));
+  }
+
+  // Topplistans flikar (piltangenter enligt WAI-ARIA tabs)
+  const flikar = [...document.querySelectorAll<HTMLButtonElement>('.st-flik')];
+  const valjFlik = (f: HTMLButtonElement, fokus = false) => {
+    flikar.forEach((x) => {
+      const vald = x === f;
+      x.setAttribute('aria-selected', String(vald));
+      x.tabIndex = vald ? 0 : -1;
+      const panel = document.getElementById(x.getAttribute('aria-controls') || '');
+      if (panel) panel.hidden = !vald;
+    });
+    if (fokus) f.focus();
+  };
+  flikar.forEach((f, i) => {
+    f.addEventListener('click', () => valjFlik(f));
+    f.addEventListener('keydown', (e) => {
+      const steg = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+      if (steg) { e.preventDefault(); valjFlik(flikar[(i + steg + flikar.length) % flikar.length], true); }
+    });
+  });
+
+  // Ljud & ljus-raderna: lägg båda produkterna i varukorgen
+  document.querySelectorAll<HTMLButtonElement>('.st-par-knapp').forEach((b) => {
+    b.addEventListener('click', () => {
+      const cart = (window as any).skCart;
+      if (!cart) return;
+      try { (JSON.parse(b.dataset.par || '[]') as any[]).forEach((item) => cart.add(item)); } catch { return; }
+      b.classList.add('is-tillagd');
+      setTimeout(() => b.classList.remove('is-tillagd'), 1400);
+    });
+  });
+
+  // "Fråga Sven" öppnar chatten
+  document.querySelectorAll('[data-sven-oppna]').forEach((b) => b.addEventListener('click', () => {
+    document.getElementById('sven-toggle')?.click();
+  }));
 </script>
-
-<!-- ── VARFÖR OSS ── -->
-<section class="why-section">
-  <div class="why-inner">
-    <div class="why-text">
-      <span class="overline" style="color:#c4b5f4;">Varför Scenkonsult</span>
-      <h2 class="display" style="color:white;margin-top:0.5rem;">
-        Ingen scen är<br><em>för liten — eller för stor</em>
-      </h2>
-      <p style="color:rgba(255,255,255,0.5);font-size:clamp(0.9rem,1.5vw,1rem);line-height:1.75;margin:1rem 0 2rem;max-width:440px;">
-        Sedan 1986 har vi hjälpt allt från hemma-fester för 20 till bolagsstämmor för 2 000 gäster. Ambassader, kommuner, konsertarrangörer — och dig.
-      </p>
-      <div class="why-points">
-        <div class="why-pt">
-          <div class="why-icon">✓</div>
-          <div>
-            <div class="why-pt-title">Testad utrustning — alltid</div>
-            <p class="why-pt-desc">Ingenting lämnar oss utan att ha kontrollerats och kalibrerats.</p>
-          </div>
-        </div>
-        <div class="why-pt">
-          <div class="why-icon">✓</div>
-          <div>
-            <div class="why-pt-title">Kostnadsfri rådgivning ingår</div>
-            <p class="why-pt-desc">Vi hjälper dig välja rätt utrustning och setup — utan extra kostnad.</p>
-          </div>
-        </div>
-        <div class="why-pt">
-          <div class="why-icon">✓</div>
-          <div>
-            <div class="why-pt-title">Jour vid pågående uthyrning</div>
-            <p class="why-pt-desc">Vi finns tillgängliga under ditt event ifall något oväntat inträffar.</p>
-          </div>
-        </div>
-        <div class="why-pt">
-          <div class="why-icon">✓</div>
-          <div>
-            <div class="why-pt-title">Generösa avbokningsregler</div>
-            <p class="why-pt-desc">Livet är oförutsägbart. Vi behandlar dig som vi vill bli behandlade.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="why-quote-col">
-      <div class="why-quote-card">
-        <div class="why-stars">★★★★★</div>
-        <p class="why-qt">"Riktigt professionella — gjorde min fest till en riktig succé!"</p>
-        <p class="why-qs">— Roger L · Täby</p>
-      </div>
-      <div class="why-quote-card">
-        <div class="why-stars">★★★★★</div>
-        <p class="why-qt">"Tack för superbra service, rekommenderas varmt!"</p>
-        <p class="why-qs">— Ann P · Huddinge</p>
-      </div>
-      <div class="why-scale">
-        <p style="color:rgba(255,255,255,0.60);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 1.1rem;font-family:'Space Grotesk',sans-serif;width:100%;">Vi har allt oavsett storlek på eventet</p>
-        <div class="why-scale-item"><span class="why-scale-n">20</span><span class="why-scale-l">Privat fest</span></div>
-        <div class="why-scale-div"></div>
-        <div class="why-scale-item"><span class="why-scale-n">250</span><span class="why-scale-l">Festlokal</span></div>
-        <div class="why-scale-div"></div>
-        <div class="why-scale-item"><span class="why-scale-n">600</span><span class="why-scale-l">Konsert</span></div>
-        <div class="why-scale-div"></div>
-        <div class="why-scale-item"><span class="why-scale-n">2&thinsp;000</span><span class="why-scale-l">Företagsevent</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── KUNDER (scroll-ticker) ── -->
-<div class="clients-bar">
-  <div class="clients-label">Anlitade av</div>
-  <div class="clients-scroll">
-    <div class="clients-track">
-      {/* Listan renderas två gånger så att loopen (translateX -50 %) blir sömlös. */}
-      {[...KUNDTICKER, ...KUNDTICKER
-      ].map(name => (
-        <span class="clients-name">{name}</span>
-      ))}
-    </div>
-  </div>
-</div>
-
-<!-- ── RECENSIONER ── -->
-<section class="rev2-section">
-  <div class="rev2-inner">
-    <div class="rev2-head">
-      <div>
-        <span class="overline" style="color:#c4b5f4;">Vad kunderna säger</span>
-        <h2 class="display" style="color:white;margin-top:0.5rem;">
-          <a href="/referenser/" class="rev2-headlink" style="color:inherit;text-decoration:none;">Omdömen som<br><em>värmer</em> <span class="rev2-arrow" aria-hidden="true">→</span></a>
-        </h2>
-      </div>
-      <div class="rev2-score-badge">
-        <div class="rev2-score-n">{_betyg.ratingStr}</div>
-        <div class="rev2-score-stars">★★★★★</div>
-        <div class="rev2-score-lbl">Snitt av {_betyg.count} omdömen på Google</div>
-      </div>
-    </div>
-    <div class="rev2-grid">
-      <div class="rev2-card">
-        <div class="rev2-stars">★★★★★</div>
-        <p class="rev2-text">"Hyrde ljud för en helg — var toppen. Mycket hjälpsamma och enkla att ha att göra med."</p>
-        <p class="rev2-who">Charlotta F · Stockholm</p>
-      </div>
-      <div class="rev2-card">
-        <div class="rev2-stars">★★★★★</div>
-        <p class="rev2-text">"Tack för i lördags — allt var toppen! Så bra drag på dansgolvet."</p>
-        <p class="rev2-who">Jenny L · Stockholm</p>
-      </div>
-      <div class="rev2-card">
-        <div class="rev2-stars">★★★★★</div>
-        <p class="rev2-text">"Så värt att hyra in en DJ till festen — precis som krogen på 90-talet! 😉"</p>
-        <p class="rev2-who">Jonas A · Stockholm</p>
-      </div>
-    </div>
-    <div class="rev2-cta-wrap">
-      <a href="/referenser/" class="rev2-cta-link">Se alla våra referenser och kunder <span aria-hidden="true">→</span></a>
-    </div>
-  </div>
-</section>
-
-<!-- ── PROCESS ── -->
-<section class="proc2-section">
-  <div class="proc2-inner">
-    <span class="overline" style="color:#c4b5f4;">Hur det fungerar</span>
-    <h2 class="display" style="color:white;margin-top:0.5rem;margin-bottom:clamp(2rem,4vw,3.5rem);">
-      Enkelt att boka,<br><em>inga överraskningar</em>
-    </h2>
-    <div class="proc2-grid">
-      <div class="proc2-step">
-        <div class="proc2-n">01</div>
-        <h3 class="proc2-title">Beskriv ditt event</h3>
-        <p class="proc2-desc">Kontakta oss via formulär eller telefon. Berätta om datum, plats, antal gäster och vad du behöver.</p>
-      </div>
-      <div class="proc2-connector"></div>
-      <div class="proc2-step">
-        <div class="proc2-n">02</div>
-        <h3 class="proc2-title">Vi rådger och offererar</h3>
-        <p class="proc2-desc">Inom ett par timmar får du rätt utrustning föreslagen — med ett tydligt pris där alla kostnader specificeras.</p>
-      </div>
-      <div class="proc2-connector"></div>
-      <div class="proc2-step">
-        <div class="proc2-n">03</div>
-        <h3 class="proc2-title">Leverans och montering</h3>
-        <p class="proc2-desc">Vi levererar, riggar och kalibrerar all utrustning på plats. Du behöver inte lyfta ett finger.</p>
-      </div>
-      <div class="proc2-connector"></div>
-      <div class="proc2-step">
-        <div class="proc2-n">04</div>
-        <h3 class="proc2-title">Jour under eventet</h3>
-        <p class="proc2-desc">Vi finns tillgängliga kvällstid om något krånglar. Efter eventet hämtar vi allt — du fokuserar på att ha kul.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── HUR DET FUNGERAR (video) ── -->
-<section class="howto-section">
-  <div class="howto-inner">
-    <div class="howto-text">
-      <span class="overline" style="color:#c4b5f4;">Se det i verkligheten</span>
-      <h2 class="display" style="color:white;margin-top:0.5rem;">
-        Så enkelt är det<br><em>att hyra hos oss</em>
-      </h2>
-      <p style="color:rgba(255,255,255,0.5);font-size:clamp(0.9rem,1.5vw,1rem);line-height:1.75;margin:1rem 0 2rem;max-width:420px;">
-        Från offert till leverans — vi tar hand om allt. Se vår korta guide om hur uthyrningen fungerar.
-      </p>
-      <a href="/kontakt" class="howto-cta">Kom igång →</a>
-    </div>
-    <div class="howto-video-wrap">
-      <YouTubeKlick id="hmIlyWm69nI" title="Så enkelt är det att hyra hos oss" />
-    </div>
-  </div>
-</section>
-
-<style>
-.howto-section {
-  background: #0c0a24;
-  padding: clamp(3rem,7vw,6rem) clamp(1rem,5vw,5rem);
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.howto-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: clamp(2.5rem,6vw,6rem);
-  align-items: center;
-}
-.howto-cta {
-  display: inline-block;
-  background: #c4b5f4;
-  color: #0c0a24;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
-  padding: 0.75rem 1.75rem;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-.howto-cta:hover { background: #e2dcfb; }
-.howto-video-wrap {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-  background: #000;
-}
-.howto-video-wrap {
-  aspect-ratio: 16/9;
-}
-.howto-video-wrap iframe {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-@media (max-width: 768px) {
-  .howto-inner {
-    grid-template-columns: 1fr;
-  }
-  .howto-text { order: 1; }
-  .howto-video-wrap { order: 2; }
-}
-</style>
-
-<!-- ── SVENS KUNSKAPSSKOLA ── -->
-<section class="sk-section">
-  <div class="sk-inner">
-    <div class="sk-text">
-      <span class="overline" style="color:#c4b5f4;">Ny videoserie</span>
-      <h2 class="display" style="color:white;margin-top:0.5rem;">
-        Svens<br><em>Kunskapsskola</em>
-      </h2>
-      <p style="color:rgba(255,255,255,0.5);font-size:clamp(0.9rem,1.5vw,1rem);line-height:1.75;margin:1rem 0 0.5rem;max-width:420px;">
-        Sven — vår intendent med 30 år i branschen — har spelat in korta videoguider om teknik, kontakter och hur du hyr rätt.
-      </p>
-      <p style="color:rgba(255,255,255,0.60);font-size:0.85rem;font-style:italic;margin:0 0 1.75rem;">
-        "Hade jag fått välja hade jag stått på scen. Nu förklarar jag hur den kopplas in."
-      </p>
-      <a href="/svens-kunskapsskola/" class="sk-cta">Se alla avsnitt →</a>
-    </div>
-    <div class="sk-cards">
-      {[
-        { n:"01", titel:"Så fungerar uthyrningen", tag:"Kom igång" },
-        { n:"02", titel:"Koppla in ett ljudsystem", tag:"Ljud" },
-        { n:"03", titel:"Kontakter inom ljud", tag:"Teknik" },
-        { n:"04", titel:"Kontakter inom bild", tag:"Projektor" },
-        { n:"05", titel:"LED-teknik och skärmegenskaper", tag:"LED" },
-      ].map(a => (
-        <a href="/svens-kunskapsskola/" class="sk-card">
-          <span class="sk-card-n">{a.n}</span>
-          <div>
-            <span class="sk-card-tag">{a.tag}</span>
-            <p class="sk-card-titel">{a.titel}</p>
-          </div>
-          <span class="sk-card-arrow">▶</span>
-        </a>
-      ))}
-    </div>
-  </div>
-</section>
-
-<style>
-.sk-section {
-  background: #111030;
-  padding: clamp(3rem,7vw,6rem) clamp(1rem,5vw,5rem);
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.sk-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: clamp(2.5rem,6vw,5rem);
-  align-items: center;
-}
-.sk-cta {
-  display: inline-block;
-  background: #c4b5f4;
-  color: #0c0a24;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
-  padding: 0.75rem 1.75rem;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-.sk-cta:hover { background: #e2dcfb; }
-.sk-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-.sk-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px;
-  padding: 0.9rem 1.1rem;
-  text-decoration: none;
-  transition: border-color 0.2s, background 0.2s;
-}
-.sk-card:hover {
-  border-color: rgba(196,181,244,0.35);
-  background: rgba(196,181,244,0.05);
-}
-.sk-card-n {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: rgba(196,181,244,0.5);
-  letter-spacing: 0.08em;
-  min-width: 2rem;
-}
-.sk-card-tag {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #c4b5f4;
-  background: rgba(196,181,244,0.1);
-  padding: 0.1rem 0.45rem;
-  border-radius: 4px;
-}
-.sk-card-titel {
-  color: rgba(255,255,255,0.8);
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin: 0.2rem 0 0;
-  font-family: 'Space Grotesk', sans-serif;
-}
-.sk-card-arrow {
-  color: rgba(196,181,244,0.4);
-  font-size: 0.7rem;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-@media (max-width: 768px) {
-  .sk-inner { grid-template-columns: 1fr; }
-}
-</style>
-
-<!-- ── CTA ── -->
-<section class="cta2-section">
-  <div class="cta2-deco"></div>
-  <div class="cta2-inner">
-    <div class="cta2-text">
-      <span class="cta2-overline">Kom igång idag</span>
-      <h2 class="cta2-title">Beskriv ditt behov —<br>vi presenterar lösningen</h2>
-      <p class="cta2-sub">Vi svarar i regel inom ett par timmar. Välkommen oavsett om det gäller en privat fest för 20 eller ett företagsevent för 2 000 gäster.</p>
-    </div>
-    <div class="cta2-actions">
-      <a href="/kontakt" class="cta2-btn-primary">Boka eller fråga om pris</a>
-      <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="☎ " data-label="072-448 10 00" href="#tel" class="cta2-btn-ghost" style="cursor:pointer"><noscript>☎ 072-448 10 00</noscript></a>
-    </div>
-  </div>
-</section>
-
-<style>
-/* ════════════════════════════════════
-   VARFÖR OSS
-════════════════════════════════════ */
-.why-section {
-  background: #111030;
-  padding: clamp(3rem,7vw,6rem) clamp(1rem,5vw,5rem);
-  border-top: 1px solid rgba(255,255,255,0.05);
-}
-.why-inner {
-  max-width: 1280px; margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(2.5rem,6vw,6rem);
-  align-items: start;
-}
-.why-points { display: flex; flex-direction: column; gap: 0; }
-.why-pt {
-  display: grid;
-  grid-template-columns: 1.5rem 1fr;
-  gap: 0.85rem;
-  align-items: start;
-  padding: 1.1rem 0;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.why-icon {
-  width: 20px; height: 20px;
-  background: rgba(196,181,244,0.15);
-  border-radius: 3px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.6rem; color: #c4b5f4; flex-shrink: 0; margin-top: 2px;
-}
-.why-pt-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(0.8rem,1.3vw,0.88rem);
-  font-weight: 700; color: rgba(255,255,255,0.85);
-  letter-spacing: 0.02em; margin-bottom: 0.2rem;
-}
-.why-pt-desc {
-  font-size: clamp(0.75rem,1.2vw,0.82rem);
-  color: rgba(255,255,255,0.60); line-height: 1.65;
-  margin: 0;
-}
-
-/* Quote column */
-.why-quote-col {
-  display: flex; flex-direction: column; gap: 1rem;
-}
-.why-quote-card {
-  background: #1e1850;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
-  padding: clamp(1.25rem,2.5vw,1.75rem);
-}
-.why-stars {
-  color: #c4b5f4;
-  font-size: 0.75rem; letter-spacing: 0.12em;
-  margin-bottom: 0.75rem;
-}
-.why-qt {
-  font-family: 'DM Serif Display', serif;
-  font-style: italic;
-  font-size: clamp(0.95rem,1.6vw,1.1rem);
-  color: rgba(255,255,255,0.82);
-  line-height: 1.55; margin: 0 0 0.85rem;
-}
-.why-qs {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.2em; text-transform: uppercase;
-  color: rgba(255,255,255,0.50); margin: 0;
-}
-/* Scale bar */
-.why-scale {
-  background: #1e1850;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-  display: flex; align-items: center;
-  gap: 0.5rem; flex-wrap: wrap;
-}
-.why-scale-item {
-  display: flex; align-items: baseline; gap: 0.35rem;
-  flex: 1 1 auto; justify-content: center;
-}
-.why-scale-n {
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(1rem,2vw,1.25rem);
-  color: #c4b5f4;
-}
-.why-scale-l {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.58rem; font-weight: 700;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: rgba(255,255,255,0.60);
-}
-.why-scale-div { width: 1px; height: 24px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
-
-@media (max-width: 820px) { .why-inner { grid-template-columns: 1fr; } }
-
-/* ════════════════════════════════════
-   KUNDER TICKER
-════════════════════════════════════ */
-.clients-bar {
-  background: #0a0820;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding: 0.6rem 0;
-  display: flex; align-items: center; overflow: hidden;
-}
-.clients-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.58rem; font-weight: 700;
-  letter-spacing: 0.2em; text-transform: uppercase;
-  color: rgba(255,255,255,0.50);
-  padding: 0 1.5rem; flex-shrink: 0;
-  border-right: 1px solid rgba(255,255,255,0.08);
-  white-space: nowrap;
-}
-.clients-scroll { overflow: hidden; flex: 1; }
-.clients-track {
-  display: flex; white-space: nowrap;
-  animation: clientsRun 45s linear infinite;
-}
-.clients-track:hover { animation-play-state: paused; }
-@keyframes clientsRun { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.clients-name {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.75rem; font-weight: 600;
-  color: rgba(255,255,255,0.50);
-  letter-spacing: 0.06em;
-  padding: 0.4rem 1.4rem;
-  border-right: 1px solid rgba(255,255,255,0.07);
-  white-space: nowrap;
-  transition: color 0.2s;
-}
-.clients-name:hover { color: rgba(255,255,255,0.6); }
-
-/* ════════════════════════════════════
-   RECENSIONER
-════════════════════════════════════ */
-.rev2-section {
-  background: #0c0a24;
-  padding: clamp(3rem,7vw,6rem) clamp(1rem,5vw,5rem);
-  border-top: 1px solid rgba(255,255,255,0.05);
-}
-.rev2-inner { max-width: 1280px; margin: 0 auto; }
-.rev2-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: clamp(1.75rem,4vw,3rem);
-}
-.rev2-score-badge {
-  background: #1e1850;
-  border: 1px solid rgba(196,181,244,0.2);
-  border-radius: 14px;
-  padding: 1.1rem 1.75rem;
-  text-align: center;
-  flex-shrink: 0;
-}
-.rev2-score-n {
-  font-family: 'DM Serif Display', serif;
-  font-size: 2.8rem; color: white; line-height: 1;
-}
-.rev2-score-stars { color: #c4b5f4; font-size: 0.9rem; letter-spacing: 0.1em; margin: 0.25rem 0; }
-.rev2-score-lbl {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.58rem; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase;
-  color: rgba(255,255,255,0.60);
-}
-.rev2-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(0.75rem,1.5vw,1.25rem);
-}
-@media (max-width: 820px) { .rev2-grid { grid-template-columns: 1fr; } }
-@media (min-width: 821px) and (max-width: 1000px) { .rev2-grid { grid-template-columns: 1fr 1fr; } }
-.rev2-card {
-  background: #1e1850;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
-  padding: clamp(1.25rem,2.5vw,1.75rem);
-  transition: border-color 0.2s, transform 0.2s;
-}
-.rev2-card:hover {
-  border-color: rgba(196,181,244,0.3);
-  transform: translateY(-2px);
-}
-.rev2-stars {
-  color: #c4b5f4; font-size: 0.75rem;
-  letter-spacing: 0.1em; margin-bottom: 1rem;
-}
-.rev2-text {
-  font-family: 'DM Serif Display', serif;
-  font-style: italic;
-  font-size: clamp(0.95rem,1.5vw,1.05rem);
-  color: rgba(255,255,255,0.8);
-  line-height: 1.6; margin: 0 0 1rem;
-}
-.rev2-who {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.2em; text-transform: uppercase;
-  color: rgba(255,255,255,0.50); margin: 0;
-}
-.rev2-headlink {
-  display: inline;
-  transition: color 0.2s ease;
-}
-.rev2-headlink:hover { color: #c4b5f4 !important; }
-.rev2-headlink:hover .rev2-arrow { transform: translateX(4px); color: #c4b5f4; }
-.rev2-arrow {
-  display: inline-block;
-  font-family: 'Space Grotesk', sans-serif;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 0.55em;
-  vertical-align: middle;
-  margin-left: 0.4em;
-  color: #c4b5f4;
-  transition: transform 0.2s ease;
-}
-.rev2-cta-wrap {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: clamp(2rem, 4vw, 3rem);
-}
-.rev2-cta-link {
-  display: inline-block;
-  background: #c4b5f4;
-  color: #0c0a24;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
-  padding: 0.75rem 1.75rem;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-.rev2-cta-link:hover { background: #e2dcfb; }
-
-/* ════════════════════════════════════
-   PROCESS
-════════════════════════════════════ */
-.proc2-section {
-  background: #111030;
-  padding: clamp(3rem,7vw,6rem) clamp(1rem,5vw,5rem);
-  border-top: 1px solid rgba(255,255,255,0.05);
-}
-.proc2-inner { max-width: 1280px; margin: 0 auto; }
-.proc2-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-  align-items: start;
-  gap: 0;
-}
-.proc2-connector {
-  width: clamp(1.5rem,3vw,3rem);
-  height: 1px;
-  background: rgba(196,181,244,0.2);
-  margin-top: 1.15rem;
-  align-self: start;
-}
-.proc2-step {
-  background: #1e1850;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
-  padding: clamp(1.25rem,2.5vw,1.75rem);
-  position: relative;
-}
-.proc2-n {
-  font-family: 'DM Serif Display', serif;
-  font-size: 2.2rem; color: rgba(196,181,244,0.18);
-  line-height: 1; margin-bottom: 1rem;
-}
-.proc2-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(0.78rem,1.3vw,0.88rem); font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.07em;
-  color: white; margin-bottom: 0.65rem;
-}
-.proc2-desc {
-  font-size: clamp(0.78rem,1.2vw,0.85rem);
-  color: rgba(255,255,255,0.60); line-height: 1.7; margin: 0;
-}
-@media (max-width: 820px) {
-  .proc2-grid {
-    grid-template-columns: 1fr;
-  }
-  .proc2-connector {
-    width: 1px; height: 1.5rem;
-    margin: 0 0 0 1.25rem;
-    background: rgba(196,181,244,0.2);
-  }
-}
-
-/* ════════════════════════════════════
-   CTA SEKTION
-════════════════════════════════════ */
-.cta2-section {
-  background: linear-gradient(135deg, #1e1850 0%, #2a1c60 50%, #1e1850 100%);
-  position: relative; overflow: hidden;
-  padding: clamp(3.5rem,8vw,7rem) clamp(1rem,5vw,5rem);
-  border-top: 1px solid rgba(196,181,244,0.15);
-}
-.cta2-deco {
-  position: absolute;
-  right: -5%;  top: 50%; transform: translateY(-50%);
-  width: min(500px, 60vw); aspect-ratio: 1;
-  border-radius: 50%;
-  background-image: radial-gradient(circle, rgba(196,181,244,0.07) 2px, transparent 2px);
-  background-size: 24px 24px;
-  pointer-events: none;
-  animation: rotateSlow 80s linear infinite;
-}
-.cta2-inner {
-  position: relative; z-index: 2;
-  max-width: 1280px; margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(2rem,5vw,4rem);
-  align-items: center;
-  justify-content: space-between;
-}
-.cta2-text { flex: 1 1 360px; }
-.cta2-overline {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.24em; text-transform: uppercase;
-  color: rgba(196,181,244,0.6);
-  display: block; margin-bottom: 1rem;
-}
-.cta2-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(1.8rem,4vw,3rem);
-  color: white; line-height: 1.15; margin-bottom: 1rem;
-}
-.cta2-title em { font-style: italic; color: rgba(255,255,255,0.60); }
-.cta2-sub {
-  font-size: clamp(0.85rem,1.4vw,0.95rem);
-  color: rgba(255,255,255,0.60);
-  line-height: 1.75; max-width: 460px; margin: 0;
-}
-.cta2-actions {
-  display: flex; flex-direction: column;
-  gap: 0.85rem; flex-shrink: 0;
-}
-.cta2-btn-primary {
-  display: inline-block;
-  background: #c4b5f4; color: #0c0a24;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.75rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  text-decoration: none;
-  padding: 1rem 2.25rem;
-  border-radius: 4px;
-  white-space: nowrap;
-  text-align: center;
-  transition: background 0.15s, transform 0.15s;
-}
-.cta2-btn-primary:hover { background: #e2dcfb; transform: translateY(-1px); }
-.cta2-btn-ghost {
-  display: inline-block;
-  border: 1px solid rgba(255,255,255,0.2);
-  color: rgba(255,255,255,0.55);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  text-decoration: none;
-  padding: 0.9rem 2.25rem;
-  border-radius: 4px;
-  white-space: nowrap;
-  text-align: center;
-  transition: border-color 0.15s, color 0.15s;
-}
-.cta2-btn-ghost:hover { border-color: rgba(255,255,255,0.5); color: white; }
-@media (max-width: 600px) {
-  .cta2-actions { flex-direction: column; width: 100%; }
-  .cta2-btn-primary, .cta2-btn-ghost { width: 100%; text-align: center; }
-}
-</style>
 
 </Layout>
