@@ -1,21 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import CategoryHero from '../components/CategoryHero.astro';
+import ModernHero from '../components/ModernHero.astro';
+import ProduktRader from '../components/event/ProduktRader.astro';
+import EventFaq from '../components/event/EventFaq.astro';
+import KundRad from '../components/event/KundRad.astro';
+import SlutRuta from '../components/event/SlutRuta.astro';
+import { bildmatt, bildSrcset } from '../utils/bildmatt';
 import orter from '../data/orter.json';
 import _fraktData from '../data/tjanster.json';
 
 // Lägsta enkelresepris ur tjanster.json — aldrig hårdkodat, fraktpriserna
 // ändras i adminpanelen och en literal siffra blir tyst fel för kunden.
 const _fraktFran = (_fraktData as any).leverans?.standard?.enkelresa;
-import ProductCard from '../components/ProductCard.astro';
-import DynamicPaketCard from '../components/DynamicPaketCard.astro';
-import MediaCard from '../components/MediaCard.astro';
 import ljudData from '../data/ljud.json';
 import scenData from '../data/scenes.json';
-import { getFeaturedClients, getClientsByOrt } from '../utils/clients';
+import { getClientsByOrt } from '../utils/clients';
 import { telefon, helg } from '../utils/hours';
 
-const kunder = getFeaturedClients();
 
 export async function getStaticPaths() {
   return orter.map((ort) => ({
@@ -96,253 +97,169 @@ const pageSchema = {
     }
   ]
 };
+
+// ── Design 2026 ─────────────────────────────────────────────────────────────
+const heroMatt = bildmatt(ort.image);
+const heroBild = { src: ort.image, alt: ort.imageAlt, w: heroMatt?.w, h: heroMatt?.h };
+const V = '/vara-tjanster';
+const KORT = [
+  { namn: 'Scen & podium', text: 'Från podium till konsertscen', href: `${V}/hyra-scen/`, src: '/images/event/kundevent_tele2_scenpodie.webp', alt: 'Scenpodie med ridå och storbild hos Tele2', pos: '50% 60%' },
+  { namn: 'Ljud & PA', text: 'Anpassat efter lokalen', href: `${V}/hyra-ljud/`, src: '/images/event/festival_hard_rock_rising_2.webp', alt: 'Rockband på scenen under Hard Rock Rising', pos: '50% 50%' },
+  { namn: 'Ljus & effekter', text: 'Stämning och dansgolv', href: `${V}/hyra-ljus/`, src: '/images/event/installation_german_beerhall_1.webp', alt: 'Blått ljus och LED-ramper i taket på German Beer Hall', pos: '50% 35%' },
+  { namn: 'DJ', text: 'Utrustning eller en av våra DJ:s', href: `${V}/hyra-dj/`, src: '/images/event/kundevent_djursholms_slott.webp', alt: 'DJ på galakväll på Djursholms Slott', pos: '50% 50%' },
+].map((k) => ({ ...k, srcset: bildSrcset(k.src), matt: bildmatt(k.src) }));
+const scenMedium = (scenData.products as any[]).find((p) => p.artno === 'SK-SCN-0004');
+const scenLarge = (scenData.products as any[]).find((p) => p.artno === 'SK-SCN-0008');
+const eventSmall = (ljudData.event.products as any[]).find((p) => p.artno === 'SK-LJD-EVE-0001');
+const POPULART = [
+  { produkt: scenMedium, kategori: 'Scen', not: 'Välj höjd och yta i scenkonfiguratorn' },
+  { produkt: scenLarge, kategori: 'Scen', not: 'För liveband — välj i scenkonfiguratorn' },
+  { produkt: eventSmall, kategori: 'Ljud', not: eventSmall?.persons ? `${String(eventSmall.persons).replace('pers.', 'gäster')} · tal och musik` : 'Tal och musik' },
+];
+const VARFOR = [
+  { t: `Ca ${ort.distansMin} min`, d: `från lagret i Vällingby till ${ort.namn} — ca ${ort.distans}.` },
+  { t: 'Kända märken', d: 'Alto, Allen & Heath, LD Systems, Shure och Denon för ljud · ADJ, Cameo, Stairville och Global Truss för ljus · Samsung, BenQ och Epson för bild.' },
+  { t: 'Fri rådgivning', d: 'Vi hjälper er välja rätt för lokalen och antalet gäster.' },
+  { t: 'Hämta själv', d: 'Hämtning i Vällingby kostar ingenting.' },
+  { t: 'Öppettider', d: `Telefon ${telefon({ kort: false })}. Hämtning och återlämning även ${helg({ kort: false })}. Kvällar och helger: telefon endast jour vid pågående uthyrning.` },
+  { t: 'Tekniker', d: 'Vill ni ha hjälp på plats bokar ni en av våra tekniker.', href: `${V}/hyra-ljudtekniker/` },
+];
 ---
 
 <Layout
   title={`Hyra Scen, Ljud & Ljus i ${ort.namn} | Scenkonsult Norden`}
   description={`Hyr scen, PA-system, ljusutrustning och DJ-utrustning i ${ort.namn} — leverans från Vällingby på ca ${ort.distansMin} min. Eventutrustning sedan 1986. Ring 072-448 10 00.`}
   schemaExtra={pageSchema}
+  mobilBar={true}
 >
-
-  <CategoryHero
-    h1={`Hyra scen & ljud`}
+  <ModernHero
+    eyebrow={`Eventutrustning · ${ort.namn}`}
+    h1="Hyra scen & ljud i"
     h1Accent={ort.namn}
     intro={`Vi levererar professionell eventutrustning till ${ort.namn} och hela Storstockholm. Scen, PA-system, ljus och DJ-utrustning — hyrt av hundratals kunder sedan 1986. Från Vällingby till ${ort.namn} på ca ${ort.distansMin} minuter.`}
-    breadcrumbs={[
-      { label: "Hem", href: "/" },
-      { label: ort.namn }
-    ]}
-    badges={[
-      `Leverans till ${ort.namn} på ca ${ort.distansMin} min`,
-      "Scen, ljud, ljus & DJ",
-      "Hämtning i Vällingby kostnadsfritt",
-      `Öppet ${telefon()}, jour vid uthyrning`
+    breadcrumbs={[{ label: 'Hem', href: '/' }, { label: ort.namn }]}
+    bild={heroBild}
+    knappar={[{ label: 'Se vad vi hyr ut', href: '#utbud' }, { label: 'Begär offert', href: '/varukorg/' }]}
+    chips={[
+      { html: `Ca <b style="color:#c4b5f4">${ort.distansMin} min</b> från lagret i Vällingby` },
+      'Hämtning i Vällingby kostnadsfritt',
+      `Telefon ${telefon()}`,
     ]}
   />
 
-  <!-- Intro & beskrivning av orten -->
-  <section style="background:#111030; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px; margin:0 auto;">
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Eventutrustning i {ort.namn}</p>
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:white; margin:0 0 1.25rem; max-width:700px;">Professionell scen- och ljudutrustning — levererat till {ort.namn}</h2>
-      <p style="color:rgba(255,255,255,0.65); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.8; max-width:700px; margin:0 0 1.5rem;">
-        {ort.areaDesc}
-      </p>
-      <p style="color:rgba(255,255,255,0.65); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.8; max-width:700px; margin:0 0 3rem;">
-        Vi hyr ut scener, PA-system, ljusutrustning och DJ-utrustning till privatpersoner, företag och föreningar i {ort.namn}. Allt hyrs per dygn med möjlighet till leverans direkt till er eventplats.
-      </p>
-
-      <!-- Tjänster grid -->
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.25rem;">
-        {[
-          {
-            icon: "🎭",
-            title: "Scen & podium",
-            desc: `Modulscener i olika storlekar för event i ${ort.namn}. Från kompakt podium till fullskalig konsertscen.`,
-            link: "/vara-tjanster/hyra-scen/",
-            cta: "Se scener"
-          },
-          {
-            icon: "🔊",
-            title: "PA-system / Ljud",
-            desc: `Aktiva PA-system dimensionerade för er lokal i ${ort.namn}. Trådlösa mikrofoner, mixerbord och mer.`,
-            link: "/vara-tjanster/hyra-ljud/",
-            cta: "Hyra ljud i Stockholm"
-          },
-          {
-            icon: "💡",
-            title: "Ljusutrustning",
-            desc: `Stämningsljus, moving heads, uplights och lasrar. Sätter rätt stämning på ert event i ${ort.namn}.`,
-            link: "/vara-tjanster/hyra-ljus/",
-            cta: "Hyra ljus i Stockholm"
-          },
-          {
-            icon: "🎧",
-            title: "DJ-utrustning",
-            desc: `Kompletta DJ-set med mixerbord, CDJ:s och monitorhögtalare — eller hyr en av våra DJ:s.`,
-            link: "/vara-tjanster/hyra-dj/",
-            cta: "Se DJ-utrustning"
-          }
-        ].map(tj => (
-          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; gap:0.75rem;">
-            <span style="font-size:2rem;">{tj.icon}</span>
-            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; font-weight:700; color:white; margin:0;">{tj.title}</h3>
-            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; line-height:1.6; margin:0; flex:1;">{tj.desc}</p>
-            <a href={tj.link} style="display:inline-flex; align-items:center; gap:0.4rem; color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.85rem; font-weight:600; text-decoration:none;">
-              {tj.cta} →
-            </a>
-          </div>
-        ))}
+  <section id="utbud" class="ort-wrap">
+    <div class="ort-huvud">
+      <div>
+        <p class="sk-eyebrow">Det här levererar vi till {ort.namn}</p>
+        <h2 class="sk-h2">Allt till ert event på ett ställe</h2>
       </div>
+      <a href="/vara-tjanster/" class="sk-knapp">Alla tjänster</a>
+    </div>
+    <div class="ort-kort">
+      {KORT.map((k) => (
+        <a href={k.href} class="ort-k">
+          <img src={k.src} srcset={k.srcset} sizes="(max-width: 720px) 50vw, 300px" alt={k.alt} width={k.matt?.w} height={k.matt?.h} loading="lazy" decoding="async" style={`object-position:${k.pos}`} />
+          <span class="ort-k-ton"></span>
+          <span class="ort-k-text"><b>{k.namn}</b><span>{k.text} →</span></span>
+        </a>
+      ))}
     </div>
   </section>
 
-  <!-- Lokala eventlokaler (unikt per ort, renderas endast om data finns) -->
-  {ort.localVenues && ort.localVenues.length > 0 && (
-    <section style="background:#0c0a24; padding: clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem);">
-      <div style="max-width:1100px; margin:0 auto;">
-        <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Eventlokaler i {ort.namn}</p>
-        <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 1.25rem; max-width:700px;">Vi levererar till event på platser som dessa</h2>
-        {ort.venuesIntro && (
-          <p style="color:rgba(255,255,255,0.65); font-size:clamp(0.95rem,2vw,1.1rem); line-height:1.8; max-width:700px; margin:0 0 1.75rem;">{ort.venuesIntro}</p>
-        )}
-        <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
-          {ort.localVenues.map(v => (
-            <span style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:0.5rem 1.15rem; font-family:'Space Grotesk',sans-serif; font-size:0.9rem; color:rgba(255,255,255,0.78);">
-              {v}
-            </span>
-          ))}
-        </div>
+  <section class="sk-band">
+    <div class="ort-wrap ort-om">
+      <div>
+        <p class="sk-eyebrow">Eventutrustning i {ort.namn}</p>
+        <h2 class="sk-h2">Professionell scen- och ljudutrustning — levererat till {ort.namn}</h2>
+        <p>{ort.areaDesc}</p>
+        <p>Vi hyr ut scener, PA-system, ljusutrustning och DJ-utrustning till privatpersoner, företag och föreningar i {ort.namn}. Allt hyrs per dygn med möjlighet till leverans direkt till er eventplats.</p>
       </div>
+      {ort.localVenues && ort.localVenues.length > 0 && (
+        <aside class="ort-lokaler">
+          <p class="ort-liten">Eventlokaler i {ort.namn}</p>
+          <h3>Vi levererar till event på platser som dessa</h3>
+          {ort.venuesIntro && <p>{ort.venuesIntro}</p>}
+          <ul>{ort.localVenues.map((v: string) => <li>{v}</li>)}</ul>
+        </aside>
+      )}
+    </div>
+  </section>
+
+  <ProduktRader
+    eyebrow={`Populäraste uthyrningar i ${ort.namn}`}
+    rubrik="Hyr till ditt event"
+    lead="Priser per dygn exkl. moms. Leverans och montering tillkommer och räknas fram i varukorgen."
+    rader={POPULART}
+    lankar={[{ label: 'Se alla scener', href: '/vara-tjanster/hyra-scen/' }, { label: 'Hyra ljud i Stockholm', href: '/vara-tjanster/hyra-ljud/' }, { label: 'Hyra ljus i Stockholm', href: '/vara-tjanster/hyra-ljus/' }]}
+  />
+
+  <section class="ort-wrap">
+    <p class="sk-eyebrow">Varför Scenkonsult i {ort.namn}?</p>
+    <h2 class="sk-h2">Snabb leverans, hög kvalitet — sedan 1986</h2>
+    <div class="ort-fakta">
+      {VARFOR.map((f) => (
+        <div>
+          <b>{f.t}</b>
+          <span>{f.d}{f.href && <> <a href={f.href}>Hyra ljudtekniker →</a></>}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {lokalaKunder.length > 0 && (
+    <section class="ort-wrap ort-lokala">
+      <p class="sk-eyebrow">Kunder vi levererat till i {ort.namn}</p>
+      <div>{lokalaKunder.map((k) => <span>{k}</span>)}</div>
     </section>
   )}
+  <KundRad rubrik="Utvalda kunder vi levererat till i Storstockholm" />
 
-  <!-- POPULÄRASTE PRODUKTER -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-    <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#c4b5f4">Populäraste uthyrningar i {ort.namn}</p>
-    <h2 class="sk-h2s mb-8">Hyr till ditt event</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-      {scenData.products.filter(p => ['medium','large'].includes(p.id)).map(p => (
-        <DynamicPaketCard paket={p} />
-      ))}
-      {ljudData.event.products.filter(p => p.id === 'event-small').map(p => (
-        <ProductCard
-          id={p.id}
-          artno={p.artno}
-          name={p.name}
-          price={p.price}
-          priceNote="/dygn"
-          image={p.image}
-          alt={p.alt}
-          description={p.description}
-          specs={p.specs ?? []}
-          category="Ljud"
-          persons={p.persons}
-          bulky={p.bulky}
-          forceLeverans={p.forceLeverans}
-          manualUrl={p.manualUrl}
-        />
-      ))}
+  <EventFaq rubrik={`Frågor om hyra i ${ort.namn}`} faq={faq} />
+
+  <section class="ort-wrap ort-grannar">
+    <div>
+      <p class="sk-eyebrow">Vi levererar i hela Storstockholm</p>
+      <h2 class="sk-h2s">Hyra scen, ljud &amp; ljus även i närområdet</h2>
     </div>
-    <div class="flex flex-wrap gap-4">
-      <a href="/vara-tjanster/hyra-scen/" class="bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors">Se alla scener →</a>
-      <a href="/vara-tjanster/hyra-ljud/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">Hyra ljud i Stockholm →</a>
-      <a href="/vara-tjanster/hyra-ljus/" class="border border-white/20 text-gray-300 hover:border-brand-orange hover:text-brand-orange px-5 py-3 rounded-xl text-sm font-semibold transition-all">Hyra ljus i Stockholm →</a>
+    <div class="ort-grannlista">
+      {grannorter.map((g) => <a href={`/hyra-ljud-scen-${g.slug}/`} class="sk-knapp">{g.namn} →</a>)}
     </div>
   </section>
 
-  <!-- Eventbild + USP -->
-  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;">
-      <div>
-        <img
-          src={ort.image}
-          alt={ort.imageAlt}
-          width="800"
-          height="600"
-          style="width:100%; border-radius:16px; object-fit:cover; aspect-ratio:4/3;"
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-      <div>
-        <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Varför Scenkonsult i {ort.namn}?</p>
-        <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.6rem,3.5vw,2.4rem); color:white; margin:0 0 1.5rem;">Snabb leverans, hög kvalitet — sedan 1986</h2>
-        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:1rem;">
-          {[
-            `Lager i Vällingby — ca ${ort.distans} och ${ort.distansMin} min till ${ort.namn}`,
-            "Utrustning från ledande märken: Alto, Allen & Heath, LD Systems, Shure, Denon (ljud) · ADJ, Cameo, Stairville, Global Truss (ljus) · Samsung, BenQ, Epson (bild)",
-            "Fri rådgivning — vi hjälper dig välja rätt setup för din lokal",
-            `Telefon ${telefon({ kort: false })} · hämtning och återlämning även ${helg({ kort: false })} · helger och kvällar: telefon endast jour vid pågående uthyrning`,
-            "Hämtning i Vällingby alltid kostnadsfritt",
-            "Tekniker tillgänglig om ni vill ha hjälp på plats (600 kr/tim)"
-          ].map(item => (
-            <li style="display:flex; gap:0.75rem; align-items:flex-start; color:rgba(255,255,255,0.7); font-size:0.95rem; line-height:1.5;">
-              <span style="color:#a3e635; flex-shrink:0; margin-top:2px;">✓</span>
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- Referenskunder -->
-  <section style="background:#111030; padding: clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:1100px; margin:0 auto; text-align:center;">
-      {lokalaKunder.length > 0 && (
-        <div style="margin-bottom:2.5rem;">
-          <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Kunder vi levererat till i {ort.namn}</p>
-          <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
-            {lokalaKunder.map(k => (
-              <span style="background:rgba(196,181,244,0.1); border:1px solid rgba(196,181,244,0.3); border-radius:999px; padding:0.45rem 1.1rem; font-family:'Space Grotesk',sans-serif; font-size:0.85rem; color:rgba(255,255,255,0.85);">
-                {k}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-      <p style="color:rgba(255,255,255,0.60); font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Utvalda kunder vi levererat till i Storstockholm</p>
-      <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
-        {kunder.map(k => (
-          <span style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:0.4rem 1rem; font-family:'Space Grotesk',sans-serif; font-size:0.82rem; color:rgba(255,255,255,0.6);">
-            {k}
-          </span>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section style="background:#0c0a24; padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem);">
-    <div style="max-width:800px; margin:0 auto;">
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem; text-align:center;">Vanliga frågor</p>
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.6rem); color:white; text-align:center; margin:0 0 2.5rem;">Frågor om hyra i {ort.namn}</h2>
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        {faq.map((f, i) => (
-          <details style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.25rem 1.5rem;">
-            <summary style="font-family:'Space Grotesk',sans-serif; font-weight:600; color:white; font-size:1rem; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:1rem;">
-              {f.q}
-              <span style="color:#c4b5f4; flex-shrink:0; font-size:1.2rem;">+</span>
-            </summary>
-            <p style="color:rgba(255,255,255,0.65); font-size:0.95rem; line-height:1.75; margin:1rem 0 0;">{f.a}</p>
-          </details>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- Korslänkning till grannorter (internt länknät — fixar föräldralösa sidor) -->
-  <section style="background:#111030; padding: clamp(2.5rem,5vw,4rem) clamp(1rem,5vw,5rem); border-top:1px solid rgba(255,255,255,0.06);">
-    <div style="max-width:1100px; margin:0 auto;">
-      <p style="color:#c4b5f4; font-family:'Space Grotesk',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.75rem;">Vi levererar i hela Storstockholm</p>
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.5rem,3vw,2.1rem); color:white; margin:0 0 1.5rem;">Hyra scen, ljud & ljus även i närområdet</h2>
-      <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
-        {grannorter.map(g => (
-          <a href={`/hyra-ljud-scen-${g.slug}/`} style="background:rgba(196,181,244,0.08); border:1px solid rgba(196,181,244,0.3); border-radius:999px; padding:0.5rem 1.15rem; font-family:'Space Grotesk',sans-serif; font-size:0.9rem; color:rgba(196,181,244,0.95); text-decoration:none;" title={`Hyra scen, ljud & ljus i ${g.namn}`}>
-            {g.namn} →
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section style="background:linear-gradient(135deg,#1e1850 0%,#0c0a24 100%); padding: clamp(3rem,6vw,5rem) clamp(1rem,5vw,5rem); border-top:1px solid rgba(196,181,244,0.15);">
-    <div style="max-width:700px; margin:0 auto; text-align:center;">
-      <h2 style="font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,4vw,2.8rem); color:white; margin:0 0 1rem;">Boka utrustning till {ort.namn}</h2>
-      <p style="color:rgba(255,255,255,0.65); font-size:1rem; line-height:1.7; margin:0 0 2.5rem;">
-        Lägg produkterna i varukorgen och begär offert — vi svarar inom en arbetsdag. Eller ring oss direkt på 072-448 10 00 ({telefon()}).
-      </p>
-      <div style="display:flex; flex-wrap:wrap; gap:1rem; justify-content:center;">
-        <a href="/vara-tjanster/" style="background:#c4b5f4; color:#0c0a24; font-family:'Space Grotesk',sans-serif; font-weight:700; padding:0.9rem 2rem; border-radius:10px; text-decoration:none; font-size:1rem;">
-          Bläddra bland produkter →
-        </a>
-        <a href="/varukorg/" style="background:transparent; color:#c4b5f4; border:1px solid rgba(196,181,244,0.4); font-family:'Space Grotesk',sans-serif; font-weight:600; padding:0.9rem 2rem; border-radius:10px; text-decoration:none; font-size:1rem;">
-          Till varukorgen
-        </a>
-      </div>
-    </div>
-  </section>
-
+  <SlutRuta rubrik={`Boka utrustning till ${ort.namn}`} text={`Lägg produkterna i varukorgen och begär offert — kostnadsfritt och inte bindande.`} />
 </Layout>
+
+<style>
+  .ort-wrap { max-width: 80rem; margin: 0 auto; padding: clamp(2.5rem, 5vw, 4.5rem) clamp(1rem, 3vw, 2rem); }
+  .ort-huvud { display: flex; justify-content: space-between; align-items: end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+  .ort-kort { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  .ort-k { position: relative; display: block; border-radius: 20px; overflow: hidden; aspect-ratio: 4 / 5; background: #1e1850; }
+  .ort-k img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .ort-k:hover img { transform: scale(1.04); }
+  .ort-k-ton { position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,10,36,0.95) 0%, rgba(12,10,36,0.6) 40%, rgba(12,10,36,0) 70%); }
+  .ort-k-text { position: absolute; left: 1.25rem; right: 1.25rem; bottom: 1.1rem; color: #fff; }
+  .ort-k-text b { display: block; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.4rem, 2.2vw, 1.75rem); line-height: 1.05; }
+  .ort-k-text span { font-size: 0.9rem; color: rgba(255,255,255,0.78); }
+  .ort-om { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+  .ort-om > div > p { margin: 1.1rem 0 0; font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.72); }
+  .ort-lokaler { border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); padding: 1.6rem; }
+  .ort-liten { margin: 0 0 0.4rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .ort-lokaler h3 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.5rem; line-height: 1.15; color: #fff; }
+  .ort-lokaler p:not(.ort-liten) { margin: 0.6rem 0 0; font-size: 0.95rem; line-height: 1.55; color: rgba(255,255,255,0.65); }
+  .ort-lokaler ul { list-style: none; margin: 1rem 0 0; padding: 0; }
+  .ort-lokaler li { padding: 0.65rem 0; border-top: 1px solid rgba(255,255,255,0.08); color: #fff; }
+  .ort-fakta { margin-top: 1.75rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .ort-fakta > div { background: #0c0a24; padding: 1.5rem; }
+  .ort-fakta b { display: block; margin-bottom: 0.35rem; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.5rem; color: #fff; }
+  .ort-fakta span { font-size: 0.95rem; line-height: 1.55; color: rgba(255,255,255,0.7); }
+  .ort-fakta a { color: #c4b5f4; text-decoration: none; white-space: nowrap; }
+  .ort-lokala { padding-bottom: 0; }
+  .ort-lokala > div { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem; }
+  .ort-lokala span { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; padding: 0.55rem 1rem; border-radius: 999px; border: 1px solid rgba(196,181,244,0.35); color: #fff; }
+  .ort-grannar { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.08); }
+  .ort-grannar h2 { margin: 0; }
+  .ort-grannlista { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .ort-grannlista .sk-knapp { font-size: 0.9rem; padding: 0.6rem 1.05rem; }
+  @media (max-width: 1000px) { .ort-kort { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ort-om { grid-template-columns: minmax(0, 1fr); } .ort-fakta { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .ort-fakta { grid-template-columns: minmax(0, 1fr); } }
+</style>
