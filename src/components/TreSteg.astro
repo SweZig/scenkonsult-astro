@@ -1,0 +1,39 @@
+---
+/**
+ * TreSteg — "Hur väljer ni rätt …?" på hubbarna (design 2026): rubrik och
+ * knappar till vänster, numrerade steg till höger. Knapparna läggs i sloten.
+ */
+interface Props {
+  rubrik: string;
+  lead?: string;
+  steg: Array<{ rubrik: string; text: string }>;
+}
+const { rubrik, lead, steg } = Astro.props;
+---
+<section class="sk-band">
+  <div class="ts-wrap">
+    <div class="ts-sida">
+      <p class="sk-eyebrow">Guide</p>
+      <h2 class="sk-h2">{rubrik}</h2>
+      {lead && <p class="ts-lead">{lead}</p>}
+      <div class="ts-knappar"><slot /></div>
+    </div>
+    <ol class="ts-steg">
+      {steg.map((s, i) => (
+        <li><span>{String(i + 1).padStart(2, '0')}</span><h3>{s.rubrik}</h3><p>{s.text}</p></li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .ts-wrap { max-width: 80rem; margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start; }
+  .ts-lead { margin: 1rem 0 0; color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .ts-knappar { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .ts-knappar:empty { display: none; }
+  .ts-steg { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; }
+  .ts-steg span { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #c4b5f4; }
+  .ts-steg h3 { margin: 0.4rem 0 0.35rem; font-size: 1.2rem; font-weight: 700; color: #fff; }
+  .ts-steg p { margin: 0; font-size: 1rem; line-height: 1.55; color: rgba(255,255,255,0.72); }
+  @media (max-width: 900px) { .ts-wrap { grid-template-columns: minmax(0, 1fr); } .ts-steg { grid-template-columns: minmax(0, 1fr); gap: 1.1rem; } }
+</style>

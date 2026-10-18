@@ -112,7 +112,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <!-- LINE ARRAY -->
   {(_ljudData.live.lineArray?.length ?? 0) > 0 && (
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Line Array</h2>
+    <h2 class="sk-h2s mb-2">Line Array</h2>
     <p class="text-gray-400 mb-8 text-sm">Professionella RCF line array-system för stora konserter, festivaler och arena-event. Kräver lyfttorn eller rigg — pris offereras enligt konfiguration och montering.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {_ljudData.live.lineArray.map((p: any) => (
@@ -161,7 +161,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
         </span>
       </div>
       <div>
-        <h2 class="text-2xl font-bold text-white mb-3">Sven visar dig hur du kopplar in ljudpaketet</h2>
+        <h2 class="sk-h2s mb-3">Sven visar dig hur du kopplar in ljudpaketet</h2>
         <p class="text-gray-400 mb-5" style="color:rgba(255,255,255,0.72)">Sven går steg för steg igenom hur du kopplar in Live- och Music-paketet, vad de olika kontakterna och reglagen gör och hur du undviker de vanligaste misstagen. Inga förkunskaper krävs.</p>
         <a href="/svens-kunskapsskola/" class="inline-flex items-center gap-2 text-brand-orange font-semibold text-sm" style="color:#c4b5f4;text-decoration:none;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c4b5f4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -173,7 +173,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- MIXERBORD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
+    <h2 class="sk-h2s mb-2">Mixerbord</h2>
     <p class="text-gray-400 mb-8 text-sm">Koppla in mikrofoner och musikspelare. Mixerbord hyrs separat och ansluts till högtalarpaket.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {(_ljudData.mixerLayout ?? []).map((slot: any) => {
@@ -214,7 +214,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- MIKROFONER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner</h2>
+    <h2 class="sk-h2s mb-6">Mikrofoner</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_ljudData.mikrofoner ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Mikrofon" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
@@ -224,7 +224,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- TILLBEHÖR TILL MIKROFONER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör till mikrofoner</h2>
+    <h2 class="sk-h2s mb-6">Tillbehör till mikrofoner</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_ljudData.tillbehor_mikrofon?.filter((p:any) => !p.artno?.startsWith('SK-LJD-UPG')) ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Mikrofon tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
@@ -234,7 +234,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- ÖVRIGA TILLBEHÖR LJUD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Övriga tillbehör</h2>
+    <h2 class="sk-h2s mb-6">Övriga tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_ljudData.tillbehor_ljud ?? []).filter((p:any) => !p.categories || p.categories.includes('live')).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Ljud tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
@@ -244,7 +244,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- EL-TILLBEHÖR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
+    <h2 class="sk-h2s mb-6">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_elData.products ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/dygn'} />
@@ -254,7 +254,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- TEKNIKER & TJÄNSTER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Tekniker & tjänster</h2>
+    <h2 class="sk-h2s mb-2">Tekniker & tjänster</h2>
     <p class="text-gray-400 text-sm mb-6">Behöver du en professionell tekniker på plats? Vi hyr ut scenengineers som hanterar ljud, ljus och bild under hela eventet.</p>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {_tjansterData.services?.filter((s:any) => s.categories?.includes('ljud')).map((svc: any) => (

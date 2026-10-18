@@ -57,7 +57,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- STATIV -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstativ med T-bar</h2>
+    <h2 class="sk-h2s mb-6">Ljusstativ med T-bar</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {ljusData.stativ.products.filter((p:any) => parseInt(p.artno.slice(-4)) <= 4).map((p: any) => (
         <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross"
@@ -69,7 +69,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- TROSSTORN -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstorn</h2>
+    <h2 class="sk-h2s mb-6">Trosstorn</h2>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
       {ljusData.stativ.products.filter((p:any) => parseInt(p.artno.slice(-4)) >= 5 && parseInt(p.artno.slice(-4)) <= 7).map((p: any) => (
         <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross"
@@ -81,7 +81,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- TROSSTRAVERSER & TROSSBÅGAR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Trosstraverser &amp; Trossbågar</h2>
+    <h2 class="sk-h2s mb-6">Trosstraverser &amp; Trossbågar</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {ljusData.stativ.products.filter((p:any) => parseInt(p.artno.slice(-4)) >= 8).map((p: any) => (
         <ProductCard artno={p.artno} name={p.name} price={p.price} priceNote="/dygn" image={p.image} description={p.description} specs={p.specs ?? []} category="Stativ & tross"
@@ -93,7 +93,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- TILLBEHÖR FÄSTEN & DMX -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">Tillbehör – Fästen, Trossöverdrag &amp; DMX</h2>
+    <h2 class="sk-h2s mb-4">Tillbehör – Fästen, Trossöverdrag &amp; DMX</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(ljusData.stativ?.tillbehor ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Stativ tillbehör" artno={p.artno} />
@@ -109,7 +109,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- EL-TILLBEHÖR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-4 border-b border-white/10 pb-3">El-tillbehör</h2>
+    <h2 class="sk-h2s mb-4">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_elData.products.filter((p:any) => !p.categories || p.categories.includes('ljus')) ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/dygn'} />
@@ -122,7 +122,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
     <div class="bg-brand-navy border border-white/10 rounded-2xl overflow-hidden">
       <div class="grid grid-cols-1 md:grid-cols-2">
         <div class="p-8">
-          <h2 class="text-2xl font-bold text-white mb-3">Scenljus för konserter eller större event</h2>
+          <h2 class="sk-h2s mb-3">Scenljus för konserter eller större event</h2>
           <p class="text-gray-300 mb-2">Vi har scenljus för alla ändamål – vitt och färgat ljus på travers eller tross.</p>
           <p class="text-gray-400 text-sm mb-6">Kontakta oss och beskriv ditt behov så tar vi fram en lösning. Större ljusriggar kräver transport och montering — tillkommer som tillägg.</p>
           <a href="/kontakt/" class="inline-block bg-brand-orange hover:bg-brand-orange-light text-white px-5 py-3 rounded-xl font-semibold text-sm transition-colors">Begär offert</a>

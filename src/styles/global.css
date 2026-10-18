@@ -1120,3 +1120,52 @@ select:-webkit-autofill:focus {
   .har-mobilbar #sk-vat-toggle { display: none; }
   .har-mobilbar #sven-chat-widget { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   DESIGN 2026 — undersidorna i startsidans stil
+   Gemensamma klasser för kort, knappar och sektioner. Startsidan har sina
+   egna st-klasser i index.astro; här bor det som delas av komponenterna.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Knappar är piller */
+a.bg-brand-orange, button.bg-brand-orange { border-radius: 999px; }
+
+/* Produktkort: bilden på en vit platta (produktbilderna har vit bakgrund
+   och visas object-contain — aldrig beskurna) */
+.sk-pkort { border-radius: 20px; }
+.sk-pkort:hover { transform: translateY(-2px); }
+.sk-pkort-bild { margin: 10px 10px 0; border-radius: 14px; background: #fff; }
+.sk-pkort-text { padding: 1.15rem 1.3rem 1.3rem; }
+.sk-pkort-gaster { align-self: flex-start; margin: 0 0 0.6rem; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 999px; background: rgba(196,181,244,0.14); color: #c4b5f4; }
+.sk-pkort-namn { margin: 0 0 0.3rem; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.6rem; line-height: 1.1; color: #fff; }
+.sk-pkort-desc { margin: 0.35rem 0 0.9rem; font-size: 0.95rem; line-height: 1.55; color: rgba(255,255,255,0.72); }
+.sk-pkort-specs { list-style: none; margin: 0; padding: 0.85rem 0 0; border-top: 1px solid rgba(255,255,255,0.08); display: grid; gap: 0.35rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+.sk-pkort-specs li { display: flex; gap: 0.5rem; }
+.sk-pkort-specs li > span:first-child { color: #c4b5f4; }
+
+/* Sektionsband och info-rutor */
+.sk-band { background: #110f30; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sk-eyebrow { color: #c4b5f4; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 0.75rem; }
+.sk-h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.9rem, 3.6vw, 2.75rem); line-height: 1.05; color: #fff; margin: 0; }
+.sk-knapp { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.95rem; padding: 0.8rem 1.35rem; border-radius: 999px; text-decoration: none; border: 1px solid rgba(255,255,255,0.28); color: rgba(255,255,255,0.9); background: transparent; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+.sk-knapp:hover { border-color: #c4b5f4; color: #fff; }
+.sk-knapp-p { background: #c4b5f4; border-color: #c4b5f4; color: #0c0a24; font-weight: 700; }
+.sk-knapp-p:hover { background: #e2dcfb; border-color: #e2dcfb; color: #0c0a24; }
+/* Sektionsrubriker på undersidorna (ersätter "text-2xl font-bold") */
+.sk-h2s { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.75rem, 3vw, 2.4rem); line-height: 1.1; color: #fff; }
+/* Vanliga frågor: en luftig lista i stället för boxar (gäller alla sidors <details class="bg-brand-navy …">) */
+details.bg-brand-navy { background: transparent; border: 0; border-bottom: 1px solid rgba(255,255,255,0.09); border-radius: 0; padding-left: 0; padding-right: 0; }
+.space-y-4 > details.bg-brand-navy:not([hidden]) ~ details.bg-brand-navy:not([hidden]),
+.space-y-3 > details.bg-brand-navy:not([hidden]) ~ details.bg-brand-navy:not([hidden]),
+.space-y-2 > details.bg-brand-navy:not([hidden]) ~ details.bg-brand-navy:not([hidden]) { margin-top: 0; }
+details.bg-brand-navy > summary { padding: 1.3rem 0.25rem; font-size: 1.05rem; font-weight: 600; color: #fff; }
+details.bg-brand-navy > summary::-webkit-details-marker { display: none; }
+details.bg-brand-navy > summary > span:last-child { flex: none; width: 34px; height: 34px; margin-left: 1rem; border-radius: 999px; border: 1px solid rgba(196,181,244,0.4); color: #c4b5f4; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; line-height: 1; }
+details.bg-brand-navy > div, details.bg-brand-navy > p { border-top: 0; padding: 0 0.25rem 1.3rem; font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.72); max-width: 760px; }
+/* Länkknappar med ram ("Komplettera med", "Boka online" …) blir piller */
+a.border.rounded-xl, a.border.rounded-lg { border-radius: 999px; }
+/* Alla produktkort med bildyta 1024/853 får den vita plattan (kortkomponenter
+   och sidor med egna kort) — samma som .sk-pkort-bild */
+article.bg-brand-navy.rounded-2xl { border-radius: 20px; }
+.bg-brand-dark[style*="aspect-ratio:1024/853"] { background: #fff; border-radius: 14px; }
+article > .bg-brand-dark[style*="aspect-ratio:1024/853"], article > a > .bg-brand-dark[style*="aspect-ratio:1024/853"] { margin: 10px 10px 0; }

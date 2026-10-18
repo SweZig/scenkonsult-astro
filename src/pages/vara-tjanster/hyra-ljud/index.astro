@@ -4,6 +4,8 @@ import KunskapBlock from '../../../components/KunskapBlock.astro';
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
+import TreSteg from '../../../components/TreSteg.astro';
+import KategoriKort from '../../../components/KategoriKort.astro';
 import ljudData from '../../../data/ljud.json';
 import elData from '../../../data/el.json';
 import tjanster from '../../../data/tjanster.json';
@@ -69,6 +71,8 @@ const faqSchema = {
 <Layout title={ljudData.metaTitle} description={metaDescription} schemaExtra={faqSchema}>
 
   <ModernHero
+    bild={{ src: "/images/event/festival_hard_rock_rising_2.webp", w: 1050, alt: "Rockband på scenen under Hard Rock Rising", text: "Hard Rock Rising — Hard Rock Café" }}
+    knappar={[{ label: "Se ljudpaketen", href: "#sortiment" }, { label: "Begär offert", href: "/varukorg/" }]}
     eyebrow="Ljud · PA & högtalare"
     h1="Hyra högtalare & ljud i"
     h1Accent="Stockholm"
@@ -89,68 +93,22 @@ const faqSchema = {
 
   <!-- KATEGORI-GRID (3 + 2) -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <SectionHeader eyebrow="Sortiment" h2="Välj kategori" />
-    <div class="kat-grid grid grid-cols-1 sm:grid-cols-2 gap-6">
-      {ljudData.categories.map((cat, i) => (
-        <a href={cat.href} data-kat-i={i} class="kat-card bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group block">
-          <div class="h-60 sm:h-56 bg-brand-dark overflow-hidden relative">
-            <img
-              src={cat.image}
-              alt={cat.name}
-              width="600" height="400"
-              loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <div class="p-6">
-            <h3 class="font-bold text-white text-xl group-hover:text-brand-orange transition-colors mb-2">{cat.name}</h3>
-            <p class="text-gray-400 text-sm leading-relaxed mb-4">{cat.desc}</p>
-            <span class="text-brand-orange text-sm font-semibold">Se priser & sortiment →</span>
-          </div>
-        </a>
-      ))}
-    </div>
+    <SectionHeader id="sortiment" eyebrow="Sortiment" h2="Välj typ av ljud" lead="Välj efter vad som ska låta. Gästantalet står på varje paket inne på sidan." />
+    <KategoriKort data={ljudData} />
   </section>
 
-  <style>
-    /* 3 + 2 layout: rad 1 tre kort, rad 2 två centrerade kort */
-    @media (min-width: 1024px) {
-      .kat-grid {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-      }
-      .kat-card { grid-column: span 2; }
-      /* 4:e kortet startar i kolumn 2 → de två sista centreras */
-      .kat-card[data-kat-i="3"] { grid-column: 2 / span 2; }
-      .kat-card[data-kat-i="4"] { grid-column: 4 / span 2; }
-    }
-  </style>
+  
 
   <LjudLjusPromo />
 
-  <!-- HUR VÄLJER DU RÄTT? -->
-  <section class="bg-brand-navy border-y border-white/10 py-14">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl text-white mb-2" style="font-family:'DM Serif Display',serif;">Hur väljer du rätt PA-system?</h2>
-      <p class="text-gray-400 mb-8">Tre frågor som avgör vilket system du behöver.</p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { n: "1", rubrik: "Räkna gästerna", text: "Tumregel: 1 watt per person inomhus, 2–3 watt utomhus. Men akustiken i lokalen spelar lika stor roll – ring oss så hjälper vi dig räkna ut det exakt." },
-          { n: "2", rubrik: "Vad ska ljuda?", text: "Tal och konferens → Event-system. Dansmusik → Music-system med sub. Live band → Live-system med monitor. Utomhus utan el → Portabelt system." },
-          { n: "3", rubrik: "Vill du ha hjälp?", text: "Vi erbjuder tekniker för installation, soundcheck och körning under eventet. Priserna är lägre än du tror – och resultatet är bättre än du tror." },
-        ].map(s => (
-          <div class="bg-brand-dark border border-white/10 rounded-2xl p-6">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mb-4" style="background:#c4b5f4">{s.n}</div>
-            <h3 class="font-bold text-white mb-2">{s.rubrik}</h3>
-            <p class="text-gray-400 text-sm leading-relaxed">{s.text}</p>
-          </div>
-        ))}
-      </div>
-      <div class="mt-8 flex flex-wrap gap-4">
-        <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="📞 " data-label="072-448 10 00" href="#tel" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
-        <a href="/bokningssida/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Boka online</a>
-      </div>
-    </div>
-  </section>
+  <TreSteg rubrik="Hur väljer du rätt PA-system?" lead="Tre frågor som avgör vilket system du behöver." steg={[
+    { rubrik: "Räkna gästerna", text: "Tumregel: 1 watt per person inomhus, 2–3 watt utomhus. Men akustiken i lokalen spelar lika stor roll – ring oss så hjälper vi dig räkna ut det exakt." },
+          { rubrik: "Vad ska ljuda?", text: "Tal och konferens → Event-system. Dansmusik → Music-system med sub. Live band → Live-system med monitor. Utomhus utan el → Portabelt system." },
+          { rubrik: "Vill du ha hjälp?", text: "Vi erbjuder tekniker för installation, soundcheck och körning under eventet. Priserna är lägre än du tror – och resultatet är bättre än du tror." }
+  ]}>
+        <a data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" class="sk-knapp sk-knapp-p" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
+        <a href="/bokningssida/" class="sk-knapp">Boka online</a>
+      </TreSteg>
 
   <!-- POPULÄRASTE PAKETEN — grupper ur Supabase via src/data/popular.json -->
   <PopularaPaket data={ljudData} kategori="ljud" category="Ljud" />
@@ -163,7 +121,7 @@ const faqSchema = {
   <!-- VAD INGÅR ALLTID -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
-      <h2 class="text-2xl text-white mb-4" style="font-family:'DM Serif Display',serif;">Vad ingår alltid?</h2>
+      <h2 class="sk-h2s mb-4" style="font-family:'DM Serif Display',serif;">Vad ingår alltid?</h2>
       <div class="text-gray-400 text-sm leading-relaxed space-y-3">
         <p>Alla ljudsystem levereras kompletta med stativ, kablar och adaptrar – testade och kalibrerade. Du behöver inte ta med någonting extra.</p>
         <p>Soundcheck och grundinställning ingår i alla hyror. Vill du ha tekniker som stannar under hela eventet bokas det som tillägg — läs mer om att <a href="/vara-tjanster/hyra-ljudtekniker/" class="text-brand-orange hover:underline">hyra ljudtekniker</a>.</p>

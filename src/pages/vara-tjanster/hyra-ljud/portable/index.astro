@@ -198,7 +198,7 @@ const portableFranInkl = Math.round(portableFran * 1.25);
           </span>
         </div>
         <div class="order-1 lg:order-2">
-          <h2 class="text-2xl font-bold text-white mb-3">Sven visar dig hur du kopplar in ljudpaketet</h2>
+          <h2 class="sk-h2s mb-3">Sven visar dig hur du kopplar in ljudpaketet</h2>
           <p class="text-gray-400 mb-4" style="color:rgba(255,255,255,0.72)">Vi har två sorters portabelt ljud — välj nedan så visar Sven steg för steg hur du kopplar in just den varianten och vad de olika kontakterna och reglagen gör.</p>
           <div class="flex gap-2 mb-5" role="tablist">
             <button
@@ -229,7 +229,7 @@ const portableFranInkl = Math.round(portableFran * 1.25);
 
   <!-- MIXERBORD -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Mixerbord</h2>
+    <h2 class="sk-h2s mb-2">Mixerbord</h2>
     <p class="text-gray-400 mb-8 text-sm">Koppla in mikrofoner och musikspelare. Mixerbord hyrs separat och ansluts till högtalarpaket.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {(_ljudData.mixerLayout ?? []).map((slot: any) => {
@@ -269,7 +269,7 @@ const portableFranInkl = Math.round(portableFran * 1.25);
   </section>
   <!-- MIKROFONER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Mikrofoner</h2>
+    <h2 class="sk-h2s mb-6">Mikrofoner</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_ljudData.mikrofoner ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Mikrofon" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
@@ -279,7 +279,7 @@ const portableFranInkl = Math.round(portableFran * 1.25);
 
   <!-- TILLBEHÖR TILL MIKROFONER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Tillbehör till mikrofoner</h2>
+    <h2 class="sk-h2s mb-6">Tillbehör till mikrofoner</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_ljudData.tillbehor_mikrofon?.filter((p:any) => !p.artno?.startsWith('SK-LJD-UPG')) ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Mikrofon tillbehör" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? (p.description ? [p.description] : [])} />
@@ -289,7 +289,7 @@ const portableFranInkl = Math.round(portableFran * 1.25);
 
   <!-- EL-TILLBEHÖR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
+    <h2 class="sk-h2s mb-6">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_elData.products ?? []).filter((p:any) => !['SK-EL-0001','SK-EL-0002','SK-EL-0005'].includes(p.artno)).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/dygn'} />
@@ -299,7 +299,7 @@ const portableFranInkl = Math.round(portableFran * 1.25);
 
   <!-- TEKNIKER & TJÄNSTER -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-2 border-b border-white/10 pb-3">Tekniker & tjänster</h2>
+    <h2 class="sk-h2s mb-2">Tekniker & tjänster</h2>
     <p class="text-gray-400 text-sm mb-6">Behöver du hjälp på plats? Vi erbjuder tekniker och scenengineers som hanterar ljud, ljus och AV under hela eventet.</p>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {_tjansterData.services?.filter((s:any) => s.categories?.includes('ljud')).map((svc: any) => (

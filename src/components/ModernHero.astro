@@ -27,7 +27,11 @@ interface Props {
   intro?: string;
   chips?: Array<string | ChipHtml>;
   breadcrumbs?: Breadcrumb[];
-  maxWidth?: string;          // default "920px"
+  maxWidth?: string;          // textspaltens maxbredd utan bild, default "860px"
+  /** Eventfoto till höger (hubbsidorna). Utan bild blir heron en textspalt. */
+  bild?: { src: string; alt: string; text?: string; pos?: string; w?: number; h?: number };
+  /** Knappar under ingressen. Första är primär. */
+  knappar?: Array<{ label: string; href: string }>;
 }
 
 const {
@@ -37,12 +41,17 @@ const {
   intro,
   chips = [],
   breadcrumbs = [],
-  maxWidth = '920px',
+  maxWidth = '860px',
+  bild,
+  knappar = [],
 } = Astro.props;
+// 640w-varianten finns för de eventfoton som används i hero (public/images/event/*-640w.webp)
+const srcset = bild && bild.w ? `${bild.src.replace(/\.webp$/, '-640w.webp')} 640w, ${bild.src} ${bild.w}w` : undefined;
 ---
 
 <div class="mh-wrap">
-  <div class="mh-inner" style={`max-width:${maxWidth}`}>
+  <div class:list={['mh-inner', { 'mh-med-bild': !!bild }]}>
+    <div class="mh-text" style={bild ? undefined : `max-width:${maxWidth}`}>
     {breadcrumbs.length > 0 && (
       <nav aria-label="Brödsmulor" class="mh-breadcrumb">
         <ol itemscope itemtype="https://schema.org/BreadcrumbList">
@@ -68,6 +77,12 @@ const {
 
     {intro && <p class="mh-intro">{intro}</p>}
 
+    {knappar.length > 0 && (
+      <div class="mh-knappar">
+        {knappar.map((k, i) => <a href={k.href} class:list={['mh-knapp', { 'mh-knapp-p': i === 0 }]}>{k.label}</a>)}
+      </div>
+    )}
+
     {chips.length > 0 && (
       <div class="mh-chips">
         {chips.map(chip => (
@@ -77,90 +92,60 @@ const {
         ))}
       </div>
     )}
+    </div>
+    {bild && (
+      <figure class="mh-bild">
+        <img src={bild.src} srcset={srcset} sizes="(max-width: 900px) 100vw, 40vw" alt={bild.alt} width={bild.w ?? 1050} height={bild.h ?? 1400} fetchpriority="high" decoding="async" style={bild.pos ? `object-position:${bild.pos}` : undefined} />
+        {bild.text && <figcaption>{bild.text}</figcaption>}
+      </figure>
+    )}
   </div>
 </div>
 
 <style>
+  /* Design 2026 — samma typografi och ytor som startsidan */
   .mh-wrap {
-    background: linear-gradient(135deg, #1e1850 0%, #0c0a24 60%);
-    padding-top: calc(36px + 130px + clamp(2rem, 4vw, 3.5rem));
-    padding-bottom: clamp(2.5rem, 5vw, 4rem);
-    padding-inline: clamp(1rem, 5vw, 5rem);
-    position: relative;
-    overflow: hidden;
+    background: #0c0a24;
+    padding-top: calc(var(--nav-offset, 166px) + clamp(1.25rem, 3vw, 2.5rem));
+    padding-bottom: clamp(2rem, 4vw, 3.5rem);
+    padding-inline: clamp(1rem, 3vw, 2rem);
   }
-  @media (max-width: 768px) {
-    .mh-wrap { padding-top: calc(32px + 100px + clamp(2rem, 4vw, 3.5rem)); }
-  }
+  .mh-inner { max-width: 1240px; margin: 0 auto; }
+  .mh-med-bild { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: center; }
 
-  .mh-inner {
-    position: relative;
-    z-index: 2;
-    margin: 0 auto;
-  }
+  .mh-breadcrumb { margin-bottom: 1.4rem; }
+  .mh-breadcrumb ol { display: flex; flex-wrap: wrap; gap: 0.35rem; list-style: none; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.85); }
+  .mh-breadcrumb a { color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.2s; }
+  .mh-breadcrumb a:hover { color: #fff; }
+  .mh-sep { opacity: 0.4; margin: 0 0.2rem; }
 
-  .mh-breadcrumb { margin-bottom: 1.5rem; }
-  .mh-breadcrumb ol {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.60);
-  }
-  .mh-breadcrumb a {
-    color: rgba(255,255,255,0.5);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .mh-breadcrumb a:hover { color: rgba(255,255,255,0.9); }
-  .mh-sep { opacity: 0.3; margin: 0 0.15rem; }
+  .mh-eyebrow { color: #c4b5f4; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 0.9rem; }
+  .mh-h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(2.3rem, 5vw, 4.1rem); line-height: 1.03; letter-spacing: -0.01em; color: #fff; margin: 0; }
+  .mh-accent { color: #c4b5f4; font-style: italic; }
+  .mh-intro { font-size: clamp(1rem, 1.5vw, 1.15rem); color: rgba(255,255,255,0.72); line-height: 1.6; margin: 1.35rem 0 0; max-width: 640px; }
 
-  .mh-eyebrow {
-    color: #c4b5f4;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin: 0 0 0.6rem;
-  }
+  .mh-knappar { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.75rem; }
+  .mh-knapp { display: inline-flex; align-items: center; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.95rem; padding: 0.85rem 1.4rem; border-radius: 999px; text-decoration: none; border: 1px solid rgba(255,255,255,0.28); color: rgba(255,255,255,0.9); transition: background 0.15s, border-color 0.15s; }
+  .mh-knapp:hover { border-color: #c4b5f4; color: #fff; }
+  .mh-knapp-p { background: #c4b5f4; border-color: #c4b5f4; color: #0c0a24; font-weight: 700; }
+  .mh-knapp-p:hover { background: #e2dcfb; border-color: #e2dcfb; color: #0c0a24; }
 
-  .mh-h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(2rem, 5vw, 3.25rem);
-    line-height: 1.1;
-    color: white;
-    margin: 0 0 1rem;
-  }
-  .mh-accent {
-    color: #c4b5f4;
-    font-style: italic;
-  }
+  .mh-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.6rem; }
+  .mh-chip { background: #1e1850; color: rgba(255,255,255,0.82); padding: 0.45rem 0.75rem; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 500; }
+  .mh-chip :global(.sk-price-excl), .mh-chip :global(.sk-price-incl) { color: #c4b5f4; font-weight: 700; }
 
-  .mh-intro {
-    font-size: clamp(0.95rem, 2vw, 1.1rem);
-    color: rgba(255,255,255,0.6);
-    line-height: 1.75;
-    margin: 0 0 1.25rem;
-  }
+  .mh-bild { margin: 0; position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 5; max-height: 560px; background: #1e1850; }
+  .mh-bild img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mh-bild figcaption { position: absolute; left: 1rem; right: 1rem; bottom: 1rem; padding: 0.75rem 1rem; border-radius: 14px; background: rgba(12,10,36,0.82); color: #fff; font-weight: 600; font-size: 0.95rem; }
 
-  .mh-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  @media (max-width: 900px) {
+    .mh-med-bild { grid-template-columns: minmax(0, 1fr); }
+    .mh-bild { order: -1; aspect-ratio: 4 / 3; max-height: none; }
   }
-  .mh-chip {
-    background: rgba(196,181,244,0.12);
-    color: #c4b5f4;
-    padding: 0.35rem 0.75rem;
-    border-radius: 99px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    border: 1px solid rgba(196,181,244,0.25);
+  @media (max-width: 720px) {
+    .mh-wrap { padding-top: calc(132px + 0.75rem); }
+    .mh-bild { border-radius: 16px; }
+    .mh-chips { gap: 0.4rem; }
+    .mh-chip { font-size: 0.75rem; }
   }
 </style>

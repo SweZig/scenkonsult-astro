@@ -23,27 +23,53 @@ const { kategori, lead } = Astro.props;
 const items = ((eventCases as any).hub?.[kategori] ?? []) as Array<{
   caseId: string; label: string; descr: string; src: string; alt: string; pos?: string | null;
 }>;
+
+const _tag = new Map(((eventCases as any).cases as any[]).map((c) => [c.id, c.tag]));
 const ledtext = lead ?? (popular as Record<string, any>)[kategori]?.casesLead ?? undefined;
 ---
 
 {items.length > 0 && (
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
-    <SectionHeader eyebrow="Referenser" h2="Från våra event" lead={ledtext} />
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+  <section class="eb-sektion">
+    <div class="eb-rubrik">
+      <div>
+        <p class="sk-eyebrow">Referenser</p>
+        <h2 class="sk-h2">Från våra event</h2>
+        {ledtext && <p class="eb-lead">{ledtext}</p>}
+      </div>
+      <a href="/referenser/" class="eb-lank">Fler uppdrag →</a>
+    </div>
+    <div class="eb-grid">
       {items.map((it) => (
-        <a href="/referenser/" class="group block bg-brand-navy border border-white/10 hover:border-brand-orange/40 rounded-2xl overflow-hidden transition-all">
-          <div class="overflow-hidden bg-brand-dark" style="aspect-ratio:4/3">
-            <img src={it.src} alt={it.alt} width="800" height="600" loading="lazy" decoding="async" style={it.pos ? `object-position:${it.pos}` : undefined} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-          </div>
-          <div class="p-4">
-            <p class="font-semibold text-white text-sm leading-snug mb-1">{it.label}</p>
-            <p class="text-gray-400 text-xs">{it.descr}</p>
-          </div>
+        <a href="/referenser/" class="eb-kort">
+          <img src={it.src} alt={it.alt} width="800" height="600" loading="lazy" decoding="async" style={it.pos ? `object-position:${it.pos}` : undefined} />
+          <span class="eb-text">
+            {_tag.get(it.caseId) && <span class="eb-tag">{_tag.get(it.caseId)}</span>}
+            <span class="eb-namn">{it.label}</span>
+            <span class="eb-desc">{it.descr}</span>
+          </span>
         </a>
       ))}
     </div>
-    <div class="mt-6 text-center">
-      <a href="/referenser/" class="text-brand-orange hover:text-white transition-colors text-sm font-semibold">Fler referenser och kundomdömen →</a>
-    </div>
   </section>
 )}
+
+<style>
+  .eb-sektion { max-width: 80rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) clamp(3rem, 6vw, 5rem); }
+  .eb-rubrik { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+  .eb-lead { margin: 0.9rem 0 0; max-width: 560px; color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .eb-lank { font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #c4b5f4; text-decoration: none; white-space: nowrap; }
+  .eb-lank:hover { color: #e2dcfb; }
+  .eb-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; }
+  .eb-kort { display: block; position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 4 / 3; background: #1e1850; text-decoration: none; }
+  .eb-kort img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s; }
+  .eb-kort:hover img { transform: scale(1.04); }
+  .eb-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 3rem 1.25rem 1.1rem; background: linear-gradient(to top, rgba(12,10,36,0.95), rgba(12,10,36,0)); display: flex; flex-direction: column; align-items: flex-start; }
+  .eb-tag { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.5rem; border-radius: 6px; background: #c4b5f4; color: #0c0a24; margin-bottom: 0.6rem; }
+  .eb-namn { font-weight: 700; font-size: 1.1rem; color: #fff; }
+  .eb-desc { margin-top: 0.15rem; font-size: 0.92rem; color: rgba(255,255,255,0.72); }
+  @media (max-width: 720px) {
+    .eb-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: -1rem; padding-inline: 1rem; gap: 12px; }
+    .eb-grid::-webkit-scrollbar { display: none; }
+    .eb-kort { flex: none; width: 280px; scroll-snap-align: start; }
+  }
+</style>

@@ -3,6 +3,8 @@ import KunskapBlock from '../../../components/KunskapBlock.astro';
 import Layout from '../../../layouts/Layout.astro';
 import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
+import TreSteg from '../../../components/TreSteg.astro';
+import KategoriKort from '../../../components/KategoriKort.astro';
 import PopularaPaket from '../../../components/PopularaPaket.astro';
 import EventBilder from '../../../components/EventBilder.astro';
 import bildData from '../../../data/bild.json';
@@ -35,6 +37,8 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 <Layout title={bildData.metaTitle} description={bildData.metaDescription} schemaExtra={faqSchema}>
 
   <ModernHero
+    bild={{ src: "/images/event/kundevent_emberlin_2.webp", w: 1050, alt: "Skärm på golvstativ i restaurangmiljö hos Emberlin", text: "Emberlin — Stureplan" }}
+    knappar={[{ label: "Se bildutrustningen", href: "#sortiment" }, { label: "Begär offert", href: "/varukorg/" }]}
     eyebrow="Bild & AV-teknik · Översikt"
     h1="Hyra bild i"
     h1Accent="Stockholm"
@@ -55,53 +59,18 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- KATEGORI-GRID -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <SectionHeader eyebrow="Sortiment" h2="Välj kategori" />
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {(bildData.categories as any[]).map((cat) => (
-        <a href={cat.href} class="bg-brand-navy border border-white/10 hover:border-brand-orange/50 rounded-2xl overflow-hidden transition-all group block">
-          <div class="h-52 sm:h-44 lg:h-40 bg-brand-dark overflow-hidden relative">
-            <img
-              src={cat.image}
-              alt={cat.name}
-              width="600" height="333"
-              loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <div class="p-5">
-            <h3 class="font-bold text-white text-lg group-hover:text-brand-orange transition-colors mb-2">{cat.name}</h3>
-            <p class="text-gray-400 text-sm leading-relaxed mb-4">{cat.desc}</p>
-            <span class="text-brand-orange text-sm font-semibold">Se priser & sortiment →</span>
-          </div>
-        </a>
-      ))}
-    </div>
+    <SectionHeader id="sortiment" eyebrow="Sortiment" h2="Välj typ av bild" lead="Projektor för mörka rum, skärm för ljusa, LED när det är dagsljus eller stor publik." />
+    <KategoriKort data={bildData} />
   </section>
 
-  <!-- HUR VÄLJER DU RÄTT? -->
-  <section class="bg-brand-navy border-y border-white/10 py-14">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl text-white mb-2" style="font-family:'DM Serif Display',serif;">Hur väljer du rätt bildsystem?</h2>
-      <p class="text-gray-400 mb-8">Tre frågor som avgör vad du behöver.</p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { n: "1", rubrik: "Inomhus eller utomhus?", text: "Nedmörkat inomhus → projektor + duk är billigast. Ljust inomhus → skärm 65–85\". Utomhus i dagsljus → LED-vägg eller mobil LED-trailer. Skugga utomhus i kvällsljus → projektor kan funka." },
-          { n: "2", rubrik: "Hur långt sitter publiken?", text: "Tumregel: bildbredden minst 1/6 av avståndet till bakersta åskådare. 50 personer i konferensrum → 100\"-duk. 500 personer på festival → LED-trailer 15 m² eller större." },
-          { n: "3", rubrik: "Vill du ha hjälp?", text: "Vi installerar, kabeldragar och kalibrerar bilden. Tekniker tillgänglig under hela eventet om du vill. LED-vägg och mobil trailer monteras alltid av våra tekniker — montering tillkommer." },
-        ].map(s => (
-          <div class="bg-brand-dark border border-white/10 rounded-2xl p-6">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mb-4" style="background:#c4b5f4">{s.n}</div>
-            <h3 class="font-bold text-white mb-2">{s.rubrik}</h3>
-            <p class="text-gray-400 text-sm leading-relaxed">{s.text}</p>
-          </div>
-        ))}
-      </div>
-      <div class="mt-8 flex flex-wrap gap-4">
-        <a data-tel="MDcyNDQ4MTAwMA==" data-prefix="📞 " data-label="072-448 10 00" href="#tel" class="bg-brand-orange hover:bg-brand-orange-light text-white px-6 py-3 rounded-xl font-semibold transition-colors" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
-        <a href="/bokningssida/" class="border border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-xl font-semibold transition-colors">Boka online</a>
-      </div>
-    </div>
-  </section>
+  <TreSteg rubrik="Hur väljer du rätt bildsystem?" lead="Tre frågor som avgör vad du behöver." steg={[
+    { rubrik: "Inomhus eller utomhus?", text: "Nedmörkat inomhus → projektor + duk är billigast. Ljust inomhus → skärm 65–85\". Utomhus i dagsljus → LED-vägg eller mobil LED-trailer. Skugga utomhus i kvällsljus → projektor kan funka." },
+          { rubrik: "Hur långt sitter publiken?", text: "Tumregel: bildbredden minst 1/6 av avståndet till bakersta åskådare. 50 personer i konferensrum → 100\"-duk. 500 personer på festival → LED-trailer 15 m² eller större." },
+          { rubrik: "Vill du ha hjälp?", text: "Vi installerar, kabeldragar och kalibrerar bilden. Tekniker tillgänglig under hela eventet om du vill. LED-vägg och mobil trailer monteras alltid av våra tekniker — montering tillkommer." }
+  ]}>
+        <a data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" class="sk-knapp sk-knapp-p" style="cursor:pointer"><noscript>072-448 10 00</noscript></a>
+        <a href="/bokningssida/" class="sk-knapp">Boka online</a>
+      </TreSteg>
 
   <!-- POPULÄRASTE PRODUKTER -->
   <PopularaPaket data={bildData} kategori="bild" category="Bild" />
@@ -111,7 +80,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <!-- VAD INGÅR ALLTID -->
   <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
     <div class="bg-brand-navy border border-white/10 rounded-2xl p-8">
-      <h2 class="text-2xl text-white mb-4" style="font-family:'DM Serif Display',serif;">Vad ingår alltid?</h2>
+      <h2 class="sk-h2s mb-4" style="font-family:'DM Serif Display',serif;">Vad ingår alltid?</h2>
       <div class="text-gray-400 text-sm leading-relaxed space-y-3">
         <p>Alla projektorer och skärmar levereras med HDMI-kabel, fjärrkontroll och nödvändiga adaptrar. Du behöver inte ta med någonting extra.</p>
         <p>LED-vägg och mobil LED-trailer monteras och kalibreras alltid av våra tekniker. Montering ingår inte i dygnspriset utan tillkommer och räknas fram i kassan.</p>

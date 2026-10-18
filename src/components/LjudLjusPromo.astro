@@ -14,12 +14,25 @@ import { resolveLjudLjus, minRecommended } from '../lib/ljud-ljus-builder.mjs';
 const fran = minRecommended(resolveLjudLjus(config, { ljud, ljus, bild, dj, scenes, tjanster, karaoke, el }));
 ---
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-  <div class="bg-brand-navy border border-brand-orange/30 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5 justify-between">
-    <div>
-      <p class="text-brand-orange text-xs font-bold uppercase tracking-widest mb-2" style="font-family:'Space Grotesk',sans-serif">Ljud + ljus i ett paket</p>
-      <h2 class="text-white text-2xl mb-2" style="font-family:'DM Serif Display',serif;">Behöver ni både ljud och ljus?</h2>
-      <p class="text-gray-400 text-sm m-0">Svara på tre frågor – privat eller företag, hur många ni blir och om fokus är tal eller musik – så sätter vi ihop ett paket. Från <span data-exkl={fran}>{fran.toLocaleString('sv-SE')}</span> kr/dygn.</p>
+  <div class="llp">
+    <div class="llp-bild"><img src="/images/event/kundevent_systembolaget_3-640w.webp" alt="" width="640" height="853" loading="lazy" decoding="async" /></div>
+    <div class="llp-text">
+      <span class="llp-tag">Ljud + ljus i ett paket</span>
+      <h2>Behöver ni både ljud och ljus?</h2>
+      <p>Svara på tre frågor – privat eller företag, hur många ni blir och om fokus är tal eller musik – så sätter vi ihop ett paket. Från <b><span class="sk-price-excl">{fran.toLocaleString('sv-SE')} kr</span><span class="sk-price-incl hidden">{Math.round(fran * 1.25).toLocaleString('sv-SE')} kr</span></b>/dygn.</p>
+      <a href="/vara-tjanster/hyra-ljud-och-ljus/#bygg" class="sk-knapp sk-knapp-p">Bygg ert paket</a>
     </div>
-    <a href="/vara-tjanster/hyra-ljud-och-ljus/" class="shrink-0 bg-brand-orange hover:bg-brand-orange-light text-brand-dark font-semibold text-sm px-5 py-3 rounded-xl text-center transition-colors">Hyra ljud och ljus →</a>
   </div>
 </section>
+
+<style>
+  .llp { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); border-radius: 22px; overflow: hidden; background: #1e1850; border: 1px solid rgba(196,181,244,0.25); }
+  .llp-bild { position: relative; min-height: 260px; }
+  .llp-bild img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
+  .llp-text { padding: clamp(1.5rem, 4vw, 2.75rem) clamp(1.25rem, 4vw, 3rem); display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+  .llp-tag { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.5rem; border-radius: 6px; background: #c4b5f4; color: #0c0a24; }
+  .llp h2 { margin: 1rem 0 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.75rem, 3vw, 2.25rem); color: #fff; line-height: 1.1; }
+  .llp p { margin: 0.75rem 0 1.5rem; font-size: 1rem; line-height: 1.55; color: rgba(255,255,255,0.72); max-width: 520px; }
+  .llp p b { color: #c4b5f4; }
+  @media (max-width: 720px) { .llp { grid-template-columns: 1fr; } .llp-bild { min-height: 180px; } }
+</style>

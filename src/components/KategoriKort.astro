@@ -1,0 +1,86 @@
+---
+/**
+ * KategoriKort — hubbarnas underkategorier som fotokort (design 2026).
+ *
+ * Korten kommer ur datafilens `categories`. Varje kategori har `kortbild`
+ * (eventfoto, eller produkten på lavendel där vi saknar foto) och kan peka ut
+ * en `serie` i samma datafil — då räknas från-pris och gästspann ur serien,
+ * inget skrivs in för hand. Utgångna produkter räknas inte.
+ */
+interface Kategori {
+  name: string; kortNamn?: string; href: string; desc: string;
+  kortbild?: string; kortbildW?: number; kortbildPos?: string; image?: string;
+  serie?: string;
+}
+interface Props { data: any; kolumner?: number }
+const { data, kolumner } = Astro.props;
+const kategorier: Kategori[] = data.categories ?? [];
+const fmt = (n: number) => n.toLocaleString('sv-SE');
+
+function serie(namn?: string): any[] {
+  if (!namn) return [];
+  const v = data[namn];
+  const lista = Array.isArray(v) ? v : Array.isArray(v?.products) ? v.products : [];
+  return lista.filter((p: any) => p && p.active !== false && typeof p.price === 'number');
+}
+function gaster(lista: any[]): string | null {
+  const spann = lista.map((p) => String(p.persons ?? '')).filter(Boolean).map((s) => {
+    const tal = (s.replace(/\s/g, '').match(/\d+/g) ?? []).map(Number);
+    return /upp till/i.test(s) ? [0, tal[0]] : [tal[0], tal[tal.length - 1]];
+  }).filter((t) => t.every((n) => Number.isFinite(n)));
+  if (!spann.length) return null;
+  const lo = Math.min(...spann.map((t) => t[0])), hi = Math.max(...spann.map((t) => t[1]));
+  return lo ? `${fmt(lo)}–${fmt(hi)} gäster` : `Upp till ${fmt(hi)} gäster`;
+}
+const kort = kategorier.map((k) => {
+  const lista = serie(k.serie);
+  const fran = lista.length ? Math.min(...lista.map((p) => p.price)) : null;
+  const bild = k.kortbild ?? k.image ?? '';
+  const srcset = k.kortbildW ? `${bild.replace(/\.webp$/, '-640w.webp')} 640w, ${bild} ${k.kortbildW}w` : undefined;
+  return { ...k, fran, gaster: gaster(lista), bild, srcset };
+});
+const n = kolumner ?? (kort.length >= 5 ? 5 : 4);
+---
+<div class="kk-grid" style={`--kk-n:${n}`}>
+  {kort.map((k) => (
+    <article class="kk-kort">
+      <img src={k.bild} srcset={k.srcset} sizes="(max-width: 720px) 50vw, (max-width: 1100px) 33vw, 260px" alt="" loading="lazy" decoding="async" style={k.kortbildPos ? `object-position:${k.kortbildPos}` : undefined} />
+      <span class="kk-ton" aria-hidden="true"></span>
+      <span class="kk-text">
+        <h3 class="kk-namn"><a href={k.href} title={k.name}>{k.kortNamn ?? k.name}</a></h3>
+        <span class="kk-desc">{k.desc}</span>
+        {k.fran != null
+          ? <span class="kk-pris">från <b><span class="sk-price-excl">{fmt(k.fran)} kr</span><span class="sk-price-incl hidden">{fmt(Math.round(k.fran * 1.25))} kr</span></b> /dygn</span>
+          : <span class="kk-pris">Se priser →</span>}
+        {k.gaster ? <span class="kk-chip">{k.gaster}</span> : <span></span>}
+      </span>
+    </article>
+  ))}
+</div>
+
+<style>
+  .kk-grid { display: grid; grid-template-columns: repeat(var(--kk-n), minmax(0, 1fr)); gap: 14px; }
+  .kk-kort { position: relative; border-radius: 20px; overflow: hidden; aspect-ratio: 4 / 5; background: #1e1850; }
+  .kk-kort > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .kk-kort:hover > img { transform: scale(1.04); }
+  .kk-ton { position: absolute; inset: 0; background: linear-gradient(to top, rgba(12,10,36,0.97) 0%, rgba(12,10,36,0.82) 36%, rgba(12,10,36,0) 64%); }
+  .kk-text { position: absolute; left: 1.1rem; right: 1.1rem; bottom: 1rem; display: grid; grid-template-rows: 2.2rem 2.6rem 1.4rem 1.9rem; row-gap: 0.35rem; }
+  .kk-namn { margin: 0; align-self: end; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.65rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kk-namn a { color: #fff; text-decoration: none; }
+  .kk-namn a::after { content: ''; position: absolute; inset: 0; }
+  .kk-kort:has(a:focus-visible) { outline: 2px solid #c4b5f4; outline-offset: 2px; }
+  .kk-namn a:focus-visible { outline: none; }
+  .kk-desc { font-size: 0.875rem; line-height: 1.4; color: rgba(255,255,255,0.82); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .kk-pris { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: rgba(255,255,255,0.72); white-space: nowrap; }
+  .kk-pris b { color: #c4b5f4; font-size: 1rem; }
+  .kk-chip { justify-self: start; align-self: start; font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 999px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); color: #fff; }
+  @media (max-width: 1100px) { .kk-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 720px) {
+    .kk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .kk-kort { border-radius: 16px; }
+    .kk-text { left: 0.75rem; right: 0.75rem; bottom: 0.75rem; grid-template-rows: auto auto auto; }
+    .kk-desc { display: none; }
+    .kk-namn { font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 1.05rem; }
+    .kk-chip { font-size: 0.65rem; }
+  }
+</style>

@@ -87,7 +87,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- LED PAR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-    <h2 class="text-2xl font-bold text-white mb-6">LED PAR & armaturer</h2>
+    <h2 class="sk-h2s mb-6">LED PAR & armaturer</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {ledPar.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} artno={p.artno} category="Ljuseffekter" manualUrl={p.manualUrl} />)}
     </div>
@@ -95,7 +95,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- Special effekter -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-    <h2 class="text-2xl font-bold text-white mb-6">Scanner, Strobe & Laser</h2>
+    <h2 class="sk-h2s mb-6">Scanner, Strobe & Laser</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {specialEffekter.map(p => <MediaCard title={p.title} images={[p.img]} videos={p.videos ?? []} priceExcl={p.excl} rows={p.rows} bullets={p.bullets} artno={p.artno} category="Ljuseffekter" manualUrl={p.manualUrl} />)}
     </div>
@@ -105,7 +105,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="flex flex-col sm:flex-row sm:items-end gap-3 mb-6">
       <div>
-        <h2 class="text-2xl font-bold text-white">Moving Heads</h2>
+        <h2 class="sk-h2s">Moving Heads</h2>
         <p class="text-gray-400 text-sm mt-1">Stockholms största utbud — Wash, Beam/Spot och LED Bar.</p>
       </div>
       <a href="/vara-tjanster/hyra-ljus/moving-heads/" class="sm:ml-auto text-brand-orange hover:text-brand-orange-light text-sm font-semibold shrink-0 transition-colors">
@@ -122,7 +122,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
       <div class="flex flex-col sm:flex-row sm:items-end gap-3 mb-6">
         <div>
-          <h2 class="text-2xl font-bold text-white">Scenbelysning</h2>
+          <h2 class="sk-h2s">Scenbelysning</h2>
           <p class="text-gray-400 text-sm mt-1">Klassiska scenarmaturer — Fresnel med barndoors för precis ljusformning.</p>
         </div>
       </div>
@@ -144,7 +144,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- LJUSSTYRNING (DMX) -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">Ljusstyrning (DMX)</h2>
+    <h2 class="sk-h2s mb-6">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {(ljusData.dmx?.tillbehor ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={(p.price ?? 0) >= 400} specs={p.specs ?? []} manualUrl={p.manualUrl} />
@@ -154,7 +154,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 
   <!-- EL-TILLBEHÖR -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <h2 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-3">El-tillbehör</h2>
+    <h2 class="sk-h2s mb-6">El-tillbehör</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
       {(_elData.products.filter((p:any) => !p.categories || p.categories.includes('ljus')) ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="El-tillbehör" artno={p.artno} priceNote={p.priceNote ?? '/dygn'} />

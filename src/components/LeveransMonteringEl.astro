@@ -42,40 +42,51 @@ const rulle25 = elPris('SK-EL-0008');
 const kr = (n: number) => n.toLocaleString('sv-SE');
 ---
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14" id="leverans">
-  <div class="bg-brand-navy border border-white/10 rounded-2xl p-6 sm:p-8">
-    <p class="text-brand-orange text-xs font-bold uppercase tracking-widest mb-2" style="font-family:'Space Grotesk',sans-serif">Praktiskt</p>
-    <h2 class="text-2xl text-white mb-6" style="font-family:'DM Serif Display',serif;">Leverans, montering &amp; el</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
-        <h3 class="font-bold text-white mb-2">Hämta själv</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">Kostnadsfritt i Vällingby. Hämtning från kl 13:00, återlämning senast kl 11:00 nästa dag. Allt är packat och testat.</p>
+  <div>
+    <p class="sk-eyebrow">Praktiskt</p>
+    <h2 class="sk-h2" style="margin-bottom:1.75rem">Leverans, montering &amp; el</h2>
+    <div class="lme-grid">
+      <div class="lme-ruta">
+        <h3 class="lme-h3">Hämta själv</h3>
+        <p class="lme-p">Kostnadsfritt i Vällingby. Hämtning från kl 13:00, återlämning senast kl 11:00 nästa dag. Allt är packat och testat.</p>
       </div>
-      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
-        <h3 class="font-bold text-white mb-2">Leverans &amp; upphämtning</h3>
-        <p class="text-gray-400 text-sm leading-relaxed mb-3">I hela Storstockholm, tur och retur. Fordonet väljs efter vad du hyr och priset syns direkt i varukorgen.</p>
+      <div class="lme-ruta">
+        <h3 class="lme-h3">Leverans &amp; upphämtning</h3>
+        <p class="lme-p mb-3">I hela Storstockholm, tur och retur. Fordonet väljs efter vad du hyr och priset syns direkt i varukorgen.</p>
         <ul class="text-sm space-y-1">
           <li class="flex justify-between gap-3"><span class="text-gray-400">Vanlig bil</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={L.standard.pris}>{kr(L.standard.pris)}</span> kr</span></li>
           <li class="flex justify-between gap-3"><span class="text-gray-400">Stor bil</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={L.storbil.pris}>{kr(L.storbil.pris)}</span> kr</span></li>
           <li class="flex justify-between gap-3"><span class="text-gray-400">Lätt lastbil</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={L.lastbil.pris}>{kr(L.lastbil.pris)}</span> kr</span></li>
         </ul>
       </div>
-      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
-        <h3 class="font-bold text-white mb-2">Montering &amp; demontering</h3>
-        <p class="text-gray-400 text-sm leading-relaxed mb-3">Vi ställer upp, testar och plockar ned. <span data-exkl={P.prisPerTimme}>{kr(P.prisPerTimme)}</span> kr/tim, avrundat uppåt till närmaste kvart. Exempel:</p>
+      <div class="lme-ruta">
+        <h3 class="lme-h3">Montering &amp; demontering</h3>
+        <p class="lme-p mb-3">Vi ställer upp, testar och plockar ned. <span data-exkl={P.prisPerTimme}>{kr(P.prisPerTimme)}</span> kr/tim, avrundat uppåt till närmaste kvart. Exempel:</p>
         <ul class="text-sm space-y-1">
           {exempelRader.map((r: any) => (
             <li class="flex justify-between gap-3"><span class="text-gray-400">{r.name.replace(/^Ljuspaket, /, '')}</span><span class="text-white font-semibold whitespace-nowrap"><span data-exkl={r.kronor}>{kr(r.kronor)}</span> kr</span></li>
           ))}
         </ul>
       </div>
-      <div class="bg-brand-dark border border-white/10 rounded-xl p-5">
-        <h3 class="font-bold text-white mb-2">El</h3>
+      <div class="lme-ruta">
+        <h3 class="lme-h3">El</h3>
         {typ === 'ljus'
-          ? <p class="text-gray-400 text-sm leading-relaxed">Ett vanligt 10 A-uttag räcker i de flesta fall. Stort paket med ljud, ljus och rök: ta el från minst två uttag på olika faser. Utan el: elverk från <span data-exkl={elverkLiten}>{kr(elverkLiten)}</span> kr/dygn.</p>
-          : <p class="text-gray-400 text-sm leading-relaxed">Ett vanligt 10 A-uttag räcker i de flesta fall. Stora ljudpaket med flera subbasar: ta el från minst två uttag på olika faser. Utan el: batterihögtalare, eller elverk från <span data-exkl={elverkLiten}>{kr(elverkLiten)}</span> kr/dygn.</p>}
+          ? <p class="lme-p">Ett vanligt 10 A-uttag räcker i de flesta fall. Stort paket med ljud, ljus och rök: ta el från minst två uttag på olika faser. Utan el: elverk från <span data-exkl={elverkLiten}>{kr(elverkLiten)}</span> kr/dygn.</p>
+          : <p class="lme-p">Ett vanligt 10 A-uttag räcker i de flesta fall. Stora ljudpaket med flera subbasar: ta el från minst två uttag på olika faser. Utan el: batterihögtalare, eller elverk från <span data-exkl={elverkLiten}>{kr(elverkLiten)}</span> kr/dygn.</p>}
         <p class="text-gray-400 text-xs mt-3">Grenuttag på rulle 25 m <span data-exkl={rulle25}>{kr(rulle25)}</span> kr · elverk 6 000 W <span data-exkl={elverkStor}>{kr(elverkStor)}</span> kr</p>
       </div>
     </div>
-    <p class="text-gray-400 text-xs mt-5">{L.zon}</p>
+    <p class="lme-zon">{L.zon}</p>
   </div>
 </section>
+
+<style>
+  .lme-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .lme-ruta { background: #0c0a24; padding: 1.5rem; }
+  .lme-h3 { margin: 0 0 0.5rem; color: #fff; font-size: 1.1rem; font-weight: 700; }
+  .lme-p { font-size: 0.95rem; line-height: 1.55; color: rgba(255,255,255,0.72); }
+  .lme-ruta ul { margin-top: 0.6rem; }
+  .lme-zon { margin: 0.9rem 0 0; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+  @media (max-width: 1000px) { .lme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .lme-grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
