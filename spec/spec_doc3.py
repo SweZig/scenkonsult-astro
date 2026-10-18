@@ -320,7 +320,7 @@ DOC3 = dict(
               "llms.txt och JSON-LD. Rapporten skrivs till projektet som "
               "`claude/AI_Synlighet_Test_<datum>.md`. Baslinje: 2026-10-02."),
 
-        ("h1", "9. Startsidan (omgjord 2026-10-18)"),
+        ("h1", "8. Startsidan (omgjord 2026-10-18)"),
         ("p", "h1 **\"Hyra scen, ljud, ljus & bild i Stockholm\"** — sökorden ska stå i rubriken; en tidigare "
               "variant (\"Scen, ljud, ljus & bild — klart till ert event.\") tappade \"hyra\" och "
               "\"Stockholm\" och rättades samma dag. Sektioner: hero med fyra växlande eventfoton, "
@@ -330,7 +330,7 @@ DOC3 = dict(
               "bilder: Ljus = German Beer Hall, Karaoke = `plugg_karaoke_sang` (beskuren så att "
               "låttexten på skärmen inte syns)."),
 
-        ("h1", "8. Ändringshistorik"),
+        ("h1", "9. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
             ["v19.0", "2026-10-18",
@@ -338,7 +338,7 @@ DOC3 = dict(
              "att scenpaket inte läggs som paketrad, §2.4 GuideLayout, §2.5 informationssidorna och SidHuvud, "
              "§2.7 ortsmallen, §3 rubrikkomponenterna sköter nav-offset, §5 en knapp och kundläge, §6 "
              "rubriken \"Våra mest bokade paket\" med flikar och hubbarnas övriga delar, §7 sitemap-filtret, "
-             "ny §9 Startsidan."],
+             "ny §8 Startsidan (historiken flyttad till §9)."],
             ["v18.6", "2026-10-18",
              "§1.1 Kunskap ligger i toppmenyn. §4 100+ referenskunder. YouTube-filmer på startsidan och Svens Kunskapsskola laddas först vid klick."],
             ["v18.5", "2026-10-17",
