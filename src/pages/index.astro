@@ -101,7 +101,8 @@ const SNABBVAL: [string, string][] = [
 const KATALOGER: [any, string][] = [[ljudData, 'Ljud'], [ljusData, 'Ljus'], [bildData, 'Bild'], [scenesData, 'Scen'], [djData, 'DJ']];
 const ALLA: any[] = KATALOGER.flatMap(([d, kat]) => Object.values(d).flatMap((v: any) => {
   if (Array.isArray(v)) return v.filter((p: any) => p && typeof p === 'object' && p.artno);
-  if (v && typeof v === 'object' && Array.isArray(v.products)) return v.products;
+  // En serie kan ha flera listor (ljud.live har products och lineArray) — ta alla.
+  if (v && typeof v === 'object') return Object.values(v).filter(Array.isArray).flat().filter((p: any) => p && typeof p === 'object' && p.artno);
   return [];
 }).map((p: any) => ({ ...p, _kat: kat })));
 const hitta = (a: string) => ALLA.find((p) => p.artno === a && p.active !== false);
@@ -239,7 +240,7 @@ const homeSchema = {
   </div>
   <div class="st-kort-grid">
     {KORT.map((k: any) => (
-      <article class="st-kort">
+      <article class="st-kort" data-helkort>
         <img src={k.bild.src} srcset={k.srcset} sizes="(max-width: 720px) 50vw, (max-width: 1100px) 33vw, 300px" alt={k.bild.alt} loading="lazy" decoding="async" style={`object-position:${k.bild.pos}`} />
         <div class="st-kort-ton" aria-hidden="true"></div>
         <div class="st-kort-text">
@@ -281,7 +282,7 @@ const homeSchema = {
         <div class="st-panel" role="tabpanel" id={`panel-${f.nyckel}`} aria-labelledby={`tab-${f.nyckel}`} hidden={i !== 0}>
           <ol>
             {f.rader.map((r: any, j: number) => (
-              <li class="st-rad">
+              <li class="st-rad" data-helkort>
                 <span class="st-rang">{String(j + 1).padStart(2, '0')}</span>
                 <span class="st-tummar">
                   {r.produkter.map((p: any) => p.image && <img src={p.image} alt="" width="128" height="107" loading="lazy" decoding="async" />)}
@@ -482,7 +483,6 @@ const homeSchema = {
   .st-kort-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 1.25rem 1.1rem; display: grid; grid-template-rows: 24px 34px 42px 24px 88px; row-gap: 8px; }
   .st-kort-namn { margin: 0; align-self: end; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.75rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .st-kort-lank { color: #fff; text-decoration: none; }
-  .st-kort-lank::after { content: ''; position: absolute; inset: 0; z-index: 1; }
   .st-kort-lank:focus-visible { outline: none; }
   .st-kort:has(.st-kort-lank:focus-visible) { outline: 2px solid #c4b5f4; outline-offset: 2px; }
   .st-kort-desc { margin: 0; font-size: 0.875rem; line-height: 1.5; color: rgba(255,255,255,0.82); overflow: hidden; }

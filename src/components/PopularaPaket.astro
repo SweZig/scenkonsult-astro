@@ -46,7 +46,8 @@ const kataloger: any[] = Array.isArray(data) ? data : [data];
 const kategorier: string[] = Array.isArray(category) ? category : kataloger.map(() => category);
 const alla: any[] = kataloger.flatMap((d: any, i: number) => Object.values(d).flatMap((v: any) => {
   if (Array.isArray(v)) return v.filter((p: any) => p && typeof p === 'object' && p.artno);
-  if (v && typeof v === 'object' && Array.isArray(v.products)) return v.products;
+  // En serie kan ha flera listor (ljud.live har products och lineArray) — ta alla.
+  if (v && typeof v === 'object') return Object.values(v).filter(Array.isArray).flat().filter((p: any) => p && typeof p === 'object' && p.artno);
   return [];
 }).map((p: any) => ({ ...p, _kategori: kategorier[i] ?? kategorier[0] })));
 const byArtno = (a: string) => alla.find((p) => p.artno === a && p.active !== false);
@@ -81,7 +82,7 @@ const kr = (n: number) => n.toLocaleString('sv-SE');
           {g.lead && <p class="pp-panel-lead">{g.lead}</p>}
           <ol>
             {g.produkter.map((p: any, i: number) => (
-              <li class="pp-rad" itemscope itemtype="https://schema.org/Product">
+              <li class="pp-rad" data-helkort itemscope itemtype="https://schema.org/Product">
                 {/* Bild och specar visas inte i topplistan, men produktdatan ligger
                     kvar som dolda meta-taggar sa att rich results bevaras. */}
                 <meta itemprop="brand" content="Scenkonsult Norden" />

@@ -2322,6 +2322,20 @@ const localBusinessSchema = {
         setTimeout(function () { kort.classList.remove('sk-ankare-mal'); }, 2600);
       }
       window.skAnkare = skAnkare;
+      // Hela kortet klickbart: element med data-helkort leder till kortets
+      // första länk. Klick på egna länkar, knappar och fält inuti gör sitt
+      // eget (t.ex. köpknappen). Ctrl/Cmd-klick öppnar i ny flik.
+      document.addEventListener('click', function (e) {
+        var kort = e.target.closest && e.target.closest('[data-helkort]');
+        if (!kort || e.defaultPrevented || e.button !== 0) return;
+        var egen = e.target.closest('a, button, input, select, textarea, label, summary, [role="button"]');
+        if (egen && kort.contains(egen)) return;
+        if (String(window.getSelection && window.getSelection()).length > 0) return;
+        var lank = kort.querySelector('a[data-helkort-lank]') || kort.querySelector('a[href]:not([href^="#"])');
+        if (!lank) return;
+        if (e.metaKey || e.ctrlKey) window.open(lank.href, '_blank');
+        else window.location.href = lank.href;
+      });
       if (document.readyState === 'complete') skAnkare();
       else window.addEventListener('load', skAnkare);
       window.addEventListener('hashchange', skAnkare);
