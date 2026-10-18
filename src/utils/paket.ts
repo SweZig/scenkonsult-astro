@@ -34,7 +34,7 @@ export type PaketDef = {
   beskrivning?: string;
   rader: PaketRad[];
   featured?: boolean;
-  // Sätt round=false för exakt JSON-summa (t.ex. studentflak). Default: avrunda nedåt till hel 100-lapp.
+  // Används inte längre — från-priset är alltid den exakta summan (2026-10-18). Kvar för äldre anrop.
   round?: boolean;
 };
 
@@ -59,7 +59,9 @@ export function buildPaket(def: PaketDef): Paket {
     return { ...r, qty, name: p.name, unitPrice: p.price, radPrice: p.price * qty };
   });
   const summa = rader.reduce((s, r) => s + r.radPrice, 0);
-  const franPris = def.round === false ? summa : Math.floor(summa / 100) * 100;
+  // Från-priset är den verkliga summan — det får aldrig ligga under vad kunden betalar
+  // (avrundades tidigare nedåt till hela hundratal: 2 225 visades som "från 2 200").
+  const franPris = summa;
   return { ...def, rader, summa, franPris };
 }
 
