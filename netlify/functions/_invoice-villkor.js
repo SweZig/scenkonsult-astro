@@ -84,4 +84,25 @@ function getVillkor(cart) {
   };
 }
 
-module.exports = { getVillkor, VILLKOR_B2C, VILLKOR_B2B, VILLKOR_DATE };
+/**
+ * Betalningsvillkor och förfallodag för en faktura — EN regel för både skickad
+ * faktura (invoice-send) och nedladdad PDF (invoice-pdf-download).
+ *   - payment_terms_days satt (även 0 = Förskott) → används
+ *   - saknas → B2B: 5 dagar netto, B2C: 0 (Förskott)
+ *   - invoice_due_date satt → vinner, annars fakturadatum + terms
+ */
+function betalvillkor(cart, invDate) {
+  const termsDefault = (getVillkor(cart).type === 'b2b') ? 5 : 0;
+  const terms = (cart.payment_terms_days === 0 || cart.payment_terms_days)
+    ? parseInt(cart.payment_terms_days)
+    : termsDefault;
+  const isForskott = terms === 0;
+  const dueDate = cart.invoice_due_date || (() => {
+    // Förskott: förfaller samma dag (betalas före utlämning).
+    const d = new Date(invDate); d.setDate(d.getDate() + terms);
+    return d.toISOString().slice(0,10);
+  })();
+  return { terms, isForskott, dueDate };
+}
+
+module.exports = { getVillkor, betalvillkor, VILLKOR_B2C, VILLKOR_B2B, VILLKOR_DATE };

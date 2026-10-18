@@ -1,6 +1,8 @@
 // netlify/functions/skicka-feedback.js
 // Resend API — ljust mailtheme, rate limit-hantering
 
+const { escapeHtml } = require('./_lib');
+
 const RATE_LIMIT = {};
 const RATE_WINDOW_MS = 60 * 1000;
 const RATE_MAX = 3;
@@ -46,7 +48,7 @@ exports.handler = async (event) => {
   try { data = JSON.parse(event.body); }
   catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltig data' }) }; }
 
-  if (data.website || data.honeypot) {
+  if (data.website || data.phone2 || data.honeypot) {
     console.log('SPAM_HONEYPOT_FEEDBACK');
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   }
@@ -82,17 +84,21 @@ exports.handler = async (event) => {
 
   const plainInternal = `Ny feedback — ${typ||'Okand typ'}\n\nFran: ${displayNamn}\nE-post: ${epost||'-'}\nBetyg: ${ratingPlain}\n\nMeddelande:\n${meddelande}\n\n---\nScenkonsult Norden | 072-448 10 00`;
 
+  // Formulärdata escapas innan den hamnar i mail-HTML.
+  const hTyp = escapeHtml(typ || 'Okand typ'), hNamn = escapeHtml(displayNamn), hEpost = escapeHtml(epost);
+  const hMedd = escapeHtml(meddelande).replace(/\n/g,'<br>');
+
   const htmlInternal = htmlWrapper('Ny feedback', `
-    <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Ny feedback — ${typ||'Okand typ'}</h2>
+    <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Ny feedback — ${hTyp}</h2>
     <p style="margin:0 0 20px;color:#888;font-size:13px;">Mottaget via scenkonsult.se</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
-      <tr><td style="padding:7px 0;color:#666;font-size:13px;width:120px;border-bottom:1px solid #f0f0f5;">Fran</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${displayNamn}</td></tr>
-      ${epost ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">E-post</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="mailto:${epost}" style="color:#4a3faa;">${epost}</a></td></tr>` : ''}
+      <tr><td style="padding:7px 0;color:#666;font-size:13px;width:120px;border-bottom:1px solid #f0f0f5;">Fran</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${hNamn}</td></tr>
+      ${epost ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">E-post</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="mailto:${hEpost}" style="color:#4a3faa;">${hEpost}</a></td></tr>` : ''}
       ${ratingHtmlRow}
     </table>
     <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;">
       <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Meddelande</p>
-      <p style="margin:0;color:#222;font-size:15px;line-height:1.7;">${meddelande.replace(/\n/g,'<br>')}</p>
+      <p style="margin:0;color:#222;font-size:15px;line-height:1.7;">${hMedd}</p>
     </div>`);
 
   try {
@@ -114,7 +120,7 @@ exports.handler = async (event) => {
           <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi uppskattar att du tog dig tid att skriva till oss. Din feedback hjalper oss att bli battre!</p>
           <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;">
             <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Ditt meddelande</p>
-            <p style="margin:0;color:#333;font-size:14px;line-height:1.7;">${meddelande.replace(/\n/g,'<br>')}</p>
+            <p style="margin:0;color:#333;font-size:14px;line-height:1.7;">${hMedd}</p>
           </div>`);
         await sendEmail(apiKey, { from: FROM, to: [epost], subject: 'Tack for din feedback — Scenkonsult', html: htmlCustomer, text: plainCustomer });
         console.log('KUNDKOPIA_SENT to:', epost);

@@ -7,7 +7,7 @@
 //                 → skickas som offertpåminnelse med egen mailmall
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit } = require('./_lib');
+const { supabase, isAdmin, ok, err, preflight, logAudit, rateLimit, escapeHtml: escHtml } = require('./_lib');
 
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
@@ -48,12 +48,6 @@ async function sendMail(to, subject, html, text, replyTo, cc) {
 // Nej-länken öppnar bara en dialog på ordersidan — själva nej-svaret kräver ett
 // klick där (POST). Mailskannrar (Outlook Safe Links m.fl.) öppnar länkar
 // automatiskt, så en GET får aldrig ändra något.
-function escHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, ch => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
-  ));
-}
-
 // Escapa, gör [text](https://…) till länkar och radbrytningar till <br>
 function reminderTextToHtml(text) {
   return escHtml(text)
@@ -222,8 +216,8 @@ exports.handler = async (event) => {
         // Kund → notis till admin
         const html = mailWrapper(`
           <h2 style="color:#1e1850;margin:0 0 16px;">💬 Nytt meddelande från kund</h2>
-          <p style="color:#555;margin:0 0 8px;"><strong>${cart.customer_name || 'Kund'}</strong> har skickat ett meddelande på varukorg <strong>${cart.id}</strong>:</p>
-          <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${msgText.replace(/\n/g, '<br>')}</div>
+          <p style="color:#555;margin:0 0 8px;"><strong>${escHtml(cart.customer_name || 'Kund')}</strong> har skickat ett meddelande på varukorg <strong>${escHtml(cart.id)}</strong>:</p>
+          <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${escHtml(msgText).replace(/\n/g, '<br>')}</div>
           ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Öppna varukorg →</a></p>` : ''}
         `);
         await sendMail(
@@ -244,7 +238,7 @@ exports.handler = async (event) => {
         const html = mailWrapper(`
           <h2 style="color:#1e1850;margin:0 0 16px;">Svar från Scenkonsult Norden</h2>
           <p style="color:#555;margin:0 0 8px;">Vi har skickat ett meddelande angående din ${cart.status === 'new' ? 'förfrågan' : 'offert/bokning'}:</p>
-          <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${msgText.replace(/\n/g, '<br>')}</div>
+          <div style="background:#f7f7fb;border-left:4px solid #c4b5f4;padding:16px;border-radius:0 8px 8px 0;margin:16px 0;color:#333;font-size:15px;line-height:1.6;">${escHtml(msgText).replace(/\n/g, '<br>')}</div>
           ${cartUrl ? `<p style="margin:24px 0 0;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Svara på meddelandet →</a></p>` : ''}
           <p style="color:#888;font-size:13px;margin:16px 0 0;">${cart.status === 'new'
             ? 'Via länken kan du se din förfrågan och svara oss direkt i chatten.'

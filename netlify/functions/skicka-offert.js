@@ -6,7 +6,7 @@
 'use strict';
 const {
   supabase: createSupabase, generateCartToken, logAudit,
-  htmlWrapper, sendEmail, MAIL_FROM,
+  htmlWrapper, sendEmail, MAIL_FROM, escapeHtml, safeEqual,
 } = require('./_lib');
 const { checkMontering } = require('./_montering');
 
@@ -61,23 +61,40 @@ exports.handler = async (event) => {
 
   // ── Supabase: spara förfrågan med status "new" ─────────────────
   const rawCartId = cart_id || null;
-  const cartId = rawCartId && /^SK-[0-9A-F]{8}-[0-9A-F]{4}$/i.test(rawCartId) ? rawCartId : null;
+  let cartId = rawCartId && /^SK-[0-9A-F]{8}-[0-9A-F]{4}$/i.test(rawCartId) ? rawCartId : null;
   if (rawCartId && !cartId) console.warn('OFFERT: ogiltigt cart_id ignorerat:', rawCartId);
 
   if (cartId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
     try {
       const db = createSupabase();
       const totalExcl = (cart || []).reduce((s, i) => s + ((i.price || 0) * (i.qty || i.quantity || 1)), 0);
-      const cartToken = generateCartToken();
+      let cartToken = generateCartToken();
 
-      // Skydda befintliga hanterade ordrar
-      const { data: existing } = await db.from('carts')
-        .select('status').eq('id', cartId).single().catch(() => ({ data: null }));
+      // Ett befintligt cart-id återanvänds bara av samma avsändare och bara så länge
+      // ordern är obehandlad ('new'). Annars får förfrågan ett nytt id — ingen kan
+      // skriva över någon annans varukorg genom att känna till id:t.
+      let existing = null, lookupFailed = false;
+      try {
+        ({ data: existing } = await db.from('carts').select('status,cart_token,customer_email').eq('id', cartId).single());
+      } catch (e) { lookupFailed = true; console.warn('OFFERT_LOOKUP_ERROR:', e.message); }
 
-      const PROTECTED = ['waiting', 'confirmed', 'fakturerad', 'completed'];
-      if (existing && PROTECTED.includes(existing.status)) {
-        console.error('OFFERT_BLOCKED: Försök att skriva över skyddad cart', cartId, existing.status);
-      } else {
+      if (existing || lookupFailed) {
+        // Samma ägare = har länkens cart_token, eller (eftersom varukorgen inte sparar
+        // token) skickar igen med samma e-postadress. Ett id räcker aldrig ensamt.
+        const sammaEpost = existing && existing.customer_email && customer.email
+          && String(existing.customer_email).trim().toLowerCase() === String(customer.email).trim().toLowerCase();
+        const sammaToken = existing && typeof data.cart_token === 'string' && safeEqual(data.cart_token, existing.cart_token || '');
+        const sammaAgare = existing && existing.status === 'new' && (sammaToken || sammaEpost);
+        if (sammaAgare) {
+          cartToken = existing.cart_token;
+        } else {
+          const hx = require('crypto').randomBytes(6).toString('hex').toUpperCase();
+          const nyttId = `SK-${hx.slice(0,8)}-${hx.slice(8,12)}`;
+          console.warn('OFFERT_NYTT_ID: befintligt cart-id återanvänds inte', cartId, existing?.status || 'lookup-fel', '→', nyttId);
+          cartId = nyttId;
+        }
+      }
+      {
         await db.upsert('carts', {
           id:               cartId,
           status:           'new',
@@ -122,22 +139,29 @@ exports.handler = async (event) => {
     ? '🏠 Självhämtning — Grimstagatan 164, Vällingby (tidsbokning)'
     : `📍 ${customer.address || '–'}`;
 
+  // Kunddata escapas innan den hamnar i mail-HTML.
+  const h = {
+    name: escapeHtml(customer.name), email: escapeHtml(customer.email), phone: escapeHtml(customer.phone),
+    company: escapeHtml(customer.company), notes: escapeHtml(customer.notes),
+    datum: escapeHtml(datumStr), delivery: escapeHtml(deliveryInfo),
+  };
+
   // ── Internt mail (fullständig info för admin) ─────────────────
   const htmlInternal = htmlWrapper(`
     <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Ny offertförfrågan</h2>
     <p style="margin:0 0 20px;color:#888;font-size:13px;">Inkommen via scenkonsult.se</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-      <tr><td style="padding:7px 0;color:#666;font-size:13px;width:130px;border-bottom:1px solid #f0f0f5;">Namn</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${customer.name}</td></tr>
-      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">E-post</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="mailto:${customer.email}" style="color:#1e1850;">${customer.email}</a></td></tr>
-      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Telefon</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="tel:${customer.phone}" style="color:#1e1850;">${customer.phone}</a></td></tr>
-      ${customer.company ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Företag</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${customer.company}</td></tr>` : ''}
-      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Datum</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${datumStr}</td></tr>
-      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Leverans</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${deliveryInfo}</td></tr>
-      ${customer.notes ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Övrigt</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${customer.notes}</td></tr>` : ''}
+      <tr><td style="padding:7px 0;color:#666;font-size:13px;width:130px;border-bottom:1px solid #f0f0f5;">Namn</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${h.name}</td></tr>
+      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">E-post</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="mailto:${h.email}" style="color:#1e1850;">${h.email}</a></td></tr>
+      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Telefon</td><td style="padding:7px 0;font-size:14px;border-bottom:1px solid #f0f0f5;"><a href="tel:${h.phone}" style="color:#1e1850;">${h.phone}</a></td></tr>
+      ${customer.company ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Företag</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${h.company}</td></tr>` : ''}
+      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Datum</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${h.datum}</td></tr>
+      <tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Leverans</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${h.delivery}</td></tr>
+      ${customer.notes ? `<tr><td style="padding:7px 0;color:#666;font-size:13px;border-bottom:1px solid #f0f0f5;">Övrigt</td><td style="padding:7px 0;color:#111;font-size:14px;border-bottom:1px solid #f0f0f5;">${h.notes}</td></tr>` : ''}
     </table>
     <p style="margin:0 0 10px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Önskad utrustning</p>
     <ul style="margin:0 0 24px;padding-left:20px;color:#444;font-size:14px;line-height:1.8;">
-      ${(cart||[]).filter(i=>!i._note&&i.name).map(i=>`<li>${i.name}${(i.qty||1)>1?' × '+(i.qty||1):''}</li>`).join('')}
+      ${(cart||[]).filter(i=>!i._note&&i.name).map(i=>`<li>${escapeHtml(i.name)}${(i.qty||1)>1?' × '+escapeHtml(i.qty||1):''}</li>`).join('')}
     </ul>
     <p style="margin:12px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;">Hantera i adminpanelen →</a></p>
   `);
@@ -146,13 +170,13 @@ exports.handler = async (event) => {
 
   // ── Kvittensmail till kunden (enkel bekräftelse, ingen produktlista) ──
   const htmlCustomer = htmlWrapper(`
-    <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${customer.name}!</h2>
+    <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${h.name}!</h2>
     <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi har tagit emot din offertförfrågan och återkommer till dig inom kort — vanligtvis inom en arbetsdag.</p>
     <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Har du frågor i mellantiden? Ring oss på <a href="tel:0724481000" style="color:#1e1850;font-weight:600;">072-448 10 00</a> eller svara på detta mail.</p>
     <div style="background:#f7f7fb;border-radius:8px;padding:16px 20px;margin-top:8px;">
       <p style="margin:0 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">Din förfrågan gäller</p>
-      <p style="margin:0;color:#444;font-size:14px;">📅 ${datumStr !== '–' ? datumStr : 'Datum ej angivet'}</p>
-      ${deliveryInfo ? `<p style="margin:4px 0 0;color:#444;font-size:14px;">${deliveryInfo}</p>` : ''}
+      <p style="margin:0;color:#444;font-size:14px;">📅 ${datumStr !== '–' ? h.datum : 'Datum ej angivet'}</p>
+      ${deliveryInfo ? `<p style="margin:4px 0 0;color:#444;font-size:14px;">${h.delivery}</p>` : ''}
     </div>
   `);
 

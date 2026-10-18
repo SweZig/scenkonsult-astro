@@ -11,12 +11,13 @@
 
 'use strict';
 
-const { supabase: createSupabase, logAudit, getTakenInvoiceNumbers, isBookingFee } = require('./_lib');
+const { isAdmin, escapeHtml, supabase: createSupabase, logAudit, getTakenInvoiceNumbers, isBookingFee } = require('./_lib');
 const { dayNote: _dayNote } = require('./_day-display');
 const PDFDocument = require('pdfkit');
 const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
 
 const RESEND_API = 'https://api.resend.com/emails';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
 
 function fmtKr(n) { return (parseInt(n) || 0).toLocaleString('sv-SE').replace(/\u00A0/g, ' ').replace(/\u2212/g, '-') + ' kr'; }
@@ -250,7 +251,7 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#b91c1c;margin:0 0 8px;">Kreditfaktura ${creditNumber}</h2>
   <p style="color:#666;font-size:13px;margin:0 0 18px;">Krediterar faktura ${cart.invoice_number || '—'}</p>
-  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${cart.customer_name?.split(' ')[0] || ''},</p>
+  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${escapeHtml(cart.customer_name?.split(' ')[0] || '')},</p>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Bifogat finner du kreditfaktura <strong>${creditNumber}</strong>${refundPercent != null && refundPercent < 100 ? ` (partiell kreditering ${refundPercent} %)` : ''}. Beloppet på <strong>${Math.abs(totalIncl).toLocaleString('sv-SE')} kr</strong> inkl. moms återbetalas till samma betalmedel som ursprungsfakturan inom 10 arbetsdagar.</p>
   <p style="color:#444;line-height:1.7;margin:0 0 6px;">Hör av dig om du har frågor.</p>
   <p style="color:#444;line-height:1.7;margin:0;">Vänliga hälsningar,<br><strong>Scenkonsult Norden</strong></p>
@@ -282,15 +283,16 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
 
-  // Intern kopia (fire-and-forget)
-  fetch(RESEND_API, {
+  // Intern kopia — 600 ms efter kundmailet (Resends rate limit)
+  await sleep(600);
+  await fetch(RESEND_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
       from: FROM, to: ['info@scenkonsult.se'],
       reply_to: cart.customer_email || 'info@scenkonsult.se',
       subject: `Kreditfaktura ${creditNumber} skickad → ${toEmail}`,
-      html: `<p>Kreditfaktura <strong>${creditNumber}</strong> skickad till ${toEmail}.<br>Ursprungsfaktura: ${cart.invoice_number || '—'}<br>Belopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms${refundPercent != null && refundPercent < 100 ? ` (${refundPercent} %)` : ''}</p>`,
+      html: `<p>Kreditfaktura <strong>${creditNumber}</strong> skickad till ${escapeHtml(toEmail)}.<br>Ursprungsfaktura: ${cart.invoice_number || '—'}<br>Belopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms${refundPercent != null && refundPercent < 100 ? ` (${refundPercent} %)` : ''}</p>`,
       text: `Kreditfaktura ${creditNumber} skickad till ${toEmail}.\nUrsprungsfaktura: ${cart.invoice_number || '—'}\nBelopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms`,
       attachments: [{ filename: `Kreditfaktura_${creditNumber}_Scenkonsult.pdf`, content: pdfBuffer.toString('base64') }],
     }),
@@ -338,9 +340,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
-  const adminToken = process.env.ADMIN_TOKEN;
-  const auth = (event.headers['authorization'] || '').replace('Bearer ', '');
-  if (!adminToken || auth !== adminToken)
+  if (!isAdmin(event))
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Ej behörig' }) };
 
   let body;

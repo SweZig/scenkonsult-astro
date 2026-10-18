@@ -5,7 +5,7 @@
 'use strict';
 const crypto = require('crypto');
 const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err, preflight,
-        htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
+        htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM, escapeHtml } = require('./_lib');
 const { daySummary: _daySummary, itemDays: _itemDays } = require('./_day-display');
 const { checkMontering } = require('./_montering');
 
@@ -154,7 +154,7 @@ exports.handler = async (event) => {
            ${realItems.map(i => {
              const d = _itemDays(i);
              const meta = [(i.qty||1) > 1 ? `× ${i.qty}` : '', d > 1 ? `${d} dygn` : ''].filter(Boolean).join(' · ');
-             return `<li>${i.name}${meta ? ` <span style="color:#888;">${meta}</span>` : ''}</li>`;
+             return `<li>${escapeHtml(i.name)}${meta ? ` <span style="color:#888;">${meta}</span>` : ''}</li>`;
            }).join('')}
          </ul>
        </div>`
@@ -190,8 +190,8 @@ exports.handler = async (event) => {
 
   const eventInfo = (datumStr || platsStr)
     ? `<div style="margin:0 0 22px;padding:12px 14px;background:#fafaff;border-radius:8px;color:#555;font-size:13px;line-height:1.7;">
-         ${datumStr ? `<div>📅 ${datumStr}</div>` : ''}
-         ${platsStr ? `<div>📍 ${platsStr}</div>` : ''}
+         ${datumStr ? `<div>📅 ${escapeHtml(datumStr)}</div>` : ''}
+         ${platsStr ? `<div>📍 ${escapeHtml(platsStr)}</div>` : ''}
        </div>`
     : '';
 
@@ -202,8 +202,8 @@ exports.handler = async (event) => {
     </div>`;
 
   const htmlBody = `
-    <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px;">Hej ${customer.name}!</h2>
-    ${customer.company ? `<p style="margin:0 0 16px;padding:10px 14px;background:#f7f7fb;border-radius:6px;color:#555;font-size:14px;"><span style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;display:block;margin-bottom:2px;">Offert till företag</span><strong style="color:#1e1850;">${customer.company}</strong>${customer.orgnr ? ` <span style="color:#888;font-size:12px;">· Org.nr ${customer.orgnr}</span>` : ''}</p>` : ''}
+    <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px;">Hej ${escapeHtml(customer.name)}!</h2>
+    ${customer.company ? `<p style="margin:0 0 16px;padding:10px 14px;background:#f7f7fb;border-radius:6px;color:#555;font-size:14px;"><span style="color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;display:block;margin-bottom:2px;">Offert till företag</span><strong style="color:#1e1850;">${escapeHtml(customer.company)}</strong>${customer.orgnr ? ` <span style="color:#888;font-size:12px;">· Org.nr ${escapeHtml(customer.orgnr)}</span>` : ''}</p>` : ''}
     <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 24px;">Vi har satt ihop en offert åt dig. Klicka nedan för att se den fullständiga specifikationen — där kan du också ställa frågor, justera och bekräfta direkt.</p>
     ${bigCta}
     ${noteHtml}

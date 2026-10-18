@@ -407,7 +407,10 @@ function logEvent(data) {
   console.log("SVEN_LOG:" + JSON.stringify({ timestamp: new Date().toISOString(), ...data }));
 }
 
-// Lägg till kundtyp som kontext i system prompt
+// Lägg till kundtyp som kontext i system prompt.
+// Den stora statiska delen (SYSTEM_PROMPT) skickas som eget block med
+// cache_control så att Anthropic kan cacha den mellan anrop; kundtypen ligger
+// i ett separat, litet block efter cache-gränsen.
 function buildSystemPrompt(customerType) {
   const suffix = customerType === "company"
     ? "\n\nKUNDTYP: Företag — visa ALLTID priser EXKL. moms."
@@ -416,7 +419,25 @@ function buildSystemPrompt(customerType) {
     : customerType === "org"
     ? "\n\nKUNDTYP: Förening/organisation — fråga om de är momsregistrerade om du inte vet."
     : "";
-  return SYSTEM_PROMPT + suffix;
+  const blocks = [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }];
+  if (suffix) blocks.push({ type: "text", text: suffix.trim() });
+  return blocks;
+}
+
+// Validera klientens historik innan den skickas vidare: bara user/assistant
+// med strängar, max 2000 tecken per meddelande, de 20 senaste, första måste
+// vara user (hälsningen från Sven tas bort) och sista måste vara user.
+const MAX_MSG_CHARS = 2000;
+const MAX_MSGS = 20;
+function sanitizeMessages(raw) {
+  if (!Array.isArray(raw)) return null;
+  const out = raw
+    .filter(m => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
+    .map(m => ({ role: m.role, content: m.content.slice(0, MAX_MSG_CHARS) }))
+    .slice(-MAX_MSGS);
+  while (out.length && out[0].role !== "user") out.shift();
+  if (!out.length || out[out.length - 1].role !== "user") return null;
+  return out;
 }
 
 // ── LÖFTESDETEKTOR + ADMIN-NOTIFIKATION ────────────────────────────────────
@@ -660,7 +681,12 @@ export default async (req) => {
     });
   }
 
-  const trimmed = messages.slice(-20);
+  const trimmed = sanitizeMessages(messages);
+  if (!trimmed) {
+    return new Response(JSON.stringify({ error: "Ogiltig meddelandehistorik" }), {
+      status: 400, headers: { "Content-Type": "application/json" },
+    });
+  }
   const lastUser = [...trimmed].reverse().find(m => m.role === "user")?.content ?? "";
 
   try {

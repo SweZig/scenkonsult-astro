@@ -6,14 +6,15 @@
 // 4. Skickar via Resend med PDF som bilaga
 // 5. Uppdaterar invoice_sent_at + status → fakturerad
 
-const { supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingFee } = require('./_lib');
-const { getVillkor } = require('./_invoice-villkor');
+const { isAdmin, escapeHtml, supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingFee } = require('./_lib');
+const { getVillkor, betalvillkor } = require('./_invoice-villkor');
 const { daySummary, dayNote, dayCell, itemQty, itemUnitPrice, lineTotalUndiscounted } = require('./_day-display');
 const PDFDocument = require('pdfkit');
 const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
 const RESEND_API = 'https://api.resend.com/emails';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
 const LOGO_URL   = 'https://scenkonsult.se/logo-white.png';
 
@@ -39,18 +40,8 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
   return new Promise((resolve, reject) => {
     const today   = new Date().toISOString().slice(0,10);
     const invDate = cart.invoice_date || today;
-    // payment_terms_days === 0 betyder FÖRSKOTT — får ej falla tillbaka på default.
-    // Default när värde saknas styrs av kundtyp: B2B → 5 dagar netto, annars Förskott (0).
-    const termsDefault = (getVillkor(cart).type === 'b2b') ? 5 : 0;
-    const terms   = (cart.payment_terms_days === 0 || cart.payment_terms_days)
-      ? parseInt(cart.payment_terms_days)
-      : termsDefault;
-    const isForskott = terms === 0;
-    const dueDate = cart.invoice_due_date || (() => {
-      // Förskott: förfaller samma dag (betalas före utlämning).
-      const d = new Date(invDate); d.setDate(d.getDate() + terms);
-      return d.toISOString().slice(0,10);
-    })();
+    // Betalningsvillkor + förfallodag: delad regel med invoice-pdf-download.
+    const { terms, isForskott, dueDate } = betalvillkor(cart, invDate);
 
     const items     = (cart.items || []).filter(i => !i._note && i.name);
     const totalExcl = items.reduce((s,i) => s + ((i.price||0)*(i.qty||1)), 0);
@@ -378,7 +369,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
 </td></tr>
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber}</h2>
-  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${cart.customer_name || ''}!</p>
+  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${escapeHtml(cart.customer_name || '')}!</p>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Tack för att du valde Scenkonsult Norden. Bifogat finner du faktura <strong>${invoiceNumber}</strong>.</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Att betala:</strong> ${totalIncl.toLocaleString('sv-SE')} kr (inkl. moms)</p>
   <p style="color:#666;font-size:13px;margin:0 0 20px;">Bankgiro 5132-0646 · Swish 123 136 59 07</p>
@@ -439,8 +430,8 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
 <tr><td style="background:#fff;padding:32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8;">
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber} — skickad</h2>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Faktura <strong>${invoiceNumber}</strong> har skickats till:</p>
-  <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${invoiceToEmail}${invoiceToEmail!==cart.customer_email?" <span style=\"font-size:11px;color:#888\">(alternativ adress)</span>":""}</p>
-  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${cart.customer_name || '—'}${cart.customer_company ? ' / ' + cart.customer_company : ''}</p>
+  <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${escapeHtml(invoiceToEmail)}${invoiceToEmail!==cart.customer_email?" <span style=\"font-size:11px;color:#888\">(alternativ adress)</span>":""}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${escapeHtml(cart.customer_name || '—')}${cart.customer_company ? ' / ' + escapeHtml(cart.customer_company) : ''}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Belopp:</strong> ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Cart-ID:</strong> ${cart.id}</p>
   <p style="color:#444;font-size:14px;margin:0;"><strong>Offert skapad:</strong> ${quoteCreated || '—'}${leadDays !== null ? ` <span style="color:#888;font-size:12px">(ledtid ${leadDays} ${leadDays === 1 ? 'dag' : 'dagar'} till faktura)</span>` : ''}</p>
@@ -451,8 +442,10 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
 </table></td></tr></table>
 </body></html>`;
 
-  // Intern kopia — fire and forget (blockerar ej svaret)
-  fetch(RESEND_API, {
+  // Intern kopia — 600 ms efter kundmailet (Resends rate limit). Fel loggas
+  // men stoppar inte svaret.
+  await sleep(600);
+  await fetch(RESEND_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify({
@@ -477,9 +470,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
-  const adminToken = process.env.ADMIN_TOKEN;
-  const auth = (event.headers['authorization'] || '').replace('Bearer ', '');
-  if (!adminToken || auth !== adminToken)
+  if (!isAdmin(event))
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Ej behörig' }) };
 
   let body;

@@ -2,7 +2,7 @@
 // Resend API — ljust mailtheme (spam-säkert), rate limit-hantering
 // Skapar även en "open" varukorg i Supabase för uppföljning
 
-const { supabase: createSupabase, generateCartToken, logAudit } = require('./_lib');
+const { supabase: createSupabase, generateCartToken, logAudit, escapeHtml } = require('./_lib');
 
 const RATE_LIMIT = {};
 const RATE_WINDOW_MS = 60 * 1000;
@@ -54,7 +54,7 @@ exports.handler = async (event) => {
   try { data = JSON.parse(event.body); }
   catch { return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ogiltig data' }) }; }
 
-  if (data.website || data.honeypot) {
+  if (data.website || data.phone2 || data.honeypot) {
     console.log('SPAM_HONEYPOT_KONTAKT');
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
   }
@@ -98,25 +98,29 @@ exports.handler = async (event) => {
 
   const plainInternal = `Nytt kontaktmeddelande\n\nNamn: ${namn}\nKundtyp: ${kundtypLabel}${companyClean ? `\nForetag: ${companyClean}` : ''}\nE-post: ${epost}\nTelefon: ${telefon}\nAntal gaster: ${guestsCount ?? '-'}\nDatum: ${datum||'-'}${leveransLabel ? `\nLeverans: ${leveransLabel}` : ''}\nHittade oss via: ${referralSrc||'-'}\n\nMeddelande:\n${meddelande}\n\n---\nScenkonsult Norden | 072-448 10 00`;
 
+  // Allt som kommer från formuläret escapas innan det hamnar i mail-HTML.
+  const hNamn = escapeHtml(namn), hEpost = escapeHtml(epost), hTel = escapeHtml(telefon);
+  const hMedd = escapeHtml(meddelande).replace(/\n/g,'<br>');
+
   const htmlInternal = htmlWrapper('Nytt kontaktmeddelande', `
     <h2 style="margin:0 0 6px;color:#1e1850;font-size:20px;">Nytt kontaktmeddelande</h2>
     <p style="margin:0 0 20px;color:#888;font-size:13px;">Mottaget via scenkonsult.se</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-      ${field('Namn', namn)}
+      ${field('Namn', hNamn)}
       ${field('Kundtyp', kundtypLabel)}
-      ${field('Foretag', companyClean)}
-      ${field('E-post', `<a href="mailto:${epost}" style="color:#4a3faa;">${epost}</a>`)}
-      ${field('Telefon', `<a href="tel:${telefon}" style="color:#4a3faa;">${telefon}</a>`)}
+      ${field('Foretag', companyClean && escapeHtml(companyClean))}
+      ${field('E-post', `<a href="mailto:${hEpost}" style="color:#4a3faa;">${hEpost}</a>`)}
+      ${field('Telefon', `<a href="tel:${hTel}" style="color:#4a3faa;">${hTel}</a>`)}
       ${field('Antal gaster', guestsCount)}
-      ${field('Datum', datum)}
+      ${field('Datum', datum && escapeHtml(datum))}
       ${field('Leverans', leveransLabel)}
-      ${field('Hittade oss via', referralSrc)}
+      ${field('Hittade oss via', referralSrc && escapeHtml(referralSrc))}
     </table>
     <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;margin-bottom:20px;">
       <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Meddelande</p>
-      <p style="margin:0;color:#222;font-size:15px;line-height:1.7;">${meddelande.replace(/\n/g,'<br>')}</p>
+      <p style="margin:0;color:#222;font-size:15px;line-height:1.7;">${hMedd}</p>
     </div>
-    <p style="margin:0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${epost}" style="color:#4a3faa;">${epost}</a></p>`);
+    <p style="margin:0;font-size:13px;color:#555;">Svara direkt till: <a href="mailto:${hEpost}" style="color:#4a3faa;">${hEpost}</a></p>`);
 
   try {
     await sendEmail(apiKey, { from: FROM, to: [TO_INTERNAL], reply_to: epost, subject: `Kontaktmeddelande fran ${namn}`, html: htmlInternal, text: plainInternal });
@@ -134,8 +138,8 @@ exports.handler = async (event) => {
       try {
         const db = createSupabase();
         const genId = () => {
-          const h = () => Math.random().toString(16).slice(2).toUpperCase().padStart(8, '0');
-          return `SK-${h().slice(0,8)}-${h().slice(0,4)}`;
+          const h = require('crypto').randomBytes(6).toString('hex').toUpperCase();
+          return `SK-${h.slice(0,8)}-${h.slice(8,12)}`;
         };
         const cartId    = genId();
         const cartToken = generateCartToken();
@@ -167,14 +171,15 @@ exports.handler = async (event) => {
           try {
             const plainWithLink = `Tack, ${namn}!\n\nVi har tagit emot ditt meddelande och återkommer inom kort.\nVill du följa din förfrågan kan du använda länken nedan.\n\nDitt meddelande:\n${meddelande}\n\nSe din förfrågan: ${cartUrl}\n\n---\nScenkonsult Norden | scenkonsult.se`;
             const htmlWithLink = htmlWrapper('Vi har tagit emot ditt meddelande', `
-              <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${namn}!</h2>
+              <h2 style="margin:0 0 16px;color:#1e1850;font-size:22px;">Tack, ${hNamn}!</h2>
               <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">Vi har tagit emot ditt meddelande och återkommer inom kort. Har du bråttom, ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a>.</p>
               <div style="background:#f7f7fb;border-radius:8px;padding:18px;border-left:3px solid #c4b5f4;margin-bottom:20px;">
                 <p style="margin:0 0 8px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Ditt meddelande</p>
-                <p style="margin:0;color:#333;font-size:14px;line-height:1.7;">${meddelande.replace(/\n/g,'<br>')}</p>
+                <p style="margin:0;color:#333;font-size:14px;line-height:1.7;">${hMedd}</p>
               </div>
               <p style="margin:24px 0 8px;"><a href="${cartUrl}" style="background:#332885;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block;">Se din förfrågan →</a></p>
               <p style="margin:10px 0 0;color:#888;font-size:12px;">Via länken kan du följa status, se eventuella produkterbjudanden och chatta med oss.</p>`);
+            await sleep(600);
             await sendEmail(apiKey, { from: FROM, to: [epost], subject: 'Vi har tagit emot ditt meddelande — Scenkonsult', html: htmlWithLink, text: plainWithLink });
           } catch (e) { console.error('KUNDKOPIA_MED_LINK_ERROR:', e.message); }
         }

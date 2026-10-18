@@ -7,6 +7,7 @@
 // Token förekommer i feed-URL:en som lagras i kalenderklienter och cachas av Google etc.
 
 'use strict';
+const { safeEqual } = require('./_lib');
 
 // ── Rate limiting ────────────────────────────────────────────────
 // In-memory sliding window. State delas mellan invocations på samma
@@ -148,8 +149,8 @@ exports.handler = async (event) => {
       body: 'CALENDAR_FEED_TOKEN är inte konfigurerad i Netlify-env. Sätt en hemlig sträng (t.ex. uuidgen) och försök igen.',
     };
   }
-  // Konstanttidsjämförelse light — undvik timing-läckor
-  if (provided.length !== expected.length || provided !== expected) {
+  // Konstanttidsjämförelse — undvik timing-läckor
+  if (!safeEqual(provided, expected)) {
     return { statusCode: 401, body: 'Unauthorized' };
   }
 

@@ -56,7 +56,10 @@ exports.handler = async (event) => {
   if (image_data.length > MAX) return err('Bilden är för stor', 400);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return err('AI-konfiguration saknas (ANTHROPIC_API_KEY)', 500);
+  if (!apiKey) {
+    console.error('VERIFY_ID_CONFIG_ERROR: ANTHROPIC_API_KEY saknas');
+    return err('Bildkontrollen är inte tillgänglig just nu. Försök igen om en stund.', 500);
+  }
 
   const db = supabase();
 
@@ -70,7 +73,8 @@ exports.handler = async (event) => {
     if (error || !cart) return err('Varukorg hittades ej eller ogiltig token', 404);
     if (cart.pickup_signed_at) return err('Förberedelsen är redan signerad', 409);
   } catch (e) {
-    return err('Auth-fel: ' + e.message, 500);
+    console.error('VERIFY_ID_AUTH_ERROR:', e.message);
+    return err('Kunde inte kontrollera länken just nu. Försök igen om en stund.', 500);
   }
 
   // Extrahera media_type + base64 från data URL
@@ -108,7 +112,7 @@ exports.handler = async (event) => {
     const apiData = await apiRes.json();
     if (!apiRes.ok) {
       console.error('VERIFY_ID_API_ERROR:', apiRes.status, apiData);
-      return err(`AI-fel: ${apiData?.error?.message || apiRes.status}`, 502);
+      return err('Bildkontrollen är inte tillgänglig just nu. Försök igen om en stund.', 502);
     }
 
     // Parse modellens svar — förväntad: ren JSON
@@ -138,7 +142,7 @@ exports.handler = async (event) => {
     };
   } catch (e) {
     console.error('VERIFY_ID_FETCH_ERROR:', e.message);
-    return err('AI-anrop misslyckades: ' + e.message, 502);
+    return err('Bildkontrollen är inte tillgänglig just nu. Försök igen om en stund.', 502);
   }
 
   // ── Spara resultat på cart ────────────────────────────────────────────

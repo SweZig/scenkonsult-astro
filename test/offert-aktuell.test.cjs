@@ -28,6 +28,7 @@ function check(namn, fick, vantat) {
 const CART = {
   id: 'SK-ABCDEF12-3456', cart_token: 'tok123', status: 'waiting', confirmed_at: null, declined_at: null,
   customer_name: 'Test Testsson', customer_email: 'test@example.com',
+  pickup_signature: 'data:image/png;base64,SIGNATUR', pickup_id_photo: 'data:image/jpeg;base64,LEGFOTO',
   items: [
     { id: 'SK-SCN-MOD-0001', name: 'Plattform 1×1', price: 125, qty: 10 },
     { id: 'lev-standard', name: 'Leverans', price: 1500, qty: 1, type: 'service' },
@@ -59,6 +60,9 @@ const ev = (q, extra = {}) => ({ httpMethod: 'GET', headers: { 'x-forwarded-for'
   check('full hämtning: 200', full.statusCode, 200);
   check('full hämtning: items_rev', fb.cart.items_rev, rev);
   check('svaret har no-store', /no-store/.test(full.headers['Cache-Control']), true);
+  const cartSel = (calls.find((c) => c.method === 'GET' && /\/carts\?/.test(c.url)) || {}).url || '';
+  check('kundhämtningen väljer inte signaturbilden', cartSel.includes('select=') && !cartSel.includes('pickup_signature,'), true);
+  check('leg-fotot exponeras bara som flagga', fb.cart.pickup_id_photo, true);
   calls.length = 0;
   const kol = await get(ev({ token: 'tok123', rev: '1' }));
   const kb = JSON.parse(kol.body);
@@ -71,6 +75,22 @@ const ev = (q, extra = {}) => ({ httpMethod: 'GET', headers: { 'x-forwarded-for'
   console.log('\n3. GODKÄNNANDE');
   const upd = require(path.join(ROOT, 'netlify', 'functions', 'cart-update.js')).handler;
   const post = (body) => upd({ httpMethod: 'POST', headers: { 'x-forwarded-for': '10.1.0.' + Math.floor(Math.random() * 250), 'user-agent': 'test' }, body: JSON.stringify(body) });
+
+  // Kunden får aldrig skriva om raderna (och därmed summan) — bara admin.
+  calls.length = 0;
+  const kundItems = await post({ token: 'tok123', items: [{ id: 'SK-SCN-MOD-0001', name: 'Plattform 1×1', price: 1, qty: 10 }] });
+  check('kund skickar items → 403', kundItems.statusCode, 403);
+  check('kund skickar items → inget sparas', calls.filter((c) => c.method === 'PATCH').length, 0);
+
+  calls.length = 0;
+  const utanRev = await post({ token: 'tok123', cart_id: CART.id, action: 'customer_confirm', confirmation_text: 'x' });
+  check('godkännande utan items_rev → 409', utanRev.statusCode, 409);
+  check('godkännande utan items_rev → inget sparas', calls.filter((c) => c.method === 'PATCH').length, 0);
+
+  calls.length = 0;
+  const adminItems = await upd({ httpMethod: 'POST', headers: { authorization: 'Bearer admin-test', 'x-forwarded-for': '10.2.0.1' },
+    body: JSON.stringify({ cart_id: CART.id, items: CART.items }) });
+  check('admin får fortfarande spara items → 200', adminItems.statusCode, 200);
 
   calls.length = 0;
   const stale = await post({ token: 'tok123', cart_id: CART.id, action: 'customer_confirm', items_rev: 'gammal00000', confirmation_text: 'x' });

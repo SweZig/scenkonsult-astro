@@ -2,7 +2,16 @@
 // Sitewide adminläge — autentisering
 // POST { password } → { ok, error?, lockoutSeconds? }
 
+import { createHash, timingSafeEqual } from 'node:crypto';
+
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
+
+// Konstanttidsjämförelse (sha256 ger lika långa buffertar).
+const safeEqual = (a, b) => {
+  if (typeof a !== 'string' || typeof b !== 'string' || !a || !b) return false;
+  const h = s => createHash('sha256').update(s, 'utf8').digest();
+  return timingSafeEqual(h(a), h(b));
+};
 const MAX_FAILURES = 3;
 const LOCKOUT_MS   = 60_000;
 
@@ -45,7 +54,7 @@ export default async (req, context) => {
     });
   }
 
-  if (password === ADMIN_TOKEN) {
+  if (safeEqual(password, ADMIN_TOKEN)) {
     // Rensa misslyckanden vid lyckad inloggning
     failures.delete(ip);
     return new Response(JSON.stringify({ ok: true }), {

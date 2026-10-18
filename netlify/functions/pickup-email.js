@@ -3,7 +3,7 @@
 // POST { cart_id } + Bearer ADMIN_TOKEN
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight, logAudit } = require('./_lib');
+const { supabase, isAdmin, ok, err, preflight, logAudit, escapeHtml } = require('./_lib');
 
 const RESEND_API = 'https://api.resend.com/emails';
 const FROM       = 'Scenkonsult Norden <hej@scenkonsult.se>';
@@ -44,7 +44,7 @@ exports.handler = async (event) => {
     // Bygg produktlista
     const items = (cart.items || []).filter(i => !i._note && i.name);
     const itemRows = items.slice(0, 8).map(i =>
-      `<tr><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;font-size:14px">${i.name}</td>
+      `<tr><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;font-size:14px">${escapeHtml(i.name)}</td>
        <td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;font-size:14px;text-align:right;color:#666">×${i.qty||1}</td></tr>`
     ).join('');
     const moreRows = items.length > 8
@@ -68,9 +68,9 @@ exports.handler = async (event) => {
 
 <tr><td style="background:#fff;padding:36px 32px;border-left:1px solid #e0e0e8;border-right:1px solid #e0e0e8">
   <h2 style="margin:0 0 8px;color:#1e1850;font-size:22px">Dags att kvittera din utrustning!</h2>
-  <p style="margin:0 0 24px;color:#555;font-size:15px">Hej ${firstName}! Tryck på knappen nedan för att bekräfta att du tagit emot utrustningen från Scenkonsult.</p>
+  <p style="margin:0 0 24px;color:#555;font-size:15px">Hej ${escapeHtml(firstName)}! Tryck på knappen nedan för att bekräfta att du tagit emot utrustningen från Scenkonsult.</p>
 
-  ${dateStr ? `<p style="margin:0 0 20px;color:#555;font-size:14px">📅 <strong>${dateStr}</strong>${cart.event_location ? ` · ${cart.event_location}` : ''}</p>` : ''}
+  ${dateStr ? `<p style="margin:0 0 20px;color:#555;font-size:14px">📅 <strong>${dateStr}</strong>${cart.event_location ? ` · ${escapeHtml(cart.event_location)}` : ''}</p>` : ''}
 
   ${itemRows ? `
   <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;border:1px solid #eee;border-radius:8px;overflow:hidden">

@@ -4,16 +4,14 @@
 // genom att skapa en placeholder-rad per ledigt nummer. Efteråt kommer
 // gap-filling att hoppa rakt till K(next_number).
 
-const { getTakenInvoiceNumbers } = require('./_lib');
+const { isAdmin, getTakenInvoiceNumbers } = require('./_lib');
 
 exports.handler = async (event) => {
   const headers = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'POST')   return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
-  const adminToken = process.env.ADMIN_TOKEN;
-  const auth = (event.headers['authorization'] || '').replace('Bearer ', '');
-  if (!adminToken || auth !== adminToken)
+  if (!isAdmin(event))
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Ej behörig' }) };
 
   let body;

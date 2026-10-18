@@ -1,11 +1,11 @@
 // netlify/functions/cart-update.js
 // Uppdaterar varukorg — kund kan uppdatera items/notes, admin kan allt
 // POST /.netlify/functions/cart-update
-// Body (kund):  { token, items?, notes_customer? }
+// Body (kund):  { token, notes_customer?, action? }  (items endast admin)
 // Body (admin): { cart_id, items?, notes_admin?, event_date?, event_location?, status?, total_excl? }
 
 'use strict';
-const { supabase, isAdmin, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM } = require('./_lib');
+const { supabase, isAdmin, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM, escapeHtml } = require('./_lib');
 const RESEND_API = 'https://api.resend.com/emails';
 
 async function sendConfirmationEmail(cart) {
@@ -24,10 +24,10 @@ async function sendConfirmationEmail(cart) {
   const grandExcl = allItems.reduce((s,i) => s + (i.price||0)*(i.qty||i.quantity||1), 0);
   const grandIncl = Math.round(grandExcl * 1.25);
 
-  const dateStr     = cart.event_date ? `<p style="color:#555;font-size:14px;margin:8px 0;">📅 Eventdatum: <strong>${cart.event_date}</strong></p>` : '';
-  const locationStr = cart.event_location ? `<p style="color:#555;font-size:14px;margin:8px 0;">📍 Plats: <strong>${cart.event_location}</strong></p>` : '';
+  const dateStr     = cart.event_date ? `<p style="color:#555;font-size:14px;margin:8px 0;">📅 Eventdatum: <strong>${escapeHtml(cart.event_date)}</strong></p>` : '';
+  const locationStr = cart.event_location ? `<p style="color:#555;font-size:14px;margin:8px 0;">📍 Plats: <strong>${escapeHtml(cart.event_location)}</strong></p>` : '';
   // B2B: visa företagsnamn tydligt
-  const companyStr  = cart.customer_company ? `<p style="color:#555;font-size:14px;margin:8px 0;">🏢 Företag: <strong>${cart.customer_company}</strong></p>` : '';
+  const companyStr  = cart.customer_company ? `<p style="color:#555;font-size:14px;margin:8px 0;">🏢 Företag: <strong>${escapeHtml(cart.customer_company)}</strong></p>` : '';
 
   // B2B + faktura ej skapad → uppmana till komplettering av fakturauppgifter
   const _isB2B = cart.customer_type === 'b2b' || (!cart.customer_type && cart.customer_company);
@@ -54,7 +54,7 @@ async function sendConfirmationEmail(cart) {
         <div style="color:#166534;font-size:13px;">Orderreferens: ${cart.id}</div>
       </div>
     </div>
-    <h2 style="color:#1e1850;margin:0 0 8px;font-size:20px;">Tack, ${cart.customer_name || 'kunden'}!</h2>
+    <h2 style="color:#1e1850;margin:0 0 8px;font-size:20px;">Tack, ${escapeHtml(cart.customer_name || 'kunden')}!</h2>
     <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px;">${alreadySigned
       ? 'Vi bekräftar härmed din order. Vi ses på eventet!'
       : 'Vi har preliminärt bekräftat din order — det enda som återstår är din digitala bekräftelse.'} Frågor? Ring oss på <a href="tel:0724481000" style="color:#4a3faa;">072-448 10 00</a> eller svara på detta mail.</p>
@@ -121,6 +121,9 @@ exports.handler = async (event) => {
     const updates = {};
 
     if (body.items !== undefined) {
+      // Bara admin får ändra offertens rader — annars kunde kunden sätta egna
+      // priser och sedan godkänna sin egen version.
+      if (!admin) return err('Ej behörig att ändra offertens rader', 403);
       if (!Array.isArray(body.items)) return err('items måste vara en array', 400);
       const SVC_IDS_UPDATE = ['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','rigg-teknik','fakturaavgift-49'];
       updates.items = body.items.map(i => ({
@@ -128,10 +131,6 @@ exports.handler = async (event) => {
         type: i.type || (SVC_IDS_UPDATE.includes(i.id) ? 'service' : 'product'),
         category: i.category || (SVC_IDS_UPDATE.includes(i.id) ? 'Tjänster' : ''),
       }));
-      // Beräkna totalt om kund uppdaterar (admin anger explicit)
-      if (!admin) {
-        updates.total_excl = body.items.reduce((sum, i) => sum + ((i.price || 0) * (i.qty || 1)), 0) * 100;
-      }
     }
 
     // ── Snabb-action: markera alla kundmeddelanden som lästa ─────────────────
@@ -373,8 +372,7 @@ exports.handler = async (event) => {
         // Intern notis till info@. Best-effort — nej-svaret är redan sparat.
         const apiKeyDecline = process.env.RESEND_API_KEY;
         if (apiKeyDecline) {
-          const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => (
-            { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+          const esc = escapeHtml;
           try {
             await sendEmail(apiKeyDecline, {
               from: MAIL_FROM,
@@ -412,8 +410,8 @@ exports.handler = async (event) => {
         }
         // Kunden får bara godkänna den version som faktiskt är sparad. Har
         // offerten ändrats sedan sidan laddades avvisas godkännandet och
-        // ordersidan laddar om. (Äldre sidor utan items_rev släpps igenom.)
-        if (body.items_rev && body.items_rev !== itemsRev(cart.items)) {
+        // ordersidan laddar om. items_rev krävs — ordersidan skickar alltid med den.
+        if (!body.items_rev || body.items_rev !== itemsRev(cart.items)) {
           return { statusCode: 409, headers: require('./_lib').corsHeaders,
                    body: JSON.stringify({ error: 'Offerten har uppdaterats sedan du öppnade den. Sidan laddas om så att du ser den senaste versionen.', code: 'stale' }) };
         }
@@ -450,11 +448,11 @@ exports.handler = async (event) => {
     <span style="font-size:1.5rem;">✅</span>
     <div style="color:#166534;font-weight:700;font-size:15px;">Kund har bekräftat order!</div>
   </div>
-  <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Kund:</strong> ${cart.customer_name||'–'}</p>
-  <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>E-post:</strong> ${cart.customer_email||'–'}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Kund:</strong> ${escapeHtml(cart.customer_name||'–')}</p>
+  <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>E-post:</strong> ${escapeHtml(cart.customer_email||'–')}</p>
   <p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Order:</strong> ${cart.id}</p>
-  ${cart.event_date ? `<p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Eventdatum:</strong> ${cart.event_date}</p>` : ''}
-  ${cart.event_location ? `<p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Plats:</strong> ${cart.event_location}</p>` : ''}
+  ${cart.event_date ? `<p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Eventdatum:</strong> ${escapeHtml(cart.event_date)}</p>` : ''}
+  ${cart.event_location ? `<p style="color:#444;font-size:14px;margin:0 0 12px;"><strong>Plats:</strong> ${escapeHtml(cart.event_location)}</p>` : ''}
   <p style="margin:20px 0 0;"><a href="https://scenkonsult.se/admin/" style="background:#332885;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;display:inline-block;">Gå till adminpanelen →</a></p>
 </td></tr>
 <tr><td style="background:#1e1850;border-radius:0 0 12px 12px;padding:14px 32px;text-align:center;">

@@ -121,10 +121,26 @@ function generateCartToken() {
 }
 
 // ── Verifiera admin-token ────────────────────────────────────
+// Konstanttidsjämförelse av hemligheter: sha256 på båda sidor ger lika långa
+// buffertar, så timingSafeEqual varken kastar eller läcker längden.
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || !a || !b) return false;
+  const nc = require('crypto');
+  const h = s => nc.createHash('sha256').update(s, 'utf8').digest();
+  return nc.timingSafeEqual(h(a), h(b));
+}
+
 function isAdmin(event) {
-  const auth = event.headers['authorization'] || event.headers['Authorization'] || '';
+  const h = (event && event.headers) || {};
+  const auth = h['authorization'] || h['Authorization'] || '';
   const token = auth.replace(/^Bearer\s+/i, '').trim();
-  return token && token === process.env.ADMIN_TOKEN;
+  return safeEqual(token, process.env.ADMIN_TOKEN);
+}
+
+// HTML-escaping av kund-/requestdata som interpoleras i mail-HTML.
+function escapeHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
 
 // ── CORS-headers ─────────────────────────────────────────────
@@ -278,13 +294,13 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
     const nu   = sum(i);
     const rabatterad = full > nu;
     return `<tr>
-    <td style="padding:8px 10px;color:#222;font-size:13px;border-bottom:1px solid #f0f0f5;">${i.name}${note ? `<br><span style="color:#8b83b0;font-size:11px;">${note}</span>` : ''}</td>
+    <td style="padding:8px 10px;color:#222;font-size:13px;border-bottom:1px solid #f0f0f5;">${escapeHtml(i.name)}${note ? `<br><span style="color:#8b83b0;font-size:11px;">${note}</span>` : ''}</td>
     <td style="padding:8px 10px;color:#666;font-size:13px;text-align:center;border-bottom:1px solid #f0f0f5;width:50px;">${qty(i)} st</td>
     <td style="padding:8px 10px;color:#333;font-size:13px;text-align:right;border-bottom:1px solid #f0f0f5;font-weight:600;width:90px;">${rabatterad ? `<span style="color:#a49dc4;font-weight:400;text-decoration:line-through;">${fmtN(full)} kr</span><br>` : ''}${fmtN(nu)} kr</td>
   </tr>`;
   };
   const subHdr = label => `<tr><td colspan="3" style="padding:6px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;background:#f7f7fb;">${label}</td></tr>`;
-  const noteRow = noteItem ? `<tr><td colspan="3" style="padding:6px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${noteItem.name}</td></tr>` : '';
+  const noteRow = noteItem ? `<tr><td colspan="3" style="padding:6px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${escapeHtml(noteItem.name)}</td></tr>` : '';
   const grandExcl = [...prodItems, ...svcItems, ...(feeItem ? [feeItem] : [])].reduce((s, i) => s + sum(i), 0);
   const _daySum = _daySummary(allReal);
   const moms      = Math.round(grandExcl * 0.25);
@@ -398,4 +414,4 @@ async function getTakenInvoiceNumbers() {
   return { taken, highest, START_NUM };
 }
 
-module.exports = { supabase, generateCartToken, isAdmin, corsHeaders, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, getTakenInvoiceNumbers, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };
+module.exports = { supabase, generateCartToken, isAdmin, safeEqual, escapeHtml, corsHeaders, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, getTakenInvoiceNumbers, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };

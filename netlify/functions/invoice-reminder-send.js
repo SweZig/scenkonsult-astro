@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { supabase: createSupabase, logAudit } = require('./_lib');
+const { isAdmin, supabase: createSupabase, logAudit } = require('./_lib');
 const PDFDocument = require('pdfkit');
 let QRCode; try { QRCode = require('qrcode'); } catch (e) { QRCode = null; }
 
@@ -329,9 +329,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
-  const adminToken = process.env.ADMIN_TOKEN;
-  const auth = (event.headers['authorization'] || '').replace('Bearer ', '');
-  if (!adminToken || auth !== adminToken)
+  if (!isAdmin(event))
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Ej behörig' }) };
 
   let body;

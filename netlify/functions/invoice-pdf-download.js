@@ -4,8 +4,8 @@
 // mode = "faktura" → genererar fullständig faktura (samma som invoice-send men returnerar PDF)
 // Returnerar { ok, pdf_b64, filename }
 
-const { supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingFee } = require('./_lib');
-const { getVillkor } = require('./_invoice-villkor');
+const { isAdmin, supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, isBookingFee } = require('./_lib');
+const { getVillkor, betalvillkor } = require('./_invoice-villkor');
 const { daySummary, dayNote, dayCell, itemQty, itemUnitPrice, lineTotalUndiscounted } = require('./_day-display');
 const PDFDocument = require('pdfkit');
 const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
@@ -26,14 +26,8 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
 
     const today   = new Date().toISOString().slice(0,10);
     const invDate = cart.invoice_date || today;
-    const terms   = (cart.payment_terms_days === 0 || cart.payment_terms_days)
-      ? parseInt(cart.payment_terms_days)
-      : 5;
-    const isForskott = terms === 0;
-    const dueDate = cart.invoice_due_date || (() => {
-      const d = new Date(invDate); d.setDate(d.getDate() + terms);
-      return d.toISOString().slice(0,10);
-    })();
+    // Samma regel som den skickade fakturan (invoice-send) — _invoice-villkor.js.
+    const { terms, isForskott, dueDate } = betalvillkor(cart, invDate);
 
     const items     = (cart.items || []).filter(i => !i._note && i.name);
     const totalExcl = items.reduce((s,i) => s + ((i.price||0)*(i.qty||1)), 0);
@@ -376,9 +370,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
-  const adminToken = process.env.ADMIN_TOKEN;
-  const auth = (event.headers['authorization'] || '').replace('Bearer ', '');
-  if (!adminToken || auth !== adminToken)
+  if (!isAdmin(event))
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Ej behörig' }) };
 
   let body;
