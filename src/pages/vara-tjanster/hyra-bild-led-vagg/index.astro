@@ -5,6 +5,7 @@ import ModernHero from '../../../components/ModernHero.astro';
 import SectionHeader from '../../../components/SectionHeader.astro';
 import TrossPromoBanner from '../../../components/TrossPromoBanner.astro';
 import ledData from '../../../data/led-paneler.json';
+import { utanInterna } from '../../../utils/utanInterna';
 import tjansterData from '../../../data/tjanster.json';
 
 const paneler = ledData.paneler;
@@ -19,6 +20,14 @@ const LEVERANSER = {
 const ledLevKort = `${fmtKrStatic(_ledLev.pris)} (${String(_ledLev.label).replace(/\s*—.*$|\s*\(.*\)\s*$/g, '')})`;
 function fmtKrStatic(n: number) { return new Intl.NumberFormat('sv-SE').format(n) + ' kr'; }
 const faq = ledData.faq;
+// Det som skickas till webbläsaren: utan interna fält (inköpspriser, priskällor).
+const ledPublik = utanInterna(ledData);
+// Panelerna till paketens prisuppdatering, räknade ur datan (var en handskriven kopia).
+const INJ_PANELS_DATA = Object.fromEntries((ledData.paneler as any[]).map((p: any) => [
+  p.artno.replace('SK-BLD-LED-', '').replace(/O$/, ''),
+  { artno: p.artno, name: p.name, price: p.price_per_day_excl, pixels_per_panel: p.pixels_w * p.pixels_h,
+    panel_w_mm: p.panel_w_mm, panel_h_mm: p.panel_h_mm, image: p.image },
+]));
 
 // Härledda värden för rubriker (synkat med led-paneler.json)
 const minPanelPris = Math.min(...paneler.map((p: any) => p.price_per_day_excl));
@@ -483,7 +492,7 @@ const faqSchema = {
     </div>
   </article>
 
-  <script is:inline define:vars={{ ledData, LEVERANSER }}>
+  <script is:inline define:vars={{ ledData: ledPublik, LEVERANSER }}>
     (function() {
       'use strict';
 
@@ -1291,7 +1300,7 @@ const faqSchema = {
   </script>
 
   <!-- Cart-handler + dynamisk prisuppdatering för Färdiga paket -->
-  <script define:vars={{ INJ_PANELS: {"P26": {"artno": "SK-BLD-LED-P26", "name": "LED-panel P2.604 Indoor", "price": 275, "pixels_per_panel": 36864, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P19": {"artno": "SK-BLD-LED-P19", "name": "LED-panel P1.95 Indoor", "price": 390, "pixels_per_panel": 65536, "panel_w_mm": 500, "panel_h_mm": 500, "image": "/images/bild/pp_bld_led_500x500.webp"}, "P39": {"artno": "SK-BLD-LED-P39O", "name": "LED-panel P3.91 Outdoor", "price": 580, "pixels_per_panel": 32768, "panel_w_mm": 500, "panel_h_mm": 1000, "image": "/images/bild/pp_bld_led_500x1000.webp"}}, INJ_RULES: { montering: ledData.tillbehor.montering, ground_per_kolumn: ledData.tillbehor.rigg.price_per_column, tross_per_kolumn: ledData.tillbehor.tross.price_per_column, leverans_fordon: ledData.tillbehor.leverans_regel.fordon }, INJ_LEV: LEVERANSER }}>
+  <script define:vars={{ INJ_PANELS: INJ_PANELS_DATA, INJ_RULES: { montering: ledData.tillbehor.montering, ground_per_kolumn: ledData.tillbehor.rigg.price_per_column, tross_per_kolumn: ledData.tillbehor.tross.price_per_column, leverans_fordon: ledData.tillbehor.leverans_regel.fordon }, INJ_LEV: LEVERANSER }}>
     (function () {
       'use strict';
 
