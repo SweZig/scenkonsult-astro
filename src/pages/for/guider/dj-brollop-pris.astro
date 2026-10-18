@@ -8,6 +8,9 @@ import tjData from '../../../data/tjanster.json';
 const levFran = (tjData as any).leverans.standard.pris;
 
 const eq = djData.equipment as any[];
+// Uppslag på artno, aldrig på index: Mixstream Pro+ och DJ-controllern på plats 3.
+const eqA = eq.find((p: any) => p.artno === 'SK-DJ-0001');
+const eqB = eq.find((p: any) => p.artno === 'SK-DJ-0003');
 // DJ-tjänst pristabell härledd från equipment[] (master). Inkl moms = ×1.25.
 const _svc = (tier: string, hours: string) => eq.find(p => p.category === 'DJ-tjänst' && p.tier === tier && p.hours === hours);
 const svcTable = ['2 tim','3 tim','4 tim'].map(hours => {
@@ -119,18 +122,18 @@ const pageArticle = { headline: "DJ till Bröllop Stockholm — Pris & Guide 202
       <p style="color:rgba(255,255,255,0.55);font-size:0.95rem;line-height:1.75;margin:0 0 1.5rem;">Har ni en vän eller bekant som är DJ? Hyr utrustningen separat — alla våra controllers är standalone och kräver ingen laptop.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <ProductCard
-          artno={eq[0].artno} name={eq[0].name} price={eq[0].price}
-          priceNote="/dygn" image={eq[0].image} alt={eq[0].name}
-          description={eq[0].description ?? eq[0].desc ?? ''}
-          specs={eq[0].specs ?? []} category="DJ"
-          manualUrl={eq[0].manualUrl}
+          artno={eqA.artno} name={eqA.name} price={eqA.price}
+          priceNote="/dygn" image={eqA.image} alt={eqA.name}
+          description={eqA.description ?? eqA.desc ?? ''}
+          specs={eqA.specs ?? []} category="DJ"
+          manualUrl={eqA.manualUrl}
         />
         <ProductCard
-          artno={eq[2].artno} name={eq[2].name} price={eq[2].price}
-          priceNote="/dygn" image={eq[2].image} alt={eq[2].name}
-          description={eq[2].description ?? eq[2].desc ?? ''}
-          specs={eq[2].specs ?? []} category="DJ"
-          manualUrl={eq[2].manualUrl}
+          artno={eqB.artno} name={eqB.name} price={eqB.price}
+          priceNote="/dygn" image={eqB.image} alt={eqB.name}
+          description={eqB.description ?? eqB.desc ?? ''}
+          specs={eqB.specs ?? []} category="DJ"
+          manualUrl={eqB.manualUrl}
         />
       </div>
       <div class="mt-5">

@@ -8,14 +8,14 @@ import ljusData from '../../../data/ljus.json';
 import sceneData from '../../../data/scenes.json';
 import bildData from '../../../data/bild.json';
 
-const evSmall = ljudData.event.products[0];
-const evMedium = ljudData.event.products[1];
+const evSmall = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0001');
+const evMedium = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0002');
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
 const shureHeadset = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
 const tradlosHand = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
 const mhWash = (ljusData.effekter.products as any[]).find((p:any) => p.artno === 'SK-LJS-EFF-0011');
 const ljusPaketSmall = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0018');
-const scenSmall = sceneData.products[0];
+const scenSmall = (sceneData.products as any[]).find((p:any) => p.artno === 'SK-SCN-0001');
 
 // ---- Bröllopspaket: priser hämtas från live-JSON via artno (delad helper) ----
 import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
@@ -144,7 +144,7 @@ const pageSchema = {
       { label: "Bröllop" }
     ]}
     chips={[
-      "Bröllopspaket från 2 200 kr/dygn",
+      `Bröllopspaket från ${fmt(Math.min(...paket.map((pk: any) => pk.franPris)))} kr/dygn`,
       "Leverans & montering i Storstockholm",
       "Tekniker på plats tillgängligt",
       "Avbokning fram till 3 dagar innan event*",

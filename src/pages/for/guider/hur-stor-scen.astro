@@ -1,11 +1,12 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import sceneData from '../../../data/scenes.json';
+import { ALLA_HOJDER, hojdText } from '../../../utils/scenHojder';
 
 const sp = (artno: string): number => (sceneData.products as any[]).find(x => x.artno === artno)?.price ?? 0;
 const sacc = (artno: string): number => (sceneData.tillbehor as any[]).find(x => x.artno === artno)?.price ?? 0;
 
-const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","image":"https://scenkonsult.se/images/hero/scen3_hero.webp","headline":"Hur stor scen behöver jag? Guide med tabell 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/hur-stor-scen/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Hur stor scen till bröllop?","acceptedAnswer":{"@type":"Answer","text":`Till bröllop med trubadur eller DJ: Scenpaket Small (4 m², ${sp("SK-SCN-0001")} kr/dygn). Med band 3–4 musiker: Scenpaket Medium+ (12 m², ${sp("SK-SCN-0005")} kr/dygn).`}},{"@type":"Question","name":"Hur många kvadratmeter per person på scenen?","acceptedAnswer":{"@type":"Answer","text":"Räkna 2–4 m² per person. DJ solo: 4 m² (Scenpaket Small). Band 4 musiker: 12 m² (Scenpaket Medium+). Fullband med backline: 16–20 m²."}},{"@type":"Question","name":"Behövs scentak utomhus?","acceptedAnswer":{"@type":"Answer","text":`Ja, alltid. Vi erbjuder Scenpaket Large+ inkl. scentak (${sp("SK-SCN-0010")} kr/dygn). Till mindre scener finns tälttak 4×4 m som prisvärt tillval.`}},{"@type":"Question","name":"Vilken scenhöjd passar?","acceptedAnswer":{"@type":"Answer","text":"40 cm: liten fest under 80 gäster. 60 cm: standard för de flesta event 50–300 gäster. 80–100 cm: stora publiker och festivaler."}}]}]};
+const schema = {"@context":"https://schema.org","@graph":[{"@type":"Article","image":"https://scenkonsult.se/images/hero/scen3_hero.webp","headline":"Hur stor scen behöver jag? Guide med tabell 2025","author":{"@type":"Organization","name":"Scenkonsult Norden"},"datePublished":"2025-01-01","url":"https://scenkonsult.se/for/guider/hur-stor-scen/"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Hur stor scen till bröllop?","acceptedAnswer":{"@type":"Answer","text":`Till bröllop med trubadur eller DJ: Scenpaket Small (4 m², ${sp("SK-SCN-0001")} kr/dygn). Med band 3–4 musiker: Scenpaket Medium+ (12 m², ${sp("SK-SCN-0005")} kr/dygn).`}},{"@type":"Question","name":"Hur många kvadratmeter per person på scenen?","acceptedAnswer":{"@type":"Answer","text":"Räkna 2–4 m² per person. DJ solo: 4 m² (Scenpaket Small). Band 4 musiker: 12 m² (Scenpaket Medium+). Fullband med backline: 16–20 m²."}},{"@type":"Question","name":"Behövs scentak utomhus?","acceptedAnswer":{"@type":"Answer","text":`Ja, alltid. Vi erbjuder Scenpaket Large+ inkl. scentak (${sp("SK-SCN-0010")} kr/dygn). Till mindre scener finns tälttak 4×4 m som prisvärt tillval.`}},{"@type":"Question","name":"Vilken scenhöjd passar?","acceptedAnswer":{"@type":"Answer","text":`Våra scener finns i ${hojdText(ALLA_HOJDER)}. 20 cm passar tal och mindre fester, 40 cm de flesta fester under 80 gäster och 60 cm event med 50–300 gäster eller fler. Högre än ${Math.max(...ALLA_HOJDER)} cm hyr vi inte ut.`}}]}]};
 const scenprodukter = [
   {storlek:"4 m²",paket:"Scenpaket Small",pris:sp("SK-SCN-0001"),for:"DJ solo, trubadur",gaster:"20–100",notat:"Minsta praktiska scen"},
   {storlek:"6 m²",paket:"Scenpaket Small+",pris:sp("SK-SCN-0002"),for:"DJ + utrustning, tal",gaster:"50–200",notat:"Populärast bröllop"},
@@ -19,9 +20,11 @@ const scenprodukter = [
   {storlek:"36 m²",paket:"Scenpaket XL",pris:sp("SK-SCN-0011"),for:"Stor show, artist",gaster:"1000+",notat:""},
   {storlek:"48 m²",paket:"Scenpaket XL+",pris:sp("SK-SCN-0012"),for:"Konsert, stor festival",gaster:"2000+",notat:"Maxstorlek"},
 ];
-const tillbehor = [
-  {n:"Scentrapp (40 cm)",p:279},{n:"Scentrapp (60 cm)",p:349},{n:"Scenkjol 2 m × 40 cm",p:79},{n:"Scenkjol 4 m × 60 cm",p:99},{n:"Backdrop 3,5×2,5 m (BxH)",p:799},{n:"Backdrop Pipe & Drape 3×4 m (BxH)",p:1099},{n:"Räcke till scentrapp (40/60 cm)",p:200}
-];
+// Tillbehören slås upp på artno i scenes.json — namn och pris skrivs aldrig in här.
+const tillbehor = ['SK-SCN-ACC-0001','SK-SCN-ACC-0002','SK-SCN-ACC-0009','SK-SCN-ACC-0003','SK-SCN-ACC-0004','SK-SCN-ACC-0010','SK-SCN-ACC-0008']
+  .map(a => (sceneData.tillbehor as any[]).find(x => x.artno === a && x.active !== false))
+  .filter(Boolean)
+  .map((t: any) => ({ n: t.name, p: t.price }));
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Hur stor scen?' }];
 ---
 <Layout breadcrumbs={pageBreadcrumbs} title="Hur Stor Scen Behöver Jag? Guide & Tabell 2026 | Scenkonsult" description={`Räkna ut rätt scenstorlek. Tabell med alla scenpaket — pris, m², antal artister och gäster. Fr ${sp('SK-SCN-0001')} kr/dygn — Scenkonsult sedan 1986.`} schemaExtra={schema}>

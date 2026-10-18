@@ -16,8 +16,8 @@ import { getFeaturedClients } from '../../../utils/clients';
 
 const kunder = getFeaturedClients();
 
-const evSmall = ljudData.event.products[0];
-const evMedium = ljudData.event.products[1];
+const evSmall = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0001');
+const evMedium = (ljudData.event.products as any[]).find((p:any) => p.artno === 'SK-LJD-EVE-0002');
 const portMedium = (ljudData.portable.products as any[]).find((p:any) => p.artno === 'SK-LJD-POR-0003');
 const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
 const ljusPaket = (ljusData.paket.products as any[]).find((p:any) => p.artno === 'SK-LJS-PAK-0002');

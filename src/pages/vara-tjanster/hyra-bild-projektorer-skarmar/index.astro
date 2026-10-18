@@ -8,6 +8,7 @@ import CartButton from '../../../components/CartButton.astro';
 import ElTillbehorCard from '../../../components/ElTillbehorCard.astro';
 import TrossPromoBanner from '../../../components/TrossPromoBanner.astro';
 import bildData from '../../../data/bild.json';
+import ledData from '../../../data/led-paneler.json';
 import _tjansterData from '../../../data/tjanster.json';
 import _ljusData from '../../../data/ljus.json';
 const faqSchema = {
@@ -39,6 +40,12 @@ const dukSkJson = (d: any) => JSON.stringify({
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
 const _heroFranExcl = _low((bildData as any).products);
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
+// LED-banderollen: priserna räknas ur led-paneler.json (stod inskrivna och hade glidit).
+const _ledIndoor = Math.min(...(ledData.paneler as any[]).filter((p: any) => p.indoor_outdoor === 'indoor').map((p: any) => p.price_per_day_excl));
+const _ledOutdoor = Math.min(...(ledData.paneler as any[]).filter((p: any) => p.indoor_outdoor === 'outdoor').map((p: any) => p.price_per_day_excl));
+const _ledRigg = (ledData.tillbehor as any).rigg?.price_per_column;
+const _ledTross = (ledData.tillbehor as any).tross?.price_per_column;
+const _kr = (n: number) => new Intl.NumberFormat('sv-SE').format(n);
 ---
 <Layout
   schemaExtra={faqSchema}
@@ -161,9 +168,9 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
         <h2 class="led-cta-title">Hyr LED-vägg — bygg den exakt som du vill</h2>
         <p class="led-cta-desc">Modulära kabinett för indoor och outdoor. Räkna ut storlek, upplösning, effekt och pris i vår konfigurator.</p>
         <ul class="led-cta-bullets">
-          <li><strong>Indoor</strong> P1.95 / P2.604 från <strong>290 kr/dygn</strong></li>
-          <li><strong>Outdoor</strong> P3.91 IP65 från <strong>580 kr/dygn</strong></li>
-          <li>Ground support <strong>1 500 kr</strong> eller tross-rigg från <strong>2 700 kr</strong></li>
+          <li><strong>Indoor</strong> P1.95 / P2.604 från <strong>{_kr(_ledIndoor)} kr/dygn</strong></li>
+          <li><strong>Outdoor</strong> P3.91 IP65 från <strong>{_kr(_ledOutdoor)} kr/dygn</strong></li>
+          <li>Ground support från <strong>{_kr(_ledRigg)} kr</strong> eller tross från <strong>{_kr(_ledTross)} kr</strong> per kolumn</li>
         </ul>
         <span class="led-cta-btn">
           Bygg din LED-vägg

@@ -51,6 +51,10 @@ const INJ_HOJD_HINT = Object.fromEntries(Object.keys(HOJDER).map(k => [k, saknas
 const INJ_MONTERING_PRICE_PER_HOUR = tjanster.montering?.prisPerTimme || 600;
 const INJ_OBLIG_OVER_M2 = tjanster.montering?.obligatoriskOverM2 ?? 16;
 const INJ_SKIRT_PRICE_PER_METER = skirt?.pricePerMeter || 24.75;
+// Trappor och trappräcke slås upp på artno — namn och pris skrevs tidigare in i skriptet.
+const _acc = (a: string) => { const t: any = (scenData.tillbehor as any[]).find((x: any) => x.artno === a); return t ? { artno: t.artno, name: t.name, price: t.price } : null; };
+const INJ_TRAPPOR = { 40: _acc('SK-SCN-ACC-0001'), 60: _acc('SK-SCN-ACC-0002'), racke: _acc('SK-SCN-ACC-0008') };
+const _kjolPris = (stil: string) => Math.min(...(scenData.tillbehor as any[]).filter((t: any) => /^Scenkjol/.test(t.name) && (t.skirtStyle || 'rak') === stil && t.active !== false).map((t: any) => t.price));
 
 const configData = {
   modules,
@@ -169,13 +173,13 @@ const configData = {
         <div id="cfg-stair-placement" class="cfg-stair-placement"></div>
         <label class="cfg-stair-rail" id="cfg-stair-rail-row" hidden>
           <input type="checkbox" id="cfg-stair-rail" />
-          <span>Lägg till räcke till trappan — <strong>200 kr/trappa</strong> (2 räcken per trappa, ett på vardera sida)</span>
+          <span>Lägg till räcke till trappan — <strong>{INJ_TRAPPOR.racke?.price} kr/trappa</strong> (2 räcken per trappa, ett på vardera sida)</span>
         </label>
       </fieldset>
 
       <fieldset class="cfg-step">
         <legend><span class="cfg-step-num">5</span>Scenkjol</legend>
-        <p class="cfg-hint">Svart scenkjol som döljer ben och teknik. Rak kjol hyrs i 4 m-segment (99 kr), veckad i 2 m-segment (79 kr) — pris per sida i hela segment. 20 cm finns endast som rak.</p>
+        <p class="cfg-hint">Svart scenkjol som döljer ben och teknik. Rak kjol hyrs i 4 m-segment ({_kjolPris('rak')} kr), veckad i 2 m-segment ({_kjolPris('veckad')} kr) — pris per sida i hela segment. 20 cm finns endast som rak.</p>
         <div class="cfg-pill-row">
           <label class="cfg-pill"><input type="radio" name="skirtMode" value="none" checked /><span>Ingen</span></label>
           <label class="cfg-pill"><input type="radio" name="skirtMode" value="custom" /><span>Anpassad placering</span></label>
@@ -253,7 +257,7 @@ const configData = {
 
 <script type="application/json" id="cfg-data" set:html={JSON.stringify(configData)}></script>
 
-<script define:vars={{ INJ_MODULE_BY_KEY, INJ_HOJD_HINT, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT }}>
+<script define:vars={{ INJ_MODULE_BY_KEY, INJ_HOJD_HINT, INJ_MONTERING_PRICE_PER_HOUR, INJ_OBLIG_OVER_M2, INJ_SKIRT_PRICE_PER_METER, INJ_SKIRT_BY_HEIGHT, INJ_TRAPPOR }}>
 (function () {
   function initConfigurator() {
     const root = document.getElementById('scene-configurator');
@@ -321,8 +325,7 @@ const configData = {
     }
 
     function getStairForHeight(h) {
-      if (h === 40) return { artno: 'SK-SCN-ACC-0001', name: 'Scentrapp (40 cm)', price: 279 };
-      return { artno: 'SK-SCN-ACC-0002', name: 'Scentrapp (60 cm)', price: 349 };
+      return h === 40 ? INJ_TRAPPOR[40] : INJ_TRAPPOR[60];
     }
 
     function isDimValid() {
@@ -412,9 +415,9 @@ const configData = {
         });
         if (state.stairRail) {
           lines.push({
-            artno: 'SK-SCN-ACC-0008',
-            name: `${prefix} Räcke till scentrapp (40/60 cm)`,
-            price: 200,
+            artno: INJ_TRAPPOR.racke.artno,
+            name: `${prefix} ${INJ_TRAPPOR.racke.name}`,
+            price: INJ_TRAPPOR.racke.price,
             qty: state.stairCount,
             category: 'Scen',
           });
