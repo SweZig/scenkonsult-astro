@@ -9,9 +9,13 @@ import _karaokeData from '../data/karaoke.json';
 import _tjData from '../data/tjanster.json';
 import _elData from '../data/el.json';
 import { resolveBuilder as _kbResolve, minTotal as _kbMin } from '../lib/karaoke-builder.mjs';
+import YouTubeKlick from '../components/YouTubeKlick.astro';
+import { getSummary } from '../utils/reviews';
 
 // Frånpriser härleds från JSON-katalogen (hänger med vid prisjustering).
-const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price).map((p: any) => p.price));
+const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price && p.active !== false).map((p: any) => p.price));
+// Betyget räknas ur reviews.json (stod som inskrivet 4.8).
+const _betyg = getSummary();
 const fmt = (n: number) => n.toLocaleString('sv');
 // Fraktpriser till FAQ-schemat — ur tjanster.json, aldrig hårdkodade.
 const _lev = (_tjData as any).leverans || {};
@@ -50,6 +54,15 @@ const homeSchema = {
   ]
 };
 const _kbFran = _kbMin(_kbResolve(_karaokeData, { karaoke: _karaokeData, ljud: ljudData, ljus: ljusData, bild: bildData, dj: djData, scenes: scenesData, tjanster: _tjData, el: _elData }));
+// Kundtickern: en lista, renderad två gånger i mallen (andra halvan var kortare och loopen hoppade).
+const KUNDTICKER = [
+        'Stockholm Stad','Solna Stad','ICA Sverige','Akademiska Hus',
+        'Mälardalens Universitet','Brasiliens Ambassad','Indiens Ambassad',
+        'Kommunalarbetareförbundet','Tyresö Kommun','Haninge Kommun',
+        'Ung Företagsamhet','Miljöpartiet','ABG Sundal Collier',
+        'Houdini Sportswear','Solna Tingsrätt','Hornbach','Odd Fellow',
+        'Vision','Vänsterpartiet','Korpen','A Beautiful Soap','Hacksaw Studios'
+];
 ---
 
 <Layout
@@ -722,19 +735,8 @@ const _kbFran = _kbMin(_kbResolve(_karaokeData, { karaoke: _karaokeData, ljud: l
   <div class="clients-label">Anlitade av</div>
   <div class="clients-scroll">
     <div class="clients-track">
-      {[
-        'Stockholm Stad','Solna Stad','ICA Sverige','Akademiska Hus',
-        'Mälardalens Universitet','Brasiliens Ambassad','Indiens Ambassad',
-        'Kommunalarbetareförbundet','Tyresö Kommun','Haninge Kommun',
-        'Ung Företagsamhet','Miljöpartiet','ABG Sundal Collier',
-        'Houdini Sportswear','Solna Tingsrätt','Hornbach','Odd Fellow',
-        'Vision','Vänsterpartiet','Korpen','A Beautiful Soap','Hacksaw Studios',
-        // duplicate for seamless loop
-        'Stockholm Stad','Solna Stad','ICA Sverige','Akademiska Hus',
-        'Mälardalens Universitet','Brasiliens Ambassad','Indiens Ambassad',
-        'Kommunalarbetareförbundet','Tyresö Kommun','Haninge Kommun',
-        'Ung Företagsamhet','Miljöpartiet','ABG Sundal Collier',
-        'Houdini Sportswear','Solna Tingsrätt','Hornbach','Odd Fellow',
+      {/* Listan renderas två gånger så att loopen (translateX -50 %) blir sömlös. */}
+      {[...KUNDTICKER, ...KUNDTICKER
       ].map(name => (
         <span class="clients-name">{name}</span>
       ))}
@@ -753,9 +755,9 @@ const _kbFran = _kbMin(_kbResolve(_karaokeData, { karaoke: _karaokeData, ljud: l
         </h2>
       </div>
       <div class="rev2-score-badge">
-        <div class="rev2-score-n">4.8</div>
+        <div class="rev2-score-n">{_betyg.ratingStr}</div>
         <div class="rev2-score-stars">★★★★★</div>
-        <div class="rev2-score-lbl">Genomsnittligt betyg</div>
+        <div class="rev2-score-lbl">Snitt av {_betyg.count} omdömen på Google</div>
       </div>
     </div>
     <div class="rev2-grid">
@@ -830,14 +832,7 @@ const _kbFran = _kbMin(_kbResolve(_karaokeData, { karaoke: _karaokeData, ljud: l
       <a href="/kontakt" class="howto-cta">Kom igång →</a>
     </div>
     <div class="howto-video-wrap">
-      <iframe
-        src="https://www.youtube-nocookie.com/embed/hmIlyWm69nI?rel=0"
-        title="Så enkelt är det att hyra hos oss – Scenkonsult Norden"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-        loading="lazy"
-      ></iframe>
+      <YouTubeKlick id="hmIlyWm69nI" title="Så enkelt är det att hyra hos oss" />
     </div>
   </div>
 </section>

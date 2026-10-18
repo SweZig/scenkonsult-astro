@@ -1,0 +1,50 @@
+---
+// YouTube-film som laddas först när besökaren klickar.
+// Inget tredjepartsinnehåll före samtycke (Dok 1 §9.1): ingen iframe och
+// ingen miniatyr från Google förrän knappen trycks. Fyller sin förälder —
+// föräldern sätter storlek och aspect-ratio.
+interface Props {
+  id: string;
+  title: string;
+}
+const { id, title } = Astro.props;
+---
+<button type="button" class="yt-klick" data-yt-id={id} data-yt-title={title} aria-label={`Spela filmen: ${title}`}>
+  <span class="yt-klick-play" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="#0c0a24"><path d="M8 5v14l11-7z"/></svg>
+  </span>
+  <span class="yt-klick-titel">{title}</span>
+  <span class="yt-klick-not">Filmen laddas från YouTube när du klickar</span>
+</button>
+
+<style>
+  .yt-klick {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 0.75rem;
+    padding: 1.5rem; border: 0; cursor: pointer; text-align: center;
+    background: radial-gradient(circle at 50% 40%, #1e1850 0%, #0c0a24 75%);
+    color: #fff; font-family: 'Space Grotesk', sans-serif;
+  }
+  .yt-klick-play {
+    width: 68px; height: 68px; border-radius: 999px; background: #c4b5f4;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .yt-klick:hover .yt-klick-play, .yt-klick:focus-visible .yt-klick-play { background: #e2dcfb; transform: scale(1.05); }
+  .yt-klick-titel { font-weight: 600; font-size: 1rem; max-width: 32ch; }
+  .yt-klick-not { font-size: 0.75rem; color: rgba(255,255,255,0.55); }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('button[data-yt-id]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(btn.dataset.ytId || '')}?autoplay=1&rel=0`;
+      f.title = btn.dataset.ytTitle || 'YouTube-film';
+      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      f.allowFullscreen = true;
+      f.style.cssText = 'width:100%;height:100%;border:0;display:block;';
+      btn.replaceWith(f);
+    }, { once: true });
+  });
+</script>
