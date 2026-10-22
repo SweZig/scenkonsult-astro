@@ -414,4 +414,37 @@ async function getTakenInvoiceNumbers() {
   return { taken, highest, START_NUM };
 }
 
-module.exports = { supabase, generateCartToken, isAdmin, safeEqual, escapeHtml, corsHeaders, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, getTakenInvoiceNumbers, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };
+// ── Nytt bygge efter innehållsändring ────────────────────────
+// Innehållsadmin skriver till Supabase, men de statiska sidorna läser
+// reviews.json, clients.json, popular.json och event-cases.json, som
+// synkas ur databasen först vid nästa bygge (prebuild). Lyckade
+// skrivningar startar därför ett nytt bygge via en Netlify build hook.
+// Utan NETLIFY_BUILD_HOOK händer ingenting. Fel här får aldrig fälla
+// sparningen, så allt fångas och loggas.
+async function startaBygge(orsak) {
+  const hook = process.env.NETLIFY_BUILD_HOOK;
+  if (!hook) return false;
+  try {
+    const titel = encodeURIComponent(`Admin: ${orsak}`);
+    const url = hook + (hook.includes('?') ? '&' : '?') + `trigger_title=${titel}`;
+    const res = await fetch(url, { method: 'POST', signal: AbortSignal.timeout(4000) });
+    console.log('BUILD_HOOK:', orsak, res.status);
+    return res.ok;
+  } catch (e) {
+    console.error('BUILD_HOOK_ERROR:', orsak, e.message);
+    return false;
+  }
+}
+
+// Omsluter en admin-handler: en lyckad POST (2xx) startar ett nytt bygge.
+function medOmbygge(handler, orsak) {
+  return async (event) => {
+    const svar = await handler(event);
+    if (event.httpMethod === 'POST' && svar && svar.statusCode >= 200 && svar.statusCode < 300) {
+      await startaBygge(orsak);
+    }
+    return svar;
+  };
+}
+
+module.exports = { supabase, startaBygge, medOmbygge, generateCartToken, isAdmin, safeEqual, escapeHtml, corsHeaders, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, getOrCreateInvoiceNumber, getTakenInvoiceNumbers, isBookingFee, MAIL_FROM, MAIL_LOGO_URL };

@@ -12,7 +12,7 @@
 // Auth: Authorization: Bearer <ADMIN_TOKEN>
 
 'use strict';
-const { supabase, isAdmin, ok, err, preflight } = require('./_lib');
+const { supabase, isAdmin, ok, err, preflight, medOmbygge } = require('./_lib');
 
 const CATEGORIES = ['kommun', 'naringsliv', 'ambassad', 'event'];
 
@@ -52,7 +52,7 @@ function validate(c) {
   return null;
 }
 
-exports.handler = async (event) => {
+exports.handler = medOmbygge(async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (!isAdmin(event)) return err('Ej behörig', 401);
 
@@ -158,4 +158,4 @@ exports.handler = async (event) => {
     console.error('ADMIN_CLIENTS_ERROR:', e.message);
     return err('Internt fel', 500);
   }
-};
+}, 'referenskunder');

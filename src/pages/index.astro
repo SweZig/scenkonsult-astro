@@ -22,6 +22,7 @@ import _elData from '../data/el.json';
 import { resolveBuilder as _kbResolve, minTotal as _kbMin } from '../lib/karaoke-builder.mjs';
 import { resolveLjudLjus, minRecommended } from '../lib/ljud-ljus-builder.mjs';
 import { getSummary, getReviews } from '../utils/reviews';
+import { nyckel } from '../scripts/recensioner-live';
 import { KUNDLOGOTYPER } from '../utils/clients';
 import { produktLank } from '../utils/produktLank';
 import { telefon, helg } from '../utils/hours';
@@ -214,8 +215,8 @@ const homeSchema = {
 <section class="st-wrap st-fakta-wrap" aria-label="Fakta om oss">
   <div class="st-fakta">
     <a class="st-fakta-ruta" href={googleUrl} target="_blank" rel="noopener">
-      <span class="st-fakta-n">{betyg.ratingStr}</span>
-      <span class="st-fakta-t"><span class="st-stjarnor" aria-hidden="true">★★★★★</span><br><u>{betyg.count} omdömen på Google ↗</u></span>
+      <span class="st-fakta-n" data-rec-snitt>{betyg.ratingStr}</span>
+      <span class="st-fakta-t"><span class="st-stjarnor" aria-hidden="true">★★★★★</span><br><u><span data-rec-antal>{betyg.count}</span> omdömen på Google ↗</u></span>
     </a>
     <a class="st-fakta-ruta" href="/om-oss/#historia">
       <span class="st-fakta-n">{arIBranschen} år</span>
@@ -353,8 +354,8 @@ const homeSchema = {
   <div class="st-wrap st-omd">
     <div class="st-omd-sida">
       <h2 class="st-h2">Vad kunderna säger</h2>
-      <div class="st-omd-betyg"><span>{betyg.ratingStr}</span><span class="st-stjarnor" aria-hidden="true">★★★★★</span></div>
-      <p>Snitt av {betyg.count} omdömen på Google</p>
+      <div class="st-omd-betyg"><span data-rec-snitt>{betyg.ratingStr}</span><span class="st-stjarnor" aria-hidden="true">★★★★★</span></div>
+      <p>Snitt av <span data-rec-antal>{betyg.count}</span> omdömen på Google</p>
       <a href={googleUrl} target="_blank" rel="noopener" class="st-btn st-btn-g st-btn-liten">Läs alla på Google ↗</a>
       <ul class="st-usp">
         <li>Personlig rådgivning</li>
@@ -362,7 +363,7 @@ const homeSchema = {
         <li>Generösa avbokningsregler</li>
       </ul>
     </div>
-    <div class="st-omd-spel" data-vaxla="omdomen">
+    <div class="st-omd-spel" data-vaxla="omdomen" data-rec-nycklar={JSON.stringify(omdomen.map(nyckel))}>
       <div class="st-omd-scen" aria-live="polite">
         <span class="st-citattecken" aria-hidden="true">“</span>
         {omdomen.map((r, i) => (
@@ -659,24 +660,35 @@ const homeSchema = {
 </style>
 
 <script>
+  import { hamtaRecensioner, hydreraSammanfattning, esc, manad, nyckel } from '../scripts/recensioner-live';
+
   // Växlar bilder i heron och omdömen var sjätte sekund. Pausar när besökaren
   // håller musen över eller har fokus i sektionen, när fliken inte syns och
   // helt för den som valt minskade animationer.
   const stilla = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function vaxlare(rot: HTMLElement, slides: HTMLElement[], prickar: HTMLButtonElement[], vidByte?: (i: number) => void) {
+  // Slides och prickar slås upp vid varje byte, och prickarnas klick fångas på
+  // roten — då kan omdömena bytas ut när live-listan kommer utan ny växlare.
+  function vaxlare(rot: HTMLElement, slides: () => HTMLElement[], prickar: () => HTMLButtonElement[], vidByte?: (i: number) => void) {
     let nu = 0;
     let paus = false;
     const visa = (i: number) => {
-      nu = (i + slides.length) % slides.length;
-      slides.forEach((s, j) => {
-        s.classList.toggle('is-aktiv', j === nu);
-        if (j === nu) s.removeAttribute('aria-hidden'); else s.setAttribute('aria-hidden', 'true');
+      const s = slides();
+      if (!s.length) return;
+      nu = (i + s.length) % s.length;
+      s.forEach((el, j) => {
+        el.classList.toggle('is-aktiv', j === nu);
+        if (j === nu) el.removeAttribute('aria-hidden'); else el.setAttribute('aria-hidden', 'true');
       });
-      prickar.forEach((p, j) => { p.classList.toggle('is-aktiv', j === nu); p.setAttribute('aria-pressed', String(j === nu)); });
+      prickar().forEach((p, j) => { p.classList.toggle('is-aktiv', j === nu); p.setAttribute('aria-pressed', String(j === nu)); });
       vidByte?.(nu);
     };
-    prickar.forEach((p, j) => p.addEventListener('click', () => visa(j)));
+    rot.addEventListener('click', (e) => {
+      const p = (e.target as HTMLElement).closest<HTMLButtonElement>('.st-prick');
+      if (!p) return;
+      const j = prickar().indexOf(p);
+      if (j >= 0) visa(j);
+    });
     rot.addEventListener('mouseenter', () => { paus = true; });
     rot.addEventListener('mouseleave', () => { paus = false; });
     rot.addEventListener('focusin', () => { paus = true; });
@@ -696,15 +708,47 @@ const homeSchema = {
       if (im.dataset.src) { im.src = im.dataset.src; delete im.dataset.src; }
     });
     if (document.readyState === 'complete') ladda(); else window.addEventListener('load', ladda, { once: true });
-    vaxlare(hero, slides, prickar, (i) => { ladda(); if (text) text.textContent = prickar[i]?.dataset.text ?? ''; });
+    vaxlare(hero, () => slides, () => prickar, (i) => { ladda(); if (text) text.textContent = prickar[i]?.dataset.text ?? ''; });
   }
 
   // Omdömen
   const omd = document.querySelector<HTMLElement>('[data-vaxla="omdomen"]');
   if (omd) {
-    const v = vaxlare(omd, [...omd.querySelectorAll<HTMLElement>('.st-omd-kort')], [...omd.querySelectorAll<HTMLButtonElement>('.st-prick')]);
+    const v = vaxlare(omd, () => [...omd.querySelectorAll<HTMLElement>('.st-omd-kort')], () => [...omd.querySelectorAll<HTMLButtonElement>('.st-prick')]);
     omd.querySelectorAll<HTMLButtonElement>('.st-pil').forEach((b) => b.addEventListener('click', () => v.visa(v.nu() + Number(b.dataset.steg))));
+
+    // Live-listan: byt korten bara om den skiljer sig från den inbakade.
+    hamtaRecensioner().then((d) => {
+      if (!d) return;
+      const lista = d.reviews.filter((r) => r.rating >= 5 && r.text && r.text.trim().length > 0);
+      const nya = lista.map(nyckel);
+      let gamla: string[] = [];
+      try { gamla = JSON.parse(omd.dataset.recNycklar || '[]'); } catch { /* bygg om */ }
+      if (!lista.length || JSON.stringify(nya) === JSON.stringify(gamla)) return;
+      const scen = omd.querySelector<HTMLElement>('.st-omd-scen');
+      const grupp = omd.querySelector<HTMLElement>('.st-prickar');
+      if (!scen || !grupp) return;
+      scen.querySelectorAll('.st-omd-kort').forEach((f) => f.remove());
+      scen.insertAdjacentHTML('beforeend', lista.map((r, i) => `
+        <figure class="st-omd-kort${i === 0 ? ' is-aktiv' : ''}${r.text.length > 170 ? ' is-lang' : ''}"${i === 0 ? '' : ' aria-hidden="true"'}>
+          <span class="st-stjarnor" aria-label="${r.rating} av 5 stjärnor">★★★★★</span>
+          <blockquote>${esc(r.text)}</blockquote>
+          <figcaption><b>${esc(r.author)}</b> · ${esc(manad(r.publishTime))} · Google</figcaption>
+        </figure>`).join(''));
+      grupp.innerHTML = lista.map((r, i) => `
+        <button type="button" class="st-prick st-prick-bred${i === 0 ? ' is-aktiv' : ''}" data-index="${i}" aria-label="Omdöme från ${esc(r.author)}" aria-pressed="${i === 0}"><span></span></button>`).join('');
+      // Startsidans CSS är scopad: nya element måste bära samma data-astro-cid-*
+      // som den inbakade markupen, annars får korten och prickarna ingen stil.
+      const cid = [...scen.attributes].map((at) => at.name).filter((n) => n.startsWith('data-astro-cid-'));
+      const nyaEl = [...scen.querySelectorAll('.st-omd-kort'), ...grupp.children];
+      nyaEl.forEach((el) => [el, ...el.querySelectorAll('*')].forEach((x) => cid.forEach((n) => x.setAttribute(n, ''))));
+      omd.dataset.recNycklar = JSON.stringify(nya);
+      v.visa(0);
+    });
   }
+
+  // Antal och snitt i faktaraden och omdömessektionen
+  hydreraSammanfattning();
 
   // Topplistans flikar (piltangenter enligt WAI-ARIA tabs)
   const flikar = [...document.querySelectorAll<HTMLButtonElement>('.st-flik')];

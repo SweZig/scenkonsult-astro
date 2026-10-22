@@ -26,7 +26,7 @@
 // Auth: Authorization: Bearer <ADMIN_TOKEN>
 
 'use strict';
-const { isAdmin, ok, err, preflight } = require('./_lib');
+const { isAdmin, ok, err, preflight, medOmbygge } = require('./_lib');
 
 const SUPA_URL = () => process.env.SUPABASE_URL;
 const SUPA_KEY = () => process.env.SUPABASE_SERVICE_KEY;
@@ -65,7 +65,7 @@ async function uniqueGroupId(base) {
   return `${base}-${Date.now().toString(36)}`;
 }
 
-exports.handler = async (event) => {
+exports.handler = medOmbygge(async (event) => {
   if (event.httpMethod === 'OPTIONS') return preflight();
   if (!isAdmin(event)) return err('Ej behörig', 401);
   if (!SUPA_URL() || !SUPA_KEY()) return err('Supabase-konfiguration saknas', 500);
@@ -189,4 +189,4 @@ exports.handler = async (event) => {
     console.error('ADMIN_POPULAR_ERROR:', e.status || '', e.path || '', e.message);
     return err('Internt fel', 500);
   }
-};
+}, 'topplistor');

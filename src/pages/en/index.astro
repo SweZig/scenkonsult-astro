@@ -105,7 +105,7 @@ const faqSchema = {
       '20–4,000 guests',
       'Delivery & setup across Greater Stockholm',
       'Technicians on site',
-      `${reviews.rating.toFixed(1)} ★ on Google`,
+      { html: `<span data-rec-snitt="en">${reviews.rating.toFixed(1)}</span> ★ on Google` },
     ]}
   />
 
@@ -260,4 +260,9 @@ const faqSchema = {
       });
     })();
   </script>
+<script>
+  // Snittbetyget i heron följer listan i /admin/recensioner/ utan att vänta på nästa bygge.
+  import { hydreraSammanfattning } from '../../scripts/recensioner-live';
+  hydreraSammanfattning();
+</script>
 </Layout>
