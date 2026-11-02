@@ -8,6 +8,8 @@ import ledData from '../../data/led-paneler.json';
 import tjansterData from '../../data/tjanster.json';
 import MonteringEngine from '../../components/MonteringEngine.astro';
 import FraktEngine from '../../components/FraktEngine.astro';
+// Momsregeln (utländsk företagskund = ingen svensk moms) → window.SkMoms
+import momsLibSrc from '../../lib/moms.cjs?raw';
 import { utanInterna } from '../../utils/utanInterna';
 
 // Förbered data för admin-konfiguratorerna (klient-side använder window-globals)
@@ -1514,6 +1516,7 @@ const _dayConfig = tjansterData.hyresdagar || null;
   </style>
   <MonteringEngine />
   <FraktEngine />
+  <script is:inline set:html={momsLibSrc}></script>
   <script is:inline define:vars={{ quoteCatalog: utanInterna(quoteCatalogData), scenConfig: utanInterna(_scenAdminConfig), ledConfig: utanInterna(_ledAdminConfig), fraktConfig: utanInterna(_fraktAdminConfig), monteringConfig: utanInterna(_monteringAdminConfig), dayConfig: utanInterna(_dayConfig) }}>
     window.__ADMIN_QUOTE_CATALOG__   = quoteCatalog;
     window.__ADMIN_SCEN_CONFIG__     = scenConfig;
@@ -3679,6 +3682,16 @@ function renderTab(tab) {
         customer_invoice_address: $('edit-invoice-address')?.value.trim() || null,
         wants_peppol:     $('edit-wants-peppol')?.checked ? true : false,
         peppol_id:        ($('edit-wants-peppol')?.checked && $('edit-peppol-id')?.value.trim()) ? $('edit-peppol-id').value.trim() : null,
+        // Momsbehandling — bara när fältet går att ändra (låst efter skickad faktura)
+        ...($('edit-vat-exempt') && !$('edit-vat-exempt').disabled ? (() => {
+          const ex = $('edit-vat-exempt').checked && (document.querySelector('input[name="ctype"]:checked')?.value === 'b2b');
+          return {
+            vat_exempt:       ex,
+            vat_region:       ex ? (document.querySelector('input[name="vat-region"]:checked')?.value || 'eu') : null,
+            customer_country: ex ? (($('edit-customer-country')?.value || '').trim().toUpperCase() || null) : null,
+            customer_vat_id:  ex ? (($('edit-customer-vat-id')?.value || '').trim() || null) : null,
+          };
+        })() : {}),
         delivery_time:    $('edit-delivery-time')?.value   || '13:00',
         return_time:      $('edit-return-time')?.value     || '11:00',
         invoice_email:    $('edit-invoice-email')?.value.trim() || null,
@@ -3688,7 +3701,16 @@ function renderTab(tab) {
         delivery_mode:    deliveryMode,
         referral_source:  $('edit-referral')?.value.trim()  || null,
       };
-      const { ok } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
+      // Momsfri utländsk kund: samma kontroll som servern (src/lib/moms.cjs)
+      if (updates.vat_exempt !== undefined) {
+        const momsFel = window.SkMoms.validate(updates);
+        if (momsFel) {
+          toast(momsFel, 'error');
+          btn.disabled = false; btn.textContent = '💾 Spara kunduppgifter';
+          return;
+        }
+      }
+      const { ok, data } = await api('cart-update', { method: 'POST', body: JSON.stringify(updates) });
       if (ok) {
         // Synka HELA cart från servern — undviker att enskilda fält
         // (t.ex. return_date) hamnar i otakt med databasen vid flikbyte.
@@ -3700,7 +3722,7 @@ function renderTab(tab) {
         if (typeof renderPanelFooter === 'function') renderPanelFooter();
         toast('Kunduppgifter sparade!');
         loadCarts();
-      } else toast('Kunde inte spara', 'error');
+      } else toast(data?.error ? 'Kunde inte spara: ' + data.error : 'Kunde inte spara', 'error');
       btn.disabled = false; btn.textContent = '💾 Spara kunduppgifter';
     });
 
@@ -3885,15 +3907,15 @@ function prodUpdateSum(idx) {
   const tfoot = document.getElementById('prod-tfoot');
   if (tfoot) tfoot.innerHTML = `<tr class="total-row"><td colspan="3">Totalt (exkl. moms)</td>
     <td style="text-align:right">${fmt(total)} kr</td><td></td></tr>
-  <tr><td colspan="3" style="color:var(--text-faint);font-size:0.8rem">Inkl. 25% moms</td>
-    <td style="text-align:right;color:var(--text-muted);font-size:0.85rem">${fmt(Math.round(total*1.25))} kr</td><td></td></tr>`;
+  <tr><td colspan="3" style="color:var(--text-faint);font-size:0.8rem">${window.SkMoms.info(currentCart).exempt ? 'Ingen svensk moms (utländsk företagskund)' : 'Inkl. 25% moms'}</td>
+    <td style="text-align:right;color:var(--text-muted);font-size:0.85rem">${fmt(window.SkMoms.inclOf(total, currentCart))} kr</td><td></td></tr>`;
   // Synka summary-div:en under tabellen
   const se = document.getElementById('prod-summary-excl');
   const sv = document.getElementById('prod-summary-vat');
   const si = document.getElementById('prod-summary-incl');
   if (se) se.textContent = fmt(total) + ' kr';
-  if (sv) sv.textContent = fmt(Math.round(total*0.25)) + ' kr';
-  if (si) si.textContent = fmt(Math.round(total*1.25)) + ' kr';
+  if (sv) sv.textContent = fmt(window.SkMoms.vatOf(total, currentCart)) + ' kr';
+  if (si) si.textContent = fmt(window.SkMoms.inclOf(total, currentCart)) + ' kr';
 
   // Synka currentCart live så footern och kanban-kortet visar samma summa som
   // tabellen UTAN att man måste spara först. (Tidigare läste de bara
@@ -4368,6 +4390,32 @@ function renderInfoTab() {
         </label>
         <div id="peppol-id-wrap" style="display:${c.wants_peppol?'block':'none'};margin-top:0.4rem">
           <input class="info-edit-input" id="edit-peppol-id" value="${htmlEscape(c.peppol_id)}" placeholder="Peppol-ID / GLN, t.ex. 0007:5560123456" style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%">
+        </div>
+      </div>
+      <div class="info-field" style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:0.6rem;margin-top:0.2rem">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:${c.invoice_sent_at?'not-allowed':'pointer'};font-size:0.85rem;color:var(--text)">
+          <input type="checkbox" id="edit-vat-exempt" ${c.vat_exempt?'checked':''} ${c.invoice_sent_at?'disabled':''} onchange="document.getElementById('vat-exempt-wrap').style.display=this.checked?'grid':'none'" style="accent-color:#c4b5f4;width:15px;height:15px">
+          <span>Utländsk företagskund — ej momspliktig i Sverige <span style="color:var(--text-muted);font-size:0.78rem">(fakturan blir en Non-VAT invoice)</span></span>
+        </label>
+        ${c.invoice_sent_at ? '<div style="color:var(--text-muted);font-size:0.75rem;margin-top:4px">Låst — fakturan är skickad. Kreditera och fakturera om för att ändra momsbehandlingen.</div>' : ''}
+        <div id="vat-exempt-wrap" style="display:${c.vat_exempt?'grid':'none'};grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.5rem">
+          <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border)">
+              <input type="radio" name="vat-region" value="eu" ${c.vat_region!=='non_eu'?'checked':''} ${c.invoice_sent_at?'disabled':''}> Inom EU <span style="color:var(--text-muted);font-size:0.75rem">(omvänd betalningsskyldighet)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border)">
+              <input type="radio" name="vat-region" value="non_eu" ${c.vat_region==='non_eu'?'checked':''} ${c.invoice_sent_at?'disabled':''}> Utanför EU
+            </label>
+          </div>
+          <div>
+            <div class="info-field-label">Land (landskod)</div>
+            <input class="info-edit-input" id="edit-customer-country" value="${htmlEscape(c.customer_country)}" maxlength="2" placeholder="t.ex. DE, NO, US" ${c.invoice_sent_at?'disabled':''} style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;text-transform:uppercase">
+          </div>
+          <div>
+            <div class="info-field-label">VAT-nummer <span style="color:var(--text-muted);font-size:0.72rem">(krävs inom EU)</span></div>
+            <input class="info-edit-input" id="edit-customer-vat-id" value="${htmlEscape(c.customer_vat_id)}" placeholder="t.ex. DE123456789" ${c.invoice_sent_at?'disabled':''} style="background:#0f0d2a!important;color:#f0eeff!important;color-scheme:dark;border:1px solid var(--border);border-radius:6px;padding:0.35rem 0.6rem;font-family:inherit;font-size:0.9rem;width:100%;text-transform:uppercase">
+          </div>
+          <div style="grid-column:1/-1;color:var(--text-muted);font-size:0.75rem;line-height:1.5">Kontrollera EU-numret i VIES innan fakturan skickas. En utländsk <em>privatperson</em> betalar svensk moms — rutan gäller bara företag.</div>
         </div>
       </div>
     </div>
@@ -4940,8 +4988,8 @@ function renderProductsTab() {
       <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-faint);margin-bottom:3px"><span>Ordinarie pris, ${daySum.maxDays} dygn</span><span style="text-decoration:line-through">${fmt(daySum.ordinarie)} kr</span></div>
       <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#4ade80;font-weight:600;margin-bottom:3px"><span>Flerdygnsrabatt</span><span>−${fmt(daySum.rabatt)} kr</span></div>` : ''}
       <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Produkter exkl. moms</span><span id="prod-summary-excl">${fmt(total)} kr</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>Moms 25%</span><span id="prod-summary-vat">${fmt(Math.round(total*0.25))} kr</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;color:var(--brand-lav)"><span>Inkl. moms</span><span id="prod-summary-incl">${fmt(Math.round(total*1.25))} kr</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:3px"><span>${window.SkMoms.info(currentCart).exempt ? 'Moms 0% (utländsk företagskund)' : 'Moms 25%'}</span><span id="prod-summary-vat">${fmt(window.SkMoms.vatOf(total, currentCart))} kr</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;color:var(--brand-lav)"><span>${window.SkMoms.info(currentCart).exempt ? 'Att betala (ingen svensk moms)' : 'Inkl. moms'}</span><span id="prod-summary-incl">${fmt(window.SkMoms.inclOf(total, currentCart))} kr</span></div>
     </div>
 
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
@@ -5083,8 +5131,8 @@ function prodTotals() {
   const total = (currentCart.items||[]).filter(i => !i._note && i.name?.trim()).reduce((s,i) => s + ((i.price||0)*(i.qty||i.quantity||1)), 0);
   return `<tr class="total-row"><td colspan="4">Totalt (exkl. moms)</td>
     <td style="text-align:right">${fmt(total)} kr</td><td></td></tr>
-  <tr><td colspan="4" style="color:var(--text-faint);font-size:0.8rem">Inkl. 25% moms</td>
-    <td style="text-align:right;color:var(--text-muted);font-size:0.85rem">${fmt(Math.round(total*1.25))} kr</td><td></td></tr>`;
+  <tr><td colspan="4" style="color:var(--text-faint);font-size:0.8rem">${window.SkMoms.info(currentCart).exempt ? 'Ingen svensk moms (utländsk företagskund)' : 'Inkl. 25% moms'}</td>
+    <td style="text-align:right;color:var(--text-muted);font-size:0.85rem">${fmt(window.SkMoms.inclOf(total, currentCart))} kr</td><td></td></tr>`;
 }
 
 // ── CHAT-SNABBMALLAR ──────────────────────────────────────────
@@ -5764,8 +5812,8 @@ function renderFakturaTab() {
     <div class="section-label">Belopp</div>
     <div style="font-size:0.82rem">
       <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text-muted)"><span>Produkter & tjänster exkl. moms</span><span>${fmt(total)} kr</span></div>
-      <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text-muted)"><span>Moms 25%</span><span>${fmt(Math.round(total*0.25))} kr</span></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:0.95rem;color:var(--brand-lav);border-top:1px solid var(--border);margin-top:4px"><span>Att betala inkl. moms</span><span>${fmt(Math.round(total*1.25))} kr</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text-muted)"><span>${window.SkMoms.info(c).exempt ? 'Moms 0% — ' + window.SkMoms.info(c).notice.sv : 'Moms 25%'}</span><span>${fmt(window.SkMoms.vatOf(total, c))} kr</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:0.95rem;color:var(--brand-lav);border-top:1px solid var(--border);margin-top:4px"><span>${window.SkMoms.info(c).exempt ? 'Att betala (ingen svensk moms)' : 'Att betala inkl. moms'}</span><span>${fmt(window.SkMoms.inclOf(total, c))} kr</span></div>
     </div>
 
     <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
@@ -5802,7 +5850,7 @@ function renderFakturaTab() {
             </div>
             <div style="color:var(--text-faint);font-size:0.72rem;margin-top:2px">
               ${c.credit_invoice_number
-                ? `Skickad ${c.credit_sent_at ? fmtDate(c.credit_sent_at) : '—'} · ${Math.round((c.credit_amount_excl||0) * -1.25).toLocaleString('sv-SE')} kr inkl. moms`
+                ? `Skickad ${c.credit_sent_at ? fmtDate(c.credit_sent_at) : '—'} · ${(-window.SkMoms.inclOf(c.credit_amount_excl||0, c)).toLocaleString('sv-SE')} kr ${window.SkMoms.info(c).suffix}`
                 : 'Skapa kreditfaktura för denna order — hela eller partiell enligt avbokningsregler.'}
             </div>
           </div>
@@ -5911,7 +5959,7 @@ function renderFakturaTab() {
 function swishQrData(c) {
   const items     = (c.items||[]).filter(i=>!i._note&&i.name);
   const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
-  const amount    = Math.ceil(totalExcl * 1.25);
+  const amount    = Math.ceil(totalExcl * window.SkMoms.factor(c));
   const amountStr = amount.toFixed(2).replace('.', ',');
   const msg       = encodeURIComponent(c.invoice_number);
   return { amount, content: `C1231365907;${amountStr};${msg};0` };
@@ -6030,7 +6078,11 @@ async function invCreateAndSend() {
   // Visa bekräftelsedialog med fakturanummer
   const items = (currentCart.items||[]).filter(i=>!i._note&&i.name?.trim());
   const total = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
-  const totalIncl = Math.round(total * 1.25);
+  const totalIncl = window.SkMoms.inclOf(total, currentCart);
+
+  // Momsfri faktura: stoppa innan numret förbrukas om uppgifterna är ofullständiga
+  const momsFel = window.SkMoms.validate(currentCart);
+  if (momsFel) { toast('Momsuppgifter: ' + momsFel + ' (Info-fliken)', 'error'); return; }
 
   const confirmed = await showInvoiceConfirmDialog(previewNum, totalIncl);
   if (!confirmed) return;
@@ -6084,7 +6136,7 @@ function showInvoiceConfirmDialog(invoiceNum, totalIncl) {
             <span style="color:#c4b5f4;font-weight:700;font-size:1rem">${invoiceNum}</span>
           </div>
           <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
-            <span style="color:rgba(255,255,255,0.5);font-size:0.85rem">Belopp inkl. moms</span>
+            <span style="color:rgba(255,255,255,0.5);font-size:0.85rem">${window.SkMoms.info(currentCart).exempt ? 'Belopp (Non-VAT invoice)' : 'Belopp inkl. moms'}</span>
             <span style="color:#f0eeff;font-weight:600;font-size:0.9rem">${totalIncl.toLocaleString('sv-SE')} kr</span>
           </div>
           <div style="display:flex;justify-content:space-between">
@@ -6335,7 +6387,7 @@ async function invLoadRecent() {
       return;
     }
     recentEl.innerHTML = realInvoices.map(r => {
-      const total = r.total_excl ? Math.round(r.total_excl * 1.25 / 100).toLocaleString('sv-SE') + ' kr' : '—';
+      const total = r.total_excl ? window.SkMoms.inclOf(r.total_excl / 100, r).toLocaleString('sv-SE') + ' kr' : '—';
       const name = (r.customer_company ? r.customer_company + ' · ' : '') + (r.customer_name || '—');
       const date = r.invoice_sent_at
         ? fmtDate(r.invoice_sent_at)
@@ -6499,7 +6551,7 @@ function showCreditDialog(preview) {
     dlg.innerHTML = `
       <div style="background:#1a1740;border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:1.6rem;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto">
         <div style="font-size:1rem;font-weight:700;color:#fca5a5;margin-bottom:0.4rem">↩ Skapa kreditfaktura</div>
-        <div style="color:rgba(255,255,255,0.55);font-size:0.78rem;margin-bottom:1rem">Krediterar ${preview.invoice_number || '—'} · ${origIncl.toLocaleString('sv-SE')} kr inkl. moms</div>
+        <div style="color:rgba(255,255,255,0.55);font-size:0.78rem;margin-bottom:1rem">Krediterar ${preview.invoice_number || '—'} · ${origIncl.toLocaleString('sv-SE')} kr ${preview.vat_exempt ? '(ingen svensk moms)' : 'inkl. moms'}</div>
 
         <!-- Val-radios -->
         <label style="display:block;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;margin-bottom:8px;cursor:pointer">
@@ -6545,7 +6597,7 @@ function showCreditDialog(preview) {
             <input type="radio" name="credit-mode" value="custom_amount" style="accent-color:#f87171">
             <div style="flex:1;min-width:140px">
               <div style="color:#f0eeff;font-weight:600;font-size:0.85rem">Anpassat belopp</div>
-              <div style="color:rgba(255,255,255,0.5);font-size:0.72rem">Ange ett valfritt belopp i kronor (inkl. moms)</div>
+              <div style="color:rgba(255,255,255,0.5);font-size:0.72rem">Ange ett valfritt belopp i kronor (${preview.vat_exempt ? 'fakturans belopp, ingen moms' : 'inkl. moms'})</div>
             </div>
             <div style="display:flex;align-items:center;gap:4px">
               <input id="credit-custom-kr" type="number" min="1" step="1" placeholder="0" disabled
@@ -7981,7 +8033,7 @@ function sendPaymentReminder() {
   }
   _payRemPrev = parseInt(c.invoice_reminder_level) || 0;
   const items = (c.items||[]).filter(i=>!i._note && i.name);
-  _payRemBase = Math.round(items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0) * 1.25);
+  _payRemBase = window.SkMoms.inclOf(items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0), c);
   _payRemSel = payRemRecommend(_payRemDays, _payRemPrev);
 
   let ov = document.getElementById('payrem-overlay');
@@ -8339,6 +8391,8 @@ function quoteRenderTable() {
   }).join('');
 
   const total = quoteItems.reduce((s,i) => s + i.price * i.qty, 0);
+  // Omskick till befintlig order behåller dess momsbehandling; ny offert = svensk moms.
+  const _qVat = (typeof _quoteIsNewOrder !== 'undefined' && !_quoteIsNewOrder && currentCart) ? currentCart : null;
   const qds = cartDaySummary(quoteItems);
   const rabattRader = (qds.hasMultiDay && qds.rabatt > 0)
     ? `<tr><td colspan="4" style="color:var(--text-faint);font-size:0.72rem;padding-top:0.5rem">Ordinarie pris, ${qds.maxDays} dygn</td>
@@ -8350,8 +8404,8 @@ function quoteRenderTable() {
     ? `${rabattRader}
        <tr><td colspan="4" style="font-weight:700;padding-top:0.5rem;font-size:0.82rem">Totalt (exkl. moms)</td>
        <td style="text-align:right;font-weight:700;color:var(--brand-lav);font-size:0.82rem">${fmt(total)} kr</td><td></td></tr>
-       <tr><td colspan="4" style="color:var(--text-faint);font-size:0.72rem">Inkl. 25% moms</td>
-       <td style="text-align:right;color:var(--text-muted);font-size:0.72rem">${fmt(Math.round(total*1.25))} kr</td><td></td></tr>`
+       <tr><td colspan="4" style="color:var(--text-faint);font-size:0.72rem">${window.SkMoms.info(_qVat).exempt ? 'Ingen svensk moms (utländsk företagskund)' : 'Inkl. 25% moms'}</td>
+       <td style="text-align:right;color:var(--text-muted);font-size:0.72rem">${fmt(window.SkMoms.inclOf(total, _qVat))} kr</td><td></td></tr>`
     : '';
   quoteRenderDayBar();
 }

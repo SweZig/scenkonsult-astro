@@ -8,6 +8,7 @@ const { supabase: createSupabase, generateCartToken, isAdmin, logAudit, ok, err,
         htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM, escapeHtml } = require('./_lib');
 const { daySummary: _daySummary, itemDays: _itemDays } = require('./_day-display');
 const { checkMontering } = require('./_montering');
+const Moms = require('../../src/lib/moms.cjs');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -42,10 +43,12 @@ exports.handler = async (event) => {
   // Sätts till true om vi skickar om en offert till en redan bekräftad order —
   // då måste den digitala signeringen nollställas så kunden kan godkänna på nytt.
   let clearPriorConfirmation = false;
+  // Momsbehandling (utländsk företagskund) — ligger kvar på ordern vid omskick.
+  let vatCart = null;
 
   if (existing_cart_id) {
     const { data: existingCart } = await db.from('carts')
-      .select('id, cart_token, status, confirmed_at')
+      .select('id, cart_token, status, confirmed_at, vat_exempt, vat_region, customer_vat_id, customer_country')
       .eq('id', existing_cart_id).single().catch(() => ({ data: null }));
 
     if (!existingCart) {
@@ -54,6 +57,7 @@ exports.handler = async (event) => {
       cartToken = generateCartToken();
     } else {
       cartToken = existingCart.cart_token || cartToken;
+      vatCart = existingCart;
       // Kunden hade redan bekräftat. En ny/ändrad offert skickas ut → den gamla
       // signeringen gäller inte längre den nya offerten. Nollställ så att
       // cart-update.js (customer_confirm) släpper igenom en ny bekräftelse.
@@ -141,10 +145,12 @@ exports.handler = async (event) => {
     : '';
 
   // Beräkna summering för teaser (utan att avslöja priserna per rad)
-  const totalIncl = Math.round(totalExcl * 1.25);
+  const isB2B     = !!customer.company;
+  const _vatOrder = vatCart ? { ...vatCart, customer_type: isB2B ? 'b2b' : 'b2c', customer_company: customer.company || null } : null;
+  const _vat      = Moms.info(_vatOrder);
+  const totalIncl = Moms.inclOf(totalExcl, _vatOrder);
   const fmtN      = n => n.toLocaleString('sv-SE');
   const itemsCount = realItems.reduce((s, i) => s + (i.qty || 1), 0);
-  const isB2B     = !!customer.company;
 
   // Kompakt produktlista (namn + antal, inga priser — driver till webben)
   const itemsList = realItems.length
@@ -163,8 +169,10 @@ exports.handler = async (event) => {
   // B2B: visa exkl. moms primärt (företag drar av moms)
   // B2C: visa inkl. moms primärt (privatperson betalar totalen)
   const primaryAmount = isB2B ? totalExcl : totalIncl;
-  const primaryLabel  = isB2B ? 'Total exkl. moms' : 'Total inkl. moms';
-  const secondaryText = isB2B
+  const primaryLabel  = _vat.exempt ? 'Total (ingen svensk moms)' : isB2B ? 'Total exkl. moms' : 'Total inkl. moms';
+  const secondaryText = _vat.exempt
+    ? `${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${_vat.notice.sv}`
+    : isB2B
     ? `${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalIncl)} kr inkl. moms`
     : `${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'} · ${fmtN(totalExcl)} kr exkl. moms`;
 
@@ -213,13 +221,13 @@ exports.handler = async (event) => {
     <p style="margin:18px 0 0;color:#888;font-size:12px;text-align:center;">Länken är personlig och giltig i 21 dagar.</p>
     <p style="margin:14px 0 0;color:#555;font-size:13px;text-align:center;">Frågor? Ring <a href="tel:0724481000" style="color:#1e1850;font-weight:600;">072-448 10 00</a> eller svara på detta mail.</p>`;
 
-  const plainText = `Hej ${customer.name}!\n${customer.company ? `\nOffert till företag: ${customer.company}${customer.orgnr ? ' (Org.nr ' + customer.orgnr + ')' : ''}\n` : ''}\nVi har en offert åt dig — totalt ${fmtN(primaryAmount)} kr ${isB2B ? 'exkl. moms' : 'inkl. moms'} (${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'}).\n\nÖppna och bekräfta din offert här:\n${cartUrl}\n\nPå offertsidan ser du hela prisspecifikationen, kan ställa frågor och bekräfta direkt.\n${note?.trim() ? '\nPersonlig hälsning:\n' + note.trim() + '\n' : ''}${datumStr ? '\n' + datumStr : ''}${platsStr ? '\n' + platsStr : ''}\n\nLänken är personlig och giltig i 21 dagar.\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
+  const plainText = `Hej ${customer.name}!\n${customer.company ? `\nOffert till företag: ${customer.company}${customer.orgnr ? ' (Org.nr ' + customer.orgnr + ')' : ''}\n` : ''}\nVi har en offert åt dig — totalt ${fmtN(primaryAmount)} kr ${_vat.exempt ? '(ingen svensk moms)' : isB2B ? 'exkl. moms' : 'inkl. moms'} (${itemsCount} ${itemsCount === 1 ? 'artikel' : 'artiklar'}).\n\nÖppna och bekräfta din offert här:\n${cartUrl}\n\nPå offertsidan ser du hela prisspecifikationen, kan ställa frågor och bekräfta direkt.\n${note?.trim() ? '\nPersonlig hälsning:\n' + note.trim() + '\n' : ''}${datumStr ? '\n' + datumStr : ''}${platsStr ? '\n' + platsStr : ''}\n\nLänken är personlig och giltig i 21 dagar.\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden | scenkonsult.se`;
 
   try {
     const internalBody = `<p style="color:#888;font-size:13px;margin:0 0 20px;">Skickad till: <strong>${customer.email}</strong></p>${htmlBody}
       <hr style="border:none;border-top:1px solid #e0e0e8;margin:30px 0 20px;">
       <p style="margin:0 0 10px;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;">Intern referens — full prisspecifikation</p>
-      ${buildPriceTable(realItems)}`;
+      ${buildPriceTable(realItems, { order: _vatOrder })}`;
     await sendEmail(apiKey, {
       from:     MAIL_FROM,
       to:       ['info@scenkonsult.se'],

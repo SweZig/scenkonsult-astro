@@ -16,6 +16,8 @@
 
 const { isAdmin, supabase: createSupabase, logAudit } = require('./_lib');
 const PDFDocument = require('pdfkit');
+const MomsPdf = require('./_moms-pdf');
+const { Moms } = MomsPdf;
 let QRCode; try { QRCode = require('qrcode'); } catch (e) { QRCode = null; }
 
 const RESEND_API = 'https://api.resend.com/emails';
@@ -161,6 +163,7 @@ function generateReminderPdf(cart, invoiceNumber, level, overdue, totalIncl, acc
     let ky = infoY + 26;
     if (cart.customer_company) { doc.fontSize(10).font('Helvetica').fillColor('#1a1a2e').text(cart.customer_company, cx, ky); ky += 14; }
     if (cart.customer_orgnr)   { doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Org.nr: ' + cart.customer_orgnr, cx, ky); ky += 14; }
+    ky = MomsPdf.drawCustomerVat(doc, cart, cx, ky, { b2b: Moms.isB2B(cart) });
     const addr = cart.use_invoice_email && cart.invoice_email ? null : (cart.customer_address || cart.event_location);
     if (addr) { doc.fontSize(9).fillColor(GRAY).text(addr, cx, ky); ky += 14; }
     if (cart.customer_ref) { doc.fontSize(9).fillColor(GRAY).text('Er ref: ' + cart.customer_ref, cx, ky); ky += 14; }
@@ -170,7 +173,7 @@ function generateReminderPdf(cart, invoiceNumber, level, overdue, totalIncl, acc
     const boxH = hasBreak ? 52 : 40;
     const boxY = Math.max(infoY + 92, ky + 16);
     doc.roundedRect(50, boxY, W, boxH, 6).fill('#f4f4f7');
-    doc.fillColor(GRAY).fontSize(9).font('Helvetica').text('Att betala (inkl. moms)', 64, boxY + 9);
+    doc.fillColor(GRAY).fontSize(9).font('Helvetica').text(`Att betala (${Moms.info(cart).suffix})`, 64, boxY + 9);
     doc.fillColor(NAVY).fontSize(18).font('Helvetica-Bold').text(fmtKr(totalIncl), 64, boxY + 19);
     if (hasBreak) {
       doc.fillColor(GRAY).fontSize(8).font('Helvetica').text(feeBreakdown(level), 64, boxY + 40);
@@ -195,7 +198,7 @@ function generateReminderPdf(cart, invoiceNumber, level, overdue, totalIncl, acc
     doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, py);
     doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e')
        .text('Scenkonsult Norden (Sigvardsson Consulting AB)', 300, py + 12, { width: 245 })
-       .text('Org.nr: 559068-4931', 300, py + 36);
+       .text(MomsPdf.SELLER_LINE, 300, py + 36);
 
     // ── Avslutning (ton per nivå) ──
     const noteY = py + 150;
@@ -283,7 +286,7 @@ async function sendReminderEmail(apiKey, cart, invoiceNumber, level, overdue, to
   <h2 style="color:#1e1850;margin:0 0 16px;">${heading}</h2>
   ${bodyHtml}
   <div style="background:${th.bg};border:1px solid ${th.border};border-radius:10px;padding:14px 18px;margin:4px 0 20px;">
-    <div style="color:${th.title};font-weight:700;font-size:15px;">Att betala: ${totalIncl.toLocaleString('sv-SE')} kr (inkl. moms)</div>
+    <div style="color:${th.title};font-weight:700;font-size:15px;">Att betala: ${totalIncl.toLocaleString('sv-SE')} kr (${Moms.info(cart).suffix})</div>
     ${breakdown ? `<div style="color:${th.text};font-size:12px;margin-top:3px;">${breakdown}</div>` : ''}
     <div style="color:${th.text};font-size:13px;margin-top:6px;">Bankgiro 5132-0646 · Swish 123 136 59 07 · ange ${invoiceNumber} som meddelande</div>
     ${kravDate ? `<div style="color:${th.title};font-size:13px;font-weight:700;margin-top:6px;">Sista betaldag: ${fmtDate(kravDate)}</div>` : ''}
@@ -299,7 +302,7 @@ async function sendReminderEmail(apiKey, cart, invoiceNumber, level, overdue, to
   // plaintext (Gmail penaljar HTML-only)
   const stripTags = s => s.replace(/<[^>]+>/g, '');
   const plain = `${heading}\n\n${paras.map(stripTags).join('\n\n')}\n\n` +
-    `Att betala: ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms${breakdown ? ` (${breakdown})` : ''}\n` +
+    `Att betala: ${totalIncl.toLocaleString('sv-SE')} kr ${Moms.info(cart).suffix}${breakdown ? ` (${breakdown})` : ''}\n` +
     `Bankgiro 5132-0646 · Swish 123 136 59 07 · ange ${invoiceNumber} som meddelande` +
     `${kravDate ? `\nSista betaldag: ${fmtDate(kravDate)}` : ''}\n\nFrågor? Ring 072-448 10 00.\n---\nScenkonsult Norden`;
 
@@ -367,7 +370,7 @@ exports.handler = async (event) => {
     // Bas: samma summering som fakturan (fakturaavgiften ligger redan som item-rad)
     const items     = (cart.items || []).filter(i => !i._note && i.name);
     const baseExcl  = items.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
-    const baseIncl  = Math.round(baseExcl * 1.25);
+    const baseIncl  = Moms.inclOf(baseExcl, cart);
 
     // Ackumulerad, momsfri påminnelse-/inkassoavgift + totalt att betala
     const feeOre    = accFeeOre(level);

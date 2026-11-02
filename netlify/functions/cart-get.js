@@ -41,12 +41,12 @@ exports.handler = async (event) => {
     let cart, error;
     try {
       ({ data: cart, error } = await db.from('carts')
-        .select(CUSTOMER_COLS + ',declined_at,decline_reason')
+        .select(CUSTOMER_COLS + ',declined_at,decline_reason,vat_exempt,vat_region,customer_vat_id,customer_country')
         .eq('cart_token', token)
         .single());
     } catch (e) {
-      if (!/declined_at|decline_reason/.test(e.message || '')) throw e;
-      console.warn('CART_GET: decline-kolumner saknas (migration 2026-09-29 ej körd)');
+      if (!/declined_at|decline_reason|vat_exempt|vat_region|customer_vat_id|customer_country/.test(e.message || '')) throw e;
+      console.warn('CART_GET: decline- eller momskolumner saknas (migration 2026-09-29 / 2026-11-02 ej körd)');
       ({ data: cart, error } = await db.from('carts')
         .select(CUSTOMER_COLS)
         .eq('cart_token', token)

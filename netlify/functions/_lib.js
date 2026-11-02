@@ -8,6 +8,7 @@
 // Hyresdygn — visningshjälpare. Räknar aldrig om priser, läser bara days och
 // unit_price för att kunna förklara radpriset för kunden.
 const { dayNote: _dayNote, lineTotalUndiscounted: _lineFull, daySummary: _daySummary } = require('./_day-display');
+const Moms = require('../../src/lib/moms.cjs');
 
 // ── Supabase REST-klient (fetch-baserad) ──────────────────────
 function supabase() {
@@ -272,7 +273,10 @@ function isBookingFee(item) {
   return false;
 }
 
-function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
+// order = hela cart-raden (för momsbehandlingen, src/lib/moms.cjs). Utan order
+// räknas svensk moms som tidigare.
+function buildPriceTable(cart, { showFakturaavgift = false, order = null } = {}) {
+  const _vat = Moms.info(order);
   const SVC_CATS  = ['Tjänster', 'Tillägg'];
   const SVC_IDS   = new Set(['lev-standard','lev-skrymmande','lev-lastbil','lev-bakgavel','montering','montering-tim','rigg-teknik']);
   const ID_ALIAS  = {'SK-SCN-ACC-0001':'scentrapp-40cm','SK-SCN-ACC-0002':'scentrapp-60cm','SK-SCN-ACC-0003':'scenkjol-4m','SK-SCN-ACC-0004':'backdrop-3-5x2-5','montering-tim':'montering'};
@@ -303,8 +307,8 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
   const noteRow = noteItem ? `<tr><td colspan="3" style="padding:6px 10px;color:#666;font-size:12px;font-style:italic;">📝 ${escapeHtml(noteItem.name)}</td></tr>` : '';
   const grandExcl = [...prodItems, ...svcItems, ...(feeItem ? [feeItem] : [])].reduce((s, i) => s + sum(i), 0);
   const _daySum = _daySummary(allReal);
-  const moms      = Math.round(grandExcl * 0.25);
-  const grandIncl = grandExcl + moms;
+  const moms      = Moms.vatOf(grandExcl, order);
+  const grandIncl = Moms.inclOf(grandExcl, order);
   let html = `<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e8;border-radius:8px;overflow:hidden;margin-top:8px;font-family:Arial,sans-serif;">
   <tr style="background:#f7f7fb;">
     <th style="padding:8px 10px;color:#888;font-size:11px;text-align:left;font-weight:600;text-transform:uppercase;">Produkt / Tjänst</th>
@@ -330,11 +334,11 @@ function buildPriceTable(cart, { showFakturaavgift = false } = {}) {
     <td style="padding:8px 10px;text-align:right;color:#444;font-size:12px;border-top:1px solid #e0e0e8;">${fmtN(grandExcl)} kr</td>
   </tr>
   <tr style="background:#f7f7fb;">
-    <td colspan="2" style="padding:6px 10px;color:#888;font-size:12px;">Moms 25%</td>
+    <td colspan="2" style="padding:6px 10px;color:#888;font-size:12px;">${_vat.exempt ? 'Moms 0% — ' + escapeHtml(_vat.notice.sv) : 'Moms 25%'}</td>
     <td style="padding:6px 10px;text-align:right;color:#888;font-size:12px;">${fmtN(moms)} kr</td>
   </tr>
   <tr style="background:#1e1850;">
-    <td colspan="2" style="padding:12px 10px;color:#fff;font-weight:700;font-size:15px;">TOTALT inkl. moms</td>
+    <td colspan="2" style="padding:12px 10px;color:#fff;font-weight:700;font-size:15px;">${_vat.exempt ? 'TOTALT (ingen svensk moms)' : 'TOTALT inkl. moms'}</td>
     <td style="padding:12px 10px;text-align:right;color:#c4b5f4;font-weight:700;font-size:15px;">${fmtN(grandIncl)} kr</td>
   </tr></table>`;
   return html;

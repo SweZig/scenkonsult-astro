@@ -10,6 +10,8 @@ const { isAdmin, escapeHtml, supabase: createSupabase, logAudit, getOrCreateInvo
 const { getVillkor, betalvillkor } = require('./_invoice-villkor');
 const { daySummary, dayNote, dayCell, itemQty, itemUnitPrice, lineTotalUndiscounted } = require('./_day-display');
 const PDFDocument = require('pdfkit');
+const MomsPdf = require('./_moms-pdf');
+const { Moms } = MomsPdf;
 const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
@@ -26,15 +28,6 @@ function fmtDate(iso) {
   return new Date(iso).toLocaleDateString('sv-SE');
 }
 
-// Härled momsregistreringsnummer ur org.nr: "SE" + endast siffror + "01".
-// Ex: "556053-5873" → "SE556053587301". Returnerar null om för få siffror.
-function orgnrToVat(orgnr) {
-  if (!orgnr) return null;
-  const digits = String(orgnr).replace(/\D/g, '');
-  if (digits.length < 10) return null;
-  return 'SE' + digits.slice(0, 10) + '01';
-}
-
 // ── Generera PDF ─────────────────────────────────────────────────────────────
 function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
   return new Promise((resolve, reject) => {
@@ -45,8 +38,8 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
 
     const items     = (cart.items || []).filter(i => !i._note && i.name);
     const totalExcl = items.reduce((s,i) => s + ((i.price||0)*(i.qty||1)), 0);
-    const vat       = Math.round(totalExcl * 0.25);
-    const totalIncl = totalExcl + vat;
+    // Moms enligt orderns momsbehandling (src/lib/moms.cjs) — 0 för utländsk företagskund.
+    const _tot      = MomsPdf.totalsRows(totalExcl, cart);
 
     // Kundtyp (b2b/b2c) — samma källa som hyresvillkoren på sida 2.
     const custType = getVillkor(cart).type;
@@ -80,6 +73,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
 
     // ── FAKTURA rubrik ──
     doc.fillColor(NAVY).fontSize(22).font('Helvetica-Bold').text('FAKTURA', 50, 90);
+    MomsPdf.drawVatSubtitle(doc, cart, 50, 114);
     doc.moveDown(0.5);
 
     // ── Info-kolumner ──
@@ -108,14 +102,9 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     if (cart.customer_orgnr) {
       doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Org.nr: ' + cart.customer_orgnr, cx, ky);
       ky += 14;
-      // Momsregistreringsnummer härleds från org.nr: "SE" + endast siffror + "01".
-      // Ex: 556053-5873 → SE556053587301. Visas endast för företag/organisation (B2B).
-      const vatNum = orgnrToVat(cart.customer_orgnr);
-      if (custType === 'b2b' && vatNum) {
-        doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Momsreg.nr: ' + vatNum, cx, ky);
-        ky += 14;
-      }
     }
+    // Svensk B2B: momsreg.nr härlett ur org.nr. Momsfri utländsk kund: VAT-nr + land.
+    ky = MomsPdf.drawCustomerVat(doc, cart, cx, ky, { b2b: custType === 'b2b' });
     if (cart.customer_address || cart.event_location) {
       doc.fontSize(9).fillColor(GRAY).text(cart.customer_address || cart.event_location, cx, ky);
       ky += 14;
@@ -254,10 +243,9 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
       totals.push(['Flerdygnsrabatt', '-' + fmtKr(_daySum.rabatt), '#2f8f52', 'Helvetica-Bold']);
     }
     totals.push(['Summa exkl. moms', fmtKr(totalExcl), GRAY, 'Helvetica']);
-    totals.push(['Moms 25%',          fmtKr(vat),       GRAY, 'Helvetica']);
-    totals.push(['Att betala inkl. moms', fmtKr(totalIncl), NAVY, 'Helvetica-Bold']);
-    // Hela summablocket på samma sida
-    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0);
+    _tot.rows.forEach(([l, a, c, f]) => totals.push([l, fmtKr(a), c, f]));
+    // Hela summablocket (och ev. momsnotis) på samma sida
+    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0) + MomsPdf.noticeHeight(cart);
     ry = ensureSpace(doc, ry, totalsH, () => drawContinuationLabel(doc, CONT_LABEL, GRAY));
     totals.forEach(([label, amount, color, font]) => {
       doc.fontSize(font === 'Helvetica-Bold' ? 11 : 9).font(font).fillColor(color);
@@ -265,6 +253,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
       doc.text(amount, 50,   ry, { width: W,      align: 'right' });
       ry += font === 'Helvetica-Bold' ? 18 : 14;
     });
+    ry = MomsPdf.drawVatNotice(doc, cart, ry, W);
 
     // Betalningsblock + tackrad (~200 pt med Swish-QR) får inte delas mellan sidor
     ry = ensureSpace(doc, ry, 16 + 10 + (swishQrBuffer ? 170 : 90) + 22,
@@ -303,7 +292,7 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
     doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, payY);
     doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e')
        .text('Scenkonsult Norden (Sigvardsson Consulting AB)', 300, payY + 12)
-       .text('Org.nr: 559068-4931', 300, payY + 24)
+       .text(MomsPdf.SELLER_LINE, 300, payY + 24)
        .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, payY + 36);
 
     // Footer — direkt under betalningsinfo + QR-kod
@@ -357,7 +346,9 @@ function generatePdfBuffer(cart, invoiceNumber, logoBuffer, swishQrBuffer) {
 async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceToEmail, ccList) {
   const items     = (cart.items||[]).filter(i=>!i._note && i.name);
   const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
-  const totalIncl = Math.round(totalExcl * 1.25);
+  const totalIncl = Moms.inclOf(totalExcl, cart);
+  const _vat      = Moms.info(cart);
+  const amountTxt = `${totalIncl.toLocaleString('sv-SE')} kr ${_vat.exempt ? '(ingen svensk moms)' : '(inkl. moms)'}`;
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f4f4f7;font-family:'Helvetica Neue',Arial,sans-serif;">
@@ -371,7 +362,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
   <h2 style="color:#1e1850;margin:0 0 12px;">Faktura ${invoiceNumber}</h2>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${escapeHtml(cart.customer_name || '')}!</p>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Tack för att du valde Scenkonsult Norden. Bifogat finner du faktura <strong>${invoiceNumber}</strong>.</p>
-  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Att betala:</strong> ${totalIncl.toLocaleString('sv-SE')} kr (inkl. moms)</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Att betala:</strong> ${amountTxt}</p>${_vat.exempt ? `\n  <p style="color:#666;font-size:13px;margin:0 0 4px;">${escapeHtml(_vat.notice.sv)}<br><em>${escapeHtml(_vat.notice.en)}</em></p>` : ''}
   <p style="color:#666;font-size:13px;margin:0 0 20px;">Bankgiro 5132-0646 · Swish 123 136 59 07</p>
   <p style="color:#888;font-size:12px;margin:0;">Frågor? Ring <a href="tel:0724481000" style="color:#1e1850;">072-448 10 00</a> eller svara på detta mail.</p>
 </td></tr>
@@ -381,7 +372,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
 </table></td></tr></table>
 </body></html>`;
 
-  const plain = `Faktura ${invoiceNumber} från Scenkonsult Norden\n\nHej ${cart.customer_name||''}!\n\nBifogat finner du faktura ${invoiceNumber}.\nAtt betala: ${totalIncl.toLocaleString('sv-SE')} kr\n\nFrågor? Ring 072-448 10 00.\n\n---\nScenkonsult Norden`;
+  const plain = `Faktura ${invoiceNumber} från Scenkonsult Norden\n\nHej ${cart.customer_name||''}!\n\nBifogat finner du faktura ${invoiceNumber}.\nAtt betala: ${amountTxt}\n${_vat.exempt ? _vat.notice.sv + '\n' + _vat.notice.en + '\n' : ''}\nFrågor? Ring 072-448 10 00.\n\n---\nScenkonsult Norden`;
 
   // Skicka till kund
   const res = await fetch(RESEND_API, {
@@ -432,7 +423,7 @@ async function sendInvoiceEmail(apiKey, cart, invoiceNumber, pdfBuffer, invoiceT
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Faktura <strong>${invoiceNumber}</strong> har skickats till:</p>
   <p style="background:#f4f4f7;border-radius:6px;padding:10px 14px;font-size:15px;font-weight:700;color:#1e1850;margin:0 0 20px;">${escapeHtml(invoiceToEmail)}${invoiceToEmail!==cart.customer_email?" <span style=\"font-size:11px;color:#888\">(alternativ adress)</span>":""}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Kund:</strong> ${escapeHtml(cart.customer_name || '—')}${cart.customer_company ? ' / ' + escapeHtml(cart.customer_company) : ''}</p>
-  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Belopp:</strong> ${totalIncl.toLocaleString('sv-SE')} kr inkl. moms</p>
+  <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Belopp:</strong> ${amountTxt}</p>
   <p style="color:#444;font-size:14px;margin:0 0 4px;"><strong>Cart-ID:</strong> ${cart.id}</p>
   <p style="color:#444;font-size:14px;margin:0;"><strong>Offert skapad:</strong> ${quoteCreated || '—'}${leadDays !== null ? ` <span style="color:#888;font-size:12px">(ledtid ${leadDays} ${leadDays === 1 ? 'dag' : 'dagar'} till faktura)</span>` : ''}</p>
 </td></tr>
@@ -497,6 +488,10 @@ exports.handler = async (event) => {
     const { data: cart, error } = await db.from('carts').select('*').eq('id', cart_id).single();
     if (error || !cart) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Order hittades inte' }) };
     if (!cart.customer_email) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Kunden saknar e-postadress' }) };
+    // Momsfri faktura kräver kompletta uppgifter (VAT-nr för EU, land) — annars
+    // blir fakturan felaktig. Stoppa hellre här än skicka den.
+    const momsFel = Moms.validate(cart);
+    if (momsFel) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Momsuppgifter: ' + momsFel }) };
 
   // Bygg CC-lista:
   // - Om alternativ fakturamail är aktiv → lägg customer_email som CC (får kopia)
@@ -560,7 +555,7 @@ exports.handler = async (event) => {
       try {
         const items     = (cart.items||[]).filter(i=>!i._note&&i.name);
         const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
-        const totalIncl = Math.ceil(totalExcl * 1.25);
+        const totalIncl = Math.ceil(totalExcl * Moms.factor(cart));
         // Belopp med 2 decimaler, komma som decimalseparator
         const amountStr = totalIncl.toFixed(2).replace('.', ',');
         // Meddelande URL-encodat (fakturanummer), lock_mask=0 = inget är redigerbart

@@ -14,6 +14,8 @@
 const { isAdmin, escapeHtml, supabase: createSupabase, logAudit, getTakenInvoiceNumbers, isBookingFee } = require('./_lib');
 const { dayNote: _dayNote } = require('./_day-display');
 const PDFDocument = require('pdfkit');
+const MomsPdf = require('./_moms-pdf');
+const { Moms } = MomsPdf;
 const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
 
 const RESEND_API = 'https://api.resend.com/emails';
@@ -72,8 +74,8 @@ async function reserveCreditNumber(db, cartId) {
 function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, refundPercent, logoBuffer) {
   return new Promise((resolve, reject) => {
     const today   = new Date().toISOString().slice(0,10);
-    const vat     = Math.round(totalExcl * 0.25);
-    const totalIncl = totalExcl + vat;
+    // Samma momsbehandling som ursprungsfakturan (fälten låses när den skickats).
+    const _tot = MomsPdf.totalsRows(totalExcl, cart, { payLabel: 'Att återbetala', payColor: '#b91c1c' });
 
     const doc    = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks = [];
@@ -101,7 +103,7 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
     // ── KREDITFAKTURA rubrik ──
     doc.fillColor(RED).fontSize(22).font('Helvetica-Bold').text('KREDITFAKTURA', 50, 90);
     doc.fontSize(9).font('Helvetica').fillColor(GRAY)
-       .text(`Krediterar faktura ${cart.invoice_number || '—'}`, 50, 118);
+       .text(`Krediterar faktura ${cart.invoice_number || '—'}${Moms.info(cart).exempt ? '  ·  NON-VAT CREDIT NOTE' : ''}`, 50, 118);
 
     // ── Info-kolumner ──
     const infoY = 140;
@@ -121,6 +123,7 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
     let ky = infoY + 26;
     if (cart.customer_company) { doc.fontSize(10).font('Helvetica').fillColor('#1a1a2e').text(cart.customer_company, cx, ky); ky += 14; }
     if (cart.customer_orgnr)   { doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Org.nr: ' + cart.customer_orgnr, cx, ky); ky += 14; }
+    ky = MomsPdf.drawCustomerVat(doc, cart, cx, ky, { b2b: Moms.isB2B(cart) });
     if (cart.customer_address || cart.event_location) { doc.fontSize(9).fillColor(GRAY).text(cart.customer_address || cart.event_location, cx, ky); ky += 14; }
     if (cart.customer_ref)     { doc.fontSize(9).fillColor(GRAY).text('Er ref: ' + cart.customer_ref, cx, ky); ky += 14; }
     doc.fontSize(8).font('Helvetica').fillColor(GRAY).text('Vår referens', cx, ky + 4);
@@ -191,10 +194,9 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
     ry += 8;
     const totals = [
       ['Summa exkl. moms',      fmtKr(totalExcl), GRAY, 'Helvetica'],
-      ['Moms 25%',              fmtKr(vat),      GRAY, 'Helvetica'],
-      ['Att återbetala inkl. moms', fmtKr(totalIncl), RED, 'Helvetica-Bold'],
+      ..._tot.rows.map(([l, a, c, f]) => [l, fmtKr(a), c, f]),
     ];
-    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0);
+    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0) + MomsPdf.noticeHeight(cart);
     ry = ensureSpace(doc, ry, totalsH, () => drawContinuationLabel(doc, CONT_LABEL, GRAY));
     totals.forEach(([label, amount, color, font]) => {
       doc.fontSize(font === 'Helvetica-Bold' ? 11 : 9).font(font).fillColor(color);
@@ -202,6 +204,7 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
       doc.text(amount, 50, ry, { width: W,      align: 'right' });
       ry += font === 'Helvetica-Bold' ? 18 : 14;
     });
+    ry = MomsPdf.drawVatNotice(doc, cart, ry, W);
 
     // ── Återbetalningsinformation + Avsändare ──
     ry = ensureSpace(doc, ry, 140, () => drawContinuationLabel(doc, CONT_LABEL, GRAY));
@@ -221,7 +224,7 @@ function generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, ref
     doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, payY);
     doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e')
        .text('Scenkonsult Norden (Sigvardsson Consulting AB)', 300, payY + 12)
-       .text('Org.nr: 559068-4931', 300, payY + 24)
+       .text(MomsPdf.SELLER_LINE, 300, payY + 24)
        .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, payY + 36);
 
     ry = payY + 62;
@@ -252,7 +255,7 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
   <h2 style="color:#b91c1c;margin:0 0 8px;">Kreditfaktura ${creditNumber}</h2>
   <p style="color:#666;font-size:13px;margin:0 0 18px;">Krediterar faktura ${cart.invoice_number || '—'}</p>
   <p style="color:#444;line-height:1.7;margin:0 0 16px;">Hej ${escapeHtml(cart.customer_name?.split(' ')[0] || '')},</p>
-  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Bifogat finner du kreditfaktura <strong>${creditNumber}</strong>${refundPercent != null && refundPercent < 100 ? ` (partiell kreditering ${refundPercent} %)` : ''}. Beloppet på <strong>${Math.abs(totalIncl).toLocaleString('sv-SE')} kr</strong> inkl. moms återbetalas till samma betalmedel som ursprungsfakturan inom 10 arbetsdagar.</p>
+  <p style="color:#444;line-height:1.7;margin:0 0 16px;">Bifogat finner du kreditfaktura <strong>${creditNumber}</strong>${refundPercent != null && refundPercent < 100 ? ` (partiell kreditering ${refundPercent} %)` : ''}. Beloppet på <strong>${Math.abs(totalIncl).toLocaleString('sv-SE')} kr</strong> ${Moms.info(cart).suffix} återbetalas till samma betalmedel som ursprungsfakturan inom 10 arbetsdagar.</p>
   <p style="color:#444;line-height:1.7;margin:0 0 6px;">Hör av dig om du har frågor.</p>
   <p style="color:#444;line-height:1.7;margin:0;">Vänliga hälsningar,<br><strong>Scenkonsult Norden</strong></p>
 </td></tr>
@@ -268,7 +271,7 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
     reply_to: 'info@scenkonsult.se',
     subject: subj,
     html,
-    text: `Kreditfaktura ${creditNumber} från Scenkonsult Norden.\nKrediterar faktura ${cart.invoice_number || '—'}.\nBelopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms.\nÅterbetalas inom 10 arbetsdagar.`,
+    text: `Kreditfaktura ${creditNumber} från Scenkonsult Norden.\nKrediterar faktura ${cart.invoice_number || '—'}.\nBelopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr ${Moms.info(cart).suffix}.\nÅterbetalas inom 10 arbetsdagar.`,
     attachments: [{
       filename: `Kreditfaktura_${creditNumber}_Scenkonsult.pdf`,
       content:  pdfBuffer.toString('base64'),
@@ -292,8 +295,8 @@ async function sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, refundPerc
       from: FROM, to: ['info@scenkonsult.se'],
       reply_to: cart.customer_email || 'info@scenkonsult.se',
       subject: `Kreditfaktura ${creditNumber} skickad → ${toEmail}`,
-      html: `<p>Kreditfaktura <strong>${creditNumber}</strong> skickad till ${escapeHtml(toEmail)}.<br>Ursprungsfaktura: ${cart.invoice_number || '—'}<br>Belopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms${refundPercent != null && refundPercent < 100 ? ` (${refundPercent} %)` : ''}</p>`,
-      text: `Kreditfaktura ${creditNumber} skickad till ${toEmail}.\nUrsprungsfaktura: ${cart.invoice_number || '—'}\nBelopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr inkl. moms`,
+      html: `<p>Kreditfaktura <strong>${creditNumber}</strong> skickad till ${escapeHtml(toEmail)}.<br>Ursprungsfaktura: ${cart.invoice_number || '—'}<br>Belopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr ${Moms.info(cart).suffix}${refundPercent != null && refundPercent < 100 ? ` (${refundPercent} %)` : ''}</p>`,
+      text: `Kreditfaktura ${creditNumber} skickad till ${toEmail}.\nUrsprungsfaktura: ${cart.invoice_number || '—'}\nBelopp: ${Math.abs(totalIncl).toLocaleString('sv-SE')} kr ${Moms.info(cart).suffix}`,
       attachments: [{ filename: `Kreditfaktura_${creditNumber}_Scenkonsult.pdf`, content: pdfBuffer.toString('base64') }],
     }),
   }).catch(e => console.error('CREDIT_INTERNAL_COPY_ERROR:', e.message));
@@ -386,10 +389,11 @@ exports.handler = async (event) => {
       // Tak: får inte överstiga ursprungsbeloppet inkl. moms
       const origItems = (Array.isArray(cart.items) ? cart.items : []).filter(i => !i._note && i.name);
       const origExcl  = origItems.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
-      const origIncl  = Math.round(origExcl * 1.25);
+      // Momsfri faktura: "inkl. moms" = fakturans belopp utan moms (faktor 1).
+      const origIncl  = Moms.inclOf(origExcl, cart);
       if (inclAmt > origIncl)
-        return { statusCode: 400, headers, body: JSON.stringify({ error: `Beloppet (${inclAmt} kr) överstiger fakturans ${origIncl} kr inkl. moms` }) };
-      amountExclOverride = Math.round(inclAmt / 1.25);
+        return { statusCode: 400, headers, body: JSON.stringify({ error: `Beloppet (${inclAmt} kr) överstiger fakturans ${origIncl} kr ${Moms.info(cart).suffix}` }) };
+      amountExclOverride = Math.round(inclAmt / Moms.factor(cart));
       percent = origIncl > 0 ? Math.round(inclAmt / origIncl * 100) : 0; // ungefärlig % för loggning/PDF
     } else { // custom (procent)
       const p = parseInt(custom_percent);
@@ -451,7 +455,7 @@ exports.handler = async (event) => {
     // För custom_amount visar vi inte procent i PDF/e-post (beloppet är exakt) → null
     const displayPercent = (modeUsed === 'custom_amount') ? null : percent;
     const pdfBuffer = await generateCreditPdfBuffer(cart, creditNumber, creditLines, totalExcl, displayPercent, logoBuffer);
-    const totalIncl = totalExcl + Math.round(totalExcl * 0.25);
+    const totalIncl = Moms.inclOf(totalExcl, cart);
 
     await sendCreditEmail(apiKey, cart, creditNumber, pdfBuffer, displayPercent, totalIncl);
 

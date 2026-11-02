@@ -7,6 +7,7 @@
 
 'use strict';
 const { isAdmin, ok, err, preflight, supabase: createSupabase } = require('./_lib');
+const Moms = require('../../src/lib/moms.cjs');
 
 function calcCancelRefundPercent(cart) {
   const items = Array.isArray(cart.items) ? cart.items : [];
@@ -49,7 +50,7 @@ exports.handler = async (event) => {
 
     const items = (Array.isArray(cart.items) ? cart.items : []).filter(i => !i._note && i.name);
     const totalExcl = items.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
-    const totalIncl = Math.round(totalExcl * 1.25);
+    const totalIncl = Moms.inclOf(totalExcl, cart);
     const rules     = calcCancelRefundPercent(cart);
 
     return ok({
@@ -58,6 +59,7 @@ exports.handler = async (event) => {
       invoice_sent_at:    cart.invoice_sent_at || null,
       total_excl:         totalExcl,
       total_incl:         totalIncl,
+      vat_exempt:         Moms.info(cart).exempt,
       event_date:         cart.event_date || null,
       cancel_rules:       rules,
       existing_credit: {

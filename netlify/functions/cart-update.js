@@ -6,6 +6,7 @@
 
 'use strict';
 const { supabase, isAdmin, itemsRev, ok, err, preflight, logAudit, rateLimit, htmlWrapper, sendEmail, buildPriceTable, MAIL_FROM, escapeHtml } = require('./_lib');
+const Moms = require('../../src/lib/moms.cjs');
 const RESEND_API = 'https://api.resend.com/emails';
 
 async function sendConfirmationEmail(cart) {
@@ -17,12 +18,13 @@ async function sendConfirmationEmail(cart) {
     : null;
 
   // Orderbekräftelse visar fakturaavgift
-  const tableHtml = buildPriceTable(cart.items, { showFakturaavgift: true });
+  const tableHtml = buildPriceTable(cart.items, { showFakturaavgift: true, order: cart });
 
   // Textversion: alla items inkl fakturaavgift
   const allItems = (cart.items || []).filter(i => !i._note && i.name);
   const grandExcl = allItems.reduce((s,i) => s + (i.price||0)*(i.qty||i.quantity||1), 0);
-  const grandIncl = Math.round(grandExcl * 1.25);
+  const grandIncl = Moms.inclOf(grandExcl, cart);
+  const _vat = Moms.info(cart);
 
   const dateStr     = cart.event_date ? `<p style="color:#555;font-size:14px;margin:8px 0;">📅 Eventdatum: <strong>${escapeHtml(cart.event_date)}</strong></p>` : '';
   const locationStr = cart.event_location ? `<p style="color:#555;font-size:14px;margin:8px 0;">📍 Plats: <strong>${escapeHtml(cart.event_location)}</strong></p>` : '';
@@ -67,7 +69,7 @@ async function sendConfirmationEmail(cart) {
     <p style="margin:10px 0 0;color:#888;font-size:12px;text-align:center;">Via länken kan du se alla detaljer och chatta med oss.</p>` : ''}
   `);
 
-  const plain = `${alreadySigned ? 'Din order är bekräftad!' : 'Din order är preliminärt bekräftad — slutför genom att godkänna digitalt!'}\n\nTack, ${cart.customer_name||''}!\n\nOrderreferens: ${cart.id}\n${cart.customer_company?'Företag: '+cart.customer_company+'\n':''}${cart.event_date?'Datum: '+cart.event_date+'\n':''}${cart.event_location?'Plats: '+cart.event_location+'\n':''}${alreadySigned ? '' : '\n⚠ VIKTIGT: För att din bokning ska bli bindande behöver du gå in på offertsidan och klicka "Godkänn order".\n'}\nDin beställning:\n${allItems.map(i=>`${i.name} x${i.qty||1} — ${((i.price||0)*(i.qty||1)).toLocaleString('sv-SE')} kr`).join('\n')}\nTotalt inkl. moms: ${grandIncl.toLocaleString('sv-SE')} kr\n${cartUrl?'\n'+(alreadySigned ? 'Orderbekräftelse: ' : 'Öppna och godkänn här: ')+cartUrl:''}\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden`;
+  const plain = `${alreadySigned ? 'Din order är bekräftad!' : 'Din order är preliminärt bekräftad — slutför genom att godkänna digitalt!'}\n\nTack, ${cart.customer_name||''}!\n\nOrderreferens: ${cart.id}\n${cart.customer_company?'Företag: '+cart.customer_company+'\n':''}${cart.event_date?'Datum: '+cart.event_date+'\n':''}${cart.event_location?'Plats: '+cart.event_location+'\n':''}${alreadySigned ? '' : '\n⚠ VIKTIGT: För att din bokning ska bli bindande behöver du gå in på offertsidan och klicka "Godkänn order".\n'}\nDin beställning:\n${allItems.map(i=>`${i.name} x${i.qty||1} — ${((i.price||0)*(i.qty||1)).toLocaleString('sv-SE')} kr`).join('\n')}\nTotalt ${_vat.suffix}: ${grandIncl.toLocaleString('sv-SE')} kr${_vat.exempt ? '\n' + _vat.notice.sv : ''}\n${cartUrl?'\n'+(alreadySigned ? 'Orderbekräftelse: ' : 'Öppna och godkänn här: ')+cartUrl:''}\n\nFrågor? Ring 072-448 10 00\n---\nScenkonsult Norden`;
 
   const res = await fetch(RESEND_API, {
     method: 'POST',
@@ -198,6 +200,36 @@ exports.handler = async (event) => {
       if (body.cc_email             !== undefined) updates.cc_email             = body.cc_email          || null;
       if (body.customer_company     !== undefined) updates.customer_company     = body.customer_company  || null;
 
+      // Utländsk företagskund — ej svensk moms (src/lib/moms.cjs).
+      // Låst när fakturan är skickad: kredit och påminnelser läser samma fält
+      // och måste ha samma momsbehandling som originalfakturan.
+      const VAT_KEYS = ['vat_exempt', 'vat_region', 'customer_vat_id', 'customer_country'];
+      if (VAT_KEYS.some(k => body[k] !== undefined) || (body.customer_type !== undefined && cart.vat_exempt)) {
+        const pick = k => (body[k] !== undefined ? body[k] : cart[k]);
+        const next = {
+          customer_type:    pick('customer_type'),
+          customer_company: pick('customer_company'),
+          vat_exempt:       !!pick('vat_exempt'),
+          vat_region:       pick('vat_region') || null,
+          customer_vat_id:  Moms.normVatId(pick('customer_vat_id')) || null,
+          customer_country: pick('customer_country') ? String(pick('customer_country')).trim().toUpperCase().slice(0, 2) : null,
+        };
+        if (!next.vat_exempt) Object.assign(next, { vat_region: null, customer_vat_id: null, customer_country: null });
+        const before = {
+          vat_exempt: !!cart.vat_exempt, vat_region: cart.vat_region || null,
+          customer_vat_id: cart.customer_vat_id || null, customer_country: cart.customer_country || null,
+        };
+        const changed = VAT_KEYS.some(k => next[k] !== before[k]) ||
+          (cart.vat_exempt && Moms.isB2B(cart) !== Moms.isB2B(next));
+        if (changed && cart.invoice_sent_at) {
+          return err('Fakturan är redan skickad — momsbehandlingen kan inte ändras. Kreditera och fakturera om.', 409);
+        }
+        const fel = Moms.validate(next);
+        if (fel) return err(fel, 400);
+        for (const k of VAT_KEYS) updates[k] = next[k];
+        if (changed) await logAudit(db, cart.id, 'admin', 'vat_treatment_change', { from: before, to: { ...next } });
+      }
+
       // Eventinfo från kontaktformuläret
       if (body.guests_count !== undefined) {
         if (body.guests_count === null || body.guests_count === '') updates.guests_count = null;
@@ -284,7 +316,8 @@ exports.handler = async (event) => {
         if (body.customer_orgnr !== undefined) {
           const o = clean(body.customer_orgnr, 20);
           // Lös validering: tillåt siffror, bindestreck, mellanslag (556xxx-xxxx)
-          if (o && !/^[0-9][0-9\s-]{8,14}$/.test(o)) {
+          // Utländska företag har andra format — bara längden kontrolleras.
+          if (o && !cart.vat_exempt && !/^[0-9][0-9\s-]{8,14}$/.test(o)) {
             return err('Ogiltigt organisationsnummer — använd format 556xxx-xxxx', 400);
           }
           updates.customer_orgnr = o;

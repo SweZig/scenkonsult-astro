@@ -8,6 +8,8 @@ const { isAdmin, supabase: createSupabase, logAudit, getOrCreateInvoiceNumber, i
 const { getVillkor, betalvillkor } = require('./_invoice-villkor');
 const { daySummary, dayNote, dayCell, itemQty, itemUnitPrice, lineTotalUndiscounted } = require('./_day-display');
 const PDFDocument = require('pdfkit');
+const MomsPdf = require('./_moms-pdf');
+const { Moms } = MomsPdf;
 const { PAGE_BOTTOM, CONT_TOP, ensureSpace, drawContinuationLabel } = require('./_pdf-paging');
 let QRCode; try { QRCode = require('qrcode'); } catch(e) { QRCode = null; }
 
@@ -31,8 +33,8 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
 
     const items     = (cart.items || []).filter(i => !i._note && i.name);
     const totalExcl = items.reduce((s,i) => s + ((i.price||0)*(i.qty||1)), 0);
-    const vat       = Math.round(totalExcl * 0.25);
-    const totalIncl = totalExcl + vat;
+    // Moms enligt orderns momsbehandling (src/lib/moms.cjs) — 0 för utländsk företagskund.
+    const _tot      = MomsPdf.totalsRows(totalExcl, cart);
 
     const doc    = new PDFDocument({ margin: 50, size: 'A4' });
     const chunks = [];
@@ -62,6 +64,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
     // ── Rubrik ──
     const rubrik = isOrder ? 'ORDER' : 'FAKTURA';
     doc.fillColor(NAVY).fontSize(22).font('Helvetica-Bold').text(rubrik, 50, 90);
+    if (!isOrder) MomsPdf.drawVatSubtitle(doc, cart, 50, 114);
 
     // ── Info-kolumner ──
     const infoY = 130;
@@ -98,6 +101,8 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
       doc.fontSize(9).font('Helvetica').fillColor(GRAY).text('Org.nr: ' + cart.customer_orgnr, cx, ky);
       ky += 14;
     }
+    // Samma momsrader som den skickade fakturan (invoice-send).
+    if (!isOrder) ky = MomsPdf.drawCustomerVat(doc, cart, cx, ky, { b2b: getVillkor(cart).type === 'b2b' });
     if (cart.customer_address || cart.event_location) {
       doc.fontSize(9).fillColor(GRAY).text(cart.customer_address || cart.event_location, cx, ky);
       ky += 14;
@@ -242,10 +247,9 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
       totals.push(['Flerdygnsrabatt', '-' + fmtKr(_daySum.rabatt), '#2f8f52', 'Helvetica-Bold']);
     }
     totals.push(['Summa exkl. moms', fmtKr(totalExcl), GRAY, 'Helvetica']);
-    totals.push(['Moms 25%',          fmtKr(vat),       GRAY, 'Helvetica']);
-    totals.push(['Att betala inkl. moms', fmtKr(totalIncl), NAVY, 'Helvetica-Bold']);
-    // Hela summablocket på samma sida
-    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0);
+    _tot.rows.forEach(([l, a, c, f]) => totals.push([l, fmtKr(a), c, f]));
+    // Hela summablocket (och ev. momsnotis) på samma sida
+    const totalsH = totals.reduce((h, t) => h + (t[3] === 'Helvetica-Bold' ? 18 : 14), 0) + MomsPdf.noticeHeight(cart);
     ry = ensureSpace(doc, ry, totalsH, () => drawContinuationLabel(doc, CONT_LABEL, GRAY));
     totals.forEach(([label, amount, color, font]) => {
       doc.fontSize(font === 'Helvetica-Bold' ? 11 : 9).font(font).fillColor(color);
@@ -253,6 +257,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
       doc.text(amount, 50,   ry, { width: W,      align: 'right' });
       ry += font === 'Helvetica-Bold' ? 18 : 14;
     });
+    ry = MomsPdf.drawVatNotice(doc, cart, ry, W);
 
     // ── Betalningsinformation (bara i faktura-läge) ──
     if (!isOrder) {
@@ -278,7 +283,7 @@ function generatePdf(cart, mode, invoiceNumber, logoBuffer, swishQrBuffer) {
       doc.fontSize(8).font('Helvetica-Bold').fillColor(GRAY).text('Avsändare', 300, payY);
       doc.fontSize(9).font('Helvetica').fillColor('#1a1a2e')
          .text('Scenkonsult Norden (Sigvardsson Consulting AB)', 300, payY + 12)
-         .text('Org.nr: 559068-4931', 300, payY + 24)
+         .text(MomsPdf.SELLER_LINE, 300, payY + 24)
          .text('Vinsta Skolgränd 4, 162 70 Vällingby', 300, payY + 36);
 
       ry = payY + (swishQrBuffer ? 148 : 60);
@@ -431,7 +436,7 @@ exports.handler = async (event) => {
         try {
           const items     = (cart.items||[]).filter(i=>!i._note&&i.name);
           const totalExcl = items.reduce((s,i)=>s+((i.price||0)*(i.qty||1)),0);
-          const totalIncl = Math.ceil(totalExcl * 1.25);
+          const totalIncl = Math.ceil(totalExcl * Moms.factor(cart));
           const amountStr = totalIncl.toFixed(2).replace('.', ',');
           const msg = encodeURIComponent(invoiceNumber);
           const swishContent = `C1231365907;${amountStr};${msg};0`;

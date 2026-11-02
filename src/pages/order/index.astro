@@ -2,6 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import orderCatalog from '../../data/order-catalog-flat.json';
 import { telefon, helg } from '../../utils/hours';
+// Momsregeln (utländsk företagskund = ingen svensk moms) — samma källa som fakturan.
+import momsLibSrc from '../../lib/moms.cjs?raw';
 ---
 <Layout
   title="Din order – Scenkonsult Norden"
@@ -693,6 +695,7 @@ import { telefon, helg } from '../../utils/hours';
 </div>
 </div>
 
+<script is:inline set:html={momsLibSrc}></script>
 <script define:vars={{ ORDER_CATALOG: orderCatalog }}>
 // Exponera på window direkt — gör ORDER_CATALOG tillgänglig globalt
 // oberoende av IIFE-scope och async timing
@@ -1038,8 +1041,10 @@ function renderOrder(c) {
   const svcTotal  = svcItems.reduce((s, i) => s + ((i.price||0) * (i.qty||i.quantity||1)), 0);
   const feeTotal  = feeItem ? (feeItem.price||0) * (feeItem.qty||1) : 0;
   const grandExcl = prodTotal + svcTotal + feeTotal;
-  const moms      = Math.round(grandExcl * 0.25);
-  const grandIncl = grandExcl + moms;
+  // Moms enligt orderns momsbehandling (src/lib/moms.cjs → window.SkMoms).
+  const _vat      = window.SkMoms.info(c);
+  const moms      = window.SkMoms.vatOf(grandExcl, c);
+  const grandIncl = window.SkMoms.inclOf(grandExcl, c);
 
   // ── Bygg checkout-inspirerade rader ──
   const SVC_ICONS = {
@@ -1303,8 +1308,10 @@ function renderOrder(c) {
       if (rabEl) rabEl.style.display = 'none';
     }
     document.getElementById('totalsExcl').innerHTML  = `<span>Exkl. moms</span><span>${fmt(grandExcl)} kr</span>`;
-    document.getElementById('totalsMoms').innerHTML  = `<span>Moms 25%</span><span>${fmt(moms)} kr</span>`;
-    document.getElementById('totalsGrand').innerHTML = `<span>Totalt inkl. moms</span><span>${fmt(grandIncl)} kr</span>`;
+    document.getElementById('totalsMoms').innerHTML  = _vat.exempt
+      ? `<span>Moms 0% — ${_vat.notice.sv}</span><span>0 kr</span>`
+      : `<span>Moms 25%</span><span>${fmt(moms)} kr</span>`;
+    document.getElementById('totalsGrand').innerHTML = `<span>${_vat.exempt ? 'Totalt (ingen svensk moms)' : 'Totalt inkl. moms'}</span><span>${fmt(grandIncl)} kr</span>`;
     const noteEl = document.getElementById('totalsNote');
     if (noteEl) noteEl.style.display = svcItems.length > 0 ? '' : 'none';
 
@@ -1381,7 +1388,7 @@ function renderConfirmBox(c) {
             + (dateStr ? `.<br>Utlämning <strong style="color:#fff">${dateStr}</strong>` : '')
             + (retStr  ? ` · Återlämning <strong style="color:#fff">${retStr}</strong>` : '')
             + dmLine
-            + `.<br>Totalt <strong style="color:#c4b5f4">${Math.round(total*1.25).toLocaleString('sv-SE')} kr inkl. moms</strong>.`;
+            + `.<br>Totalt <strong style="color:#c4b5f4">${window.SkMoms.inclOf(total, c).toLocaleString('sv-SE')} kr ${window.SkMoms.info(c).suffix}</strong>.`;
         })()}
       </div>
       <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:1rem">
@@ -1611,6 +1618,7 @@ function renderInvoiceSection(c) {
   view.innerHTML =
     row('Företag', c.customer_company) +
     row('Organisationsnummer', c.customer_orgnr) +
+    (c.vat_exempt ? row('VAT-nummer', c.customer_vat_id) : '') +
     row('Fakturareferens / PO', c.customer_ref) +
     row('Fakturaadress', c.customer_invoice_address || (c.customer_address ? c.customer_address + ' (samma som kontakt)' : null)) +
     row('E-faktura skickas till', eInvoiceShown || (c.customer_email ? c.customer_email + ' (vanlig e-post)' : null)) +

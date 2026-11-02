@@ -17,7 +17,7 @@ exports.handler = async (event) => {
 
   try {
     // Sortera på invoice_number desc (K-nummer) — fångar både skickade och reservationer
-    const url = `${supaUrl}/rest/v1/carts?select=id,invoice_number,customer_name,customer_company,total_excl,invoice_sent_at,invoice_paid_at,status,created_at&invoice_number=not.is.null&order=invoice_number.desc&limit=${limit}`;
+    const url = `${supaUrl}/rest/v1/carts?select=id,invoice_number,customer_name,customer_company,customer_type,vat_exempt,total_excl,invoice_sent_at,invoice_paid_at,status,created_at&invoice_number=not.is.null&order=invoice_number.desc&limit=${limit}`;
     const res = await fetch(url, {
       headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}` },
     });
