@@ -3,8 +3,9 @@
 -- Ny kategori 'installation' (sidan /vara-tjanster/projektering-och-installation/)
 -- och tre referenscase. Uppgifter från Scenkonsult:
 --   German Beer Hall, Gallerian  — ljuseffekter, ljusstyrning, scen 4×4 m (ca 10 armaturer)
---   German Beer Hall, Uppsala    — ljuseffekter, ljusstyrning, ljudstyrning, scen 2×1 m (ca 20)
---   Ulvsunda idrottscentrum      — bara ljuset: ljuseffekter, ljusstyrning, stödbelysning
+--   German Beer Hall, Uppsala    — två barer + sittplatsområdet Ölstugan: ljuseffekter,
+--                                  ljusstyrning, ljudstyrning, scen 2×1 m (ca 20)
+--   Ulvsunda idrottscentrum      — bara ljuset: ljuseffekter, ljusstyrning (MA3), stödbelysning
 --                                  1 200 → 2 000 lux på spelytan (ca 60). Kund Skanska och
 --                                  Stockholms stad, idrottsförvaltningen.
 -- Alla installerade 2026. Bilderna är 3:4 (1050×1400 + 640w) i public/images/event/.
@@ -39,7 +40,7 @@ WHERE id = 'case-german-beerhall';
 
 INSERT INTO event_cases (id, label, descr, tag, categories, sort_order) VALUES
   ('case-german-beerhall-uppsala', 'German Beer Hall – Uppsala',
-   'Fast installation — ljuseffekter, ljus- och ljudstyrning, scen', 'Installation',
+   'Fast installation — två barer och Ölstugan, ljus- och ljudstyrning, scen', 'Installation',
    ARRAY['ljus', 'ljud', 'scen', 'installation'], (SELECT COALESCE(MIN(sort_order), 0) - 1 FROM event_cases)),
   ('case-ulvsunda-idrottscentrum', 'Ulvsunda idrottscentrum – Bromma',
    'Fast ljusinstallation — 1 200 → 2 000 lux på spelytan', 'Installation',
