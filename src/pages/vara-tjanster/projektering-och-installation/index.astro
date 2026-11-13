@@ -1,0 +1,190 @@
+---
+/**
+ * Projektering och fast installation — verksamheten vid sidan av uthyrningen.
+ *
+ * Allt innehåll ligger i src/data/installation.json. Projektbilderna är liggande
+ * 4:3 (public/images/installation/, 1600×1200 + 640w) och visas i 4:3 — ingen
+ * beskärning. Samma projekt finns som referenscase i Supabase (kategori
+ * 'installation', 3:4-bilder i public/images/event/) för /referenser/.
+ */
+import Layout from '../../../layouts/Layout.astro';
+import ModernHero from '../../../components/ModernHero.astro';
+import EventOmraden from '../../../components/event/EventOmraden.astro';
+import TreSteg from '../../../components/TreSteg.astro';
+import EventFaq from '../../../components/event/EventFaq.astro';
+import SlutRuta from '../../../components/event/SlutRuta.astro';
+import data from '../../../data/installation.json';
+import siteData from '../../../data/site.json';
+import { bildmatt, bildSrcset } from '../../../utils/bildmatt';
+
+const URL = 'https://scenkonsult.se/vara-tjanster/projektering-och-installation/';
+const projekt = data.projekt.map((p) => ({
+  ...p,
+  bilder: p.bilder.map((b) => ({ ...b, matt: bildmatt(b.src) ?? { w: 1600, h: 1200 }, srcset: bildSrcset(b.src) })),
+}));
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Service',
+      '@id': `${URL}#tjanst`,
+      name: 'Projektering och fast installation av ljud, ljus och bild',
+      serviceType: 'Fast installation av ljud-, ljus- och bildteknik',
+      description: data.metaDescription,
+      url: URL,
+      areaServed: ['Storstockholm', 'Uppsala'],
+      provider: { '@type': 'LocalBusiness', name: siteData.company?.name ?? 'Scenkonsult Norden', url: 'https://scenkonsult.se/' },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: data.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    },
+  ],
+};
+---
+<Layout title={data.metaTitle} description={data.metaDescription} schemaExtra={schema} image="/images/installation/projekt_ulvsunda_golv_ljusmonster.webp">
+  <ModernHero
+    eyebrow={data.eyebrow}
+    h1={data.h1}
+    h1Accent={data.h1Accent}
+    intro={data.intro}
+    chips={data.chips}
+    bild={{ src: '/images/event/installation_ulvsunda_golv_ljusmonster.webp', w: 1050, alt: 'Effektljus på spelytan i arenahallen, Ulvsunda idrottscentrum', text: 'Ulvsunda idrottscentrum — ca 60 armaturer' }}
+    knappar={[{ label: 'Kontakta oss', href: '/kontakt/' }, { label: 'Se våra projekt', href: '#projekt' }]}
+    breadcrumbs={[
+      { label: 'Hem', href: '/' },
+      { label: 'Våra tjänster', href: '/vara-tjanster/' },
+      { label: 'Projektering och installation' },
+    ]}
+  />
+
+  <EventOmraden
+    eyebrow="Vad vi installerar"
+    rubrik="Teknik som sitter kvar"
+    lead="Samma utrustning och erfarenhet som i uthyrningen – men byggd för att fungera varje dag, år efter år."
+    omraden={data.omraden}
+  />
+
+  <section id="projekt" class="pi-projekt">
+    <div class="pi-rubrik">
+      <p class="sk-eyebrow">Referensprojekt</p>
+      <h2 class="sk-h2">Tre installationer från 2026</h2>
+    </div>
+
+    {projekt.map((p, idx) => (
+      <article class:list={['pi-proj', { 'pi-omvand': idx % 2 === 1 }]} id={p.id}>
+        <div class="pi-bilder" data-antal={p.bilder.length}>
+          {p.bilder.map((b, i) => (
+            <figure class:list={['pi-bild', { 'pi-stor': i === 0 }]}>
+              <img
+                src={b.src}
+                srcset={b.srcset}
+                sizes={i === 0 ? '(max-width: 900px) 100vw, 55vw' : '(max-width: 900px) 33vw, 18vw'}
+                alt={b.alt}
+                width={b.matt.w}
+                height={b.matt.h}
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+          ))}
+        </div>
+        <div class="pi-text">
+          <p class="pi-kund">{p.kund}</p>
+          <h3>{p.namn}</h3>
+          <p class="pi-brod">{p.text}</p>
+          {p.fakta && (
+            <div class="pi-fakta">
+              <div class="pi-lux"><span>{p.fakta.fore}</span><span class="pi-pil" aria-hidden="true">→</span><b>{p.fakta.efter}</b><span class="pi-enhet">{p.fakta.enhet}</span></div>
+              <p>{p.fakta.text}</p>
+            </div>
+          )}
+          <dl class="pi-data">
+            <div><dt>År</dt><dd>{p.ar}</dd></div>
+            <div><dt>Armaturer</dt><dd>{p.armaturer}</dd></div>
+            <div><dt>Ort</dt><dd>{p.ort}</dd></div>
+          </dl>
+          <ul class="pi-lev">
+            {p.levererat.map((l) => <li>{l}</li>)}
+          </ul>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  <TreSteg eyebrow="Arbetsgång" rubrik={data.processRubrik} lead={data.processLead} steg={data.process}>
+    <a href="/kontakt/" class="sk-knapp sk-knapp-p">Kontakta oss</a>
+  </TreSteg>
+
+  <section class="pi-helhet">
+    <div class="pi-rubrik">
+      <p class="sk-eyebrow">Hela vägen</p>
+      <h2 class="sk-h2">Från ritning till <em>drift</em></h2>
+    </div>
+    <div class="pi-tre">
+      {data.helhet.map((h) => <div><b>{h.titel}</b><span>{h.text}</span></div>)}
+    </div>
+    <div class="pi-lokaler">
+      <p class="sk-eyebrow">Lokaler vi bygger i</p>
+      <ul>{data.lokaler.map((l) => <li>{l}</li>)}</ul>
+    </div>
+  </section>
+
+  <EventFaq rubrik="Frågor om installation" faq={data.faq} />
+
+  <SlutRuta
+    rubrik="Berätta om er lokal"
+    text="Vi börjar med ett samtal och ett platsbesök."
+    knapp={{ label: 'Kontakta oss', href: '/kontakt/' }}
+  />
+</Layout>
+
+<style>
+  .pi-projekt, .pi-helhet { max-width: 80rem; margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem); }
+  .pi-rubrik { margin-bottom: clamp(1.75rem, 3vw, 2.5rem); }
+  .pi-rubrik em { color: #c4b5f4; }
+
+  .pi-proj { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 3vw, 2.75rem); align-items: center; padding: clamp(1.5rem, 3vw, 2.5rem) 0; border-top: 1px solid rgba(255,255,255,0.08); scroll-margin-top: calc(var(--nav-offset, 166px) + 1rem); }
+  .pi-proj:first-of-type { border-top: 0; padding-top: 0; }
+  .pi-omvand .pi-bilder { order: 2; }
+
+  .pi-bilder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+  .pi-bilder[data-antal="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pi-bilder[data-antal="2"] .pi-stor { grid-column: auto; border-radius: 14px; }
+  .pi-bild { margin: 0; border-radius: 14px; overflow: hidden; background: #1e1850; aspect-ratio: 4 / 3; }
+  .pi-stor { grid-column: 1 / -1; border-radius: 20px; }
+  .pi-bild img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .pi-kund { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #c4b5f4; margin: 0 0 0.6rem; }
+  .pi-text h3 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.2rem); line-height: 1.1; color: #fff; margin: 0; }
+  .pi-brod { margin: 1rem 0 0; color: rgba(255,255,255,0.72); line-height: 1.6; font-size: 1.05rem; }
+
+  .pi-fakta { margin-top: 1.4rem; padding: 1.1rem 1.25rem; border-radius: 16px; background: #1e1850; }
+  .pi-lux { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; font-family: 'DM Serif Display', serif; color: rgba(255,255,255,0.55); font-size: 1.6rem; }
+  .pi-lux b { font-weight: 400; color: #c4b5f4; font-size: 2.4rem; line-height: 1; }
+  .pi-pil { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; }
+  .pi-enhet { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; color: rgba(255,255,255,0.72); }
+  .pi-fakta p { margin: 0.4rem 0 0; font-size: 0.9rem; color: rgba(255,255,255,0.55); }
+
+  .pi-data { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 1.4rem 0 0; border-top: 1px solid rgba(255,255,255,0.09); border-bottom: 1px solid rgba(255,255,255,0.09); }
+  .pi-data div { padding: 0.8rem 0; }
+  .pi-data dt { font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .pi-data dd { margin: 0.2rem 0 0; color: #fff; font-weight: 600; }
+  .pi-lev { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .pi-lev li { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid rgba(196,181,244,0.35); color: rgba(255,255,255,0.85); }
+
+  .pi-tre { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; }
+  .pi-tre div { background: #0c0a24; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .pi-tre b { color: #fff; font-size: 1.15rem; }
+  .pi-tre span { color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .pi-lokaler { margin-top: clamp(2rem, 4vw, 3rem); }
+  .pi-lokaler ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .pi-lokaler li { background: #1e1850; color: rgba(255,255,255,0.82); padding: 0.5rem 0.85rem; border-radius: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; }
+
+  @media (max-width: 900px) {
+    .pi-proj { grid-template-columns: minmax(0, 1fr); }
+    .pi-omvand .pi-bilder { order: 0; }
+    .pi-tre { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

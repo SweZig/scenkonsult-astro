@@ -4,16 +4,17 @@
  * knappar till vänster, numrerade steg till höger. Knapparna läggs i sloten.
  */
 interface Props {
+  eyebrow?: string;
   rubrik: string;
   lead?: string;
   steg: Array<{ rubrik: string; text: string }>;
 }
-const { rubrik, lead, steg } = Astro.props;
+const { eyebrow = 'Guide', rubrik, lead, steg } = Astro.props;
 ---
 <section class="sk-band">
   <div class="ts-wrap">
     <div class="ts-sida">
-      <p class="sk-eyebrow">Guide</p>
+      <p class="sk-eyebrow">{eyebrow}</p>
       <h2 class="sk-h2">{rubrik}</h2>
       {lead && <p class="ts-lead">{lead}</p>}
       <div class="ts-knappar"><slot /></div>

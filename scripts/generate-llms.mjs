@@ -33,6 +33,7 @@ const dj = load('dj.json');
 const karaoke = load('karaoke.json');
 const tjanster = load('tjanster.json');
 const ljudLjus = load('ljud-ljus.json');
+const installation = load('installation.json');
 
 const co = site.company || {};
 const addr = co.address || {};
@@ -244,6 +245,11 @@ if (tjanster.fakturaavgift?.default)
 L.push(`Ljudtekniker: ${link('/vara-tjanster/hyra-ljudtekniker/')}`);
 L.push('');
 
+// Fast installation — innehållet ur installation.json
+L.push('### Projektering och fast installation');
+L.push(`Vid sidan av uthyrningen projekterar och installerar Scenkonsult fasta anläggningar för ljud, ljus, bild och scen — från enkla installationer till nyckelfärdiga projekt: platsbesök, projektering, projektledning, programmering, utbildning och service- eller supportavtal. Snickare och behöriga elektriker samordnas i projektet. Flexibla betalningslösningar, även långtidshyra. Pris efter platsbesök. Referensprojekt 2026: ${installation.projekt.map((p) => `${p.namn} (${p.levererat.join(', ').toLowerCase()})`).join('; ')}. Mer info: ${link('/vara-tjanster/projektering-och-installation/')}`);
+L.push('');
+
 // Villkor
 L.push('## Villkor i korthet');
 L.push('');
@@ -260,6 +266,7 @@ L.push('');
 const pages = [
   ['Startsida', '/'],
   ['Alla tjänster', '/vara-tjanster/'],
+  ['Projektering och fast installation', '/vara-tjanster/projektering-och-installation/'],
   ['Hyra ljud och högtalare', '/vara-tjanster/hyra-ljud/'],
   ['Hyra ljus', '/vara-tjanster/hyra-ljus/'],
   ['Hyra ljud och ljus i ett paket', '/vara-tjanster/hyra-ljud-och-ljus/'],

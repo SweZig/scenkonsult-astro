@@ -1,8 +1,13 @@
 ---
 /** Lavendelrutan längst ner (samma som startsidan). Inga löften om svarstid. */
 import { telefon } from '../../utils/hours';
-interface Props { rubrik: string; text?: string }
-const { rubrik, text } = Astro.props;
+interface Props {
+  rubrik: string;
+  text?: string;
+  /** Huvudknappen. Default ”Begär offert” till varukorgen; sidor utan varukorg pekar på /kontakt/. */
+  knapp?: { label: string; href: string };
+}
+const { rubrik, text, knapp = { label: 'Begär offert', href: '/varukorg/' } } = Astro.props;
 ---
 <section class="sr-wrap">
   <div class="sr-ruta">
@@ -11,7 +16,7 @@ const { rubrik, text } = Astro.props;
       <p>{text ?? 'Kostnadsfritt och inte bindande.'} Telefon {telefon()} — eller fråga <b>Sven</b>, vår digitala intendent, när som helst.</p>
     </div>
     <div class="sr-knappar">
-      <a href="/varukorg/" class="sr-btn sr-mork">Begär offert</a>
+      <a href={knapp.href} class="sr-btn sr-mork">{knapp.label}</a>
       <button type="button" class="sr-btn" data-sven-oppna>Fråga Sven</button>
       <a class="sr-btn" data-tel="MDcyNDQ4MTAwMA==" data-label="072-448 10 00" href="#tel" aria-label="Ring oss"><noscript>072-448 10 00</noscript></a>
     </div>

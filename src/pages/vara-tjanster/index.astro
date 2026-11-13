@@ -110,6 +110,16 @@ const kategorier = [
     _icon: "🎪",
     tjanster: ["Scen + ljud + bild + ljus", "DJ ingår vid önskan", "Leverans & montering", "Tekniker på plats"],
   },
+  {
+    rubrik: "Projektering & fast installation",
+    bred: true,
+    bild: { src: "/images/event/installation_ulvsunda_hallen_oversikt.webp", alt: "Arenahallen i Ulvsunda idrottscentrum med effektljus på spelytan", pos: "50% 75%" },
+    beskrivning: "Vid sidan av uthyrningen projekterar och installerar vi fasta anläggningar för ljud, ljus, bild och scen – i restauranger, arenor och andra lokaler. Från platsbesök och projektering till programmering, utbildning och serviceavtal.",
+    href: "/vara-tjanster/projektering-och-installation/",
+    fran: "Offert",
+    _icon: "",
+    tjanster: ["Platsbesök & projektering", "Ljus- och ljudstyrning", "Utbildning & serviceavtal", "Även långtidshyra"],
+  },
 ];
 const KATEGORIER = kategorier.map((k: any) => ({ ...k, srcset: bildSrcset(k.bild.src), matt: bildmatt(k.bild.src) }));
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Våra tjänster' }];
@@ -130,7 +140,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Våra tjänster'
   <section class="vt-wrap">
     <div class="vt-grid">
       {KATEGORIER.map((k: any) => (
-        <article class="vt-kort" data-helkort>
+        <article class:list={["vt-kort", { "vt-bred": k.bred }]} data-helkort>
           <a href={k.href} class="vt-bild" tabindex="-1" aria-hidden="true">
             <img src={k.bild.src} srcset={k.srcset} sizes="(max-width: 900px) 100vw, 260px" alt="" width={k.matt?.w} height={k.matt?.h} loading="lazy" decoding="async" style={`object-position:${k.bild.pos}`} />
           </a>
@@ -185,6 +195,7 @@ const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Våra tjänster'
   .vt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   .vt-kort { display: grid; grid-template-columns: 38% minmax(0, 1fr); border-radius: 22px; overflow: hidden; background: #14113a; border: 1px solid rgba(255,255,255,0.08); transition: border-color 0.15s; }
   .vt-kort:hover { border-color: rgba(196,181,244,0.45); }
+  .vt-bred { grid-column: 1 / -1; grid-template-columns: 30% minmax(0, 1fr); }
   .vt-bild { position: relative; display: block; min-height: 100%; background: #1e1850; overflow: hidden; }
   .vt-bild img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
   .vt-kort:hover .vt-bild img { transform: scale(1.04); }
