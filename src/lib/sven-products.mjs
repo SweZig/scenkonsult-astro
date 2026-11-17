@@ -107,3 +107,48 @@ export function buildSvenProducts(data) {
   }
   return out;
 }
+
+/**
+ * Alla cart-ID:n som Sven har [CART:]-taggat i en konversation, i den ordning
+ * de först dök upp, utan dubbletter. Rekommendationerna kommer ofta i flera
+ * steg (scen, sedan ljud, sedan ljus) och [FORWARD:] i ett senare svar än
+ * [CART:] — ärendekortet ska få med alla, inte bara det sista svarets.
+ *
+ * @param {Array<{role: string, content: string}>} messages
+ * @param {string} [extra] — ett svar som ännu inte ligger i historiken
+ * @returns {string[]}
+ */
+export function svenCartIdsFrom(messages, extra = '') {
+  const texts = (Array.isArray(messages) ? messages : [])
+    .filter(m => m && m.role === 'assistant' && typeof m.content === 'string')
+    .map(m => m.content);
+  if (extra) texts.push(extra);
+  const ids = [];
+  for (const t of texts) {
+    for (const m of t.matchAll(/\[CART:([^\]]+)\]/gi)) {
+      for (const id of m[1].split(',').map(s => s.trim()).filter(Boolean)) {
+        if (!ids.includes(id)) ids.push(id);
+      }
+    }
+  }
+  return ids;
+}
+
+/**
+ * Gör cart-ID:n till rader för carts.items. Namn och pris slås upp i
+ * registret — aldrig ur klienten. Okända ID:n hoppas över.
+ *
+ * @param {string[]} ids
+ * @param {Record<string, {name: string, price: number, category: string}>} products
+ */
+export function svenItemsFor(ids, products) {
+  return (ids || [])
+    .filter(id => products && products[id])
+    .map(id => ({
+      id,
+      name: products[id].name,
+      price: Number(products[id].price) || 0,
+      category: products[id].category || 'Övrigt',
+      qty: 1,
+    }));
+}

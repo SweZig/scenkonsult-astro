@@ -62,9 +62,10 @@ function prodLine(name, price, priceNote, extra) {
 // Byggs från src/lib/sven-products.mjs — samma register som Layout.astro
 // matar in i window.__SK_PRODUCTS__. Håll dem aldrig åtskilda igen:
 // en cart-ID som Sven taggar men frontend saknar filtreras bort tyst.
-const cartLines = Object.entries(buildSvenProducts({
+const SVEN_PRODUKTER = buildSvenProducts({
   scenes, ljud, ljus, dj, bild, tjanster, karaoke, el,
-})).map(([cartId, p]) => cartLine(p.name, cartId, p.price));
+});
+const cartLines = Object.entries(SVEN_PRODUKTER).map(([cartId, p]) => cartLine(p.name, cartId, p.price));
 
 const CART_ID_LISTA = cartLines.join('\n');
 
@@ -450,6 +451,7 @@ export const CART_ID_LISTA = ${JSON.stringify(CART_ID_LISTA)};
 export const PRODUKTER_OCH_PRISER = ${JSON.stringify(PRODUKTER_OCH_PRISER)};
 export const QUOTE_CATALOG = ${QUOTE_CATALOG_JS};
 export const SVEN_FACTS = ${JSON.stringify(SVEN_FACTS)};
+export const SVEN_PRODUKTER = ${JSON.stringify(SVEN_PRODUKTER)};
 `;
 
 fs.writeFileSync(OUT, output, 'utf8');

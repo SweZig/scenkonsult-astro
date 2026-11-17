@@ -1,4 +1,5 @@
-import { CART_ID_LISTA, PRODUKTER_OCH_PRISER, SVEN_FACTS } from './_products-generated.mjs';
+import { CART_ID_LISTA, PRODUKTER_OCH_PRISER, SVEN_FACTS, SVEN_PRODUKTER } from './_products-generated.mjs';
+import { svenCartIdsFrom, svenItemsFor } from '../../src/lib/sven-products.mjs';
 
 // ── Supabase-loggning ──────────────────────────────────────────────────────
 async function logToSupabase(data) {
@@ -552,7 +553,13 @@ function svenClassifyForward(reply, promisePhrase, forwardTag) {
 // Säkerställer att ett Sven-kort finns för sessionen. Skapar nytt i "Inkommen"
 // om inget finns, annars uppdaterar (fyll kontakt, uppgradera typ, refresha
 // snapshot). Returnerar { ok, cart_id, created|updated }.
-async function ensureSvenCart({ sessionId, forwardType, snapshot, contact, pageUrl, customerType }) {
+// items: produkterna Sven [CART:]-taggat i konversationen (svenItemsFor).
+// Före 2026-11-17 skapades kortet alltid med items: [] och fylldes bara om
+// kunden klickade FORWARD-knappen i samma svar som taggen — de flesta
+// Sven-kort i Inkommen saknade därför produkter.
+// createIfMissing: false → uppdatera bara ett befintligt kort (används när
+// Sven taggar produkter utan att lova uppföljning).
+async function ensureSvenCart({ sessionId, forwardType, snapshot, contact, pageUrl, customerType, items = [], createIfMissing = true }) {
   const sbUrl = process.env.SUPABASE_URL;
   const sbKey = process.env.SUPABASE_SERVICE_KEY;
   if (!sbUrl || !sbKey || !sessionId) return { ok: false, reason: 'env-or-session-saknas' };
@@ -567,13 +574,29 @@ async function ensureSvenCart({ sessionId, forwardType, snapshot, contact, pageU
                        : null;
   try {
     const q = `${sbUrl}/rest/v1/carts?sven_session_id=eq.${encodeURIComponent(sessionId)}`
-            + `&select=id,status,customer_email,customer_phone,customer_type,sven_forward_type&limit=1`;
+            + `&select=id,status,items,customer_email,customer_phone,customer_type,sven_forward_type&limit=1`;
     const sel = await fetch(q, { headers: H });
     const rows = sel.ok ? await sel.json() : [];
 
     if (Array.isArray(rows) && rows.length) {
       const cur = rows[0];
       const patch = {};
+      // Lägg till taggade produkter som kortet saknar — bara medan kortet
+      // ligger i Inkommen, så att admins egna ändringar aldrig skrivs över.
+      const curItems = Array.isArray(cur.items) ? cur.items : [];
+      const nya = items.filter(i => !curItems.some(c => c && c.id === i.id));
+      if (cur.status === 'new' && nya.length) {
+        const merged = [...curItems, ...nya];
+        patch.items = merged;
+        patch.total_excl = merged.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 1), 0) * 100;
+      }
+      if (!createIfMissing) {
+        if (patch.items) {
+          await fetch(`${sbUrl}/rest/v1/carts?id=eq.${encodeURIComponent(cur.id)}`,
+            { method: 'PATCH', headers: H, body: JSON.stringify(patch) });
+        }
+        return { ok: true, cart_id: cur.id, updated: !!patch.items };
+      }
       if (!cur.customer_email && contact.email) patch.customer_email = contact.email;
       if (!cur.customer_phone && contact.phone) patch.customer_phone = contact.phone;
       if (!cur.customer_type && dbCustomerType)  patch.customer_type  = dbCustomerType;
@@ -589,6 +612,7 @@ async function ensureSvenCart({ sessionId, forwardType, snapshot, contact, pageU
       }
       return { ok: true, cart_id: cur.id, updated: true };
     }
+    if (!createIfMissing) return { ok: true, created: false };
 
     const cartId = svenGenCartId();
     const row = {
@@ -597,7 +621,7 @@ async function ensureSvenCart({ sessionId, forwardType, snapshot, contact, pageU
       source:            'sven',
       sven_session_id:   sessionId,
       sven_forward_type: forwardType,
-      items:             [],
+      items,
       customer_name:     null,
       customer_email:    contact.email || null,
       customer_phone:    contact.phone || null,
@@ -606,7 +630,7 @@ async function ensureSvenCart({ sessionId, forwardType, snapshot, contact, pageU
       notes_admin:       `🤖 Auto-skapad — Sven lovade offert/uppföljning i chatten.\n`
         + `Sida: ${pageUrl || '(okänd)'}\nSession: ${sessionId}\nTyp: ${forwardType}\n\n`
         + `── Konversationssnapshot ──\n\n${snapshot}`,
-      total_excl:        0,
+      total_excl:        items.reduce((s, i) => s + i.price * i.qty, 0) * 100,
       cart_token:        svenGenCartToken(),
       expires_at:        new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
     };
@@ -751,6 +775,9 @@ export default async (req) => {
     // Löfte om uppföljning (committal språk) → säkerställ ALLTID ett kort i
     // "Inkommen", oavsett om kunden klickar FORWARD-knappen. Deduperas på
     // sven_session_id så knappklick + löfte konvergerar till samma kort.
+    // Produkterna följer med: allt Sven taggat i konversationen, inklusive
+    // detta svar — [FORWARD] kommer ofta i ett senare svar än [CART].
+    const svenItems = svenItemsFor(svenCartIdsFrom(trimmed, reply), SVEN_PRODUKTER);
     if (detectedPromise) {
       await ensureSvenCart({
         sessionId,
@@ -759,7 +786,12 @@ export default async (req) => {
         contact:     svenExtractContact(trimmed),
         pageUrl,
         customerType,
+        items:       svenItems,
       });
+    } else if (cartIds.length && sessionId) {
+      // Nya taggar efter att kortet skapats — fyll på det befintliga kortet.
+      await ensureSvenCart({ sessionId, pageUrl, customerType, items: svenItems,
+        snapshot: '', contact: {}, forwardType: 'fraga', createIfMissing: false });
     }
 
     // Logga till console + Supabase

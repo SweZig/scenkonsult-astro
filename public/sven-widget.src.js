@@ -641,7 +641,16 @@
         let cartIdHints = [];
         try { cartIdHints = JSON.parse(btn.dataset.cartIds || "[]"); } catch {}
 
-        // Bygg items från SVEN_PRODUCTS för cart-ID-tipsen
+        // Bygg items från SVEN_PRODUCTS: knappens egna taggar plus allt Sven
+        // [CART:]-taggat tidigare i samtalet. [FORWARD] kommer ofta i ett
+        // senare svar än produkterna — då var listan tom före 2026-11-17.
+        for (const m of history) {
+          if (!m || m.role !== "assistant" || typeof m.content !== "string") continue;
+          for (const t of m.content.matchAll(/\[CART:([^\]]+)\]/gi)) {
+            t[1].split(",").map(s => s.trim()).filter(Boolean)
+              .forEach(id => { if (!cartIdHints.includes(id)) cartIdHints.push(id); });
+          }
+        }
         const items = cartIdHints
           .map(id => SVEN_PRODUCTS[id] ? { id, ...SVEN_PRODUCTS[id] } : null)
           .filter(Boolean);
