@@ -1811,7 +1811,8 @@ SK_LJS_DMX_0011 = ProductManual(
 # Clear, show file handling). Hyrs ut som dator med grandMA3 onPC + DMX-key —
 # ingen fysisk command wing, så kommandona skrivs i kommandoraden.
 # MA anger 4 096 parametrar för DMX-key (svart) och 1 024 för DMX-key starter
-# (röd). Sajten säger "2 048 kanaler" — avstämt med Per innan publicering.
+# (röd). Per 2026-11-20: 4 096 parametrar är definitionen; ut ur boxen går
+# två universum (1 024 DMX-kanaler), fler via Art-Net/sACN med nod.
 SK_LJS_DMX_0019 = ProductManual(
     artno="SK-LJS-DMX-0019",
     name="MA3 onPC med dator (2 universum)",
@@ -1833,7 +1834,7 @@ SK_LJS_DMX_0019 = ProductManual(
         ("Programvara",       "grandMA3 onPC, förinstallerat på datorn"),
         ("Hårdvara",          "grandMA3 onPC DMX-key · strömförsörjs via USB (5 V)"),
         ("Utgångar",          "2 DMX-utgångar (5-polig XLR) — ett universum per utgång"),
-        ("Kapacitet",         "4 096 parametrar enligt MA Lighting"),
+        ("Kapacitet",         "Upp till 4 096 parametrar · fler universum via Art-Net/sACN med nod"),
         ("Anslutning",        "Låsbar USB-C-kabel mellan dator och DMX-key"),
         ("Miljö",             "Endast inomhus · 0–40 °C · tål inte väta"),
         ("Mått och vikt",     "DMX-key 90 × 88 × 38 mm · 0,24 kg"),
