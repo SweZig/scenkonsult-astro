@@ -2085,7 +2085,7 @@ SK_LJS_EFF_0025 = ProductManual(
     description=[
         "Kabelfri LED PAR med <b>sex 18 W-dioder i 6-i-1</b> — rött, grönt, blått, "
         "vitt, bärnsten och UV i varje diod. Det inbyggda batteriet räcker "
-        "<b>ca 4 timmar</b> och laddas fullt på <b>3–4 timmar</b>. Armaturen kan "
+        "<b>6–26 timmar</b> beroende på läge och laddas fullt på <b>3–4 timmar</b>. Armaturen kan "
         "användas medan den laddar.",
         "Styrs med <b>trådlös DMX</b> (2,4 GHz) eller vanlig DMX-kabel i "
         "<b>6 eller 10 kanaler</b>, eller utan pult: fasta färger, automatprogram, "
@@ -2094,7 +2094,7 @@ SK_LJS_EFF_0025 = ProductManual(
     specs=[
         ("Ljuskälla",          "6 × 18 W LED, 6-i-1 RGBWA+UV · 16,7 milj. färger"),
         ("Spridningsvinkel",   "15°, 25° eller 40° beroende på lins"),
-        ("Batteri",            "Drift ca 4 h · laddtid 3–4 h · kan användas under laddning"),
+        ("Batteri",            "Drift ca 6 h med alla färger, ca 8 h i automatläge, ca 26 h enfärgat · laddtid 3–4 h"),
         ("Kanallägen",         "6 / 10 DMX-kanaler"),
         ("Styrning",           "DMX-512 (kabel och trådlöst 2,4 GHz) · Auto · Ljudstyrt · "
                                "Master/slave · IR-fjärrkontroll · App via wifi"),
@@ -2129,7 +2129,9 @@ SK_LJS_EFF_0025 = ProductManual(
         ]),
         H3("Laddning och start"),
         P("Ladda med den medföljande nätkabeln. Ett fullt batteri tar <b>3–4 timmar</b> "
-          "att ladda och räcker <b>ca 4 timmar</b>. Armaturen kan köras medan den "
+          "att ladda. Drifttiden beror på läget: <b>ca 6 timmar</b> med RGBWA+UV, "
+          "<b>ca 8 timmar</b> i automatläge och <b>ca 26 timmar</b> i en färg. "
+          "Armaturen kan köras medan den "
           "laddar, till exempel när ett eluttag finns nära. Slå på "
           "<b>strömbrytaren</b> innan du ställer in något. Ska armaturen stå oanvänd "
           "länge: stäng av den."),
