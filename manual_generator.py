@@ -1803,6 +1803,263 @@ SK_LJS_DMX_0011 = ProductManual(
 
 
 # =============================================================================
+# SK-LJS-EFF-0025 — LED PAR, uppladdningsbar (6×18W RGBWA+UV)
+# =============================================================================
+# Översatt 2026-11-20 från tillverkarens engelska manual ("SM APP Battery
+# Wireless", även kallad "APP Core" och "Crux" i samma dokument). Källan
+# beskriver två olika menysystem: en menykarta med ikonmeny (DMX512 / Shows /
+# Sound / Color / Set / Help) och en löptext med 4-siffriga displaykoder
+# (SLnd / nASt / SHnd). Båda är med, eftersom det inte går att avgöra ur
+# manualen vilken display exemplaren har. Kontrollera vid ankomst.
+# EFF-0023/0024 är reserverade (6-i-1 Moving Head, LED Bar 9×RGBW).
+SK_LJS_EFF_0025 = ProductManual(
+    artno="SK-LJS-EFF-0025",
+    name="LED PAR, uppladdningsbar (6×18W RGBWA+UV)",
+    subtitle="Batteridriven och trådlös LED PAR — DMX, app, fjärrkontroll och ljudstyrning",
+    description=[
+        "Kabelfri LED PAR med <b>sex 18 W-dioder i 6-i-1</b> — rött, grönt, blått, "
+        "vitt, bärnsten och UV i varje diod. Det inbyggda batteriet räcker "
+        "<b>ca 4 timmar</b> och laddas fullt på <b>3–4 timmar</b>. Armaturen kan "
+        "användas medan den laddar.",
+        "Styrs med <b>trådlös DMX</b> (2,4 GHz) eller vanlig DMX-kabel i "
+        "<b>6 eller 10 kanaler</b>, eller utan pult: fasta färger, automatprogram, "
+        "ljudstyrning, master/slave, IR-fjärrkontroll och mobilapp via wifi.",
+    ],
+    specs=[
+        ("Ljuskälla",          "6 × 18 W LED, 6-i-1 RGBWA+UV · 16,7 milj. färger"),
+        ("Spridningsvinkel",   "15°, 25° eller 40° beroende på lins"),
+        ("Batteri",            "Drift ca 4 h · laddtid 3–4 h · kan användas under laddning"),
+        ("Kanallägen",         "6 / 10 DMX-kanaler"),
+        ("Styrning",           "DMX-512 (kabel och trådlöst 2,4 GHz) · Auto · Ljudstyrt · "
+                               "Master/slave · IR-fjärrkontroll · App via wifi"),
+        ("Strömförsörjning",   "AC 110–250 V, 50/60 Hz · 108 W"),
+        ("Kapsling",           "Endast inomhus — tål inte fukt eller regn"),
+        ("Vikt och mått",      "3,2 kg (3,5 kg med emballage) · förpackning 138 × 145 × 184 mm"),
+    ],
+    toc=[
+        ("1", "Säkerhet, laddning och placering",     "sida 2"),
+        ("2", "Display och meny",                     "sida 2"),
+        ("3", "DMX-styrning — kabel och trådlöst",    "sida 4"),
+        ("4", "Utan pult: färg, auto, ljud och slave", "sida 5"),
+        ("5", "Appstyrning och felsökning",           "sida 5"),
+    ],
+    safety_box=InfoBox("Innan du använder armaturen", [
+        "<b>Endast inomhus</b> — utsätt den aldrig för regn eller fukt. Koppla aldrig "
+        "in den via dimmer eller dimmerpack, och öppna aldrig kåpan. Ställ den stadigt "
+        "med fri ventilation, och inte nära värmekällor som annan belysning eller förstärkare."
+    ], style="warning"),
+    blocks=[
+        # ---------- SIDA 2 ----------
+        H2("1. Säkerhet, laddning och placering"),
+        H3("Säkerhet"),
+        UL([
+            "Kontrollera armaturen när du packar upp den. Är den skadad eller saknas "
+            "delar: använd den <b>inte</b> — kontakta oss.",
+            "Kontrollera att nätspänningen stämmer innan laddkabeln ansluts "
+            "(armaturen klarar 90–250 V).",
+            "Anslut aldrig strömmen när kåpan är borttagen, och använd aldrig en "
+            "skadad armatur.",
+            "Gör inga egna reparationer. Hör av dig till oss om något inte fungerar.",
+        ]),
+        H3("Laddning och start"),
+        P("Ladda med den medföljande nätkabeln. Ett fullt batteri tar <b>3–4 timmar</b> "
+          "att ladda och räcker <b>ca 4 timmar</b>. Armaturen kan köras medan den "
+          "laddar, till exempel när ett eluttag finns nära. Slå på "
+          "<b>strömbrytaren</b> innan du ställer in något. Ska armaturen stå oanvänd "
+          "länge: stäng av den."),
+        H3("Placering"),
+        P("Armaturen är byggd för golv- och väggbelysning (uplighting). Ställ den på "
+          "plant underlag, utanför gångstråk, och vinkla den mot väggen. Ska den "
+          "hängas: säkra den alltid med säkerhetswire."),
+        Space(2),
+        H2("2. Display och meny"),
+        P("Tillverkarens manual beskriver <b>två menysystem</b>. Vilket som gäller "
+          "syns direkt i displayen: ikoner betyder variant A, fyrsiffriga koder "
+          "(<b>SLnd</b>, <b>nASt</b>, <b>SHnd</b>) variant B. Bläddra med "
+          "<b>UP</b>/<b>DOWN</b>, öppna och spara med <b>ENTER</b>, backa med "
+          "<b>MENU</b>."),
+        H3("Variant A — ikonmeny"),
+        DataTable(
+            headers=["Meny", "Undermeny", "Värde och funktion"],
+            rows=[
+                ["DMX512", "Adress",            "A001–A512 — DMX-startadress"],
+                ["Shows",  "Auto Mode",         "01–99 — automatprogram"],
+                ["",       "Auto Fade",         "01–99 — mjuk färgtoning"],
+                ["",       "Auto Sudden",       "01–99 — färghopp"],
+                ["",       "Auto Strobe",       "01–99 — färgstrobe"],
+                ["",       "WiFi Mode",         "On — slår på wifi för appen"],
+                ["Sound",  "Auto Mode / Fade / Sudden / Strobe", "01–100 — ljudstyrda varianter"],
+                ["Color",  "Custom Color",      "R, G, B, W, Y, U 0–100 — egen färgblandning"],
+                ["",       "Static Color",      "Color 1–32 — fasta färger"],
+                ["Set",    "DMX Channel",       "6CH / 10CH — kanalläge"],
+                ["",       "2.4G Wireless",     "On / Off — trådlös DMX"],
+                ["",       "Infrared",          "On / Off — IR-fjärrkontroll"],
+                ["",       "Display Black Light", "On / Off, släcks efter 5/10/15/30 s"],
+                ["",       "Fan Speed",         "Auto / Slow / Middle / Fast"],
+                ["",       "Temperature / Battery", "On / Off — visar temperatur och batterinivå"],
+                ["",       "Background Color",   "1–9 — displayens bakgrundsfärg"],
+                ["",       "Restore / Manual",  "Lösenordsskyddat — rör inte"],
+            ],
+            col_widths=[20 * mm, 46 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        Break(),
+
+        # ---------- SIDA 3 ----------
+        H3("Variant B — fyrsiffrig display"),
+        P("Allt utgår från <b>SLnd</b> (driftläge). Där väljer du om armaturen ska ta "
+          "emot signal eller köra själv:"),
+        DataTable(
+            headers=["Kod", "Betyder", "Används till"],
+            rows=[
+                ["SL1 / SL2", "Mottagarläge",  "DMX från pult (kabel eller trådlöst), eller slav till en annan armatur"],
+                ["nASt",      "Fristående",    "Armaturen kör själv — välj program under SHnd"],
+                ["SHnd",      "Programval",    "soun = ljudstyrt · CoLo = fast färg · StCo = strobe · FAdE = toning"],
+                ["CoLo",      "Fast färg",     "Färg 1–12 · Co11 = egen blandning från nAnu"],
+                ["nAnu",      "Manuell färg",  "Värde 1–255 per färg (R, G, B, A, W)"],
+                ["CHnd",      "Kanalläge",     "6 eller 10 DMX-kanaler"],
+                ["StbY",      "Vänteläge",     "Visas i SL1/SL2 tills giltig DMX tas emot"],
+            ],
+            col_widths=[24 * mm, 30 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        Space(3),
+        InfoBox("Avvikelser i tillverkarens manual", [
+            "Ikonmenyn anger <b>32</b> fasta färger, löptexten <b>12</b>. Antalet beror "
+            "på vilken menyvariant armaturen har.",
+            "Manualen kallar produkten både <b>APP Core</b> och <b>Crux</b>. Det är "
+            "samma armatur, och manualen har skrivits ihop av två modellers texter.",
+        ]),
+        Break(),
+
+        # ---------- SIDA 4 ----------
+        H2("3. DMX-styrning — kabel och trådlöst"),
+        P("Välj kanalläge (<b>6CH</b> eller <b>10CH</b>) och startadress, och patcha "
+          "samma läge i pulten. Adressavstånd vid flera armaturer: <b>+6</b> eller "
+          "<b>+10 per enhet</b>. I variant B ska armaturen stå på <b>SL1</b> eller "
+          "<b>SL2</b> — displayen visar <b>StbY</b> tills signalen kommer."),
+        DataTable(
+            headers=["Kanal", "6 kanaler", "10 kanaler"],
+            rows=[
+                ["CH1",  "Röd 0–255",       "Master-dimmer 0–255"],
+                ["CH2",  "Grön 0–255",      "Röd 0–255"],
+                ["CH3",  "Blå 0–255",       "Grön 0–255"],
+                ["CH4",  "Vit 0–255",       "Blå 0–255"],
+                ["CH5",  "Bärnsten 0–255",  "Vit 0–255"],
+                ["CH6",  "UV 0–255",        "Bärnsten 0–255"],
+                ["CH7",  "—",               "UV 0–255"],
+                ["CH8",  "—",               "Stroboskop 0–255"],
+                ["CH9",  "—",               "Program — se nedan"],
+                ["CH10", "—",               "Hastighet för programmet i CH9"],
+            ],
+            col_widths=[16 * mm, 50 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        Space(2),
+        DataTable(
+            headers=["CH9-värde", "Funktion (10-kanalsläge)"],
+            rows=[
+                ["0–8",     "Av — färgerna styrs av CH1–CH7"],
+                ["9–50",    "32 färdiga färgblandningar"],
+                ["51–100",  "Färghopp"],
+                ["101–150", "Färgpuls"],
+                ["151–200", "Färgtoning"],
+                ["201–220", "Ljudstyrt läge 1"],
+                ["221–240", "Ljudstyrt läge 2"],
+                ["241–255", "Ljudstyrt läge 3"],
+            ],
+            col_widths=[24 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        Space(3),
+        H3("Trådlös DMX"),
+        Steps([
+            ("Slå på signalen",
+             "Slå på <b>signalbrytaren</b> (variant A: <b>Set → 2.4G Wireless → On</b>). "
+             "Indikatorlampan lyser <b>rött</b>."),
+            ("Matcha färgkoden",
+             "Sändaren och armaturen måste stå på samma färgkod. Tryck på den "
+             "<b>svarta knappen</b> under indikatorlampan tills den visar samma färg "
+             "som sändaren."),
+            ("Kontrollera mottagningen",
+             "<b>Blinkande grönt</b> betyder att armaturen tar emot signal. Stå inte "
+             "för långt från sändaren."),
+        ]),
+        Break(),
+
+        # ---------- SIDA 5 ----------
+        H2("4. Utan pult: färg, auto, ljud och slave"),
+        DataTable(
+            headers=["Vill du …", "Variant A (ikonmeny)", "Variant B (fyrsiffrig)"],
+            rows=[
+                ["Fast färg",       "Color → Static Color → 1–32",
+                                    "SLnd → nASt → SHnd → CoLo → 1–12"],
+                ["Egen färg",       "Color → Custom Color → R/G/B/W/Y/U",
+                                    "nAnu: värde per färg, sedan SHnd → CoLo → Co11"],
+                ["Automatprogram",  "Shows → Auto Mode / Fade / Sudden / Strobe",
+                                    "SLnd → nASt → SHnd → FAdE eller StCo"],
+                ["Ljudstyrt",       "Sound → välj läge 01–100",
+                                    "SLnd → nASt → SHnd → soun"],
+            ],
+            col_widths=[28 * mm, 62 * mm, None],
+            tight=True,
+        ),
+        Space(3),
+        H3("Master/slave — flera armaturer i samma läge"),
+        Steps([
+            ("Ställ in mastern",
+             "Ställ en armatur i det läge du vill köra — fast färg, program eller ljud."),
+            ("Ställ slavarna",
+             "Ställ övriga armaturer på <b>SL1</b> eller <b>SL2</b>. Efter några "
+             "sekunder följer de mastern."),
+            ("Koppla ihop",
+             "Med DMX-kabel från master till slav, eller trådlöst med signalbrytaren "
+             "påslagen på alla enheter."),
+        ]),
+        Space(3),
+        H2("5. Appstyrning och felsökning"),
+        Steps([
+            ("Slå på wifi",
+             "Välj <b>Shows → WiFi Mode</b> och tryck <b>ENTER</b>. En wifi-symbol syns "
+             "i displayen. Lämnar du menyn stängs wifi av."),
+            ("Anslut telefonen",
+             "Öppna telefonens wifi-inställningar och välj armaturens nät "
+             "(<b>Led_xxx</b>)."),
+            ("Öppna appen",
+             "Öppna appen <b>LEDWiFi</b>, tryck <b>Edit</b> uppe till vänster och välj "
+             "<b>Join Route</b>. Frågar appen efter nätverksnamn: ange armaturens "
+             "nät (Led_xxx) i båda fälten."),
+            ("Starta om vid behov",
+             "Appen startar om och visar färghjulet. Gör den inte det: stäng appen "
+             "helt, öppna den igen och tryck <b>Edit</b>."),
+        ]),
+        Space(2),
+        DataTable(
+            headers=["Problem", "Åtgärd"],
+            rows=[
+                ["Svarar inte på pulten",
+                 "Kontrollera startadress och kanalläge (6/10) mot pulten. Variant B: "
+                 "armaturen ska stå på SL1/SL2, inte nASt."],
+                ["Trådlöst fungerar inte",
+                 "Signalbrytaren på? Lampan ska blinka grönt — matcha färgkoden med den "
+                 "svarta knappen och flytta närmare sändaren."],
+                ["Färgerna hamnar på fel fader",
+                 "Fel kanalläge. 6 och 10 kanaler har olika ordning."],
+                ["Slocknar under kvällen",
+                 "Batteriet är slut. Kör på nätkabel — armaturen fungerar under laddning."],
+            ],
+            col_widths=[45 * mm, None],
+            tight=True,
+        ),
+    ],
+)
+
+
+# =============================================================================
 # PRODUKTLISTA
 # =============================================================================
 # Ljuspaketens manualer ligger här. De fem tidigare armatur-manualerna
@@ -1820,6 +2077,7 @@ PRODUCTS = [
     SK_LJS_PAK_0020,
     SK_LJS_PAK_0025,
     SK_LJS_EFF_0022,
+    SK_LJS_EFF_0025,
     SK_LJS_DMX_0011,
 ]
 
