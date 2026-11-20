@@ -101,7 +101,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
       {trossExtra.map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="Stativ tillbehör" artno={p.artno} />
       ))}
-      {(ljusData.dmx?.tillbehor?.filter((p:any) => parseInt(p.artno.slice(-4)) >= 6) ?? []).map((p: any) => (
+      {(ljusData.dmx?.tillbehor?.filter((p:any) => !p.styrenhet) ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="DMX-tillbehör" artno={p.artno} manualUrl={p.manualUrl} />
       ))}
     </div>

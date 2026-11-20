@@ -104,7 +104,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="sk-h2s mb-6">Ljusstyrning (DMX)</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-      {(ljusData.dmx?.tillbehor?.filter((p:any) => parseInt(p.artno.slice(-4)) <= 5) ?? []).map((p: any) => (
+      {(ljusData.dmx?.tillbehor?.filter((p:any) => p.styrenhet) ?? []).map((p: any) => (
         <ElTillbehorCard img={p.image} name={p.name} excl={p.price} desc={p.description ?? p.desc ?? ''} category="DMX-styrning" artno={p.artno} modal={true} specs={p.specs ?? [p.description ?? p.desc ?? '']} manualUrl={p.manualUrl} />
       ))}
     </div>
