@@ -1803,6 +1803,271 @@ SK_LJS_DMX_0011 = ProductManual(
 
 
 # =============================================================================
+# SK-LJS-DMX-0019 — MA3 onPC med dator (2 universum)
+# =============================================================================
+# Ny 2026-11-20. Källor: MA Lightings "Quick Manual grandMA3 onPC DMX-key"
+# (v2.4: Quick Start, Technical Data, Limitations, Safety) och grandMA3 User
+# Manual / Quick Start Guide v2.4 (patch, DMX port configuration, store cues,
+# Clear, show file handling). Hyrs ut som dator med grandMA3 onPC + DMX-key —
+# ingen fysisk command wing, så kommandona skrivs i kommandoraden.
+# MA anger 4 096 parametrar för DMX-key (svart) och 1 024 för DMX-key starter
+# (röd). Sajten säger "2 048 kanaler" — avstämt med Per innan publicering.
+SK_LJS_DMX_0019 = ProductManual(
+    artno="SK-LJS-DMX-0019",
+    name="MA3 onPC med dator (2 universum)",
+    subtitle="grandMA3 onPC med DMX-key — svensk snabbguide",
+    description=[
+        "En dator med <b>grandMA3 onPC</b> installerat och en <b>grandMA3 onPC "
+        "DMX-key</b>, en liten box som ansluts med USB-C och ger <b>två "
+        "DMX-utgångar</b>. Det är samma programvara som i grandMA3-konsolerna, "
+        "men allt görs på datorns skärm och tangentbord.",
+        "grandMA3 är ett <b>kommandoradsbord</b>: du skriver en mening och "
+        "avslutar med <b>Enter</b> (Please på en konsol). <i>Fixture 1 Thru 4 At "
+        "50</i> + Enter tänder armatur 1–4 på 50 %. Lär dig det mönstret först, "
+        "så följer resten.",
+        "Guiden täcker det du behöver för ett event: koppla upp, patcha, "
+        "programmera cues och köra dem live. Den fullständiga manualen finns på "
+        "<b>help.malighting.com</b>.",
+    ],
+    specs=[
+        ("Programvara",       "grandMA3 onPC, förinstallerat på datorn"),
+        ("Hårdvara",          "grandMA3 onPC DMX-key · strömförsörjs via USB (5 V)"),
+        ("Utgångar",          "2 DMX-utgångar (5-polig XLR) — ett universum per utgång"),
+        ("Kapacitet",         "4 096 parametrar enligt MA Lighting"),
+        ("Anslutning",        "Låsbar USB-C-kabel mellan dator och DMX-key"),
+        ("Miljö",             "Endast inomhus · 0–40 °C · tål inte väta"),
+        ("Mått och vikt",     "DMX-key 90 × 88 × 38 mm · 0,24 kg"),
+    ],
+    toc=[
+        ("1", "Koppla upp",                          "sida 2"),
+        ("2", "Skärmen och kommandoraden",           "sida 3"),
+        ("3", "Patcha armaturer och välj universum", "sida 4"),
+        ("4", "Programmera ljus och spara cues",     "sida 5"),
+        ("5", "Köra showen live och felsökning",     "sida 6"),
+    ],
+    safety_box=InfoBox("Innan eventdagen", [
+        "Testa <b>hela kedjan</b> — dator, DMX-key, DMX-kabel och en armatur — "
+        "innan du åker. Ta med datorns laddare och stäng av viloläget: somnar "
+        "datorn slutar DMX-key att sända. Showfilen sparas på datorn, inte i boxen. "
+        "DMX-key är för inomhusbruk och får inte bli blöt.",
+    ], style="navy"),
+    blocks=[
+        # ---------- SIDA 2 ----------
+        H2("1. Koppla upp"),
+        Steps([
+            ("Starta datorn",
+             "Anslut laddaren och starta datorn. grandMA3 onPC är redan installerat."),
+            ("Anslut DMX-key",
+             "Koppla DMX-key till datorn med den låsbara <b>USB-C-kabeln</b>. Boxen "
+             "har ingen strömbrytare — den får ström från datorn och stängs av när "
+             "kabeln tas ur."),
+            ("Starta grandMA3 onPC",
+             "När programmet är igång ska <b>Link</b>-lampan på DMX-key lysa "
+             "<b>med fast sken</b>. Se tabellen nedan om den inte gör det."),
+            ("Starta en ny show",
+             "Öppna <b>Menu</b> (kugghjulet) → <b>Backup</b> → <b>New Show</b>. Börja "
+             "alltid med en tom show när du hyr — då ligger ingen gammal patch kvar."),
+            ("Dra DMX till riggen",
+             "DMX-kabel (5-polig XLR) från en av boxens <b>två DMX-utgångar</b> på "
+             "baksidan till första armaturens DMX IN, vidare armatur till armatur. "
+             "<b>120 ohms terminator</b> i sista armaturens DMX OUT."),
+        ]),
+        Space(3),
+        H3("Link-lampan"),
+        DataTable(
+            headers=["Lampan", "Betyder", "Gör så här"],
+            rows=[
+                ["Släckt",            "Ingen ström",
+                 "Kontrollera USB-C-kabeln och att datorn är på."],
+                ["Blinkar tre gånger", "Ström, men ingen kontakt med datorn",
+                 "Kontrollera USB-C-kabeln. Är datorn igång?"],
+                ["Blinkar långsamt",  "Datorn hittad, men programmet körs inte",
+                 "Starta grandMA3 onPC."],
+                ["Fast sken",         "Ansluten till grandMA3 onPC",
+                 "Allt är klart."],
+                ["Blinkar snabbt",    "Kontakten har brutits",
+                 "Kontrollera USB-kabeln och programmet. Blinkandet betyder "
+                 "<b>inte</b> att DMX skickas."],
+            ],
+            col_widths=[32 * mm, 52 * mm, None],
+            tight=True,
+        ),
+        Break(),
+
+        # ---------- SIDA 3 ----------
+        H2("2. Skärmen och kommandoraden"),
+        P("Utan konsol skriver du kommandona i <b>kommandoraden</b> längst ner på "
+          "skärmen och avslutar med <b>Enter</b>. Det du skriver är samma ord som "
+          "står på konsolens knappar."),
+        DataTable(
+            headers=["Skriv", "Funktion"],
+            rows=[
+                ["Fixture · Group",       "Väljer armaturer eller en grupp"],
+                ["Thru · + · −",          "Från–till, lägg till, ta bort: <i>1 Thru 4 + 8</i>"],
+                ["At · Full",             "Sätter nivå: <i>At 50</i>, <i>Full</i> = 100 %"],
+                ["Enter",                 "Utför kommandot — motsvarar Please"],
+                ["Store · Update",        "Sparar nytt / uppdaterar det som redan finns"],
+                ["Clear",                 "Rensar programmern — se ruta nedan"],
+                ["Oops · Esc",            "Ångrar senaste åtgärd / avbryter kommandoraden"],
+                ["Go+ · Go− · Pause",     "Nästa cue, föregående cue, pausa fade"],
+                ["Highlight · Blind",     "Visar vald armatur tydligt / programmera utan att det syns"],
+                ["SaveShow",              "Sparar showen"],
+            ],
+            col_widths=[42 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        Space(2),
+        DataTable(
+            headers=["Tangent", "Visar"],
+            rows=[
+                ["F5", "Executors på skärmen — fadrar och knappar du kör showen med"],
+                ["F7", "Master-området med Go+, Go− och Pause"],
+                ["Menu (kugghjulet)", "Patch, Backup (spara och ladda) och inställningar"],
+            ],
+            col_widths=[42 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        Space(3),
+        InfoBox("Clear — tre tryck, tre steg", [
+            "<b>1:a gången</b> avmarkeras armaturerna. <b>2:a gången</b> blir "
+            "värdena inaktiva — de följer inte med vid Store. <b>3:e gången</b> töms "
+            "programmern helt och armaturerna går tillbaka till det som spelas.",
+            "Det som står i programmern är <b>inte sparat</b> förrän du kört Store.",
+        ]),
+        Break(),
+
+        # ---------- SIDA 4 ----------
+        H2("3. Patcha armaturer och välj universum"),
+        P("Patchen talar om för programmet vilka armaturer som finns och på vilken "
+          "DMX-adress. Ställ först adressen på varje armatur — se armaturens "
+          "egen manual — och lägg sedan in samma adress här."),
+        Steps([
+            ("Öppna patchen",
+             "<b>Menu</b> (kugghjulet) → <b>Patch</b>. I en tom show startar en guide "
+             "direkt; annars markerar du raden <b>New Fixture</b> sist i listan och "
+             "trycker <b>Insert New Fixture</b>."),
+            ("Välj armatur",
+             "Fliken <b>Library</b>, skriv tillverkare eller modell i sökfältet. Välj "
+             "tillverkare, modell och <b>kanalläge</b> och tryck <b>Select</b>. "
+             "Kanalläget måste vara <b>samma som på armaturen</b>."),
+            ("Namn, ID, antal och adress",
+             "Ge armaturerna ett namn och ett första Fixture ID (<b>FID</b>), ange "
+             "antal och adress i formen <b>universum.adress</b> — <b>1.001</b> är "
+             "universum 1, kanal 1. Tryck <b>Create !</b>. Flera armaturer "
+             "adresseras i följd automatiskt."),
+            ("Lämna patchen",
+             "Stäng med krysset uppe till höger och välj <b>Save and Exit</b>."),
+        ]),
+        Space(2),
+        H3("Koppla universum till utgångarna"),
+        Steps([
+            ("Öppna inställningen",
+             "<b>Menu</b> → <b>Connector Configuration</b>. Tryck <b>Columns</b> i "
+             "titelraden och välj <b>Full</b>."),
+            ("Hitta DMX-key",
+             "Fäll ut <b>onPC</b>. DMX-key hittas normalt automatiskt — kolumnen "
+             "<b>Type</b> visar vilken hårdvara raden gäller."),
+            ("Ställ in utgångarna",
+             "<b>Mode</b> ska stå på <b>Out</b>. Skriv universumnumret i kolumnen "
+             "<b>XLR</b>: <b>1</b> på första utgången, <b>2</b> på andra. Med "
+             "<b>Failure Mode</b> = <b>Hold</b> fortsätter utgången sända det "
+             "senaste om programmet tappar kontakten."),
+        ]),
+        Break(),
+
+        # ---------- SIDA 5 ----------
+        H2("4. Programmera ljus och spara cues"),
+        H3("Tänd och ställ in"),
+        DataTable(
+            headers=["Du skriver + Enter", "Det händer"],
+            rows=[
+                ["Fixture 1 At Full",             "Armatur 1 på 100 %"],
+                ["Fixture 1 Thru 4 At 50",        "Armatur 1–4 på 50 %"],
+                ["Fixture 1 Thru 10 - 5 At 70",   "1–10 utom 5 på 70 %"],
+                ["Group 1 At Full",               "Hela grupp 1 på 100 %"],
+                ["Fixture 3 At 0",                "Armatur 3 på 0 %"],
+            ],
+            col_widths=[70 * mm, None],
+            mono_cols=[0],
+            tight=True,
+        ),
+        P("Färg, position och gobo ställs i encoderfältet längst ner på skärmen. "
+          "Välj attributgrupp — Dimmer, Position, Gobo, Color, Beam — och dra i "
+          "värdena eller skriv in dem."),
+        H3("Spara som grupp och preset"),
+        P("Välj armaturer, skriv <b>Store</b> och tryck på en tom ruta i "
+          "gruppfönstret. Samma sak med färger och positioner i presetfönstren. "
+          "Grupper och presets gör resten av programmeringen mycket snabbare."),
+        H3("Spara cues"),
+        Steps([
+            ("Bygg ljusbilden",
+             "Tänd och ställ in det du vill ha med i cuen."),
+            ("Spara",
+             "<b>Store</b> + Enter sparar en ny cue i vald sekvens. <b>Store Cue 5</b> "
+             "sparar som cue 5. För en egen executor: <b>Store</b> och sedan "
+             "executorns knapp (F5) — då skapas en ny sekvens där."),
+            ("Töm programmern",
+             "<b>Clear</b> tre gånger innan du bygger nästa cue — annars följer "
+             "värden med som du inte tänkt dig."),
+            ("Rätta en cue",
+             "Spela cuen, ändra det som ska ändras och kör <b>Update</b>. Sparar du "
+             "på en cue som redan finns frågar programmet om du vill slå ihop "
+             "(<b>Merge</b>) eller ersätta (<b>Overwrite</b>)."),
+        ]),
+        Break(),
+
+        # ---------- SIDA 6 ----------
+        H2("5. Köra showen live och felsökning"),
+        UL([
+            "Öppna master-området med <b>F7</b>: <b>Go+</b> spelar nästa cue, "
+            "<b>Go−</b> backar ett steg, <b>Pause</b> fryser en fade som pågår.",
+            "Executor-fadrarna (<b>F5</b>) styr nivån på det som ligger på varje "
+            "executor — t.ex. en sekvens på en fader och en effekt på en annan.",
+            "Vill du förbereda nästa bild under pågående show: kör <b>Blind</b>, "
+            "programmera, spara och slå av Blind igen. Publiken ser ingenting.",
+            "<b>Spara showen</b> efter varje större ändring: <b>Menu</b> → "
+            "<b>Quick Save</b>, tryck Menu två gånger snabbt, eller skriv "
+            "<b>SaveShow</b>.",
+        ]),
+        Space(2),
+        DataTable(
+            headers=["Problem", "Åtgärd"],
+            rows=[
+                ["Link-lampan lyser inte fast",
+                 "Se tabellen på sida 2. Prova en annan USB-port och starta om "
+                 "grandMA3 onPC."],
+                ["Skärmen reagerar men riggen gör ingenting",
+                 "Kontrollera <b>Connector Configuration</b>: Mode = Out och rätt "
+                 "universum i XLR. Sedan DMX-kabeln, riktningen (OUT → IN) och "
+                 "terminatorn."],
+                ["Bara vissa armaturer svarar",
+                 "Fel adress eller universum i patchen, eller fel kanalläge. Jämför "
+                 "armaturens display med patchen rad för rad."],
+                ["Värden följer med till nästa cue",
+                 "Programmern var inte tömd. <b>Clear</b> tre gånger innan varje ny cue."],
+                ["Något gick fel nyss",
+                 "<b>Oops</b> ångrar senaste åtgärden. <b>Esc</b> avbryter en "
+                 "halvskriven kommandorad."],
+                ["Utgången slutar sända under show",
+                 "Datorn har gått i viloläge eller stängt av USB-porten för att spara "
+                 "ström. Stäng av viloläge och energisparläge för USB."],
+            ],
+            col_widths=[52 * mm, None],
+            tight=True,
+        ),
+        Space(3),
+        InfoBox("Checklista före publiken kommer in", [
+            "Link-lampan lyser fast · rätt universum på utgångarna · första cuen "
+            "eller blackout redo · showen sparad · datorn på laddning och med "
+            "<b>viloläge avstängt</b>.",
+        ], style="navy"),
+    ],
+)
+
+
+# =============================================================================
 # SK-LJS-EFF-0025 — LED PAR, uppladdningsbar (6×18W RGBWA+UV)
 # =============================================================================
 # Översatt 2026-11-20 från tillverkarens engelska manual ("SM APP Battery
@@ -2077,6 +2342,7 @@ PRODUCTS = [
     SK_LJS_PAK_0020,
     SK_LJS_PAK_0025,
     SK_LJS_EFF_0022,
+    SK_LJS_DMX_0019,
     SK_LJS_EFF_0025,
     SK_LJS_DMX_0011,
 ]
