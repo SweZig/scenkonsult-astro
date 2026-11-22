@@ -28,6 +28,8 @@ import { produktLank } from '../utils/produktLank';
 import { telefon, helg } from '../utils/hours';
 
 const fmt = (n: number) => n.toLocaleString('sv-SE');
+// Logoraden: så många kolumner att raderna blir fulla (8, 6 eller 4), annars 6
+const logoKol = [8, 6, 4].find((n) => KUNDLOGOTYPER.length % n === 0) ?? 6;
 const inkl = (n: number) => Math.round(n * 1.25);
 const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price && p.active !== false).map((p: any) => p.price));
 const _alla = { karaoke: _karaokeData, ljud: ljudData, ljus: ljusData, bild: bildData, dj: djData, scenes: scenesData, tjanster: _tjData, el: _elData };
@@ -338,7 +340,7 @@ const homeSchema = {
   <div class="st-wrap">
     <div class="st-logor">
       <span class="st-logor-rubrik">De har hyrt av oss</span>
-      <div class="st-logor-rad">
+      <div class="st-logor-rad" style={`--kol:${logoKol}`}>
         {KUNDLOGOTYPER.map((l) => (
           <span><img src={l.src} alt={l.name} width={l.w} height={l.h} loading="lazy" decoding="async" class:list={{ 'is-hog': l.tall }} /></span>
         ))}
@@ -533,7 +535,7 @@ const homeSchema = {
   .st-svep { display: none; }
   .st-logor { margin-top: clamp(2rem, 4vw, 3rem); display: flex; align-items: center; gap: 1.75rem; padding: 1.6rem 1.9rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
   .st-logor-rubrik { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
-  .st-logor-rad { flex: 1 1 560px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 1.1rem; align-items: center; }
+  .st-logor-rad { flex: 1 1 560px; display: grid; grid-template-columns: repeat(var(--kol, 8), minmax(0, 1fr)); gap: 1.1rem 1.6rem; align-items: center; }
   .st-logor-rad span { height: 52px; display: flex; align-items: center; justify-content: center; }
   .st-logor-rad img { max-height: 30px; max-width: 100%; width: auto; height: auto; object-fit: contain; opacity: 0.9; }
   .st-logor-rad img.is-hog { max-height: 48px; }
