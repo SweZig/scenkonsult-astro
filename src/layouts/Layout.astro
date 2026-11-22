@@ -579,7 +579,7 @@ const localBusinessSchema = {
   <div class="nav-mobile-menu" id="mobileMenu" aria-hidden="true" inert>
     <ul>
       <li class="nav-mob-parent">
-        <button class="nav-mob-trigger" id="mobTjänsterBtn">Tjänster <span class="nav-arrow">▾</span></button>
+        <button class="nav-mob-trigger" id="mobTjänsterBtn" aria-expanded="false" aria-controls="mobTjänsterSub">Tjänster <span class="nav-arrow">▾</span></button>
         <ul class="nav-mob-sub" id="mobTjänsterSub">
           <li><a href="/vara-tjanster/hyra-scen/">Hyra scen</a></li>
           <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-scen/pipe-drape/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Pipe &amp; Drape</a></li>
@@ -614,7 +614,7 @@ const localBusinessSchema = {
         </ul>
       </li>
       <li class="nav-mob-parent">
-        <button class="nav-mob-trigger" id="mobKunskapBtn">Kunskap <span class="nav-arrow">▾</span></button>
+        <button class="nav-mob-trigger" id="mobKunskapBtn" aria-expanded="false" aria-controls="mobKunskapSub">Kunskap <span class="nav-arrow">▾</span></button>
         <ul class="nav-mob-sub" id="mobKunskapSub">
           <li><a href="/svens-kunskapsskola/">Svens Kunskapsskola</a></li>
           <li><a href="/for/guider/hur-stor-pa/">Hur stor PA?</a></li>
@@ -804,34 +804,45 @@ const localBusinessSchema = {
     // Hamburger menu
     const hamburger = document.getElementById('hamburger');
     const mobileMenu = document.getElementById('mobileMenu');
+    // Mobilens dragspel: Tjänster och Kunskap
+    const mobTjBtn = document.getElementById('mobTjänsterBtn');
+    const mobTjSub = document.getElementById('mobTjänsterSub');
+    const mobKuBtn = document.getElementById('mobKunskapBtn');
+    const mobKuSub = document.getElementById('mobKunskapSub');
+    const setMobSub = (btn: HTMLElement | null, sub: HTMLElement | null, open: boolean) => {
+      sub?.classList.toggle('open', open);
+      btn?.setAttribute('aria-expanded', String(open));
+      const arrow = btn?.querySelector('.nav-arrow') as HTMLElement | null;
+      if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : '';
+    };
+    // Tjänster fälls ut av sig själv ca 3 s efter att menyn öppnats, så att
+    // kunden hittar tjänsterna. Avbryts om kunden själv rört dragspelet eller
+    // stängt menyn — då ska menyn inte röra sig under fingret.
+    let autoTimer: ReturnType<typeof setTimeout> | null = null;
+    const stopAuto = () => { if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; } };
     hamburger?.addEventListener('click', () => {
       const isOpen = hamburger.classList.toggle('open');
       mobileMenu?.classList.toggle('open', isOpen);
       hamburger.setAttribute('aria-expanded', String(isOpen));
       mobileMenu?.setAttribute('aria-hidden', String(!isOpen));
       // inert attribute ger korrekt fokushantering — fokus kan inte hamna i en stängd meny
+      stopAuto();
       if (isOpen) {
         mobileMenu?.removeAttribute('inert');
+        if (!mobTjSub?.classList.contains('open') && !mobKuSub?.classList.contains('open')) {
+          autoTimer = setTimeout(() => {
+            autoTimer = null;
+            if (mobileMenu?.classList.contains('open')) setMobSub(mobTjBtn, mobTjSub, true);
+          }, 3000);
+        }
       } else {
         mobileMenu?.setAttribute('inert', '');
       }
     });
-    // Mobile accordion: Tjänster
-    document.getElementById('mobTjänsterBtn')?.addEventListener('click', () => {
-      const sub = document.getElementById('mobTjänsterSub');
-      const btn = document.getElementById('mobTjänsterBtn');
-      sub?.classList.toggle('open');
-      const arrow = btn?.querySelector('.nav-arrow') as HTMLElement;
-      if (arrow) arrow.style.transform = sub?.classList.contains('open') ? 'rotate(180deg)' : '';
-    });
-    // Mobile accordion: Kunskap
-    document.getElementById('mobKunskapBtn')?.addEventListener('click', () => {
-      const sub = document.getElementById('mobKunskapSub');
-      const btn = document.getElementById('mobKunskapBtn');
-      sub?.classList.toggle('open');
-      const arrow = btn?.querySelector('.nav-arrow') as HTMLElement;
-      if (arrow) arrow.style.transform = sub?.classList.contains('open') ? 'rotate(180deg)' : '';
-    });
+    mobTjBtn?.addEventListener('click', () => { stopAuto(); setMobSub(mobTjBtn, mobTjSub, !mobTjSub?.classList.contains('open')); });
+    mobKuBtn?.addEventListener('click', () => { stopAuto(); setMobSub(mobKuBtn, mobKuSub, !mobKuSub?.classList.contains('open')); });
+    mobileMenu?.addEventListener('touchmove', stopAuto, { passive: true });
+    mobileMenu?.addEventListener('scroll', stopAuto, { passive: true });
 
     // Desktop dropdowns — varje stängs INTE om muspekaren är inne i menyn.
     // Hanterar flera dropdowns (Tjänster + Kunskap) oberoende av varandra.
@@ -863,6 +874,7 @@ const localBusinessSchema = {
     // Close on outside click
     document.addEventListener('click', (e) => {
       if (!hamburger?.contains(e.target as Node) && !mobileMenu?.contains(e.target as Node)) {
+        stopAuto();
         hamburger?.classList.remove('open');
         mobileMenu?.classList.remove('open');
         hamburger?.setAttribute('aria-expanded', 'false');

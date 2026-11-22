@@ -506,6 +506,9 @@ a { color: inherit; }
 }
 .nav-mob-sub { display: none; padding-left: 1rem; margin-bottom: 0.5rem; }
 .nav-mob-sub.open { display: block; }
+.nav-mob-sub.open { animation: skMobSub 0.28s ease-out; }
+@keyframes skMobSub { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .nav-mob-sub.open { animation: none; } }
 .nav-mob-sub li { border-bottom: 1px solid rgba(255,255,255,0.04); }
 .nav-mob-sub li a {
   font-size: 0.82rem; font-weight: 500; letter-spacing: 0.04em;
