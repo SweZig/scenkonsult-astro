@@ -405,7 +405,7 @@
     <p class="lead" id="intro-lead">Förbered uppgifter som gör att din kommande utlämning går smidigare.</p>
     <div class="order-box" id="order-box"></div>
     <div class="info-banner">
-      ℹ <strong>Detta är förberedelse</strong> — kvittensen blir bindande först när vi bekräftar utlämningen på plats. Du riskerar inget genom att fylla i detta nu.
+      ℹ︎ <strong>Detta är förberedelse</strong> — kvittensen blir bindande först när vi bekräftar utlämningen på plats. Du riskerar inget genom att fylla i detta nu.
     </div>
     <div class="nav-buttons">
       <button class="btn-next" data-next>Sätt igång →</button>
@@ -731,7 +731,7 @@
         feedback.style.background = 'rgba(255,255,255,0.04)';
         feedback.style.border = '1px solid rgba(255,255,255,0.1)';
         feedback.style.color = 'rgba(255,255,255,0.6)';
-        feedback.innerHTML = 'ℹ AI-verifiering tillfälligt otillgänglig — admin granskar bilden vid utlämning.';
+        feedback.innerHTML = 'ℹ︎ AI-verifiering tillfälligt otillgänglig — admin granskar bilden vid utlämning.';
         return;
       }
 
@@ -759,21 +759,21 @@
         const issueTxt = (r.issues && r.issues.length)
           ? `Bildkvalitet: ${r.issues.map(i => i.replace(/_/g, ' ')).join(', ')}.`
           : '';
-        feedback.innerHTML = `⚠ <strong>Identifierad som ${typeLabel}</strong> men bilden kunde vara bättre. ${issueTxt} Du kan ladda nytt foto eller fortsätta — admin granskar vid utlämning.`;
+        feedback.innerHTML = `⚠︎ <strong>Identifierad som ${typeLabel}</strong> men bilden kunde vara bättre. ${issueTxt} Du kan ladda nytt foto eller fortsätta — admin granskar vid utlämning.`;
       } else {
         // Röd — verkar inte vara leg
         feedback.style.background = 'rgba(239,68,68,0.08)';
         feedback.style.border = '1px solid rgba(239,68,68,0.35)';
         feedback.style.color = '#fca5a5';
         const reasonTxt = r.reason ? ` ${r.reason}.` : '';
-        feedback.innerHTML = `⚠ <strong>Detta ser inte ut som legitimation.</strong>${reasonTxt} Du kan fortsätta ändå men admin behöver granska vid utlämning. Tips: ladda upp körkort, ID-kort eller pass.`;
+        feedback.innerHTML = `⚠︎ <strong>Detta ser inte ut som legitimation.</strong>${reasonTxt} Du kan fortsätta ändå men admin behöver granska vid utlämning. Tips: ladda upp körkort, ID-kort eller pass.`;
       }
     } catch (err) {
       console.error('AI-verifiering misslyckades:', err);
       feedback.style.background = 'rgba(255,255,255,0.04)';
       feedback.style.border = '1px solid rgba(255,255,255,0.1)';
       feedback.style.color = 'rgba(255,255,255,0.6)';
-      feedback.innerHTML = 'ℹ AI-verifiering tillfälligt otillgänglig — admin granskar bilden vid utlämning.';
+      feedback.innerHTML = 'ℹ︎ AI-verifiering tillfälligt otillgänglig — admin granskar bilden vid utlämning.';
     }
   });
 
@@ -983,7 +983,7 @@
         summary += `<div class="row"><span class="check">✓</span><span>${firstName} har fått ett SMS med info</span></div>`;
       } else if (submitData && submitData.proxy_sms_sent === false) {
         const errDetail = submitData.proxy_sms_error ? ` <em style="opacity:0.7;font-size:0.85em">(${submitData.proxy_sms_error})</em>` : '';
-        summary += `<div class="row" style="color:#fbbf24"><span>⚠</span><span>SMS till ${firstName} kunde inte skickas — meddela dem gärna själv.${errDetail}</span></div>`;
+        summary += `<div class="row" style="color:#fbbf24"><span>⚠︎</span><span>SMS till ${firstName} kunde inte skickas — meddela dem gärna själv.${errDetail}</span></div>`;
       }
     }
     summary += `<div style="margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.08);font-size:0.8rem;color:rgba(255,255,255,0.6)">${items.length} ${items.length === 1 ? 'artikel' : 'artiklar'} · Order ${c.id}</div>`;

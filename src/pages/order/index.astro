@@ -501,7 +501,7 @@ import momsLibSrc from '../../lib/moms.cjs?raw';
 
 <!-- Admin-banner — synlig bara i sk-admin-läge -->
 <div class="sk-admin-only" id="admin-order-banner" style="background:rgba(196,181,244,0.1);border-bottom:1px solid rgba(196,181,244,0.25);padding:0.6rem 1.25rem;display:flex;align-items:center;gap:1rem;font-size:0.82rem;font-family:'Space Grotesk',sans-serif;">
-  <span style="color:#c4b5f4;font-weight:700;">⚙ Admin</span>
+  <span style="color:#c4b5f4;font-weight:700;">⚙︎ Admin</span>
   <span style="color:rgba(255,255,255,0.5)" id="admin-cart-id-label">–</span>
   <a id="admin-open-kanban" href="/admin/" target="_blank"
     style="color:#c4b5f4;text-decoration:none;border:1px solid rgba(196,181,244,0.3);border-radius:6px;padding:0.2rem 0.6rem;font-size:0.78rem;">
@@ -832,7 +832,7 @@ function openOrderProductModal(item) {
   if (info.manualUrl) {
     rows.push({
       label: 'Produktmanual',
-      rows: [`<a href="${info.manualUrl}" target="_blank" rel="noopener" style="color:#c4b5f4;text-decoration:underline;font-size:11.5px">📄 Öppna manual (PDF) ↗</a>`],
+      rows: [`<a href="${info.manualUrl}" target="_blank" rel="noopener" style="color:#c4b5f4;text-decoration:underline;font-size:11.5px">📄 Öppna manual (PDF) ↗︎</a>`],
       fullWidth: true,
     });
   }
@@ -1149,7 +1149,7 @@ function renderOrder(c) {
     const imgEl = imgSrc
       ? `<div class="row-img${hasInfo?' row-img-clickable':''}"><img src="${imgSrc}" alt="" loading="lazy" onerror="this.style.display='none'"></div>`
       : (() => { const pe=_prodEmoji(i); return `<div class="row-img" style="background:${pe.bg};font-size:1.5rem;display:flex;align-items:center;justify-content:center">${pe.e}</div>`; })();
-    const infoHint = hasInfo ? ` <span class="row-info-hint">ℹ</span>` : '';
+    const infoHint = hasInfo ? ` <span class="row-info-hint">ℹ︎</span>` : '';
     const clickProps = hasInfo ? `onclick="openOrderProductModal(window._orderItems['${key}'])" title="Klicka för mer info"` : '';
     return `<div class="order-cart-row${hasInfo?' order-cart-row-clickable':''}" ${clickProps}>
       ${imgEl}
@@ -1228,7 +1228,7 @@ function renderOrder(c) {
           <span class="odel-addr-label">Adress för hämtning &amp; återlämning</span>
           <a class="odel-addr-link" href="https://maps.google.com/?q=Grimstagatan+164,+162+58+V%C3%A4llingby" target="_blank" rel="noopener">
             <strong>Grimstagatan 164, 162 58 Vällingby</strong>
-            <span class="odel-addr-arrow">↗ Visa på karta</span>
+            <span class="odel-addr-arrow">↗︎ Visa på karta</span>
           </a>
         </div>
         <div class="odel-note">Ring 072-448 10 00 strax innan ni kommer så har vi allt klart.</div>
@@ -1245,7 +1245,7 @@ function renderOrder(c) {
           ${c.event_location
             ? `<a class="odel-addr-link" href="https://maps.google.com/?q=${encodeURIComponent(c.event_location)}" target="_blank" rel="noopener">
                  <strong>${c.event_location}</strong>
-                 <span class="odel-addr-arrow">↗ Visa på karta</span>
+                 <span class="odel-addr-arrow">↗︎ Visa på karta</span>
                </a>`
             : `<strong style="color:#fbbf24">Adress ej angiven — vänligen meddela oss i chatten nedan.</strong>`}
         </div>

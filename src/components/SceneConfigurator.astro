@@ -748,14 +748,14 @@ const configData = {
 
       let warning = '';
       if (!dimRangeOK) {
-        warning = '⚠ Måtten ligger utanför tillåtet intervall (min 2 m, max 12×8 m).';
+        warning = '⚠︎ Måtten ligger utanför tillåtet intervall (min 2 m, max 12×8 m).';
       } else if (state.moduleType === '1x1-halkfri' && area > 20) {
-        warning = `⚠ 1×1-modulerna räcker till max 20 m² (${area} m² valt). Välj 1×2-moduler för större scen, eller minska måtten.`;
+        warning = `⚠︎ 1×1-modulerna räcker till max 20 m² (${area} m² valt). Välj 1×2-moduler för större scen, eller minska måtten.`;
       } else if (!evenSideOK) {
         const altW = state.width + 1 <= 12 ? state.width + 1 : null;
         const altD = state.depth + 1 <= 8 ? state.depth + 1 : null;
         const sugg = altW && altD ? ` Välj t.ex. ${altW}×${state.depth} eller ${state.width}×${altD},` : '';
-        warning = `⚠ Med 1×2-moduler måste antingen bredd eller djup vara jämn.${sugg} eller använd 1×1-moduler.`;
+        warning = `⚠︎ Med 1×2-moduler måste antingen bredd eller djup vara jämn.${sugg} eller använd 1×1-moduler.`;
       }
       warn.textContent = warning;
 

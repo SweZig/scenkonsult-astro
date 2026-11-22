@@ -400,7 +400,7 @@
         let html = escHtml(text)
           .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
           .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-            '<a href="$2" target="_blank" rel="noopener">$1 ↗</a>')
+            '<a href="$2" target="_blank" rel="noopener">$1 ↗︎</a>')
           .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g,
             '<a href="$2">$1 →</a>')
           .replace(/\n/g, "<br>");
