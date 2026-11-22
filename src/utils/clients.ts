@@ -93,3 +93,6 @@ export const KUNDLOGOTYPER: Array<{ src: string; name: string; w: number; h: num
   { src: '/images/kunder/logo_abg.webp', name: 'ABG Sundal Collier', w: 260, h: 127, tall: true },
   { src: '/images/kunder/logo_hacksaw.webp', name: 'Hacksaw Studios', w: 260, h: 127, tall: true },
 ];
+
+/** Kolumner i logoraderna (startsidan, KundRad): det som ger fulla rader — 8, 6 eller 4 — annars 6 */
+export const LOGO_KOLUMNER = [8, 6, 4].find((n) => KUNDLOGOTYPER.length % n === 0) ?? 6;

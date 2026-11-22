@@ -23,13 +23,11 @@ import { resolveBuilder as _kbResolve, minTotal as _kbMin } from '../lib/karaoke
 import { resolveLjudLjus, minRecommended } from '../lib/ljud-ljus-builder.mjs';
 import { getSummary, getReviews } from '../utils/reviews';
 import { nyckel } from '../scripts/recensioner-live';
-import { KUNDLOGOTYPER } from '../utils/clients';
+import { KUNDLOGOTYPER, LOGO_KOLUMNER } from '../utils/clients';
 import { produktLank } from '../utils/produktLank';
 import { telefon, helg } from '../utils/hours';
 
 const fmt = (n: number) => n.toLocaleString('sv-SE');
-// Logoraden: så många kolumner att raderna blir fulla (8, 6 eller 4), annars 6
-const logoKol = [8, 6, 4].find((n) => KUNDLOGOTYPER.length % n === 0) ?? 6;
 const inkl = (n: number) => Math.round(n * 1.25);
 const _low = (items: any[]) => Math.min(...items.filter((p: any) => p?.price && p.active !== false).map((p: any) => p.price));
 const _alla = { karaoke: _karaokeData, ljud: ljudData, ljus: ljusData, bild: bildData, dj: djData, scenes: scenesData, tjanster: _tjData, el: _elData };
@@ -340,7 +338,7 @@ const homeSchema = {
   <div class="st-wrap">
     <div class="st-logor">
       <span class="st-logor-rubrik">De har hyrt av oss</span>
-      <div class="st-logor-rad" style={`--kol:${logoKol}`}>
+      <div class="st-logor-rad" style={`--kol:${LOGO_KOLUMNER}`}>
         {KUNDLOGOTYPER.map((l) => (
           <span><img src={l.src} alt={l.name} width={l.w} height={l.h} loading="lazy" decoding="async" class:list={{ 'is-hog': l.tall }} /></span>
         ))}
