@@ -3,6 +3,7 @@ import '../styles/global.css';
 import InlineEditor from '../components/InlineEditor.astro';
 import Tel from '../components/Tel.astro';
 import Mail from '../components/Mail.astro';
+import { TJANSTER_KOLUMNER, TJANSTER_PANEL, EVENT_LANKAR, KUNSKAP_FRAMHAVD, KUNSKAP_GRUPPER, KUNSKAP_ALLA, OFFERT_HREF } from '../data/meny';
 
 // ── SVEN_PRODUCTS byggs från EN källa: src/lib/sven-products.mjs ──
 // Registret delas med netlify/generate-products.mjs så att chattbubblans
@@ -485,94 +486,63 @@ const localBusinessSchema = {
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links">
-      <li class="nav-dropdown">
-        <a href="/vara-tjanster/" class="nav-dropdown-trigger">Tjänster <span class="nav-arrow">▾</span></a>
-        <div class="nav-dropdown-menu nav-dd-products">
-          <div class="nav-dd-col">
-            <span class="nav-dd-heading">Scen</span>
-            <a href="/vara-tjanster/hyra-scen/" class="nav-dd-hub">Hyra scen</a>
-            <a href="/vara-tjanster/hyra-scen/pipe-drape/" class="nav-dd-sub">Pipe &amp; Drape</a>
-            <span class="nav-dd-heading" style="margin-top:1rem;">Bild</span>
-            <a href="/vara-tjanster/hyra-bild/" class="nav-dd-hub">Hyra bild</a>
-            <a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" class="nav-dd-sub">Projektor &amp; skärm</a>
-            <a href="/vara-tjanster/hyra-bild-led-vagg/" class="nav-dd-sub">LED-vägg <span style="background:#c4b5f4;color:#0c0a24;padding:1px 6px;border-radius:99px;font-size:0.6rem;font-weight:700;letter-spacing:0.05em;margin-left:4px;vertical-align:1px;">Nytt</span></a>
-          </div>
-          <div class="nav-dd-col">
-            <span class="nav-dd-heading">Ljud</span>
-            <a href="/vara-tjanster/hyra-ljud/" class="nav-dd-hub">Hyra ljud</a>
-            <a href="/vara-tjanster/hyra-ljud/portable/" class="nav-dd-sub">Portabelt ljud</a>
-            <a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/" class="nav-dd-sub">Kolumn</a>
-            <a href="/vara-tjanster/hyra-ljud/event/" class="nav-dd-sub">Event &amp; konferens</a>
-            <a href="/vara-tjanster/hyra-ljud/music/" class="nav-dd-sub">Musik &amp; dans</a>
-            <a href="/vara-tjanster/hyra-ljud/live/" class="nav-dd-sub">Live &amp; konsert</a>
-            <a href="/vara-tjanster/hyra-ljudtekniker/" class="nav-dd-sub">Ljudtekniker</a>
-            <span class="nav-dd-heading" style="margin-top:1rem;">Ljud + ljus</span>
-            <a href="/vara-tjanster/hyra-ljud-och-ljus/" class="nav-dd-hub">Hyra ljud och ljus</a>
-            <a href="/vara-tjanster/hyra-ljud-och-ljus/#bygg" class="nav-dd-sub">Bygg ert paket</a>
-          </div>
-          <div class="nav-dd-col">
-            <span class="nav-dd-heading">Ljus</span>
-            <a href="/vara-tjanster/hyra-ljus/" class="nav-dd-hub">Hyra ljus</a>
-            <a href="/vara-tjanster/hyra-ljus/fardiga-paket/" class="nav-dd-sub">Färdiga paket</a>
-            <a href="/vara-tjanster/hyra-ljus/ljuseffekter/" class="nav-dd-sub">Ljuseffekter</a>
-            <a href="/vara-tjanster/hyra-ljus/rok-pyro/" class="nav-dd-sub">Rök &amp; pyro</a>
-            <a href="/vara-tjanster/hyra-ljus/stativ-tross/" class="nav-dd-sub">Stativ &amp; tross</a>
-            <span class="nav-dd-heading" style="margin-top:1rem;">DJ</span>
-            <a href="/vara-tjanster/hyra-dj/" class="nav-dd-hub">Hyra DJ</a>
-            <a href="/vara-tjanster/hyra-dj-utrustning/" class="nav-dd-sub">DJ-utrustning</a>
-            <span class="nav-dd-heading" style="margin-top:1rem;">Karaoke</span>
-            <a href="/vara-tjanster/hyra-karaoke/" class="nav-dd-hub">Hyra karaoke</a>
-            <a href="/vara-tjanster/hyra-karaoke/#bygg" class="nav-dd-sub">Bygg din karaoke</a>
-          </div>
-          <div class="nav-dd-col">
-            <span class="nav-dd-heading">För ditt event</span>
-            <a href="/for/brollop/">Bröllop</a>
-            <a href="/for/foretagsfest/">Företagsfest &amp; kickoff</a>
-            <a href="/for/konferens/">Konferens &amp; föreläsning</a>
-            <a href="/for/festival/">Festival &amp; utomhus</a>
-            <a href="/for/studentflak/">Studentflak</a>
-            <a href="/vara-tjanster/" class="nav-dd-hub" style="margin-top:1rem;">Komplett event</a>
-            <a href="/bokningssida/">Begär offert</a>
-            <span class="nav-dd-heading" style="margin-top:1rem;">Fast installation</span>
-            <a href="/vara-tjanster/projektering-och-installation/" class="nav-dd-hub">Projektering &amp; installation</a>
+      <li class="nav-dropdown nav-dropdown-bred">
+        <a href="/vara-tjanster/" class="nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false">Tjänster <span class="nav-arrow">▾</span></a>
+        <div class="nav-dropdown-menu nav-dd-tjanster">
+          {TJANSTER_KOLUMNER.map((kol) => (
+            <div class="nav-dd-col">
+              {kol.map((g) => (
+                <div class="nav-dd-grupp">
+                  <a href={g.href} class="nav-dd-grupp-namn">{g.namn} <span aria-hidden="true">→</span></a>
+                  {g.lankar.map((l) => (
+                    <a href={l.href} class:list={['nav-dd-rad', { 'nav-dd-rad-fram': l.framhavd }]}>{l.namn}{l.nytt && <span class="nav-dd-nytt">Nytt</span>}</a>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+          <div class="nav-dd-panel">
+            {TJANSTER_PANEL.map((r) => (
+              <a href={r.href} class="nav-dd-panel-rad"><span class="nav-dd-panel-namn">{r.namn}</span><span class="nav-dd-panel-txt">{r.beskrivning}</span></a>
+            ))}
+            <a href={OFFERT_HREF} class="nav-dd-panel-offert">Begär offert <span aria-hidden="true">→</span></a>
           </div>
         </div>
       </li>
       <li class="nav-dropdown">
-        <a href="/svens-kunskapsskola/" class="nav-dropdown-trigger">Kunskap <span class="nav-arrow">▾</span></a>
+        <a href="/for/" class="nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false">Event <span class="nav-arrow">▾</span></a>
+        <div class="nav-dropdown-menu nav-dd-event">
+          <div class="nav-dd-col">
+            <span class="nav-dd-heading">För ditt event</span>
+            {EVENT_LANKAR.map((l) => <a href={l.href}>{l.namn}</a>)}
+          </div>
+        </div>
+      </li>
+      <li class="nav-dropdown">
+        <a href={KUNSKAP_FRAMHAVD.href} class="nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false">Kunskap <span class="nav-arrow">▾</span></a>
         <div class="nav-dropdown-menu nav-dd-knowledge">
-          <a href="/svens-kunskapsskola/" class="nav-dd-feature">
+          <a href={KUNSKAP_FRAMHAVD.href} class="nav-dd-feature">
             <span class="nav-dd-feature-txt">
-              <span class="nav-dd-feature-title">Svens Kunskapsskola</span>
-              <span class="nav-dd-feature-desc">Videoguider om AV-teknik — lär dig av Sven innan du bokar</span>
+              <span class="nav-dd-feature-title">{KUNSKAP_FRAMHAVD.namn}</span>
+              <span class="nav-dd-feature-desc">{KUNSKAP_FRAMHAVD.beskrivning}</span>
             </span>
             <span class="nav-dd-feature-arrow">→</span>
           </a>
           <div class="nav-dd-knowledge-cols">
-            <div class="nav-dd-col">
-              <span class="nav-dd-heading">Dimensionera rätt</span>
-              <a href="/for/guider/hur-stor-pa/">Hur stor PA-anläggning?</a>
-              <a href="/for/guider/hur-stor-scen/">Hur stor scen behöver du?</a>
-              <a href="/for/guider/ljussattning-tips/">Ljussättningstips</a>
-            </div>
-            <div class="nav-dd-col">
-              <span class="nav-dd-heading">Planera eventet</span>
-              <a href="/for/guider/checklista-event/">Checklista för event</a>
-              <a href="/for/guider/vad-kostar-det/">Vad kostar uthyrning?</a>
-              <a href="/for/guider/hyra-scen-pris/">Hyra scen — pris</a>
-            </div>
-            <div class="nav-dd-col">
-              <span class="nav-dd-heading">Bröllop &amp; fördjupning</span>
-              <a href="/for/guider/dj-brollop-pris/">DJ till bröllop — pris</a>
-              <a href="/for/guider/ljud-brollop/">Ljud till bröllop</a>
-              <a href="/for/guider/" class="nav-dd-hub" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.07);color:rgba(196,181,244,0.7)!important;">Alla guider →</a>
-            </div>
+            {KUNSKAP_GRUPPER.map((g, i) => (
+              <div class="nav-dd-col">
+                <span class="nav-dd-heading">{g.namn}</span>
+                {g.lankar.map((l) => <a href={l.href}>{l.namn}</a>)}
+                {i === KUNSKAP_GRUPPER.length - 1 && <a href={KUNSKAP_ALLA.href} class="nav-dd-alla">{KUNSKAP_ALLA.namn} →</a>}
+              </div>
+            ))}
           </div>
         </div>
       </li>
       <li><a href="/kontakt/">Kontakta oss</a></li>
     </ul>
     <Tel class="nav-phone" ikon />
+    <a href={OFFERT_HREF} class="nav-offert">Begär offert</a>
   </nav>
 
   <!-- MOBILE MENU -->
@@ -581,56 +551,37 @@ const localBusinessSchema = {
       <li class="nav-mob-parent">
         <button class="nav-mob-trigger" id="mobTjänsterBtn" aria-expanded="false" aria-controls="mobTjänsterSub">Tjänster <span class="nav-arrow">▾</span></button>
         <ul class="nav-mob-sub" id="mobTjänsterSub">
-          <li><a href="/vara-tjanster/hyra-scen/">Hyra scen</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-scen/pipe-drape/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Pipe &amp; Drape</a></li>
-          <li><a href="/vara-tjanster/hyra-ljud/">Hyra ljud</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljud/portable/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Portable</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljud/kolumnhogtalare/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Kolumn</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljud/event/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Event</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljud/music/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Musik & dans</a></li>
-          <li style="padding-left:1rem;"><a href="/vara-tjanster/hyra-ljud/live/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Live & konsert</a></li>
-          <li style="padding-left:1rem;"><a href="/vara-tjanster/hyra-ljudtekniker/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Ljudtekniker</a></li>
-          <li><a href="/vara-tjanster/hyra-bild/">Hyra bild</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-bild-projektorer-skarmar/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Projektor & skärm</a></li>
-          <li style="padding-left:1rem;"><a href="/vara-tjanster/hyra-bild-led-vagg/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ LED-vägg</a></li>
-          <li><a href="/vara-tjanster/hyra-ljus/">Hyra ljus</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljus/fardiga-paket/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Färdiga paket</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljus/ljuseffekter/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Ljuseffekter</a></li>
-          <li style="padding-left:1rem; border-bottom:none;"><a href="/vara-tjanster/hyra-ljus/rok-pyro/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Rök & pyro</a></li>
-          <li style="padding-left:1rem;"><a href="/vara-tjanster/hyra-ljus/stativ-tross/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Stativ & tross</a></li>
-          <li><a href="/vara-tjanster/hyra-ljud-och-ljus/">Hyra ljud och ljus</a></li>
-          <li><a href="/vara-tjanster/hyra-dj/">Hyra DJ</a></li>
-          <li style="padding-left:1rem;"><a href="/vara-tjanster/hyra-dj-utrustning/" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ DJ-utrustning</a></li>
-          <li><a href="/vara-tjanster/hyra-karaoke/">Hyra karaoke</a></li>
-          <li style="padding-left:1rem;"><a href="/vara-tjanster/hyra-karaoke/#bygg" style="font-size:0.82rem;color:rgba(196,181,244,0.7);padding:0.35rem 1rem 0.35rem 0;">↳ Bygg din karaoke</a></li>
-          <li><a href="/vara-tjanster/">Komplett event</a></li>
-          <li><a href="/vara-tjanster/projektering-och-installation/">Projektering &amp; fast installation</a></li>
-          <li style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.08);"><span style="color:rgba(196,181,244,0.6); font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding: 0.25rem 0; display:block;">För ditt event</span></li>
-          <li><a href="/for/brollop/">Bröllop</a></li>
-          <li><a href="/for/foretagsfest/">Företagsfest & kickoff</a></li>
-          <li><a href="/for/konferens/">Konferens & föreläsning</a></li>
-          <li><a href="/for/festival/">Festival & utomhus</a></li>
-          <li><a href="/for/studentflak/">Studentflak</a></li>
+          {TJANSTER_KOLUMNER.flat().map((g) => (
+            <Fragment>
+              <li class="nav-mob-grupp"><a href={g.href}>{g.namn} <span aria-hidden="true">→</span></a></li>
+              {g.lankar.map((l) => (
+                <li class="nav-mob-rad"><a href={l.href} class:list={{ 'nav-mob-rad-fram': l.framhavd }}>{l.namn}{l.nytt && <span class="nav-dd-nytt">Nytt</span>}</a></li>
+              ))}
+            </Fragment>
+          ))}
+          {TJANSTER_PANEL.map((r) => (
+            <li class="nav-mob-grupp nav-mob-extra"><a href={r.href}>{r.namn} <span aria-hidden="true">→</span></a></li>
+          ))}
+        </ul>
+      </li>
+      <li class="nav-mob-parent">
+        <button class="nav-mob-trigger" id="mobEventBtn" aria-expanded="false" aria-controls="mobEventSub">Event <span class="nav-arrow">▾</span></button>
+        <ul class="nav-mob-sub" id="mobEventSub">
+          {EVENT_LANKAR.map((l) => <li class="nav-mob-rad"><a href={l.href}>{l.namn}</a></li>)}
         </ul>
       </li>
       <li class="nav-mob-parent">
         <button class="nav-mob-trigger" id="mobKunskapBtn" aria-expanded="false" aria-controls="mobKunskapSub">Kunskap <span class="nav-arrow">▾</span></button>
         <ul class="nav-mob-sub" id="mobKunskapSub">
-          <li><a href="/svens-kunskapsskola/">Svens Kunskapsskola</a></li>
-          <li><a href="/for/guider/hur-stor-pa/">Hur stor PA?</a></li>
-          <li><a href="/for/guider/hur-stor-scen/">Hur stor scen?</a></li>
-          <li><a href="/for/guider/ljussattning-tips/">Ljussättningstips</a></li>
-          <li><a href="/for/guider/checklista-event/">Checklista för event</a></li>
-          <li><a href="/for/guider/vad-kostar-det/">Vad kostar uthyrning?</a></li>
-          <li><a href="/for/guider/hyra-scen-pris/">Hyra scen — pris</a></li>
-          <li><a href="/for/guider/dj-brollop-pris/">DJ till bröllop — pris</a></li>
-          <li><a href="/for/guider/ljud-brollop/">Ljud till bröllop</a></li>
-          <li><a href="/for/guider/">Alla guider</a></li>
+          <li class="nav-mob-grupp"><a href={KUNSKAP_FRAMHAVD.href}>{KUNSKAP_FRAMHAVD.namn} <span aria-hidden="true">→</span></a></li>
+          {KUNSKAP_GRUPPER.flatMap((g) => g.lankar).map((l) => <li class="nav-mob-rad"><a href={l.href}>{l.namn}</a></li>)}
+          <li class="nav-mob-grupp nav-mob-extra"><a href={KUNSKAP_ALLA.href}>{KUNSKAP_ALLA.namn} <span aria-hidden="true">→</span></a></li>
         </ul>
       </li>
       <li><a href="/kontakt/">Kontakta oss</a></li>
     </ul>
     <Tel class="nav-mobile-phone" ikon />
+    <a href={OFFERT_HREF} class="nav-mobile-cta">Begär offert</a>
     <a href="/varukorg/" class="nav-mobile-cart"><svg class="sk-ikon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Varukorg <span class="nav-cart-badge hidden" id="mobileCartBadge" style="position:static;display:inline-flex;margin-left:0.4rem">0</span></a>
   </div>
 
@@ -804,11 +755,11 @@ const localBusinessSchema = {
     // Hamburger menu
     const hamburger = document.getElementById('hamburger');
     const mobileMenu = document.getElementById('mobileMenu');
-    // Mobilens dragspel: Tjänster och Kunskap
+    // Mobilens dragspel: varje .nav-mob-trigger styr listan i aria-controls
+    const mobTriggers = Array.from(document.querySelectorAll<HTMLElement>('.nav-mob-trigger'));
+    const mobSubOf = (btn: HTMLElement) => document.getElementById(btn.getAttribute('aria-controls') || '');
     const mobTjBtn = document.getElementById('mobTjänsterBtn');
     const mobTjSub = document.getElementById('mobTjänsterSub');
-    const mobKuBtn = document.getElementById('mobKunskapBtn');
-    const mobKuSub = document.getElementById('mobKunskapSub');
     const setMobSub = (btn: HTMLElement | null, sub: HTMLElement | null, open: boolean) => {
       sub?.classList.toggle('open', open);
       btn?.setAttribute('aria-expanded', String(open));
@@ -829,7 +780,7 @@ const localBusinessSchema = {
       stopAuto();
       if (isOpen) {
         mobileMenu?.removeAttribute('inert');
-        if (!mobTjSub?.classList.contains('open') && !mobKuSub?.classList.contains('open')) {
+        if (!mobileMenu?.querySelector('.nav-mob-sub.open')) {
           autoTimer = setTimeout(() => {
             autoTimer = null;
             if (mobileMenu?.classList.contains('open')) setMobSub(mobTjBtn, mobTjSub, true);
@@ -839,37 +790,58 @@ const localBusinessSchema = {
         mobileMenu?.setAttribute('inert', '');
       }
     });
-    mobTjBtn?.addEventListener('click', () => { stopAuto(); setMobSub(mobTjBtn, mobTjSub, !mobTjSub?.classList.contains('open')); });
-    mobKuBtn?.addEventListener('click', () => { stopAuto(); setMobSub(mobKuBtn, mobKuSub, !mobKuSub?.classList.contains('open')); });
+    mobTriggers.forEach((btn) => btn.addEventListener('click', () => {
+      stopAuto();
+      const sub = mobSubOf(btn);
+      setMobSub(btn, sub, !sub?.classList.contains('open'));
+    }));
     mobileMenu?.addEventListener('touchmove', stopAuto, { passive: true });
     mobileMenu?.addEventListener('scroll', stopAuto, { passive: true });
 
-    // Desktop dropdowns — varje stängs INTE om muspekaren är inne i menyn.
-    // Hanterar flera dropdowns (Tjänster + Kunskap) oberoende av varandra.
+    // Datorns rullgardiner: öppnas vid hover, tangentbordsfokus eller tryck
+    // (pekskärmsdator: första trycket öppnar, andra följer länken). Stängs
+    // 0,3 s efter att pekaren lämnat, direkt med Esc. Bara en öppen åt gången.
+    const ddAlla: Array<() => void> = [];
+    let escFokus = false;
     document.querySelectorAll('.nav-dropdown').forEach((parent) => {
       const ddParent = parent as HTMLElement;
       const ddMenu = ddParent.querySelector('.nav-dropdown-menu') as HTMLElement;
+      const ddTrigger = ddParent.querySelector('.nav-dropdown-trigger') as HTMLElement | null;
       if (!ddMenu) return;
       let closeTimer: ReturnType<typeof setTimeout> | null = null;
+      let pekare = 'mouse';
+      const stang = () => { ddMenu.classList.remove('dd-open'); ddTrigger?.setAttribute('aria-expanded', 'false'); };
+      ddAlla.push(stang);
       const openDD = () => {
         if (closeTimer) clearTimeout(closeTimer);
-        // Stäng alla andra öppna dropdowns så bara en visas åt gången
-        document.querySelectorAll('.nav-dropdown-menu.dd-open').forEach((other) => {
-          if (other !== ddMenu) other.classList.remove('dd-open');
-        });
+        ddAlla.forEach((s) => { if (s !== stang) s(); });
         ddMenu.classList.add('dd-open');
+        ddTrigger?.setAttribute('aria-expanded', 'true');
       };
       const closeDD = () => {
+        if (closeTimer) clearTimeout(closeTimer);
         closeTimer = setTimeout(() => {
-          if (!ddParent.matches(':hover') && !ddMenu.matches(':hover')) {
-            ddMenu.classList.remove('dd-open');
-          }
-        }, 2500);
+          if (!ddParent.matches(':hover') && !ddParent.contains(document.activeElement)) stang();
+        }, 300);
       };
       ddParent.addEventListener('mouseenter', openDD);
       ddParent.addEventListener('mouseleave', closeDD);
-      ddMenu.addEventListener('mouseenter', openDD);
-      ddMenu.addEventListener('mouseleave', closeDD);
+      ddParent.addEventListener('focusin', () => { if (escFokus) { escFokus = false; return; } openDD(); });
+      ddParent.addEventListener('focusout', closeDD);
+      ddTrigger?.addEventListener('pointerdown', (e) => { pekare = (e as PointerEvent).pointerType; });
+      ddTrigger?.addEventListener('click', (e) => {
+        if (pekare === 'touch' && !ddMenu.classList.contains('dd-open')) { e.preventDefault(); openDD(); }
+      });
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const oppen = document.querySelector('.nav-dropdown-menu.dd-open');
+      ddAlla.forEach((s) => s());
+      const trig = oppen?.parentElement?.querySelector('.nav-dropdown-trigger') as HTMLElement | null;
+      if (trig && oppen?.contains(document.activeElement)) { escFokus = true; trig.focus(); }
+    });
+    document.addEventListener('pointerdown', (e) => {
+      if (!(e.target as HTMLElement).closest('.nav-dropdown')) ddAlla.forEach((s) => s());
     });
     // Close on outside click
     document.addEventListener('click', (e) => {

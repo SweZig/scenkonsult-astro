@@ -391,6 +391,69 @@ a { color: inherit; }
 .nav-dd-sub { color: rgba(196,181,244,0.7) !important; }
 .nav-dd-sub::before { content: "↳ "; opacity: 0.55; }
 .nav-dd-sub:hover { color: #c4b5f4 !important; }
+/* ── Tjänster-megamenyn (Design 2026): data i src/data/meny.ts ──
+   Menyn ligger mot hela navigeringen (li är static) och centreras,
+   så att den aldrig hamnar utanför skärmen. */
+.nav-dropdown-bred { position: static; }
+.nav-dropdown-menu.nav-dd-tjanster {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.15fr);
+  gap: 1.5rem; left: 50%; transform: translateX(-50%);
+  top: calc(50% + 1.6rem);
+  width: min(1060px, calc(100vw - 2rem)); min-width: 0; max-width: none;
+}
+.nav-dd-tjanster::before { top: -1.6rem; height: 1.6rem; }
+.nav-dd-grupp { display: flex; flex-direction: column; gap: 0.05rem; }
+.nav-dd-grupp + .nav-dd-grupp { margin-top: 1.1rem; }
+.nav-dd-col a.nav-dd-grupp-namn {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: #c4b5f4; padding: 0 0.5rem 0.5rem; margin-bottom: 0.45rem; border-radius: 0;
+  border-bottom: 1px solid rgba(196,181,244,0.15);
+}
+.nav-dd-col a.nav-dd-grupp-namn span { display: inline-block; transition: transform 0.15s; opacity: 0.7; }
+.nav-dd-col a.nav-dd-grupp-namn:hover { background: none; color: #fff; }
+.nav-dd-col a.nav-dd-grupp-namn:hover span { transform: translateX(3px); opacity: 1; }
+.nav-dd-col a.nav-dd-rad-fram { color: #c4b5f4; font-weight: 600; }
+.nav-dd-nytt { background: #c4b5f4; color: #0c0a24; padding: 1px 6px; border-radius: 99px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; margin-left: 0.4rem; vertical-align: 1px; text-transform: none; }
+.nav-dd-panel {
+  display: flex; flex-direction: column; gap: 0.35rem; align-self: start;
+  background: rgba(196,181,244,0.07); border: 1px solid rgba(196,181,244,0.18);
+  border-radius: 12px; padding: 0.6rem;
+}
+.nav-links .nav-dd-panel a { text-transform: none; letter-spacing: 0.01em; }
+.nav-dd-panel-rad { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.55rem 0.6rem; border-radius: 8px; transition: background 0.15s; }
+.nav-dd-panel-rad:hover { background: rgba(196,181,244,0.1); }
+.nav-dd-panel-namn { font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 700; color: #fff; }
+.nav-dd-panel-txt { font-family: 'Source Sans 3', sans-serif; font-size: 0.74rem; font-weight: 400; color: rgba(255,255,255,0.55); line-height: 1.35; }
+.nav-links .nav-dd-panel a.nav-dd-panel-offert {
+  margin-top: 0.35rem; padding: 0.65rem 0.6rem 0.2rem; border-top: 1px solid rgba(196,181,244,0.15);
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700; color: #c4b5f4;
+}
+.nav-links .nav-dd-panel a.nav-dd-panel-offert:hover { color: #fff; }
+.nav-dropdown-menu.nav-dd-event { min-width: 250px; max-width: 300px; }
+.nav-dd-col a.nav-dd-alla { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.07); border-radius: 0; color: rgba(196,181,244,0.75); }
+/* Offertknappen i navigeringen — pill som resten av Design 2026 */
+.nav-offert {
+  font-family: 'Space Grotesk', sans-serif; font-size: clamp(0.66rem, 1.1vw, 0.72rem); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; text-decoration: none;
+  color: #fff; border: 1px solid rgba(196,181,244,0.55); border-radius: 999px;
+  padding: 0.55rem 1.1rem; margin-left: clamp(0.9rem, 1.6vw, 1.4rem);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.nav-offert:hover { background: #c4b5f4; border-color: #c4b5f4; color: #0c0a24; }
+@media (max-width: 1180px) { .nav-phone { display: none; } }
+/* Mobilens dragspel: grupper och rader (gruppnamnet länkar till hubbsidan) */
+.nav-mobile-menu .nav-mob-sub li { border-bottom: none; }
+.nav-mobile-menu .nav-mob-sub li.nav-mob-grupp { margin-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.06); }
+.nav-mobile-menu .nav-mob-sub li.nav-mob-grupp:first-child { margin-top: 0; border-top: none; }
+.nav-mobile-menu .nav-mob-sub li.nav-mob-grupp a {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: #c4b5f4; padding: 0.85rem 0 0.35rem;
+}
+.nav-mobile-menu .nav-mob-sub li.nav-mob-rad a {
+  font-size: 0.95rem; font-weight: 500; letter-spacing: 0.01em; text-transform: none;
+  color: rgba(255,255,255,0.78); padding: 0.5rem 0 0.5rem 0.75rem;
+}
+.nav-mobile-menu .nav-mob-sub li.nav-mob-rad a.nav-mob-rad-fram { color: #c4b5f4; font-weight: 600; }
 .nav-phone {
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(0.66rem, 1.1vw, 0.72rem); font-weight: 700;
@@ -530,7 +593,7 @@ a { color: inherit; }
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(0.78rem, 3.5vw, 0.88rem); font-weight: 700;
   letter-spacing: 0.12em; text-transform: uppercase;
-  text-decoration: none; padding: 1rem; border-radius: 4px;
+  text-decoration: none; padding: 1rem; border-radius: 999px;
   margin-top: 1rem; transition: background 0.2s;
 }
 .nav-mobile-cta:hover { background: #e2dcfb; }
@@ -886,6 +949,7 @@ footer { background: #0a0820; padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 5vw,
   .nav-links { display: none !important; }
   .nav-phone { display: none; }
   .nav-cta { display: none; }
+  .nav-offert { display: none; }
   .nav-hamburger { display: flex; }
   .nav-mobile-menu { display: block; top: calc(32px + 64px); }
 
