@@ -60,7 +60,7 @@ const grupper = [
     namn: 'Bild',
     eyebrow: 'Bildtillbehör',
     intro: 'Bord, stativ, HDMI-kablar och adaptrar, splitters, mediaspelare och presenterklickare.',
-    items: arr(bildData.tillbehor),
+    items: arr(bildData.tillbehor).filter((t: any) => t.active !== false && t.group !== 'karaoke'),
     cat: 'Bild — tillbehör',
     prefix: 'SK-BLD',
   },

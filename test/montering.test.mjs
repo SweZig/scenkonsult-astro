@@ -14,7 +14,7 @@ const SCEN = {
   'B Bröllop 100 pers': [['SK-LJD-EVE-0004',1],['SK-LJD-MIK-0026',1],['SK-LJS-PAK-0007',1],['SK-LJS-EFF-0001',8],['SK-DJ-0001',1],['SK-DJ-0005',1]],
   'C Scen 6×4 + liveband': [['SK-SCN-MOD-0003',12],['SK-SCN-ACC-0002',1],['SK-SCN-ACC-0008',1],['SK-SCN-ACC-0007',5],['SK-SCN-ACC-0003',3],['SK-LJD-LIV-0005',1],['SK-LJS-PAK-0009',1],['SK-LJD-MIX-0007',1],['SK-LJD-MIK-0004',6],['SK-LJD-MIK-0006',6],['SK-LJD-MIK-0002',10]],
   'D Konferens': [['SK-BLD-0007',1],['SK-BLD-0010',1],['SK-BLD-0004',2],['SK-BLD-ACC-0003',2],['SK-BLD-ACC-0027',2],['SK-LJD-POR-0001',1],['SK-LJD-MIK-0017',2],['SK-BLD-ACC-0011',1]],
-  'E Stort utomhusevent': [['SK-LJD-MUS-0010',1],['SK-LJD-STV-0001',2],['SK-LJS-STV-0011',1],['SK-LJS-PAK-0011',1],['SK-SCN-MOD-0003',24],['SK-SCN-ACC-0002',2],['SK-SCN-ACC-0014',1],['SK-BLD-0011',1],['SK-LJS-ROK-0005',2],['SK-EL-0013',1]],
+  'E Stort utomhusevent': [['SK-LJD-MUS-0010',1],['SK-LJD-STV-0001',2],['SK-LJS-STV-0011',1],['SK-LJS-PAK-0011',1],['SK-SCN-MOD-0003',24],['SK-SCN-ACC-0002',2],['SK-SCN-ACC-0014',1],['SK-BLD-0017',1],['SK-LJS-ROK-0005',2],['SK-EL-0013',1]],
   'F Litet tal/mingel': [['SK-LJD-POR-0001',1],['SK-LJD-MIX-0005',1],['SK-LJD-MIK-0004',4],['SK-LJD-MIK-0006',4],['SK-LJD-MIK-0033',2]],
   'G DJ-paket Large': [['SK-DJ-PAK-0003',1]],
   'H Ljusrigg på stativ': [['SK-LJS-STV-0002',4],['SK-LJS-EFF-0001',8],['SK-LJS-EFF-0012',4],['SK-LJS-DMX-0003',1],['SK-LJS-DMX-0006',12],['SK-LJS-ROK-0005',1]],
@@ -35,7 +35,7 @@ for (const [name, rows] of Object.entries(SCEN)) {
 
 // Regler
 assert.equal(out['G DJ-paket Large'].kronor, 600, 'DJ-paket = 60 min fast, 600 kr');
-assert.deepEqual(out['E Stort utomhusevent'].manuella, ['SK-BLD-0011'], 'LED-trailer manuell');
+assert.deepEqual(out['E Stort utomhusevent'].manuella, ['SK-BLD-0017'], 'LED-trailer manuell');
 // 10 LED PAR ≈ 45 min på plats (10 × 10^0.65 = 44.7) → ×2 demontering = 90 min
 assert.equal(out['J 10 LED PAR'].minuter, 90);
 // Yta: 1 m² ≈ 10 min, 20 m² ≈ 30 min

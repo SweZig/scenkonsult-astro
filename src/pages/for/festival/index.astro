@@ -33,7 +33,7 @@ const scenMin = _scenMatt[0]?.txt;
 const scenMax = _scenMatt[_scenMatt.length - 1]?.txt;
 const obligOverM2 = (tjanster as any).montering?.obligatoriskOverM2 ?? 16;
 const ledTrailer7 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0006');
-const ledTrailer15 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0011');
+const ledTrailer11 = (bildData.products as any[]).find((p:any) => p.artno === 'SK-BLD-0017');
 
 import { buildPaket, fmtKr, type PaketDef } from '../../../utils/paket';
 
@@ -159,7 +159,7 @@ const pageSchema = {
       { titel: "Modulscener", text: `Från ${scenMin} upp till ${scenMax}, halkfria ytor. Montering tillkommer och är obligatorisk över ${obligOverM2} m².`, href: "/vara-tjanster/hyra-scen/" },
       { titel: "Festival-PA", text: "Line array och kraftfulla subbasar, dimensionerat efter publik och plats.", href: "/vara-tjanster/hyra-ljud/live/" },
       { titel: "Scenljus", text: "Vädertåliga moving heads, PAR och beam-effekter för kvällen.", href: "/vara-tjanster/hyra-ljus/" },
-      { titel: "LED-skärm & projektor", text: "LED-trailers 7–28 m² som syns i dagsljus — projektor och duk för mindre scener.", href: "/vara-tjanster/hyra-bild/" },
+      { titel: "LED-skärm & projektor", text: "LED-trailers 7–21 m² som syns i dagsljus — projektor och duk för mindre scener.", href: "/vara-tjanster/hyra-bild/" },
     ]}
   />
 
@@ -168,7 +168,7 @@ const pageSchema = {
     rubrik="Rätt rigg för ert antal besökare"
     lead="Två färdiga riggar att lägga i varukorgen — större festivaler dimensionerar vi tillsammans."
     paket={festPaketPris}
-    offertKort={{ namn: "Stor festival", gaster: "700–2 000 besökare", beskrivning: "Scen upp till 8×6 m, line array, fullrig i ljus och LED-trailer 15–28 m².", rader: ["Scen 8×6 m", "Line array", "Fullrig ljus", "LED-trailer 15–28 m²"] }}
+    offertKort={{ namn: "Stor festival", gaster: "700–2 000 besökare", beskrivning: "Scen upp till 8×6 m, line array, fullrig i ljus och LED-trailer 11–21 m².", rader: ["Scen 8×6 m", "Line array", "Fullrig ljus", "LED-trailer 11–21 m²"] }}
     notis="Priserna är summan av riggens artiklar per dygn. Scen, transport, montering och tekniker tillkommer och offereras separat."
   />
 
@@ -184,7 +184,7 @@ const pageSchema = {
       { produkt: mhBeam, not: "Strålar som syns på håll", kategori: "Ljus" },
       { produkt: rokmaskin, not: "Gör ljuset synligt", kategori: "Ljus" },
       { produkt: ledTrailer7, not: "Monteras alltid av våra tekniker — tillkommer", kategori: "Bild" },
-      { produkt: ledTrailer15, not: "Monteras alltid av våra tekniker — tillkommer", kategori: "Bild" },
+      { produkt: ledTrailer11, not: "Monteras alltid av våra tekniker — tillkommer", kategori: "Bild" },
     ]}
     lankar={[{ label: "Live PA-system", href: "/vara-tjanster/hyra-ljud/live/" }, { label: "Moving heads", href: "/vara-tjanster/hyra-ljus/moving-heads/" }, { label: "Scener", href: "/vara-tjanster/hyra-scen/" }, { label: "LED-skärm & projektor", href: "/vara-tjanster/hyra-bild/" }]}
   />

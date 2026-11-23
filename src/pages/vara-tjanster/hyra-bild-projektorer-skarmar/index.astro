@@ -82,7 +82,7 @@ const _kr = (n: number) => new Intl.NumberFormat('sv-SE').format(n);
       marginBottom="1.5rem"
     />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {bildData.products.filter(p => p.section === 'projektor').map(p => (
+      {bildData.products.filter(p => p.section === 'projektor' && p.active !== false).map(p => (
         <ProductCard
           id={p.artno}
           artno={p.artno}
@@ -112,7 +112,7 @@ const _kr = (n: number) => new Intl.NumberFormat('sv-SE').format(n);
       marginBottom="1.5rem"
     />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {bildData.products.filter(p => p.section === 'skarm').map(p => (
+      {bildData.products.filter(p => p.section === 'skarm' && p.active !== false).map(p => (
         <ProductCard
           id={p.artno}
           artno={p.artno}
@@ -185,11 +185,11 @@ const _kr = (n: number) => new Intl.NumberFormat('sv-SE').format(n);
     <SectionHeader
       eyebrow="Sortiment"
       h2="Mobila LED skärmar på Trailer"
-      lead="Storbildslösningar för utomhusevent, festival och sportarrangemang. Levereras färdigriggat på trailer — 7 m², 15 m² eller 28 m² LED-yta med pixelpitch P3.9."
+      lead="Storbildslösningar för utomhusevent, festival och sportarrangemang. Levereras färdigriggat på trailer — 7 m², 11 m² eller 21 m² LED-yta med pixelpitch P3.9."
       marginBottom="1.5rem"
     />
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {bildData.products.filter(p => p.section === 'trailer').map(p => (
+      {bildData.products.filter(p => p.section === 'trailer' && p.active !== false).map(p => (
         <ProductCard
           id={p.artno}
           artno={p.artno}
@@ -259,21 +259,21 @@ const _kr = (n: number) => new Intl.NumberFormat('sv-SE').format(n);
 
     <h3 class="text-white font-semibold text-base mb-3" style="font-family:'Space Grotesk',sans-serif;">Kablar & adaptrar</h3>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
-      {bildData.tillbehor.filter(t => t.group === 'kablar').map(t => (
+      {bildData.tillbehor.filter(t => t.group === 'kablar' && t.active !== false).map(t => (
         <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.description} category="Projektor tillbehör" artno={t.artno} slug={t.slug} />
       ))}
     </div>
 
     <h3 class="text-white font-semibold text-base mb-3" style="font-family:'Space Grotesk',sans-serif;">Signal & distribution</h3>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
-      {bildData.tillbehor.filter(t => t.group === 'signal').map(t => (
+      {bildData.tillbehor.filter(t => t.group === 'signal' && t.active !== false).map(t => (
         <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.description} category="Projektor tillbehör" artno={t.artno} slug={t.slug} />
       ))}
     </div>
 
     <h3 class="text-white font-semibold text-base mb-3" style="font-family:'Space Grotesk',sans-serif;">Stativ, skärmar & övrigt</h3>
     <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-      {bildData.tillbehor.filter(t => t.group === 'stativ').map(t => (
+      {bildData.tillbehor.filter(t => t.group === 'stativ' && t.active !== false).map(t => (
         <ElTillbehorCard img={t.image} name={t.name} excl={t.price} desc={t.description} category="Projektor tillbehör" artno={t.artno} slug={t.slug} />
       ))}
       {(_ljusData.stativ?.tillbehor?.filter((p:any) => p.artno === 'SK-LJS-STV-ACC-0006') ?? []).map((p: any) => (
