@@ -4,6 +4,7 @@ import GuideLayout from '../../../components/GuideLayout.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import ljusData from '../../../data/ljus.json';
+import tjansterData from '../../../data/tjanster.json';
 import { telefon } from '../../../utils/hours';
 
 const evSmall    = (ljudData.event.products as any[]).find(p => p.artno === 'SK-LJD-EVE-0001');   // SK-LJD-EVE-0001
@@ -19,6 +20,12 @@ const ljusMed    = (ljusData.paket.products as any[]).find((p:any) => p.artno ==
 const shureHS    = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0023');
 const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0022');
 const tradlos    = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]).find((p:any) => p.artno === 'SK-LJD-MIK-0016');
+
+// Totalspann för FAQ:n: minsta paket + mikrofon utan leverans → mellanpaket + mygga + leverans med vanlig bil.
+// Räknas ur datan så att pris- och fraktändringar slår igenom (avrundat till hundratal).
+const _levBil = (tjansterData as any).leverans.standard.pris;
+const _totLag = Math.floor((evSmall.price + tradlos.price) / 100) * 100;
+const _totHog = Math.ceil((evMedium.price + shureMygga.price + _levBil) / 100) * 100;
 
 // Prisspann per bröllopsfas — beräknade från faktiska JSON-paket
 const fmt = (n: number) => n.toLocaleString('sv-SE');
@@ -36,7 +43,7 @@ const faqSchema = {
     { "@type": "Question", "name": "Hur mycket ljud behöver man till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": "För 50–80 gäster inomhus räcker Event Small (2 toppar, ingen sub). Ska det dansdas är Event Medium med subwoofer rätt. Utomhus: välj alltid ett steg upp. Vi hjälper er dimensionera gratis." } },
     { "@type": "Question", "name": "Vilken mikrofon passar till bröllopstalet?", "acceptedAnswer": { "@type": "Answer", "text": "Trådlöst headset (Shure SLXD) för toastmaster och celebrant — händerna är fria och mikrofonen sitter stabilt nära munnen. Trådlös handmikrofon passar den som föredrar att hålla i något. Båda ger kristallklart ljud utan rundgång." } },
     { "@type": "Question", "name": "Kan man hyra ljud till bröllop utan tekniker?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — alla våra standardpaket är byggda för självinstallation. Vi går igenom allt vid utlämning och finns tillgängliga på telefon under hela evenemanget. Vill ni ha tekniker på plats erbjuder vi det som tillägg." } },
-    { "@type": "Question", "name": "Vad kostar det att hyra ljud till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `Ett PA-system för 50–100 gäster kostar ${fmt(evSmall.price)}–${fmt(evMedium.price)} kr/dygn. Lägg till trådlös mikrofon (${fmt(tradlos.price)}–${fmt(shureMygga.price)} kr) och eventuell leverans. Räkna totalt 1 500–3 000 kr för ett komplett ljudupplägg till ett medelstort bröllop.` } },
+    { "@type": "Question", "name": "Vad kostar det att hyra ljud till ett bröllop?", "acceptedAnswer": { "@type": "Answer", "text": `Ett PA-system för 50–100 gäster kostar ${fmt(evSmall.price)}–${fmt(evMedium.price)} kr/dygn. Lägg till trådlös mikrofon (${fmt(tradlos.price)}–${fmt(shureMygga.price)} kr) och eventuell leverans. Räkna totalt ${fmt(_totLag)}–${fmt(_totHog)} kr för ett komplett ljudupplägg till ett medelstort bröllop.` } },
     { "@type": "Question", "name": "Ska man välja kolumnhögtalare eller PA på stativ till bröllopet?", "acceptedAnswer": { "@type": "Answer", "text": "Kolumnhögtalare (t.ex. Alto TS108C) är diskreta, snygga och ger jämn ljudspridning — perfekta för vigsel och mingel. PA på stativ ger mer kraft och passar bättre om det ska dansdas. Många bröllop kombinerar: kolumn under middagen, PA på stativ under festen." } }
   ]
 };
