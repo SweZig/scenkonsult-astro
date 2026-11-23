@@ -18,43 +18,11 @@ const shureMygga = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_m
 const projektor = bildData.products.find((p:any) => p.artno === 'SK-BLD-0002');
 const skarm65 = bildData.products.find((p:any) => p.artno === 'SK-BLD-0003');
 
-import { buildPaket3, fmtKr, type PaketDef } from '../../../utils/paket';
+import { buildPaket3 } from '../../../utils/paket';
+import { KONFERENS_PAKET } from '../../../data/konferensPaket';
 
-const konfPaketDefs: PaketDef[] = [
-  {
-    namn: 'Litet möte / seminarium',
-    gaster: '20–50 deltagare',
-    rader: [
-      { artno: 'SK-LJD-POR-0003', label: '1× kolumnhögtalare (Alto TS108C)' },
-      { artno: 'SK-LJD-MIK-0016', label: '1× trådlös handmikrofon' },
-      { artno: 'SK-BLD-0002', label: '1× projektor Full HD' },
-      { artno: 'SK-BLD-ACC-0002', label: '1× projektorduk 100″' },
-    ],
-  },
-  {
-    namn: 'Medelstort event',
-    gaster: '50–150 deltagare',
-    featured: true,
-    rader: [
-      { artno: 'SK-LJD-POR-0004', label: '1× kolumnhögtalare (Alto TS112C)' },
-      { artno: 'SK-LJD-MIK-0023', label: 'Shure SLXD headset — talare' },
-      { artno: 'SK-LJD-MIK-0022', label: 'Shure SLXD myggmikrofon' },
-      { artno: 'SK-BLD-0007', label: '1× projektor 4K UHD' },
-      { artno: 'SK-BLD-ACC-0002', label: '1× projektorduk 100″' },
-    ],
-  },
-  {
-    namn: 'Stor konferens / föreläsning',
-    gaster: '150–500 deltagare',
-    rader: [
-      { artno: 'SK-LJD-EVE-0002', label: 'PA Event Medium (2× 12″)' },
-      { artno: 'SK-LJD-MIK-0028', label: 'Shure SLXD — 2 headset' },
-      { artno: 'SK-BLD-0003', label: '65″ 4K-skärm' },
-      { artno: 'SK-BLD-ACC-0003', label: 'Golvstativ för skärm' },
-    ],
-  },
-];
-const konfPaket = buildPaket3(konfPaketDefs);
+// Paketen delas med /vara-tjanster/konferens-av/ — en källa.
+const konfPaket = buildPaket3(KONFERENS_PAKET);
 
 const faq = [
   {

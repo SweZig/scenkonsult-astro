@@ -4,12 +4,12 @@ import CartButton from '../CartButton.astro';
 import ErbjudandeMeta from '../ErbjudandeMeta.astro';
 import { produktLank } from '../../utils/produktLank';
 interface Rad { produkt: any; not?: string; kategori: string }
-interface Props { eyebrow?: string; rubrik: string; lead?: string; rader: Rad[]; lankar?: Array<{ label: string; href: string }> }
-const { eyebrow, rubrik, lead, rader, lankar = [] } = Astro.props;
+interface Props { id?: string; eyebrow?: string; rubrik: string; lead?: string; rader: Rad[]; lankar?: Array<{ label: string; href: string }> }
+const { id, eyebrow, rubrik, lead, rader, lankar = [] } = Astro.props;
 const kr = (n: number) => n.toLocaleString('sv-SE');
 const lista = rader.filter((r) => r.produkt && r.produkt.active !== false).map((r) => ({ ...r, lank: produktLank(r.produkt.artno) }));
 ---
-<section class="sk-band">
+<section id={id} class="sk-band pr-sektion">
   <div class="pr-wrap">
     <div>
       {eyebrow && <p class="sk-eyebrow">{eyebrow}</p>}
@@ -36,6 +36,7 @@ const lista = rader.filter((r) => r.produkt && r.produkt.active !== false).map((
   </div>
 </section>
 <style>
+  .pr-sektion { scroll-margin-top: var(--nav-offset, 166px); }
   .pr-wrap { max-width: 80rem; margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 2rem); display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start; }
   .pr-lead { margin: 1rem 0 0; color: rgba(255,255,255,0.72); line-height: 1.55; }
   .pr-lankar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
