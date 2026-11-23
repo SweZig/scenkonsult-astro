@@ -87,7 +87,7 @@ const pageSchema = {
 
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {eventGallery.map((item) => {
-        // Alla bilder i kortet: 1 = statisk, 2 = sk-xfade-a/b, 3–4 = sk-xfade-n (5 s per bild)
+        // Alla bilder i kortet: 1 = statisk, 2 = sk-xfade-a/b, 3–6 = sk-xfade-n (5 s per bild)
         const imgs = item.images;
         const n = imgs.length;
         const xfadeClass = (i: number) =>
@@ -376,12 +376,14 @@ const pageSchema = {
     100% { opacity: 0; }
   }
 
-  /* Kort med 3–4 bilder: en bild i taget, 5 s var, 1 s övertoning.
+  /* Kort med 3–6 bilder: en bild i taget, 5 s var, 1 s övertoning.
      Fönstret per bild är 1/n av cykeln; bild i startar med animation-delay i×5−1 s
      (−1 s så att första bilden syns direkt) och står på opacity 0
      (fill-mode backwards) tills den är på tur. */
   .sk-xfade-3 { animation: sk-xfade-3 15s linear infinite backwards; }
   .sk-xfade-4 { animation: sk-xfade-4 20s linear infinite backwards; }
+  .sk-xfade-5 { animation: sk-xfade-5 25s linear infinite backwards; }
+  .sk-xfade-6 { animation: sk-xfade-6 30s linear infinite backwards; }
 
   @keyframes sk-xfade-3 {
     0% { opacity: 0; }
@@ -395,10 +397,22 @@ const pageSchema = {
     30%, 100% { opacity: 0; }
   }
 
+  @keyframes sk-xfade-5 {
+    0% { opacity: 0; }
+    4%, 20% { opacity: 1; }
+    24%, 100% { opacity: 0; }
+  }
+
+  @keyframes sk-xfade-6 {
+    0% { opacity: 0; }
+    3.33%, 16.67% { opacity: 1; }
+    20%, 100% { opacity: 0; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sk-xfade-a { animation: none; opacity: 1; }
     .sk-xfade-b { animation: none; opacity: 0; }
-    .sk-xfade-3, .sk-xfade-4 { animation: none; opacity: 0; }
-    .sk-xfade-3:first-child, .sk-xfade-4:first-child { opacity: 1; }
+    .sk-xfade-3, .sk-xfade-4, .sk-xfade-5, .sk-xfade-6 { animation: none; opacity: 0; }
+    .sk-xfade-3:first-child, .sk-xfade-4:first-child, .sk-xfade-5:first-child, .sk-xfade-6:first-child { opacity: 1; }
   }
 </style>
