@@ -3,7 +3,7 @@ import '../styles/global.css';
 import InlineEditor from '../components/InlineEditor.astro';
 import Tel from '../components/Tel.astro';
 import Mail from '../components/Mail.astro';
-import { TJANSTER_KOLUMNER, TJANSTER_PANEL, EVENT_LANKAR, KUNSKAP_FRAMHAVD, KUNSKAP_GRUPPER, KUNSKAP_ALLA, OFFERT_HREF } from '../data/meny';
+import { TJANSTER_KOLUMNER, TJANSTER_PANEL, EVENT_LANKAR, EVENT_PLANERA, EVENT_ALLA, KUNSKAP_FRAMHAVD, KUNSKAP_GRUPPER, KUNSKAP_ALLA, OFFERT_HREF } from '../data/meny';
 
 // ── SVEN_PRODUCTS byggs från EN källa: src/lib/sven-products.mjs ──
 // Registret delas med netlify/generate-products.mjs så att chattbubblans
@@ -516,6 +516,11 @@ const localBusinessSchema = {
             <span class="nav-dd-heading">För ditt event</span>
             {EVENT_LANKAR.map((l) => <a href={l.href}>{l.namn}</a>)}
           </div>
+          <div class="nav-dd-col">
+            <span class="nav-dd-heading">Planera</span>
+            {EVENT_PLANERA.map((l) => <a href={l.href}>{l.namn}</a>)}
+            <a href={EVENT_ALLA.href} class="nav-dd-alla">{EVENT_ALLA.namn} →</a>
+          </div>
         </div>
       </li>
       <li class="nav-dropdown">
@@ -568,13 +573,22 @@ const localBusinessSchema = {
         <button class="nav-mob-trigger" id="mobEventBtn" aria-expanded="false" aria-controls="mobEventSub">Event <span class="nav-arrow">▾</span></button>
         <ul class="nav-mob-sub" id="mobEventSub">
           {EVENT_LANKAR.map((l) => <li class="nav-mob-rad"><a href={l.href}>{l.namn}</a></li>)}
+          <li class="nav-mob-grupp"><a href={EVENT_ALLA.href}>Planera <span aria-hidden="true">→</span></a></li>
+          {EVENT_PLANERA.map((l) => <li class="nav-mob-rad"><a href={l.href}>{l.namn}</a></li>)}
         </ul>
       </li>
       <li class="nav-mob-parent">
         <button class="nav-mob-trigger" id="mobKunskapBtn" aria-expanded="false" aria-controls="mobKunskapSub">Kunskap <span class="nav-arrow">▾</span></button>
         <ul class="nav-mob-sub" id="mobKunskapSub">
           <li class="nav-mob-grupp"><a href={KUNSKAP_FRAMHAVD.href}>{KUNSKAP_FRAMHAVD.namn} <span aria-hidden="true">→</span></a></li>
-          {KUNSKAP_GRUPPER.flatMap((g) => g.lankar).map((l) => <li class="nav-mob-rad"><a href={l.href}>{l.namn}</a></li>)}
+          {KUNSKAP_GRUPPER.map((g) => (
+            <li class="nav-mob-del">
+              <details>
+                <summary>{g.namn}</summary>
+                <ul>{g.lankar.map((l) => <li class="nav-mob-rad"><a href={l.href}>{l.namn}</a></li>)}</ul>
+              </details>
+            </li>
+          ))}
           <li class="nav-mob-grupp nav-mob-extra"><a href={KUNSKAP_ALLA.href}>{KUNSKAP_ALLA.namn} <span aria-hidden="true">→</span></a></li>
         </ul>
       </li>

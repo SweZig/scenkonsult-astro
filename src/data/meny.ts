@@ -102,7 +102,16 @@ export const EVENT_LANKAR: MenyLank[] = [
   { namn: 'Studentflak', href: '/for/studentflak/' },
 ];
 
-/** Kunskap */
+/** Event, andra kolumnen: det man behöver när tillfället är bestämt */
+export const EVENT_PLANERA: MenyLank[] = [
+  { namn: 'Konferensteknik', href: '/vara-tjanster/konferens-av/' },
+  { namn: 'Eventlokaler i Stockholm', href: '/guide-till-eventlokaler-i-stockholm/' },
+  { namn: 'Minnesvärda fester', href: '/den-ultimata-guiden-till-minnesvarda-fester/' },
+  { namn: 'Referenser', href: '/referenser/' },
+];
+export const EVENT_ALLA = { namn: 'Alla tillfällen', href: '/for/' };
+
+/** Kunskap — fyra grupper. Smala guider (rökvätska, DJ-märken) nås via "Alla guider". */
 export const KUNSKAP_FRAMHAVD = {
   namn: 'Svens Kunskapsskola',
   href: '/svens-kunskapsskola/',
@@ -111,22 +120,40 @@ export const KUNSKAP_FRAMHAVD = {
 export const KUNSKAP_GRUPPER: { namn: string; lankar: MenyLank[] }[] = [
   {
     namn: 'Dimensionera rätt', lankar: [
-      { namn: 'Hur stor PA-anläggning?', href: '/for/guider/hur-stor-pa/' },
-      { namn: 'Hur stor scen behöver du?', href: '/for/guider/hur-stor-scen/' },
-      { namn: 'Ljussättningstips', href: '/for/guider/ljussattning-tips/' },
+      { namn: 'Hur stor PA?', href: '/for/guider/hur-stor-pa/' },
+      { namn: 'Hur stor scen?', href: '/for/guider/hur-stor-scen/' },
+      { namn: 'Hyra PA-system', href: '/for/guider/hyra-pa-system/' },
+      { namn: 'Ljud utomhus', href: '/for/guider/ljud-utomhus/' },
+      { namn: 'Trådlös mikrofon', href: '/for/guider/hyra-tradlos-mikrofon/' },
     ],
   },
   {
-    namn: 'Planera eventet', lankar: [
+    namn: 'Ljus & bild', lankar: [
+      { namn: 'Ljussättningstips', href: '/for/guider/ljussattning-tips/' },
+      { namn: 'Uplights', href: '/for/guider/hyra-uplights/' },
+      { namn: 'DMX-styrning', href: '/for/guider/dmx-styrning-guide/' },
+      { namn: 'Rökmaskin', href: '/for/guider/hyra-rokmaskin/' },
+      { namn: 'Projektor – pris', href: '/for/guider/hyra-projektor-pris/' },
+      { namn: 'HDMI, SDI & fiber', href: '/for/guider/sdi-hdmi-fiber-guide/' },
+    ],
+  },
+  {
+    namn: 'Planera & budget', lankar: [
       { namn: 'Checklista för event', href: '/for/guider/checklista-event/' },
       { namn: 'Vad kostar uthyrning?', href: '/for/guider/vad-kostar-det/' },
-      { namn: 'Hyra scen — pris', href: '/for/guider/hyra-scen-pris/' },
+      { namn: 'Hyra scen – pris', href: '/for/guider/hyra-scen-pris/' },
+      { namn: 'Konferens AV-checklista', href: '/for/guider/konferens-av-checklista/' },
+      { namn: 'Studentflak-checklista', href: '/for/guider/studentflak-checklista/' },
+      { namn: 'Vanliga frågor', href: '/vara-vanligaste-fragor-faq/' },
     ],
   },
   {
-    namn: 'Bröllop & fördjupning', lankar: [
-      { namn: 'DJ till bröllop — pris', href: '/for/guider/dj-brollop-pris/' },
+    namn: 'Fest & bröllop', lankar: [
+      { namn: 'DJ till bröllop – pris', href: '/for/guider/dj-brollop-pris/' },
       { namn: 'Ljud till bröllop', href: '/for/guider/ljud-brollop/' },
+      { namn: 'Ljus till bröllop', href: '/for/guider/ljus-brollop/' },
+      { namn: 'Ljud till företagsfest', href: '/for/guider/ljud-foretagsfest/' },
+      { namn: 'DJ eller liveband?', href: '/for/guider/dj-eller-liveband/' },
     ],
   },
 ];
