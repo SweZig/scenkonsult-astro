@@ -3,29 +3,38 @@ DOC3 = dict(
     slug="Sidor_Navigation",
     title="Sidor & Navigation",
     subtitle="Nav-struktur, sidträd, nav-offset, referenssida, bokningsflöde, SEO- och AI-filer",
-    version="v19.0",
-    date="2026-10-18",
+    version="v19.1",
+    date="2026-11-23",
     blocks=[
-        ("h1", "1. Navigationsstruktur"),
-        ("h2", "1.1 Top-level nav"),
-        ("note", "Top-level nav = **Tjänster** (dropdown) + **Kunskap** (dropdown) + **Kontakta oss**. "
-                 "Kunskap lades till i efterhand och specen rättades 2026-10-18: Svens Kunskapsskola och "
-                 "guiderna under /for/guider/."),
-        ("p", "Desktop-ordning: Logo → Tjänster → Kunskap → Kontakta oss → `margin-left:auto` → Telefon → "
-              "Varukorg. Nav-höjd 130 px (100 px mobil), `--nav-offset: 166px`."),
+        ("h1", "1. Navigationsstruktur (omskriven 2026-11-23)"),
+        ("note", "**En källa: `src/data/meny.ts`.** `Layout.astro` renderar både datorns megameny och "
+                 "mobilens dragspel ur den. Ändra aldrig länkar direkt i `Layout.astro`. Beteendet "
+                 "(öppna, stänga, Esc, telefon dold under 1 180 px) står i Dok 1 §4.1."),
+        ("h2", "1.1 Toppnivå"),
+        ("p", "**Tjänster · Event · Kunskap · Kontakta oss**, därefter telefon, offertknappen **Begär "
+              "offert** (pill, `OFFERT_HREF` = /bokningssida/) och varukorg. Sedan 2026-11-22; före dess "
+              "låg tillfällena (bröllop m.fl.) under Tjänster och Event fanns inte som toppval."),
 
-        ("h2", "1.2 Dropdown \"Tjänster\""),
-        ("p", "Hover-aktiverad 3-kolumns panel, `min-width:720px`, glassmorphism "
-              "`rgba(15,12,40,0.98)`, lavendel-rubriker, 2,5 s stängningsfördröjning. "
-              "Kategoriordning: **Scen · Ljud · Bild · Ljus · DJ · Karaoke**. Bild som hub + sub-länkar. "
-              "**Karaoke har egen rubrik sedan 2026-10-05** (låg tidigare under \"DJ & Karaoke\"): "
-              "hub \"Hyra karaoke\" + \"Bygg din karaoke\" (`#bygg`). Mobilmenyn har samma två länkar. "
-              "**Ljud-kolumnen har sedan 2026-10-12** \"✨ Hyra ljud och ljus\" + \"Bygg ert paket\" "
-              "(`/vara-tjanster/hyra-ljud-och-ljus/#bygg`); länken finns också i mobilmenyn och sidfoten."),
+        ("h2", "1.2 Menyerna"),
+        ("table", [
+            ["Meny", "Innehåll (`meny.ts`)"],
+            ["Tjänster", "`TJANSTER_KOLUMNER`: fyra kolumner med grupperna Ljud · Ljus + Ljud & ljus · Scen + Bild · DJ + Karaoke. Gruppnamnet länkar till hubben; raderna under till undersidor. Scen har rader till sektionerna på /hyra-scen/ (Scenpodier – bygg din scen `#scen-konfigurator`, Färdiga scenpaket `#scenpaket`, Scenkjol & tillbehör `#scenkjol`) plus Pipe & Drape. LED-vägg har etiketten Nytt. `TJANSTER_PANEL`: tonad ruta med Komplett event, Fast installation och Begär offert"],
+            ["Event", "`EVENT_LANKAR` under rubriken För ditt event: Bröllop, Företagsfest & kickoff, Konferens & föreläsning, Festival & utomhus, Studentflak. `EVENT_PLANERA` (2026-11-23) under rubriken Planera: Konferensteknik (/vara-tjanster/konferens-av/), Eventlokaler i Stockholm, Minnesvärda fester, Referenser, och sist `EVENT_ALLA` → /for/ (Alla tillfällen)"],
+            ["Kunskap", "`KUNSKAP_FRAMHAVD` Svens Kunskapsskola överst, sedan `KUNSKAP_GRUPPER` i fyra kolumner (2026-11-23): **Dimensionera rätt** (Hur stor PA?, Hur stor scen?, Hyra PA-system, Ljud utomhus, Trådlös mikrofon) · **Ljus & bild** (Ljussättningstips, Uplights, DMX-styrning, Rökmaskin, Projektor – pris, HDMI, SDI & fiber) · **Planera & budget** (Checklista för event, Vad kostar uthyrning?, Hyra scen – pris, Konferens AV-checklista, Studentflak-checklista, Vanliga frågor) · **Fest & bröllop** (DJ till bröllop – pris, Ljud till bröllop, Ljus till bröllop, Ljud till företagsfest, DJ eller liveband?), och `KUNSKAP_ALLA` → /for/guider/"],
+        ]),
+        ("ul", [
+            "**Menyregeln:** gruppnamnet länkar till hubbsidan, men allt viktigt på en hubbsida ska också ha en egen rad. Ljud och Ljus täcks av sina undersidor; Scen, DJ och Karaoke säljer på själva hubbsidan och har därför egna rader dit.",
+            "**Kunskap har 22 länkar: 21 av de 23 aktiva guiderna plus Vanliga frågor** (före 2026-11-23: 8 guider). Smala ämnen — Rökvätska och Varför Numark, Denon & Rane — nås via Alla guider och från sina sortimentssidor. Lägg inte till dem utan skäl; menyn ska gå att skumma.",
+            "**Ingen emoji** i menyn (Dok 1 §2.5). Ordningen inom en grupp följer efterfrågan.",
+        ]),
 
         ("h2", "1.3 Mobil"),
-        ("p", "Hamburger-meny med accordion för underkategorier. Varukorg-ikon till vänster om "
-              "hamburger."),
+        ("p", "Hamburger med ett dragspel per toppval i samma ordning som datorn, sedan telefon, Begär "
+              "offert och Varukorg (SVG-ikon). Tjänster visar grupper med gruppnamnet som länk och "
+              "underrader i gemener, sist panelens rader. Event visar tillfällena och under rubriken "
+              "Planera sina fyra rader. Kunskap visar Svens Kunskapsskola, de fyra grupperna som egna "
+              "små dragspel (`details` med klassen `nav-mob-del`) och Alla guider. Tjänster fälls ut "
+              "automatiskt efter ca 3 s (Dok 1 §4.1)."),
 
         ("h2", "1.4 Sidfot (uppdaterad 2026-10-02)"),
         ("p", "Nedersta raden: `© {årtal} Scenkonsult Norden` — årtalet räknas fram vid bygget — "
@@ -33,17 +42,17 @@ DOC3 = dict(
               "Dok 1 §9.1) · Hyresvillkor · **In English** (`/en/`)."),
 
         ("h1", "2. Sidträd"),
-        ("note", "**Sidräkning (2026-10-17): 86 `.astro`-filer i `src/pages/` som bygger 111 "
-                 "sidor.** 85 statiska filer plus `hyra-ljud-scen-[ort].astro`, som genererar 26 "
-                 "ortssidor via `getStaticPaths`. Nya sedan v17: `/vara-tjanster/hyra-ljud-och-ljus/`, "
-                 "`/admin/topplistor/`, `/admin/referenscase/`."),
+        ("note", "**Sidräkning (2026-11-23): 87 `.astro`-filer i `src/pages/` som bygger 112 "
+                 "sidor.** 86 statiska filer plus `hyra-ljud-scen-[ort].astro`, som genererar 26 "
+                 "ortssidor via `getStaticPaths`. Ny sedan v19.0: "
+                 "`/vara-tjanster/projektering-och-installation/`."),
         ("note", "**Sidlistan nedan är en inventarielista och blir inaktuell inom en månad.** Den bör "
                  "genereras ur `src/pages/` i stället för att handskrivas — se Dok 6 §9.2. "
                  "Läs den som en karta över strukturen, inte som facit på vilka filer som finns."),
 
         ("note", "**Omdesignen 2026-10-18:** samtliga publika sidor har startsidans formspråk (Dok 1 "
                  "§2.5). Varukorg, order och signering är bara delvis berörda — kundflödet ändrades inte. "
-                 "URL:er, titlar, metabeskrivningar och h1 är oförändrade utom startsidans h1 (§9) och "
+                 "URL:er, titlar, metabeskrivningar och h1 är oförändrade utom startsidans h1 (§8) och "
                  "guideöversikten (\"eventteknik\"); kontrollerat med en jämförelse av hela bygget före "
                  "och efter (Dok 6 §6.3). Sidorna består av 85 `.astro`-filer (CategoryHero m.fl. "
                  "raderade) som bygger 111 sidor."),
@@ -62,7 +71,22 @@ DOC3 = dict(
             ["Hyra ljud och ljus (konfigurator)", "/vara-tjanster/hyra-ljud-och-ljus/ — NY 2026-10-12, Dok 2 §11"],
             ["Hyra DJ / DJ-utrustning", "/vara-tjanster/{hyra-dj,hyra-dj-utrustning}/"],
             ["Karaoke / Ljudtekniker / Konferens-AV / Tillbehör", "/vara-tjanster/{hyra-karaoke,hyra-ljudtekniker,konferens-av,tillbehor}/"],
+            ["Projektering och fast installation", "/vara-tjanster/projektering-och-installation/ — NY 2026-11-13"],
         ]),
+        ("note", "**Projektering och fast installation (2026-11-13).** Innehållet ligger i "
+                 "`src/data/installation.json`. Sidan visar områden, tre installationer från 2026 "
+                 "(German Beer Hall Gallerian och Uppsala, Ulvsunda idrottscentrum med MA3), en "
+                 "processdel \"Från ritning till drift\", lokaler och FAQ. Gallerian har sex bilder i "
+                 "rutnät med en stor bild över 2 × 2 rutor. Liggande projektbilder i "
+                 "`public/images/installation/` (+ 640w), 3:4-bilder för referenscasen i "
+                 "`public/images/event/`. Länkas från menyns panel, sidfoten, /vara-tjanster/, "
+                 "startsidans ljuskort, ljushubben och llms.txt. **Kundvänd text nämner inga märken eller "
+                 "leverantörer.**"),
+        ("note", "**Event-sidan är för tal (2026-11-02).** /hyra-ljud/event/ säger i ingressen att "
+                 "paketen är för tal och saknar subwoofer, och har rutan \"Ska det dansas?\" med länk till "
+                 "Music-paketen och från-pris ur datan. ChatGPT svarade på \"högtalare till fest\" med "
+                 "Event-serien och placerade Scenkonsult sist (Dok 6 §6.1). FAQ:n i `ljud.json` säger samma "
+                 "sak."),
         ("note", "**Bild-par:** /hyra-bild/ = SEO-hub (bred intent), /hyra-bild-projektorer-skarmar/ = "
                  "den \"riktiga\" produktsidan (long-tail). **DJ-par:** /hyra-dj/ = boka DJ (tjänst), "
                  "/hyra-dj-utrustning/ = hyra hårdvara — separerade på intent, ingen kannibalisering."),
@@ -108,7 +132,8 @@ DOC3 = dict(
 
         ("h2", "2.3 För ditt event"),
         ("p", "Hub `/for/` (fotokort per tillfälle, guider, faktarad, slutruta) + Bröllop, Företagsfest "
-              "& kickoff, Konferens & föreläsning, Festival & utomhus, Studentflak."),
+              "& kickoff, Konferens & föreläsning, Festival & utomhus, Studentflak. Sedan 2026-11-22 "
+              "egen toppmeny, Event (§1.2). Texter om LED-trailrar säger 11/21 m² (Dok 2 §9)."),
         ("p", "**Mall sedan 2026-10-18** (komponenter i `src/components/event/`): ModernHero med foto → "
               "EventOmraden (områden som radkort) → EventPaket (tre nivåer ur `utils/paket.ts`, "
               "\"Lägg paketet i varukorgen\") → EventChecklista → ProduktRader → referensrad → "
@@ -156,6 +181,7 @@ DOC3 = dict(
             "**`/en/` (NY 2026-10-02)** — engelsk landningssida för internationella företag, ambassader och organisationer samt utländska eventbyråer. Tjänster med \"från\"-priser ur datan, referenskunder ur `clients.json`, FAQ med `FAQPage`-schema (`inLanguage: en`). Detaljlänkar går till de svenska produktsidorna. Formuläret postar till `skicka-kontakt` med `typ: Företag`, `sendCopy: false` (kundkvittot finns bara på svenska) och meddelandet märkt **\"[ENGLISH ENQUIRY — svara på engelska]\"**. Tack visas på sidan. `lang=\"en\"` + hreflang (Dok 1 §4.8).",
             "**/kontakt/** — kartan (Google Maps) laddas automatiskt för besökare som godkänt cookies, annars vid klick på \"Visa karta\" (Dok 1 §9.1). Öppet/stängt-pillen räknas ur `site.json → company.openingHours` (byggs server-side som `data-periods`), inte längre ur Google Places API. **Sedan 2026-10-11** märks helgtiderna som depåtider för hämtning och återlämning, och telefonen på helger som jour vid pågående uthyrning Samma budskap på bokningssida, order, studentflak-FAQ, ortssidor och /en/; klockslagen hämtas sedan 2026-10-17 via `src/utils/hours.ts` (Dok 1 §8).",
             "**Informationssidorna (2026-10-18)** — om oss, kontakt, referenser, FAQ, hyresvillkor (3), personuppgiftspolicy, Svens kunskapsskola, feedback, tack och bokningssidan har `SidHuvud` som rubrikyta; villkor och policy använder `.sk-prosa`. Våra tjänster och För ditt event har fotokort med riktiga länkar (tjänstekorten var tidigare onclick-divar som Google inte följer). /tack/ är `noindex`.",
+            "**/om-oss/ (2026-11-22/23)** — \"Vår historia\" utgår från Gävles revy- och operettradition: Pers pappa Lars Sigvard (amatörtävling utanför Ljusdal i slutet av 1940-talet, Gefle Lyriska Teater, turnerade med Tjaddenrevyn, startade Gävlerevyn, nyårsrevyn Go'natt Gävle 1979/80), Vita hästen 1983 med folkparksturné 1984 där Per skötte tekniken, DAV Produktion 1986 i Mackmyra utanför Gävle, retailåren 1992–2018 och nystarten efter pandemin. Avsnittet har tre rader (Lars / 1983–1986 / i dag) med familjens egna bilder i `public/images/om-oss/`. **Stavningen är Per, inte Pär.** Mackmyra nämns i historien, inte i startsidans faktarad.",
             "**Eventlokal-guiden** — faktagranskad 2026-10-02 (3Arena, Spegelsalen 70–300, Münchenbryggeriet 10–3 500, Annexet, Cirkus m.fl.). Antalet år sedan 1986 räknas fram.",
         ]),
 
@@ -216,37 +242,28 @@ DOC3 = dict(
         ("p", "**Ordningen på sidan (2026-10-09):** \"De litar på oss\" (logobannern) ligger **ovanför** "
               "eventgalleriet, som blivit för långt för att bannern skulle synas under det."),
 
-        ("h2", "4.1 Logobanner — 8 separata logotyper"),
-        ("p", "Bannern var tidigare **en enda sammansatt rasterbild** (`public/images/logos.webp`, "
-              "1600×343) med ramarna inbrända i pixlarna. Den delades upp 2026-09-18; filen är raderad "
-              "ur repot. Nu: **en transparent WebP per kund** i `public/images/kunder/`, renderad ur "
-              "`clientLogos`-arrayen i `referenser/index.astro` i ett CSS-grid (2 kolumner mobil / "
-              "4 desktop). Ramen ritas i CSS, inte i bilden."),
-        ("table", [
-            ["Fil", "Kund"],
-            ["logo_ica.webp", "ICA Sverige"],
-            ["logo_hornbach.webp", "Hornbach"],
-            ["logo_abg.webp", "ABG Sundal Collier"],
-            ["logo_houdini.webp", "Houdini"],
-            ["logo_german_beerhall.webp", "German Beer Hall (ersatte Mälardalens universitet 2026-10-03; `tall`, Dok 1 §3.3). `logo_mdu.webp` ligger kvar i mappen"],
-            ["logo_hacksaw.webp", "Hacksaw Studios"],
-            ["logo_hardrock.webp", "Hard Rock Café (ersatte Odd Fellow 2026-09-18)"],
-            ["logo_uf.webp", "UF Företagande"],
-        ]),
+        ("h2", "4.1 Logobanner — tolv logotyper ur KUNDLOGOTYPER"),
+        ("p", "Bannern var fram till 2026-09-18 en enda sammansatt rasterbild med inbrända ramar. Nu är "
+              "det **en transparent WebP per kund** i `public/images/kunder/`. Sedan 2026-11-21 står "
+              "listan i `src/utils/clients.ts → KUNDLOGOTYPER` (sidan läser den som `clientLogos`): tolv "
+              "logotyper på en gemensam duk 260×127 med optiskt balanserad storlek. Nya 2026-11-21: "
+              "TikTok, EY, foodora, Tele2. Samma lista används av startsidan och `KundRad`. Regler och "
+              "ordning i Dok 1 §3.3."),
         ("note", "**Bannern är ett kurerat urval, inte kundlistan.** Odd Fellow ligger kvar som kund i "
                  "Supabase-tabellen `clients` trots att logotypen togs ur bannern. En kund kan finnas i "
                  "listan utan logotyp, och tvärtom. Bildkonventionen står i Dok 1 §3.3."),
 
-        ("h2", "4.2 Eventgalleri — 19 kort, ur databasen"),
+        ("h2", "4.2 Eventgalleri — ur databasen"),
         ("p", "**Sedan 2026-10-17 läser galleriet `event-cases.json`**, som byggs ur Supabase "
               "(Dok 2 §12). Kort, texter, taggar och bilder underhålls i **/admin/referenscase/** — "
               "inte i sidfilen. Inline-arrayen i `referenser/index.astro` är borttagen."),
-        ("p", "19 kort och 37 galleribilder (38 WebP-filer i `public/images/event/`; en bild visas bara "
-              "på ljushubben). Grid 2 / 3 / 4 kolumner, kort i `aspect-ratio:3/4` med `object-cover`."),
+        ("p", "Grid 2 / 3 / 4 kolumner, kort i `aspect-ratio:3/4` med `object-cover`. Sektionen har "
+              "`id=\"eventfoton\"` och `scroll-margin` — startsidans faktaruta \"100+ event per år\" "
+              "länkar dit. Antalet kort räknas inte upp här (2026-11-23: 24 kort)."),
         ("ul", [
             "**Taggar:** Festival · Företagsevent · Konferens · Installation · Aktivering (ny 2026-10-15). Antal per tagg och bilder per kort räknas inte upp här — de ändras med varje nytt case; se /referenser/ eller `event-cases.json` (Dok 2 §12).",
-            "**Bilder per kort:** 1–4 ur `images[]`; två eller fler ger crossfade (Dok 1 §4.7). Nya case levereras som porträtt 1050×1400 WebP.",
-            "**Senaste tillskotten (2026-10-17):** Swedish Taste (Västermalm, DJ, två bilder) och Mr French (Skeppsbron, DJ och ljud, tre bilder). Swedish Taste visas bara på /referenser/, inte på DJ-hubben.",
+            "**Bilder per kort:** 1–6 ur `images[]`; två eller fler ger crossfade (Dok 1 §4.7). Nya case levereras som porträtt 1050×1400 WebP (+ 640w).",
+            "**Tillskott sedan 2026-10-18:** de tre installationerna (tagg Installation, 2026-11-13), Foodora (scen med scenkjol och rosa matta, tre bilder, 2026-11-17 — bara på /referenser/, inte på scenhubben) och spegelbollen i German Beer Hall Gallerian (ljusgården och monteringen, 2026-11-23 — kortet har sex bilder).",
             "**Samarbetspartner skrivs som de själva skriver sig:** Jung Co (inte \"Jung\" eller \"Jung & Co\"), Studio S19, PerPR.",
             "**Leverera bara det vi levererat.** Systembolagets text nämnde en projektorduk som inte var vår — borttagen 2026-10-09. Samma noggrannhet gäller hubbraderna: DJ-hubben visar sedan 2026-10-17 bara uppdrag med DJ — Mr French, Skridskodisco och Djursholms Slott (uppgift från Scenkonsult); Systembolaget och sedan Läkarförbundet lämnade raden.",
         ]),
@@ -258,7 +275,9 @@ DOC3 = dict(
         ("note", "Kundlistan hämtas från Supabase-tabellen `clients` (via `clients.json` + live "
                  "clients-list). Utvalda kunder styrs av `featured`-flaggan; kunder kan taggas med ort "
                  "för ortssidorna (Dok 5). Google-recensioner renderas server-side från Supabase-tabellen "
-                 "`reviews` och hydreras live via `reviews-list`."),
+                 "`reviews` och hydreras live via `reviews-list` — sedan 2026-10-23 med samma skript "
+                 "(`src/scripts/recensioner-live.ts`) på startsidan, /en/, /referenser/ och /kontakt/, så "
+                 "att en ny recension syns direkt (Dok 1 §4.3)."),
         ("note", "**Google Places API används inte längre (beslut 2026-10-02).** Den gav bara max 5 "
                  "recensioner, och efter att Google Cloud-testperioden löpt ut svarade den "
                  "PERMISSION_DENIED. Badgens betyg och antal på /referenser/ och /kontakt/ räknas nu ur "
@@ -318,7 +337,13 @@ DOC3 = dict(
         ("p", "**AI-synligheten mäts månadsvis** av ett schemalagt uppdrag (den 2:a kl 08:52): tre fasta "
               "ChatGPT-frågor, 15 sökfrågor via Claudes webbsök och en teknisk kontroll av robots.txt, "
               "llms.txt och JSON-LD. Rapporten skrivs till projektet som "
-              "`claude/AI_Synlighet_Test_<datum>.md`. Baslinje: 2026-10-02."),
+              "`claude/AI_Synlighet_Test_<datum>.md`. Baslinje: 2026-10-02. **Kör webbsöket i utökat läge** "
+              "— standardläget gav 2026-11-02 ett annat index utan vare sig Scenkonsult eller "
+              "konkurrenterna. `/api/google-reviews` finns inte längre och ska inte kontrolleras."),
+        ("p", "**llms.txt (2026-11-02):** Event-rubriken säger \"inte för fest och dans, se Music\", med "
+              "en hänvisningsrad till Music-paketen och en rad till AI-assistenter om att fest och dans "
+              "betyder Music. Ljudpaketen anges även inklusive moms. Projektering och installation har "
+              "en egen rad (2026-11-13)."),
 
         ("h1", "8. Startsidan (omgjord 2026-10-18)"),
         ("p", "h1 **\"Hyra scen, ljud, ljus & bild i Stockholm\"** — sökorden ska stå i rubriken; en tidigare "
@@ -326,13 +351,21 @@ DOC3 = dict(
               "\"Stockholm\" och rättades samma dag. Sektioner: hero med fyra växlande eventfoton, "
               "faktarad, åtta kategorikort (hela kortet klickbart, snabbval under), topplistan \"Våra "
               "mest bokade paket\" med flikar per tillfälle (popular.json), referensrad (`hub.start`), "
-              "omdömen, Så funkar det, film och slutruta med Fråga Sven. `mobilBar` på. Kategorikortens "
+              "omdömen (live ur admin), Så funkar det, film och slutruta med Fråga Sven. `mobilBar` på. Faktaraden "
+              "har samma pil → i alla rutor och \"100+ event per år\" länkar till /referenser/#eventfoton; "
+              "logoraden fyller sina rader (Dok 1 §4.3). Kategorikortens "
               "bilder: Ljus = German Beer Hall, Karaoke = `plugg_karaoke_sang` (beskuren så att "
               "låttexten på skärmen inte syns)."),
 
         ("h1", "9. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.1", "2026-11-23",
+             "§1 omskriven: menyn ur meny.ts, toppnivå Tjänster · Event · Kunskap · Kontakta oss + Begär offert, "
+             "Event med Planera, Kunskap med fyra grupper och 22 länkar, menyregeln, mobilens dragspel. §2 87 filer / "
+             "112 sidor. §2.1 Projektering och fast installation, Event-sidan är för tal. §2.3 Event som egen meny. "
+             "§2.5 Om oss-historien. §4.1 tolv logotyper ur KUNDLOGOTYPER. §4.2 #eventfoton, 1–6 bilder, nya case. "
+             "§4.3 recensioner live. §7 utökat läge i mätningen, llms.txt om Event/Music. §8 faktaraden och logoraden."],
             ["v19.0", "2026-10-18",
              "Omdesignen av alla publika sidor: §2 not om jämförelsen före/efter, §2.3 eventmallen och regeln "
              "att scenpaket inte läggs som paketrad, §2.4 GuideLayout, §2.5 informationssidorna och SidHuvud, "

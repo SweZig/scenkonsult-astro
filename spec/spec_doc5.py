@@ -3,8 +3,8 @@ DOC5 = dict(
     slug="Order_Admin_Infra",
     title="Order, Admin & Infra",
     subtitle="Varukorg, admin-panel, fakturering, innehålls-admin, Supabase, GitHub API, git & deploy",
-    version="v19.0",
-    date="2026-10-18",
+    version="v19.1",
+    date="2026-11-23",
     blocks=[
         ("h1", "1. Infrastruktur — snabbreferens"),
         ("table", [
@@ -13,7 +13,8 @@ DOC5 = dict(
             ["Storage", "…/storage/v1/object/public/manualer/[ARTNO].pdf"],
             ["Admin-panel", "/admin/ (kanban + faktura + stats), /admin/sven/, /admin/produkter/, /admin/referenser/, /admin/recensioner/, /admin/bulletin/, /admin/topplistor/, /admin/referenscase/"],
             ["Kundordersida", "/order/?cart=SK-XXXXXX&token="],
-            ["Env-variabler", "SUPABASE_URL, SUPABASE_SERVICE_KEY, ADMIN_TOKEN, RESEND_API_KEY, ANTHROPIC_API_KEY, GITHUB_TOKEN, GA4_OAUTH_*"],
+            ["Env-variabler", "SUPABASE_URL, SUPABASE_SERVICE_KEY, ADMIN_TOKEN, RESEND_API_KEY, ANTHROPIC_API_KEY, GITHUB_TOKEN, GA4_OAUTH_*, NETLIFY_BUILD_HOOK (valfri, §3.5)"],
+            ["Node", "24 (`netlify.toml → NODE_VERSION`, sedan 2026-11-17) — byggmiljön och funktionerna (§6.5)"],
         ]),
         ("note", "**`GOOGLE_PLACES_API_KEY` används inte längre** (2026-10-02) — `google-reviews.mjs` är "
                  "borttagen. Variabeln kan tas bort ur Netlify."),
@@ -50,7 +51,7 @@ DOC5 = dict(
         ("h2", "3.1 Detaljpanel — flikar"),
         ("table", [
             ["Flik", "Funktion"],
-            ["Info", "Status (dropdown), kundinformation, intern anteckning"],
+            ["Info", "Status (dropdown), kundinformation, intern anteckning. Kryssrutan \"Utländsk företagskund — ej momspliktig i Sverige\" med Inom/Utanför EU, land och VAT-nummer (§3.3.1)"],
             ["Produkter", "Redigerbar produkttabell — lägg till/ta bort rader, ändra antal/à-pris, spara till DB"],
             ["Chatt", "Meddelandehistorik + skicka meddelanden till kund. Hantera mallar: snabbmallar och offertpåminnelser (§3.7)"],
             ["Logg", "Audit-trail (läs-only)"],
@@ -118,6 +119,17 @@ DOC5 = dict(
               "lag 1981:739) ackumuleras ovanpå fakturan. +8 dagars betalfrist på nivå 3–4. Avgifterna "
               "inskrivna i villkoren. Migration: `2026-07-17_reminder_levels.sql`."),
 
+        ("h2", "3.3.1 Utländsk företagskund utan svensk moms (NY 2026-11-02)"),
+        ("p", "En utländsk **företagskund** kan faktureras utan svensk moms. En utländsk privatperson "
+              "betalar alltid svensk moms."),
+        ("ul", [
+            "**Fälten** på `carts`: `vat_exempt`, `vat_region` (`eu` | `non_eu`), `customer_vat_id` (krävs inom EU), `customer_country`. Migration `2026-11-02_momsfri_utlandsk_kund.sql` — måste vara körd.",
+            "**En momsregel: `src/lib/moms.cjs`** (UMD: `require` i funktionerna, `?raw` + inline i webbläsaren som `window.SkMoms`). Fakturan, kreditfakturan, påminnelserna, offertmejlet, orderbekräftelsen, kundens ordersida, admin och försäljningsstatistiken räknar med den. **Skriv aldrig `* 1.25` eller `* 0.25` direkt i en sida eller funktion.**",
+            "**Fakturan** blir NON-VAT INVOICE med kundens VAT-nummer, moms 0 % och lagtext på svenska och engelska (omvänd skattskyldighet inom EU, export utanför EU). **Vårt momsreg.nr SE559068493101 står på alla fakturor.**",
+            "**Låsning:** momsfälten låses när fakturan är skickad (409), och en faktura stoppas om momsuppgifterna är ofullständiga.",
+            "Test: `test/momsfri-kund.test.cjs`.",
+        ]),
+
         ("h2", "3.4 Statistik (/admin/stats/)"),
         ("p", "GA4 Data API + Search Console API via OAuth refresh_token-flöde. Env: "
               "`GA4_OAUTH_CLIENT_ID/CLIENT_SECRET/REFRESH_TOKEN`. GA4 property 417375423, "
@@ -128,7 +140,11 @@ DOC5 = dict(
               "Recensioner, Bulletin och Topplistor (ordningen sedan 2026-10-17). Innehållet underhålls i **Supabase** och synkas till "
               "committade JSON-filer vid build (med säker fallback); sidorna läser JSON server-side. "
               "**Produktadmin skriver till repot (§4) — innehållsadmin skriver till databasen.** "
-              "Ändringar i innehållsadmin syns först efter nästa deploy, eftersom sidorna byggs statiskt."),
+              "Sidorna byggs statiskt, så en ändring i innehållsadmin syns först efter nästa bygge."),
+        ("ul", [
+            "**Nytt bygge automatiskt (2026-10-23):** en lyckad POST i innehållsadmin (recensioner, referenskunder, topplistor, referenscase) startar ett Netlify-bygge via build hooken i `NETLIFY_BUILD_HOOK` (`_lib.startaBygge` / `medOmbygge`, med `trigger_title` \"Admin: …\"). Utan variabeln händer ingenting, och ett fel i hooken fäller aldrig sparningen. **Kontrollera att variabeln är satt i Netlify** — annars väntar ändringen på nästa push.",
+            "**Recensioner live:** startsidan, /en/, /referenser/ och /kontakt/ hämtar `reviews-list` i webbläsaren (`src/scripts/recensioner-live.ts`), så en ny recension syns direkt även innan bygget gått. Test: `test/recensioner-live.test.cjs`.",
+        ]),
         ("p", "**Topplistor och referenscase (NY 2026-10-17).** Datamodellen står i Dok 2 §12."),
         ("table", [
             ["Del", "Topplistor", "Referenscase"],
@@ -267,7 +283,17 @@ DOC5 = dict(
                  "`core.hooksPath`, så `npm run sync` aktiverar den i varje klon. Vid falsklarm: "
                  "`git commit --no-verify`. Admin-panelens commits via API passerar inte hooken."),
 
-        ("h2", "6.2 Push med token"),
+        ("h2", "6.2 Push"),
+        ("p", "**Från en molnsession (Claude), sedan 2026-11-23:** via GitHub-kopplingen. Repot läggs till "
+              "i sessionen med skrivrättighet och klonas i molnet. Commits görs där (eller hämtas in ur en "
+              "bundle), `git fetch` visar att `origin/main` inte flyttat sig, och sedan "
+              "`git -c push.negotiate=true push origin HEAD:main`. Ingen PAT och ingen fil på datorn "
+              "behövs. Kopplingen ger ett eget svar om repot inte är åtkomligt — pröva den innan någon "
+              "annan väg."),
+        ("note", "**Bundle-vägen via datorns VM är stängd (2026-11-23).** VM:en svarar \"Cowork blocked this "
+                 "request: only git clone, git fetch and plain downloads from GitHub work here, not git "
+                 "push\" (403). Receptet nedan gäller bara push från **datorns egen terminal**."),
+        ("p", "**Från datorns PowerShell/terminal med token:**"),
         ("code", 'TOK=$(tr -d " \\r\\n" < .secrets/gh-pat.txt)\n'
                  'git push "https://SweZig:${TOK}@github.com/SweZig/scenkonsult-astro.git" HEAD:main'),
         ("ul", [
@@ -276,21 +302,10 @@ DOC5 = dict(
             "**TLS-verifiering stängs aldrig av.** `http.sslVerify=false` förekommer i anteckningar från 2026-08; det behövs inte och exponerar token vid push.",
             "Skriv aldrig ut tokenvärdet — läs in det i en variabel och filtrera bort det ur utskrifter.",
         ]),
-        ("note", "**Molnsessioner (2026-10-02):** git-proxyn i molncontainern injicerar inga credentials "
-                 "för repot, så push därifrån nekas fortfarande (403). Arbetsgången: committa i "
-                 "molnklonen → `git bundle` → skriv till `Claude outputs/` → i datorns VM: färsk klon i "
-                 "hemkatalogen, hämta bundlen, kontrollera att `origin/main` inte flyttat sig, pusha med "
-                 "PAT:en ur `.secrets/gh-pat.txt`, radera klonen. Den lokala arbetskopian rörs inte. "
-                 "**Bundlarna blir kvar i `Claude outputs/`** — VM:en får inte radera i den monterade "
-                 "mappen utan beviljad rättighet. Se Dok 1 §1.3."),
-        ("p", "**Recept för push från molnet (2026-10-18), steg för steg:** "
-              "`git bundle create /mnt/user-data/outputs/X.bundle <förra main>..<gren>` → kopiera till "
-              "`Claude outputs\\X.bundle` → i VM:en: `git clone -q --filter=blob:none <repo> $HOME/sk-push`, "
-              "kontrollera att `git rev-parse origin/main` är den förväntade, "
-              "`git fetch -q \"$R/Claude outputs/X.bundle\" <gren>:batch`, "
-              "`TOK=\"$(tr -d '\\r\\n' < \"$R/.secrets/gh-pat.txt\")\"`, "
-              "`git push \"https://SweZig:${TOK}@github.com/SweZig/scenkonsult-astro.git\" batch:main 2>&1 | sed \"s/${TOK}/***/g\"`, "
-              "`unset TOK`, radera klonen. En bundle per batch; bundlen ska skapas **efter** sista commiten."),
+        ("note", "**Historik:** 2026-10-02 – 2026-11-22 pushade molnsessioner genom att lägga en `git bundle` "
+                 "i `Claude outputs/` och pusha den från en färsk klon i datorns VM med PAT:en ur "
+                 "`.secrets/gh-pat.txt`. Vägen stängdes 2026-11-23. Gamla bundlar ligger kvar i "
+                 "`Claude outputs/` och rensas för hand."),
         ("note", "**Rättat 2026-09-21 — den gamla miljötabellen gäller inte längre.** v15.1 slog fast "
                  "att molncontainern inte kan pusha (git-proxyn nekade på repo-nivå innan credentials "
                  "kom till tals) och att det inte gick att åtgärda i efterhand. Med ett fine-grained PAT "
@@ -320,16 +335,25 @@ DOC5 = dict(
               "`npm ci`** — det ingår i `npm run sync`."),
         ("ul", [
             "**Pre-commit safety check (måste vara tom):** `git diff --cached --name-only | grep -E \"dist/|netlify.toml|package-lock.json|node_modules|\\.cjs$\"`",
-            "Ändra ALDRIG `netlify.toml` (undantag: dokumenterade node_bundler-block). Committa ALDRIG `dist/`. Byt ALDRIG CJS-funktioner till `.cjs`.",
+            "Ändra ALDRIG `netlify.toml` utan uttryckligt beslut (beslutade ändringar: node_bundler-blocken, Node 24 2026-11-17). Committa ALDRIG `dist/`. Byt ALDRIG CJS-funktioner till `.cjs`.",
             "Desktop-appen lägger förhandsvisningar i `Claude outputs/` i projektmappen — gitignorerad sedan 2026-09-18.",
             "Lägg aldrig en tokenfil någon annanstans än i `.secrets/`, och kontrollera att mappen står i `.gitignore` innan filen skapas.",
             "`public/llms.txt` och `src/data/montering-catalog.json` är genererade och gitignorerade (Dok 2 §2.1). llms.txt avspårades med `git rm --cached` i samma commit som ignore-raden.",
             "**`__pycache__/` (2026-10-17):** sju `.pyc`-filer under `spec/__pycache__/` committades med spec v17.0 — fjärde gången regeln i noten ovan bröts. Ignore-raden och `git rm --cached` gjordes i samma commit som spec v18.0.",
         ]),
 
+        ("h2", "6.5 Node och beroenden (NY 2026-11-17)"),
+        ("ul", [
+            "**Node 24 på Netlify** (`NODE_VERSION = \"24\"`, var 20). Node 20 fick inga säkerhetsuppdateringar efter 2026-04-30; Node 24 är LTS till april 2028. Datorn bör köra samma major. Efter en Node-ändring: prova offertflödet, Sven, admin-inloggning och en PDF-faktura.",
+            "**Astro 5.18** (steg 1, `4b34655`): astro ^5.18.2, @astrojs/tailwind ^6.0.2, @astrojs/sitemap ^3.7.5. Ingen kodändring; bygget jämfört sida för sida före/efter. Skillnader: små skript ligger inline i stället för i /_astro/-filer, tomma attribut skrivs `data-x`.",
+            "**Steg 2 (Astro 6–7) avvaktar beslut:** kräver ny Tailwind-koppling (`@astrojs/tailwind` stöder bara Astro ≤ 5; sajten har inga egna `@tailwind`-direktiv). Underlag: `claude/Astro_Uppgradering_Steg2_2026-11-17.md`, backlog post 13.",
+            "**`npm audit fix` utan `--force`, aldrig med** — `--force` byter Astro-major i förbifarten. `sharp` och `convert_to_webp.mjs` är borttagna. Kvar i audit: Astro-kedjan (fix i Astro 7), picomatch, uuid via google-auth-library 9, `xlsx` (ingen fix).",
+        ]),
+
         ("h1", "7. Manualer & dokumentation"),
         ("ul", [
-            "**Manual-generator:** `manual_generator.py` ligger i repot (tidigare bara i molncontainern, där den försvann mellan sessioner). Manualer i Supabase Storage: `manualer/[ARTNO].pdf`.",
+            "**Manual-generator:** `manual_generator.py` i **repot** är originalet. Kopian som ligger som projektdokument är en äldre gren med platshållarnummer — använd den inte. Arbeta i en färsk klon och kontrollera lediga artikelnummer i `src/data/ljus.json`, inte i anteckningar. Manualer i Supabase Storage: `manualer/[ARTNO].pdf`.",
+            "**Manualer sedan v19.0:** SK-LJS-EFF-0025 (översatt från tillverkarens engelska), SK-LJS-DMX-0019 (svensk snabbguide, 6 sidor) och de reserverade EFF-0023 (6-i-1 Moving Head, med lasersäkerhet) och EFF-0024 (LED Bar 9×RGBW).",
             "Manualer namnges efter **paketets** artikelnummer, inte armaturens — se Dok 2 §7.",
             "**Spec-docx genereras av `spec_builder.py` + `spec_doc1–6.py`** (python-docx). Ramverk och innehåll ligger i samma uppsättning filer så att en enskild paragraf kan ändras och alla sex dokument byggas om med ett kommando.",
             "**Markdown-versionerna i projektet byggs av samma generator** sedan 2026-10-17: `python3 spec_builder.py <utkatalog> --md` skriver `.md` bredvid `.docx`. Tidigare konverterades de för hand, och projektets textversioner kunde glida från docx-filerna.",
@@ -343,6 +367,11 @@ DOC5 = dict(
         ("h1", "8. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.1", "2026-11-23",
+             "§1 NETLIFY_BUILD_HOOK och Node 24. §3.1 kryssrutan utländsk företagskund. Ny §3.3.1 momsfri utländsk "
+             "företagskund (moms.cjs, NON-VAT INVOICE, momsreg.nr, låsning). §3.5 nytt bygge efter innehållsändring, "
+             "recensioner live. §6.2 push via GitHub-kopplingen; bundle-vägen via VM:en stängd. Ny §6.5 Node 24, "
+             "Astro 5.18, audit-regler. §7 manual_generator i repot är originalet, nya manualer."],
             ["v19.0", "2026-10-18",
              "§3.5 not om sparad topplistrad som inte syns (uppslaget, inte admin). §6.2 pushreceptet från molnet steg för steg."],
             ["v18.4", "2026-10-18",

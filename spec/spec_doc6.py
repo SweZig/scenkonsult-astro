@@ -3,8 +3,8 @@ DOC6 = dict(
     slug="Lardomar_Roadmap",
     title="Lärdomar & Roadmap",
     subtitle="Build-buggar, CSS-mönster, felsökning, backlog, öppna punkter, versionshistorik",
-    version="v19.0",
-    date="2026-10-18",
+    version="v19.1",
+    date="2026-11-23",
     blocks=[
         ("h1", "1. Arbetssätt"),
         ("p", "Implementera → build-verifiera → safety check → commit → push → Netlify auto-deploy "
@@ -77,6 +77,9 @@ DOC6 = dict(
             "**Samma uppgift på flera ställen glider isär.** Öppettiderna stod på fyra olika sätt (specen, JSON-LD, kontaktsidan, Google-profilen), och bolagsnamnet i tre varianter. Välj en källa (`site.json`, Google-profilen för tider) och låt resten läsa därifrån.",
             "**ChatGPT hämtar betyg och företagskort från Google-profilen** — den syns direkt i svaren. Utfall 2026-10-02: Scenkonsult först på \"ljud, ljus och scen till 100 personer\" men utanför topp 5 på \"hyra högtalare\".",
             "**Mät upprepbart:** samma fasta frågor varje månad (schemalagt uppdrag, Dok 3 §7). Enskilda AI-svar varierar; trenden är det som säger något.",
+            "**AI läser den sida som verkar svara på frågan — och tar den bokstavligt (2026-11-02).** ChatGPT svarade på \"hyra högtalare till fest\" med Event-serien (tal, utan subwoofer) och placerade Scenkonsult sist. En sida ska säga i ingressen vad den **inte** är till för och länka dit kunden ska (\"Ska det dansas?\" → Music). Samma sak i llms.txt.",
+            "**Verktygen byter index.** Webbsökets standardläge gav 2026-11-02 helt andra träffar än tidigare mätningar; utökat läge gav jämförbara siffror. Byt inte metod mitt i en serie utan att notera det.",
+            "**Mätningen 2026-11-02:** fråga a (fest 100 pers.) #1 för tredje gången, b (högtalare) #5 med fel serie, c (bröllops-DJ) #4 med bröllopsguiden som källa; Claude-sök 10 av 14; varumärkessökningen visar bara egna sidor. Studentflak, karaoke och engelska syns inte.",
         ]),
         ("h2", "6.3 Omdesign utan att tappa i sök (NY 2026-10-18)"),
         ("ul", [
@@ -137,9 +140,9 @@ DOC6 = dict(
             "**Kvarlämnat `index.lock`.** Raderingar är avstängda i kopplade mappar tills användaren beviljar det — **per session**. Git skapar och raderar själv låsfiler, så utan rättigheten lämnar `commit`, `pull`, `stash` och även `git status` (som uppdaterar indexet) ett `.git/index.lock` efter sig, och git i PowerShell vägrar sedan köra. Det är alltså inte löst, bara villkorat.",
         ]),
         ("note", "**Praxis sedan 2026-10-02:** kör inte git i den monterade arbetskopian alls från en "
-                 "molnsession. Push går från en färsk klon i VM:ens hemkatalog (Dok 5 §6.2), "
-                 "byggverifiering från en klon i molnet. Då behövs ingen raderingsrättighet och "
-                 "arbetskopian rörs aldrig."),
+                 "molnsession. Bygge, test och push görs från en klon i molnet — sedan 2026-11-23 pushad "
+                 "via GitHub-kopplingen, eftersom VM:en inte längre släpper igenom push (Dok 5 §6.2). Då "
+                 "behövs ingen raderingsrättighet och arbetskopian rörs aldrig."),
         ("note", "**Kvar gäller att bygget inte kan verifieras i den monterade mappen** — `node_modules` "
                  "där är installerat för Windows. Molnsessioner klonar repot separat i stället "
                  "(`--depth 1 --filter=blob:none` + sparse-checkout, ~26 s till verifierat bygge). "
@@ -211,6 +214,24 @@ DOC6 = dict(
             "**Playwright: den senast registrerade `route` vinner.** En generell mock registrerad efter en specifik dolde den specifika.",
         ]),
 
+        ("h2", "7.9 Lärdomar 2026-10-19 – 2026-11-23 (NY)"),
+        ("ul", [
+            "**En pushväg som fungerade i går kan vara stängd i dag.** Bundle-via-VM fungerade i sju veckor och nekades 2026-11-23 med ett tydligt felmeddelande. GitHub-kopplingen från molnet fungerade direkt. Pröva den dokumenterade vägen först, men läs felet — det sa vad som var tillåtet.",
+            "**Ett fast paketpris med inbakad frakt glider när frakten ändras i admin.** Leveranspriserna höjdes 2026-11-23 och LED-väggen på tross blev 500 kr dyrare i korgen än på sidan. Testet fångade det, men Netlify kör inte testerna och admin-ändringar går rakt till `main`. Beslut: kontrollera paketet för hand vid varje fraktändring (Dok 2 §5).",
+            "**Reservvärden är dold hårdkodning.** `leverans?.storbil?.pris ?? 2000` i prisguiden gjorde ingen skada — tills någon läser koden och tror att 2 000 är priset. Har värdet en källa: läs den rakt av och låt bygget falla om den saknas.",
+            "**Summor i löptext glider ännu lättare än priser.** Bröllopsguidens \"räkna totalt 1 500–3 000 kr\" stämde inte ens före fraktändringen — mellanpaket, mygga och leverans blev redan då 3 398 kr. Räkna spann ur datan, avrunda till hundratal.",
+            "**Statiska sidor och en admin som skriver till databasen behöver en bro.** En recension syntes på /referenser/ (hämtas live) men inte på startsidan (inbakad) förrän nästa bygge. Lösningen blev två delar: live-hydrering där det syns, och ett bygge via build hook efter varje sparning.",
+            "**Ett ärende utan produkter är ett halvt ärende.** Svens kort i Inkommen saknade nästan alltid produkter, eftersom taggarna låg i ett tidigare svar än det som skapade kortet. Läs hela samtalet, inte senaste svaret.",
+            "**Filtrera på en flagga, aldrig på artikelnumrets siffror.** Rök & pyro och Stativ & tross valde styrenheter med nummerintervall; MA2 (DMX-0011) hamnade fel. `styrenhet: true` löste det (Dok 2 §6.2).",
+            "**Läs tillverkarens manual misstroget och jämför språkversionerna.** \"LS\" i en tysk manual var \"Laser\" i den engelska — Kaleidoskopet i Ljuspaket Small+ har alltså laser. Kanaler kan vara inverterade, adressintervall motsäga sig själva och knappar vara feltryckta. Skriv ut avvikelsen i manualen i stället för att gissa.",
+            "**iOS ritar vissa tecken som emoji.** ↗ ⚠ ℹ ⚙ blev färgade emojis i Safari. U+FE0E ger textvarianten; i menyn användes SVG.",
+            "**Balansera logotyper i filen, inte i CSS.** Med en gemensam duk där märkets storlek är optiskt avvägd håller balansen i alla layouter. CSS-regler per logotyp (`tall`, procentgränser) behövde justeras om för varje ny rad.",
+            "**Räkna kolumner ur antalet.** Tolv logotyper i åtta kolumner gav 8 + 4. `LOGO_KOLUMNER` väljer det som ger fulla rader.",
+            "**En CSS-regel för versaler vann på specificitet** i mobilmenyn och gjorde underraderna till versaler. Kontrollera beräknad stil (`getComputedStyle`), inte bara källan.",
+            "**Uppgradera en major i taget och jämför hela bygget.** Astro 4 → 5 gick utan kodändring och verifierades sida för sida (SEO-fält, sitemap, robots, llms.txt). `npm audit fix --force` hade bytt flera majors på en gång.",
+            "**En meny som visar 8 av 23 guider gömmer innehåll som redan rankar.** När menyn fick plats för fler grupper blev det billigt att lyfta fram dem — FAQ:n och HDMI/SDI-guiden hade nästan inga interna länkar.",
+        ]),
+
         ("h1", "8. Verktyg & felsökning"),
         ("ul", [
             "**health-endpoint:** `GET /.netlify/functions/health` — öppen, läcker aldrig nyckelvärden. Rapporterar env-vars satta, Supabase-reachability, carts_query (namnger saknad kolumn). Första anhalten när admin strular.",
@@ -226,7 +247,8 @@ DOC6 = dict(
             "**DOCX-generering:** `spec_builder.py` + `spec_doc1–6.py` (python-docx) för specen; `docx`-js via Node för övrigt.",
             "**Recensioner:** Google Places API är borttaget (2026-10-02). Recensionerna underhålls manuellt i Supabase via /admin/recensioner/.",
             "**Sök efter läckta hemligheter i hela historiken:** `gitleaks git <spegelklon> --redact` (mirror-klon ~840 MB, ~20 s). Körning 2026-10-02 över 1 205 commits: bara Supabase anon-nyckel (publik per design) och Astros byggnycklar i gamla `dist/`-filer.",
-            "**Headless-test av sajten i molnet:** `npx serve dist` + Playwright med `executablePath: '/opt/pw-browsers/chromium'` (installera inte webbläsare). Mocka funktionsanrop med `page.route`.",
+            "**Headless-test av sajten i molnet:** `npx serve dist` (eller `npx astro preview`) + Playwright med `executablePath: '/opt/pw-browsers/chromium'` — finns den inte, `/usr/bin/google-chrome` (installera inte webbläsare). Mocka funktionsanrop med `page.route`. Skärmdumpa menyer genom att hovra över triggern och klippa ut övre delen.",
+            "**Verifiera live från molnet:** skalet når inte scenkonsult.se — använd WebFetch (cachar 15 min; byt URL eller fråga efter specifika element) eller den inbyggda webbläsaren.",
             "**Search Console URL-inspektion** kan köras i den inbyggda webbläsaren när användaren är inloggad. Den smala panelen gör att sökfältet öppnas via förstoringsglaset; klicka sedan i fältet innan du skriver.",
             "**Verifiera live utan att navigera:** i den inbyggda webbläsaren kan `fetch('/sida/?v='+Date.now(), {cache:'no-store'})` + `DOMParser` läsa flera sidor från samma origin i ett anrop — rubriker, antal rader, referenskort. `/admin/` är robots-spärrat och kan inte hämtas av webbhämtningsverktyg; användaren får kontrollera admin själv.",
             "**HTML-diff som kvitto på en flytt:** bygg en baslinje ur en ren klon, gör ändringen, bygg igen och jämför med whitespace normaliserat (`tr '\\n' ' ' | tr -s ' ' | sed 's/> *</>\\n</g'`). Noll rader = ren flytt. Ett CSS-bundle-hash i `<link>` är väntad brus.",
@@ -248,23 +270,26 @@ DOC6 = dict(
 
         ("h2", "9.2 Teknisk skuld & härdning"),
         ("ul", [
+            "**Astro 6–7 och kvarvarande audit-poster (NY 2026-11-17, backlog post 13).** Steg 1 (Astro 5.18) och Node 24 är gjorda. Steg 2 kräver ny Tailwind-koppling (väg A: Tailwind 3 via PostCSS rekommenderas). Ingen akut risk — sajten är statisk. Trigger: beslut, en Astro-punkt som träffar statiska byggen, eller när Astro 5 slutar få säkerhetsrättningar. `xlsx` kan bytas mot `exceljs` samtidigt.",
+            "**Emojis inne på sidorna (NY 2026-11-22).** Menyn är emojifri; ca 250 emojis finns kvar i guider, tjänstesidor, varukorg och order. Tas i en egen batch; admin rörs inte.",
+            "**`NETLIFY_BUILD_HOOK` (NY 2026-10-23).** Bygget efter innehållsändring kräver variabeln i Netlify. Kontrollera att den är satt — annars väntar ändringar i innehållsadmin på nästa push.",
             "**Global inline-JS på varje sida (NY 2026-10-18).** `Layout.astro` lägger ~100 kB inline-skript på varje sida (montering.cjs ~32 kB, Svens register ~26 kB, produktmodalen, frakt.cjs). Som externa, cachade filer slipper återkommande besökare ladda dem igen. Kräver försiktig test av varukorg och konfiguratorer.",
             "**Titlar längre än ~60 tecken (NY 2026-10-18).** Ett trettiotal titlar kapas i sökresultaten, oftast suffixet \"| Scenkonsult\". Sökorden står först, så effekten är liten; korta vid nästa titelgenomgång utan att byta sökord.",
             "**/sign/ har fem h1** (en per tillstånd). Sidan är noindex; låg prioritet.",
-            "**Göra GitHub-repot privat (parkerat 2026-10-02).** Inga hemligheter har läckt (gitleaks) och pre-commit-kontrollen skyddar framåt. Före bytet: koppla repot till Claude-sessionernas källor (annars faller molnklon och push), kontrollera Netlify-appens åtkomst och att `GITHUB_TOKEN` gäller just repot. Ta bort `public/manualer/README.md` från sajten (länkar till GitHub).",
+            "**Göra GitHub-repot privat (parkerat 2026-10-02).** Inga hemligheter har läckt (gitleaks) och pre-commit-kontrollen skyddar framåt. Före bytet: kontrollera att GitHub-kopplingen till Claude har åtkomst (molnklon och push går den vägen sedan 2026-11-23), kontrollera Netlify-appens åtkomst och att `GITHUB_TOKEN` gäller just repot. Ta bort `public/manualer/README.md` från sajten (länkar till GitHub).",
             "**Generera inventarielistorna ur repot (NY 2026-09-21).** Komponentlistan (Dok 1 §5.1), sidlistan (Dok 3 §2) och ortslistan blir fel inom en månad när de handskrivs. Ett litet skript som läser `src/components/`, `src/pages/` och `orter.json` och skriver tabellerna vore billigare än att korrigera dem i varje genomgång.",
             "**Flytta de fem äldre armatur-manualerna in i repots `manual_generator.py` (NY 2026-09-21).** `EFF-0004`, `DMX-0001`, `ROK-0006`, `EFF-0007`, `EFF-0008` finns bara i projektdokumentets kopia av generatorn.",
             "**Frontend-härdning:** tydlig felruta med \"Försök igen\" vid nätverksfel.",
             "**Migration-hygien:** rutin för `ALTER TABLE` när kod lägger till kolumner (§4.1).",
             "**Priser → JSON (uppskjutet):** hårdkodade priser i markup/meta/prosa går inte att datadriva rent. Trigger: prisbyte som går fel till kund, eller inför priskampanj.",
-            "**admin/index.astro (9 200+ rader):** dela upp i komponenter. Trigger: när det blir flaskhals att redigera.",
+            "**admin/index.astro (10 600+ rader):** dela upp i komponenter. Trigger: när det blir flaskhals att redigera.",
             "**hyra-bild-led-vagg (1 600 rader):** bryt ut LED-konfiguratorn.",
             "**Katalogkonsolidering:** `order-catalog-flat.json` vs `quote-catalog.json` — gemensam källa. Trigger: tredje konsument.",
             "**Admin-endpoints saknar tester — LÖST 2026-10-17.** `test/admin-innehall.test.cjs`, 29 kontroller, ingår i `npm test` (Dok 5 §3.5).",
             "**Hårdkodade tider — LÖST 2026-10-17.** Klockslagen hämtas ur site.json via `src/utils/hours.ts` (Dok 1 §9).",
             "**Utgångna produkter i Svens register och offertväljaren — LÖST 2026-10-17.** Tretton i registret (307 cart-ID:n kvar) och tretton i väljaren (350 poster kvar); `order-catalog-flat.json` behåller dem. Testet i `produktregister.test.mjs` kontrollerar nu åt båda hållen.",
             "**LjudLjusBuilder och KaraokeBuilder delar inte CSS (NY 2026-10-17).** Konfiguratorns stilar är kopierade med prefixet `llb-`. Kandidat för en gemensam fil. Trigger: en tredje byggare, eller en designändring som måste göras två gånger.",
-            "**Utvalda kunder → admin — LÖST.** `featured`-kolumnen och kryssrutan i /admin/referenser/ finns; kodlistan `FEATURED_CLIENT_NAMES` i `src/utils/clients.ts` är bara fallback. Posten står fortfarande som öppen i `claude/Teknisk_Skuld_Backlog.md`.",
+            "**Utvalda kunder → admin — LÖST.** `featured`-kolumnen och kryssrutan i /admin/referenser/ finns; kodlistan `FEATURED_CLIENT_NAMES` i `src/utils/clients.ts` är bara fallback.",
             "**FAQ-nyckelstandardisering — LÖST** (allt q/a, Dok 2 §8). Verifierat 2026-09-20: noll förekomster av question/answer.",
             "**`git rm --cached` på de genererade katalogfilerna — LÖST** 2026-09-20, tillsammans med `node_modules` och verktygscacherna (§7.3).",
         ]),
@@ -299,6 +324,10 @@ DOC6 = dict(
             "**Eventsidornas referensrad (NY 2026-10-18):** komponenten finns på bröllop, företagsfest, festival och studentflak men visar inget förrän det finns rader i /admin/referenscase/ för kategorin (konferens har rader).",
             "**Varukorg, order och signering** fick inte den fulla omdesignen 2026-10-18 — kundflödet testas. Gör en skiss när flödet är klart.",
             "**Google Ads:** lägg till annonsgrupper (Phrase Match), radera gamla svaga keywords. Importera GA4 conversion events när de börjar landa.",
+            "**Laserfrågan (NY 2026-11-13).** Kaleidoskopet i Ljuspaket Small+ (PAK-0020) har röd och grön laser (\"LS\" = laser), och den reserverade 6-i-1 Moving Head (EFF-0023) likaså. Avgör laserklass, publikriktning och vad produkttexten får säga innan EFF-0023 läggs upp; skärp laserskrivningen i PAK-0020-manualen. Notera spänning och effekt från märkskylten på EFF-0023 när den kommer.",
+            "**AI-synlighet (NY 2026-11-02):** bröllops-DJ — förmöte, musikplanering, längre speltid, namngivna DJ:er och en `Service` med `Offer` i JSON-LD på /hyra-dj/ och i bröllopsguiden; begär omindexering av /hyra-ljud/ i GSC (indexet har den gamla titeln utan \"högtalare\"); fler tredjepartsomdömen, överväg en Reco-profil.",
+            "**SK-BLD-0013 vid fraktändringar (NY 2026-11-23):** kontrollera paketets leveransrad och `monteringFast` för hand (Dok 2 §5).",
+            "**`Claude outputs/` (NY 2026-11-23):** gamla bundlar och docx-filer ligger kvar från bundle-vägen och rensas för hand.",
         ]),
         ("note", "**Avfört 2026-09-21:** `public/images/ljud/pp_ljud_tillbehor_DI-palmer.webp` låg "
                  "ospårad och refererades inte. Gammal produkt — filen är raderad."),
@@ -306,6 +335,13 @@ DOC6 = dict(
         ("h1", "10. Versionshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.1", "2026-11-23",
+             "Genomgång av 32 commits sedan v19.0 (plus admin-ändringar): menyn, installationssidan, momsfri utländsk "
+             "kund, recensioner live och build hook, Sven-korten, Astro 5 och Node 24, nya produkter, logotyperna, "
+             "Om oss, fraktändringen. §6.1 AI-mätningen 2026-11-02 och lärdomen om sidan som läses bokstavligt. §7.1 "
+             "push via GitHub-kopplingen. Ny §7.9 fjorton lärdomar. §8 Chrome-sökväg och live-verifiering från molnet. "
+             "§9.2 Astro 6–7, emojis på sidorna, NETLIFY_BUILD_HOOK, repot privat. §9.4 laserfrågan, AI-åtgärder, "
+             "SK-BLD-0013, Claude outputs."],
             ["v19.0", "2026-10-18",
              "Omdesignen av alla publika sidor. Nya §6.3 omdesign utan att tappa i sök, §6.4 extern synlighet, §7.8 lärdomar "
              "från omdesignen. §8 SEO-jämförelse och funktionstest i molnet. §9.2 global inline-JS, långa titlar, /sign/. "
@@ -354,12 +390,12 @@ DOC6 = dict(
         ("h1", "11. Dokumentstruktur"),
         ("table", [
             ["Dok", "Innehåll", "Version"],
-            ["Dok 1", "Grund & Design", "v19.0 (2026-10-18)"],
-            ["Dok 2", "Produkter & Data", "v19.0 (2026-10-18)"],
-            ["Dok 3", "Sidor & Navigation", "v19.0 (2026-10-18)"],
-            ["Dok 4", "Kommunikation", "v19.0 (2026-10-18)"],
-            ["Dok 5", "Order, Admin & Infra", "v19.0 (2026-10-18)"],
-            ["Dok 6", "Lärdomar & Roadmap (detta)", "v19.0 (2026-10-18)"],
+            ["Dok 1", "Grund & Design", "v19.1 (2026-11-23)"],
+            ["Dok 2", "Produkter & Data", "v19.1 (2026-11-23)"],
+            ["Dok 3", "Sidor & Navigation", "v19.1 (2026-11-23)"],
+            ["Dok 4", "Kommunikation", "v19.1 (2026-11-23)"],
+            ["Dok 5", "Order, Admin & Infra", "v19.1 (2026-11-23)"],
+            ["Dok 6", "Lärdomar & Roadmap (detta)", "v19.1 (2026-11-23)"],
         ]),
         ("note", "**Princip:** inget addendum-staplande. När en uppgift ändras — rätta den på plats i "
                  "rätt dokument och bumpa versionsraden. Repots `main` är alltid facit; specen "

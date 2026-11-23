@@ -3,8 +3,8 @@ DOC4 = dict(
     slug="Kommunikation",
     title="Kommunikation",
     subtitle="E-post (Resend/SES), DNS & DMARC, SMS (46elks), Sven-chatbot",
-    version="v19.0",
-    date="2026-10-18",
+    version="v19.1",
+    date="2026-11-23",
     blocks=[
         ("h1", "1. E-postsystem (Resend)"),
         ("h2", "1.1 Arkitektur"),
@@ -93,6 +93,10 @@ DOC4 = dict(
               "`Faktura_Kxxxx_<Kundnamn>.pdf` (ASCII) så att den går att hitta i inkorgen. "
               "Internkopian visar också **Offert skapad** (`carts.created_at` i Stockholmstid) och "
               "ledtiden i dagar fram till fakturan."),
+        ("p", "**Utländsk företagskund utan svensk moms (2026-11-02):** fakturamailet, offertmejlet och "
+              "orderbekräftelsen visar rätt belopp ur samma momsregel (`src/lib/moms.cjs`). Fakturan blir "
+              "NON-VAT INVOICE med kundens VAT-nummer, moms 0 % och lagtext på svenska och engelska. "
+              "Regeln och fälten: Dok 5 §3.3.1."),
 
         ("h1", "2. DNS-konfiguration"),
         ("h2", "2.1 SPF / DKIM"),
@@ -180,12 +184,14 @@ DOC4 = dict(
                  "netlify/functions/_products-generated.mjs\n"
                  "        ↓  import\n"
                  "netlify/functions/sven-chat.mjs"),
-        ("p", "`sven-chat.mjs` importerar exakt tre symboler: `CART_ID_LISTA`, "
-              "`PRODUKTER_OCH_PRISER` och `SVEN_FACTS` (modulen exporterar även `QUOTE_CATALOG`, som ingen "
-              "importerar). `buildSvenProducts` hoppar över `active: false` sedan 2026-10-17 — tretton "
+        ("p", "`sven-chat.mjs` importerar fyra symboler: `CART_ID_LISTA`, `PRODUKTER_OCH_PRISER`, "
+              "`SVEN_FACTS` och sedan 2026-11-17 `SVEN_PRODUKTER` — samma register som frontend, med namn "
+              "och pris per cart-ID, för ärendekorten (§4.2). Modulen exporterar även `QUOTE_CATALOG`, som "
+              "ingen importerar."),
+        ("p", "`buildSvenProducts` hoppar över `active: false` sedan 2026-10-17 — tretton "
               "utgångna produkter låg tidigare i registret, bl.a. PAK-0004 under sluggen `ljus-medium`. "
-              "Byggkörningen efter filtret gav **307 cart-ID:n** (320 före, 317 den 2026-10-02), "
-              "180 produktrader, 361 poster i QUOTE_CATALOG och 72 rader i SVEN_FACTS. Siffrorna ändras "
+              "Byggkörningen 2026-11-23 gav **312 cart-ID:n** (307 den 2026-10-17), 176 produktrader, "
+              "368 poster i QUOTE_CATALOG och 72 rader i SVEN_FACTS. Siffrorna ändras "
               "med sortimentet — läs dem ur bygget (`generate-products.mjs` skriver ut dem), inte härifrån."),
         ("p", "**SVEN_FACTS** byggs ur `site.json` och `tjanster.json`: kontaktuppgifter med öppettider "
               "ur `company.openingHours` (\"mån–fre 09:00–17:00, lör–sön 12:00–15:00\" sedan "
@@ -213,6 +219,13 @@ DOC4 = dict(
               "som kör `skCart.add()`; vidarekoppling via `[FORWARD:offert|ring|fraga]`. "
               "Teatermask-ikon växlar via regex. Inaktivitets-popup 40 s → badge, +8 s → auto-öppnar. "
               "Betyg 1–5 ★ efter 2 svar. Loggning via `SVEN_LOG:{JSON}`."),
+        ("note", "**Ärendekorten får med produkterna (2026-11-17).** Kortet i Inkommen skapades tidigare med "
+                 "`items: []` när Sven lovade uppföljning, och FORWARD-knappen tog bara med taggarna i sitt "
+                 "eget svar — men Sven taggar nästan alltid produkterna i ett tidigare svar, så de flesta "
+                 "kort saknade produkter. Nu samlar `sven-chat` alla `[CART:]`-taggar i samtalet, slår upp "
+                 "namn och pris i `SVEN_PRODUKTER` och lägger dem på kortet. Ett befintligt kort i Inkommen "
+                 "fylls på när nya taggar kommer, **aldrig efter att admin tagit det**. Widgetens "
+                 "FORWARD-knapp tar med taggar från hela samtalet. Test: `test/sven-kort-produkter.test.mjs`."),
         ("note", "**Kontaktkrav före vidarekoppling (2026-07-20):** Sven avger inte `[FORWARD]` förrän "
                  "kunden uppgett namn + minst en kontaktväg (e-post eller telefon). Obligatoriskt block "
                  "i systemprompten."),
@@ -232,6 +245,9 @@ DOC4 = dict(
         ("h1", "5. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.1", "2026-11-23",
+             "§1.7 momsfri utländsk företagskund i mailen. §4.1 SVEN_PRODUKTER importeras, 312 cart-ID:n. "
+             "§4.2 Svens ärendekort får med produkterna ur hela samtalet."],
             ["v19.0", "2026-10-18",
              "§4.2 Fråga Sven-knappar med data-sven-oppna och skyddet mot dubbla lyssnare. Inga svarstidslöften på sajten."],
             ["v18.5", "2026-10-18",

@@ -3,8 +3,8 @@ DOC1 = dict(
     slug="Grund_Design",
     title="Grund & Design",
     subtitle="Repo, stack, designsystem, bildkonventioner, layout, komponenter, företagsdata",
-    version="v19.0",
-    date="2026-10-18",
+    version="v19.1",
+    date="2026-11-23",
     blocks=[
         ("h1", "1. Repo, stack & deploy"),
         ("table", [
@@ -12,7 +12,8 @@ DOC1 = dict(
             ["Repo", "github.com/SweZig/scenkonsult-astro"],
             ["Live", "https://scenkonsult.se/"],
             ["Deploy", "Netlify — auto vid push till main (~2 min)"],
-            ["Stack", "Astro 4 (SSG) + Tailwind CSS 3 + JSON-datafiler + Netlify Functions + Supabase"],
+            ["Stack", "Astro 5 (SSG) + Tailwind CSS 3 (via `@astrojs/tailwind`) + JSON-datafiler + Netlify Functions + Supabase"],
+            ["Node", "24 på Netlify (`netlify.toml → NODE_VERSION`, sedan 2026-11-17 — Node 20 fick inga säkerhetsuppdateringar efter 2026-04-30). Kör samma major lokalt"],
             ["Tjänster", "Resend (e-post) · 46elks (SMS) · Anthropic API (Sven) · GA4 + GSC"],
             ["Repo lokalt", "C:\\Users\\psigv\\Projects\\scenkonsult-astro"],
         ]),
@@ -57,17 +58,16 @@ DOC1 = dict(
         ("table", [
             ["Miljö", "Används till"],
             ["Windows / PowerShell", "Normal arbetsväg: redigering, build, git, push"],
-            ["device_bash (Cowork-VM på datorn)", "Läsa, söka, redigera och konvertera filer i den monterade repo-mappen. **Git i den monterade arbetskopian bara om raderingsrättighet beviljats i sessionen** — annars lämnar även `git status` ett `.git/index.lock` efter sig (Dok 6 §7.1). Push sker från en färsk klon i VM:ens hemkatalog"],
-            ["Cowork-molncontainer", "Klonar repot separat (`--depth 1 --filter=blob:none` + sparse-checkout) för att verifiera bygget, ~26 s från ingenting till verifierat bygge. **Kan inte pusha** — git-proxyn injicerar inga credentials för repot (verifierat 2026-10-02)"],
+            ["device_bash (Cowork-VM på datorn)", "Läsa, söka, redigera och konvertera filer i den monterade repo-mappen. **Git i den monterade arbetskopian bara om raderingsrättighet beviljats i sessionen** — annars lämnar även `git status` ett `.git/index.lock` efter sig (Dok 6 §7.1). **Kan inte längre pusha** (2026-11-23): VM:en släpper bara igenom clone, fetch och nedladdningar från GitHub"],
+            ["Molnsessionen (Claude)", "Klonar repot separat för att bygga, testa och jämföra. **Pushar via GitHub-kopplingen** (2026-11-23): repot läggs till i sessionen med skrivrättighet, klonas, och `git push origin HEAD:main` går igenom. Utan kopplingen nekar git-proxyn (så var det 2026-10-02). Dok 5 §6.2"],
         ]),
-        ("note", "**Push från en molnsession (2026-10-02):** färdiga commits paketeras som `git bundle` "
-                 "och skrivs till `Claude outputs/` (gitignorerad). I datorns VM klonas repot färskt i "
-                 "VM:ens hemkatalog, bundlen hämtas in och pushas med PAT:en ur `.secrets/gh-pat.txt` "
-                 "inläst i en variabel. Den lokala arbetskopian rörs aldrig. Klonen i hemkatalogen "
-                 "raderas efteråt, men **bundlarna blir kvar i `Claude outputs/`** — VM:en får inte "
-                 "radera i den monterade mappen utan beviljad rättighet. Rensa mappen för hand då och då. "
-                 "Byggverifiering i VM:en är inte praktiskt — `npm ci` där tar flera minuter för 72 MB. "
-                 "Blir repot privat måste det kopplas till Claude-sessionernas källor först (Dok 6 §9.4)."),
+        ("note", "**Push från en molnsession (omskrivet 2026-11-23):** bundle-vägen via datorns VM "
+                 "(2026-10-02 – 2026-11-22) fungerar inte längre — VM:en nekar `git push` med 403. "
+                 "Pushen går i stället från molnsessionen via GitHub-kopplingen: repot läggs till med "
+                 "skrivrättighet, commits görs i den klonen och `git push origin HEAD:main` körs efter "
+                 "kontroll att `origin/main` inte flyttat sig. Ingen PAT behövs i molnet, och den lokala "
+                 "arbetskopian rörs aldrig. Gamla bundlar ligger kvar i `Claude outputs/` och rensas "
+                 "för hand. Blir repot privat måste kopplingen ha åtkomst till det (Dok 6 §9.2)."),
         ("note", "**Bygget kan inte verifieras i den monterade mappen från molnsessionens sida** — "
                  "`node_modules` där är installerat för Windows. Därför molnklonen. "
                  "Den tidigare regeln \"kör aldrig git från device_bash\" är upphävd: "
@@ -131,6 +131,11 @@ DOC1 = dict(
         ]),
         ("note", "**Inga emojis som ikoner** i den nya designen. Rubrikens kursiva del skrivs som "
                  "`<em>` (färgas lavendel av komponenterna) — texten i h1 ändras inte av designen."),
+        ("ul", [
+            "**Menyn är emojifri sedan 2026-11-22** (dator och mobil). Telefon och varukorg i menyn är SVG-ikoner — `Tel` har propen `ikon`, ikonerna klassen `sk-ikon`.",
+            "**Tecken som iOS ritar som emoji** — ↗ ⚠ ℹ ⚙ — får textvarianten U+FE0E på kundsidor, i Sven-widgeten och i `.btn-ghost-link`. I faktaraden blev ↗ i stället → som i övriga rutor.",
+            "**Kvar:** ca 250 emojis inne på sidorna (guider, tjänstesidor, varukorg, order) tas i en egen batch; admin rörs inte (Dok 6 §9.2).",
+        ]),
 
         ("h1", "3. Bildkonventioner"),
         ("h2", "3.1 Filnamn"),
@@ -179,13 +184,15 @@ DOC1 = dict(
               "varenda filnamn pekat på fel produkt efter omstruktureringen — Small blev Medium, och "
               "Small-namnet gick till en helt annan armatur."),
 
-        ("h2", "3.3 Kundlogotyper"),
-        ("p", "En fil per kund i `public/images/kunder/`, namngiven `logo_{kund}.webp`."),
+        ("h2", "3.3 Kundlogotyper (omskrivet 2026-11-22)"),
+        ("p", "En fil per kund i `public/images/kunder/`, namngiven `logo_{kund}.webp`. **Listan och "
+              "ordningen står i `src/utils/clients.ts → KUNDLOGOTYPER`** och används av startsidan, "
+              "/referenser/ och `KundRad` (om oss, företagsfest, konferens och ortssidorna)."),
         ("ul", [
-            "**Transparent WebP i lavendel #c4b5f4**, tightbeskuren till logotypens bounding box.",
-            "**Ramen ritas i CSS** — `rounded-xl border border-brand-orange/40` — aldrig i bilden. Då skalar ramen rent och en enskild logotyp kan bytas utan att övriga rörs.",
-            "Renderas ur `clientLogos`-arrayen i `referenser/index.astro`; `img` får `max-h-[58%] max-w-[82%] object-contain` i en cell med fast höjd.",
-            "**Fältet `tall`** (2026-10-03): höga märken — rundlar och sköldar, som UF och German Beer Hall — får `max-h-[92%]` i stället för 58 %, annars blir de frimärken bredvid de liggande logotyperna.",
+            "**Gemensam duk 260×127, transparent WebP i lavendel #c4b5f4.** Märkets storlek är optiskt balanserad **i själva filen**, så balansen håller i alla layouter (referenser, startsidan, KundRad, mobil). Därför har alla poster `tall: true` och samma `w`/`h`. En ny logotyp görs på samma duk — annars bryts balansen.",
+            "**Ordningen växlar** kompakta och breda märken. Tolv logotyper sedan 2026-11-21: ICA, Hornbach, Hard Rock Café, TikTok, Houdini, German Beer Hall, foodora, EY, Tele2, UF, ABG Sundal Collier, Hacksaw Studios. `logo_mdu.webp` ligger kvar i mappen men används inte.",
+            "**Fulla rader:** `LOGO_KOLUMNER` väljer 8, 6 eller 4 kolumner — det som ger fulla rader — annars 6. Med tolv logotyper blir det 6 + 6 (var 8 + 4).",
+            "**Ramen ritas i CSS** där den används, aldrig i bilden.",
         ]),
         ("note", "Bannern ersatte 2026-09-18 en sammansatt rasterbild (`logos.webp`) där ramarna var "
                  "inbrända i pixlarna. De sju ärvda logotyperna är nyckade ur den bilden och begränsas "
@@ -206,14 +213,15 @@ DOC1 = dict(
             "**Nav:** `height: 130px` (100 px mobil), glassmorphism mörk `rgba(12,10,36,0.97)`, fast position",
             "**Logo:** `logo-white.png` 120 px desktop / 58 px mobil. `.logo-c { display:none !important }` — ta ALDRIG bort `!important`",
             "**Nav-offset:** `--nav-offset: calc(36px + 130px)` = 166 px",
-            "**Top-level nav (desktop, vänster→höger):** Logo → Tjänster (dropdown) → Kunskap (dropdown) → Kontakta oss → `margin-left:auto` → Telefon → Varukorg",
+            "**Toppnivå (sedan 2026-11-22):** Logo → Tjänster → Event → Kunskap → Kontakta oss → Telefon → **Begär offert** (pill) → Varukorg",
         ]),
-        ("note", "Top-level nav är **Tjänster + Kunskap + Kontakta oss** (Kunskap tillagd i efterhand, "
-                 "specen rättad 2026-10-18). Kunskap-dropdownen leder till Svens Kunskapsskola och "
-                 "guiderna under /for/guider/; mobilmenyn har samma länkar."),
+        ("note", "**Menyn har en källa: `src/data/meny.ts`.** `Layout.astro` renderar både datorns "
+                 "megameny och mobilens dragspel ur den — ändra aldrig länkar direkt i `Layout.astro`. "
+                 "Innehåll och menyregel: Dok 3 §1."),
         ("ul", [
-            "**Dropdown Tjänster:** hover-aktiverad, 3-kolumns panel, `min-width:720px`, lavendel-rubriker, 2,5 s stängningsfördröjning",
-            "**Mobil:** hamburger med accordion. Varukorg-ikon till vänster om hamburger.",
+            "**Megamenyn** öppnas av hovring, tangentbordsfokus och första trycket på pekskärm, stängs 0,3 s efter att pekaren lämnat (var 2,5 s) och med Esc. Tjänster-menyn centreras mot navigeringen och hamnar aldrig utanför skärmen.",
+            "**Telefonnumret** döljs under 1 180 px så att navigeringen får plats.",
+            "**Mobil:** hamburger med dragspel per toppval, underrader i gemener. Tjänster fälls ut av sig själv ca 3 s efter att menyn öppnats — avbryts om kunden själv öppnat ett dragspel, scrollat i menyn eller stängt den. Kunskaps grupper är egna små dragspel (`details`). Dragspelen har `aria-expanded`/`aria-controls` och en kort intoning som stängs av vid `prefers-reduced-motion`.",
         ]),
 
         ("h2", "4.2 Padding-top för fast navbar"),
@@ -228,6 +236,11 @@ DOC1 = dict(
               "(första laddas direkt, övriga ur `data-src`). Under heron: faktarad, åtta kategorikort med "
               "snabbval, topplistan \"Våra mest bokade paket\", referensrad, omdömen, Så funkar det, film "
               "(YouTubeKlick med poster) och slutruta. Klasser med prefix `st-` i `index.astro`."),
+        ("ul", [
+            "**Faktaraden (2026-11-22):** samma pil → i alla rutor; \"100+ event per år\" länkar till /referenser/#eventfoton (sektionen har `id` och `scroll-margin` för den fasta menyn).",
+            "**Logoraden** fyller sina rader (`LOGO_KOLUMNER`, §3.3).",
+            "**Omdömena följer admin direkt** (2026-10-23): `src/scripts/recensioner-live.ts` hämtar `reviews-list` en gång per sidvisning, skriver antal och snitt i element med `data-rec-antal` / `data-rec-snitt` och byter omdömeskorten om live-listan skiljer sig från bygget. Används även av /en/, /referenser/ och /kontakt/ (Dok 5 §3.5).",
+        ]),
 
         ("h2", "4.4 Manifesto-bar"),
         ("p", "**Borttagen från startsidan 2026-10-18** — ersatt av faktaraden under heron. Klassen "
@@ -251,19 +264,19 @@ DOC1 = dict(
         ("p", "**Guide-sidor (`data-exkl`-attribut):** `<span data-exkl=\"599\">599</span> kr`. "
               "Den globala `applyVat()`-funktionen räknar om vid toggle (+25 %)."),
 
-        ("h2", "4.7 Crossfade-kort (omskrivet 2026-10-17)"),
-        ("p", "Ett kort kan visa **två till fyra bilder som växlar var 5:e sekund**. Används när ett "
+        ("h2", "4.7 Crossfade-kort (omskrivet 2026-10-17, utökat 2026-11-23)"),
+        ("p", "Ett kort kan visa **två till sex bilder som växlar var 5:e sekund**. Används när ett "
               "uppdrag berättas bäst av flera tagningar (översikt/detalj, före/under) utan att ta flera "
               "rutor i griden. Infört på eventgalleriet 2026-09-18 med två bilder, utökat till 3–4 "
               "2026-10-03. Dok 3 §4.2."),
         ("p", "**Data:** varje case i `event-cases.json` har en `images[]`-lista (Dok 2 §12). Antalet "
               "bilder styr allt — fälten `src2`/`alt2` och `more` finns inte längre. "
               "**Markup:** bildbehållaren får `relative`; varje bild får klass efter antalet: 1 = statisk, "
-              "2 = `sk-xfade-a` / `sk-xfade-b`, 3–4 = `sk-xfade-3` / `sk-xfade-4` med "
+              "2 = `sk-xfade-a` / `sk-xfade-b`, 3–6 = `sk-xfade-3` … `sk-xfade-6` med "
               "`animation-delay: i×5−1 s`. "
               "**CSS** i ett scopat `<style>`-block i samma fil: `.sk-xfade { position:absolute; inset:0 }`. "
-              "Två bilder: 10 s-cykel, synlig 0–45 %, övertoning 45–55 %. Tre–fyra bilder: 15 respektive "
-              "20 s, 5 s per bild med 1 s övertoning, `animation-fill-mode: backwards` så att bild 2–4 "
+              "Två bilder: 10 s-cykel, synlig 0–45 %, övertoning 45–55 %. Tre–sex bilder: 15–30 s, "
+              "5 s per bild med 1 s övertoning, `animation-fill-mode: backwards` så att bild 2–6 "
               "är dolda innan deras fördröjning löpt ut. "
               "`@media (prefers-reduced-motion: reduce)` stänger av animationen och låser bild 1."),
         ("note", "**Animera opacity, inte display.** Hover-zoomen ligger på `transform` och krockar "
@@ -314,15 +327,15 @@ DOC1 = dict(
               "Kompakta listor (`ProduktRader`) bär samma Product/Offer-mikrodata via `ErbjudandeMeta` "
               "— en ny produktlista utan mikrodata tappar data som Google läser."),
 
-        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-10-18 — 41 filer)"),
+        ("h2", "5.1 Komponentöversikt (verifierad mot repo 2026-11-23 — 41 filer)"),
         ("table", [
             ["Komponent", "Status / roll"],
             ["ModernHero.astro", "Hero på hubb-, produkt-, konfigurator- och eventsidor (~30). Props `bild` (eventfoto till höger, 7/5-grid) och `knappar` sedan 2026-10-18"],
             ["SidHuvud.astro", "**NY 2026-10-18.** Rubrikyta för text- och informationssidor: brödsmulor, eyebrow, h1 med kursiv del, ingress, knappar, slot. `mikrodata` ger BreadcrumbList för sidor som inte skickar breadcrumbs till Layout"],
             ["GuideLayout.astro", "**NY 2026-10-18.** Mall för alla guider och de två långguiderna: rubrikyta, textspalt, fast sidokolumn (innehållsförteckning ur h2:or, Fråga Sven-ruta, länk till sortimentet), slutruta"],
             ["KategoriKort.astro", "**NY 2026-10-18.** Hubbarnas fotokort per underkategori; läser `kortbild`, `kortNamn`, `serie` i datan och räknar från-pris och gästspann"],
-            ["TreSteg.astro", "**NY 2026-10-18.** Numrerade steg med slot för knappar"],
-            ["event/EventOmraden, EventPaket, EventChecklista, ProduktRader, EventFaq, SlutRuta, KundRad", "**NYA 2026-10-18.** Byggstenarna för För ditt event-sidorna; ProduktRader, EventFaq, SlutRuta och KundRad används även på ortssidor, konfiguratorsidor och informationssidor (Dok 3 §2)"],
+            ["TreSteg.astro", "**NY 2026-10-18.** Numrerade steg med slot för knappar; valfri `eyebrow` sedan 2026-11-13"],
+            ["event/EventOmraden, EventPaket, EventChecklista, ProduktRader, EventFaq, SlutRuta, KundRad", "**NYA 2026-10-18.** Byggstenarna för För ditt event-sidorna; ProduktRader, EventFaq, SlutRuta och KundRad används även på ortssidor, konfiguratorsidor och informationssidor (Dok 3 §2). SlutRuta har valfri huvudknapp sedan 2026-11-13; KundRad tar logotyperna ur `KUNDLOGOTYPER` med fulla rader (§3.3), rubriken bryts på max 16rem"],
             ["ErbjudandeMeta.astro", "**NY 2026-10-18.** Dold Product/Offer-mikrodata för kompakta produktlistor (samma fält som ProductCard)"],
             ["ProductCard.astro", "Produktkortet (§5, §3.2)"],
             ["CartButton.astro", "Köpknapp (pill)"],
@@ -347,6 +360,8 @@ DOC1 = dict(
             ["InlineEditor.astro", "Alt+E / ?edit=1"],
             ["CategoryHero.astro · SceneLinkCard.astro · layouts/ServiceLayout.astro", "**Raderade 2026-10-18** — oanvända efter omdesignen"],
         ]),
+        ("p", "**Utanför `src/components/`:** `src/data/meny.ts` (menyn, §4.1), `src/scripts/recensioner-live.ts` "
+              "(omdömen live, §4.3), `src/utils/clients.ts` (`KUNDLOGOTYPER`, `LOGO_KOLUMNER`, utvalda kunder)."),
         ("note", "**Den här listan är en inventarielista och blir inaktuell.** Den bör genereras ur "
                  "`src/components/` i stället för att handskrivas — se Dok 6 §9.2. "
                  "Crossfade-korten och logotypgriddet på /referenser/ är **inte** komponenter; de ligger "
@@ -381,7 +396,8 @@ DOC1 = dict(
             ["Tel", "072-448 10 00"],
             ["Besöks- / depåadress", "Grimstagatan 164, 162 58 Vällingby"],
             ["Fakturaadress", "Vinsta Skolgränd 4, 162 70 Vällingby"],
-            ["Grundat", "1986"],
+            ["Grundat", "1986 som DAV Produktion (Disco Audio Video Produktion) i **Mackmyra utanför Gävle** — inte i Vällingby. Historien står på /om-oss/ (Dok 3 §2.5)"],
+            ["Momsreg.nr", "SE559068493101 — står på alla fakturor (Dok 5 §3.3.1)"],
             ["Öppettider", "Mån–fre 09–17, lör–sön 12–15 — **samma som Google-profilen**. Källa: `site.json → company.openingHours` (`\"Mo-Fr 09:00-17:00, Sa-Su 12:00-15:00\"`), JSON-LD i `Layout.astro`. Läses även av llms.txt, Sven och kontaktsidans öppet/stängt-pill"],
             ["Telefon och helger", "**Telefon mån–fre 09–17.** Lör–sön 12–15 är **depåtider för hämtning och återlämning**; **kvällar och helger är telefonen endast jour** för kunder med pågående uthyrning; nya förfrågningar går via formulär eller varukorg (2026-10-11). Klockslagen hämtas sedan 2026-10-17 ur `site.json → company.phoneHours` och `openingHours` via `src/utils/hours.ts` — `telefon()`, `vardag()` och `helg()` med valen `lang` (sv/en), `kort` (09–17 eller 09:00–17:00) och `versal`. Kontakt, om-oss, bokningssida, order, studentflak, fyra guider, ortssidorna och /en/ använder den. Sidorna skriver egna meningar; bara tiderna är datadrivna. Sven och llms.txt läser fälten direkt, `weekendNote` bara Sven"],
             ["Serviceområde", "Hela Storstockholm"],
@@ -413,6 +429,13 @@ DOC1 = dict(
         ("h1", "10. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.1", "2026-11-23",
+             "§1 Astro 5 och Node 24. §1.3 push från molnet via GitHub-kopplingen; VM:en kan inte längre pusha. "
+             "§2.5 ikonregler (emojifri meny, U+FE0E, SVG i menyn). §3.3 kundlogotyperna omskrivna: KUNDLOGOTYPER, "
+             "gemensam duk 260×127, LOGO_KOLUMNER, tolv logotyper. §4.1 menyn ur meny.ts, toppnivå med Event och "
+             "Begär offert, stängning 0,3 s, telefon dold under 1 180 px, mobilens dragspel. §4.3 faktaraden, "
+             "logoraden, omdömen live. §4.7 crossfade 2–6 bilder. §5.1 TreSteg/SlutRuta/KundRad, filer utanför "
+             "components. §8 grundat i Mackmyra, momsreg.nr."],
             ["v19.0", "2026-10-18",
              "Omdesignen: ny §2.5 Design 2026 (gemensamma klasser), §3.2 produktbild på vit platta, §4.2 "
              "rubrikkomponenterna sköter nav-offset, §4.3 ny startsida, §4.4 manifesto borttagen, ny §4.9 "

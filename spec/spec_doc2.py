@@ -3,8 +3,8 @@ DOC2 = dict(
     slug="Produkter_Data",
     title="Produkter & Data",
     subtitle="JSON-arkitektur, artikelnummerprinciper, kategoriordning, konsolideringar, fraktflaggor",
-    version="v19.0",
-    date="2026-10-18",
+    version="v19.1",
+    date="2026-11-23",
     blocks=[
         ("h1", "1. JSON-first — ofravikligt"),
         ("note", "**Hårdkoda ALDRIG produkter i .astro-filer.** Allt produktinnehåll bor i "
@@ -26,8 +26,8 @@ DOC2 = dict(
             ["site.json", "Företagsdata (`company`: name, legalName, orgNr, openingHours …), globala texter (featuredClients BORTTAGET — se not nedan)"],
             ["scenes.json", "Scen-paket + tillbehör (tillbehor[])"],
             ["ljud.json", "Ljud: portable / event / music / live / mixers"],
-            ["ljus.json", "Ljus: paket (paketLayout + gruppen scenpaket, §6), effekter, rök/pyro, stativ/tross, dmx.tillbehor (bord i prisordning → splitter/förstärkare → kablar)"],
-            ["bild.json", "Bild: `products[]` (projektor, skärm, LED-trailer, LED-vägg på tross), `tillbehor[]`, `dukar[]` — **toppnivå-arrayer**, inte nästlade serier som i ljud.json (§12.4) — plus intro och categories[]"],
+            ["ljus.json", "Ljus: paket (paketLayout + gruppen scenpaket, §6), effekter, rök/pyro, stativ/tross, dmx.tillbehor (bord i prisordning → splitter/förstärkare → kablar). Styrenheter har `styrenhet: true` (§6.2)"],
+            ["bild.json", "Bild: `products[]` (projektor, skärm, LED-trailer, LED-vägg på tross), `tillbehor[]` (med `group`: signal, stativ, karaoke …), `dukar[]` — **toppnivå-arrayer**, inte nästlade serier som i ljud.json (§12.4) — plus intro och categories[]"],
             ["led-paneler.json", "LED-vägg-paneler"],
             ["dj.json", "DJ-paket + djProfiles"],
             ["dj-konkurrentdata.json", "Jämförelsedata DJ-guide"],
@@ -39,6 +39,7 @@ DOC2 = dict(
             ["event-cases.json", "Referenscasen och hubbarnas referensrader — **synkas från Supabase vid build**, committad fallback (§12)"],
             ["tjanster.json", "Tjänster + leverans/montering (inkl. `montering.modell`, §5.1)/tillägg/fakturaavgift/hyresdagar (§5.2)"],
             ["ljudtekniker.json", "Ljudtekniker-profiler"],
+            ["installation.json", "**NY 2026-11-13.** Sidan Projektering och fast installation: meta, rubrik, intro, chips, områden, projekt, process, helhet, lokaler, FAQ (Dok 3 §2.1)"],
             ["orter.json", "Orter för lokal SEO — 26 orter (Dok 3 §2.6)"],
             ["clients.json", "Referenskunder — synkas från Supabase vid build"],
             ["reviews.json", "Recensioner — synkas från Supabase vid build"],
@@ -135,6 +136,14 @@ DOC2 = dict(
                  "är inräknade (hårdvara + leveransraden + `monteringFast`). Där — och bara där — får texten säga "
                  "att leverans och montering är inräknade (\"Fast paketpris — … inräknade\"). Inget annat paket "
                  "får den formuleringen."),
+        ("note", "**Paketet följer inte fraktpriset automatiskt (beslut 2026-11-23).** Paketpriset är fast; "
+                 "leveransraden i `linkedServices` och `monteringFast` på panelraden är inskrivna belopp. "
+                 "Varukorgen prissätter däremot frakten ur `tjanster.json`. Höjs lätt lastbil i admin blir "
+                 "korgen dyrare än annonserat tills `linkedServices` och `monteringFast` justerats för hand. "
+                 "`produktregister.test` (\"komponenter summerar till annonserat pris\" och \"SK-LEV-0003 "
+                 "matchar tjanster.json\") fångar avvikelsen — men Netlify kör inte testerna. **Kontrollera "
+                 "SK-BLD-0013 vid varje fraktändring.** 2026-11-23: frakt 3 500 kr, montering 3 524 kr, "
+                 "summa 11 999 kr."),
         ("p", "**Beslut 2026-10-09.** Standardfordonen är alltid **Vanlig bil, Stor bil och Lätt "
               "lastbil**. Bil med släp (SK-LEV-0002) och Stor bil med släp (SK-LEV-0006) är **undantag**: "
               "de väljs aldrig automatiskt, visas aldrig kundvänt och kan bara väljas manuellt i admin. "
@@ -146,8 +155,14 @@ DOC2 = dict(
             ["skrymmande", "SK-LEV-0002", "Bil med släp — `undantag`, `ersattAv: storbil`", "2"],
             ["storbil_slap", "SK-LEV-0006", "Stor bil med släp — `undantag`, `ersattAv: lastbil`", "3"],
             ["lastbil", "SK-LEV-0003", "Lätt lastbil", "4"],
-            ["extern_lev", "SK-LEV-0007", "Lastbil — extern stad (LED-trailrarna)", "5"],
+            ["extern_lev", "SK-LEV-0007", "Transport — extern stad (LED-trailrarna; namnet var \"Lastbil — extern stad\" till 2026-11-23)", "5"],
         ]),
+        ("note", "**Leveranspriserna justerades 2026-11-23** i /admin/produkter/ — de flesta uppåt, transport "
+                 "från extern stad nedåt. Ingen sida behövde ändras: allt läser `tjanster.json → leverans`. "
+                 "Två dolda kopior hittades och togs bort samtidigt — reservvärden med gamla priser "
+                 "(`?? 2000`, `?? 3000`) i prisguiden och en fast totalsumma \"1 500–3 000 kr\" i "
+                 "bröllopsguidens FAQ, som nu räknas ur datan. `produktregister.test` underkänner en sida "
+                 "som skriver ett belopp bredvid `enkelresa`."),
         ("p", "**Motorn:** `src/lib/frakt.cjs` → `window.skFrakt` via `FraktEngine.astro`. Varukorgen, "
               "scenpaketkorten, scenkonfiguratorn och admins fraktförslag använder samma kod — **skriv "
               "aldrig en egen fraktregel i en sida.** Före 2026-10-09 fanns regelmotorn i tre kopior. "
@@ -166,7 +181,7 @@ DOC2 = dict(
         ("p", "**`forceLeverans` på produkterna (2026-10-17):** `lastbil` för Live XL (MUS-0008), Line "
               "Array Small/Medium/Large (MUS-0009–0011), LED-panelerna, Pipe & Drape komplett vagn "
               "(PD-0003) och de större scenstorlekarna; `extern_lev` för LED-trailrarna "
-              "(BLD-0006/0011/0012). LED-vägg i alla storlekar — även LED-vägg på tross — går alltid med "
+              "(BLD-0006/0017/0018; 0011/0012 är utgångna). LED-vägg i alla storlekar — även LED-vägg på tross — går alltid med "
               "lätt lastbil (`led-paneler.json → tillbehor.leverans_regel.fordon`). "
               "`ProductCard.astro` tar `bulky` + `forceLeverans`; `CartButton` har "
               "`data-force-leverans`."),
@@ -191,7 +206,7 @@ DOC2 = dict(
               "Produkter-flik behåller dem — innan dess föll de bort och LED-väggen blev 0 kr i admin."),
         ("table", [
             ["Radfält", "Betydelse"],
-            ["monteringFast (kr)", "Fast belopp, t.ex. LED-vägg på tross (SK-BLD-0013, 4 024 kr så att paketet blir 11 999 kr)"],
+            ["monteringFast (kr)", "Fast belopp, t.ex. LED-vägg på tross (SK-BLD-0013 — 3 524 kr sedan 2026-11-23, så att paketet blir 11 999 kr med frakten 3 500 kr; §5)"],
             ["assemblyMinutesTotal / assemblyBemanning", "Tid på plats och antal tekniker, satt av LED-sidan"],
             ["assemblyUnitQty", "Antal på raden som motsvarar **en** vägg. Fast belopp och LED-tid gäller per vägg — samma LED-paket två gånger räknades tidigare som en vägg"],
             ["monteringIngar: true", "Tillbehör vars tid redan ingår i väggen (processor, upphängning) — räknas 0 och varnar inte"],
@@ -268,6 +283,16 @@ DOC2 = dict(
                  "Indexbaserade uppslag (`products[0]`) pekade fel på fem guide- och eventsidor efter "
                  "omstruktureringen. Se Dok 6 §2.6."),
 
+        ("h2", "6.2 Ljuseffekter och ljusstyrning (NY 2026-11-23)"),
+        ("ul", [
+            "**`styrenhet: true`** markerar styrenheterna i `ljus.json` (DMX-0001–0005, 0011, 0019). Rök & pyro och Stativ & tross filtrerade tidigare på artikelnumrets siffror — det tappade MA2 (DMX-0011) på rök & pyro och la den bland kablarna på stativ & tross. Filtrera på flaggan, aldrig på nummerintervall.",
+            "**SK-LJS-DMX-0019 MA3 onPC med dator** (2 universum, 899 kr/dygn, ny 2026-11-20): grandMA3 onPC med MA:s DMX-key — boxen heter DMX-key, inte MA-nod. Upp till 4 096 parametrar; två universum ut direkt, fler via Art-Net/sACN med nod. Svensk snabbguide som manual.",
+            "**SK-LJS-DMX-0004** heter PC-mjukvara Art-Net/DMX, 699 kr.",
+            "**SK-LJS-EFF-0025 LED PAR, uppladdningsbar 6×18W RGBWA+UV** (ny 2026-11-20), volympris 1/4/8/16 st (299/275/262/250 kr). Batteritid ca 6 h RGBWA+UV, 8 h automatläge, 26 h enfärgat.",
+            "**SK-LJS-EFF-0005** är IP20, endast inomhus (stod IP65).",
+            "**EFF-0023/0024 är reserverade** för 6-i-1 Moving Head och LED Bar 9×RGBW; manualerna finns i `manual_generator.py`, produkterna är inte i sortimentet. 6-i-1-armaturen har **laser** — beslut om laserklass och publikriktning krävs innan den hyrs ut (Dok 6 §9.4). EFF-0020/0021 är reserverade för Kaleidoskop och Mini Spider styckvis.",
+        ]),
+
         ("h1", "7. Artikelnummerprinciper (NYTT AVSNITT 2026-09-21)"),
         ("p", "Format `SK-<KAT>-<TYP>-<NNNN>`, t.ex. `SK-LJS-PAK-0018`. Dessa regler styr hela "
               "sortimentet och är förutsättningen för att gamla ordrar och offerter ska gå att läsa om "
@@ -304,6 +329,9 @@ DOC2 = dict(
         ("ul", [
             "**200\" Valerion-duk (2026-10-15):** ny SK-BLD-0016 200\" Projektorduk Frontview, 3 799 kr/dygn, egen produktbild `pp_bild_200-duk.webp`. SK-BLD-0008 190\" Frontview `active: false` + `(utgått)`; SK-BLD-0009 190\" Rearview `active: false` (dold tills vidare). Dukgriden och Svens prislista filtrerar bort `active: false` — och sedan 2026-10-17 gör Svens cart-ID-lista och admins offertväljare det också (§2.1, Dok 4 §4.1).",
             "**Hubben sedan 2026-10-17:** den handkodade sektionen \"Populärast hos oss\" (tre artnos i sidans frontmatter) är ersatt av topplistan och referensraden ur databasen (§12, Dok 3 §6).",
+            "**LED-trailrar (2026-11-23):** SK-BLD-0017 Mobil LED-skärm 11 m² (23 999 kr) och SK-BLD-0018 21 m² (39 999 kr) ersätter 0011 (15 m²) och 0012 (28 m²), som är `active: false`. 7 m² (BLD-0006) har ny bild. Texterna på bildhubben, festival- och företagsfestsidan säger 11/21 m²; topplistan pekades om med `2026-11-23_bild_led_trailer_byte.sql`.",
+            "**Bildtillbehör (2026-11-23):** ACC-0030 Bärbar dator HP EliteBook 830 (500 kr, grupp `signal`) är datorn som hyrs till presentationer. ACC-0029 Bärbar dator ligger kvar **enbart för karaokebyggaren** (grupp `karaoke`) och visas inte på bild- eller tillbehörssidan. ACC-0031 Scenmonitor 27\" (580 kr). ACC-0032 HDMI-splitter 1×8 (850 kr) bredvid 1×4 och Pro 1×4 under Signal & distribution.",
+            "**Beskrivningar utan märke och modellbeteckning** där märket inte tillför något (PureTools-namnet borttaget ur splittrarna). Bildsidans listor filtrerar bort utgångna artiklar.",
         ]),
 
         ("h1", "10. Karaokebyggaren (NY 2026-10-05)"),
@@ -329,8 +357,8 @@ DOC2 = dict(
             "`{fran}` i `karaoke.json → metaTitle/metaDescription` ersätts vid bygget.",
             "**SK-KAR-PAK-0001–0006** är `active: false` + `(utgått)`. De ligger kvar för gamla "
             "ordrar; Sven och llms.txt tar bara med aktiva paket.",
-            "**Ny artikel SK-BLD-ACC-0029 Bärbar dator** (500 kr, `bild.json → tillbehor`, grupp "
-            "`signal`). Neutralt nummer — datorn hyrs även till presentationer.",
+            "**SK-BLD-ACC-0029 Bärbar dator** (500 kr, `bild.json → tillbehor`). Sedan 2026-11-23 i "
+            "grupp `karaoke` — bara byggaren använder den; datorn för presentationer är ACC-0030 (§9).",
             "**DJ-bord SK-DJ-0005** heter **\"Tekniker/DJ-bord\"** sedan 2026-10-13, både i karaoke- och ljud & ljus-byggaren (slug `dj-bord` oförändrad).",
             "**Snabbvalet Gala** använder 75\"-skärmen (2026-10-06) — det finns bara en 85\" i lager.",
             "**Karaokerabatt** (`builder.rabatt.steg`): 0–5 produkter 0 %, 6–8 5 %, 9–12 8 %, 13+ 10 %. "
@@ -399,12 +427,14 @@ DOC2 = dict(
             ["popular_groups", "id", "En grupp i topplistan: `category`, `rubrik` (tillfället), `gaster`, `lead`, `sort_order`, `active`"],
             ["popular_group_items", "(group_id, artno)", "Gruppens artiklar i ordning; `source` = `manual` | `data` (\"Fyll från bokningsdata\")"],
             ["event_cases", "id", "Ett uppdrag: `label`, `descr`, `tag`, `categories[]`, `sort_order`, `active`"],
-            ["event_case_images", "(case_id, src)", "Casets bilder i ordning, `alt`, `in_gallery`"],
+            ["event_case_images", "(case_id, src)", "Casets bilder i ordning, `alt`, `in_gallery`. Upp till sex bilder per case sedan 2026-11-23"],
             ["event_case_hub", "(case_id, category)", "Vad en hubb visar av caset: `image_src` (en av casets bilder), valfria `label`, `descr`, `alt`, `pos`"],
         ]),
         ("p", "Migrationer: `supabase/migrations/2026-10-17_content_curation.sql` (tabeller, RLS, "
               "seed), `…_etapp1_bild.sql`, `…_etapp2_referensrader.sql`, "
-              "`…_bild_montering_rattelse.sql`, `…_dj_och_ljudljus_topplista.sql`. RLS deny-all för `anon` och `authenticated`; "
+              "`…_bild_montering_rattelse.sql`, `…_dj_och_ljudljus_topplista.sql`, och därefter "
+              "`2026-10-18_startsida_kurering.sql`, `2026-11-13_installation.sql`, `2026-11-17_foodora.sql`, "
+              "`2026-11-23_bild_led_trailer_byte.sql` och `2026-11-23_gallerian_spegelboll.sql`. RLS deny-all för `anon` och `authenticated`; "
               "service-nyckeln går förbi."),
 
         ("h2", "12.2 Regler i modellen"),
@@ -425,6 +455,10 @@ DOC2 = dict(
         ("p", "Samma kontrakt som `generate-clients.mjs`: saknas env-variabler, svarar API:t fel eller "
               "är svaret tomt **behålls den committade filen** och bygget fortsätter. En hubbrad vars "
               "bild inte hör till caset hoppas över med en varning i byggloggen."),
+        ("p", "**Nytt bygge efter innehållsändring (2026-10-23).** En lyckad sparning i innehållsadmin "
+              "startar ett Netlify-bygge via `NETLIFY_BUILD_HOOK`, så att fallback-filerna och sidorna "
+              "följer databasen utan att någon pushar. Utan variabeln händer ingenting; ett fel i hooken "
+              "fäller aldrig sparningen (Dok 5 §3.5)."),
         ("note", "**Databasen först, push sedan.** Generatorn skriver om fallback-filen ur databasen vid "
                  "varje bygge. Committar man nytt innehåll i `popular.json` eller `event-cases.json` och "
                  "pushar innan raderna finns i Supabase, skriver deployen över filen med databasens "
@@ -452,13 +486,15 @@ DOC2 = dict(
               "varje hubbkategori finns i `popular.json`. Kontrollerna ligger i den filen — och inte i "
               "en egen — för att inte röra `package.json`."),
 
-        ("h2", "12.6 Kategorin start och konferens (NY 2026-10-18)"),
+        ("h2", "12.6 Kategorin start, konferens och installation (NY 2026-10-18)"),
         ("p", "Startsidans topplista och referensrad läses ur kurateringslagret: `popular.json` har "
               "grupper för `ljud`, `ljus`, `ljud-och-ljus` (par), `bild` och `konferens`; "
               "`event-cases.json → hub.start` ger startsidans referensrad. Eventsidorna läser "
               "`hub.brollop`, `hub.foretagsfest`, `hub.konferens`, `hub.festival` och "
               "`hub.studentflak` — de visas först när det finns rader i /admin/referenscase/ för "
-              "kategorin. Migration: `supabase/migrations/2026-10-18_startsida_kurering.sql`."),
+              "kategorin. Migration: `supabase/migrations/2026-10-18_startsida_kurering.sql`. "
+              "**Kategorin `installation`** (2026-11-13) ger installationssidans referensrad: German Beer Hall "
+              "Gallerian och Uppsala samt Ulvsunda idrottscentrum (`2026-11-13_installation.sql`)."),
         ("note", "**Topplistans artiklar måste ha en produktsida** (`src/lib/produkt-sidor.mjs`) — testet "
                  "kräver att varje rad kan länka till sitt kort. Mikrofoner utan egen sida föll därför "
                  "ur konferensgruppen 2026-10-18."),
@@ -478,6 +514,12 @@ DOC2 = dict(
         ("h1", "14. Ändringshistorik"),
         ("table", [
             ["Version", "Datum", "Ändring"],
+            ["v19.1", "2026-11-23",
+             "§2 installation.json, styrenhet-flaggan, bild.json-grupper. §5 leveranspriserna justerade 2026-11-23, "
+             "extern_lev heter Transport, LED-trailrarna 0017/0018, beslutet att SK-BLD-0013 kontrolleras för hand vid "
+             "fraktändring (frakt 3 500, montering 3 524). Ny §6.2 ljuseffekter och ljusstyrning (MA3 onPC, EFF-0025, "
+             "reserverade EFF-0023/0024 med laser). §9 nya LED-trailrar och bildtillbehör. §10 ACC-0029 bara för "
+             "karaoke. §12 upp till sex bilder per case, nya migrationer, bygge via build hook, kategorin installation."],
             ["v19.0", "2026-10-18",
              "§12.4 en serie kan ha flera listor (live.lineArray) — uppslaget tar alla. Ny §12.6 kategorin start "
              "och eventsidornas hubbrader, ny migration. Ny §12.7 kortbild/kortNamn/serie för KategoriKort."],
