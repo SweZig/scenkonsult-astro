@@ -105,6 +105,7 @@ export const EVENT_LANKAR: MenyLank[] = [
 /** Event, andra kolumnen: det man behöver när tillfället är bestämt */
 export const EVENT_PLANERA: MenyLank[] = [
   { namn: 'Konferensteknik', href: '/vara-tjanster/konferens-av/' },
+  { namn: 'Scenkonsult Konferens', href: '/vara-tjanster/konferens-av/scenkonsult-konferens/', nytt: true },
   { namn: 'Eventlokaler i Stockholm', href: '/guide-till-eventlokaler-i-stockholm/' },
   { namn: 'Minnesvärda fester', href: '/den-ultimata-guiden-till-minnesvarda-fester/' },
   { namn: 'Referenser', href: '/referenser/' },

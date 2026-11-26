@@ -1,0 +1,278 @@
+---
+/**
+ * Scenkonsult Konferens — vårt eget körverktyg för konferenser.
+ * Appen hyrs inte ut: den ingår när vår tekniker kör eventet och körs alltid
+ * av oss på plats. Skriv aldrig att kunden kan köra den själv.
+ * Skärmdumparna ligger i public/images/konferens-app/.
+ */
+import Layout from '../../../../layouts/Layout.astro';
+import ModernHero from '../../../../components/ModernHero.astro';
+import ProduktRader from '../../../../components/event/ProduktRader.astro';
+import EventFaq from '../../../../components/event/EventFaq.astro';
+import SlutRuta from '../../../../components/event/SlutRuta.astro';
+import KunskapBlock from '../../../../components/KunskapBlock.astro';
+import bildData from '../../../../data/bild.json';
+import tjansterData from '../../../../data/tjanster.json';
+
+const _alla: any[] = [
+  ...bildData.products,
+  ...bildData.tillbehor,
+  ...(tjansterData as any).services ?? [],
+];
+const p = (artno: string) => _alla.find((x) => x.artno === artno && x.active !== false);
+const rad = (artno: string, not: string, kategori: string) => ({ produkt: p(artno), not, kategori });
+
+const tillsammansMed = [
+  rad('SK-TJN-0002', 'Kör appen, ljudet och bilden hela dagen — minst 2 timmar', 'Tjänster'),
+  rad('SK-BLD-ACC-0031', 'Talarens scenskärm: bild, nästa bild, manus och klocka', 'Bild'),
+  rad('SK-BLD-ACC-0033', 'Fyra källor in, byten utan svart bild', 'Bild'),
+  rad('SK-BLD-ACC-0012', 'Clicker med ca 75 m räckvidd för stora salar', 'Bild'),
+];
+
+const nyttor = [
+  { vem: 'För arrangören', text: 'Hela dagen planeras i förväg, direkt i appen eller via vår Excelmall. Under dagen klickar vi bara vidare. Tidsschemat hålls, och ni ser alltid vad som händer härnäst.' },
+  { vem: 'För talaren', text: 'En egen scenskärm med bilden publiken ser, nästa bild, talarmanus och en stor klocka. Talaren kan titta upp, inte ner i en laptop.' },
+  { vem: 'För publiken', text: 'Inga tomma skrivbord på storbildsskärmen, inga letande muspekare. Mellan talarna visas er logga eller bakgrundsbild, och musiken tar över i övergångarna.' },
+];
+
+const funktioner = [
+  {
+    id: 'program',
+    rubrik: 'Hela dagens program på ett ställe',
+    text: 'Programmet läggs in direkt i appen eller importeras från vår Excelmall. Varje punkt kan ha en egen presentation eller film, från datorn eller OneDrive. När det är dags laddas nästa punkt med ett klick, och Start drar igång både bildspel och klocka.',
+    bild: { src: '/images/konferens-app/konferensapp_kontrollpanel.webp', w: 1440, h: 1198, alt: 'Kontrollpanelen i Scenkonsult Konferens med pågående och nästa programpunkt, nedräkning, PowerPoint-styrning, meddelanden till talaren och ljudknappar' },
+  },
+  {
+    id: 'meddelanden',
+    rubrik: 'Diskreta meddelanden till talaren',
+    text: 'Behöver talaren veta något? Teknikern skickar ett meddelande direkt till scenskärmen i tre nivåer: vitt för information, gult för ”dags att runda av”, rött och pulserande när det verkligen brådskar. Snabbknappar för de vanligaste meddelandena finns ett klick bort.',
+    bild: { src: '/images/konferens-app/konferensapp_meddelanden.webp', w: 1600, h: 312, alt: 'Tre meddelanden på scenskärmen under nedräkningen: vitt ”Dags för frågor”, gult ”5 minuter kvar” och rött ”Avsluta nu”' },
+    bred: true,
+  },
+  {
+    id: 'musik',
+    rubrik: 'Musik till varje entré',
+    text: 'Ljudpanelen har fem namngivna knappar för in- och utmarschmusik och jinglar. Musiken kan börja exakt där den ska i låten, ner på millisekunden, och tonas ut mjukt när talaren är på plats. Knapparna sorteras i den ordning dagen kräver.',
+    bild: { src: '/images/konferens-app/konferensapp_ljudpanel.webp', w: 1200, h: 407, alt: 'Ljudpanelen med fem knappar: Entré talare, Applåd ut, Pausmusik, Jingel och Avslutning, med startpunkt och volym' },
+  },
+  {
+    id: 'mobil',
+    rubrik: 'Styrs från mobilen',
+    text: 'Teknikern skannar en QR-kod och styr programmet från telefonen via det lokala nätverket. Det betyder att teknikern kan röra sig fritt i lokalen — vid scenen, i bakre delen av salen eller vid ljudbordet — och ändå ha full kontroll.',
+    bild: { src: '/images/konferens-app/konferensapp_mobil.webp', w: 700, h: 1192, alt: 'Scenkonsult Konferens i mobilen: pågående punkt, nästa punkt, knappen Nästa punkt och nedräkningen' },
+    smal: true,
+  },
+];
+
+const fler = [
+  { rubrik: 'Er logga mellan talarna', text: 'Med en knapp byter storbildsskärmen till en masterbild med er logga eller bakgrund. Publiken möts av ett genomtänkt uttryck i varje paus och övergång.' },
+  { rubrik: 'Klickern fungerar alltid', text: 'Talarens presentationsclicker styr bildspelet oavsett vilket fönster som är aktivt på datorn. En statusindikator visar att allt är redo.' },
+  { rubrik: 'Tre skärmar, tydliga roller', text: 'Storbildsskärmen för publiken, scenskärmen för talaren och datorns egen skärm som kontrollpanel. Utgångarna väljs fritt, HDMI eller USB-C.' },
+  { rubrik: 'Fungerar utan internet', text: 'Appen körs lokalt på en Windows-dator och behöver ingen uppkoppling. Lokalens wifi kan vara hur det vill — föreställningen fortsätter ändå.' },
+];
+
+const steg = [
+  { rubrik: 'Planera', text: 'Ni skickar programmet till oss, gärna i vår Excelmall, tillsammans med presentationer och filmer. Varje punkt får sin tid och sin fil.' },
+  { rubrik: 'Rigga', text: 'Vi kopplar in storbildsskärm, scenskärm, ljud och clicker. Allt testas innan publiken kommer.' },
+  { rubrik: 'Kör', text: 'Under dagen tar Nästa punkt och Start hand om övergångarna. Klockan, manus och meddelanden håller talarna på rätt spår.' },
+  { rubrik: 'Pausa snyggt', text: 'Mellan talarna visas er logga och musiken spelar. Publiken märker bara att allt flyter.' },
+];
+
+const faq = [
+  { q: 'Kan vi hyra Scenkonsult Konferens och köra den själva?', a: 'Nej. Appen hyrs inte ut separat — den ingår när vår tekniker kör er konferens och körs alltid av oss på plats. Ni betalar för tekniker och utrustning som vanligt, inte för appen.' },
+  { q: 'Vad behöver talarna skicka i förväg?', a: 'Presentationen som PowerPoint och eventuella filmer, i förväg. Talarmanuset hämtas ur anteckningarna i PowerPoint, så det talaren skrivit där syns på scenskärmen. Filer kan också hämtas från OneDrive.' },
+  { q: 'Behövs internet i lokalen?', a: 'Nej. Appen körs lokalt på en Windows-dator på plats, och mobilstyrningen går via det lokala nätverket — inte via internet. Lokalens uppkoppling påverkar alltså inte föreställningen.' },
+  { q: 'Vad är scenskärmen?', a: 'En skärm på scengolvet framför talaren, vänd bort från publiken. Den visar bilden publiken ser, nästa bild, talarmanus och en nedräkning som blir gul när tiden börjar ta slut och röd när den nästan är slut. Drar talaren över räknar klockan uppåt.' },
+  { q: 'Hur många talare och presentationer klarar den?', a: 'Hela dagens program ligger i appen, med en egen presentation eller film per punkt. Mellan punkterna visas er masterbild, så bytena syns aldrig för publiken.' },
+];
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Service',
+      name: 'Scenkonsult Konferens — konferensteknik med scenskärm, talarmanus och nedräkning',
+      serviceType: 'Konferensteknik med tekniker på plats',
+      provider: { '@type': 'LocalBusiness', name: 'Scenkonsult Norden', url: 'https://scenkonsult.se/' },
+      areaServed: 'Storstockholm',
+      description: 'Vårt eget körverktyg för konferenser: hela dagens program, scenskärm för talaren med nästa bild, manus och nedräkning, meddelanden till talaren, musik till entréer och er logga mellan talarna. Ingår när vår tekniker kör er konferens.',
+      url: 'https://scenkonsult.se/vara-tjanster/konferens-av/scenkonsult-konferens/',
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    },
+  ],
+};
+---
+<Layout
+  title="Scenkonsult Konferens — Scenskärm & Talarmanus | Scenkonsult"
+  description="Vårt körverktyg för konferenser: scenskärm med nästa bild, talarmanus och nedräkning, meddelanden till talaren, musik och er logga mellan talarna."
+  schemaExtra={pageSchema}
+>
+
+  <ModernHero
+    bild={{ src: '/images/event/kundevent_hilton_content_creation_scen.webp', w: 1050, h: 1400, alt: 'Konferenssal på Hilton Slussen med scen i scenkjol, talarpodium, kolumnhögtalare och stolsrader', text: 'Content Creation Conference — Hilton Slussen' }}
+    knappar={[{ label: 'Se hur det fungerar', href: '#scenskarm' }, { label: 'Begär offert', href: '/varukorg/' }]}
+    eyebrow="Konferensteknik · Ingår med vår tekniker"
+    h1="Scenkonsult Konferens —"
+    h1Accent="scenskärm, manus och klocka"
+    intro="Hela konferensdagen i ett verktyg: presentationer, scenskärm med nedräkning och talarmanus, musik till entréer och er logga mellan talarna. Vi har byggt det själva, och det ingår när vår tekniker kör er konferens."
+    breadcrumbs={[
+      { label: 'Hem', href: '/' },
+      { label: 'Våra tjänster', href: '/vara-tjanster/' },
+      { label: 'Konferensutrustning', href: '/vara-tjanster/konferens-av/' },
+      { label: 'Scenkonsult Konferens' },
+    ]}
+    chips={[
+      'Ingår med tekniker på plats',
+      'Scenskärm för talaren',
+      'Talarmanus & nedräkning',
+      'Fungerar utan internet',
+    ]}
+  />
+
+  <!-- SCENSKÄRMEN -->
+  <section id="scenskarm" class="sk-band kk-sektion">
+    <div class="kk-wrap">
+      <p class="sk-eyebrow">Scenskärmen</p>
+      <h2 class="sk-h2">Talaren ska kunna <em>titta upp, inte ner</em></h2>
+      <figure class="kk-stor">
+        <img src="/images/konferens-app/konferensapp_scenskarm.webp" srcset="/images/konferens-app/konferensapp_scenskarm-640w.webp 640w, /images/konferens-app/konferensapp_scenskarm.webp 1600w" sizes="(max-width: 1280px) 100vw, 1216px" width="1600" height="900" alt="Scenskärmen i Scenkonsult Konferens: aktuell bild, nästa bild, talarmanus och en stor grön nedräkning" loading="lazy" decoding="async" />
+        <figcaption>Det talaren ser på scenen — publiken ser bara bilden.</figcaption>
+      </figure>
+      <div class="kk-delad">
+        <p class="kk-ingress">Det är tanken bakom hela verktyget. Allt talaren behöver finns på scenskärmen framför dem: bild, nästa bild, manus och tid.</p>
+        <ul class="kk-lista">
+          <li><b>Aktuell bild</b> — precis som publiken ser den.</li>
+          <li><b>Nästa bild</b> — så att övergångar och poänger sitter.</li>
+          <li><b>Talarmanus</b> ur PowerPoints anteckningar. Textstorleken anpassas automatiskt, och teknikern kan scrolla.</li>
+          <li><b>Stor nedräkning</b> som blir gul när tiden börjar ta slut, röd när den nästan är slut, och räknar uppåt om talaren drar över.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- NYTTOR -->
+  <section class="kk-wrap kk-luft">
+    <p class="sk-eyebrow">Vad det ger</p>
+    <h2 class="sk-h2">Lugnare för <em>alla i rummet</em></h2>
+    <div class="kk-rutnat kk-tre">
+      {nyttor.map((n) => (
+        <div class="kk-ruta"><h3>{n.vem}</h3><p>{n.text}</p></div>
+      ))}
+    </div>
+  </section>
+
+  <!-- FUNKTIONER -->
+  <section class="sk-band">
+    <div class="kk-wrap kk-luft">
+      <p class="sk-eyebrow">Funktioner</p>
+      <h2 class="sk-h2">Så kör vi <em>er konferensdag</em></h2>
+      {funktioner.map((f, i) => (
+        <div id={f.id} class:list={['kk-funk', { 'kk-funk-bred': f.bred, 'kk-funk-smal': f.smal, 'kk-funk-vand': i % 2 === 1 && !f.bred }]}>
+          <div class="kk-funk-text">
+            <h3>{f.rubrik}</h3>
+            <p>{f.text}</p>
+          </div>
+          <figure class="kk-funk-bild">
+            <img src={f.bild.src} srcset={f.smal ? undefined : `${f.bild.src.replace(/\.webp$/, '-640w.webp')} 640w, ${f.bild.src} ${f.bild.w}w`} sizes={f.bred ? '(max-width: 1280px) 100vw, 1216px' : '(max-width: 900px) 100vw, 600px'} width={f.bild.w} height={f.bild.h} alt={f.bild.alt} loading="lazy" decoding="async" />
+          </figure>
+        </div>
+      ))}
+      <div class="kk-rutnat kk-fyra">
+        {fler.map((f) => (
+          <div class="kk-ruta"><h3>{f.rubrik}</h3><p>{f.text}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- SÅ FUNGERAR DET -->
+  <section class="kk-wrap kk-luft">
+    <p class="sk-eyebrow">Så fungerar det</p>
+    <h2 class="sk-h2">Fyra steg — <em>från program till paus</em></h2>
+    <ol class="kk-steg">
+      {steg.map((s, i) => (
+        <li><span>{String(i + 1).padStart(2, '0')}</span><h3>{s.rubrik}</h3><p>{s.text}</p></li>
+      ))}
+    </ol>
+  </section>
+
+  <ProduktRader
+    eyebrow="Ingår med tekniker"
+    rubrik="Appen kör vi — ni bokar tekniker och utrustning"
+    lead="Scenkonsult Konferens hyrs inte ut separat och körs alltid av vår tekniker på plats. Den kostar inget extra: ni betalar för tekniker och utrustning som vanligt. Leverans och montering tillkommer."
+    rader={tillsammansMed}
+    lankar={[{ label: 'Konferenspaketen', href: '/vara-tjanster/konferens-av/#paket' }]}
+  />
+
+  <EventFaq rubrik="Frågor om Scenkonsult Konferens" faq={faq} />
+
+  <SlutRuta rubrik="Klart för er nästa konferens?" text="Berätta om ert event så sätter vi ihop teknik, scen och Scenkonsult Konferens till ett paket som passar. Du pratar alltid med en människa som kan sitt jobb." />
+
+  <KunskapBlock
+    guides={[
+      { href: '/for/guider/konferens-av-checklista/', label: 'Konferens AV — checklista' },
+      { href: '/for/guider/hyra-projektor-pris/', label: 'Hyra projektor — pris' },
+      { href: '/for/guider/hyra-tradlos-mikrofon/', label: 'Hyra trådlös mikrofon' },
+    ]}
+    videos={[
+      { slug: 'kontakter-bild', label: 'Kontakter inom bild' },
+      { slug: 'hur-det-fungerar', label: 'Hur det fungerar att hyra hos oss' },
+    ]}
+  />
+
+</Layout>
+
+<style>
+  .kk-wrap { max-width: 80rem; margin: 0 auto; padding-left: clamp(1rem, 3vw, 2rem); padding-right: clamp(1rem, 3vw, 2rem); }
+  .kk-luft { padding-top: clamp(3rem, 6vw, 5rem); padding-bottom: clamp(3rem, 6vw, 5rem); }
+  .kk-sektion { scroll-margin-top: var(--nav-offset, 166px); }
+  .kk-sektion .kk-wrap { padding-top: clamp(3rem, 6vw, 5rem); padding-bottom: clamp(3rem, 6vw, 5rem); }
+  .sk-h2 em { font-style: italic; color: #c4b5f4; }
+
+  .kk-stor { margin: 2rem 0 0; }
+  .kk-stor img, .kk-funk-bild img { display: block; width: 100%; height: auto; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 24px 60px rgba(0,0,0,0.45); }
+  .kk-stor figcaption { margin-top: 0.75rem; font-size: 0.9rem; color: rgba(255,255,255,0.55); }
+
+  .kk-delad { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 3vw, 3rem); margin-top: 2.5rem; align-items: start; }
+  .kk-ingress { margin: 0; font-family: 'DM Serif Display', serif; font-size: clamp(1.35rem, 2.2vw, 1.75rem); line-height: 1.3; color: #fff; }
+  .kk-lista { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(255,255,255,0.09); }
+  .kk-lista li { padding: 0.9rem 0; border-bottom: 1px solid rgba(255,255,255,0.09); color: rgba(255,255,255,0.72); line-height: 1.55; }
+  .kk-lista b { color: #fff; }
+
+  .kk-rutnat { display: grid; gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden; margin-top: 2rem; }
+  .kk-tre { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kk-fyra { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: clamp(2.5rem, 5vw, 4rem); }
+  .kk-ruta { background: #0c0a24; padding: 1.5rem; }
+  .sk-band .kk-ruta { background: #110f30; }
+  .kk-ruta h3 { margin: 0 0 0.5rem; color: #fff; font-size: 1.1rem; font-weight: 700; }
+  .kk-ruta p { margin: 0; color: rgba(255,255,255,0.72); line-height: 1.6; }
+
+  .kk-funk { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; margin-top: clamp(2.5rem, 5vw, 4rem); scroll-margin-top: var(--nav-offset, 166px); }
+  .kk-funk-vand .kk-funk-text { order: 2; }
+  .kk-funk-bred { grid-template-columns: minmax(0, 1fr); }
+  .kk-funk-bred .kk-funk-text { max-width: 760px; }
+  .kk-funk-smal { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .kk-funk-smal .kk-funk-bild img { max-width: 320px; margin: 0 auto; }
+  .kk-funk-text h3 { margin: 0 0 0.6rem; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.5rem, 2.4vw, 1.9rem); line-height: 1.15; color: #fff; }
+  .kk-funk-text p { margin: 0; font-size: 1.02rem; line-height: 1.7; color: rgba(255,255,255,0.72); }
+  .kk-funk-bild { margin: 0; }
+
+  .kk-steg { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.75rem; }
+  .kk-steg span { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #c4b5f4; }
+  .kk-steg h3 { margin: 0.4rem 0 0.35rem; font-size: 1.2rem; font-weight: 700; color: #fff; }
+  .kk-steg p { margin: 0; line-height: 1.55; color: rgba(255,255,255,0.72); }
+
+  @media (max-width: 1000px) {
+    .kk-fyra, .kk-steg { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    .kk-delad, .kk-funk, .kk-funk-smal, .kk-tre { grid-template-columns: minmax(0, 1fr); }
+    .kk-funk-vand .kk-funk-text { order: 0; }
+  }
+  @media (max-width: 600px) {
+    .kk-fyra, .kk-steg { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
