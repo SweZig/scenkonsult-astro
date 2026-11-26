@@ -57,20 +57,24 @@ const faqSchema = {
 };
 
 const _low = (items: any[]) => Math.min(...items.filter((x: any) => x?.price).map((x: any) => x.price));
-const _heroFranExcl = _low((_ljudData as any).live.products);
+// Utgångna produkter (active:false) ligger kvar i datan för gamla ordrar men visas aldrig.
+const _aktiva = (items: any[] = []) => items.filter((p: any) => p?.active !== false);
+const _liveProdukter = _aktiva((_ljudData as any).live.products);
+const _lineArray = _aktiva((_ljudData as any).live.lineArray);
+const _heroFranExcl = _low(_liveProdukter);
 const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
 ---
 <Layout
   schemaExtra={faqSchema}
   title="Hyra Liveljud Stockholm – PA för Konsert, Liveband & Trubadur | Scenkonsult"
-  description="Hyr liveljud för konserter, trubadurer och liveband i Stockholm från 499 kr/dygn. Sub-basar och fullrange paket — Line Array Large täcker upp till 4 000 personer. Leverans i hela Storstockholm."
+  description="Hyr liveljud för konserter, trubadurer och liveband i Stockholm från 499 kr/dygn. Från trubadurpaket till line array från dB Technologies för upp till 1 500 personer. Leverans i hela Storstockholm."
 >
 
   <ModernHero
     eyebrow="Ljud · Konsert & liveband"
     h1="Liveljud för konsert & liveband i"
     h1Accent="Stockholm"
-    intro="Hyr liveljud för konsert, trubadur och liveband i Stockholm. Kraftfulla sub-basar och fullrange högtalarpaket — Line Array Large täcker upp till 4 000 personer. Komplettera med mixerbord och mikrofoner nedan."
+    intro="Hyr liveljud för konsert, trubadur och liveband i Stockholm. Från ett par toppar till trubaduren upp till line array från dB Technologies med 18″ sub-basar — Live XXL täcker 1 500 personer. Komplettera med mixerbord och mikrofoner nedan."
     breadcrumbs={[
       { label: "Hem", href: "/" },
       { label: "Hyra ljud", href: "/vara-tjanster/hyra-ljud/" },
@@ -79,7 +83,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
     chips={[
       { html: `Från <span class="sk-price-excl">${_heroFranExcl.toLocaleString('sv')}&nbsp;kr</span><span class="sk-price-incl hidden">${_heroFranInkl.toLocaleString('sv')}&nbsp;kr</span> / dygn` },
       "Sub-basar & line array",
-      "20–4 000 personer",
+      "20–1 500 personer",
       "Leverans i Storstockholm",
       "Sedan 1986",
     ]}
@@ -88,7 +92,7 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   <!-- PAKET -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {_ljudData.live.products.map((p: any) => (
+      {_liveProdukter.map((p: any) => (
         <ProductCard
           artno={p.artno}
           name={p.name}
@@ -110,12 +114,12 @@ const _heroFranInkl = Math.round(_heroFranExcl * 1.25);
   </section>
 
   <!-- LINE ARRAY -->
-  {(_ljudData.live.lineArray?.length ?? 0) > 0 && (
+  {_lineArray.length > 0 && (
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <h2 class="sk-h2s mb-2">Line Array</h2>
     <p class="text-gray-400 mb-8 text-sm">Professionella RCF line array-system för stora konserter, festivaler och arena-event. Kräver lyfttorn eller rigg — pris offereras enligt konfiguration och montering.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {_ljudData.live.lineArray.map((p: any) => (
+      {_lineArray.map((p: any) => (
         <ProductCard
           artno={p.artno}
           name={p.name}

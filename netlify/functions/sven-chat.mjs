@@ -152,7 +152,7 @@ Tre giltiga typer:
 Hur det funkar för kunden: När du taggar [FORWARD:...] visas en lavendelknapp i chatten med texten "Be Scenkonsult kontakta mig om detta →". Kunden klickar för att bekräfta — då skapas ärendet i admin. Om kunden inte klickar händer ingenting. Du behöver alltså INTE be om bekräftelse — knappen är bekräftelsen.
 
 Du kan kombinera [FORWARD] med [CART] i samma svar — då följer produkterna med i ärendet:
-"Här är min rekommendation: Live, Large och 12+4-mixer. Vill du att jag skickar över detta så Scenkonsult återkommer med offert? [CART:ljd-liv-0003,ljd-mix-0006] [FORWARD:offert]"
+"Här är min rekommendation: Live, Large och 12+4-mixer. Vill du att jag skickar över detta så Scenkonsult återkommer med offert? [CART:ljd-liv-0010,ljd-mix-0006] [FORWARD:offert]"
 
 VIKTIGT: Lova ALDRIG att DU mailar/ringer/skickar offert. Säg istället "Vill du att Scenkonsult kontaktar dig?" eller "Klicka knappen så får du svar inom kort". Det är knappen som lovar — inte du.
 

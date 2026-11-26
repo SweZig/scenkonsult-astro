@@ -61,7 +61,7 @@ function hitta(node, artno, ut = []) {
   }
   return ut;
 }
-check('Live XL (SK-LJD-MUS-0008)', hitta(ljud, 'SK-LJD-MUS-0008')[0]?.forceLeverans, 'lastbil');
+check('Live XXL (SK-LJD-LIV-0013)', hitta(ljud, 'SK-LJD-LIV-0013')[0]?.forceLeverans, 'lastbil');
 check('LED-vägg på tross, paneler', hitta(bild, 'SK-BLD-LED-TR-PNL')[0]?.forceLeverans, 'lastbil');
 const tross = hitta(bild, 'SK-BLD-0013')[0];
 check('LED-vägg på tross, leveransrad', tross?.linkedServices?.find((s) => s.kind === 'leverans')?.artno, tjanster.leverans.lastbil.artno);
