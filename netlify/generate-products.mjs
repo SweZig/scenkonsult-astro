@@ -368,7 +368,7 @@ svenFacts.push('');
 // FRAKT & LEVERANS — alla fordon dynamiskt från tjanster.json.leverans (samma mönster som quote-catalog)
 svenFacts.push('═══ FRAKT & LEVERANS ═══');
 svenFacts.push('Vi kör ut och hämtar upp utrustningen. Pris avser tur & retur (enkelresa = halva, kund hämtar/lämnar själv). Transport ingår ALDRIG i hyrespriset — det tillkommer alltid. Priser gäller inom Storstockholm; längre transporter offereras separat.');
-svenFacts.push('Rätt fordon väljs automatiskt utifrån hur mycket och hur skrymmande varukorgen är: vanlig bil, stor bil eller lätt lastbil. Scen: plattformar 1×1 m 1–4 st vanlig bil, 5+ stor bil; plattformar 1×2 m 1–8 st stor bil, 9+ lätt lastbil. LED-vägg, line array och Live XL går alltid med lätt lastbil. Släpvagn är ingen standard — nämn den inte. Fordonsalternativ (pris tur & retur / enkelresa, exkl. moms):');
+svenFacts.push('Rätt fordon väljs automatiskt utifrån hur mycket och hur skrymmande varukorgen är: vanlig bil, stor bil eller lätt lastbil. Scen: plattformar 1×1 m 1–4 st vanlig bil, 5+ stor bil; plattformar 1×2 m 1–8 st stor bil, 9+ lätt lastbil. LED-vägg och Live XXL går alltid med lätt lastbil; Live Large, Large+ och XL räknas som skrymmande (stor bil). Släpvagn är ingen standard — nämn den inte. Fordonsalternativ (pris tur & retur / enkelresa, exkl. moms):');
 Object.entries(tjanster.leverans || {})
   .filter(([k,v]) => !_LEV_META.has(k) && v && typeof v === 'object' && v.pris && !v.undantag && !v.ersattAv)
   .forEach(([k,v]) => {
