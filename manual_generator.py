@@ -396,6 +396,22 @@ def render_block(block) -> List:
 # =============================================================================
 # BUILD
 # =============================================================================
+def telefontid() -> str:
+    """Telefontiden ur src/data/site.json (company.phoneHours), t.ex. 'mån–fre 09–17'.
+    Skriv aldrig tiderna för hand här — de ändras i site.json."""
+    import json, os, re
+    dagar = {"Mo": "mån", "Tu": "tis", "We": "ons", "Th": "tor", "Fr": "fre", "Sa": "lör", "Su": "sön"}
+    site = os.path.join(os.path.dirname(os.path.abspath(__file__)), "src", "data", "site.json")
+    with open(site, encoding="utf-8") as f:
+        raw = json.load(f)["company"]["phoneHours"]
+    m = re.match(r"(\w\w)-(\w\w) (\d\d):(\d\d)-(\d\d):(\d\d)", raw)
+    if not m:
+        raise ValueError(f"Okänt format på phoneHours: {raw!r}")
+    d1, d2, h1, m1, h2, m2 = m.groups()
+    tid = lambda h, mi: h if mi == "00" else f"{h}.{mi}"
+    return f"{dagar[d1]}–{dagar[d2]} {tid(h1, m1)}–{tid(h2, m2)}"
+
+
 def build_manual(p: ProductManual, output_dir: str = "/mnt/user-data/outputs") -> str:
     out_path = f"{output_dir}/{p.artno}.pdf"
     doc = BaseDocTemplate(
@@ -469,8 +485,8 @@ def build_manual(p: ProductManual, output_dir: str = "/mnt/user-data/outputs") -
     if not p.blocks or not isinstance(p.blocks[-1], InfoBox):
         s.append(Spacer(1, 6 * mm))
         s.append(render_info_box("Behöver du hjälp?", [
-            "Ring oss på <b>072-448 10 00</b> (mån–sön 08:00–20:00) eller "
-            "maila <b>info@scenkonsult.se</b>.",
+            f"Ring oss på <b>072-448 10 00</b> ({telefontid()}; kvällar och helger "
+            "jour för pågående uthyrning) eller maila <b>info@scenkonsult.se</b>.",
             "Fler guider och tekniska tips finns på "
             "<b>scenkonsult.se/for/guider/</b>.",
         ], style="navy"))
@@ -2340,6 +2356,321 @@ SK_LJS_EFF_0025 = ProductManual(
 # SK-LJS-PAK-0020 respektive SK-LJS-PAK-0018. De gamla numren tillhör
 # Laser RGB och Moving Head Wash i effektkatalogen och får inte återanvändas.
 
+# =============================================================================
+# DVA MINI G2 + DVA S1518N — gemensamma tabeller (Live Large–XXL, 2026-11-26)
+# Källa: dBTechnologies produktsidor, DVA MINI G2 Quick Start Rev 1.0 och
+# DVA S1518N/S2585N-manualen Rev 4.0. Quick Start kopplar inte varje läge på
+# presetratten till ett nummer — manualen beskriver bara de tre områdena.
+# =============================================================================
+DVA_MINI_PANEL = DataTable(
+    headers=["DVA MINI G2 — baksidan", "Funktion"],
+    rows=[
+        ["INPUT / LINK (XLR)",  "Balanserad ingång och länkutgång — kedja signalen vidare till nästa modul"],
+        ["DSP PRESET",          "Presetratt: front fill, upp till 6 moduler, fler än 6 moduler (HF1/HF2/HF3)"],
+        ["RDNet DATA IN / OUT", "Nätverksstyrning via Aurora Net — används inte vid vanlig drift"],
+        ["USB",                 "Endast för firmware"],
+        ["Statuslampor",        "Ready/ON, Signal, Limiter, RDNet Link/Active, Remote Preset Active"],
+        ["MAINS IN / LINK",     "powerCON TRUE1 in och ut — ström kedjas vidare till nästa modul"],
+        ["MAINS FUSE",          "Nätsäkring"],
+    ],
+    col_widths=[45 * mm, None],
+    tight=True,
+)
+
+DVA_SUB_PANEL = DataTable(
+    headers=["DVA S1518N — baksidan", "Funktion"],
+    rows=[
+        ["INPUT (XLR)",        "Balanserad linjeingång från mixern"],
+        ["LINK (XLR)",         "Parallellkopplad med INPUT — signalen vidare till topparna"],
+        ["XOVER OUT (XLR)",    "Utgång från sub-basens interna delningsfilter"],
+        ["INPUT SENS",         "Ingångskänslighet — påverkar inte LINK-utgången"],
+        ["XOVER FREQUENCY",    "Delningsfrekvens 75–120 Hz i steg om 5 Hz"],
+        ["PHASE",              "Vänder fasen 180°"],
+        ["DELAY",              "Fördröjning 0–4,5 ms för att linjera sub-basen mot topparna"],
+        ["MAINS INPUT / LINK", "powerCON blå (in) och grå (vidare)"],
+    ],
+    col_widths=[45 * mm, None],
+    tight=True,
+)
+
+DVA_LAMPOR = DataTable(
+    headers=["Lampa", "Betyder"],
+    rows=[
+        ["READY / ON (grön)",    "Strömmen är rätt ansluten. Släckt eller blinkande — se felsökningen"],
+        ["SIGNAL (grön)",        "Signal på ingången (över −20 dBu)"],
+        ["LIMITER (röd)",        "Limitern tar i. Sänk volymen — kör aldrig med den tänd länge"],
+        ["MUTE/PROT (gul, sub)", "Ska vara släckt. Tänd eller blinkande = skyddsläge, se felsökningen"],
+        ["REMOTE PRESET ACTIVE", "Styrs via nätverk — rattarna på panelen är då låsta"],
+    ],
+    col_widths=[50 * mm, None],
+    tight=True,
+)
+
+DVA_PRESET = DataTable(
+    headers=["Område på presetratten", "När"],
+    rows=[
+        ["FRONT FILL",            "Enstaka modul som fyller ut närmast scenen — används inte i våra paket"],
+        ["Upp till 6 moduler",    "Live Large, Large+ och XL (2–4 moduler per sida)"],
+        ["Fler än 6 moduler",     "Live XXL (8 moduler per sida)"],
+        ["HF1 / HF2 / HF3",       "Diskantkorrigering för kort, medel respektive långt avstånd till publiken"],
+        ["SERVICE / USER",        "Senast sparade inställning från Aurora Net — välj inte utan att ha fått besked av oss"],
+    ],
+    col_widths=[50 * mm, None],
+    tight=True,
+)
+
+DVA_FELSOKNING = DataTable(
+    headers=["Problem", "Åtgärd"],
+    rows=[
+        ["Inget ljud alls",
+         "Lyser READY på alla enheter? Kontrollera nätkablarna och att SIGNAL tänds när "
+         "mixern spelar. Följ sedan signalkedjan: mixer → sub INPUT → sub LINK → modul 1 → modul 2."],
+        ["Ljud från sub men inte från topparna",
+         "Kabeln från sub-basens <b>LINK</b> till första modulens INPUT saknas eller sitter i fel uttag."],
+        ["En modul i arrayen är tyst",
+         "Länkkabeln (signal eller ström) till just den modulen är lös. Kontrollera READY och SIGNAL på den."],
+        ["LIMITER lyser ofta",
+         "Systemet går på max. Sänk mastern på mixern — distorsion skadar högtalarna."],
+        ["Bas och toppar låter urfasade / tunt i mitten",
+         "Någon har vridit <b>PHASE</b> eller <b>DELAY</b> på en sub-bas. Båda sub-basarna ska stå likadant — ring oss."],
+        ["Rattarna på panelen gör ingenting",
+         "<b>REMOTE PRESET ACTIVE</b> lyser — enheten styrs via nätverk. Koppla bort RDNet-kabeln eller ring oss."],
+        ["MUTE/PROT lyser på sub-basen",
+         "Bryt strömmen, vänta en minut och slå på igen. Kvarstår det — sluta använda enheten och ring oss."],
+        ["Säkringen går",
+         "Byt aldrig själv till en starkare säkring. Kontakta oss."],
+    ],
+    col_widths=[50 * mm, None],
+    tight=True,
+)
+
+DVA_SPECS_GEMENSAMT = [
+    ("Topp",            "dB Technologies DVA MINI G2 — aktiv 2-vägs line array, 2×6,5″ + 2×0,75″, 400 W RMS, max 131 dB, 15°×100° (H×V), 8,4 kg"),
+    ("Sub-bas",         "dB Technologies DVA S1518N — aktiv bandpass 18″, 1 500 W RMS, max 138 dB, 39–120 Hz, 46 kg"),
+]
+
+
+# =============================================================================
+# SK-LJD-LIV-0010 — Live, Large (gäller även Large+ LIV-0011 och XL LIV-0012)
+# =============================================================================
+SK_LJD_LIV_0010 = ProductManual(
+    artno="SK-LJD-LIV-0010",
+    name="Live, Large",
+    subtitle="Line array DVA MINI G2 på distansstång över DVA S1518N — gäller Large, Large+ och XL",
+    description=[
+        "Paketet är ett <b>line array-system från dB Technologies</b>: på varje sida står en "
+        "18″ sub-bas <b>DVA S1518N</b>, och ovanpå den en vevbar distansstång med en kort "
+        "array av <b>DVA MINI G2</b>-moduler. Alla enheter är aktiva — de har egen förstärkare "
+        "och egen nätkabel. Du kopplar in mixerns vänster- och högerutgång, så är systemet igång.",
+        "Samma manual gäller tre paket som bara skiljer sig i hur många moduler som sitter "
+        "på varje stång: <b>Live, Large</b> (SK-LJD-LIV-0010) har 2 per sida, <b>Live, Large+</b> "
+        "(SK-LJD-LIV-0011) 3 per sida och <b>Live, XL</b> (SK-LJD-LIV-0012) 4 per sida. "
+        "Mixer och mikrofoner hyrs separat.",
+    ],
+    specs=DVA_SPECS_GEMENSAMT + [
+        ("Uppsättning",     "Large 2×2 moduler · Large+ 2×3 · XL 2×4 — alla med 2 sub-basar"),
+        ("Effekt",          "Large 4 600 W · Large+ 5 400 W · XL 6 200 W RMS"),
+        ("Ström",           "230 V · powerCON — en nätkabel per sub-bas och per array"),
+        ("Ingår i paketet", "Sub-basar, moduler, distansstänger med vev och adapter, signal- och nätkablar, bruksanvisning"),
+    ],
+    toc=[
+        ("1", "Säkerhet",                          "sida 2"),
+        ("2", "Ställa upp systemet",               "sida 2"),
+        ("3", "Koppla in signal och ström",        "sida 3"),
+        ("4", "Panelerna och presetratten",        "sida 4"),
+        ("5", "Felsökning",                        "sida 5"),
+    ],
+    safety_box=InfoBox("Innan du ställer upp", [
+        "Sub-basen väger <b>46 kg</b> — lyft den alltid två. Ställ den på <b>plant och fast "
+        "underlag</b>, och bygg aldrig på fler moduler på stången än vad som ingår i ditt paket. "
+        "Veva upp arrayen först när allt är kopplat och låst, och veva ner den vid kraftig vind. "
+        "Utomhus: skydda utrustningen mot regn."
+    ], style="warning"),
+    blocks=[
+        H2("1. Säkerhet"),
+        UL([
+            "Sub-basen väger 46 kg och har handtag på sidorna — <b>bär den två</b>. "
+            "Använd aldrig handtagen för att hänga upp den.",
+            "Ställ sub-basarna på <b>plant, fast underlag</b>, aldrig på scenkanten eller på en "
+            "ojämn gräsyta utan underlägg. Stången ska stå lodrätt.",
+            "Bygg <b>aldrig fler moduler</b> på stången än vad som ingår i paketet, och ställ "
+            "aldrig något annat ovanpå modulerna.",
+            "Placera högtalarna så att ingen kan välta dem — inte i gångstråk, och tejpa eller "
+            "täck kablar som korsar golvet.",
+            "Anslut till <b>jordade uttag</b>. Täck aldrig sub-basens kylflänsar på baksidan.",
+            "Utomhus: undvik platser som är utsatta för regn. Regnskydd finns att hyra.",
+            "Stå inte nära högtalarna på hög volym — hörselskador uppstår snabbt.",
+        ]),
+        Space(2),
+        H2("2. Ställa upp systemet"),
+        Steps([
+            ("Placera sub-basarna",
+             "En på varje sida om scenen, framför eller i linje med scenkanten, med fronten mot "
+             "publiken. Ju längre fram, desto mindre rundgång i mikrofonerna."),
+            ("Sätt i distansstången",
+             "Distansstången går i sub-basens stångfäste (M20) på ovansidan. Skruva i den ordentligt "
+             "och kontrollera att den sitter fast innan du går vidare."),
+            ("Sätt arrayen på stången",
+             "Modulerna levereras ihopkopplade med adapter för stången. Lyft arrayen på plats och "
+             "lås den. Vinklarna mellan modulerna är inställda vid leverans — ändra dem inte."),
+            ("Rikta",
+             "Vrid arrayen så att den pekar mot mitten av publiken. Arrayen ska sitta ovanför "
+             "huvudhöjd så att ljudet går över de främre raderna."),
+            ("Veva upp",
+             "Koppla in alla kablar <b>innan</b> du vevar upp (avsnitt 3). Veva sedan upp till "
+             "önskad höjd och lås stången. Vid kraftig vind — veva ner."),
+        ]),
+        Break(),
+
+        H2("3. Koppla in signal och ström"),
+        H3("Signal — samma på båda sidor"),
+        Steps([
+            ("Mixern till sub-basen",
+             "Mixerns vänsterutgång till vänster sub-bas <b>INPUT</b>, högerutgång till höger sub-bas."),
+            ("Sub-basen till arrayen",
+             "Från sub-basens <b>LINK</b> till den översta eller nedersta modulens INPUT."),
+            ("Mellan modulerna",
+             "Från varje moduls link-utgång till nästa moduls INPUT, tills alla moduler i arrayen är kopplade."),
+        ]),
+        H3("Ström"),
+        UL([
+            "Varje sub-bas har egen nätkabel (blå powerCON).",
+            "Modulerna kedjas: nätkabel till första modulen, sedan <b>MAINS LINK</b> till nästa. "
+            "Enligt tillverkaren får högst <b>1 + 9 moduler</b> kedjas så vid 230 V — "
+            "våra paket ligger långt under.",
+            "Systemet drar mycket ström på hög volym. Fördela gärna vänster och höger sida på "
+            "<b>olika säkringsgrupper</b>.",
+        ]),
+        H3("Påslagning och avstängning"),
+        Steps([
+            ("Slå på",
+             "Mixern först, med mastern nere. Sedan högtalarna. Kontrollera att <b>READY</b> lyser "
+             "på alla enheter, och höj volymen långsamt."),
+            ("Stäng av",
+             "Högtalarna först, mixern sist. Då slipper du smällen i högtalarna."),
+        ]),
+        InfoBox("Låt rattarna vara", [
+            "Delningsfrekvens, delay och fas på sub-basarna och presetratten på modulerna är "
+            "inställda för just ditt paket när systemet levereras. Ändra ljudet med mixern — "
+            "inte på högtalarna.",
+        ]),
+        Break(),
+
+        H2("4. Panelerna och presetratten"),
+        DVA_MINI_PANEL,
+        Space(3),
+        DVA_SUB_PANEL,
+        Space(3),
+        H3("Statuslampor"),
+        DVA_LAMPOR,
+        Space(3),
+        H3("Presetratten på modulerna"),
+        P("Presetratten väljer modulernas diskant efter hur lång arrayen är och hur långt bort "
+          "publiken står. Alla moduler i samma array ska stå på samma läge."),
+        DVA_PRESET,
+        Break(),
+
+        H2("5. Felsökning"),
+        DVA_FELSOKNING,
+    ],
+)
+
+
+# =============================================================================
+# SK-LJD-LIV-0013 — Live, XXL (hängd array, 4 sub-basar)
+# =============================================================================
+SK_LJD_LIV_0013 = ProductManual(
+    artno="SK-LJD-LIV-0013",
+    name="Live, XXL",
+    subtitle="Hängd line array — 2 × 8 DVA MINI G2 och 4 × DVA S1518N",
+    description=[
+        "Paketet är vårt största <b>line array-system från dB Technologies</b>: två arrayer med "
+        "<b>åtta DVA MINI G2</b> per sida som hängs i lyfttorn eller rigg, och <b>fyra 18″ "
+        "DVA S1518N</b> sub-basar i två stackar om två. Alla enheter är aktiva, med egen "
+        "förstärkare och egen nätkabel.",
+        "<b>Lyfttorn eller rigg tillkommer.</b> Hängning, vinkling och stackning av sub-basarna "
+        "görs av våra tekniker eller annan behörig riggare — inte av kunden. Den här manualen "
+        "beskriver hur systemet kopplas och används när det står på plats.",
+    ],
+    specs=DVA_SPECS_GEMENSAMT + [
+        ("Uppsättning",     "2 × 8 moduler hängda med flygbygel · 4 sub-basar i stackar om 2"),
+        ("Effekt",          "12 400 W RMS"),
+        ("Ström",           "230 V · powerCON — en nätkabel per sub-bas och per array"),
+        ("Kräver",          "Lyfttorn (t.ex. SK-LJD-STV-0001, max last 200 kg) eller rigg — tillkommer"),
+        ("Ingår i paketet", "Sub-basar, moduler, flygbyglar, signal- och nätkablar, bruksanvisning"),
+    ],
+    toc=[
+        ("1", "Säkerhet",                          "sida 2"),
+        ("2", "Koppla in signal och ström",        "sida 2"),
+        ("3", "Panelerna och presetratten",        "sida 3"),
+        ("4", "Felsökning",                        "sida 4"),
+    ],
+    safety_box=InfoBox("Hängd last", [
+        "Varje array väger cirka <b>70 kg</b> plus flygbygel. Riggning görs bara av behörig "
+        "personal. Ingen får stå under arrayen när den hissas, och lyfttorn eller rigg får "
+        "<b>aldrig</b> justeras eller flyttas med last. Sub-basarna står stackade med fästanordning — "
+        "flytta dem inte."
+    ], style="warning"),
+    blocks=[
+        H2("1. Säkerhet"),
+        UL([
+            "Arrayerna <b>hängs, vinklas och tas ner av våra tekniker</b> eller annan behörig "
+            "riggare. Rör inte flygbygel, sprintar eller lyfttorn.",
+            "Ingen får stå eller gå under en array som hissas eller sänks.",
+            "Avspärra lyfttornens fötter så att ingen kan stöta i dem. Veva aldrig lyfttornet "
+            "med last utan att ha fått klartecken av tekniker.",
+            "Sub-basarna står i stackar om två med fästanordning. Lyft eller flytta dem inte — "
+            "varje sub-bas väger 46 kg.",
+            "Anslut till <b>jordade uttag</b>. Täck aldrig sub-basarnas kylflänsar.",
+            "Utomhus: vid kraftig vind ska arrayerna sänkas. Kontakta oss om vädret slår om.",
+            "Stå inte nära högtalarna på hög volym — hörselskador uppstår snabbt.",
+        ]),
+        Space(2),
+        H2("2. Koppla in signal och ström"),
+        P("Systemet levereras kopplat. Det du behöver göra är att ansluta mixern och slå på."),
+        Steps([
+            ("Mixern",
+             "Mixerns vänster- och högerutgång till de märkta signalkablarna vid vänster och höger "
+             "sub-stack (sub-basens <b>INPUT</b>)."),
+            ("Kedjan",
+             "Signalen går från den första sub-basens <b>LINK</b> vidare till nästa sub-bas och upp "
+             "till arrayen, och från modul till modul. Den är kopplad vid leveransen — rör den inte."),
+            ("Slå på",
+             "Mixern först, med mastern nere. Sedan högtalarna. Kontrollera att <b>READY</b> lyser "
+             "på alla sub-basar, och höj volymen långsamt."),
+            ("Stäng av",
+             "Högtalarna först, mixern sist."),
+        ]),
+        UL([
+            "Modulerna i varje array kedjas med <b>MAINS LINK</b> — tillverkaren tillåter högst "
+            "1 + 9 moduler per kedja vid 230 V, så en array om åtta får plats i en kedja.",
+            "Fördela vänster och höger sida på <b>olika säkringsgrupper</b>. Systemet drar mycket ström på hög volym.",
+        ]),
+        InfoBox("Låt rattarna vara", [
+            "Presetratten på modulerna står i området <b>fler än 6 moduler</b>. Delningsfrekvens, "
+            "delay och fas på sub-basarna är inställda vid leverans. Ändra ljudet med mixern — "
+            "inte på högtalarna.",
+        ]),
+        Break(),
+
+        H2("3. Panelerna och presetratten"),
+        DVA_MINI_PANEL,
+        Space(3),
+        DVA_SUB_PANEL,
+        Space(3),
+        H3("Statuslampor"),
+        DVA_LAMPOR,
+        Space(3),
+        H3("Presetratten på modulerna"),
+        DVA_PRESET,
+        Break(),
+
+        H2("4. Felsökning"),
+        DVA_FELSOKNING,
+    ],
+)
+
+
 PRODUCTS = [
     SK_LJS_PAK_0018,
     SK_LJS_PAK_0020,
@@ -2348,6 +2679,8 @@ PRODUCTS = [
     SK_LJS_DMX_0019,
     SK_LJS_EFF_0025,
     SK_LJS_DMX_0011,
+    SK_LJD_LIV_0010,
+    SK_LJD_LIV_0013,
 ]
 
 
