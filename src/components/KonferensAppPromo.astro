@@ -1,0 +1,49 @@
+---
+/**
+ * Ruta som lyfter Scenkonsult Konferens (vårt körverktyg för konferenser)
+ * och länkar till /vara-tjanster/konferens-av/scenkonsult-konferens/.
+ * En källa för texten på bildhubben, projektorsidan, konferenssidorna och
+ * guiderna. Appen ingår bara när vår tekniker kör eventet — skriv aldrig
+ * att den kan hyras eller köras av kunden.
+ *
+ * `iGuide` tar bort den yttre sektionen, för GuideLayouts textspalt.
+ */
+interface Props {
+  rubrik?: string;
+  text?: string;
+  iGuide?: boolean;
+}
+const {
+  rubrik = 'Talaren tittar upp, inte ner i en laptop',
+  text = 'Scenkonsult Konferens är vårt eget körverktyg: talaren får en scenskärm med bilden publiken ser, nästa bild, manus och en stor nedräkning. Hela dagens program ligger i appen, och mellan talarna visas er logga medan musiken tar över. Ingår när vår tekniker kör er konferens.',
+  iGuide = false,
+} = Astro.props;
+const href = '/vara-tjanster/konferens-av/scenkonsult-konferens/';
+---
+<section class:list={['kap-yttre', { 'kap-guide': iGuide }]}>
+  <div class="kap" data-helkort>
+    <div class="kap-bild">
+      <img src="/images/konferens-app/konferensapp_scenskarm-640w.webp" alt="Scenskärmen i Scenkonsult Konferens med aktuell bild, nästa bild, talarmanus och nedräkning" width="640" height="360" loading="lazy" decoding="async" />
+    </div>
+    <div class="kap-text">
+      <span class="kap-tag">Scenkonsult Konferens</span>
+      <h2>{rubrik}</h2>
+      <p>{text}</p>
+      <a href={href} class="sk-knapp sk-knapp-p" data-helkort-lank>Så fungerar det</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .kap-yttre { max-width: 80rem; margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2rem) clamp(3rem, 6vw, 4.5rem); }
+  .kap-guide { max-width: none; padding: 0; margin: 0 0 3rem; }
+  .kap { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); align-items: center; gap: clamp(1.25rem, 3vw, 2.5rem); border-radius: 22px; background: #1e1850; border: 1px solid rgba(196,181,244,0.25); padding: clamp(1.25rem, 3vw, 2rem); cursor: pointer; }
+  .kap-bild img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+  .kap-text { display: flex; flex-direction: column; align-items: flex-start; }
+  .kap-tag { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.5rem; border-radius: 6px; background: #c4b5f4; color: #0c0a24; }
+  .kap h2 { margin: 0.9rem 0 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(1.5rem, 2.6vw, 2.1rem); color: #fff; line-height: 1.1; }
+  .kap p { margin: 0.75rem 0 1.4rem; font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.72); }
+  .kap-guide .kap { grid-template-columns: minmax(0, 1fr); }
+  .kap-guide h2 { font-size: clamp(1.4rem, 2.2vw, 1.75rem); }
+  @media (max-width: 800px) { .kap { grid-template-columns: minmax(0, 1fr); } }
+</style>

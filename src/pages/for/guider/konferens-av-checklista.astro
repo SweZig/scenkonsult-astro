@@ -1,9 +1,11 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import GuideLayout from '../../../components/GuideLayout.astro';
+import KonferensAppPromo from '../../../components/KonferensAppPromo.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import ljudData from '../../../data/ljud.json';
 import bildData from '../../../data/bild.json';
+import tjansterData from '../../../data/tjanster.json';
 
 const mik  = ([...(ljudData.mikrofoner as any[]), ...(ljudData.tillbehor_mikrofon as any[]), ...(ljudData.tillbehor_ljud as any[])]);
 const port = (ljudData.portable.products as any[]);
@@ -12,6 +14,7 @@ const bild = bildData.products as any[];
 const mp = (artno: string) => mik.find(p => p.artno === artno)?.price ?? 0;
 const lp = (artno: string) => port.find(p => p.artno === artno)?.price ?? 0;
 const bp = (artno: string) => bild.find(p => p.artno === artno)?.price ?? 0;
+const tek = (tjansterData as any).services.find((s: any) => s.artno === 'SK-TJN-0002');
 
 const portMed   = port.find(p => p.artno === 'SK-LJD-POR-0003');
 const portMedP  = port.find(p => p.artno === 'SK-LJD-POR-0004');
@@ -26,13 +29,14 @@ const faqSchema = {
   "@type": "FAQPage",
   "mainEntity": [
     { "@type": "Question", "name": "Vilken teknik behöver man till en konferens?", "acceptedAnswer": { "@type": "Answer", "text": `Grundpaketet för de flesta konferenser: PA-system (${lp('SK-LJD-POR-0003')} kr/dygn), trådlöst headset (${mp('SK-LJD-MIK-0023')} kr/dygn) och projektor eller skärm för presentationer (från ${bp('SK-BLD-0014')} kr/dygn). Lägg till extra mikrofoner vid panelsamtal.` } },
-    { "@type": "Question", "name": "Behöver man tekniker på konferensen?", "acceptedAnswer": { "@type": "Answer", "text": "Nej — vår utrustning är byggd för enkel självinstallation och vi går igenom allt vid avhämtning. Vill ni ha tekniker på plats (rekommenderat vid hybrid-sändning eller komplexare AV-upplägg) erbjuder vi det som tillägg." } },
+    { "@type": "Question", "name": "Behöver man tekniker på konferensen?", "acceptedAnswer": { "@type": "Answer", "text": `Inte för ett enkelt möte — vår utrustning är byggd för självinstallation och vi går igenom allt vid avhämtning. Med flera talare, filmer och ett tight schema gör en tekniker stor skillnad. Då ingår vårt eget verktyg Scenkonsult Konferens: talaren får en scenskärm med nästa bild, manus och nedräkning, och mellan talarna visas er logga. Tekniker är ett tillägg (${tek.price} kr/tim, minst 2 timmar).` } },
+    { "@type": "Question", "name": "Hur håller man tidsschemat på en konferens med många talare?", "acceptedAnswer": { "@type": "Answer", "text": "Ge talaren en klocka att se. En nedräkning på en scenskärm framför talaren, som skiftar färg när tiden börjar ta slut, fungerar mycket bättre än en lapp från första raden. Lägg in hela programmet med tider i förväg och låt en tekniker ladda nästa punkt. I Scenkonsult Konferens, som ingår när vår tekniker kör dagen, kan teknikern också skicka diskreta meddelanden som ”5 minuter kvar” direkt till scenskärmen." } },
     { "@type": "Question", "name": "Hur långt i förväg ska man boka AV-utrustning till konferens?", "acceptedAnswer": { "@type": "Answer", "text": "För vanliga konferenser räcker 1–2 veckors framförhållning. Under högsäsong (september–november och mars–maj) rekommenderar vi 3–4 veckor. Kontakta oss gärna tidigt för att säkra rätt utrustning." } },
     { "@type": "Question", "name": "Kan man hyra AV-utrustning till hybridmöten?", "acceptedAnswer": { "@type": "Answer", "text": "Ja — vi har utrustning för hybridkonferenser: PA-system, kamera-in på skärm, mikrofoner med god upptagning för deltagare både i rum och online. Kontakta oss för rådgivning om specifikt upplägg." } }
   ]
 };
 const pageBreadcrumbs = [{ label: 'Hem', href: '/' }, { label: 'Guider', href: '/for/guider/' }, { label: 'Konferens AV checklista' }];
-const pageArticle = { headline: "Konferens AV Checklista 2026 — Teknik, Priser & Tips", datePublished: "2025-01-01", dateModified: "2026-06-15" };
+const pageArticle = { headline: "Konferens AV Checklista 2026 — Teknik, Priser & Tips", datePublished: "2025-01-01", dateModified: "2026-11-26" };
 ---
 <Layout article={pageArticle} breadcrumbs={pageBreadcrumbs}
   title="Konferens AV Checklista 2026 — Teknik, Priser & Tips | Scenkonsult"
@@ -76,6 +80,7 @@ const pageArticle = { headline: "Konferens AV Checklista 2026 — Teknik, Priser
             { text: "Projektor eller skärm för presentationsbilder", must: true },
             { text: "HDMI-kabel från laptop till projektor/skärm", must: true },
             { text: "Extra HDMI-adapter (USB-C, Mini DisplayPort)", must: false },
+            { text: "Scenskärm framför talaren — bild, nästa bild, manus och klocka", must: false },
             { text: "Extra skärm/monitor för spegelbild om lokalen är stor", must: false },
             { text: "Klicker/presenter för att byta slides trådlöst", must: false },
           ]
@@ -95,6 +100,8 @@ const pageArticle = { headline: "Konferens AV Checklista 2026 — Teknik, Priser
             { text: "Kontrollera antal tillgängliga eluttag i lokalen", must: true },
             { text: "Förlängningskablar och grenuttag", must: true },
             { text: "Boka teknikerhjälp om AV-upplägget är komplext", must: false },
+            { text: "Program med tider per punkt — och vem som byter presentation", must: true },
+            { text: "Logga eller bakgrundsbild att visa mellan talarna", must: false },
             { text: "Soundcheck 30–45 min innan deltagarna anländer", must: true },
           ]
         },
@@ -113,6 +120,9 @@ const pageArticle = { headline: "Konferens AV Checklista 2026 — Teknik, Priser
       ))}
       <p style="color:rgba(255,255,255,0.60);font-size:0.8rem;margin-top:0.5rem;">✓ = Kritiskt &nbsp;&nbsp; ○ = Bra att ha</p>
     </section>
+
+    <!-- Scenkonsult Konferens -->
+    <KonferensAppPromo iGuide rubrik="Många talare? Låt oss köra dagen" text="Med tekniker på plats ingår Scenkonsult Konferens, vårt eget körverktyg. Hela programmet ligger i appen, talaren får en scenskärm med bilden, nästa bild, manus och en nedräkning som blir gul och röd, och mellan talarna visas er logga medan musiken tar över." />
 
     <!-- Storleksguide -->
     <section style="margin-bottom:3rem;">
@@ -196,6 +206,7 @@ const pageArticle = { headline: "Konferens AV Checklista 2026 — Teknik, Priser
   <div class="gl-rel">
     <p class="gl-rel-rubrik">Relaterade guider</p>
     <div class="gl-rel-lista">
+      <a href="/vara-tjanster/konferens-av/scenkonsult-konferens/" class="gl-chip">Scenkonsult Konferens</a>
       <a href="/for/guider/hyra-tradlos-mikrofon/" class="gl-chip">Hyra trådlös mikrofon</a>
       <a href="/for/guider/hyra-pa-system/" class="gl-chip">Hyra PA-system</a>
       <a href="/for/guider/hyra-projektor-pris/" class="gl-chip">Hyra projektor — pris</a>
